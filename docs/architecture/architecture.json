@@ -2,22 +2,43 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "5af0451c7d259ed345218e97baffa03a5a95dc58",
-    "commitShort": "5af0451c",
+    "commit": "b1ec458022ff851846c9f092e8093df617a4054a",
+    "commitShort": "b1ec4580",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-10-22T16:19:20Z",
-    "sourceHash": "sha256:00c64421d322a8f3f8a77fbc6bc9956d2d3ae78e4b0e75e5cf2a2bb5924a4612",
+    "branch": "fix/ledger-refresh-after-trade",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "??",
+        "path": "apps/mobile/lib/money/ledgerCache.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/usePortfolioLedger.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/useTradeSubmit.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/tests-deno/ledger-cache.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      }
+    ],
+    "timestamp": "2026-10-30T18:23:45Z",
+    "sourceHash": "sha256:bb6ce629c2589bdd66e770d46f915eda4f9f3f37ad0a71182c2bb97dfa306961",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-10-22T01:22:49Z",
-    "ageHours": 14.9,
-    "ageDays": 0.6,
+    "ageHours": 209,
+    "ageDays": 8.7,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:d6107036938ffaf8a53341cfe733b6e3cdd021617f5b5f94ca31e3ea518feb9b",
@@ -20194,21 +20215,6 @@
     {
       "annotation": null,
       "verified": true,
-      "id": "e.ui.matchup->pg.get_portfolio_ledger",
-      "from": "ui.matchup",
-      "to": "pg.get_portfolio_ledger",
-      "protocol": "postgrest-rpc",
-      "payload": "rpc('get_portfolio_ledger')",
-      "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:96"
-      ],
-      "via": [
-        "useRosterData"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
       "id": "e.ui.matchup->tbl.categories",
       "from": "ui.matchup",
       "to": "tbl.categories",
@@ -20281,21 +20287,6 @@
     {
       "annotation": null,
       "verified": true,
-      "id": "e.ui.money.PlayerPortfolioScreen->pg.get_portfolio_ledger",
-      "from": "ui.money.PlayerPortfolioScreen",
-      "to": "pg.get_portfolio_ledger",
-      "protocol": "postgrest-rpc",
-      "payload": "rpc('get_portfolio_ledger')",
-      "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112"
-      ],
-      "via": [
-        "useRosterData"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
       "id": "e.ui.money.PlayerPortfolioScreen->tbl.categories",
       "from": "ui.money.PlayerPortfolioScreen",
       "to": "tbl.categories",
@@ -20360,21 +20351,6 @@
       ],
       "callSites": [
         "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112"
-      ],
-      "via": [
-        "useRosterData"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.ui.money.PortfolioScreen->pg.get_portfolio_ledger",
-      "from": "ui.money.PortfolioScreen",
-      "to": "pg.get_portfolio_ledger",
-      "protocol": "postgrest-rpc",
-      "payload": "rpc('get_portfolio_ledger')",
-      "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
       ],
       "via": [
         "useRosterData"
@@ -20498,7 +20474,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_portfolio_ledger')",
       "callSites": [
-        "apps/mobile/lib/money/usePortfolioLedger.ts:41"
+        "apps/mobile/lib/money/usePortfolioLedger.ts:22"
       ]
     },
     {
@@ -20546,7 +20522,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('record-trade')",
       "callSites": [
-        "apps/mobile/lib/money/useTradeSubmit.ts:34"
+        "apps/mobile/lib/money/useTradeSubmit.ts:35"
       ],
       "via": [
         "callRecordTrade"
@@ -23229,14 +23205,6 @@
       },
       {
         "surface": "client",
-        "name": "loadPortfolioLedger",
-        "file": "apps/mobile/lib/money/usePortfolioLedger.ts",
-        "line": 22,
-        "kind": "seam-stub",
-        "detail": "rpc:get_portfolio_ledger"
-      },
-      {
-        "surface": "client",
         "name": "loadSlots",
         "file": "apps/mobile/lib/game/useRosterData.ts",
         "line": 44,
@@ -23305,7 +23273,7 @@
         "file": "apps/mobile/lib/game/useRosterData.ts",
         "line": 103,
         "kind": "seam-stub",
-        "detail": "rpc:get_portfolio_ledger, league_draft_slots.select, drafts.select, trades.select, categories.select"
+        "detail": "league_draft_slots.select, drafts.select, trades.select, categories.select"
       }
     ],
     "inferred": [
@@ -23391,7 +23359,7 @@
   "orphanAnnotations": [],
   "stats": {
     "nodes": 309,
-    "edges": 761,
+    "edges": 758,
     "flows": 7,
     "drift": 33,
     "driftHigh": 0,
@@ -23447,7 +23415,7 @@
       "apps/mobile/lib/money/useStockChartData.ts:46 -> historical-bars",
       "apps/mobile/lib/money/useStockSheetData.ts:139 -> ticker-quotes",
       "apps/mobile/lib/money/useStockSheetData.ts:155 -> symbol-name",
-      "apps/mobile/lib/money/useTradeSubmit.ts:34 -> record-trade (via callRecordTrade)",
+      "apps/mobile/lib/money/useTradeSubmit.ts:35 -> record-trade (via callRecordTrade)",
       "apps/mobile/lib/useStockNames.ts:13 -> symbol-name",
       "apps/mobile/lib/useStockPrices.ts:32 -> ticker-quotes",
       "apps/mobile/lib/useSymbolSearch.ts:85 -> symbols-search",
@@ -23469,15 +23437,12 @@
     ],
     "rpcs": [
       "apps/mobile/app/(tabs)/league.tsx:146 -> renew_league (via seamRpc)",
-      "apps/mobile/app/(tabs)/matchup.tsx:96 -> get_portfolio_ledger (via useRosterData)",
       "apps/mobile/components/game/QueueEditor.tsx:43 -> set_draft_queue (via seamRpc)",
       "apps/mobile/components/game/RenewalAsk.tsx:97 -> respond_to_renewal (via seamRpc)",
       "apps/mobile/components/game/RenewalReview.tsx:61 -> start_renewed_season (via seamRpc)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> nudge_renewal (via seamRpc, inferred)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> remove_renewal_invitee (via seamRpc, inferred)",
       "apps/mobile/components/home/RunItBackCard.tsx:22 -> renew_league (via seamRpc)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> get_portfolio_ledger (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> get_portfolio_ledger (via useRosterData)",
       "apps/mobile/lib/LeagueContext.tsx:177 -> get_home_summary",
       "apps/mobile/lib/LeagueContext.tsx:182 -> market_session_status",
       "apps/mobile/lib/account/accountApi.ts:56 -> create_takeover_invite (via seamRpc)",
@@ -23500,7 +23465,7 @@
       "apps/mobile/lib/home/usePreDraftData.ts:111 -> get_league_display_names (via seamRpc)",
       "apps/mobile/lib/home/useSeasonResult.ts:8 -> get_season_result",
       "apps/mobile/lib/home/useSeasonResult.ts:97 -> get_season_result",
-      "apps/mobile/lib/money/usePortfolioLedger.ts:41 -> get_portfolio_ledger",
+      "apps/mobile/lib/money/usePortfolioLedger.ts:22 -> get_portfolio_ledger",
       "apps/mobile/lib/shell/usernameApi.ts:30 -> check_usernames",
       "apps/mobile/lib/shell/usernameApi.ts:49 -> set_username",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:154 -> deleted_manager_label",
@@ -23835,7 +23800,6 @@
     "wrappers": [
       "call forwarder:rpc supabase/functions/_shared/account-deletion-db.ts",
       "callRecordTrade seam-stub apps/mobile/lib/money/recordTrade.ts",
-      "loadPortfolioLedger seam-stub apps/mobile/lib/money/usePortfolioLedger.ts",
       "loadSlots seam-stub apps/mobile/lib/game/useRosterData.ts",
       "seamInsertLeague seam-stub apps/mobile/lib/game/seamCalls.ts",
       "seamInsertMember seam-stub apps/mobile/lib/game/seamCalls.ts",
