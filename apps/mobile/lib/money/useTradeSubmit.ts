@@ -7,6 +7,7 @@
 import { useCallback, useReducer, useRef } from 'react';
 
 import { callRecordTrade, type TradeBody } from './recordTrade';
+import { invalidatePortfolioLedger } from './usePortfolioLedger';
 import { initialReview, reviewReducer, type ReviewState } from './reviewMachine';
 import type { RecordTradeOutcome } from './recordTradeOutcome';
 
@@ -32,6 +33,9 @@ export function useTradeSubmit(): TradeSubmit {
     dispatch({ type: 'SUBMIT' });
     try {
       const outcome = await callRecordTrade(body);
+      // A fill changed the league's ledger; a refusal means ours was wrong ("You don't hold KB anymore"):
+      // either way every screen reloads it. Build 1.3.0 (5) never did, so a sale stayed invisible.
+      if (outcome.kind === 'ok' || outcome.kind === 'refused') invalidatePortfolioLedger(body.league_id);
       dispatch({ type: 'OUTCOME', outcome });
       return outcome;
     } finally {
