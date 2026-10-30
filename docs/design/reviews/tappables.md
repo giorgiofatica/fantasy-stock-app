@@ -20,10 +20,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/(tabs)/league.tsx:218` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
 | `app/(tabs)/league.tsx:223` | LoadFailed | onRetry | `retry` | fn retry |  |
 | `app/(tabs)/league.tsx:233` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:273` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/league.tsx:461` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:528` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:539` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:276` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:464` | Button | onPress | `auto.reread` | prop auto.reread |  |
+| `app/(tabs)/league.tsx:531` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:542` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
 | `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/(tabs)/matchup.tsx:294` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |

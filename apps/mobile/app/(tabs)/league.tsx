@@ -264,8 +264,11 @@ export default function LeagueScreen() {
                 playoffLine={playoffLine(activeLeague?.playoff_teams)}
               />
             )}
-            {/* Item 13: League settings (Leave league: locked in mid-season, hide after it), leave flow on only. */}
-            {ready && LEAVE_LEAGUE_ON && activeLeagueId && showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id, true) ? (
+            {/* Item 13: League settings in season. The commissioner always (Members, Find a new manager, Transfer,
+                the invite code); every member with the leave flow on (Leave league: locked in mid-season, hide after it).
+                Never gate the doorway itself on the leave flag: build 1.3.0 (5) shipped with the flag unset and no one
+                could reach League settings in season (Giorgio's phone pass, 2026-10-30). */}
+            {ready && activeLeagueId && showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id, LEAVE_LEAGUE_ON) ? (
               <SetupCard>
                 <SettingRow
                   label="League settings"

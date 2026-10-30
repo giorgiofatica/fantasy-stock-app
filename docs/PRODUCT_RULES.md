@@ -610,6 +610,11 @@ building anything, and don't reopen a rule without him.
     the league for that player; history is kept.
   - When someone leaves before the draft, the commissioner must reconfirm: "move forward
     with 1 less" or "invite someone new to replace".
+- **Leave league is ON in 1.3** (2026-10-30, Giorgio, during the 1.3.0 (5) phone pass, relayed by the
+  Orchestrator): build 5 shipped with the switch unset, so no one could leave and League settings was
+  unreachable in season. Every member gets League settings (and Leave league inside it) in the real builds;
+  the commissioner ALWAYS gets League settings, in season too (Members, Find a new manager, Transfer, the
+  invite code), whatever the switch says.
 - **The leave sheets keep "Stay" as a button** (2026-10-06, Giorgio overruled the Design
   Lead's G-3): "I want stay as a button." "Leave league" stays the red button.
 - **Share hides while teams are locked** (2026-10-13; Giorgio picked B (board #call-share-locked),
