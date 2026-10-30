@@ -15,7 +15,8 @@
       "environment": "preview",
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://haiaaifjcclsvmkfqgmd.supabase.co",
-        "EXPO_PUBLIC_RUN_IT_BACK": "1"
+        "EXPO_PUBLIC_RUN_IT_BACK": "1",
+        "EXPO_PUBLIC_LEAVE_LEAGUE": "1"
       }
     },
     "production": {
@@ -24,7 +25,8 @@
       "environment": "production",
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://haiaaifjcclsvmkfqgmd.supabase.co",
-        "EXPO_PUBLIC_RUN_IT_BACK": "1"
+        "EXPO_PUBLIC_RUN_IT_BACK": "1",
+        "EXPO_PUBLIC_LEAVE_LEAGUE": "1"
       }
     }
   },

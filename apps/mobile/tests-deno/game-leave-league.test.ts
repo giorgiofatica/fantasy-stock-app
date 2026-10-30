@@ -221,11 +221,14 @@ Deno.test('League settings: the real row, the sheets, a member view, the Commiss
   assertEquals(hook.includes("call({ league_id: leagueId, action: 'transfer', new_commissioner_id: newCommissionerId })"), true);
 });
 
-Deno.test('reachable: the League tab shows League settings to members with the flag on, pre-draft and in season (source guard)', () => {
+Deno.test('reachable: the League tab shows League settings to the commissioner always and to members with the flag on, pre-draft and in season (source guard)', () => {
   const tab = SOURCES['app/(tabs)/league.tsx'];
-  assertEquals(tab.includes('showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id, LEAVE_LEAGUE_ON)'), true);
+  // Both doorways (pre-draft and in season) use the same rule: commissioner always, members with the flag on.
+  assertEquals(tab.split('showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id, LEAVE_LEAGUE_ON)').length - 1, 2);
   // W4: the in-season row waits for the standings read, as it did inside the old `ready` block.
-  assertEquals(tab.includes('{ready && LEAVE_LEAGUE_ON && activeLeagueId && showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id, true) ? ('), true);
+  assertEquals(tab.includes('{ready && activeLeagueId && showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id, LEAVE_LEAGUE_ON) ? ('), true);
+  // The 1.3.0 (5) bug: the doorway itself must never hang on the leave flag (the commissioner lost Members/takeovers).
+  assertEquals(tab.includes('LEAVE_LEAGUE_ON && activeLeagueId &&'), false);
   // The draft room's commissioner check keeps its commissioner-only meaning.
   assertEquals(tab.includes('isCommissioner={showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id)}'), true);
 });
