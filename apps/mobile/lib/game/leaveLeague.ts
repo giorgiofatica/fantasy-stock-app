@@ -98,6 +98,23 @@ export function transferAllowed(window: LeaveWindow): boolean {
   return window === 'before_draft' || window === 'after_season';
 }
 
+/** The commissioner's Commissioner row while the title can't change hands (Design Lead, 2026-11-01). NEW copy (for
+ * Giorgio's copy summary). The same caption style as the Leave row's lock line. */
+export const COMMISSIONER_HANDOVER_LINE = 'You can hand over the commissioner role before the draft or after the season.'; // NEW
+
+export interface CommissionerRowView {
+  /** Opens the hand-over sheet (a chevron, press feedback). */
+  pressable: boolean;
+  sub: string | null;
+}
+
+/** The commissioner's own Commissioner row. Before the draft and after the season it opens the hand-over sheet; in the
+ * locked window it is static (no chevron, no press feedback) and says when the role can change hands, so it is never a
+ * dead control (1.3.0 (7): tapped in season, nothing happened). */
+export function commissionerRowView(window: LeaveWindow): CommissionerRowView {
+  return transferAllowed(window) ? { pressable: true, sub: null } : { pressable: false, sub: COMMISSIONER_HANDOVER_LINE };
+}
+
 export interface LeaveSheetCopy {
   title: string;
   bullets: string[];

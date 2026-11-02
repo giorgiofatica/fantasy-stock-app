@@ -32,6 +32,7 @@ import {
 import { AutoStartBlockers } from '@/components/game/AutoStartBlockers';
 import { FirstTimeTip } from '@/components/shell/FirstTimeTip';
 import { DraftDateSheet } from '@/components/game/DraftDateSheet';
+import { InviteCodeText } from '@/components/game/InviteCodeText';
 import { PICK_A_TIME_HOME, SET_DRAFT_TIME, homeNoDateBlock, homeSetsDraftTime } from '@/lib/game/draftTimeSheet';
 import {
   pickClockLine, BUILD_YOUR_QUEUE, GO_TO_DRAFT_ROOM, PRE_DRAFT_TAG,
@@ -276,15 +277,18 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
           ) : null}
         </View>
         <View style={[styles.codeRow, { backgroundColor: colors.sunken }]}>
-          <View>
+          <View style={styles.codeTexts}>
             <Text variant="caption" tone="secondary">
               {INVITE_CODE_LABEL}
             </Text>
-            <Text variant="callout" style={styles.code}>
-              {inviteCode}
-            </Text>
+            {/* One token, one line (Design Lead, 2026-11-01): never a lone "d" on its own line. */}
+            <InviteCodeText variant="callout" style={styles.code} code={inviteCode} />
           </View>
-          {shareShown ? <Button label="Share" onPress={onShare} variant="secondary" size="sm" /> : null}
+          {shareShown ? (
+            <View style={styles.codeShare}>
+              <Button label="Share" onPress={onShare} variant="secondary" size="sm" />
+            </View>
+          ) : null}
         </View>
       </Card>
 
@@ -390,13 +394,26 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderStyle: 'dashed',
   },
+  // Wraps like League settings' invite row: at XXXL Share drops under the code instead of squeezing it.
   codeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: space[3],
     borderRadius: radius.md,
     paddingHorizontal: space[4],
     paddingVertical: space[3],
+  },
+  // maxWidth: the code never runs past the row, so it fits itself to one line (InviteCodeText).
+  codeTexts: {
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: 'auto',
+    maxWidth: '100%',
+  },
+  codeShare: {
+    marginLeft: 'auto',
   },
   code: {
     fontVariant: ['tabular-nums'],

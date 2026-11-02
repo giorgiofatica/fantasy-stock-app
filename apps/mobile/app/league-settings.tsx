@@ -25,12 +25,13 @@ import {
 import { seamSaveLeagueSlots, seamUpdateLeague } from '@/lib/game/seamCalls';
 import { settingsSaveOutcome } from '@/lib/game/settingsSave';
 import {
-  COMMISSIONER_ROW, COMMISSIONER_YOU, leaveLeagueEnabled, leaveRowView, leaveSheetCopy, leaveWindow, transferAllowed, transferCandidates, type LeaveWindow,
+  COMMISSIONER_ROW, COMMISSIONER_YOU, commissionerRowView, leaveLeagueEnabled, leaveRowView, leaveSheetCopy, leaveWindow, transferCandidates, type LeaveWindow,
   transferUnknownLine,
 } from '@/lib/game/leaveLeague';
 import { useLeaveLeague } from '@/lib/game/useLeaveLeague';
 import { COMMISSIONER_FALLBACK } from '@/lib/game/autoStart';
 import { LeaveLeagueRow, LeaveLeagueSheet, TransferCommissionerSheet } from '@/components/game/LeaveLeagueSheets';
+import { InviteCodeText } from '@/components/game/InviteCodeText';
 import { DEFAULT_PICK_SECONDS, PICK_SECONDS_OPTIONS, pickClockLocked, pickSecondsCaption } from '@/lib/game/createLeagueSetup';
 import { leagueNameError, stepWithin } from '@/lib/game/createLeagueSteps';
 import { PRICE_TIERS_NEED_A_SLOT, rosterSlotsCaption } from '@/lib/game/slotBuilderCopy';
@@ -131,6 +132,7 @@ export default function LeagueSettingsScreen() {
   const leaveOn = LEAVE_LEAGUE_ON && !!league;
   const leaving = useLeaveLeague(league?.id ?? null, leaveOn, user?.id ?? '', league?.name ?? '');
   const membershipWindow = leaveWindow({ seasonStatus: league?.season_status, draftStatus: league?.draft_status, draftDate: league?.draft_date }, Date.now());
+  const commissionerRow = commissionerRowView(membershipWindow);
   const commissionerName = leaving.names.find((n) => n.user_id === league?.commissioner_id)?.display_name?.trim() || COMMISSIONER_FALLBACK;
   // Account deletion (W4): League › Members after the draft, with the commissioner's "Find a new manager" on a deleted seat.
   const deletedLabel = useDeletedManagerLabel();
@@ -539,11 +541,13 @@ export default function LeagueSettingsScreen() {
           {leaveOn ? (
             <>
               <RowDivider />
-              {/* Q4 = A: transfer first, from the Commissioner row (only when the title can change hands). */}
+              {/* Q4 = A: transfer first, from the Commissioner row (only when the title can change hands). Otherwise the
+                  row is static and its line says when (Design Lead, 2026-11-01): never a dead control. */}
               <SettingRow
                 label={COMMISSIONER_ROW}
                 value={COMMISSIONER_YOU}
-                onPress={transferAllowed(membershipWindow) ? () => {
+                sub={commissionerRow.sub ?? undefined}
+                onPress={commissionerRow.pressable ? () => {
                   setLeaveError(null);
                   setTransferOpen(true);
                 } : undefined}
@@ -582,8 +586,8 @@ function InviteRow({ code, window }: { code: string; window: LeaveWindow }) {
     <View style={styles.inviteRow}>
       <View style={styles.inviteTexts}>
         <Text variant="callout" style={styles.key}>Invite code</Text>
-        {/* §9C: the accent means live / your turn / selected; the code is plain text. */}
-        <Text variant="callout" style={[styles.bold, styles.tabular]}>{code}</Text>
+        {/* §9C: the accent means live / your turn / selected; the code is plain text. One token, one line. */}
+        <InviteCodeText variant="callout" style={[styles.bold, styles.tabular]} code={code} />
       </View>
       {inviteShareShown(window) ? (
         <View style={styles.inviteShare}>
@@ -622,10 +626,12 @@ const styles = StyleSheet.create({
     paddingVertical: space[3],
     minHeight: 44,
   },
+  // maxWidth: the code column never runs past the card, so the code fits itself to one line (InviteCodeText).
   inviteTexts: {
     flexGrow: 1,
     flexShrink: 0,
     flexBasis: 'auto',
+    maxWidth: '100%',
   },
   inviteShare: {
     marginLeft: 'auto',

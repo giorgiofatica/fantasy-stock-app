@@ -376,7 +376,7 @@ Deno.test("Share hides while teams are locked (Giorgio, 2026-10-13, B, #call-sha
   // The code itself is always drawn; only the pill is conditional.
   const row = SOURCES['app/league-settings.tsx'].slice(SOURCES['app/league-settings.tsx'].indexOf('function InviteRow('));
   assert(row.indexOf('>Invite code</Text>') < row.indexOf('{inviteShareShown(window) ? ('));
-  assert(row.includes('<Text variant="callout" style={[styles.bold, styles.tabular]}>{code}</Text>'));
+  assert(row.includes('<InviteCodeText variant="callout" style={[styles.bold, styles.tabular]} code={code} />'));
 });
 
 Deno.test("Season 2's roster loading shows the skeleton, never an empty body (right after Run it back)", () => {

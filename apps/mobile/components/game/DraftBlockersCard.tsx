@@ -7,6 +7,7 @@ import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { Stepper } from '@/components/game/Stepper';
+import { InviteCodeText } from '@/components/game/InviteCodeText';
 import {
   INVITE_SOMEONE_NEW,
   PICK_NEW_TIME,
@@ -87,7 +88,7 @@ export function DraftBlockersCard({
       return (
         <View style={styles.invite}>
           <Text variant="caption" tone="secondary">Invite code</Text>
-          <Text variant="headline" selectable>{inviteCode}</Text>
+          <InviteCodeText variant="headline" selectable code={inviteCode} />
           {onShareInvite ? <Button label="Share invite code" variant="secondary" size="sm" onPress={onShareInvite} /> : null}
         </View>
       );
