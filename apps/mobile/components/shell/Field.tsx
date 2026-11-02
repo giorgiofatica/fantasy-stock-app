@@ -63,8 +63,9 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
 ) {
   const { colors } = useTheme();
   // Keyed by the scale while unfocused, frozen while focused (remeasureKey.ts): an unfocused filled
-  // field otherwise keeps its old-size text in a grown box after a Dynamic Type change.
-  const remount = useInputRemountKey(autoFocus);
+  // field otherwise keeps its old-size text in a grown box after a Dynamic Type change. Not a
+  // credential field (lib/inputRemount.ts): remounting a password or its email raises iOS's "Save Password?" sheet.
+  const remount = useInputRemountKey(autoFocus, input);
   const focused = remount.focused;
   const inError = !!error || invalid;
   const emphasised = inError || focused || chosen;

@@ -29,8 +29,10 @@
 // key it took focus with (a remount would drop the keyboard), and on blur it takes the current
 // key, so a size change made while typing settles at blur with one remount. The fields are
 // controlled, so the value survives; a remounted field must not re-run `autoFocus`
-// (remountAutoFocus), or a size change would raise the keyboard on its own. Turning the native
-// flag on would cover all of this, but that needs native code and a new build.
+// (remountAutoFocus), or a size change would raise the keyboard on its own. A credential host (a
+// password or its email) is never remounted at all (lib/inputRemount.ts: iOS would offer to save
+// a half-typed password).
+// Turning the native flag on would cover all of this, but that needs native code and a new build.
 
 /** The key for a Text drawn at `fontScale`: equal for equal scales, different for different
  * ones. A non-finite scale gets one fixed key. */
@@ -42,6 +44,13 @@ export function fontScaleKey(fontScale: number): string {
  * the keyboard stays up), the current scale's key while it is not. */
 export function inputRemountKey(focused: boolean, keyAtFocus: string, currentKey: string): string {
   return focused ? keyAtFocus : currentKey;
+}
+
+/** The key a TextInput host takes: the scale-driven key (inputRemountKey) when the host may be
+ * remounted, the key it mounted with, forever, when it may not (a credential host,
+ * lib/inputRemount.ts). */
+export function inputHostKey(remounts: boolean, keyAtMount: string, scaledKey: string): string {
+  return remounts ? scaledKey : keyAtMount;
 }
 
 /** The `autoFocus` a TextInput host gets: the caller's, on its first mount only. A host remounted
