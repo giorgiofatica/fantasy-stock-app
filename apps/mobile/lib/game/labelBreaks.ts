@@ -35,6 +35,16 @@ export function nextBrokeAt(brokeAt: number | null, fontScale: number, signal: L
   return broke ? fontScale : brokeAt;
 }
 
+/**
+ * Where a stacked row's sub-line goes (Design Lead gate, AX5, 2026-11-02): a stacked row reads label, then VALUE, then the
+ * sub-line. With the sub inside the label's block, "You" landed six lines below "Commissioner", right after "...after the
+ * season.", and read as part of the caption. Only a STACKED row with a sub-line moves it; a row laid out beside (every size
+ * where the label fits) keeps its sub under its label, so nothing moves there.
+ */
+export function subAfterValue(stacked: boolean, sub: string | undefined): boolean {
+  return stacked && !!sub;
+}
+
 /** Stacked only for the text size at which the label broke; a different size starts over beside. */
 export function isStacked(brokeAt: number | null, fontScale: number): boolean {
   return brokeAt === fontScale;

@@ -7,7 +7,7 @@ import { Card } from '@/components/sp/Card';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
-import { isStacked, nextBrokeAt } from '@/lib/game/labelBreaks';
+import { isStacked, nextBrokeAt, subAfterValue } from '@/lib/game/labelBreaks';
 
 // 3c-2 — the row vocabulary of the board's setup frames (DraftSettingsScreen,
 // RibReview: a card of `ks-rows`, each a callout-weight key, a muted value and
@@ -94,6 +94,13 @@ export function SettingRow({ label, value, sub, valueColor, onPress, disabled = 
   // right alignment it always had, which is the same pixel (left-aligned, it sits up to a pixel off the box's edge).
   const [valueLines, setValueLines] = useState(1);
   const chevron = <Icon name="chevronRight" size="callout" tone="text2" />;
+  // Stacked with a sub-line: label, then the value, then the sub on its own full-width line (labelBreaks.subAfterValue).
+  const subLast = subAfterValue(stack, sub);
+  const subText = sub ? (
+    <Text variant="caption" tone="secondary" style={subLast ? styles.subLast : undefined}>
+      {sub}
+    </Text>
+  ) : null;
   const valueText = value ? (
     <Text
       variant="callout"
@@ -111,11 +118,7 @@ export function SettingRow({ label, value, sub, valueColor, onPress, disabled = 
         <RowKey maxScale={maxScale} onTextLayout={onPress || sub ? onLabelLayout : undefined}>
           {label}
         </RowKey>
-        {sub ? (
-          <Text variant="caption" tone="secondary">
-            {sub}
-          </Text>
-        ) : null}
+        {subLast ? null : subText}
       </View>
       {onPress && value && stack ? (
         // The chevron stays with its value once stacked: the pair wraps together, never a chevron alone on a line.
@@ -129,6 +132,7 @@ export function SettingRow({ label, value, sub, valueColor, onPress, disabled = 
           {onPress ? stack ? <View style={styles.trailing}>{chevron}</View> : chevron : null}
         </>
       )}
+      {subLast ? subText : null}
     </View>
   );
   if (!onPress) return body;
@@ -293,6 +297,10 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     flexBasis: 'auto',
     gap: space[1],
+  },
+  // A stacked row's sub-line: its own full-width line, after the value.
+  subLast: {
+    flexBasis: '100%',
   },
   // A control after the label (a chevron on its own, a switch): the right edge of whichever line it lands on.
   trailing: {

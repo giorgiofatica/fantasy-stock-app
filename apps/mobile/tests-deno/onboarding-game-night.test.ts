@@ -179,7 +179,8 @@ Deno.test('Share (any surface): before the draft only; hidden from T−1h, mid-s
 
 Deno.test('Home\'s pre-draft invite row shows Share under inviteShareShownFor, with the one Share message (source)', () => {
   const s = src('components/home/PreDraftCard.tsx');
-  assert(s.includes('{shareShown ? <Button label="Share" onPress={onShare} variant="secondary" size="sm" /> : null}'));
+  assert(s.includes('{shareShown ? ('));
+  assert(s.includes('<Button label="Share" onPress={onShare} variant="secondary" size="sm" />'));
   assert(s.includes('const shareShown = inviteShareShownFor('));
   assert(s.includes('message: inviteShareMessage(inviteCode)'));
   assert(!s.includes('Join my Stockpile league'), 'no product name in the share text (the name is going)');
@@ -287,7 +288,7 @@ Deno.test('the blockers card shows "Share invite code" only under the one rule; 
   assert(src('components/game/AutoStartBlockers.tsx').includes('onShareInvite={f.shareShown ? f.shareInvite : null}'));
   const card = src('components/game/DraftBlockersCard.tsx');
   assert(card.includes('{onShareInvite ? <Button label="Share invite code"'));
-  assert(card.includes('<Text variant="headline" selectable>{inviteCode}</Text>'));
+  assert(card.includes('<InviteCodeText variant="headline" selectable code={inviteCode} />'));
   assert(src('lib/game/useDraftAutoStart.ts').includes('const shareShown = inviteShareShownFor('));
 });
 

@@ -24,7 +24,7 @@ import { activeLeagueNow, activeLeagueOnContinue, completeInviteJoin, runInviteP
 import { pendingInvite } from '@/lib/invite/pendingInviteStore';
 import { JOIN_FIXTURE } from '@/lib/join/devFixture';
 import { CAPTURE } from '@/lib/shell/captureDev';
-import { keepDots, keepDotsIn, keepMoney } from '@/lib/game/keepDots';
+import { keepCode, keepDots, keepDotsIn, keepMoney } from '@/lib/game/keepDots';
 import { pushAskRouteFor } from '@/lib/shell/pushAsk';
 import {
   FIXTURE_NETWORK_MS, fixtureJoinResponse, fixturePrefill, fixturePreviewResponse,
@@ -464,7 +464,7 @@ export default function JoinLeagueScreen() {
       <AuthScaffold back={{ label: 'Invite code', onPress: () => backToCode(false) }}>
         <View style={styles.previewHead}>
           <Text variant="caption" tone="secondary">
-            {`Invite code ${trimmed.toUpperCase()}`}
+            {`Invite code ${keepCode(trimmed.toUpperCase())}`}
           </Text>
           <ScreenTitle>{view.name}</ScreenTitle>
         </View>

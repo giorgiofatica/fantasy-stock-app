@@ -10,7 +10,7 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { radius, space } from '@/constants/tokens';
 import { supabase } from '@/lib/supabase';
 import { seamRpc } from '@/lib/game/seamCalls';
-import { keepMoney } from '@/lib/game/keepDots';
+import { keepCodeIn, keepMoney } from '@/lib/game/keepDots';
 import { teamsLine, canSchedule, buildRenewalSettings, scheduleLine, DRAFT_ROW_UNSET } from '@/lib/game/renewalReview';
 import { byeNoticeCopy } from '@/lib/game/draftLobby';
 import { playoffLine } from '@/lib/playoffs';
@@ -75,7 +75,7 @@ export function RenewalReview({ leagueId, inviteCode, counts, repliesPending, se
       <Text variant="callout" tone="secondary">Everything carries over from Season 1. Change anything before the draft.</Text>
       <Card style={styles.card}>
         <Row label="Who's in" value={`${counts.in} back · ${counts.new} new`} />
-        <Row label="Teams" value={teams.value} sub={teams.sub} />
+        <Row label="Teams" value={teams.value} sub={keepCodeIn(teams.sub, inviteCode)} />
         <Row label="Draft" value={draftDate ? new Date(draftDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : DRAFT_ROW_UNSET} onPress={() => setEditingDate((v) => !v)} />
         {editingDate ? (
           <DateTimePicker

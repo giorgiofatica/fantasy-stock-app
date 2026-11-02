@@ -65,3 +65,19 @@ export function keepMoney(text: string): string {
     return Array.from(amount).join(WORD_JOINER) + (unit ? unit.replace(/^( (?:a|per)) /, `$1${NBSP}`) : '');
   });
 }
+
+/**
+ * keepCode (Design Lead ruling 2026-11-01; at XXXL "ASC-0fc85d9d" wrapped a lone "d" onto its own line): an invite code is
+ * ONE token. A word joiner goes between every glyph, its hyphen included, so no line can end inside it. Display only: the
+ * code the person copies, shares or hears (Share's message, every accessibilityLabel, the join field) stays plain. A code
+ * on its own line also fits itself to one line (components/game/InviteCodeText.tsx); `keepCodeIn` is for a code inside a
+ * sentence, where the sentence's own words still wrap around it.
+ */
+export function keepCode(code: string): string {
+  return Array.from(code).join(WORD_JOINER);
+}
+
+/** keepCode for the code inside a longer line ("More can join with SCUD26 until the draft."). */
+export function keepCodeIn(sentence: string, code: string): string {
+  return code && sentence.includes(code) ? sentence.replace(code, () => keepCode(code)) : sentence;
+}

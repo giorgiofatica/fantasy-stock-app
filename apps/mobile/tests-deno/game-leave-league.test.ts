@@ -209,7 +209,7 @@ Deno.test('League settings: the real row, the sheets, a member view, the Commiss
   const s = SOURCES['app/league-settings.tsx'];
   assertEquals(s.includes('view={leaveRowView(membershipWindow, isCommissioner, league.draft_date)}'), true);
   assertEquals(s.includes('if (league && !isCommissioner && leaveOn) {'), true);
-  assertEquals(s.includes("onPress={transferAllowed(membershipWindow) ? () => {"), true);
+  assertEquals(s.includes("onPress={commissionerRow.pressable ? () => {"), true); // commissionerRowView = transferAllowed + the in-season caption
   assertEquals(s.includes("router.replace('/(tabs)');"), true);
   assertEquals(s.includes('accessibilityState={{ disabled: true }}'), false); // the placement-only row is gone
   const hook = SOURCES['lib/game/useLeaveLeague.ts'];
