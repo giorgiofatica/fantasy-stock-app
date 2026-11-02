@@ -283,7 +283,7 @@ Deno.test('SettingRow and SwitchRow: the stacked layout (wrap, a label that neve
   assert(src.includes('{broke ? <View style={styles.trailing}>{sw}</View> : sw}'));
   assert(src.includes('{onPress ? stack ? <View style={styles.trailing}>{chevron}</View> : chevron : null}'));
   assert(src.includes('<View style={broke ? styles.growWrap : styles.grow} onLayout={onLayout}>'));
-  assert(src.includes('const { broke, onTextLayout, onLayout } = useLabelBreaks();'));
+  assert(src.includes('const { broke, onTextLayout, onLayout, remountKey } = useLabelBreaks();'));
   // SettingRow: always stacked when static without a help line; otherwise only once the label breaks
   assert(src.includes('const stack = (!onPress && !sub) || broke;'));
   assert(src.includes('<View style={stack ? styles.growWrap : styles.grow} onLayout={onPress || sub ? onLabelBox : undefined}>'));

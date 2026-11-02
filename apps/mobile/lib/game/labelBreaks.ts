@@ -49,3 +49,18 @@ export function subAfterValue(stacked: boolean, sub: string | undefined): boolea
 export function isStacked(brokeAt: number | null, fontScale: number): boolean {
   return brokeAt === fontScale;
 }
+
+/**
+ * A stacked row's value, measured: how many lines it ran to, and at which text size (fontScale). A value that runs to
+ * several lines reads left-aligned; one line keeps its right alignment. Like the label's latch, the count belongs to the
+ * size it was measured at: after a live Dynamic Type change React Native keeps the old count until something re-measures,
+ * so a count from another size reads as one line (the default) until the row reports again.
+ */
+export interface MeasuredLines {
+  fontScale: number;
+  lines: number;
+}
+
+export function valueLinesAt(measured: MeasuredLines, fontScale: number): number {
+  return measured.fontScale === fontScale ? measured.lines : 1;
+}

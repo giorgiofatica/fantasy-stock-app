@@ -7,7 +7,8 @@ import { Card } from '@/components/sp/Card';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
-import { isStacked, nextBrokeAt, subAfterValue } from '@/lib/game/labelBreaks';
+import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
+import { isStacked, nextBrokeAt, subAfterValue, valueLinesAt } from '@/lib/game/labelBreaks';
 
 // 3c-2 — the row vocabulary of the board's setup frames (DraftSettingsScreen,
 // RibReview: a card of `ks-rows`, each a callout-weight key, a muted value and
@@ -63,7 +64,10 @@ function useLabelBreaks() {
     },
     [fontScale],
   );
-  return { broke: isStacked(brokeAt, fontScale), onTextLayout, onLayout };
+  // A text-size change must also re-lay the row's CONTAINERS: remounting only its Texts (the sp Text key) leaves the
+  // wrapper Views' flex layout from the old size, so a value squeezed beside a wide label column stays wrapped at the
+  // smaller size ("Sat, Oct 3 · / 7:00 PM ET" after AX5 -> L). Keying the row's root by the scale starts it over.
+  return { broke: isStacked(brokeAt, fontScale), onTextLayout, onLayout, fontScale, remountKey: fontScaleKey(fontScale) };
 }
 
 export interface SettingRowProps {
@@ -88,11 +92,13 @@ export function SettingRow({ label, value, sub, valueColor, onPress, disabled = 
   // Every other row (a chevron, or a help line, whose width is not the label's) keeps its one-line layout until its label
   // breaks inside a word, then stacks: the value and the chevron drop under the label (the label-no-midword round: a row
   // with a chevron broke "Commissioner" into "Commis / sioner" and lost "Draft time").
-  const { broke, onTextLayout: onLabelLayout, onLayout: onLabelBox } = useLabelBreaks();
+  const { broke, onTextLayout: onLabelLayout, onLayout: onLabelBox, fontScale, remountKey } = useLabelBreaks();
   const stack = (!onPress && !sub) || broke;
   // A value that runs to several lines reads LEFT (beside the label or stacked under it); a one-line value keeps the
   // right alignment it always had, which is the same pixel (left-aligned, it sits up to a pixel off the box's edge).
-  const [valueLines, setValueLines] = useState(1);
+  // Stored with the size it was measured at and read only at that size (valueLinesAt), like the label's latch.
+  const [measuredLines, setMeasuredLines] = useState<{ fontScale: number; lines: number }>({ fontScale, lines: 1 });
+  const valueLines = valueLinesAt(measuredLines, fontScale);
   const chevron = <Icon name="chevronRight" size="callout" tone="text2" />;
   // Stacked with a sub-line: label, then the value, then the sub on its own full-width line (labelBreaks.subAfterValue).
   const subLast = subAfterValue(stack, sub);
@@ -107,13 +113,20 @@ export function SettingRow({ label, value, sub, valueColor, onPress, disabled = 
       tone="secondary"
       color={valueColor}
       style={stack && valueLines > 1 ? [styles.value, styles.valueMulti] : styles.value}
-      onTextLayout={stack ? (e) => setValueLines(e.nativeEvent.lines.length) : undefined}
+      onTextLayout={
+        stack
+          ? (e) => {
+              const lines = e.nativeEvent.lines.length;
+              setMeasuredLines({ fontScale, lines });
+            }
+          : undefined
+      }
     >
       {value}
     </Text>
   ) : null;
   const body = (
-    <View style={[styles.settingRow, stack && styles.settingRowWrap, disabled && styles.dim]}>
+    <View key={remountKey} style={[styles.settingRow, stack && styles.settingRowWrap, disabled && styles.dim]}>
       <View style={stack ? styles.growWrap : styles.grow} onLayout={onPress || sub ? onLabelBox : undefined}>
         <RowKey maxScale={maxScale} onTextLayout={onPress || sub ? onLabelLayout : undefined}>
           {label}
@@ -195,7 +208,7 @@ export interface SwitchRowProps {
 export function SwitchRow({ label, sub, value, onValueChange, disabled = false }: SwitchRowProps) {
   const { colors } = useTheme();
   // Beside the label until the label breaks inside a word; then the switch drops under it (see SettingRow).
-  const { broke, onTextLayout, onLayout } = useLabelBreaks();
+  const { broke, onTextLayout, onLayout, remountKey } = useLabelBreaks();
   const sw = (
     <Switch
       value={value}
@@ -206,7 +219,7 @@ export function SwitchRow({ label, sub, value, onValueChange, disabled = false }
     />
   );
   return (
-    <View style={[styles.settingRow, broke && styles.settingRowWrap, disabled && styles.dim]}>
+    <View key={remountKey} style={[styles.settingRow, broke && styles.settingRowWrap, disabled && styles.dim]}>
       <View style={broke ? styles.growWrap : styles.grow} onLayout={onLayout}>
         <RowKey onTextLayout={onTextLayout}>{label}</RowKey>
         {sub ? (

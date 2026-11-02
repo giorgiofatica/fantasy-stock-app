@@ -229,7 +229,8 @@ Deno.test('SettingRow: a static row wraps its value UNDER the label (a label is 
   assert(src.includes('styles.settingRow, stack && styles.settingRowWrap, disabled && styles.dim'));
   assert(src.includes('<View style={stack ? styles.growWrap : styles.grow}'));
   assert(src.includes('style={stack && valueLines > 1 ? [styles.value, styles.valueMulti] : styles.value}'));
-  assert(src.includes('onTextLayout={stack ? (e) => setValueLines(e.nativeEvent.lines.length) : undefined}'));
+  // the value's line count is stored with the size it was measured at (setting-row-scale-reset.test.ts)
+  assert(src.includes('setMeasuredLines({ fontScale, lines })'));
   assert(/settingRowWrap: \{\s*flexWrap: 'wrap',/.test(src));
   // flex: 1 has a basis of 0, which can never wrap; the wrapping label sizes to its content
   assert(/growWrap: \{[^}]*flexBasis: 'auto'/.test(src));
