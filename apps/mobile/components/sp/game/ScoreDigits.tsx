@@ -7,6 +7,7 @@ import type { withTiming as withTimingType, EasingFunctionFactory } from 'react-
 import { type, TypeVariant } from '@/constants/tokens';
 import { digitDiff, DigitDiffEntry } from '@/components/sp/logic/digits';
 import { cappedTextProps } from '@/components/sp/logic/cappedType';
+import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 import { useMotion } from '@/components/sp/motion';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useLeadChangeSpring } from '@/components/sp/game/motion';
@@ -139,12 +140,14 @@ export function ScoreDigits({ text, variant = 'score.md', color: colorProp, slam
   // the shape most exposed to an uncapped twin's box (P2, 2026-10-19).
   const { fontScale } = useWindowDimensions();
   const capped = cappedTextProps(typeStyle, fontScale, typeStyle.maxScale);
+  // A Dynamic Type change remounts each digit, or it keeps the old scale's box (remeasureKey.ts).
+  const remountKey = fontScaleKey(fontScale);
 
   return (
     <Animated.View style={{ flexDirection: 'row', flexShrink: 1 }}>
       {diff.map((entry, index) => (
         <DigitColumn
-          key={`${index}-${diff.length}`}
+          key={`${index}-${diff.length}-${remountKey}`}
           entry={entry}
           fontFamily={typeStyle.fontFamily}
           fontSize={capped.style?.fontSize ?? typeStyle.fontSize}

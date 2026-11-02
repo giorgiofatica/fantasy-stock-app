@@ -3,6 +3,7 @@ import { Text as RNText, TextProps as RNTextProps, StyleSheet, useWindowDimensio
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { resolveFontFamily } from './logic/fontWeight';
 import { cappedSpText } from './logic/cappedType';
+import { fontScaleKey } from './logic/remeasureKey';
 
 import { type, TypeVariant } from '@/constants/tokens';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -81,6 +82,9 @@ export function Text({
   // cap to apply.
   const capped = cappedSpText(typeStyle, flatStyle, callerAllowFontScaling, fontScale, resolvedMaxFontSizeMultiplier);
   const fontFamily = resolveFontFamily(typeStyle.fontFamily, callerWeight);
+  // P1 (2026-10-30): keyed by the scale so a Dynamic Type change remounts the Text. iOS keeps
+  // an unchanged Text's box from the old scale and draws the new one (remeasureKey.ts).
+  const remountKey = fontScaleKey(fontScale);
   const baseStyle = [
     styles.base,
     {
@@ -100,6 +104,7 @@ export function Text({
   if (animatedStyle) {
     return (
       <Animated.Text
+        key={remountKey}
         style={[baseStyle, animatedStyle]}
         numberOfLines={resolvedNumberOfLines}
         allowFontScaling={capped.allowFontScaling}
@@ -112,6 +117,7 @@ export function Text({
   }
   return (
     <RNText
+      key={remountKey}
       style={baseStyle}
       numberOfLines={resolvedNumberOfLines}
       allowFontScaling={capped.allowFontScaling}

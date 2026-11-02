@@ -8,9 +8,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useTheme } from '@/components/sp/ThemeProvider';
+import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 import { useSymbolSearch, type UseSymbolSearchOptions } from '@/lib/useSymbolSearch';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { useCaptureAction } from '@/lib/money/captureScript';
@@ -81,6 +83,10 @@ export default function SymbolSearchField({
   };
 
   const visible = showResults && value.length >= 1 && value.toUpperCase() !== selectedSymbol.toUpperCase();
+  // The popovers' Texts remount on a Dynamic Type change, or they keep the old scale's box
+  // (remeasureKey.ts). Keyed per popover; the TextInput is left alone (a remount drops focus).
+  const { fontScale } = useWindowDimensions();
+  const remountKey = fontScaleKey(fontScale);
 
   return (
     <View style={styles.container}>
@@ -101,7 +107,7 @@ export default function SymbolSearchField({
       )}
 
       {visible && results.length > 0 && (
-        <View style={[styles.resultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
+        <View key={`results-${remountKey}`} style={[styles.resultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
           <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
             {results.map((item) => (
               <TouchableOpacity
@@ -129,14 +135,14 @@ export default function SymbolSearchField({
       )}
 
       {visible && !loading && !error && results.length === 0 && (
-        <View style={[styles.noResultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
+        <View key={`none-${remountKey}`} style={[styles.noResultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
           <Text style={[styles.noResultsText, { color: colors.text2 }]}>No matching stocks found</Text>
         </View>
       )}
 
       {/* E-1 (3e UX audit): a failed search must never read as "no matches". */}
       {visible && !loading && error && (
-        <View style={[styles.noResultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
+        <View key={`error-${remountKey}`} style={[styles.noResultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
           <Text style={[styles.noResultsText, { color: colors.text2 }]}>Stocks didn't load. Check your connection, then try again.</Text>
           <TouchableOpacity onPress={retry} style={styles.retryButton}>
             <Text style={[styles.retryText, { color: colors.accent }]}>Try again</Text>
