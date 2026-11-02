@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { Text as RNText, StyleSheet } from 'react-native';
+import { Text as RNText, StyleSheet, useWindowDimensions } from 'react-native';
 
 import { type, TypeVariant } from '@/constants/tokens';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { formatMoney, MoneySign } from '@/components/sp/logic/money';
+import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 
 // Stockpile — <Money> (§9A, "One design, two themes", 2026-09-29). SOURCE OF TRUTH: DESIGN_DIRECTION §9A / §2.
 // Non-negotiables: tabular-nums, never wraps, U+2212 minus before the
@@ -41,6 +42,7 @@ export function Money({
   testID,
 }: MoneyProps) {
   const { colors } = useTheme();
+  const { fontScale } = useWindowDimensions();
   const typeStyle = type[size as TypeVariant];
 
   const text = formatMoney(value, { sign, alignSign, compact });
@@ -59,6 +61,8 @@ export function Money({
 
   return (
     <RNText
+      // Remounts on a Dynamic Type change, or it keeps the old scale's box (remeasureKey.ts).
+      key={fontScaleKey(fontScale)}
       testID={testID}
       style={[
         styles.base,

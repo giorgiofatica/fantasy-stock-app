@@ -154,3 +154,11 @@ export function historyTotal(item: Pick<HistoryItem, 'total' | 'quantity' | 'pri
   if (item.price == null) return null;
   return Math.round(item.quantity * item.price * 100) / 100;
 }
+
+/** A row's shares-at-a-price detail, as shown ("1 sh at $1.23") and as VoiceOver reads it
+ * ("1 share at $1.23"): read aloud, "sh" is spelled out as the letters S H. Singular only for
+ * a count shown as exactly 1 ("0.5 shares", "2 shares"). */
+export function historyShareDetail(quantityText: string, priceText: string | null): { text: string; spoken: string } {
+  const at = priceText ? ` at ${priceText}` : '';
+  return { text: `${quantityText} sh${at}`, spoken: `${quantityText} ${quantityText === '1' ? 'share' : 'shares'}${at}` };
+}

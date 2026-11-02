@@ -9,6 +9,7 @@ import { digitDiff } from '@/components/sp/logic/digits';
 import { alignSelfFor, FIT_MIN_SCALE, fitScale, transformOriginFor, type RollingMoneyAlign } from '@/components/sp/logic/fitScale';
 import { rollsDigits } from '@/components/sp/logic/rollDigits';
 import { cappedTextProps } from '@/components/sp/logic/cappedType';
+import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 import { useMotion } from '@/components/sp/motion';
 import { useTheme } from '@/components/sp/ThemeProvider';
 
@@ -148,12 +149,16 @@ export function RollingMoney({ text, size, color, rollKey, align = 'left', fontW
   const scale = fitScale(containerWidth, naturalWidth);
   const cap = maxScale ?? typeStyle.maxScale;
   const fontFamily = resolveFontFamily(typeStyle.fontFamily, fontWeight);
+  // Every Text here remounts on a Dynamic Type change, or it keeps the old scale's box (P1,
+  // 2026-10-30: remeasureKey.ts).
+  const remountKey = fontScaleKey(fontScale);
 
   if (!rollsDigits(fontScale, cap)) {
     const capped = cappedTextProps(typeStyle, fontScale, cap);
     return (
       <View style={styles.container}>
         <RNText
+          key={remountKey}
           style={{ alignSelf: alignSelfFor(align), fontFamily, fontSize: capped.style?.fontSize ?? typeStyle.fontSize, lineHeight: capped.style?.lineHeight ?? typeStyle.lineHeight, color: textColor, fontVariant: ['tabular-nums'] }}
           allowFontScaling={capped.allowFontScaling}
           maxFontSizeMultiplier={capped.maxFontSizeMultiplier}
@@ -176,7 +181,7 @@ export function RollingMoney({ text, size, color, rollKey, align = 'left', fontW
       >
         {diff.map((entry, i) => (
           <DigitColumn
-            key={`${i}-${diff.length}-${rollKey}`}
+            key={`${i}-${diff.length}-${rollKey}-${remountKey}`}
             char={entry.char}
             changed={entry.changed}
             fontFamily={fontFamily}

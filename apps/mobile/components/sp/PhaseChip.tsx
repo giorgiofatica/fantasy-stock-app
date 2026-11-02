@@ -6,6 +6,7 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { phaseChipStyle, phaseChipText, phaseChipUppercase, type LeaguePhase } from '@/components/sp/logic/phaseChip';
 import { chipLook } from '@/components/sp/logic/gameNight';
 import { cappedTextProps } from '@/components/sp/logic/cappedType';
+import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 
 // Stockpile — <PhaseChip>, the §9C "Chip" (Game Night, 2026-10-12; first built §9A).
 // SOURCE OF TRUTH: §3's "one league-lifecycle model" table and §9's
@@ -63,6 +64,8 @@ export function PhaseChip({ phase, label, onPageBackground = false }: PhaseChipP
     <View style={[styles.base, { backgroundColor }, borderColor ? { borderWidth: 1, borderColor } : null]}>
       {dotColor ? <View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
       <RNText
+        // Remounts on a Dynamic Type change, or it keeps the old scale's box (remeasureKey.ts).
+        key={fontScaleKey(fontScale)}
         // The tag's own ceiling (type.tag.maxScale): the raw RNText doesn't
         // get it from <Text>, and uncapped the chip outgrew its fixed dot
         // and the header it sits in at Accessibility XL (3b-1 capture).

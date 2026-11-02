@@ -31,7 +31,7 @@ import { useLeagueContext } from '@/lib/LeagueContext';
 import { useSession } from '@/lib/SessionProvider';
 import { formatShares } from '@/lib/money/formatShares';
 import { COPY } from '@/lib/money/moneyCopy';
-import { historyItems, historyRows, historyTotal, todayEtIso, type HistoryFilter, type HistoryItem, type HistoryRow } from '@/lib/money/tradeHistory';
+import { historyItems, historyRows, historyShareDetail, historyTotal, todayEtIso, type HistoryFilter, type HistoryItem, type HistoryRow } from '@/lib/money/tradeHistory';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
 import { FIXTURE_LEAGUE_ID } from '@/lib/money/fixtureMode';
@@ -57,13 +57,13 @@ function ItemRow({ item }: { item: HistoryItem }) {
     ? COPY.tradeDrafted(item.symbol)
     : item.action === 'sell' ? COPY.tradeSold(item.symbol) : COPY.tradeBought(item.symbol);
   const price = item.price != null ? formatMoney(item.price) : null;
-  const detail = [
-    item.timeLabel,
-    `${formatShares(item.quantity)} sh${price ? ` at ${price}` : ''}`,
-  ].filter(Boolean).join(' · ');
+  // On screen "sh"; spoken "share(s)", since VoiceOver reads "sh" as the letters S H.
+  const shares = historyShareDetail(formatShares(item.quantity), price);
+  const detail = [item.timeLabel, shares.text].filter(Boolean).join(' · ');
+  const spokenDetail = [item.timeLabel, shares.spoken].filter(Boolean).join(' · ');
   const total = historyTotal(item);
   return (
-    <View style={styles.item} accessible accessibilityLabel={`${label}, ${detail}${total != null ? `, ${formatMoney(total)}` : ''}`}>
+    <View style={styles.item} accessible accessibilityLabel={`${label}, ${spokenDetail}${total != null ? `, ${formatMoney(total)}` : ''}`}>
       <View style={[styles.disc, { backgroundColor: colors.inset }]}>
         <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{item.symbol}</Text>
       </View>

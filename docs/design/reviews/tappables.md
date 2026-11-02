@@ -77,8 +77,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:219` | Button | onPress | `checkFeasibility` | fn checkFeasibility | `disabled` |
 | `components/SlotBuilder.tsx:232` | ChoiceRow | onPress | `inline: () => pick('')` | fn pick |  |
 | `components/SlotBuilder.tsx:238` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
-| `components/SymbolSearchField.tsx:110` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
-| `components/SymbolSearchField.tsx:141` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
+| `components/SymbolSearchField.tsx:116` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
+| `components/SymbolSearchField.tsx:147` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
 | `components/game/DraftBlockersCard.tsx:64` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:65` | Button | onPress | `inline: () => onReconfirm('invite')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:91` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
