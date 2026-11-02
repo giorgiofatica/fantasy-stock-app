@@ -13,6 +13,7 @@ import {
   COMMISSIONER_HANDOVER_LINE, LEAVE_LOCKED_LINE, commissionerRowView, leaveWindow, transferAllowed, type LeaveWindow,
 } from '../lib/game/leaveLeague.ts';
 import { WORD_JOINER, keepCode, keepCodeIn } from '../lib/game/keepDots.ts';
+import { subAfterValue } from '../lib/game/labelBreaks.ts';
 import { inviteShareMessage } from '../lib/game/leagueSettingsEntry.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
@@ -41,7 +42,7 @@ Deno.test('Commissioner row: the caption is Design Lead\'s verbatim NEW copy, ma
   const src = SOURCES['lib/game/leaveLeague.ts'];
   assert(src.includes("= 'You can hand over the commissioner role before the draft or after the season.'; // NEW"));
   // Same style: a SettingRow `sub` is Text variant="caption" tone="secondary", like LeaveLeagueRow's sub.
-  assert(SOURCES['components/game/SetupRows.tsx'].includes('<Text variant="caption" tone="secondary">\n            {sub}'));
+  assert(SOURCES['components/game/SetupRows.tsx'].includes('<Text variant="caption" tone="secondary" style={subLast ? styles.subLast : undefined}>\n      {sub}'));
   assert(SOURCES['components/game/LeaveLeagueSheets.tsx'].includes('<Text variant="caption" tone="secondary">{view.sub}</Text>'));
   assert(LEAVE_LOCKED_LINE.endsWith('.')); // both lines end in a period
 });
@@ -56,6 +57,37 @@ Deno.test('League settings wires the Commissioner row through commissionerRowVie
   // SettingRow renders no chevron and no Pressable without onPress (the static state).
   const rows = SOURCES['components/game/SetupRows.tsx'];
   assert(rows.includes('if (!onPress) return body;'));
+});
+
+// ── A stacked SettingRow reads label → value → sub (Design Lead AX5 gate, 2026-11-02) ──
+
+Deno.test('subAfterValue: only a STACKED row WITH a sub-line moves its sub below the value', () => {
+  assertEquals(subAfterValue(true, 'caption'), true);
+  assertEquals(subAfterValue(true, undefined), false);
+  assertEquals(subAfterValue(true, ''), false);
+  assertEquals(subAfterValue(false, 'caption'), false); // beside (L, XXXL): the sub stays under its label, nothing moves
+  assertEquals(subAfterValue(false, undefined), false);
+});
+
+Deno.test('SettingRow renders label → value → sub when stacked, and the old layout otherwise (source guard)', () => {
+  const s = SOURCES['components/game/SetupRows.tsx'];
+  const row = s.slice(s.indexOf('export function SettingRow('), s.indexOf('export interface ChoiceRowProps'));
+  assert(row.includes('const subLast = subAfterValue(stack, sub);'));
+  // Unstacked: the sub is inside the label's block, exactly where it always was.
+  const labelBlock = row.indexOf('{subLast ? null : subText}');
+  assert(labelBlock > row.indexOf('<RowKey'));
+  // Stacked: it renders AFTER the value (and its chevron pair), as a last item of the row.
+  const last = row.indexOf('{subLast ? subText : null}');
+  assert(last > row.indexOf('{valueText}'));
+  assert(last > row.indexOf('<View style={styles.trailing}>'));
+  // On its own full-width line.
+  assert(s.includes('subLast: {\n    flexBasis: \'100%\','));
+});
+
+Deno.test('the commissioner row and the locked Draft time row both pass a sub, so both take the stacked order (source guard)', () => {
+  const s = SOURCES['app/league-settings.tsx'];
+  assert(s.includes('sub={commissionerRow.sub ?? undefined}'));
+  assert(s.includes('sub={dateLocked ? DATE_LOCKED_AFTER_ROOM : undefined}'));
 });
 
 // ── (7) Invite codes ──

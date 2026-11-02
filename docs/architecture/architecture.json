@@ -2,38 +2,26 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "a93657cced4a1caafbedc41090b2bed48812a29d",
-    "commitShort": "a93657cc",
+    "commit": "4df3b4c609e4ab60cf53a7e1255e6ecdca98eea1",
+    "commitShort": "4df3b4c6",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/league-settings-commissioner-and-codes",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/game/InviteCodeText.tsx"
+        "path": "apps/mobile/components/game/SetupRows.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/game-leave-league.test.ts"
+        "path": "apps/mobile/lib/game/labelBreaks.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/league-game-night.test.ts"
-      },
-      {
-        "code": "??",
         "path": "apps/mobile/tests-deno/league-settings-commissioner-and-codes.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/onboarding-game-night.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-02T18:45:59Z",
+    "timestamp": "2026-11-02T19:11:12Z",
     "sourceHash": "sha256:5a5f050eae75bcedbf5edd4925df6fbf077fbea3f740945c900f3239ed02cb67",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -41,7 +29,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-10-22T01:22:49Z",
-    "ageHours": 281.4,
+    "ageHours": 281.8,
     "ageDays": 11.7,
     "staleAfterDays": 14,
     "stale": false,
