@@ -77,8 +77,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:219` | Button | onPress | `checkFeasibility` | fn checkFeasibility | `disabled` |
 | `components/SlotBuilder.tsx:232` | ChoiceRow | onPress | `inline: () => pick('')` | fn pick |  |
 | `components/SlotBuilder.tsx:238` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
-| `components/SymbolSearchField.tsx:116` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
-| `components/SymbolSearchField.tsx:147` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
+| `components/SymbolSearchField.tsx:123` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
+| `components/SymbolSearchField.tsx:154` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
 | `components/game/DraftBlockersCard.tsx:65` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:66` | Button | onPress | `inline: () => onReconfirm('invite')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:92` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
@@ -159,10 +159,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/SalePicker.tsx:74` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/money/SalePicker.tsx:88` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
 | `components/money/StockChart.tsx:64` | RangePills | onChange | `setRange` | state setRange |  |
-| `components/money/StockSearchScreen.tsx:111` | Pressable | onPress | `inline: () => router.back()` | route back |  |
-| `components/money/StockSearchScreen.tsx:139` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
-| `components/money/StockSearchScreen.tsx:172` | SearchRow | onPress | `inline: () => handleSelect(item)` | fn handleSelect |  |
-| `components/money/StockSearchScreen.tsx:228` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/money/StockSearchScreen.tsx:115` | Pressable | onPress | `inline: () => router.back()` | route back |  |
+| `components/money/StockSearchScreen.tsx:150` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
+| `components/money/StockSearchScreen.tsx:183` | SearchRow | onPress | `inline: () => handleSelect(item)` | fn handleSelect |  |
+| `components/money/StockSearchScreen.tsx:239` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/StockSheetBody.tsx:347` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
 | `components/money/StockSheetBody.tsx:459` | TradeReviewPanel | onRetry | `retryReview` | fn retryReview |  |
 | `components/money/StockSheetBody.tsx:481` | Button | onPress | `inline: () => { data.refresh(); void openReview(open.kind); }` | fn data.refresh |  |
