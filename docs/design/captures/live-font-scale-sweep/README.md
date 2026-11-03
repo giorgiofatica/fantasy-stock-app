@@ -150,7 +150,7 @@ live run (it kept its offset) and is not compared: only the sheet's own pixels a
 | Sheet: buy review (Portfolio, AMD) | 0 | 0 | |
 | Player card from Portfolio (NVDA) | 0 | 0 | |
 | Player card from Matchup (NVDA) | 0 | 0 | |
-| Sheet: league switcher ("Your leagues") | 7,291 | 0 | **P2:** the bottom action row, see Findings |
+| Sheet: league switcher ("Your leagues") | 7,291 | 0 | **P2, accepted:** the bottom action row, see Findings |
 | Sheet: draft time (`DraftDateSheet`, Create league step 3) | 0 in the sheet (365,547 behind it) | 0 | the dimmed page behind it only (scroll offset kept); the sheet area y ≥ 900 px is 0 |
 | Sheet: leave league (member view, Serie A Traders) | 0 | 0 | |
 | Sheet: transfer commissioner | — | — | **not reachable**: it opens only for a commissioner while the leave window is open, and the commissioner fixture's draft time is in the past (window locked); no fixture has both (same as the sheet-scroll audit's note) |
@@ -180,6 +180,8 @@ screens that carry the field (the on-the-clock room: `crops/draft-room-search-pl
 "Create league" pill's right edge and "Join with code"'s left edge sit 1–2 px away, and both labels shift by ≈1 px
 (`crops/switcher-button-row-AX5-to-L.png`; 7,291 px, all in the four boxes at the pills' edges and labels). Everything else in the sheet is
 identical. Sub-point spacing drift: a stateless wrapper holding a flex split from AX5 (the #318 shape, tiny here). L → AX5 matches cold.
+**Accepted (Design Lead, 2026-11-03):** under 1 pt can't be seen and doesn't affect taps, and a fix would key another container for no
+visible gain. Revisit only if the search-placeholder P1's root cause turns out to explain it too.
 
 **P3, the page behind a sheet.** A live run keeps the scroll offset the page had when it was opened; a cold launch opens it fresh.
 On the draft-time sheet that is 365,547 px of dimmed background, 0 in the sheet. Not a layout bug.
