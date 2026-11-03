@@ -67,6 +67,10 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   // credential field (lib/inputRemount.ts): remounting a password or its email raises iOS's "Save Password?" sheet.
   const remount = useInputRemountKey(autoFocus, input);
   const focused = remount.focused;
+  // The scale goes in the props too, or a remounted field can reuse a recycled native view that keeps its old
+  // placeholder size (remeasureKey.ts, "The PLACEHOLDER"). A caller's own explicit size (`inputFontSize`) wins;
+  // a credential host takes none (it never remounts).
+  const font = inputFontSize ? null : remount.fontProps(type.body.fontSize);
   const inError = !!error || invalid;
   const emphasised = inError || focused || chosen;
   const borderColor = inError ? colors.danger : focused || chosen ? colors.accent : colors.borderStrong;
@@ -102,8 +106,8 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
             remount.onBlur();
             onBlur?.(e);
           }}
-          style={[styles.input, { color: colors.text }, inputFontSize ? { fontSize: inputFontSize } : null]}
-          allowFontScaling={inputFontSize ? false : undefined}
+          style={[styles.input, { color: colors.text }, inputFontSize ? { fontSize: inputFontSize } : font ? { fontSize: font.fontSize } : null]}
+          allowFontScaling={inputFontSize || font ? false : undefined}
           {...input}
         />
         {trailing ? <View style={styles.trailing}>{trailing}</View> : null}

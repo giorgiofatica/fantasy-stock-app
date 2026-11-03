@@ -90,13 +90,17 @@ export default function SymbolSearchField({
   const { fontScale } = useWindowDimensions();
   const remountKey = fontScaleKey(fontScale);
   const inputRemount = useInputRemountKey(undefined);
+  // The scale goes in the props too: a remounted field can reuse a recycled native view that keeps its
+  // old placeholder size otherwise (remeasureKey.ts, "The PLACEHOLDER").
+  const inputFont = inputRemount.fontProps(INPUT_FONT_SIZE);
 
   return (
     <View style={styles.container}>
       <TextInput
         key={inputRemount.key}
         autoFocus={inputRemount.autoFocus}
-        style={[styles.textInput, { backgroundColor: colors.inset, color: colors.text, borderColor: colors.border }]}
+        style={[styles.textInput, { backgroundColor: colors.inset, color: colors.text, borderColor: colors.border }, inputFont && { fontSize: inputFont.fontSize }]}
+        allowFontScaling={inputFont ? inputFont.allowFontScaling : undefined}
         value={value}
         onChangeText={handleChangeText}
         placeholder={placeholder}
@@ -160,6 +164,8 @@ export default function SymbolSearchField({
   );
 }
 
+const INPUT_FONT_SIZE = 18;
+
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
@@ -168,7 +174,7 @@ const styles = StyleSheet.create({
   textInput: {
     borderRadius: 8,
     padding: 14,
-    fontSize: 18,
+    fontSize: INPUT_FONT_SIZE,
     fontFamily: 'Inter_400Regular',
     borderWidth: 1,
   },

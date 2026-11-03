@@ -52,6 +52,8 @@ import { useCaptureAction } from '@/lib/money/captureScript';
 
 /** Search's text follows Dynamic Type to 1.6× (the sheet's ceiling); rows keep their 1.3×. */
 const SEARCH_TEXT_MAX_SCALE = 1.6;
+/** The search field's text size (pt, before Dynamic Type): the style below and the scale-aware props both read it. */
+const SEARCH_INPUT_FONT_SIZE = 17;
 
 export function StockSearchScreen() {
   const { colors } = useTheme();
@@ -62,6 +64,9 @@ export function StockSearchScreen() {
   // The field is keyed by the scale while unfocused, frozen while focused, and a remount never
   // re-runs autoFocus (remeasureKey.ts). `focused` above stays the border's: it starts true.
   const searchRemount = useInputRemountKey(true);
+  // The scale goes in the props too, or a remounted field can reuse a recycled native view that keeps its
+  // old placeholder size (remeasureKey.ts, "The PLACEHOLDER").
+  const searchFont = searchRemount.fontProps(SEARCH_INPUT_FONT_SIZE);
   const { results, loading, error, retry } = useMoneyStockSearch(query, '');
 
   // E-3: ownership in results, from the same league-wide ledger the stock sheet
@@ -123,7 +128,8 @@ export function StockSearchScreen() {
           <Icon name="search" size="body" tone="text2" />
           <TextInput
             key={searchRemount.key}
-            style={[styles.input, { color: colors.text }]}
+            style={[styles.input, { color: colors.text }, searchFont && { fontSize: searchFont.fontSize }]}
+            allowFontScaling={searchFont ? searchFont.allowFontScaling : undefined}
             value={query}
             // E-8 (3e UX audit): kept as typed -- matching is already case-insensitive,
             // both live (symbols-search) and in the fixture (filterStressSearchCatalog).
@@ -247,7 +253,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: space[6], paddingTop: space[2], gap: space[5], paddingBottom: space[9] },
   back: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[1], alignSelf: 'flex-start' },
   field: { minHeight: 48, borderRadius: radius.lg, borderWidth: 1.5, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: 14 },
-  input: { flex: 1, minHeight: 44, fontSize: 17, fontFamily: 'Archivo-Medium' },
+  input: { flex: 1, minHeight: 44, fontSize: SEARCH_INPUT_FONT_SIZE, fontFamily: 'Archivo-Medium' },
   results: { gap: space[1] },
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingVertical: space[3] },
   disc: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[1] },
