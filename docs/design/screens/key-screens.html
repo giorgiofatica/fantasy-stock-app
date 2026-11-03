@@ -8686,14 +8686,14 @@ window.KS_REFS = {
         <ul className="b-inv__notes">
           <li><b>Matchup shading (decided B):</b> your side is always shaded in your colour, win or lose; who leads is the totals and "{'{name}'} leads by …". No row-winner lighting.</li>
           <li><b>Draft tiles:</b> the category is a 3pt line along the bottom with its 3-letter code (TEC, FIN, HLT, NRG, AUT, RTL, F&amp;B, MED, IND, PRP, MSC); the on-the-clock cell stays navy in Light. Your turn is cyan (teal in Light).</li>
-          <li><b>Charts:</b> every chart has a labelled X axis; Home's season chart keeps its W/L marks plus two end dates; Portfolio has its chart and range pills.</li>
+          <li><b>Charts:</b> every chart has a labelled X axis; Portfolio has its chart and range pills. Home has no chart (decided 2026-11-03: This week, then "Your season"; the call is in the Archive).</li>
           <li><b>The player card:</b> three figures (Price · Week gain · Since the draft, or "Since Oct 2" for a later buy); the season line on dates; this week on Mon…Fri; Sell on yours, never Save; Save on theirs; the owner's avatar next to "Owned by"; "How you got it" at the bottom, the price per share. The weekly log comes later.</li>
           <li><b>SAMPLE:</b> each stock's category, the weeks 1–5 closes, midday points this week, and the calendar (drafted Sep 29, now Thu Nov 5). Everything else is data.js's.</li>
         </ul>
         <div className="dr-pairs">
           {A('Player card · opened from Matchup (their stock: Gianluigi B.\'s NKE)', 'Tap any row on either side. The owner\'s avatar sits next to "Owned by"; the action is Save, since another manager owns it.', (t) => <MatchupFrame d="a" t={t} overlay={<PlayerCard who="opp" />} />, ['pc', 'ESPN: the big name, the stat strip, the owner, the action.'], ['s5', 'E*TRADE: the key figures, right-aligned and tabular.'])}
           {A('Player card · opened from Portfolio (yours: NVDA)', 'The one action is Sell (the whole position, as always); never Save on a stock you own.', (t) => <PortfolioFrame d="a" t={t} overlay={<PlayerCard who="you" />} />, ['pc', 'ESPN: the player card as a sheet over the screen.'], ['s5', 'E*TRADE: the key figures.'])}
-          {A('Home, in season', 'The season chart with its W/L marks and the two end dates.', (t) => <HomeFrame d="a" t={t} />, ['s1', 'The navy card with a rim.'])}
+          {A('Home, in season', 'No chart (decided 2026-11-03): This week under the hero, then "Your season", one tile per week, then Standings.', (t) => (window.KSHomeA ? window.KSHomeA(t) : <HomeFrame d="a" t={t} />), ['s1', 'The navy card with a rim.'])}
           {A('Matchup, live (you lead)', 'Your side shaded; the totals and "leads by" say who leads.', (t) => <MatchupFrame d="a" t={t} />)}
           {A('Matchup, live (you\'re behind): Gianluigi B.\'s phone', 'Still your side shaded; Roberto B.\'s totals and "leads by" say he leads.', (t) => <ShadeFrame t={t} mode="B" scene="scud" />)}
           {A('Matchup, final', 'Your side shaded; "won by".', (t) => <MatchupFrame d="a" t={t} final />, ['s1', 'The mirrored roster.'], ['v110', '1.1.0, Light: the mirrored rows.'])}
@@ -10742,7 +10742,7 @@ window.KS_REFS = {
           <li><b>At your size:</b> today's chart takes most of the first screen, and This week starts at the bottom edge. In A, This week is on the first screen, right under your value. B is like today. C is like A.</li>
           <li><b>Recommended: A.</b> It answers both of your points: no second copy of Portfolio's chart, and nothing to decode. It puts the head-to-head, the heart of the game, first. It's the only option that gets better at your text size, not worse, and the cheapest. Pick B if you want a picture on Home that is about the game.</li>
           <li><b>New words, to approve as written:</b> A: "Your season", "Wk 1" … "Wk 14" on the tiles. B: "Week by week", "Opponent" (with "You"), the scale "+$200 / +$100 / $0 / −$100". C: "Your place", "After each week". The rules that change with A or B or C: "The Home chart plots season gain, week by week", and "the season chart sits directly under it" (the calm Home).</li>
-          {archived ? <li><b>Decided by Giorgio ({decidedNote}).</b></li> : null}
+          {archived ? <li>{decidedNote}</li> : null}
         </ul>
         <h3 className="b-sub">Today, as 1.3.0 ships it</h3>
         <Grid>{four('today', 'Today', { l: 'The dashed line is $0. With a season below $0 it sits at the top of the chart.' })}</Grid>
@@ -10756,7 +10756,12 @@ window.KS_REFS = {
     );
   }
 
-  window.KSHomeChart = () => <CallHomeChart />;
+  // Decided 2026-11-03 (A); the call lives in the Archive (board.jsx) and Game Night's Home frame draws A.
+  window.KSHomeChart = () => null;
+  window.KSHomeChartArchived = () => (
+    <CallHomeChart archived decided="A" decidedNote={<><b>Decided by Giorgio (2026-11-03): A.</b> His whole reply: "A". A's strings ("Your season", "Wk 1" … "Wk 14") are approved as written. One change from this board's note: Matchup shows only the current week today, so until a past-week matchup screen exists, this week's tile opens Matchup and every other tile opens League › Schedule.</>} />
+  );
+  window.KSHomeA = (t) => <Home t={t} v="A" />;
 })();
 
 </script>
@@ -11142,11 +11147,11 @@ window.KS_REFS = {
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
-    ['call-home-chart', 'The chart on Home'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-home-chart', title: 'The chart on Home', decision: 'A: no chart. This week moves up under the hero; then "Your season", one tile per week (W / L and your score, this week outlined, the weeks ahead with who you play); then Standings. "Your season" and "Wk N" approved as written.', date: '2026-11-03', rec: 'PRODUCT_RULES (No chart on Home) · PR #320', render: () => window.KSHomeChartArchived },
     { id: 'call-del-label', title: 'A deleted manager\'s seat label', decision: 'A, "Former manager", with the default avatar (never initials), in the secondary text colour, everywhere a name would be.', date: '2026-10-21', rec: 'PRODUCT_RULES (Account deletion)', render: () => window.KSDelLabelArchived },
     { id: 'call-del-screen', title: 'How the delete screen explains what happens', decision: 'B: "This deletes your account right away." then one line per league (including the one before its draft); the new strings "Use as written".', date: '2026-10-21', rec: 'PRODUCT_RULES (Account deletion)', render: () => window.KSDelScreenArchived },
     { id: 'call-del-find', title: 'Where "Find a new manager" sits', decision: 'B: a pill on the seat\'s Members row; the standings row stays uniform and opens the seat\'s team view, where it is the commissioner\'s button.', date: '2026-10-21', rec: 'PRODUCT_RULES (Account deletion)', render: () => window.KSDelFindArchived },
