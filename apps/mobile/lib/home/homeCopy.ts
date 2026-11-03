@@ -366,29 +366,6 @@ export function heroWeekOrRoundLabel(phase: PhaseResult): string | null {
   }
 }
 
-// ── Season chart scrub label (Orchestrator ruling, 2026-09-30) ─────────────
-// A 'weekly' point (a past week's single real point, or the Week-1-open
-// anchor) is never labelled with a date -- there is no second real point
-// nearby to make a date meaningful, only a straight line to it. It reads
-// "Week N" plus that WEEK's OWN gain (the delta since the previous real
-// point), not the chart's cumulative y-value. A 'daily' point (the live
-// week only) keeps a date, formatted rather than a raw ISO string
-// (code review, 2026-09-29, found the raw "2026-09-22" reaching the UI).
-const SCRUB_DATE_FORMAT: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
-
-export function seasonScrubLabel(
-  point: { date: string; week: number; gain: number; kind: 'weekly' | 'daily' },
-  previousPointGain: number | null,
-): { primary: string; money: string } {
-  if (point.kind === 'weekly') {
-    const delta = point.gain - (previousPointGain ?? 0);
-    return { primary: `Week ${point.week}`, money: formatSignedCurrency(delta) };
-  }
-  const d = new Date(`${point.date}T00:00:00Z`);
-  const primary = Number.isNaN(d.getTime()) ? point.date : new Intl.DateTimeFormat('en-US', { ...SCRUB_DATE_FORMAT, timeZone: 'UTC' }).format(d);
-  return { primary, money: formatSignedCurrency(point.gain) };
-}
-
 // ── Unpriced-symbol captions (Design Lead ruling, 2026-09-29, I12) ─────────
 // Reuses plCoverage.ts's `unpricedNote` wording (already approved, already
 // on main via fix/mobile-home-pl-partial-basis) rather than authoring new

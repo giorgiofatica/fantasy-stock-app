@@ -7,7 +7,7 @@
  */
 import { assertEquals } from 'jsr:@std/assert';
 import {
-  heroUnpricedCaption, sideUnpricedCaption, seasonScrubLabel, heroAccessibilityLabel, heroWeekOrRoundLabel,
+  heroUnpricedCaption, sideUnpricedCaption, heroAccessibilityLabel, heroWeekOrRoundLabel,
   standingsThroughWeek, preSeasonStartsLabel, placeLabel, nonChampionLine, regularSeasonTileLine, playoffRecordLine,
   playoffTileLine, championAnnounceLine, coreCompleteTiles, teamSoFarCaption, roundSlotLabel, eliminatedLabel,
   marketClosedAt,
@@ -43,29 +43,6 @@ Deno.test('sideUnpricedCaption: prefixes the formatted note with the side\'s nam
 
 Deno.test('sideUnpricedCaption: de-duplicates case-insensitively, same as the hero caption', () => {
   assertEquals(sideUnpricedCaption('You', ['zzzz', 'ZZZZ']), 'You: 1 holding counted at cost (no live price yet)');
-});
-
-// ── Season chart scrub label (Orchestrator ruling, 2026-09-30) ─────────────
-
-Deno.test('seasonScrubLabel: a weekly point reads "Week N" with that WEEK\'S OWN delta, never the cumulative', () => {
-  const point = { date: '2026-08-14', week: 2, gain: 100.09, kind: 'weekly' as const };
-  const label = seasonScrubLabel(point, 41.34); // previous point (week 1) was 41.34
-  assertEquals(label.primary, 'Week 2');
-  assertEquals(label.money, '+$58.75'); // 100.09 - 41.34, not 100.09
-});
-
-Deno.test('seasonScrubLabel: the Week-1-open anchor (no previous point) reads a $0.00 delta', () => {
-  const point = { date: '2026-08-03', week: 1, gain: 0, kind: 'weekly' as const };
-  const label = seasonScrubLabel(point, null);
-  assertEquals(label.primary, 'Week 1');
-  assertEquals(label.money, '$0.00');
-});
-
-Deno.test('seasonScrubLabel: a daily point shows a FORMATTED date (never the raw ISO string) and the cumulative gain', () => {
-  const point = { date: '2026-09-22', week: 6, gain: 118.2, kind: 'daily' as const };
-  const label = seasonScrubLabel(point, 50);
-  assertEquals(label.primary, 'Tue, Sep 22');
-  assertEquals(label.money, '+$118.20'); // cumulative, unlike a weekly point's delta
 });
 
 // ── Hero VoiceOver label (Design Lead ruling, 2026-09-29, Blocking 2) ──────

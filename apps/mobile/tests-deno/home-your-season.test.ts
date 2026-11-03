@@ -141,6 +141,20 @@ Deno.test('eliminated and missed playoffs: no this-week tile, nothing after', ()
   assertEquals(m.length, 6);
 });
 
+Deno.test('a PAST playoff row with no opponent is not drawn: not a Bye, not "not scored yet"', () => {
+  // A bracket slot that never named an opponent (or a bye written straight into a later round) is
+  // not a regular-season bye and not an unscored game; no tile at all, whichever side of this week.
+  const pending: PhaseResult = { kind: 'playoff_pending', week: 9, round: 'Final', previousRound: 'Semifinals', ...base };
+  const t = tiles(pending, [...played5, row(6, 'gia', 9, 1), row(7, null, null, null, true), row(8, 'paolo', 40, -10, true), row(9, null, null, null, true)],
+    [...results5, res(6, 'W', 9), res(8, 'W', 40)], 9);
+  assertEquals(t.map((x) => x.week), [1, 2, 3, 4, 5, 6, 8, 9]); // week 7 (past, no opponent) is absent
+  assertEquals(t.some((x) => x.week === 7), false);
+  // And with no this-week tile at all (eliminated), the same row is still absent.
+  const eliminated: PhaseResult = { kind: 'eliminated', round: 'Semifinals', ...base };
+  const e = tiles(eliminated, [...played5, row(6, 'gia', 9, 1), row(7, null, null, null, true), row(8, 'paolo', -10, 40, true)], [...results5, res(6, 'W', 9), res(8, 'L', -10)], 9);
+  assertEquals(e.map((x) => x.week), [1, 2, 3, 4, 5, 6, 8]);
+});
+
 Deno.test('no rows (a failed or empty schedule read): no tiles at all', () => {
   assertEquals(tiles(live, [], [], 6), []);
 });
