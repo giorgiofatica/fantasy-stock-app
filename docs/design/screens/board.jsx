@@ -379,11 +379,11 @@
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
-    ['call-home-chart', 'The chart on Home'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-home-chart', title: 'The chart on Home', decision: 'A: no chart. This week moves up under the hero; then "Your season", one tile per week (W / L and your score, this week outlined, the weeks ahead with who you play); then Standings. "Your season" and "Wk N" approved as written.', date: '2026-11-03', rec: 'PRODUCT_RULES (No chart on Home) · PR #320', render: () => window.KSHomeChartArchived },
     { id: 'call-del-label', title: 'A deleted manager\'s seat label', decision: 'A, "Former manager", with the default avatar (never initials), in the secondary text colour, everywhere a name would be.', date: '2026-10-21', rec: 'PRODUCT_RULES (Account deletion)', render: () => window.KSDelLabelArchived },
     { id: 'call-del-screen', title: 'How the delete screen explains what happens', decision: 'B: "This deletes your account right away." then one line per league (including the one before its draft); the new strings "Use as written".', date: '2026-10-21', rec: 'PRODUCT_RULES (Account deletion)', render: () => window.KSDelScreenArchived },
     { id: 'call-del-find', title: 'Where "Find a new manager" sits', decision: 'B: a pill on the seat\'s Members row; the standings row stays uniform and opens the seat\'s team view, where it is the commissioner\'s button.', date: '2026-10-21', rec: 'PRODUCT_RULES (Account deletion)', render: () => window.KSDelFindArchived },

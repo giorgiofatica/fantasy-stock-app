@@ -206,7 +206,8 @@ building anything, and don't reopen a rule without him.
     when it's you versus someone, it shades it so that it's clear. Not whoever's winning.
     That's going to be able to be seen by the uh, the point total up top." (Option B; the
     1.1.0 leader-follows shade is NOT kept.)
-  - Home's season chart X axis: two end-date labels (start and today). ("yeah")
+  - Home's season chart X axis: two end-date labels (start and today). ("yeah") Superseded 2026-11-03:
+    Home has no chart (see "No chart on Home" under Home and Portfolio).
   - The player card's draft amount = the price per share ($290.10), not the total put in.
   - For everything else he took the recommendations: "I'm going to go with your
     recommendation there. Let's just go with your recommendations on the rest after that."
@@ -324,16 +325,31 @@ building anything, and don't reopen a rule without him.
 - **Home shows only the selected league**, with the league pill ("+N" hint) to switch.
   There's no "your other leagues" row.
 - **Home hero:** team value is the big number; under it "+$X · +Y% season gain · +$Z today".
-  The Home chart plots season gain, week by week.
+  Home has no chart (below).
+- **No chart on Home; the matchup comes first** (2026-11-03, option A, board
+  `#call-home-chart`). Giorgio on 1.3.0 (8): "I don't love the chart on the home screen... I
+  don't love the dashed line up top. ...you don't really get a sense of what's going on,
+  because there's not really clearly labeled axes. ...it's pretty redundant having that, and
+  then the view of the portfolio page is very similar. I think the portfolio page graph is way
+  more impactful and useful." His pick: "A". So, in season, Home is: the hero, then This week,
+  then **"Your season"**, then Standings. The season chart and its 1W / 1M / Season tabs are
+  gone from Home; the money line lives on Portfolio.
+  - **"Your season"** is one row of tiles, one per week, scrolling sideways. A played week
+    shows "Wk N", W / L / T and your score that week. This week's tile is outlined in your
+    colour and never repeats This week's score (it says "Live" while the market is open).
+    The weeks ahead show who you play. The title opens League › Schedule; a tile opens that
+    week's matchup. Until a past-week matchup screen exists (Matchup shows only the current
+    week today), this week's tile opens Matchup, and every other tile opens League › Schedule.
+  - New strings, approved as written (2026-11-03): "Your season", "Wk 1" … "Wk 14".
 - **A calm Home** (2026-10-12, option A "same content, calmer", board `#call-calm-home`),
   after Giorgio's first look at 1.2.0: "this UI on the home screen is awful. section bubbles
   are touching, it feels clunky, and there is too much going on". Same content, calmer:
-  team value is the ONE standout number; the season chart sits directly under it (no card,
-  W/L marks on its axis, range as text tabs); This week and Standings are two quiet cards
-  that open Matchup and League › Standings; sections never touch (24pt between blocks);
-  one primary action per screen. Before the draft and after the season follow the same
-  rules (fewer, merged cards; the countdown leads; Run it back or the ask is the only
-  primary). Nothing is removed from Home; repeats are.
+  team value is the ONE standout number; This week, "Your season" and Standings sit under it
+  (the season chart that sat directly under it is gone, 2026-11-03); This week and Standings
+  are two quiet cards that open Matchup and League › Standings; sections never touch (24pt
+  between blocks); one primary action per screen. Before the draft and after the season
+  follow the same rules (fewer, merged cards; the countdown leads; Run it back or the ask is
+  the only primary). Nothing is removed from Home; repeats are.
 - **Portfolio's gain is "since the draft"** (value − cost). It's deliberately a different
   label from "season gain"; never reuse one for the other.
 - **Stock chart ranges** (2026-10-05, option A): 1W / 1M / 3M / 1Y, with 1W the default.

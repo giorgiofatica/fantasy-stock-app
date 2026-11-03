@@ -971,14 +971,14 @@
         <ul className="b-inv__notes">
           <li><b>Matchup shading (decided B):</b> your side is always shaded in your colour, win or lose; who leads is the totals and "{'{name}'} leads by …". No row-winner lighting.</li>
           <li><b>Draft tiles:</b> the category is a 3pt line along the bottom with its 3-letter code (TEC, FIN, HLT, NRG, AUT, RTL, F&amp;B, MED, IND, PRP, MSC); the on-the-clock cell stays navy in Light. Your turn is cyan (teal in Light).</li>
-          <li><b>Charts:</b> every chart has a labelled X axis; Home's season chart keeps its W/L marks plus two end dates; Portfolio has its chart and range pills.</li>
+          <li><b>Charts:</b> every chart has a labelled X axis; Portfolio has its chart and range pills. Home has no chart (decided 2026-11-03: This week, then "Your season"; the call is in the Archive).</li>
           <li><b>The player card:</b> three figures (Price · Week gain · Since the draft, or "Since Oct 2" for a later buy); the season line on dates; this week on Mon…Fri; Sell on yours, never Save; Save on theirs; the owner's avatar next to "Owned by"; "How you got it" at the bottom, the price per share. The weekly log comes later.</li>
           <li><b>SAMPLE:</b> each stock's category, the weeks 1–5 closes, midday points this week, and the calendar (drafted Sep 29, now Thu Nov 5). Everything else is data.js's.</li>
         </ul>
         <div className="dr-pairs">
           {A('Player card · opened from Matchup (their stock: Gianluigi B.\'s NKE)', 'Tap any row on either side. The owner\'s avatar sits next to "Owned by"; the action is Save, since another manager owns it.', (t) => <MatchupFrame d="a" t={t} overlay={<PlayerCard who="opp" />} />, ['pc', 'ESPN: the big name, the stat strip, the owner, the action.'], ['s5', 'E*TRADE: the key figures, right-aligned and tabular.'])}
           {A('Player card · opened from Portfolio (yours: NVDA)', 'The one action is Sell (the whole position, as always); never Save on a stock you own.', (t) => <PortfolioFrame d="a" t={t} overlay={<PlayerCard who="you" />} />, ['pc', 'ESPN: the player card as a sheet over the screen.'], ['s5', 'E*TRADE: the key figures.'])}
-          {A('Home, in season', 'The season chart with its W/L marks and the two end dates.', (t) => <HomeFrame d="a" t={t} />, ['s1', 'The navy card with a rim.'])}
+          {A('Home, in season', 'No chart (decided 2026-11-03): This week under the hero, then "Your season", one tile per week, then Standings.', (t) => (window.KSHomeA ? window.KSHomeA(t) : <HomeFrame d="a" t={t} />), ['s1', 'The navy card with a rim.'])}
           {A('Matchup, live (you lead)', 'Your side shaded; the totals and "leads by" say who leads.', (t) => <MatchupFrame d="a" t={t} />)}
           {A('Matchup, live (you\'re behind): Gianluigi B.\'s phone', 'Still your side shaded; Roberto B.\'s totals and "leads by" say he leads.', (t) => <ShadeFrame t={t} mode="B" scene="scud" />)}
           {A('Matchup, final', 'Your side shaded; "won by".', (t) => <MatchupFrame d="a" t={t} final />, ['s1', 'The mirrored roster.'], ['v110', '1.1.0, Light: the mirrored rows.'])}

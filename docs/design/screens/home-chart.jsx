@@ -338,7 +338,7 @@
           <li><b>At your size:</b> today's chart takes most of the first screen, and This week starts at the bottom edge. In A, This week is on the first screen, right under your value. B is like today. C is like A.</li>
           <li><b>Recommended: A.</b> It answers both of your points: no second copy of Portfolio's chart, and nothing to decode. It puts the head-to-head, the heart of the game, first. It's the only option that gets better at your text size, not worse, and the cheapest. Pick B if you want a picture on Home that is about the game.</li>
           <li><b>New words, to approve as written:</b> A: "Your season", "Wk 1" … "Wk 14" on the tiles. B: "Week by week", "Opponent" (with "You"), the scale "+$200 / +$100 / $0 / −$100". C: "Your place", "After each week". The rules that change with A or B or C: "The Home chart plots season gain, week by week", and "the season chart sits directly under it" (the calm Home).</li>
-          {archived ? <li><b>Decided by Giorgio ({decidedNote}).</b></li> : null}
+          {archived ? <li>{decidedNote}</li> : null}
         </ul>
         <h3 className="b-sub">Today, as 1.3.0 ships it</h3>
         <Grid>{four('today', 'Today', { l: 'The dashed line is $0. With a season below $0 it sits at the top of the chart.' })}</Grid>
@@ -352,5 +352,10 @@
     );
   }
 
-  window.KSHomeChart = () => <CallHomeChart />;
+  // Decided 2026-11-03 (A); the call lives in the Archive (board.jsx) and Game Night's Home frame draws A.
+  window.KSHomeChart = () => null;
+  window.KSHomeChartArchived = () => (
+    <CallHomeChart archived decided="A" decidedNote={<><b>Decided by Giorgio (2026-11-03): A.</b> His whole reply: "A". A's strings ("Your season", "Wk 1" … "Wk 14") are approved as written. One change from this board's note: Matchup shows only the current week today, so until a past-week matchup screen exists, this week's tile opens Matchup and every other tile opens League › Schedule.</>} />
+  );
+  window.KSHomeA = (t) => <Home t={t} v="A" />;
 })();
