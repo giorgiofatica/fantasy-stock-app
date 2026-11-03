@@ -26,6 +26,7 @@ import { PressableScale } from '@/components/sp/PressableScale';
 import { Text } from '@/components/sp/Text';
 import { formatMoney } from '@/components/sp/logic/money';
 import { useTheme } from '@/components/sp/ThemeProvider';
+import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { ShellHeader } from '@/components/shell/ShellHeader';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { LoadFailure } from '@/components/money/LoadFailure';
@@ -58,6 +59,9 @@ export function StockSearchScreen() {
   const { open } = useStockSheet();
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(true);
+  // The field is keyed by the scale while unfocused, frozen while focused, and a remount never
+  // re-runs autoFocus (remeasureKey.ts). `focused` above stays the border's: it starts true.
+  const searchRemount = useInputRemountKey(true);
   const { results, loading, error, retry } = useMoneyStockSearch(query, '');
 
   // E-3: ownership in results, from the same league-wide ledger the stock sheet
@@ -118,6 +122,7 @@ export function StockSearchScreen() {
         <View style={[styles.field, { backgroundColor: colors.inset, borderColor: focused ? colors.accent : colors.rim }]}>
           <Icon name="search" size="body" tone="text2" />
           <TextInput
+            key={searchRemount.key}
             style={[styles.input, { color: colors.text }]}
             value={query}
             // E-8 (3e UX audit): kept as typed -- matching is already case-insensitive,
@@ -127,9 +132,15 @@ export function StockSearchScreen() {
             placeholderTextColor={colors.text2}
             autoCapitalize="none"
             autoCorrect={false}
-            autoFocus
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
+            autoFocus={searchRemount.autoFocus}
+            onFocus={() => {
+              setFocused(true);
+              searchRemount.onFocus();
+            }}
+            onBlur={() => {
+              setFocused(false);
+              searchRemount.onBlur();
+            }}
             accessibilityLabel={COPY.stockSearchPlaceholder}
           />
         </View>

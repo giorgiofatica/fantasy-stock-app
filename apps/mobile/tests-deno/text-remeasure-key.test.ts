@@ -92,11 +92,13 @@ Deno.test('PhaseChip and Money key their RNText by the scale', () => {
   }
 });
 
-Deno.test("SymbolSearchField keys each of its three popovers (distinct keys), never the TextInput", () => {
+Deno.test("SymbolSearchField keys each of its three popovers (distinct keys); its TextInput only by the focus-frozen key", () => {
   const src = SOURCES['components/SymbolSearchField.tsx'];
   assertMatch(src, /const remountKey = fontScaleKey\(fontScale\);/);
   for (const k of ['results', 'none', 'error']) assertMatch(src, new RegExp(`<View key=\\{\`${k}-\\$\\{remountKey\\}\`\\}`), k);
-  for (const tag of openingTags(src, 'TextInput')) assert(!/\bkey=/.test(tag), 'the TextInput keeps focus');
+  // The TextInput never takes the raw scale key (a remount while focused drops the keyboard):
+  // input-remount-key.test.ts checks it uses useInputRemountKey's.
+  for (const tag of openingTags(src, 'TextInput')) assert(!/\bkey=\{[^}]*remountKey\}/.test(tag), 'the TextInput keeps focus');
 });
 
 Deno.test('no Text host escapes the key: every file drawing a raw RN Text or an Animated.Text is a keyed one', () => {

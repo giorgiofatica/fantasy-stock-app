@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
+import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { useSymbolSearch, type UseSymbolSearchOptions } from '@/lib/useSymbolSearch';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { useCaptureAction } from '@/lib/money/captureScript';
@@ -84,13 +85,17 @@ export default function SymbolSearchField({
 
   const visible = showResults && value.length >= 1 && value.toUpperCase() !== selectedSymbol.toUpperCase();
   // The popovers' Texts remount on a Dynamic Type change, or they keep the old scale's box
-  // (remeasureKey.ts). Keyed per popover; the TextInput is left alone (a remount drops focus).
+  // (remeasureKey.ts). Keyed per popover. The TextInput is keyed only while unfocused, so a
+  // remount never drops the keyboard (useInputRemountKey).
   const { fontScale } = useWindowDimensions();
   const remountKey = fontScaleKey(fontScale);
+  const inputRemount = useInputRemountKey(undefined);
 
   return (
     <View style={styles.container}>
       <TextInput
+        key={inputRemount.key}
+        autoFocus={inputRemount.autoFocus}
         style={[styles.textInput, { backgroundColor: colors.inset, color: colors.text, borderColor: colors.border }]}
         value={value}
         onChangeText={handleChangeText}
@@ -99,8 +104,10 @@ export default function SymbolSearchField({
         autoCapitalize="characters"
         autoCorrect={false}
         onFocus={() => {
+          inputRemount.onFocus();
           if (value && value.toUpperCase() !== selectedSymbol.toUpperCase()) setShowResults(true);
         }}
+        onBlur={inputRemount.onBlur}
       />
       {(loading || extraLoading) && value.length > 0 && (
         <ActivityIndicator size="small" color={colors.accent} style={styles.spinner} />

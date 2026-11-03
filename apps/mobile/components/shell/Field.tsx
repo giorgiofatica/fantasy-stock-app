@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { forwardRef, ReactNode, useState } from 'react';
+import { forwardRef, ReactNode } from 'react';
 import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
 import { radius, space, type } from '@/constants/tokens';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
+import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 
 // Phase 3b-1 — the board's form field (docs/design/screens/screens.css
 // .ks-field*): a label, a 50pt box on `surface` with a `borderStrong`
@@ -57,11 +58,15 @@ export function FieldError({ children }: { children: ReactNode }) {
 }
 
 export const Field = forwardRef<TextInput, FieldProps>(function Field(
-  { label, error, invalid = false, helper, rules, trailing, chosen = false, inputFontSize, onFocus, onBlur, ...input },
+  { label, error, invalid = false, helper, rules, trailing, chosen = false, inputFontSize, autoFocus, onFocus, onBlur, ...input },
   ref
 ) {
   const { colors } = useTheme();
-  const [focused, setFocused] = useState(false);
+  // Keyed by the scale while unfocused, frozen while focused (remeasureKey.ts): an unfocused filled
+  // field otherwise keeps its old-size text in a grown box after a Dynamic Type change. Not a
+  // credential field (lib/inputRemount.ts): remounting a password or its email raises iOS's "Save Password?" sheet.
+  const remount = useInputRemountKey(autoFocus, input);
+  const focused = remount.focused;
   const inError = !!error || invalid;
   const emphasised = inError || focused || chosen;
   const borderColor = inError ? colors.danger : focused || chosen ? colors.accent : colors.borderStrong;
@@ -82,17 +87,19 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
         ]}
       >
         <TextInput
+          key={remount.key}
           ref={ref}
+          autoFocus={remount.autoFocus}
           accessibilityLabel={label}
           accessibilityHint={error ?? undefined}
           placeholderTextColor={colors.text2}
           selectionColor={colors.accent}
           onFocus={(e) => {
-            setFocused(true);
+            remount.onFocus();
             onFocus?.(e);
           }}
           onBlur={(e) => {
-            setFocused(false);
+            remount.onBlur();
             onBlur?.(e);
           }}
           style={[styles.input, { color: colors.text }, inputFontSize ? { fontSize: inputFontSize } : null]}
