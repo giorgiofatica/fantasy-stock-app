@@ -357,6 +357,9 @@ Deno.test('inside a tile the label never outranks the value: "Wk N" and "Live" c
   // The glyph, and "Bye" / the dash standing in the glyph slot: the glyph cap.
   assert(src.includes('<Text variant="score.lg" color={color} maxFontSizeMultiplier={GLYPH_MAX_SCALE} style={styles.glyph}>'));
   assertEquals((src.match(/style=\{styles\.word\} maxFontSizeMultiplier=\{GLYPH_MAX_SCALE\}/g) ?? []).length, 3); // Bye x2, the dash
+  // The upcoming tile's opponent name is a value-slot label: one line, tail-cut, capped like the labels (never above them).
+  assert(src.includes('numberOfLines={1} maxFontSizeMultiplier={LABEL_MAX_SCALE} style={styles.name}>'));
+  assert(src.slice(src.indexOf('style={styles.name}') - 140, src.indexOf('style={styles.name}')).includes('numberOfLines={1}'));
   // The score keeps its fit and is capped no lower than the label (score >= label): SCORE_MAX_SCALE.
   assertEquals(SCORE_MAX_SCALE, LABEL_MAX_SCALE);
   assert(SCORE_MAX_SCALE >= LABEL_MAX_SCALE && SCORE_MAX_SCALE < GLYPH_MAX_SCALE);

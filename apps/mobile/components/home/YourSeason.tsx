@@ -141,7 +141,7 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
       middle = <Avatar name={tile.opponent} size={26} tone="opp" />;
       // One line, cut at the tail (the default); VoiceOver reads the full name from the tile's label.
       bottom = (
-        <Text variant="caption" tone="secondary" numberOfLines={1} style={styles.name}>
+        <Text variant="caption" tone="secondary" numberOfLines={1} maxFontSizeMultiplier={LABEL_MAX_SCALE} style={styles.name}>
           {tile.opponent}
         </Text>
       );
