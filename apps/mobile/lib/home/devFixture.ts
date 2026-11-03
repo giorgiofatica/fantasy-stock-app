@@ -44,6 +44,8 @@ export type HomeFixture =
   | 'bye'
   | 'playoff_live'
   | 'playoff_bye'
+  /** Home's "Your season" (2026-11-03): round 1 won, round 2's opponent not named yet. */
+  | 'playoff_pending'
   | 'eliminated'
   | 'missed_playoffs'
   | 'leader_flip'
@@ -73,7 +75,7 @@ export type HomeFixture =
 const FIXTURES: readonly HomeFixture[] = [
   'live_open', 'live_closed', 'scoring', 'scored', 'pre_season', 'pre_draft',
   'pre_draft_waiting', 'drafting_on_clock', 'drafting_waiting_turn', 'complete', 'complete_runner_up', 'bye',
-  'playoff_live', 'playoff_bye', 'eliminated', 'missed_playoffs', 'leader_flip', 'xl_large_numbers', 'xl_million',
+  'playoff_live', 'playoff_bye', 'playoff_pending', 'eliminated', 'missed_playoffs', 'leader_flip', 'xl_large_numbers', 'xl_million',
   'monday_preclose', 'stress', 'week1_monday', 'week1_tuesday',
 ];
 

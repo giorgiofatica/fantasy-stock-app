@@ -6,18 +6,15 @@
  * touch (24pt between blocks); one primary action per screen.
  */
 
-/** The season chart's PLOT height on Home (Game Night, W4): the W/L marks and the two
- * end dates add their rows under it, so the whole chart is about 142pt, the board's
- * Line(h 142). Never compressed to win back the 17e's fold (the spec's ruling), nor is
- * the 24pt block gap (index.tsx). */
-export const HOME_CHART_HEIGHT = 108;
-
 // ── Tap through ────────────────────────────────────────────────────────────
 /** This week opens Matchup, in every state the card shows. */
 export const THIS_WEEK_HREF = '/(tabs)/matchup' as const;
 export const OPENS_MATCHUP_HINT = 'Opens Matchup';
 /** Standings opens League on Standings, even if League was left on another segment. */
 export const STANDINGS_HREF = { pathname: '/(tabs)/league', params: { segment: 'standings' } } as const;
+/** "Your season"'s title, and every tile but this week's, open League on Schedule (interim for a tile: Matchup shows
+ * only the current week, so there is no past-week matchup screen to open). */
+export const SCHEDULE_HREF = { pathname: '/(tabs)/league', params: { segment: 'schedule' } } as const;
 /** "See the bracket" (an eliminated player's card) opens League on the Playoffs segment, not on whichever segment
  * League was left on (W8 tap-through: it landed on Standings, with no bracket in view). */
 export const BRACKET_HREF = { pathname: '/(tabs)/league', params: { segment: 'playoffs' } } as const;

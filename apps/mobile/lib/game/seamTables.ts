@@ -67,7 +67,7 @@ export function seamLivePrices(): Record<string, number> {
  * scores week 6 in (`isScored`: 'scored', and every state after the regular season), so
  * Matchup, All matchups and the final lineups agree on whether the week has closed. */
 export function seamWeekClosed(homeFixture: string | null | undefined): boolean {
-  return ['scored', 'complete', 'complete_runner_up', 'playoff_live', 'playoff_bye', 'eliminated', 'missed_playoffs'].includes(homeFixture ?? '');
+  return ['scored', 'complete', 'complete_runner_up', 'playoff_live', 'playoff_bye', 'playoff_pending', 'eliminated', 'missed_playoffs'].includes(homeFixture ?? '');
 }
 
 /** Under SCORED_OUTCOME=lost, your week is mirrored: each Friday close = 2 × Monday open −

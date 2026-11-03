@@ -28,8 +28,8 @@ Deno.test('in season, team value is the only big number: This week scores are sc
   assertEquals(variants(card, 'score.md') + variants(card, 'score.xl') + variants(card, 'hero'), 0);
   // The skeleton matches the 28pt scores, so nothing jumps when they land.
   assertEquals((card.match(/<Skeleton width="70%" height=\{28\} \/>/g) ?? []).length, 2);
-  // Standings and the chart block have no score type at all.
-  for (const f of ['components/home/StandingsCard.tsx', 'components/home/HomeSeason.tsx', 'components/home/SeasonChart.tsx']) {
+  // Standings has no score type at all ("Your season" sets its own 22pt glyph, never a hero-size number).
+  for (const f of ['components/home/StandingsCard.tsx']) {
     assertEquals(variants(SOURCES[f], 'score.md') + variants(SOURCES[f], 'score.lg') + variants(SOURCES[f], 'score.xl'), 0, f);
   }
   // The hero's value is the one `hero` (46/800, §9C), and nothing else on Home uses it.
@@ -79,13 +79,18 @@ Deno.test('the hero sub-line is unchanged: "+$X · +Y% season gain · +$Z today"
   assert(rolling.includes('style={{ alignSelf: alignSelfFor(align), fontFamily, fontSize'));
 });
 
-Deno.test('the hero block: HomeHero, then the chart and range tabs, 8pt apart; pre-season stays hero only', () => {
-  assert(home.includes('<View style={{ gap: space[3] }}>\n          {hero}\n          <HomeSeason'));
-  assert(home.includes("const showSeason = !!season && !['pre_season'].includes(phase.kind);"));
-  assert(home.includes(') : hero}'));
-  // The Season card is gone from Home.
+Deno.test('Home, in season: the hero stands alone, then This week, then Your season, then Standings; no chart', () => {
+  const hero = home.indexOf('      {hero}\n');
+  const mid = home.indexOf('{middleCard ? <PhaseTransition');
+  const season = home.indexOf('<YourSeason tiles={seasonTiles}');
+  const standings = home.indexOf('<StandingsCard rows={standingRows}');
+  assert(hero > 0 && hero < mid && mid < season && season < standings, 'hero, This week, Your season, Standings');
+  // The chart and its block are gone, and so is the grouping View that held the hero to it.
+  assert(!home.includes('HomeSeason') && !home.includes('SeasonChart') && !home.includes('space[3]'));
+  assert(!('components/home/HomeSeason.tsx' in SOURCES) && !('components/home/SeasonChart.tsx' in SOURCES));
+  // Not before the season, nor in the draft or after it: those Homes return above or skip the strip.
+  assert(home.includes('const showSeason = seasonStripShown(phase.kind);'));
   assert(!home.includes('SeasonCard'));
-  assert(!('components/home/SeasonCard.tsx' in SOURCES));
 });
 
 // ── Tap through ────────────────────────────────────────────────────────────
@@ -235,7 +240,6 @@ Deno.test("the static end dot is never clipped: the Game Night Chart keeps its w
   const chart = SOURCES['components/sp/gn/Chart.tsx'];
   assert(chart.includes('const PAD = { top: HALO_R + 3, bottom: HALO_R, left: 2, right: HALO_R + 3 };'));
   assert(chart.includes('x: Math.min(Math.max(geometry.end.x, HALO_R + 1), width - HALO_R - 1)'));
-  assert(SOURCES['components/home/SeasonChart.tsx'].includes('<Chart\n'));
 });
 
 // W8 tap-through (F6): "See the bracket" on an eliminated player's Home card opened League on whichever

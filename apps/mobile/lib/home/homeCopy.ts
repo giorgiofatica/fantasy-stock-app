@@ -26,6 +26,15 @@ export const HERO_TODAY_LABEL = 'today'; // board
  * label names the LINE's value (zero), not a computed figure. */
 export const CHART_ZERO_LABEL = '$0'; // board
 export const STANDINGS_CARD_TITLE = 'Standings'; // board
+/** The season strip's title and tile labels (Giorgio, approved as written, 2026-11-03). */
+export const YOUR_SEASON_TITLE = 'Your season'; // giorgio
+export function seasonTileWeekLabel(week: number): string {
+  return `Wk ${week}`; // giorgio
+}
+/** The bye tile's word (the chart's old glyph string; "Bye" in League › Schedule too). */
+export const SEASON_TILE_BYE = 'Bye';
+/** A past week with no score yet is a dash, never a W or an L. */
+export const SEASON_TILE_UNSCORED = '–';
 /** `throughWeek` is the already-resolved "last completed week" (week - 1
  * for a live week), NOT the league's total week count — code review
  * (2026-09-29) found the caller passing `numWeeks`, so this always read

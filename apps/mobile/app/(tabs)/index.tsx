@@ -16,7 +16,7 @@ import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 import { useHomeLeague } from '@/lib/home/useHomeLeague';
 import { HomeHero } from '@/components/home/HomeHero';
 import { ThisWeekCard } from '@/components/home/ThisWeekCard';
-import { HomeSeason } from '@/components/home/HomeSeason';
+import { YourSeason } from '@/components/home/YourSeason';
 import { StandingsCard, type StandingRow } from '@/components/home/StandingsCard';
 import { PreDraftCard } from '@/components/home/PreDraftCard';
 import { DraftingCard } from '@/components/home/DraftingCard';
@@ -40,7 +40,7 @@ import {
   standingsThroughWeek,
 } from '@/lib/home/homeCopy';
 import { BRACKET_HREF, seasonOverPrimary } from '@/lib/home/calmHome';
-import { resultFromGains } from '@/lib/home/weekMarks';
+import { seasonStripShown } from '@/lib/home/yourSeason';
 
 /** Run it back stays off until its backend (PR #94) is live: see runItBackEnabled. */
 const RUN_IT_BACK_ON = runItBackEnabled(process.env.EXPO_PUBLIC_RUN_IT_BACK);
@@ -139,7 +139,7 @@ function HomeBody({
     return <HomeSkeleton />;
   }
 
-  const { phase, hero: heroVm, thisWeek, standings, myUserId, season, weeklyResults } = viewModel;
+  const { phase, hero: heroVm, thisWeek, standings, myUserId, seasonTiles } = viewModel;
 
   // States 6/7: no money views at all — the draft's own cards.
   if (phase.kind === 'pre_draft') {
@@ -340,13 +340,12 @@ function HomeBody({
     }
   }
 
-  const showSeason = !!season && !['pre_season'].includes(phase.kind);
-  // B2/B3 (Design Lead, 2026-09-30): the board has no Standings card at
+  // "Your season" sits where the chart did: in every in-season phase but pre_season (the other
+  // phases returned above). B2/B3 (Design Lead, 2026-09-30): the board has no Standings card at
   // all before the season starts — there's no record yet to show.
+  const showSeason = seasonStripShown(phase.kind);
   const showStandingsCard = !['pre_season'].includes(phase.kind);
 
-  // The current week's posted result, when it is a scored week (its axis mark).
-  const currentScored = phase.kind === 'scored' && thisWeek ? resultFromGains(thisWeek.you.gain, thisWeek.opponent.gain) : null;
   const hero = (
     <HomeHero
       leagueId={leagueId ?? ''}
@@ -367,28 +366,11 @@ function HomeBody({
 
   return (
     <>
-      {/* A calm Home (2026-10-12): the hero block is the hero, then the season chart
-          and its range tabs, with no card (the old Season card). Team value is the
-          ONE standout number. Pre-season stays hero only. */}
-      {showSeason ? (
-        <View style={{ gap: space[3] }}>
-          {hero}
-          <HomeSeason
-            series={season!}
-            // Regular-season byes are NO RESULT (Giorgio, 2026-09-29): never
-            // coloured green/red as a win or loss; the axis reads "Bye" (or "–").
-            weekResults={weeklyResults.map((w) => ({ week: w.week, result: w.result }))}
-            currentWeek={week}
-            marketOpen={chrome.isLive}
-            // B′ (Design Lead, 2026-10-12): in the playoffs the line's end is the
-            // static dot; season gain is frozen at its regular-season total.
-            isPlayoff={'isPlayoff' in phase && !!phase.isPlayoff}
-            currentScored={currentScored}
-            skipEntrance={skipEntrance}
-          />
-        </View>
-      ) : hero}
+      {/* Home, in season (decided A, 2026-11-03): the hero stands alone (team value is the ONE
+          standout number), then This week, then "Your season", then Standings. */}
+      {hero}
       {middleCard ? <PhaseTransition key={phase.kind}>{middleCard}</PhaseTransition> : null}
+      {showSeason ? <YourSeason tiles={seasonTiles} skipEntrance={skipEntrance} /> : null}
       {showStandingsCard ? (
         <StandingsCard rows={standingRows} throughWeek={standingsThroughWeek(phase)} skipEntrance={skipEntrance} />
       ) : null}
