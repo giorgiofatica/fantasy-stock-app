@@ -32,6 +32,13 @@ Nothing ships to TestFlight until every screen is on Game Night in both themes
   ("a screen is not approved in one theme without the other").
 - **Devices:** the 17e and the 17 Pro, Large text. XL (`accessibility-extra-large`) on the
   screen's busiest state. Reduce Motion on the screen's main motion.
+- **AX5 (`accessibility-extra-extra-extra-large`) on every gate** (2026-11-02): it is the size
+  Giorgio's phone runs, and both of his large-text bugs were only visible there. The repo's
+  "XXXL" (`extra-extra-extra-large`) is the largest STANDARD size, not his; a gate at XXXL alone
+  can pass while the new code never runs (a wrap, a stack or a shrink that only AX5 triggers).
+- **Live text-size changes** (2026-11-02/03): change the size with the screen open, L→AX5 and
+  AX5→L, and diff against a cold launch at the same size and scroll. 0 px is the bar (pulsing
+  dots and the caret aside). See §5 "Live text-size change".
 - **States:** the screen's list in §6 below, each in Light and Dark.
 - **Recordings:** the screen's signature motion (§9C Motion), plus one tap through every
   tappable element (§4).
@@ -92,17 +99,26 @@ with the reason beside it**. A silent no-op is a P1.
 | The standout stays loudest | at Large, XL and with the stress fixture, measure cap heights: the screen's standout number against every other text on the screen | any name, line, label or row figure rendering larger than the standout it belongs to. Shrink-to-fit numbers have no fixed size: cap the neighbour by the number's FITTED size (`stackedNameCap`), not by a flat multiplier. Known open case: at ≥ $1M and XL, Matchup's stacked row gains outgrow the scoreboard totals (W4 Matchup gate, P3), so check it at the League and Portfolio gates |
 | One button shape | every sp Button variant and size, side by side on one card | two shapes on one surface: every Button is a pill (§9C; W4 Home gate) |
 | Wrapping at XL | read every line that wraps at XL and XXXL | a line starting with "·", a date or "Week 6 of 14" split across lines (non-breaking spaces keep each "·" with the segment before it); a money amount broken inside itself ("$1,000." / "00", W8 gate 2026-10-16): an amount is one unbreakable run, and its unit ("a slot", "per slot") may wrap after it |
+| A code on its own line | read every invite code at XXXL and AX5 with the longest real code | a code broken across lines ("ASC-0fc85d9" / "d"). A code by itself draws through `InviteCodeText` (one line, fit down to 0.6×, the PLAIN code: no joiners, which would double a tracked style's letter spacing and reach the copied text); a code inside a sentence that can wrap is `keepCode`-joined (2026-11-02). Its label never outranks it: the label is capped at the code's scale (`codeLabelMaxScale`) |
+| Stacked rows read label, value, sub | every SettingRow that stacks (its label broke mid-word) at AX5 | the value separated from its label by the sub-line ("…after the season." / "You" reads as one sentence). Stacked order is label → value (with its chevron) → sub, the sub full width (2026-11-02); side by side, nothing moves |
+| Live text-size change | the §1 live pass, cmp against cold | a text, a row or a sheet keeping its old size's box or layout (Fabric keeps a container's flex layout when only its Texts remount: key the CONTAINER's root by `fontScaleKey`, as SettingRow does). Accepted (2026-11-03): a FOCUSED field whose text overflows after a live size increase keeps its old scroll offset until the next keystroke or blur (a remount would drop the keyboard). Exempt by design (2026-11-03): credential fields (password, username, email) never remount on a size change, because iOS reads a remounted filled credential form as a sign-in and offers "Save Password?"; their glyphs correct on focus |
 | Labels that can read as nonsense | the label in its emptiest real state (Week 1, nothing scored, no close yet) | "Through Week 0", "Ordered by …" before any close: hide a label that has nothing to name (no new copy) |
 
 ## 6. Per screen: the states to capture and what to check
 
 ### Home
 - **States:** every calm-Home state (ux-audit "Captures for the gate", items 1–11) in both
-  themes; the season line with 0 points (week 1, Monday before the first close) and 1 point.
+  themes; "Your season" in each this-week state (live, market closed, scoring, scored, bye,
+  playoff bye, playoff pending, eliminated, missed playoffs), with a tie, an unscored past week
+  and week ≥ 10 (the opening scroll).
 - **Check:** the team value is the one standout (`hero`, 46/800); This week is the rimmed card
   with 28pt scores and the "Live" chip; Standings is the rimmed card with your row's tint;
-  24pt between blocks; the season chart top to bottom: the plot, the W/L marks, the two end
-  dates (§9C X axis); the range tabs 8pt under that (the F1 rule).
+  24pt between blocks. **No chart on Home** (Giorgio, 2026-11-03, PRODUCT_RULES "No chart on
+  Home"): the hero, This week, "Your season", Standings, in that order. "Your season": tiles of
+  equal width, a played week's score on one line, this week's tile outlined and never showing a
+  score (its ring is `text2`, its dot only while live), an unscored past week "–" (never W/L,
+  never Bye), the row opening with this week in view and the next tile peeking. At AX5, This
+  week is on the first screen.
 
 ### Matchup + the player card
 - **States:** live while you lead and while you're BEHIND; final (won and lost); the reveal;
