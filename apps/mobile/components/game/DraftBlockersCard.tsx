@@ -8,6 +8,7 @@ import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { Stepper } from '@/components/game/Stepper';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
+import { codeLabelMaxScale } from '@/lib/game/codeLabel';
 import {
   INVITE_SOMEONE_NEW,
   PICK_NEW_TIME,
@@ -87,7 +88,7 @@ export function DraftBlockersCard({
     if (b.code === 'not_enough_members' && inviteCode) {
       return (
         <View style={styles.invite}>
-          <Text variant="caption" tone="secondary">Invite code</Text>
+          <Text variant="caption" tone="secondary" maxFontSizeMultiplier={codeLabelMaxScale('headline')}>Invite code</Text>
           <InviteCodeText variant="headline" selectable code={inviteCode} />
           {onShareInvite ? <Button label="Share invite code" variant="secondary" size="sm" onPress={onShareInvite} /> : null}
         </View>

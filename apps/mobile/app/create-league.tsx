@@ -90,6 +90,7 @@ import { keepDots, keepHyphens, keepMoney } from '@/lib/game/keepDots';
 import { pushAskRouteFor } from '@/lib/shell/pushAsk';
 import { ChoiceRow, RowDivider, RowKey, RowWrap, SettingRow, SetupCard, SwitchRow, WarnNote } from '@/components/game/SetupRows';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
+import { codeLabelMaxScale } from '@/lib/game/codeLabel';
 
 interface WizardState {
   name: string;
@@ -593,7 +594,7 @@ export default function CreateLeagueWizard() {
         {/* The pre-draft Home invite-code card (board). */}
         <SetupCard style={styles.codeCard}>
           <View style={styles.grow}>
-            <Text variant="caption" tone="secondary">{INVITE_CODE_LABEL}</Text>
+            <Text variant="caption" tone="secondary" maxFontSizeMultiplier={codeLabelMaxScale('title')}>{INVITE_CODE_LABEL}</Text>
             <InviteCodeText variant="title" style={styles.code} selectable code={created.inviteCode} />
           </View>
           <Button label="Share" variant="secondary" size="sm" onPress={() => void share()} />

@@ -35,7 +35,8 @@ import { ShellOverlayProvider } from '@/components/shell/ShellOverlay';
 import { MoneyHostProvider } from '@/components/money/MoneyHost';
 import { useMotion } from '@/components/sp/motion';
 import { takeSignInIntent } from '@/lib/shell/signInTransition';
-import { useGetStartedOpen, useOnboardingSeen } from '@/lib/shell/firstRun';
+import { markOnboardingSeen, useGetStartedOpen, useOnboardingSeen } from '@/lib/shell/firstRun';
+import { shouldMarkOnboardingSeen } from '@/lib/shell/onboardingSeenBySession';
 import { useArrivalInvite } from '@/lib/invite/useArrivalInvite';
 import { shouldOpenTakeover, takeoverOwnerAction } from '@/lib/invite/pendingTakeover';
 import { pendingTakeover as takeoverStore, useTakeoverSnapshot } from '@/lib/invite/pendingTakeoverStore';
@@ -74,6 +75,14 @@ function RootLayoutNav({ fontsLoaded }: { fontsLoaded: boolean }) {
   // imported as `inviteStore` so this name stays W4's.
   const pendingInvite = useArrivalInvite();
   const invite = useInviteSnapshot();
+
+  // A session on this phone means it is past the cards: a restored session at launch or any sign-in marks them seen,
+  // so an install signed in before the cards existed never meets them on its first sign-out
+  // (lib/shell/onboardingSeenBySession.ts). A brand-new install has no session, so it still sees them.
+  const hasSession = user !== null;
+  useEffect(() => {
+    if (shouldMarkOnboardingSeen(hasSession, onboardingSeen)) markOnboardingSeen();
+  }, [hasSession, onboardingSeen]);
 
   // The phase the navigator renders. authPhase passes through 'unknown' not
   // only at cold start but on EVERY sign-in, while the new account's profile
