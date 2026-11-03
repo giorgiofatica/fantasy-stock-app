@@ -7,8 +7,8 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { SOURCES } from './sourceManifest.generated.ts';
 import {
-  anchorIndex, buildSeasonTiles, initialOffset, seasonStripShown, thisWeekNumber, tileHint, tileLabel, tileTargetsMatchup, tileWidth,
-  tileMinHeight, ROW_LEAD, TILE_GAP, PEEK, type SeasonMatchupRow, type SeasonTile, type SeasonWeeklyResult,
+  anchorIndex, buildSeasonTiles, initialOffset, openingLayout, seasonStripShown, thisWeekNumber, tileHint, tileLabel, tileTargetsMatchup, tileWidth,
+  tileMinHeight, ROW_LEAD, TILE_GAP, SCROLLED_LEAD, type SeasonMatchupRow, type SeasonTile, type SeasonWeeklyResult,
 } from '../lib/home/yourSeason.ts';
 import type { PhaseResult } from '../lib/home/homePhase.ts';
 import { SCHEDULE_HREF, THIS_WEEK_HREF, leagueSegmentFromParam, STANDINGS_HREF } from '../lib/home/calmHome.ts';
@@ -165,25 +165,65 @@ Deno.test('rows that are not mine are ignored', () => {
 });
 
 // ── Where the row opens ─────────────────────────────────────────────────────
-Deno.test('the row opens at 0 while it fits (weeks 1-6 at Large on a 402pt screen), the next tile peeking', () => {
-  for (let n = 1; n <= 6; n++) assertEquals(initialOffset({ tileCount: 8, anchorIndex: n - 1, fontScale: 1, viewportWidth: 402 }), 0, `week ${n}`);
+const pitchOf = (fs: number) => tileWidth(fs) + TILE_GAP;
+
+Deno.test('the row opens at 0 while it fits (weeks 1-6 at Large on a 390 or 402pt screen)', () => {
+  for (const vw of [390, 402]) {
+    for (let n = 1; n <= 6; n++) assertEquals(initialOffset({ tileCount: 8, anchorIndex: n - 1, fontScale: 1, viewportWidth: vw }), 0, `week ${n} on ${vw}`);
+  }
 });
 
-Deno.test('week 11 opens with this week at the right edge and the next tile peeking', () => {
-  const vw = 402;
-  const offset = initialOffset({ tileCount: 14, anchorIndex: 10, fontScale: 1, viewportWidth: vw });
-  assert(offset > 0);
-  const w = tileWidth(1);
-  const thisRight = ROW_LEAD + 11 * w + 10 * TILE_GAP - offset;
-  assert(thisRight <= vw, 'this week is fully in view');
-  const nextLeft = ROW_LEAD + 11 * w + 11 * TILE_GAP - offset;
-  assert(nextLeft < vw && vw - nextLeft >= PEEK - 0.001, 'the next tile peeks');
+Deno.test('the opening offset is whole tiles: a tile boundary parked at the 6pt lead, so no tile (or fragment of one) is cut at the left', () => {
+  const lift = ROW_LEAD - SCROLLED_LEAD;
+  // Week 11 at Large on a 390pt screen: Wk 6 first (k = 5).
+  assertEquals(initialOffset({ tileCount: 14, anchorIndex: 10, fontScale: 1, viewportWidth: 390 }), 5 * pitchOf(1) + lift);
+  // The playoff / eliminated shapes the gate found with a fragment: 8 tiles anchored on the last, 7 on the last.
+  assertEquals(initialOffset({ tileCount: 8, anchorIndex: 7, fontScale: 1, viewportWidth: 390 }), 2 * pitchOf(1) + lift);
+  assertEquals(initialOffset({ tileCount: 7, anchorIndex: 6, fontScale: 1, viewportWidth: 390 }), 1 * pitchOf(1) + lift);
+  assertEquals(SCROLLED_LEAD, TILE_GAP); // the tile before the first one shown ends exactly at the screen's edge
 });
 
-Deno.test('the offset never passes the content, and the last tile has no peek to leave room for', () => {
-  const contentWidth = ROW_LEAD + 14 * tileWidth(1) + 13 * TILE_GAP + ROW_LEAD;
-  assert(initialOffset({ tileCount: 14, anchorIndex: 13, fontScale: 1, viewportWidth: 402 }) <= contentWidth - 402 + 0.001);
-  assertEquals(initialOffset({ tileCount: 0, anchorIndex: -1, fontScale: 1, viewportWidth: 402 }), 0);
+Deno.test('every opening, at every size and screen: a tile boundary, the anchor in full, nothing of the previous tile showing, a reachable offset', () => {
+  let checked = 0;
+  for (const vw of [375, 390, 402, 430]) {
+    for (const fs of [1, 1.15, 1.3, 1.6, 2.1, 3.1]) {
+      for (let n = 1; n <= 16; n++) {
+        for (let a = 0; a < n; a++) {
+          const { offset, trailing } = openingLayout({ tileCount: n, anchorIndex: a, fontScale: fs, viewportWidth: vw });
+          const w = tileWidth(fs);
+          const pitch = pitchOf(fs);
+          const where = `vw ${vw} fs ${fs} n ${n} anchor ${a}`;
+          const left = (i: number) => ROW_LEAD + i * pitch - offset; // tile i's left edge on screen
+          if (offset === 0) {
+            // Everything fits: Wk 1 on the gutter, the anchor in full.
+            assert(left(a) + w <= vw + 1e-6, `${where}: the anchor is cut at the right`);
+          } else {
+            // The first tile shown is a whole tile at SCROLLED_LEAD, and the one before it ends at the edge.
+            const k = Math.round((offset - (ROW_LEAD - SCROLLED_LEAD)) / pitch);
+            assert(Math.abs(offset - (k * pitch + (ROW_LEAD - SCROLLED_LEAD))) < 1e-6, `${where}: ${offset} is not whole tiles`);
+            assert(Math.abs(left(k) - SCROLLED_LEAD) < 1e-6, `${where}: tile ${k} is not on the lead`);
+            assert(left(k - 1) + w <= 1e-6, `${where}: a fragment of the previous tile shows at the left`);
+            assert(a >= k && left(a) + w <= vw + 1e-6, `${where}: the anchor is cut`);
+            // the smallest k that does it
+            if (k > 1) assert(ROW_LEAD + (a + 1) * w + a * TILE_GAP - ((k - 1) * pitch + (ROW_LEAD - SCROLLED_LEAD)) > vw + 1e-6, `${where}: a smaller k fits`);
+          }
+          // reachable: the content (with its trailing padding) is wide enough to open here
+          const content = ROW_LEAD + n * w + (n - 1) * TILE_GAP + trailing;
+          assert(trailing >= ROW_LEAD && content >= offset + vw - 1e-6, `${where}: the opening is past the content's end`);
+          checked++;
+        }
+      }
+    }
+  }
+  assert(checked > 1000);
+});
+
+Deno.test('the trailing padding is the 20pt gutter unless the opening needs more (an anchor at the end of the row)', () => {
+  assertEquals(openingLayout({ tileCount: 14, anchorIndex: 10, fontScale: 1, viewportWidth: 390 }).trailing, ROW_LEAD);
+  assertEquals(openingLayout({ tileCount: 8, anchorIndex: 2, fontScale: 1, viewportWidth: 390 }).trailing, ROW_LEAD);
+  // Seven tiles anchored on the last at Large: offset 74 + 390 = 464 is 30pt past the tiles' end (434), more than the gutter.
+  assertEquals(openingLayout({ tileCount: 7, anchorIndex: 6, fontScale: 1, viewportWidth: 390 }).trailing, 464 - 434);
+  assertEquals(openingLayout({ tileCount: 0, anchorIndex: -1, fontScale: 1, viewportWidth: 390 }), { offset: 0, trailing: ROW_LEAD });
 });
 
 Deno.test('the anchor is this week, else the last drawn tile', () => {
@@ -284,4 +324,18 @@ Deno.test("the component's this-week branch never draws a score: no money format
   const block = src.slice(a, src.indexOf('break;', a));
   assert(a > 0 && block.length > 20);
   assert(!/formatMoney|keepMoney|\.gain\b/.test(block), 'this week shows a ring, the live dot, a letter or "Bye" and never a score');
+});
+
+Deno.test('the row pads its end by the layout\'s trailing, so a whole-tile opening is always reachable', () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  assert(src.includes('const { offset, trailing } = openingLayout({'));
+  assert(src.includes('contentContainerStyle={[styles.row, { paddingRight: trailing }]}'));
+  assert(src.includes('contentOffset={{ x: offset, y: 0 }}'));
+});
+
+Deno.test('"Wk N", "Live" and "Bye" are one line that shrinks to fit (a two-digit week never wraps at AX5)', () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  assert(src.includes('style={styles.weekText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{tileWeekText(tile)}'));
+  assert(src.includes('style={styles.live} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{LIVE_CHIP}'));
+  assertEquals((src.match(/style=\{styles\.word\} numberOfLines=\{1\} adjustsFontSizeToFit/g) ?? []).length, 2); // the two "Bye" words (a past bye, this week's); the unscored dash is one glyph
 });

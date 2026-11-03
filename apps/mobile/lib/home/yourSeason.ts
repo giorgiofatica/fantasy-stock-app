@@ -162,8 +162,6 @@ export const TILE_RADIUS = 12;
 export const TILE_GAP = 6;
 /** The row's leading inset: Wk 1 lines up with the content. */
 export const ROW_LEAD = 20;
-/** How much of the next tile peeks at the right edge. */
-export const PEEK = 20;
 /** Tiles scale with the text size to this factor; the W / L / T glyph caps at 2.0x. */
 export const TILE_MAX_SCALE = 2.1;
 export const GLYPH_MAX_SCALE = 2.0;
@@ -179,21 +177,41 @@ export function tileMinHeight(fontScale: number): number {
   return TILE_MIN_HEIGHT * tileScale(fontScale);
 }
 
+/** Once the row opens scrolled (k >= 1), the leading tile sits this far from the screen's edge: the
+ * gap, so the tile BEFORE it ends exactly at the edge and no fragment of it shows. With the 20pt
+ * gutter instead, 14pt of the previous tile (its score's last digits) would show there: a money
+ * fragment reads as a glyph (Design Lead gate, 2026-11-03). At k = 0 Wk 1 sits on the 20pt gutter. */
+export const SCROLLED_LEAD = TILE_GAP;
+
 /**
- * Where the row opens: the this-week tile (or the last drawn one when there is none) fully in
- * view at the right edge, the next tile peeking, never past the content's end. 0 while it all
- * fits (weeks 1 to 6 at Large). Computed, never persisted; the row is remounted on a league
- * switch and a font-scale change, so it is computed again then.
+ * Where the row opens: a WHOLE number of tiles, k × (tile + gap) plus the (ROW_LEAD − SCROLLED_LEAD)
+ * that parks tile k+1 at SCROLLED_LEAD, so no tile is ever cut at the left edge. k is the smallest
+ * that shows the anchor tile (this week's, else the last drawn) in full, so the row stays as far
+ * left as it can: 0 while it all fits (weeks 1 to 6 at Large on a 390pt screen), with Wk 1 on
+ * the gutter. The next tile peeks at the right when there is room, a partial tile there being the
+ * sign that the row scrolls. Only the OPENING position is rounded; scrolling is free. Computed,
+ * never persisted; the row is remounted on a league switch and a font-scale change.
+ *
+ * `trailing` is the row's padding after its last tile: ROW_LEAD, or more when the opening would
+ * otherwise pass the end of the content (an anchor at or near the last tile, as an eliminated
+ * player's strip is), so that opening is reachable.
  */
-export function initialOffset(args: { tileCount: number; anchorIndex: number; fontScale: number; viewportWidth: number }): number {
+export function openingLayout(args: { tileCount: number; anchorIndex: number; fontScale: number; viewportWidth: number }): { offset: number; trailing: number } {
   const { tileCount, anchorIndex, viewportWidth } = args;
-  if (tileCount <= 0 || anchorIndex < 0 || !(viewportWidth > 0)) return 0;
+  if (tileCount <= 0 || anchorIndex < 0 || !(viewportWidth > 0)) return { offset: 0, trailing: ROW_LEAD };
   const w = tileWidth(args.fontScale);
-  const contentWidth = ROW_LEAD + tileCount * w + (tileCount - 1) * TILE_GAP + ROW_LEAD;
+  const pitch = w + TILE_GAP;
   const anchorRight = ROW_LEAD + (anchorIndex + 1) * w + anchorIndex * TILE_GAP;
-  const hasNext = anchorIndex < tileCount - 1;
-  const wanted = hasNext ? anchorRight + TILE_GAP + PEEK - viewportWidth : anchorRight + ROW_LEAD - viewportWidth;
-  return Math.max(0, Math.min(wanted, contentWidth - viewportWidth));
+  const lift = ROW_LEAD - SCROLLED_LEAD;
+  // The smallest whole k with the anchor's right edge inside the screen (a tiny epsilon: an exact fit counts).
+  const k = anchorRight <= viewportWidth + 1e-9 ? 0 : Math.max(1, Math.ceil((anchorRight - lift - viewportWidth) / pitch - 1e-9));
+  const offset = k === 0 ? 0 : k * pitch + lift;
+  const base = ROW_LEAD + tileCount * w + (tileCount - 1) * TILE_GAP;
+  return { offset, trailing: Math.max(ROW_LEAD, offset + viewportWidth - base) };
+}
+
+export function initialOffset(args: { tileCount: number; anchorIndex: number; fontScale: number; viewportWidth: number }): number {
+  return openingLayout(args).offset;
 }
 
 /** The tile the row opens on: this week's, else the last drawn. */

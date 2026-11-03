@@ -19,7 +19,7 @@ import { keepMoney } from '@/lib/game/keepDots';
 import { LIVE_CHIP, SEASON_TILE_BYE, SEASON_TILE_UNSCORED, YOUR_SEASON_TITLE } from '@/lib/home/homeCopy';
 import { SCHEDULE_HREF, THIS_WEEK_HREF } from '@/lib/home/calmHome';
 import {
-  anchorIndex, GLYPH_MAX_SCALE, initialOffset, OPENS_SCHEDULE_HINT, ROW_LEAD, SCORE_MIN_FONT_SCALE, TILE_GAP, TILE_RADIUS,
+  anchorIndex, GLYPH_MAX_SCALE, openingLayout, OPENS_SCHEDULE_HINT, ROW_LEAD, SCORE_MIN_FONT_SCALE, TILE_GAP, TILE_RADIUS,
   tileHint, tileLabel, tileMinHeight, tileTargetsMatchup, tileWeekText, tileWidth, type SeasonResult, type SeasonTile,
 } from '@/lib/home/yourSeason';
 
@@ -50,7 +50,7 @@ export function YourSeason({ tiles, skipEntrance = false }: YourSeasonProps) {
   // The schedule read failed or has no row for you: nothing at all (no title, no skeleton).
   if (tiles.length === 0) return null;
 
-  const offset = initialOffset({ tileCount: tiles.length, anchorIndex: anchorIndex(tiles), fontScale, viewportWidth: width });
+  const { offset, trailing } = openingLayout({ tileCount: tiles.length, anchorIndex: anchorIndex(tiles), fontScale, viewportWidth: width });
   return (
     // The root carries the scale key; the ScrollView inside takes its initial offset on that
     // remount (a scale change recomputes it, nothing is persisted).
@@ -76,7 +76,7 @@ export function YourSeason({ tiles, skipEntrance = false }: YourSeasonProps) {
         // No paging, no snapping: a plain strip. The offset is a mount-time value.
         contentOffset={{ x: offset, y: 0 }}
         style={styles.bleed}
-        contentContainerStyle={styles.row}
+        contentContainerStyle={[styles.row, { paddingRight: trailing }]}
         testID="your-season-row"
       >
         {tiles.map((tile, i) => {
@@ -134,7 +134,7 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
       middle = <Text variant="caption" tone="secondary" style={styles.word}>{SEASON_TILE_UNSCORED}</Text>;
       break;
     case 'bye':
-      middle = <Text variant="caption" tone="secondary" style={styles.word}>{SEASON_TILE_BYE}</Text>;
+      middle = <Text variant="caption" tone="secondary" style={styles.word} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{SEASON_TILE_BYE}</Text>;
       break;
     case 'upcoming':
       middle = <Avatar name={tile.opponent} size={26} tone="opp" />;
@@ -148,10 +148,10 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
     case 'this':
       if (tile.middle === 'live') middle = <View style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: colors.live }} />;
       else if (tile.middle === 'ring') middle = <View style={{ width: dot, height: dot, borderRadius: dot / 2, borderWidth: 1.5, borderColor: colors.text2 }} />;
-      else if (tile.middle === 'bye') middle = <Text variant="caption" tone="secondary" style={styles.word}>{SEASON_TILE_BYE}</Text>;
+      else if (tile.middle === 'bye') middle = <Text variant="caption" tone="secondary" style={styles.word} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{SEASON_TILE_BYE}</Text>;
       else if (tile.result) middle = <Glyph letter={tile.result} color={toneColor(tile.result)} />;
       // "Live", only while the market is open; never a score.
-      if (tile.showLive) bottom = <Text variant="caption" color={colors.liveText} style={styles.live}>{LIVE_CHIP}</Text>;
+      if (tile.showLive) bottom = <Text variant="caption" color={colors.liveText} style={styles.live} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{LIVE_CHIP}</Text>;
       break;
   }
 
@@ -165,7 +165,7 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
       testID={`season-tile-${tile.week}`}
     >
       <View pointerEvents="none" style={[styles.edge, { borderWidth: edge.width, borderColor: edge.color }]} />
-      <Text variant="caption" tone="secondary" style={styles.weekText}>{tileWeekText(tile)}</Text>
+      <Text variant="caption" tone="secondary" style={styles.weekText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{tileWeekText(tile)}</Text>
       <View style={styles.middle}>{middle}</View>
       {/* Every tile keeps the bottom line's height, so the middle sits at one height across the row. */}
       <View style={styles.bottom}>{bottom ?? <Text variant="caption" style={styles.spacer}>{' '}</Text>}</View>
@@ -204,7 +204,8 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   row: {
-    paddingHorizontal: ROW_LEAD,
+    paddingLeft: ROW_LEAD,
+    paddingRight: ROW_LEAD,
     columnGap: TILE_GAP,
   },
   // flexGrow: every tile fills the row's height (the tallest tile, an upcoming one at large
