@@ -8,9 +8,10 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import { SOURCES } from './sourceManifest.generated.ts';
 import {
   anchorIndex, buildSeasonTiles, initialOffset, openingLayout, seasonStripShown, thisWeekNumber, tileHint, tileLabel, tileTargetsMatchup, tileWidth,
-  tileMinHeight, ROW_LEAD, TILE_GAP, SCROLLED_LEAD, type SeasonMatchupRow, type SeasonTile, type SeasonWeeklyResult,
+  tileMinHeight, LABEL_MAX_SCALE, SCORE_MAX_SCALE, GLYPH_MAX_SCALE, ROW_LEAD, TILE_GAP, SCROLLED_LEAD, type SeasonMatchupRow, type SeasonTile, type SeasonWeeklyResult,
 } from '../lib/home/yourSeason.ts';
 import type { PhaseResult } from '../lib/home/homePhase.ts';
+import { type as typeTokens } from '../constants/tokens/type.ts';
 import { SCHEDULE_HREF, THIS_WEEK_HREF, leagueSegmentFromParam, STANDINGS_HREF } from '../lib/home/calmHome.ts';
 
 const ME = 'me';
@@ -335,7 +336,31 @@ Deno.test('the row pads its end by the layout\'s trailing, so a whole-tile openi
 
 Deno.test('"Wk N", "Live" and "Bye" are one line that shrinks to fit (a two-digit week never wraps at AX5)', () => {
   const src = SOURCES['components/home/YourSeason.tsx'];
-  assert(src.includes('style={styles.weekText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{tileWeekText(tile)}'));
-  assert(src.includes('style={styles.live} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{LIVE_CHIP}'));
-  assertEquals((src.match(/style=\{styles\.word\} numberOfLines=\{1\} adjustsFontSizeToFit/g) ?? []).length, 2); // the two "Bye" words (a past bye, this week's); the unscored dash is one glyph
+  const fit = 'numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}';
+  assert(src.includes(`style={styles.weekText} maxFontSizeMultiplier={LABEL_MAX_SCALE} ${fit}>{tileWeekText(tile)}`));
+  assert(src.includes(`style={styles.live} maxFontSizeMultiplier={LABEL_MAX_SCALE} ${fit}>{LIVE_CHIP}`));
+  assertEquals((src.match(new RegExp(`style=\\{styles\\.word\\} maxFontSizeMultiplier=\\{GLYPH_MAX_SCALE\\} ${fit.replace(/[{}]/g, '\\$&')}`, 'g')) ?? []).length, 2); // the two "Bye" words; the unscored dash is one glyph
+});
+
+Deno.test('inside a tile the label never outranks the value: "Wk N" and "Live" cap at the chip token (1.4x), the glyph and its slot at 2.0x', () => {
+  assertEquals(LABEL_MAX_SCALE, typeTokens.tag.maxScale); // the token itself, not a hand-typed number
+  assertEquals(LABEL_MAX_SCALE, 1.4);
+  assertEquals(GLYPH_MAX_SCALE, 2);
+  assert(LABEL_MAX_SCALE < GLYPH_MAX_SCALE);
+  const pure = SOURCES['lib/home/yourSeason.ts'];
+  assert(pure.includes('export const LABEL_MAX_SCALE = typeTokens.tag.maxScale as number;'));
+  assert(!/LABEL_MAX_SCALE = 1\./.test(pure));
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  // "Wk N" and the bottom "Live": the label cap.
+  assert(src.includes('style={styles.weekText} maxFontSizeMultiplier={LABEL_MAX_SCALE} numberOfLines={1}'));
+  assert(src.includes('style={styles.live} maxFontSizeMultiplier={LABEL_MAX_SCALE} numberOfLines={1}'));
+  // The glyph, and "Bye" / the dash standing in the glyph slot: the glyph cap.
+  assert(src.includes('<Text variant="score.lg" color={color} maxFontSizeMultiplier={GLYPH_MAX_SCALE} style={styles.glyph}>'));
+  assertEquals((src.match(/style=\{styles\.word\} maxFontSizeMultiplier=\{GLYPH_MAX_SCALE\}/g) ?? []).length, 3); // Bye x2, the dash
+  // The score keeps its fit and is capped no lower than the label (score >= label): SCORE_MAX_SCALE.
+  assertEquals(SCORE_MAX_SCALE, LABEL_MAX_SCALE);
+  assert(SCORE_MAX_SCALE >= LABEL_MAX_SCALE && SCORE_MAX_SCALE < GLYPH_MAX_SCALE);
+  assert(pure.includes('export const SCORE_MAX_SCALE = LABEL_MAX_SCALE;'));
+  const score = src.slice(src.indexOf('variant="score.sm"'), src.indexOf('variant="score.sm"') + 400);
+  assert(score.includes('maxFontSizeMultiplier={SCORE_MAX_SCALE}') && score.includes('adjustsFontSizeToFit') && score.includes('minimumFontScale={SCORE_MIN_FONT_SCALE}'));
 });

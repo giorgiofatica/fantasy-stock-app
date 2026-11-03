@@ -15,6 +15,7 @@
  */
 
 import { formatMoney } from '../../components/sp/logic/money';
+import { type as typeTokens } from '../../constants/tokens/type';
 import { seasonTileWeekLabel, SEASON_TILE_BYE, SEASON_TILE_UNSCORED } from './homeCopy';
 import type { PhaseResult } from './homePhase';
 
@@ -165,6 +166,15 @@ export const ROW_LEAD = 20;
 /** Tiles scale with the text size to this factor; the W / L / T glyph caps at 2.0x. */
 export const TILE_MAX_SCALE = 2.1;
 export const GLYPH_MAX_SCALE = 2.0;
+/** In a tile the label never outranks the value: glyph (2.0x) > score (SCORE_MAX_SCALE, fits to a
+ * 0.7x floor) >= "Wk N" / "Live" (this cap). The chip's own cap, `type.tag.maxScale`, not a hand-typed number (Design Lead
+ * gate, 2026-11-03: at AX5 "Wk 4" read loudest and "+$72.10" quietest). "Bye" or a dash in the
+ * GLYPH slot is the tile's state, not a label, so it keeps GLYPH_MAX_SCALE. */
+export const LABEL_MAX_SCALE = typeTokens.tag.maxScale as number;
+/** The score's own cap is the same token's: `score.sm` alone caps at 1.3x, which left a score a
+ * hair SHORTER than its label at AX5 (measured: digits 33px vs "Wk 4" 35px at 3x). It never caps
+ * below the label's, so score >= label, and the ExtraBold weight keeps it the louder of the two. */
+export const SCORE_MAX_SCALE = LABEL_MAX_SCALE;
 export const SCORE_MIN_FONT_SCALE = 0.7;
 
 export function tileScale(fontScale: number): number {
