@@ -15,6 +15,7 @@ import { teamHref, teamLinkLabel } from '@/lib/game/teamLink';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { STANDINGS_CARD_TITLE, standingsThroughWeekCaption } from '@/lib/home/homeCopy';
 import { STANDINGS_HREF, throughWeekShown } from '@/lib/home/calmHome';
+import { keepWeek } from '@/lib/game/keepDots';
 
 // Stockpile — <StandingsCard> (Phase 3b-2, board "Home"). Top 3 plus the
 // caller's own row if outside it. Rank/record/gain come STRAIGHT from
@@ -100,7 +101,7 @@ export function StandingsCard({ rows, throughWeek, skipEntrance = false }: Stand
         <View style={styles.headerRight}>
           {throughWeekShown(throughWeek) ? (
             <Text variant="caption" tone="secondary" style={styles.headerCaption}>
-              {standingsThroughWeekCaption(throughWeek)}
+              {keepWeek(standingsThroughWeekCaption(throughWeek))}
             </Text>
           ) : null}
           <Icon name="chevronRight" size="callout" tone="text2" />

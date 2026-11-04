@@ -11,6 +11,7 @@ import type { Bracket, BracketGame, BracketSide } from '@/lib/game/bracket';
 import { advancesLine, bracketChampion, bracketRounds, championLine } from '@/lib/game/leagueView';
 import { COPY as GAME_COPY } from '@/lib/game/gameCopy';
 import { yourRowTint, youA11y } from '@/lib/game/managerRow';
+import { keepWeek } from '@/lib/game/keepDots';
 
 /** Every line of a game stops at the score's own cap (score.sm, 1.3×), so the score stays the
  * row's loudest text at every size (the checklist's "The standout stays loudest"). */
@@ -37,7 +38,7 @@ export function BracketView({ bracket, caption, myUserId }: BracketViewProps) {
     <View style={styles.stack}>
       {rounds.map((round) => (
         <View key={round.round} style={styles.stack}>
-          <Text variant="tag" tone="secondary">{`${round.label} · playoff week ${round.round}`}</Text>
+          <Text variant="tag" tone="secondary">{keepWeek(`${round.label} · playoff week ${round.round}`)}</Text>
           {round.items.map((item) =>
             item.kind === 'bye' ? (
               <ByeCard key={`bye-${item.side.userId ?? item.side.name}`} side={item.side} mine={item.side.userId === myUserId} advances={advancesLine(item.advancesTo)} />

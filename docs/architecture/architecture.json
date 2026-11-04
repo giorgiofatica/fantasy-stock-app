@@ -2,42 +2,13 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "7f7659993cb9f35488ada80a795305e69e8cb026",
-    "commitShort": "7f765999",
+    "commit": "a7b9823340c2c01a997490ec315d83e986f5a45c",
+    "commitShort": "a7b98233",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/StockSearchScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/shell/Field.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/logic/remeasureKey.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/useInputRemountKey.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/SymbolSearchField.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/input-remount-key.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/onboarding-w4.test.ts"
-      }
-    ],
-    "timestamp": "2026-11-04T01:09:19Z",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-04T19:32:17Z",
     "sourceHash": "sha256:5c07db2cd747a4a9f350756d27d8278fb637c25b8596cc871a8193b8f0c62e7d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -45,8 +16,8 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-10-22T01:22:49Z",
-    "ageHours": 311.8,
-    "ageDays": 13,
+    "ageHours": 330.2,
+    "ageDays": 13.8,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:d6107036938ffaf8a53341cfe733b6e3cdd021617f5b5f94ca31e3ea518feb9b",

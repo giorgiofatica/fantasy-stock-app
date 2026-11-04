@@ -67,6 +67,17 @@ export function keepMoney(text: string): string {
 }
 
 /**
+ * keepWeek (Design Lead P2, 2026-11-03; checklist §5): "Week 10" is ONE phrase. At AX5 Home's Standings header broke
+ * "Through Week" / "10", which reads as two things; a no-break space between the word and its number keeps them on
+ * one line, wherever the rest of the sentence wraps ("Through Week 10", "You win Week 6", "Week 7 starts Mon 9:30 AM
+ * ET", "playoff week 2"). Display only, like keepDots (the copy, and every accessibilityLabel, keep their plain
+ * space). Matches "Week"/"week" + one space + a digit, so "Weekly 5" and "Week of" are untouched. Idempotent.
+ */
+export function keepWeek(text: string): string {
+  return text.replace(/\b([Ww]eek) (?=\d)/g, `$1${NBSP}`);
+}
+
+/**
  * keepCode (Design Lead ruling 2026-11-01; at XXXL "ASC-0fc85d9d" wrapped a lone "d" onto its own line): an invite code is
  * ONE token. A word joiner goes between every glyph, its hyphen included, so no line can end inside it. Display only: the
  * code the person copies, shares or hears (Share's message, every accessibilityLabel, the join field) stays plain. A code
