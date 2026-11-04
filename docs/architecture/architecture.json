@@ -2,14 +2,14 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "a7b9823340c2c01a997490ec315d83e986f5a45c",
-    "commitShort": "a7b98233",
+    "commit": "3bf98c716f87a8c5e049b07a3ba968293553543e",
+    "commitShort": "3bf98c71",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": false,
     "dirtyPaths": [],
-    "timestamp": "2026-11-04T19:32:17Z",
-    "sourceHash": "sha256:5c07db2cd747a4a9f350756d27d8278fb637c25b8596cc871a8193b8f0c62e7d",
+    "timestamp": "2026-11-04T19:36:25Z",
+    "sourceHash": "sha256:033c8665574142adaf137292db22f93086f277cf239fcb33fa7c0b9d932d6c40",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -4851,10 +4851,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261029000000_get_home_league_rpc.sql:86"
+          "supabase/migrations/20261029000000_get_home_league_rpc.sql:86",
+          "supabase/migrations/20261126000000_get_home_league_result.sql:47"
         ],
-        "latestDefinition": "supabase/migrations/20261029000000_get_home_league_rpc.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261126000000_get_home_league_result.sql",
+        "redefinitions": 2
       },
       "drift": [],
       "annotation": null,
@@ -4864,8 +4865,8 @@
       "sublabel": "SECURITY DEFINER · authenticated",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261029000000_get_home_league_rpc.sql",
-        "line": 86
+        "path": "supabase/migrations/20261126000000_get_home_league_result.sql",
+        "line": 47
       }
     },
     {
@@ -15103,7 +15104,8 @@
       "payload": "SELECT drafts (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261029000000_get_home_league_rpc.sql:141"
+        "supabase/migrations/20261029000000_get_home_league_rpc.sql:141",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:102"
       ]
     },
     {
@@ -15116,7 +15118,8 @@
       "payload": "SELECT leagues (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261029000000_get_home_league_rpc.sql:114"
+        "supabase/migrations/20261029000000_get_home_league_rpc.sql:114",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:75"
       ]
     },
     {
@@ -15130,7 +15133,9 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261029000000_get_home_league_rpc.sql:121",
-        "supabase/migrations/20261029000000_get_home_league_rpc.sql:209"
+        "supabase/migrations/20261029000000_get_home_league_rpc.sql:209",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:171",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:82"
       ]
     },
     {
@@ -15145,7 +15150,10 @@
       "callSites": [
         "supabase/migrations/20261029000000_get_home_league_rpc.sql:149",
         "supabase/migrations/20261029000000_get_home_league_rpc.sql:176",
-        "supabase/migrations/20261029000000_get_home_league_rpc.sql:197"
+        "supabase/migrations/20261029000000_get_home_league_rpc.sql:197",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:110",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:137",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:158"
       ]
     },
     {
@@ -15159,7 +15167,9 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261029000000_get_home_league_rpc.sql:160",
-        "supabase/migrations/20261029000000_get_home_league_rpc.sql:188"
+        "supabase/migrations/20261029000000_get_home_league_rpc.sql:188",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:121",
+        "supabase/migrations/20261126000000_get_home_league_result.sql:149"
       ]
     },
     {
@@ -19937,7 +19947,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('historical-bars')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:695"
+        "apps/mobile/lib/home/useHomeLeague.ts:696"
       ]
     },
     {
@@ -19949,7 +19959,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('quote')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:678"
+        "apps/mobile/lib/home/useHomeLeague.ts:679"
       ]
     },
     {
@@ -19961,7 +19971,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_home_league')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:651"
+        "apps/mobile/lib/home/useHomeLeague.ts:652"
       ]
     },
     {
@@ -22057,7 +22067,7 @@
           "detail": "quote — single-symbol live price. The most-invoked function in the app.",
           "files": [
             "apps/mobile/lib/game/useAllMatchups.ts:83",
-            "apps/mobile/lib/home/useHomeLeague.ts:678",
+            "apps/mobile/lib/home/useHomeLeague.ts:679",
             "apps/mobile/lib/money/priceReads.ts:38",
             "apps/web/src/components/TradeModal.jsx:159",
             "apps/web/src/components/TradeModal.jsx:63",
@@ -22116,7 +22126,7 @@
           ],
           "detail": "historical-bars — chart series for portfolio P/L.",
           "files": [
-            "apps/mobile/lib/home/useHomeLeague.ts:695",
+            "apps/mobile/lib/home/useHomeLeague.ts:696",
             "apps/mobile/lib/money/priceReads.ts:52",
             "apps/mobile/lib/money/useStockChartData.ts:46"
           ]
@@ -23384,8 +23394,8 @@
       "apps/mobile/lib/game/useDraftAutoStart.ts:79 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useDraftStatus.ts:46 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useLeaveLeague.ts:47 -> leave-league (via seamInvoke)",
-      "apps/mobile/lib/home/useHomeLeague.ts:678 -> quote",
-      "apps/mobile/lib/home/useHomeLeague.ts:695 -> historical-bars",
+      "apps/mobile/lib/home/useHomeLeague.ts:679 -> quote",
+      "apps/mobile/lib/home/useHomeLeague.ts:696 -> historical-bars",
       "apps/mobile/lib/invite/invitePreviewApi.ts:14 -> invite-preview",
       "apps/mobile/lib/money/priceReads.ts:38 -> quote",
       "apps/mobile/lib/money/priceReads.ts:52 -> historical-bars",
@@ -23439,7 +23449,7 @@
       "apps/mobile/lib/game/useSeasonPlayoffs.ts:30 -> get_season_matchups (via seamRpc)",
       "apps/mobile/lib/home/useDraftingData.ts:84 -> get_draft_clock",
       "apps/mobile/lib/home/useDraftingData.ts:85 -> get_draft_order",
-      "apps/mobile/lib/home/useHomeLeague.ts:651 -> get_home_league",
+      "apps/mobile/lib/home/useHomeLeague.ts:652 -> get_home_league",
       "apps/mobile/lib/home/usePreDraftData.ts:110 -> get_draft_order (via seamRpc)",
       "apps/mobile/lib/home/usePreDraftData.ts:111 -> get_league_display_names (via seamRpc)",
       "apps/mobile/lib/home/useSeasonResult.ts:8 -> get_season_result",
@@ -23962,7 +23972,8 @@
       "20261125000008_takeover_codes_not_join_codes.sql",
       "20261125000009_unclocked_deleted_seat_turns.sql",
       "20261125000010_schedule_heal_account_deletions.sql",
-      "20261125000011_deleted_seat_sweep_guard.sql"
+      "20261125000011_deleted_seat_sweep_guard.sql",
+      "20261126000000_get_home_league_result.sql"
     ],
     "config": [
       "delete-account=true",
