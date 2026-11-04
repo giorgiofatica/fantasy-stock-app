@@ -43,7 +43,7 @@ Deno.test('Commissioner row: the caption is Design Lead\'s verbatim NEW copy, ma
   assert(src.includes("= 'You can hand over the commissioner role before the draft or after the season.'; // NEW"));
   // Same style: a SettingRow `sub` is Text variant="caption" tone="secondary", like LeaveLeagueRow's sub.
   assert(SOURCES['components/game/SetupRows.tsx'].includes('<Text variant="caption" tone="secondary" style={subLast ? styles.subLast : undefined}>\n      {sub}'));
-  assert(SOURCES['components/game/LeaveLeagueSheets.tsx'].includes('<Text variant="caption" tone="secondary">{view.sub}</Text>'));
+  assert(SOURCES['components/game/LeaveLeagueSheets.tsx'].includes('<Text variant="caption" tone="secondary">{keepTime(view.sub)}</Text>'));
   assert(LEAVE_LOCKED_LINE.endsWith('.')); // both lines end in a period
 });
 

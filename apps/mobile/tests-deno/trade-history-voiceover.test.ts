@@ -35,5 +35,5 @@ Deno.test("ItemRow speaks the spoken detail and shows the visible one", () => {
   assertMatch(src, /const shares = historyShareDetail\(formatShares\(item\.quantity\), price\);/);
   assertMatch(src, /accessibilityLabel=\{`\$\{label\}, \$\{spokenDetail\}/);
   assertNotMatch(src, /accessibilityLabel=\{`\$\{label\}, \$\{detail\}/);
-  assertMatch(src, /\{keepMoney\(detail\)\}/);
+  assertMatch(src, /\{keepTime\(keepMoney\(detail\)\)\}/);
 });

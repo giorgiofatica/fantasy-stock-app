@@ -19,7 +19,7 @@ import { ScoreDigits } from '@/components/sp/game/ScoreDigits';
 import { TugBar } from '@/components/sp/game/TugBar';
 import { LiveDot } from '@/components/sp/game/LiveDot';
 import { Skeleton } from '@/components/Skeleton';
-import { keepMoney, keepWeek } from '@/lib/game/keepDots';
+import { keepMoney, keepTime, keepWeek } from '@/lib/game/keepDots';
 import { scoreTone } from '@/lib/home/scoreTone';
 import { THIS_WEEK_TAG, YOU_LABEL, vsOpponentLabel, leadLabel, LIVE_CHIP, thisWeekAccessibilityLabel, SCORING_MESSAGE, sideUnpricedCaption } from '@/lib/home/homeCopy';
 import { THIS_WEEK_HREF, OPENS_MATCHUP_HINT } from '@/lib/home/calmHome';
@@ -224,7 +224,7 @@ export function ThisWeekCard({
               )}
             </Text>
             <Text variant="caption" tone="secondary" style={styles.footerRight}>
-              {keepWeek(rightLabel)}
+              {keepTime(keepWeek(rightLabel))}
             </Text>
           </View>
         )}

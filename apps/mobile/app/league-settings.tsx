@@ -37,6 +37,7 @@ import { leagueNameError, stepWithin } from '@/lib/game/createLeagueSteps';
 import { PRICE_TIERS_NEED_A_SLOT, rosterSlotsCaption } from '@/lib/game/slotBuilderCopy';
 import { SETTINGS_LOCKED, inviteShareMessage, inviteShareShown } from '@/lib/game/leagueSettingsEntry';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
+import { keepDots } from '@/lib/game/keepDots';
 import { draftDateForSave, updatedOneRow } from '@/lib/game/draftDateSave';
 import { DATE_LOCKED_AFTER_ROOM, draftTimeLocked, draftTimeRefusal } from '@/lib/game/autoStart';
 import { useDraftStatus } from '@/lib/game/useDraftStatus';
@@ -393,7 +394,8 @@ export default function LeagueSettingsScreen() {
         <SetupCard>
           <SettingRow
             label="Draft time"
-            value={draftDateValue}
+            value={keepDots(draftDateValue)}
+            accessibilityLabel={`Draft time, ${draftDateValue}`}
             valueColor={draftDateTBD ? colors.warnText : undefined}
             sub={dateLocked ? DATE_LOCKED_AFTER_ROOM : undefined}
             disabled={isLocked || dateLocked}

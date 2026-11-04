@@ -5,6 +5,7 @@ import { radius, space } from '@/constants/tokens';
 import { Card } from '@/components/sp/Card';
 import { Button } from '@/components/sp/Button';
 import { Text } from '@/components/sp/Text';
+import { keepTime } from '@/lib/game/keepDots';
 
 // Stockpile — <PhaseMessageCard> (Phase 3b-2). The plain-message states
 // that replace the this-week card: before the season (5), a bye (9), and
@@ -24,7 +25,7 @@ export function PhaseMessageCard({ lines, actionLabel, onAction }: PhaseMessageC
     <Card style={styles.card}>
       {lines.map((line, i) => (
         <Text key={i} variant={i === 0 ? 'headline' : 'callout'} tone={i === 0 ? 'primary' : 'secondary'}>
-          {line}
+          {keepTime(line)}
         </Text>
       ))}
       {actionLabel && onAction ? (

@@ -53,7 +53,7 @@ import { resolveWeekWindow, standardWeekSessions } from '@/lib/time/marketWeek';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { preDraftPortfolio } from '@/lib/money/preDraftPortfolio';
 import { Button } from '@/components/sp/Button';
-import { keepMoney } from '@/lib/game/keepDots';
+import { keepMoney, keepTime } from '@/lib/game/keepDots';
 
 /** gain/loss/zero -> its theme colour (C-6: the same mapping Home's hero uses). */
 function toneColor(colors: ThemeColors, tone: 'gain' | 'loss' | 'zero' | null): string {
@@ -195,7 +195,7 @@ export function PortfolioScreen() {
         </View>
         <Text variant="headline" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={[styles.extraBold, styles.center]}>{preDraft.line}</Text>
         {preDraft.hook?.kind === 'date' ? (
-          <Text variant="callout" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={[styles.bold, styles.center]} testID="portfolio-pre-draft-date">{preDraft.hook.label}</Text>
+          <Text variant="callout" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={[styles.bold, styles.center]} testID="portfolio-pre-draft-date">{keepTime(preDraft.hook.label)}</Text>
         ) : null}
         {preDraft.hook?.kind === 'room' ? (
           <View style={styles.emptyAction}>

@@ -8,6 +8,7 @@ import { Button } from '@/components/sp/Button';
 import { Icon } from '@/components/sp/Icon';
 import { Sheet, SheetBody, SHEET_FOOTER_MAX_SCALE } from '@/components/sp/Sheet';
 import { Text } from '@/components/sp/Text';
+import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { EARLIEST_NOTE, PICKER_HELPER, earliestDraftMs, pickerLine } from '@/lib/game/autoStart';
 import { SET_DRAFT_TIME, SET_LATER, draftTimeSheet, shownDraftTime, type SheetAction } from '@/lib/game/draftTimeSheet';
@@ -75,7 +76,7 @@ export function DraftDateSheet({ visible, initial, onConfirm, onSetLater, onClos
   );
   const lineText = (
     <Text variant="callout">
-      <Text variant="callout" style={styles.bold}>{line.value}</Text>
+      <Text variant="callout" style={styles.bold}>{keepTime(line.value)}</Text>
       {line.earliest ? <Text variant="callout" tone="secondary">{` ${EARLIEST_NOTE}`}</Text> : null}
     </Text>
   );

@@ -92,3 +92,19 @@ export function keepCode(code: string): string {
 export function keepCodeIn(sentence: string, code: string): string {
   return code && sentence.includes(code) ? sentence.replace(code, () => keepCode(code)) : sentence;
 }
+
+/**
+ * keepTime (Design Lead ruling 2026-11-03; at AX5 "Week 7 starts Mon 9:30 AM ET" broke as "Week 7 starts / Mon 9:30 AM / ET"):
+ * a clock time is ONE phrase with its AM/PM and its zone, like keepMoney's amount and unit. A no-break space goes between the
+ * digits and AM/PM and between AM/PM and the zone ("ET"), so a line breaks BEFORE the time, never inside it ("Week 7 starts /
+ * Mon / 9:30 AM ET" is allowed; "9:30 AM / ET" is not). The weekday before the time stays breakable. A separator ICU already
+ * made non-breaking (U+202F, U+00A0) is left as it is. Display only: the copy, and every accessibilityLabel, keep their plain
+ * text. Apply at the render, never to the string a width estimate or a test compares. A one-line surface (`numberOfLines={1}`)
+ * can't wrap and is left alone.
+ */
+const CLOCK_TIME = /(\d{1,2}:\d{2})([ \u202f\u00a0])(AM|PM)(?:([ \u00a0])(E[SD]?T)(?![A-Za-z]))?/g;
+export function keepTime(text: string): string {
+  const glue = (sep: string) => (sep === ' ' ? NBSP : sep);
+  return text.replace(CLOCK_TIME, (_m, clock: string, sep1: string, meridiem: string, sep2?: string, zone?: string) =>
+    zone === undefined ? `${clock}${glue(sep1)}${meridiem}` : `${clock}${glue(sep1)}${meridiem}${glue(sep2 as string)}${zone}`);
+}

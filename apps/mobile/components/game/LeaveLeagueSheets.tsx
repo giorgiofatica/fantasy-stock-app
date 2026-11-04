@@ -6,6 +6,7 @@ import { space } from '@/constants/tokens';
 import { Button } from '@/components/sp/Button';
 import { Sheet, SheetBody, SHEET_FOOTER_MAX_SCALE } from '@/components/sp/Sheet';
 import { Text } from '@/components/sp/Text';
+import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { ChoiceRow, RowDivider, SetupCard } from '@/components/game/SetupRows';
 import {
@@ -35,7 +36,7 @@ export function LeaveLeagueRow({ view, onPress }: { view: LeaveRowView; onPress:
         <Text variant="callout" color={view.enabled ? colors.danger : colors.text3} style={styles.bold}>
           {LEAVE_LEAGUE}
         </Text>
-        {view.sub ? <Text variant="caption" tone="secondary">{view.sub}</Text> : null}
+        {view.sub ? <Text variant="caption" tone="secondary">{keepTime(view.sub)}</Text> : null}
       </Pressable>
     </SetupCard>
   );
@@ -77,7 +78,7 @@ export function LeaveLeagueSheet({ visible, copy, busy, error, onLeave, onStay }
               {copy.bullets.map((b) => (
                 <View key={b} style={styles.bullet}>
                   <Text variant="callout" tone="secondary">•</Text>
-                  <Text variant="callout" style={styles.grow}>{b}</Text>
+                  <Text variant="callout" style={styles.grow}>{keepTime(b)}</Text>
                 </View>
               ))}
             </View>

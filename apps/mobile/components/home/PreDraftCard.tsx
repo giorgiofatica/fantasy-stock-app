@@ -7,6 +7,7 @@ import { radius, space, type as typeScale } from '@/constants/tokens';
 import { Avatar } from '@/components/sp/Avatar';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
+import { keepTime } from '@/lib/game/keepDots';
 import { Button } from '@/components/sp/Button';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { chipLook } from '@/components/sp/logic/gameNight';
@@ -168,7 +169,7 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
       case 'countdown':
         return <Text variant="score.xl" style={styles.countdown}>{clock}</Text>;
       case 'date':
-        return <Text variant="callout" style={styles.bold}>{dateLabel}</Text>;
+        return <Text variant="callout" style={styles.bold}>{keepTime(dateLabel!)}</Text>;
       case 'starting':
         return (
           <View style={styles.starting}>
@@ -181,7 +182,7 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
       case 'pickClock':
         return <Text variant="callout" tone="secondary">{pickClockLine(pickSeconds, numRounds)}</Text>;
       case 'orderSet':
-        return <Text variant="callout" tone="secondary">{orderSetLine(finalizeAt!)}</Text>;
+        return <Text variant="callout" tone="secondary">{keepTime(orderSetLine(finalizeAt!) ?? '')}</Text>;
       case 'waiting':
         return (
           <View style={[styles.orderWaiting, { backgroundColor: colors.inset }]}>

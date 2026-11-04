@@ -5,6 +5,7 @@ import { radius, space, typeFontFamily } from '@/constants/tokens';
 import { Button } from '@/components/sp/Button';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
+import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { Stepper } from '@/components/game/Stepper';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
@@ -101,10 +102,10 @@ export function DraftBlockersCard({
 
   return (
     <View accessibilityRole="alert" style={[styles.card, { backgroundColor: colors.warnTint, borderColor: colors.warnLine }]}>
-      <Text variant="tag" color={colors.warnText}>{copy.tag}</Text>
+      <Text variant="tag" color={colors.warnText}>{keepTime(copy.tag)}</Text>
       <View style={styles.head}>
-        <Text variant="headline" style={styles.bold}>{copy.title}</Text>
-        <Text variant="caption">{copy.line}</Text>
+        <Text variant="headline" style={styles.bold}>{keepTime(copy.title)}</Text>
+        <Text variant="caption">{keepTime(copy.line)}</Text>
       </View>
       {blockers.map((b, i) => (
         <Card key={`${b.code}-${i}`} style={styles.blocker}>
