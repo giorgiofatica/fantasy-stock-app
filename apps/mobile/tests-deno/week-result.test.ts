@@ -15,6 +15,8 @@ import { byResult, serverVerdict, weekResult, type WeekResult } from '../lib/gam
 import { scoredResultLine, thisWeekAccessibilityLabel } from '../lib/home/homeCopy.ts';
 import { buildFinalBanner } from '../lib/game/finalBanner.ts';
 import { matchupView } from '../lib/game/matchupPhase.ts';
+import { finalGains } from '../lib/game/buildMatchupViewModel.ts';
+import type { GetHomeLeagueResult } from '../lib/home/buildHomeViewModel.ts';
 import type { PhaseResult } from '../lib/home/homePhase.ts';
 import type { ThisWeekViewModel } from '../lib/home/buildHomeViewModel.ts';
 import type { ScheduleRow } from '../lib/game/schedule.ts';
@@ -106,6 +108,27 @@ Deno.test('the Matchup view carries the phase\'s result through, T included', ()
   for (const result of ['W', 'L', 'T', null] as const) {
     assertEquals(matchupView({ kind: 'scored', week: 6, result, isPlayoff: false, round: null, nextStart: null, ...base }), { kind: 'final', result });
   }
+});
+
+Deno.test('Matchup\'s finalGains: a tie is T; the server\'s winner decides a dollar tie; unscored is null', () => {
+  const data = (g1: number | null, g2: number | null, server?: { winner_user_id: string | null; is_tie: boolean }): GetHomeLeagueResult => ({
+    my_ledger: { drafts: [], trades: [] },
+    current_week: { week_number: 6, my_snapshots: [], my_trades: [], opponent_snapshots: [], opponent_trades: [] },
+    matchups: [{ week_number: 6, week_start: 'x', week_end: 'y', is_playoff: false, team1_user_id: ME, team2_user_id: OPP, team1_gain: g1, team2_gain: g2, ...(server ?? {}) }],
+    standings: [],
+  });
+  assertEquals(finalGains(data(58.75, 58.75), ME)?.result, 'T');
+  assertEquals(finalGains(data(58.75, 58.75, { winner_user_id: null, is_tie: true }), OPP)?.result, 'T');
+  assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), ME)?.result, 'L');
+  assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), OPP)?.result, 'W');
+  assertEquals(finalGains(data(72.1, -20.5), ME), { me: 72.1, opp: -20.5, result: 'W' });
+  assertEquals(finalGains(data(12, null), ME), null);
+});
+
+Deno.test('League › Schedule draws a T in the neutral colour and says "tie" (W gain colour, L loss colour, unchanged)', () => {
+  const src = SOURCES['components/game/ScheduleList.tsx'];
+  assert(src.includes("byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })"));
+  assert(src.includes("byResult(r.result, { W: 'won', L: 'lost', T: 'tie' })"));
 });
 
 Deno.test('Home and Matchup take the band\'s and the card\'s result from the decider, not from the gains', () => {
