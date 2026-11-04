@@ -101,7 +101,7 @@ Deno.test('standingsThroughWeek: a regular-season live week reads "week - 1"', (
 });
 
 Deno.test('standingsThroughWeek: a regular-season scored/bye week also reads "week - 1"', () => {
-  assertEquals(standingsThroughWeek({ kind: 'scored', week: 4, won: true, isPlayoff: false, round: null, nextStart: null, numWeeks: 14 }), 3);
+  assertEquals(standingsThroughWeek({ kind: 'scored', week: 4, result: 'W', isPlayoff: false, round: null, nextStart: null, numWeeks: 14 }), 3);
   assertEquals(standingsThroughWeek({ kind: 'bye', week: 3, nextStart: null, numWeeks: 14 }), 2);
 });
 

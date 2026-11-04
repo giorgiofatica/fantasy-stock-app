@@ -270,8 +270,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
           play={reveal.play}
           model={buildFinalBanner({
             week,
-            me: final.me,
-            opp: final.opp,
+            result: final.result,
             youName,
             oppName: live.opp?.name ?? '',
             record: derived.myRecord,

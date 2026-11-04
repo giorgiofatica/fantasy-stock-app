@@ -11,6 +11,7 @@ import { chipLook, toneOf } from '@/components/sp/logic/gameNight';
 import { MANAGER_ROW_GAP } from '@/components/sp/gn';
 import { radius, space } from '@/constants/tokens';
 import type { ScheduleRow } from '@/lib/game/schedule';
+import { byResult } from '@/lib/game/weekResult';
 
 /** Every line of a row stops at the score's own cap (score.sm, 1.3×): the result stays the
  * row's loudest text at every size (the checklist's "The standout stays loudest"; at XL the
@@ -54,9 +55,9 @@ export function ScheduleList({ rows, playoffLine }: ScheduleListProps) {
                 </View>
               ) : r.state === 'next' ? (
                 <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>Next</Text>
-              ) : r.gain !== null ? (
+              ) : r.gain !== null && r.result !== null ? (
                 <View style={styles.score}>
-                  <Text variant="score.sm" color={r.tie ? colors.text2 : r.won ? colors.gain : colors.loss}>{r.tie ? 'T' : r.won ? 'W' : 'L'}</Text>
+                  <Text variant="score.sm" color={byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })}>{r.result}</Text>
                   <Text variant="score.sm" color={colors[toneOf(r.gain)]} style={styles.gain}>{keepMoney(formatMoney(r.gain, { sign: 'always' }))}</Text>
                 </View>
               ) : null}
@@ -74,8 +75,8 @@ function label(r: ScheduleRow): string {
   if (r.state === 'live') return `Week ${r.week}, ${what}, live`;
   if (r.state === 'next') return `Week ${r.week}, ${what}, next`;
   if (r.bye) return `Week ${r.week}, bye, no result`;
-  if (r.gain === null) return `Week ${r.week}, ${what}`;
-  return `Week ${r.week}, ${what}, ${r.tie ? 'tie' : r.won ? 'won' : 'lost'}, ${formatMoney(r.gain, { sign: 'always' })}`;
+  if (r.gain === null || r.result === null) return `Week ${r.week}, ${what}`;
+  return `Week ${r.week}, ${what}, ${byResult(r.result, { W: 'won', L: 'lost', T: 'tie' })}, ${formatMoney(r.gain, { sign: 'always' })}`;
 }
 
 const styles = StyleSheet.create({

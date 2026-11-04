@@ -20,6 +20,10 @@
  * beyond a member's direct RLS grant — the opponent's PREVIOUS week's
  * trades are absent from the result even though a member's raw `trades`
  * SELECT policy has no such week limit.
+ *
+ * 20261126000000 (loaded on top, as it lands on prod): each matchups row also
+ * carries the server's winner_user_id / is_tie, one row per way process-week-results
+ * writes them, and the replace leaves the ACL exactly as it was.
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
@@ -52,7 +56,9 @@ create table matchups (
   league_id uuid not null references leagues(id) on delete cascade,
   week_number int not null, team1_user_id text, team2_user_id text,
   team1_gain numeric, team2_gain numeric,
-  week_start timestamptz, week_end timestamptz, is_playoff boolean default false
+  week_start timestamptz, week_end timestamptz, is_playoff boolean default false,
+  -- 20251230000000 / 20260116000000 (read by 20261126000000):
+  winner_user_id text null, is_tie boolean default false
 );
 create table league_standings (
   league_id uuid not null references leagues(id) on delete cascade,
@@ -133,6 +139,12 @@ Deno.test({
     await db.exec(await mig('20261011000000_league_standings_ranked.sql'));
     await db.exec(await mig('20261004000000_participant_display_names.sql'));
     await db.exec(await mig('20261029000000_get_home_league_rpc.sql'));
+    // The ACL the first migration leaves, so the replace below can be checked against it.
+    const aclOf = async () => (await q(`select proacl::text acl, prosecdef, proconfig::text cfg, provolatile from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace where n.nspname='public' and proname='get_home_league'`))[0];
+    const aclBefore = await aclOf();
+    // 20261126000000: the same body plus each row's winner_user_id / is_tie.
+    await db.exec(await mig('20261126000000_get_home_league_result.sql'));
 
     const MEMBER = '00000000-0000-4000-8000-000000000001';
     const OPPONENT = '00000000-0000-4000-8000-000000000002';
@@ -242,6 +254,46 @@ Deno.test({
       }
       assert(threw, 'anon call should have been refused');
       await db.exec(`RESET ROLE;`);
+    });
+
+    await t.step('20261126000000: every matchups row carries the server result, passed through as written', async () => {
+      // A third league: one row per way process-week-results (decideMatchupOutcome) writes the
+      // two columns. The RPC only passes them through; lib/game/weekResult.ts decides from them.
+      const [rl] = await q(`insert into leagues (name, current_week) values ('results', 9) returning id`);
+      const RL = rl.id as string;
+      await q(`insert into league_members (league_id, user_id) values ($1,$2), ($1,$3)`, [RL, MEMBER, OPPONENT]);
+      const row = (week: number, g1: number | null, g2: number | null, winner: string | null, tie: boolean, playoff = false, t2: string | null = OPPONENT) =>
+        q(`insert into matchups (league_id, week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end)
+           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,'2026-09-14T09:30:00-04','2026-09-18T16:00:00-04')`, [RL, week, MEMBER, t2, g1, g2, winner, tie, playoff]);
+      await row(1, 50, -10, MEMBER, false); // dollar_gain
+      await row(2, 20, 20, OPPONENT, false); // percent_tiebreak: equal dollars, a winner
+      await row(3, 0, -40, OPPONENT, false); // team1_empty_auto_loss: the higher gain loses
+      await row(4, 15, 15, MEMBER, false, true); // playoff_seed_tiebreak: a playoff never ties
+      await row(5, 15, 15, null, true); // regular_season_true_tie
+      await row(6, 0, 0, null, true); // both_empty_tie
+      await row(7, null, null, null, false); // unscored
+      await row(8, 30, null, null, false, false, null); // bye_no_result
+
+      await db.exec(`SET ROLE authenticated;`);
+      await db.exec(`SELECT set_config('request.jwt.claim.sub', '${MEMBER}', false);`);
+      const [res] = await q(`select public.get_home_league($1) as result`, [RL]);
+      await db.exec(`RESET ROLE;`);
+      const got = res.result.matchups.map((m: Row) => [m.week_number, m.winner_user_id, m.is_tie]);
+      assertEquals(got, [
+        [1, MEMBER, false], [2, OPPONENT, false], [3, OPPONENT, false], [4, MEMBER, false],
+        [5, null, true], [6, null, true], [7, null, false], [8, null, false],
+      ]);
+      // Present as keys on every row, even when null (the app tells "no verdict carried" from "nobody won").
+      for (const m of res.result.matchups) {
+        assert('winner_user_id' in m && 'is_tie' in m, `week ${m.week_number} is missing a key`);
+      }
+    });
+
+    await t.step('20261126000000: CREATE OR REPLACE left the ACL, SECURITY DEFINER, search_path and STABLE as they were', async () => {
+      const after = await aclOf();
+      assertEquals(after, aclBefore);
+      assertEquals(after.acl, '{postgres=X/postgres,authenticated=X/postgres}'); // docs/architecture/db-snapshot.json
+      assertEquals(after.provolatile, 's');
     });
 
     await t.step('proacl: explicit revoke survives Supabase-simulated default grants', async () => {

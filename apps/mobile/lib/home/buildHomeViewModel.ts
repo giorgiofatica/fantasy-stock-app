@@ -22,6 +22,7 @@ import { seasonGain } from './seasonGain';
 import { resolveWeekWindow, lastSessionCloseBefore, type MarketCalendarSession } from '../time/marketWeek';
 import { etDateParts } from '../time/etParts';
 import { buildSeasonTiles, type SeasonTile } from './yourSeason';
+import { serverVerdict, weekResult, type WeekResult } from '../game/weekResult';
 
 export interface HomeLedgerRow {
   symbol: string;
@@ -47,6 +48,9 @@ export interface GetHomeLeagueResult {
     week_number: number; week_start: string; week_end: string; is_playoff: boolean;
     team1_user_id: string | null; team2_user_id: string | null;
     team1_gain: number | null; team2_gain: number | null;
+    /** The server's result (process-week-results), from 20261126000000. Absent on an older
+     * RPC, when every result falls back to dollars (lib/game/weekResult). */
+    winner_user_id?: string | null; is_tie?: boolean | null;
   }[];
   standings: {
     user_id: string; rank: number; wins: number; losses: number; ties: number;
@@ -107,8 +111,8 @@ export interface ThisWeekViewModel {
    * (which could disagree with the official number by a stale quote). */
   final: boolean;
   /** Null while live (no result yet — never re-derive "who's ahead" as
-   * "who won"); set once `final`. Ties are false (nobody "won"). */
-  won: boolean | null;
+   * "who won"); W / L / T once `final`, from the one decider (lib/game/weekResult). */
+  result: WeekResult | null;
   /** The opponent's user id for THIS card's week — which may be the
    * previous week during the Fri-close -> next-open grace period (see
    * `relevantWeek` below), so the caller must not assume it always
@@ -131,8 +135,8 @@ export interface HomeViewModel {
   /** So a caller (index.tsx) can mark which standings row is "you" without
    * re-deriving the caller's id from elsewhere. */
   myUserId: string;
-  /** The ONE list that decides a week's W / L / T / bye for me (never re-derived from two
-   * gains elsewhere: a tie is a T). Every week with a row for me whose result is decided:
+  /** The ONE list of a week's W / L / T / bye for me, each from lib/game/weekResult (the
+   * server's winner, else dollars; never re-derived from two gains elsewhere: a tie is a T). Every week with a row for me whose result is decided:
    * a regular-season row with nobody across is a bye; a row with an opponent counts only
    * once BOTH gains are posted. A half-posted week is absent here, so the strip shows it
    * as "not scored yet", never a Bye, a W or an L. */
@@ -194,6 +198,7 @@ function matchupRowFor(data: GetHomeLeagueResult, meta: HomeLeagueMeta, week: nu
     weekEnd: resolved?.weekEnd ?? m.week_end,
     isPlayoff: m.is_playoff,
     myGain, opponentGain: oppGain, hasOpponent,
+    verdict: serverVerdict(m, meta.myUserId),
   };
 }
 
@@ -242,7 +247,8 @@ function playoffStatusFlags(data: GetHomeLeagueResult, meta: HomeLeagueMeta): {
   const isMe1 = lastScored.team1_user_id === meta.myUserId;
   const myGain = isMe1 ? lastScored.team1_gain : lastScored.team2_gain;
   const oppGain = isMe1 ? lastScored.team2_gain : lastScored.team1_gain;
-  const lastPlayoffLoss = myGain !== null && oppGain !== null && myGain < oppGain;
+  // A playoff loss is the server's (a seed tiebreak loses on equal gains), never `<` on the gains.
+  const lastPlayoffLoss = weekResult({ myGain, oppGain, verdict: serverVerdict(lastScored, meta.myUserId) }) === 'L';
   return { laterPlayoffWeek: null, lastPlayoffLoss, lastPlayoffWeek: lastPlayoffLoss ? lastScored.week_number : null };
 }
 
@@ -362,7 +368,7 @@ export function buildHomeViewModel(input: HomeViewModelInput): HomeViewModel {
           you: { gain: relevantRow.myGain!, pct: 0, unpriced: [] },
           opponent: { gain: relevantRow.opponentGain!, pct: 0, unpriced: [] },
           final: true,
-          won: relevantRow.myGain! > relevantRow.opponentGain!,
+          result: weekResult({ myGain: relevantRow.myGain, oppGain: relevantRow.opponentGain, verdict: relevantRow.verdict }),
           opponentUserId: opponentUserIdFor(data, meta, relevantWeek),
         }
       : relevantIsCurrent
@@ -370,7 +376,7 @@ export function buildHomeViewModel(input: HomeViewModelInput): HomeViewModel {
             you: { gain: myLive.gain, pct: myLive.pct, unpriced: myLive.unpriced },
             opponent: { gain: oppLive.gain, pct: oppLive.pct, unpriced: oppLive.unpriced },
             final: false,
-            won: null,
+            result: null,
             opponentUserId: opponentUserIdFor(data, meta, relevantWeek),
           }
         : null // a past, unscored row with no snapshot data to recompute from — shouldn't occur, but never fabricate a live score for it
@@ -401,7 +407,7 @@ export function buildHomeViewModel(input: HomeViewModelInput): HomeViewModel {
     if (!hasOpp) {
       if (!m.is_playoff) weeklyResults.push({ week: m.week_number, gain: g ?? 0, result: 'BYE' });
     } else if (g !== null && opp !== null) {
-      weeklyResults.push({ week: m.week_number, gain: g, result: g > opp ? 'W' : g < opp ? 'L' : 'T' });
+      weeklyResults.push({ week: m.week_number, gain: g, result: weekResult({ myGain: g, oppGain: opp, verdict: serverVerdict(m, meta.myUserId) })! });
     }
   }
   weeklyResults.sort((a, b) => a.week - b.week);

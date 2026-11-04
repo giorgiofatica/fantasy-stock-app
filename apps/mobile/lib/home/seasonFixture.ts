@@ -52,3 +52,17 @@ export function applySeasonVariant<T extends MatchupRowShape>(rows: T[], variant
   if (variant === 'unscored_past') return rows.map((r) => (r.week_number === 3 ? { ...r, team1_gain: null, team2_gain: null } : r));
   return rows;
 }
+
+/** What get_home_league carries from 20261126000000: the server's `winner_user_id` / `is_tie`,
+ * written as process-week-results writes them for these rows (no fixture has an empty portfolio,
+ * a percent tiebreak or a playoff tie): the higher dollar gain wins; equal gains in the regular
+ * season are a tie (winner null, is_tie true); an unscored row or a bye has no winner and no tie. */
+export function withServerResults<T extends MatchupRowShape>(rows: T[]): (T & { winner_user_id: string | null; is_tie: boolean })[] {
+  return rows.map((r) => {
+    const scored = r.team1_user_id !== null && r.team2_user_id !== null && r.team1_gain !== null && r.team2_gain !== null;
+    if (!scored) return { ...r, winner_user_id: null, is_tie: false };
+    const g1 = r.team1_gain!;
+    const g2 = r.team2_gain!;
+    return { ...r, winner_user_id: g1 > g2 ? r.team1_user_id : g2 > g1 ? r.team2_user_id : null, is_tie: g1 === g2 };
+  });
+}

@@ -23,7 +23,7 @@ export interface MatchupDerived {
   view: MatchupView;
   live: MatchupLiveViewModel;
   /** The server's gains once both post; null until then ("Scoring…"). */
-  final: { me: number; opp: number } | null;
+  final: ReturnType<typeof finalGains>;
   weekStart: string | null;
   weekEnd: string | null;
   week: number;

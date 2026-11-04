@@ -87,7 +87,7 @@ Deno.test('scored: both gains posted, before next week starts', () => {
   );
   assertEquals(r.kind, 'scored');
   if (r.kind === 'scored') {
-    assertEquals(r.won, true);
+    assertEquals(r.result, 'W');
     assertEquals(r.week, 6);
   }
 });

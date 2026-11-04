@@ -5,14 +5,15 @@
  * picks the band's fill (your colour when you won, neutral when you lost or tied).
  */
 import { formatRecord } from '../shell/leagueSheet';
+import { byResult, type WeekResult } from './weekResult';
 
 export type FinalOutcome = 'won' | 'lost' | 'tied';
 
 export interface FinalBannerInput {
   week: number;
-  /** The two posted gains: dollars decide, as everywhere. */
-  me: number;
-  opp: number;
+  /** The week's result, from the one decider (lib/game/weekResult: the server's winner, else
+   * dollars). Never re-derived here from the two gains. */
+  result: WeekResult;
   youName: string;
   oppName: string;
   /** Your record with this week counted; null when it isn't known. */
@@ -31,12 +32,18 @@ export interface FinalBannerModel {
 }
 
 const LETTER: Record<FinalOutcome, string> = { won: 'W', lost: 'L', tied: 'T' };
+const OUTCOME: Record<WeekResult, FinalOutcome> = { W: 'won', L: 'lost', T: 'tied' };
+
+/** "Tied in Week 6": the one tie line (Matchup's band, and Home's scored card). */
+export function tiedWeekLine(week: number): string {
+  return `Tied in Week ${week}`;
+}
 const SPOKEN: Record<FinalOutcome, string> = { won: 'Win', lost: 'Loss', tied: 'Tie' };
 
 export function buildFinalBanner(input: FinalBannerInput): FinalBannerModel {
-  const { week, me, opp, youName, oppName, record, isPlayoff } = input;
-  const outcome: FinalOutcome = me === opp ? 'tied' : me > opp ? 'won' : 'lost';
-  const text = outcome === 'tied' ? `Tied in Week ${week}` : `${outcome === 'won' ? youName : oppName} wins Week ${week}`;
+  const { week, result, youName, oppName, record, isPlayoff } = input;
+  const outcome = OUTCOME[result];
+  const text = byResult(result, { W: `${youName} wins Week ${week}`, L: `${oppName} wins Week ${week}`, T: tiedWeekLine(week) });
   const recordPart = record && !isPlayoff ? formatRecord(record.wins, record.losses, record.ties) : null;
   return {
     outcome,

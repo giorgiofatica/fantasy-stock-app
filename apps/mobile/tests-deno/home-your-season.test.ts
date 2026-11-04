@@ -62,7 +62,7 @@ Deno.test('live_closed and scoring: a hollow ring, no label; the market-closed w
 });
 
 Deno.test('scored: the result letter, no score, no "Live"; a tie is a T (the one result list decides)', () => {
-  const scored: PhaseResult = { kind: 'scored', week: 6, won: false, isPlayoff: false, round: null, nextStart: null, ...base };
+  const scored: PhaseResult = { kind: 'scored', week: 6, result: 'T', isPlayoff: false, round: null, nextStart: null, ...base };
   for (const r of ['W', 'L', 'T'] as const) {
     const me = tiles(scored, [...played5, row(6, 'gia', 5, 5)], [...results5, res(6, r)], 6)[5];
     assert(me.kind === 'this' && me.middle === 'result' && me.result === r && !me.showLive, r);
@@ -74,7 +74,7 @@ Deno.test('this week is never a score in ANY state', () => {
   const states: PhaseResult[] = [
     live,
     { kind: 'scoring', week: 6, isPlayoff: false, round: null, weekEnd: '', ...base },
-    { kind: 'scored', week: 6, won: true, isPlayoff: false, round: null, nextStart: null, ...base },
+    { kind: 'scored', week: 6, result: 'W', isPlayoff: false, round: null, nextStart: null, ...base },
     { kind: 'bye', week: 6, nextStart: null, ...base },
   ];
   for (const phase of states) {

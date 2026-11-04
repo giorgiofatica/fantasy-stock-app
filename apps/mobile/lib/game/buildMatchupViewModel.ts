@@ -10,6 +10,7 @@ import { liveWeekScore } from '../home/liveWeekScore';
 import { toLiveSnapshots, toLiveTrades, type GetHomeLeagueResult } from '../home/buildHomeViewModel';
 import { lineupRows, type LineupRow } from './lineupLedger';
 import { leaderOf, type Leader } from './leadChange';
+import { serverVerdict, weekResult, type WeekResult } from './weekResult';
 
 export interface MatchupInput {
   data: GetHomeLeagueResult;
@@ -88,18 +89,17 @@ export function buildMatchupLive(input: MatchupInput): MatchupLiveViewModel {
 
 /**
  * The scored week's gains, from the server's matchup row: the authoritative
- * numbers once both post (Matchup final). Null until they do: nothing reads
- * final before it is. My side is team1 or team2, whichever I am.
+ * numbers once both post (Matchup final), with the week's result from the one
+ * decider (lib/game/weekResult). Null until both post: nothing reads final
+ * before it is. My side is team1 or team2, whichever I am.
  */
-export function finalGains(data: GetHomeLeagueResult, myUserId: string): { me: number; opp: number } | null {
+export function finalGains(data: GetHomeLeagueResult, myUserId: string): { me: number; opp: number; result: WeekResult } | null {
   const cw = data.current_week;
   const m = data.matchups.find((row) => row.week_number === cw.week_number) ?? null;
-  if (!m || m.team1_gain === null) return null;
-  if (m.team1_user_id === myUserId) {
-    return m.team2_gain === null ? null : { me: m.team1_gain, opp: m.team2_gain };
-  }
-  if (m.team2_user_id === myUserId) {
-    return m.team1_gain === null ? null : { me: m.team2_gain!, opp: m.team1_gain };
-  }
-  return null;
+  if (!m || (m.team1_user_id !== myUserId && m.team2_user_id !== myUserId)) return null;
+  const isMe1 = m.team1_user_id === myUserId;
+  const me = isMe1 ? m.team1_gain : m.team2_gain;
+  const opp = isMe1 ? m.team2_gain : m.team1_gain;
+  const result = weekResult({ myGain: me, oppGain: opp, verdict: serverVerdict(m, myUserId) });
+  return me === null || opp === null || result === null ? null : { me, opp, result };
 }

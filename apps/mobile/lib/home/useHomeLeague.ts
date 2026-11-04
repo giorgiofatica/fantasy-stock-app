@@ -37,7 +37,7 @@ import { standardWeekSessions, type MarketCalendarSession } from '../time/market
 import { matchupWeekExtras, parseMatchupFixture } from '../game/matchupFixture';
 import type { HoldingRow } from './homeFixtureData';
 import { seatify } from '../game/seamAccountDeletion';
-import { applySeasonVariant, parseSeasonFixture, scheduleAhead } from './seasonFixture';
+import { applySeasonVariant, parseSeasonFixture, scheduleAhead, withServerResults } from './seasonFixture';
 import {
   HOME_FIXTURE,
   ROBERTO_HOLDINGS,
@@ -213,7 +213,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
     : outcome === 'withheld' ? { team1_gain: giaGain6, team2_gain: robGain6 }
     : { team1_gain: robGain6, team2_gain: giaGain6 };
   // Your and Gianluigi's records count week 6 once it is scored (their real game).
-  const w6 = { won: outcome === 'won' ? 1 : 0, lost: outcome === 'lost' || outcome === 'withheld' ? 1 : 0, tied: outcome === 'tied' ? 1 : 0 };
+  const w6 = { wins: outcome === 'won' ? 1 : 0, losses: outcome === 'lost' || outcome === 'withheld' ? 1 : 0, ties: outcome === 'tied' ? 1 : 0 };
 
   const week6 = {
     week_number: isWeek1 ? 1 : liveWeekNo, week_start: FIXTURE_WEEK6_START, week_end: FIXTURE_WEEK6_END,
@@ -334,7 +334,8 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
             // that need it.
             : [...regularSeasonWeeks, week6, ...aheadWeeks];
   // Capture knobs for "Your season" (a past tie, bye or unscored week): the rows the real code reads.
-  const matchups = applySeasonVariant(matchupsRaw, seasonVariant);
+  // …carrying the server's winner / is_tie, as get_home_league does from 20261126000000.
+  const matchups = withServerResults(applySeasonVariant(matchupsRaw, seasonVariant));
 
   // currentWeek differs per playoff sub-state (Design Lead ruling,
   // 2026-09-30): a bye/live game is IN the wild-card week; eliminated is
@@ -388,7 +389,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
           // points_for includes week 6's gain too.
           {
             user_id: FIXTURE_USER_ID, rank: 2,
-            wins: isScored ? 4 + w6.won : 4, losses: isScored ? 1 + w6.lost : 1, ties: isScored ? w6.tied : 0,
+            wins: isScored ? 4 + w6.wins : 4, losses: isScored ? 1 + w6.losses : 1, ties: isScored ? w6.ties : 0,
             points_for: regularSeasonComplete ? cents(129.99 + (week6Gains.team1_gain ?? 0)) : 129.99,
             display_name: 'Roberto B.', is_bot: false,
           },
@@ -412,7 +413,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
           },
           {
             user_id: 'gianluigi', rank: 6,
-            wins: isScored ? 1 + w6.lost : 1, losses: isScored ? 4 + w6.won : 4, ties: isScored ? w6.tied : 0,
+            wins: isScored ? 1 + w6.losses : 1, losses: isScored ? 4 + w6.wins : 4, ties: isScored ? w6.ties : 0,
             points_for: regularSeasonComplete ? cents(-142.35 + (week6Gains.team2_gain ?? 0)) : -142.35,
             display_name: 'Gianluigi B.', is_bot: false,
           },

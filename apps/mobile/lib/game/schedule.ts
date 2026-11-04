@@ -5,9 +5,10 @@
  * posted), next (the week after), or future. A bye has no result and is never
  * a W or L. Playoff rows are not in this list; they are shown as a line.
  */
+import { serverVerdict, weekResult, type WeekResult } from './weekResult';
 
-/** The rows get_home_league returns for the caller: gains, not the winner. The
- * winner is decided by dollars (the ruling), so W or L follows from the gains. */
+/** The rows get_home_league returns for the caller: the gains and, from 20261126000000, the
+ * server's winner (lib/game/weekResult decides W / L / T from them). */
 export interface ScheduleMatchup {
   week_number: number;
   team1_user_id: string | null;
@@ -15,6 +16,8 @@ export interface ScheduleMatchup {
   team1_gain: number | null;
   team2_gain: number | null;
   is_playoff: boolean;
+  winner_user_id?: string | null;
+  is_tie?: boolean | null;
 }
 
 export interface ScheduleRow {
@@ -23,8 +26,8 @@ export interface ScheduleRow {
   opponent: string | null;
   bye: boolean;
   state: 'past' | 'live' | 'next' | 'future';
-  won: boolean;
-  tie: boolean;
+  /** W / L / T once both gains post (lib/game/weekResult); null for a bye or before posting. */
+  result: WeekResult | null;
   /** Your dollar gain for the week, or null when not yet posted. */
   gain: number | null;
   /** The opponent's gain (null for a bye or before posting), for the W/L decision. */
@@ -60,11 +63,10 @@ export function buildSchedule(input: {
       opponent: !isMine ? null : bye ? null : nameOf(opponentId),
       bye,
       state,
-      // Dollars decide: a W is a higher gain, an L a lower one. An exact tie in
-      // dollars is decided by percent, which this read does not carry, so it
-      // shows no W or L rather than a guess (`tie` stays false).
-      won: posted && !bye && oppGain !== null && myGain! > oppGain,
-      tie: false,
+      // The one decider: the server's winner (a percent tiebreak, an empty portfolio's
+      // automatic loss), else dollars. Was `won: myGain > oppGain` with `tie: false`, which
+      // drew a tied week as an L.
+      result: !isMine || !m || bye ? null : weekResult({ myGain, oppGain, verdict: serverVerdict(m, input.myUserId) }),
       gain: myGain,
       oppGain,
     });
