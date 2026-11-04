@@ -43,7 +43,7 @@ Deno.test('in season, team value is the only big number: This week scores are sc
 Deno.test('before the draft, the countdown is the one big number (score.xl); the date is callout 700', () => {
   const card = SOURCES['components/home/PreDraftCard.tsx'];
   assert(card.includes("case 'countdown':\n        return <Text variant=\"score.xl\" style={styles.countdown}>{clock}</Text>;"));
-  assert(card.includes("case 'date':\n        return <Text variant=\"callout\" style={styles.bold}>{dateLabel}</Text>;"));
+  assert(card.includes("case 'date':\n        return <Text variant=\"callout\" style={styles.bold}>{keepTime(dateLabel!)}</Text>;"));
   assertEquals(variants(card, 'score.xl'), 1);
   assertEquals(variants(card, 'score.lg') + variants(card, 'score.md'), 0);
 });
@@ -218,7 +218,7 @@ Deno.test('the "Pre-draft" chip is gone; "Postponed" stays; the order line has n
   const card = SOURCES['components/home/PreDraftCard.tsx'];
   assert(card.includes('{preDraftChipShown(postponed) ? ('));
   assert(!card.includes('PRE_DRAFT_CHIP') && !SOURCES['lib/home/homeCopy.ts'].includes('PRE_DRAFT_CHIP'));
-  assert(card.includes("case 'orderSet':\n        return <Text variant=\"callout\" tone=\"secondary\">{orderSetLine(finalizeAt!)}</Text>;"));
+  assert(card.includes("case 'orderSet':\n        return <Text variant=\"callout\" tone=\"secondary\">{keepTime(orderSetLine(finalizeAt!) ?? '')}</Text>;"));
   assert(!card.includes('styles.dot'));
   // The card renders in preDraftBlocks' order.
   assert(card.includes('{blocks.map((b) => <View key={b}>{renderBlock(b)}</View>)}'));

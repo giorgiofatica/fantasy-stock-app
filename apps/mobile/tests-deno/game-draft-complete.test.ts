@@ -125,8 +125,8 @@ Deno.test('the room: the ending replaces the room once every pick is in; the han
 
 Deno.test('the ending: "Finishing the draft…" and no button until the server has finished (source guard)', () => {
   const view = SOURCES['components/game/DraftComplete.tsx'];
-  // keepWeek (2026-11-03): display only, "Week N" never splits; the same gate, the same words.
-  assertEquals(view.includes('{finished ? keepWeek(weekLine) : FINISHING_THE_DRAFT}'), true);
+  // keepWeek (2026-11-03): display only, "Week N" never splits; keepTime: "9:30 AM ET" never splits; the same gate, the same words.
+  assertEquals(view.includes('{finished ? keepTime(keepWeek(weekLine)) : FINISHING_THE_DRAFT}'), true);
   assertEquals(view.includes('{finished ? <Button label={keepWeek(bye ? SEE_WEEK_ONE_MATCHUPS : SEE_WEEK_ONE_MATCHUP)} onPress={onSeeMatchup} fullWidth /> : null}'), true);
 });
 

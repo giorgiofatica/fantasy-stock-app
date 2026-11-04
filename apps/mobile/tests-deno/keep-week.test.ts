@@ -93,8 +93,8 @@ Deno.test('the copy itself is unchanged: the plain strings still carry a plain s
 // space there only moved the last digit by a fraction of a pixel: 329 px at AX5).
 const RENDER_SITES: Record<string, RegExp[]> = {
   'components/home/StandingsCard.tsx': [/\{keepWeek\(standingsThroughWeekCaption\(throughWeek\)\)\}/],
-  'components/home/ThisWeekCard.tsx': [/resultLine != null \? keepWeek\(resultLine\)/, /\{keepWeek\(rightLabel\)\}/],
-  'components/game/DraftComplete.tsx': [/finished \? keepWeek\(weekLine\)/, /label=\{keepWeek\(bye \? SEE_WEEK_ONE_MATCHUPS : SEE_WEEK_ONE_MATCHUP\)\}/],
+  'components/home/ThisWeekCard.tsx': [/resultLine != null \? keepWeek\(resultLine\)/, /\{keepTime\(keepWeek\(rightLabel\)\)\}/],
+  'components/game/DraftComplete.tsx': [/finished \? keepTime\(keepWeek\(weekLine\)\)/, /label=\{keepWeek\(bye \? SEE_WEEK_ONE_MATCHUPS : SEE_WEEK_ONE_MATCHUP\)\}/],
   'components/home/SeasonCompleteCard.tsx': [/\{keepWeek\(bestWeekLine\(result\.best_week_number\)\)\} · /],
   'components/game/BracketView.tsx': [/keepWeek\(`\$\{round\.label\} · playoff week \$\{round\.round\}`\)/],
 };

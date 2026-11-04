@@ -17,7 +17,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { Button } from '@/components/sp/Button';
-import { keepMoney } from '@/lib/game/keepDots';
+import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { SheetBody } from '@/components/sp/Sheet';
 import { Icon } from '@/components/sp/Icon';
 import { useMotion } from '@/components/sp/motion';
@@ -184,9 +184,9 @@ export function TradeReviewPanel({ review, presentation, onSubmit, onRetry, canE
         {p.message && !done ? (
           p.messageTone === 'warn' ? (
             // The warn panel, NO icon (the Design Lead's ruling for refusals and blockers).
-            <WarnPanel text={p.message} />
+            <WarnPanel text={keepTime(p.message)} />
           ) : (
-            <Text variant="callout" maxFontSizeMultiplier={REVIEW_TEXT_MAX_SCALE} tone="secondary" accessibilityRole="alert">{p.message}</Text>
+            <Text variant="callout" maxFontSizeMultiplier={REVIEW_TEXT_MAX_SCALE} tone="secondary" accessibilityRole="alert">{keepTime(p.message)}</Text>
           )
         ) : null}
       </View>

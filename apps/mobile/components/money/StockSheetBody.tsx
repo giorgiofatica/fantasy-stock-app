@@ -28,7 +28,7 @@ import { SheetBody } from '@/components/sp/Sheet';
 import { Icon } from '@/components/sp/Icon';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
-import { keepMoney } from '@/lib/game/keepDots';
+import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { formatMoney, formatPercent } from '@/components/sp/logic/money';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { MONEY_FIXTURE, MONEY_FIXTURE_CONFIG } from '@/lib/money/devFixture';
@@ -540,7 +540,7 @@ export function StockSheetBody({
         ) : null}
         {!warnBlock && action.reason ? (
           <Text variant="caption" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary" style={styles.center} accessibilityLiveRegion="polite">
-            {keepMoney(action.reason)}
+            {keepTime(keepMoney(action.reason))}
           </Text>
         ) : null}
         {model.marketNote ? <Text variant="caption" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{model.marketNote}</Text> : null}

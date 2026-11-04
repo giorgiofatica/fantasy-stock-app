@@ -6,7 +6,7 @@ import { Icon } from '@/components/sp/Icon';
 import { PressableScale } from '@/components/sp/PressableScale';
 import { Sheet } from '@/components/sp/Sheet';
 import { Text } from '@/components/sp/Text';
-import { keepMoney } from '@/lib/game/keepDots';
+import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { formatMoney, formatPercent } from '@/components/sp/logic/money';
 import {
@@ -167,7 +167,7 @@ export function PlayerCardBody(props: PlayerCardProps) {
             <Text variant="headline" style={styles.actionText}>{action.label}</Text>
           </PressableScale>
           {action.note ? (
-            <Text variant="caption" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{action.note}</Text>
+            <Text variant="caption" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{keepTime(action.note)}</Text>
           ) : null}
         </View>
       ) : null}

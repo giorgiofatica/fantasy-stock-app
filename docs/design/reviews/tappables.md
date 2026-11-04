@@ -24,11 +24,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/(tabs)/league.tsx:464` | Button | onPress | `auto.reread` | prop auto.reread |  |
 | `app/(tabs)/league.tsx:531` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
 | `app/(tabs)/league.tsx:542` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
-| `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
-| `app/(tabs)/matchup.tsx:293` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
-| `app/(tabs)/matchup.tsx:314` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
-| `app/(tabs)/matchup.tsx:449` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `app/(tabs)/matchup.tsx:121` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
+| `app/(tabs)/matchup.tsx:140` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
+| `app/(tabs)/matchup.tsx:294` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
+| `app/(tabs)/matchup.tsx:315` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `app/(tabs)/matchup.tsx:450` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
 | `app/+not-found.tsx:37` | Button | onPress | `goHome` | route replace('/') |  |
 | `app/create-account.tsx:127` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:130` | Button | onPress | `handleCreate` | fn handleCreate |  |
@@ -51,15 +51,15 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/join-league.tsx:496` | Button | onPress | `primary.onPress` | prop primary.onPress | `view.action === 'join_disabled'` |
 | `app/join-league.tsx:510` | Button | onPress | `find` | fn find | `!trimmed` |
 | `app/join-league.tsx:578` | Button | onPress | `onContinue` | prop onContinue (the caller's) |  |
-| `app/league-settings.tsx:182` | LeaveLeagueRow | onPress | `inline: () => { setLeaveError(null); setLeaveOpen(true); }` | sheet setLeaveOpen(true) |  |
-| `app/league-settings.tsx:352` | Button | onPress | `handleSave` | route back; alert |  |
-| `app/league-settings.tsx:387` | SegmentedControl | onChange | `inline: (v) => setPickSeconds(Number(v))` | state setPickSeconds |  |
-| `app/league-settings.tsx:400` | SettingRow | onPress | `inline: isLocked \|\| dateLocked ? undefined : () => { setDateError(nu` | sheet setShowDatePicker(true) | `isLocked \|\| dateLocked` |
-| `app/league-settings.tsx:453` | ChoiceRow | onPress | `inline: () => { if (isLocked) return; setStakeMode(opt.value); setSl` | state setStakeMode | `isLocked` |
-| `app/league-settings.tsx:492` | SwitchRow | onValueChange | `setAllowUndraftable` | state setAllowUndraftable | `isLocked` |
-| `app/league-settings.tsx:511` | SlotBuilder | onChange | `inline: (next) => { setSlots(next); setSlotsError(null); }` | state setSlots | `isLocked` |
-| `app/league-settings.tsx:550` | SettingRow | onPress | `inline: commissionerRow.pressable ? () => { setLeaveError(null); set` | sheet setTransferOpen(true) |  |
-| `app/league-settings.tsx:594` | Button | onPress | `inline: () => void Share.share({ message: inviteShareMessage(code) }` | share sheet |  |
+| `app/league-settings.tsx:183` | LeaveLeagueRow | onPress | `inline: () => { setLeaveError(null); setLeaveOpen(true); }` | sheet setLeaveOpen(true) |  |
+| `app/league-settings.tsx:353` | Button | onPress | `handleSave` | route back; alert |  |
+| `app/league-settings.tsx:388` | SegmentedControl | onChange | `inline: (v) => setPickSeconds(Number(v))` | state setPickSeconds |  |
+| `app/league-settings.tsx:402` | SettingRow | onPress | `inline: isLocked \|\| dateLocked ? undefined : () => { setDateError(nu` | sheet setShowDatePicker(true) | `isLocked \|\| dateLocked` |
+| `app/league-settings.tsx:455` | ChoiceRow | onPress | `inline: () => { if (isLocked) return; setStakeMode(opt.value); setSl` | state setStakeMode | `isLocked` |
+| `app/league-settings.tsx:494` | SwitchRow | onValueChange | `setAllowUndraftable` | state setAllowUndraftable | `isLocked` |
+| `app/league-settings.tsx:513` | SlotBuilder | onChange | `inline: (next) => { setSlots(next); setSlotsError(null); }` | state setSlots | `isLocked` |
+| `app/league-settings.tsx:552` | SettingRow | onPress | `inline: commissionerRow.pressable ? () => { setLeaveError(null); set` | sheet setTransferOpen(true) |  |
+| `app/league-settings.tsx:596` | Button | onPress | `inline: () => void Share.share({ message: inviteShareMessage(code) }` | share sheet |  |
 | `app/login.tsx:165` | Pressable | onPress | `handleResend` | fn handleResend |  |
 | `app/login.tsx:172` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
 | `app/login.tsx:181` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
@@ -79,28 +79,28 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
 | `components/SymbolSearchField.tsx:127` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
 | `components/SymbolSearchField.tsx:158` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
-| `components/game/DraftBlockersCard.tsx:66` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
-| `components/game/DraftBlockersCard.tsx:67` | Button | onPress | `inline: () => onReconfirm('invite')` | fn onReconfirm | `busy` |
-| `components/game/DraftBlockersCard.tsx:93` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
-| `components/game/DraftBlockersCard.tsx:117` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
+| `components/game/DraftBlockersCard.tsx:67` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
+| `components/game/DraftBlockersCard.tsx:68` | Button | onPress | `inline: () => onReconfirm('invite')` | fn onReconfirm | `busy` |
+| `components/game/DraftBlockersCard.tsx:94` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
+| `components/game/DraftBlockersCard.tsx:118` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
 | `components/game/DraftComplete.tsx:53` | Button | onPress | `onRetryFinish` | prop onRetryFinish (the caller's) | `finishing` |
 | `components/game/DraftComplete.tsx:84` | Button | onPress | `onSeeMatchup` | prop onSeeMatchup (the caller's) |  |
-| `components/game/DraftDateSheet.tsx:70` | DateTimePicker | onChange | `inline: (event, selectedDate) => { if (Platform.OS !== 'ios') setAnd` | state setAndroidPicking |  |
-| `components/game/DraftDateSheet.tsx:91` | Button | onPress | `inline: () => run({ type: 'confirm', nowMs: Date.now() })` | fn run |  |
-| `components/game/DraftDateSheet.tsx:93` | Pressable | onPress | `inline: () => run({ type: 'set_later' })` | fn run |  |
-| `components/game/DraftDateSheet.tsx:107` | Pressable | onPress | `inline: () => run({ type: 'dismiss' })` | fn run |  |
-| `components/game/DraftDateSheet.tsx:113` | Pressable | onPress | `inline: () => setAndroidPicking(true)` | state setAndroidPicking |  |
+| `components/game/DraftDateSheet.tsx:71` | DateTimePicker | onChange | `inline: (event, selectedDate) => { if (Platform.OS !== 'ios') setAnd` | state setAndroidPicking |  |
+| `components/game/DraftDateSheet.tsx:92` | Button | onPress | `inline: () => run({ type: 'confirm', nowMs: Date.now() })` | fn run |  |
+| `components/game/DraftDateSheet.tsx:94` | Pressable | onPress | `inline: () => run({ type: 'set_later' })` | fn run |  |
+| `components/game/DraftDateSheet.tsx:108` | Pressable | onPress | `inline: () => run({ type: 'dismiss' })` | fn run |  |
+| `components/game/DraftDateSheet.tsx:114` | Pressable | onPress | `inline: () => setAndroidPicking(true)` | state setAndroidPicking |  |
 | `components/game/DraftRoom.tsx:319` | Button | onPress | `room.refresh` | prop room.refresh |  |
 | `components/game/DraftRoom.tsx:420` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
 | `components/game/DraftRoom.tsx:428` | Button | onPress | `draft` | fn draft | `pending` |
 | `components/game/DraftRoom.tsx:466` | Button | onPress | `room.refresh` | prop room.refresh |  |
 | `components/game/LeagueRenewal.tsx:47` | Button | onPress | `inline: () => setRetry((n) => n + 1)` | state setRetry |  |
-| `components/game/LeaveLeagueSheets.tsx:28` | Pressable | onPress | `inline: view.enabled ? onPress : undefined` | fn onPress (conditional) | `!view.enabled` |
-| `components/game/LeaveLeagueSheets.tsx:66` | Button | onPress | `onLeave` | prop onLeave (the caller's) | `busy` |
-| `components/game/LeaveLeagueSheets.tsx:70` | Button | onPress | `onStay` | prop onStay (the caller's) | `busy` |
-| `components/game/LeaveLeagueSheets.tsx:119` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
-| `components/game/LeaveLeagueSheets.tsx:125` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
-| `components/game/LeaveLeagueSheets.tsx:139` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
+| `components/game/LeaveLeagueSheets.tsx:29` | Pressable | onPress | `inline: view.enabled ? onPress : undefined` | fn onPress (conditional) | `!view.enabled` |
+| `components/game/LeaveLeagueSheets.tsx:67` | Button | onPress | `onLeave` | prop onLeave (the caller's) | `busy` |
+| `components/game/LeaveLeagueSheets.tsx:71` | Button | onPress | `onStay` | prop onStay (the caller's) | `busy` |
+| `components/game/LeaveLeagueSheets.tsx:120` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
+| `components/game/LeaveLeagueSheets.tsx:126` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
+| `components/game/LeaveLeagueSheets.tsx:140` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
 | `components/game/QueueEditor.tsx:64` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, -1))` | state setQueue |  |
 | `components/game/QueueEditor.tsx:69` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, 1))` | state setQueue |  |
 | `components/game/QueueEditor.tsx:73` | Pressable | onPress | `inline: () => setQueue((q) => removeItem(q, i))` | state setQueue |  |
@@ -129,11 +129,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/Stepper.tsx:67` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
 | `components/game/Stepper.tsx:75` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
 | `components/home/DraftingCard.tsx:85` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/home/PhaseMessageCard.tsx:32` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
-| `components/home/PreDraftCard.tsx:207` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |
-| `components/home/PreDraftCard.tsx:208` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/home/PreDraftCard.tsx:215` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/home/PreDraftCard.tsx:289` | Button | onPress | `onShare` | share sheet |  |
+| `components/home/PhaseMessageCard.tsx:33` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
+| `components/home/PreDraftCard.tsx:208` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |
+| `components/home/PreDraftCard.tsx:209` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/home/PreDraftCard.tsx:216` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/home/PreDraftCard.tsx:290` | Button | onPress | `onShare` | share sheet |  |
 | `components/home/RenewalCountsCard.tsx:22` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/RunItBackCard.tsx:39` | Button | onPress | `inline: () => void runItBack()` | fn runItBack | `busy` |
 | `components/home/SeasonCompleteCard.tsx:248` | ListRow | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |

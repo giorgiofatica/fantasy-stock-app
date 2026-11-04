@@ -9,7 +9,7 @@ import { countdownLabel, draftDateTimeLabel, orderWasSetLine } from '@/lib/home/
 import { managersProgressCaption, orderWaitingLine, pickClockLine } from '@/lib/home/homeCopy';
 import { ordinal } from '@/lib/home/ordinal';
 import { managersProgressShown, mySnakePicks, orderSetLine } from '@/lib/game/draftLobby';
-import { keepDots } from '@/lib/game/keepDots';
+import { keepDots, keepTime } from '@/lib/game/keepDots';
 import { MANAGER_ROW_GAP, ManagerRow } from '@/components/sp/gn';
 
 export interface DraftLobbyProps {
@@ -58,7 +58,7 @@ export function DraftLobby({ data, myUserId, draftDate, pickSeconds, rounds, now
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <Text variant="tag" tone="secondary">Draft order</Text>
-            {orderSetLine(orderWasSetLine(data.finalizeAt), draftDate) ? <Text variant="caption" tone="secondary">{orderSetLine(orderWasSetLine(data.finalizeAt), draftDate)}</Text> : null}
+            {orderSetLine(orderWasSetLine(data.finalizeAt), draftDate) ? <Text variant="caption" tone="secondary">{keepTime(orderSetLine(orderWasSetLine(data.finalizeAt), draftDate) ?? '')}</Text> : null}
             {seat > 0 ? (
               <Text variant="callout" style={{ color: colors.youText, fontWeight: '700' }}>
                 {`You pick ${ordinal(seat)}`}

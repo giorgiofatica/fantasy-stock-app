@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanima
 
 import { space } from '@/constants/tokens';
 import { Text } from '@/components/sp/Text';
+import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useMotion } from '@/components/sp/motion';
 import { Icon } from '@/components/sp/Icon';
@@ -150,7 +151,7 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
         {preSeasonLabel != null ? (
           <View style={styles.gainRow}>
             <RollingMoney text={formatMoney(0, { sign: 'always' })} size="callout" color={colors.zero} rollKey={leagueId} fontWeight="700" />
-            <Text variant="callout" tone="secondary"> · {preSeasonLabel}</Text>
+            <Text variant="callout" tone="secondary"> · {keepTime(preSeasonLabel)}</Text>
           </View>
         ) : (
           <View style={styles.gainRow}>

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { StyleSheet, Text as RNText, useWindowDimensions, View } from 'react-native';
+import { keepTime } from '@/lib/game/keepDots';
 
 import { radius, space, type } from '@/constants/tokens';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -84,7 +85,7 @@ export function PhaseChip({ phase, label, onPageBackground = false }: PhaseChipP
         {/* A custom `label` is sentence case (Design Lead ruling, final). Uppercased in JS, not
             with a textTransform style (iOS measures the source case, so the wider capitals clipped
             "FINAL" rendered "FINA" once §9C widened the tag's tracking). */}
-        {phaseChipUppercase(label) ? meta.label.toUpperCase() : meta.label}
+        {keepTime(phaseChipUppercase(label) ? meta.label.toUpperCase() : meta.label)}
       </RNText>
     </View>
   );

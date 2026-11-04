@@ -7,7 +7,7 @@ import { Text } from '@/components/sp/Text';
 import { Button } from '@/components/sp/Button';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { YOUR_ROSTER } from '@/lib/game/draftRoom';
-import { keepDots, keepMoney, keepWeek } from '@/lib/game/keepDots';
+import { keepDots, keepMoney, keepTime, keepWeek } from '@/lib/game/keepDots';
 import {
   DRAFT_COMPLETE_TAG, SEE_WEEK_ONE_MATCHUP, SEE_WEEK_ONE_MATCHUPS, YOUR_TEAM_IS_SET, draftPriceLabel, rosterPickCaption, type RosterPick,
 } from '@/lib/game/draftComplete';
@@ -46,7 +46,7 @@ export function DraftComplete({ roster, caption, finished, weekLine, bye, onSeeM
         <Text variant="tag" color={colors.liveText}>{DRAFT_COMPLETE_TAG}</Text>
         <Text variant="title">{YOUR_TEAM_IS_SET}</Text>
         <Text variant="callout" tone={finished ? undefined : 'secondary'} accessibilityLiveRegion="polite">
-          {finished ? keepWeek(weekLine) : FINISHING_THE_DRAFT}
+          {finished ? keepTime(keepWeek(weekLine)) : FINISHING_THE_DRAFT}
         </Text>
         {/* S-2: the finalize heal lives here now, never on the legacy draft screen. */}
         {!finished && finishFailed && onRetryFinish ? (

@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { radius, space, typeFontFamily } from '@/constants/tokens';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
+import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 
 // 3c-2 — the lobby's countdown (board #call-auto-start AutoLobby, and the
@@ -57,12 +58,12 @@ export function DraftCountdownCard({ tag, clock, title, live = false, starting, 
       ) : null}
       {lines.map((l) => (
         <Text key={l} variant="caption" style={styles.center}>
-          {l}
+          {keepTime(l)}
         </Text>
       ))}
       {notes.map((l) => (
         <Text key={l} variant="caption" tone="secondary" style={styles.center}>
-          {l}
+          {keepTime(l)}
         </Text>
       ))}
     </Card>

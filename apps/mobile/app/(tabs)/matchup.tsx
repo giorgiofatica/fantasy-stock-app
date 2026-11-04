@@ -49,6 +49,7 @@ import { useStockChartData } from '@/lib/money/useStockChartData';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { decideTradeGate } from '@/lib/money/tradeGate';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
+import { keepTime } from '@/lib/game/keepDots';
 
 // Matchup (W4, Game Night). Giorgio, 2026-10-12: "a fantasy-football matchup, nothing
 // else" — the Scoreboard (names, avatars, the two totals, "{leader} leads by $X"; YOUR half
@@ -224,7 +225,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
           openYou={openTeam(user.id, youName, true)}
           openOpponent={live.opp ? openTeam(live.opp.userId, live.opp.name, false) : undefined}
         />
-        <Text variant="callout" tone="secondary" style={styles.center}>{preSeasonStartsLabel(phase && phase.kind === 'pre_season' ? phase.seasonStartsAt : null)}</Text>
+        <Text variant="callout" tone="secondary" style={styles.center}>{keepTime(preSeasonStartsLabel(phase && phase.kind === 'pre_season' ? phase.seasonStartsAt : null))}</Text>
       </View>
     );
   }
