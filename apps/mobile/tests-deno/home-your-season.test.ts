@@ -1,0 +1,369 @@
+/**
+ * Home's "Your season" strip (Design Lead build spec, 2026-11-03; PRODUCT_RULES "No chart on
+ * Home"): the tiles (lib/home/yourSeason), the opening offset, the taps and the VoiceOver
+ * strings, plus source guards for the wiring Deno can't render. Mutants at hand-back.
+ * Run: `cd apps/mobile/tests-deno && deno test .`
+ */
+import { assert, assertEquals } from 'jsr:@std/assert';
+import { SOURCES } from './sourceManifest.generated.ts';
+import {
+  anchorIndex, buildSeasonTiles, initialOffset, openingLayout, seasonStripShown, thisWeekNumber, tileHint, tileLabel, tileTargetsMatchup, tileWidth,
+  tileMinHeight, LABEL_MAX_SCALE, SCORE_MAX_SCALE, GLYPH_MAX_SCALE, ROW_LEAD, TILE_GAP, SCROLLED_LEAD, type SeasonMatchupRow, type SeasonTile, type SeasonWeeklyResult,
+} from '../lib/home/yourSeason.ts';
+import type { PhaseResult } from '../lib/home/homePhase.ts';
+import { type as typeTokens } from '../constants/tokens/type.ts';
+import { SCHEDULE_HREF, THIS_WEEK_HREF, leagueSegmentFromParam, STANDINGS_HREF } from '../lib/home/calmHome.ts';
+
+const ME = 'me';
+const names: Record<string, string> = { paolo: 'Paolo M.', luca: 'Luca V.', gia: 'Gianluigi B.' };
+const nameOf = (id: string) => names[id] ?? 'Opponent';
+
+const row = (week: number, opp: string | null, mine: number | null, theirs: number | null, playoff = false): SeasonMatchupRow => ({
+  week_number: week, is_playoff: playoff, team1_user_id: ME, team2_user_id: opp, team1_gain: mine, team2_gain: theirs,
+});
+const res = (week: number, result: SeasonWeeklyResult['result'], gain = 10): SeasonWeeklyResult => ({ week, gain, result });
+const base = { numWeeks: 14 as number | null };
+const live: PhaseResult = { kind: 'live_open', week: 6, isPlayoff: false, round: null, weekEnd: '', ...base };
+
+/** Weeks 1-5 played (W, W, L, W, W), then the caller's rows. */
+const played5 = [row(1, 'paolo', 41, 5), row(2, 'luca', 58, 1), row(3, 'gia', -96, 3), row(4, 'paolo', 72, 5), row(5, 'luca', 54, 2)];
+const results5: SeasonWeeklyResult[] = [res(1, 'W', 41), res(2, 'W', 58), res(3, 'L', -96), res(4, 'W', 72), res(5, 'W', 54)];
+
+function tiles(phase: PhaseResult, rows: SeasonMatchupRow[], results: SeasonWeeklyResult[], currentWeek: number) {
+  return buildSeasonTiles({ myUserId: ME, phase, currentWeek, matchups: rows, weeklyResults: results, nameOf });
+}
+
+// ── Where it shows ──────────────────────────────────────────────────────────
+Deno.test('the strip shows in season only: not in pre_draft, drafting, pre_season or complete', () => {
+  for (const k of ['pre_draft', 'drafting', 'pre_season', 'complete'] as const) assertEquals(seasonStripShown(k), false, k);
+  for (const k of ['live_open', 'live_closed', 'scoring', 'scored', 'bye', 'playoff_bye', 'playoff_pending', 'eliminated', 'missed_playoffs'] as const) {
+    assertEquals(seasonStripShown(k), true, k);
+  }
+});
+
+// ── Tiles by state ──────────────────────────────────────────────────────────
+Deno.test('live_open: played weeks, this week live with "Live", the weeks ahead name the opponent', () => {
+  const t = tiles(live, [...played5, row(6, 'gia', null, null), row(7, 'paolo', null, null), row(8, 'luca', null, null)], results5, 6);
+  assertEquals(t.map((x) => x.kind), ['played', 'played', 'played', 'played', 'played', 'this', 'upcoming', 'upcoming']);
+  const me = t[5];
+  assert(me.kind === 'this' && me.middle === 'live' && me.showLive && me.result === null);
+  assertEquals(t[6].kind === 'upcoming' && t[6].opponent, 'Paolo M.');
+  const third = t[2];
+  assert(third.kind === 'played' && third.result === 'L' && third.gain === -96);
+});
+
+Deno.test('live_closed and scoring: a hollow ring, no label; the market-closed week is still this week', () => {
+  const closed: PhaseResult = { kind: 'live_closed', week: 6, isPlayoff: false, round: null, reason: 'after_hours', resumesAt: null, weekEnd: '', lastCloseAt: null, ...base };
+  const scoring: PhaseResult = { kind: 'scoring', week: 6, isPlayoff: false, round: null, weekEnd: '', ...base };
+  for (const phase of [closed, scoring]) {
+    const me = tiles(phase, [...played5, row(6, 'gia', null, null)], results5, 6)[5];
+    assert(me.kind === 'this' && me.middle === 'ring' && !me.showLive && me.result === null, phase.kind);
+  }
+});
+
+Deno.test('scored: the result letter, no score, no "Live"; a tie is a T (the one result list decides)', () => {
+  const scored: PhaseResult = { kind: 'scored', week: 6, won: false, isPlayoff: false, round: null, nextStart: null, ...base };
+  for (const r of ['W', 'L', 'T'] as const) {
+    const me = tiles(scored, [...played5, row(6, 'gia', 5, 5)], [...results5, res(6, r)], 6)[5];
+    assert(me.kind === 'this' && me.middle === 'result' && me.result === r && !me.showLive, r);
+    assert(!('gain' in me), 'this week never carries a score');
+  }
+});
+
+Deno.test('this week is never a score in ANY state', () => {
+  const states: PhaseResult[] = [
+    live,
+    { kind: 'scoring', week: 6, isPlayoff: false, round: null, weekEnd: '', ...base },
+    { kind: 'scored', week: 6, won: true, isPlayoff: false, round: null, nextStart: null, ...base },
+    { kind: 'bye', week: 6, nextStart: null, ...base },
+  ];
+  for (const phase of states) {
+    const me = tiles(phase, [...played5, row(6, phase.kind === 'bye' ? null : 'gia', 99, 3)], [...results5, res(6, phase.kind === 'bye' ? 'BYE' : 'W', 99)], 6)[5];
+    assertEquals(me.kind, 'this', phase.kind);
+    assertEquals('gain' in me, false, phase.kind);
+  }
+});
+
+Deno.test('a bye this week and a past bye: "Bye" in text2, no score', () => {
+  const bye: PhaseResult = { kind: 'bye', week: 6, nextStart: null, ...base };
+  const t = tiles(bye, [row(1, 'paolo', 41, 5), row(2, null, null, null), row(3, 'luca', 5, 1), row(4, 'gia', 5, 1), row(5, 'luca', 5, 1), row(6, null, null, null), row(7, 'paolo', null, null)],
+    [res(1, 'W'), res(2, 'BYE', 0), res(3, 'W'), res(4, 'W'), res(5, 'W'), res(6, 'BYE', 0)], 6);
+  assertEquals(t[1].kind, 'bye');
+  const me = t[5];
+  assert(me.kind === 'this' && me.middle === 'bye' && !me.showLive);
+});
+
+Deno.test('a past week with an opponent and NO gain yet is a dash ("not scored yet"), never a W, an L or a Bye', () => {
+  const t = tiles(live, [...played5.slice(0, 2), row(3, 'gia', null, null), row(4, 'paolo', 72, 5), row(5, 'luca', 54, null), row(6, 'gia', null, null)],
+    [res(1, 'W'), res(2, 'W'), res(4, 'W')], 6);
+  assertEquals(t[2].kind, 'unscored');
+  assertEquals(t[4].kind, 'unscored'); // my gain posted, theirs not: not decided either
+  assertEquals(tileLabel(t[2]), 'Week 3, not scored yet');
+});
+
+Deno.test('a week with no row for me is not drawn: a future playoff week with no named opponent, and weeks after elimination', () => {
+  const t = tiles(live, [...played5, row(6, 'gia', null, null), row(7, null, null, null, true), row(8, 'paolo', null, null)], results5, 6);
+  assertEquals(t.map((x) => x.week), [1, 2, 3, 4, 5, 6, 8]);
+  // No row at all for week 7: not drawn either.
+  assertEquals(tiles(live, [...played5, row(6, 'gia', null, null)], results5, 6).map((x) => x.week), [1, 2, 3, 4, 5, 6]);
+});
+
+Deno.test('a future regular-season bye is drawn as a bye tile (the schedule already knows it)', () => {
+  const t = tiles(live, [...played5, row(6, 'gia', null, null), row(7, null, null, null), row(8, 'paolo', null, null)], results5, 6);
+  assertEquals(t.map((x) => x.kind), ['played', 'played', 'played', 'played', 'played', 'this', 'bye', 'upcoming']);
+});
+
+Deno.test('playoffs: pending is a ring (its opponent is not named yet); the playoff bye is the current week, outlined', () => {
+  const pending: PhaseResult = { kind: 'playoff_pending', week: 8, round: 'Semifinals', previousRound: 'Wild Card', ...base };
+  const t = tiles(pending, [...played5, row(6, 'gia', 9, 1), row(7, 'paolo', 40, -10, true), row(8, null, null, null, true)], [...results5, res(6, 'W', 9), res(7, 'W', 40)], 8);
+  assertEquals(t.map((x) => x.week), [1, 2, 3, 4, 5, 6, 7, 8]);
+  const me = t[7];
+  assert(me.kind === 'this' && me.middle === 'ring' && !me.showLive);
+  assertEquals(t[6].kind, 'played'); // a scored playoff week is "Wk 7" like any other
+
+  // The bye: homePhase names the LATER round's week; the tile is the league's current week.
+  const bye: PhaseResult = { kind: 'playoff_bye', week: 8, round: 'Semifinals', ...base };
+  assertEquals(thisWeekNumber(bye, 7), 7);
+  const b = tiles(bye, [...played5, row(6, 'gia', 9, 1), row(8, null, null, null, true)], [...results5, res(6, 'W', 9)], 7);
+  assertEquals(b.map((x) => x.week), [1, 2, 3, 4, 5, 6, 7]); // the later round is not drawn until it has an opponent
+  const sit = b[6];
+  assert(sit.kind === 'this' && sit.middle === 'bye');
+});
+
+Deno.test('eliminated and missed playoffs: no this-week tile, nothing after', () => {
+  const eliminated: PhaseResult = { kind: 'eliminated', round: 'Wild Card', ...base };
+  const t = tiles(eliminated, [...played5, row(6, 'gia', 9, 1), row(7, 'paolo', -10, 40, true)], [...results5, res(6, 'W', 9), res(7, 'L', -10)], 8);
+  assertEquals(t.some((x) => x.kind === 'this'), false);
+  assertEquals(t.map((x) => x.week), [1, 2, 3, 4, 5, 6, 7]);
+  assert(t[6].kind === 'played' && t[6].result === 'L');
+  const missed: PhaseResult = { kind: 'missed_playoffs', ...base };
+  const m = tiles(missed, [...played5, row(6, 'gia', 9, 1)], [...results5, res(6, 'W', 9)], 8);
+  assertEquals(m.some((x) => x.kind === 'this'), false);
+  assertEquals(m.length, 6);
+});
+
+Deno.test('a PAST playoff row with no opponent is not drawn: not a Bye, not "not scored yet"', () => {
+  // A bracket slot that never named an opponent (or a bye written straight into a later round) is
+  // not a regular-season bye and not an unscored game; no tile at all, whichever side of this week.
+  const pending: PhaseResult = { kind: 'playoff_pending', week: 9, round: 'Final', previousRound: 'Semifinals', ...base };
+  const t = tiles(pending, [...played5, row(6, 'gia', 9, 1), row(7, null, null, null, true), row(8, 'paolo', 40, -10, true), row(9, null, null, null, true)],
+    [...results5, res(6, 'W', 9), res(8, 'W', 40)], 9);
+  assertEquals(t.map((x) => x.week), [1, 2, 3, 4, 5, 6, 8, 9]); // week 7 (past, no opponent) is absent
+  assertEquals(t.some((x) => x.week === 7), false);
+  // And with no this-week tile at all (eliminated), the same row is still absent.
+  const eliminated: PhaseResult = { kind: 'eliminated', round: 'Semifinals', ...base };
+  const e = tiles(eliminated, [...played5, row(6, 'gia', 9, 1), row(7, null, null, null, true), row(8, 'paolo', -10, 40, true)], [...results5, res(6, 'W', 9), res(8, 'L', -10)], 9);
+  assertEquals(e.map((x) => x.week), [1, 2, 3, 4, 5, 6, 8]);
+});
+
+Deno.test('no rows (a failed or empty schedule read): no tiles at all', () => {
+  assertEquals(tiles(live, [], [], 6), []);
+});
+
+Deno.test('rows that are not mine are ignored', () => {
+  const other: SeasonMatchupRow = { week_number: 6, is_playoff: false, team1_user_id: 'paolo', team2_user_id: 'luca', team1_gain: null, team2_gain: null };
+  assertEquals(tiles(live, [other], [], 6), []);
+});
+
+// ── Where the row opens ─────────────────────────────────────────────────────
+const pitchOf = (fs: number) => tileWidth(fs) + TILE_GAP;
+
+Deno.test('the row opens at 0 while it fits (weeks 1-6 at Large on a 390 or 402pt screen)', () => {
+  for (const vw of [390, 402]) {
+    for (let n = 1; n <= 6; n++) assertEquals(initialOffset({ tileCount: 8, anchorIndex: n - 1, fontScale: 1, viewportWidth: vw }), 0, `week ${n} on ${vw}`);
+  }
+});
+
+Deno.test('the opening offset is whole tiles: a tile boundary parked at the 6pt lead, so no tile (or fragment of one) is cut at the left', () => {
+  const lift = ROW_LEAD - SCROLLED_LEAD;
+  // Week 11 at Large on a 390pt screen: Wk 6 first (k = 5).
+  assertEquals(initialOffset({ tileCount: 14, anchorIndex: 10, fontScale: 1, viewportWidth: 390 }), 5 * pitchOf(1) + lift);
+  // The playoff / eliminated shapes the gate found with a fragment: 8 tiles anchored on the last, 7 on the last.
+  assertEquals(initialOffset({ tileCount: 8, anchorIndex: 7, fontScale: 1, viewportWidth: 390 }), 2 * pitchOf(1) + lift);
+  assertEquals(initialOffset({ tileCount: 7, anchorIndex: 6, fontScale: 1, viewportWidth: 390 }), 1 * pitchOf(1) + lift);
+  assertEquals(SCROLLED_LEAD, TILE_GAP); // the tile before the first one shown ends exactly at the screen's edge
+});
+
+Deno.test('every opening, at every size and screen: a tile boundary, the anchor in full, nothing of the previous tile showing, a reachable offset', () => {
+  let checked = 0;
+  for (const vw of [375, 390, 402, 430]) {
+    for (const fs of [1, 1.15, 1.3, 1.6, 2.1, 3.1]) {
+      for (let n = 1; n <= 16; n++) {
+        for (let a = 0; a < n; a++) {
+          const { offset, trailing } = openingLayout({ tileCount: n, anchorIndex: a, fontScale: fs, viewportWidth: vw });
+          const w = tileWidth(fs);
+          const pitch = pitchOf(fs);
+          const where = `vw ${vw} fs ${fs} n ${n} anchor ${a}`;
+          const left = (i: number) => ROW_LEAD + i * pitch - offset; // tile i's left edge on screen
+          if (offset === 0) {
+            // Everything fits: Wk 1 on the gutter, the anchor in full.
+            assert(left(a) + w <= vw + 1e-6, `${where}: the anchor is cut at the right`);
+          } else {
+            // The first tile shown is a whole tile at SCROLLED_LEAD, and the one before it ends at the edge.
+            const k = Math.round((offset - (ROW_LEAD - SCROLLED_LEAD)) / pitch);
+            assert(Math.abs(offset - (k * pitch + (ROW_LEAD - SCROLLED_LEAD))) < 1e-6, `${where}: ${offset} is not whole tiles`);
+            assert(Math.abs(left(k) - SCROLLED_LEAD) < 1e-6, `${where}: tile ${k} is not on the lead`);
+            assert(left(k - 1) + w <= 1e-6, `${where}: a fragment of the previous tile shows at the left`);
+            assert(a >= k && left(a) + w <= vw + 1e-6, `${where}: the anchor is cut`);
+            // the smallest k that does it
+            if (k > 1) assert(ROW_LEAD + (a + 1) * w + a * TILE_GAP - ((k - 1) * pitch + (ROW_LEAD - SCROLLED_LEAD)) > vw + 1e-6, `${where}: a smaller k fits`);
+          }
+          // reachable: the content (with its trailing padding) is wide enough to open here
+          const content = ROW_LEAD + n * w + (n - 1) * TILE_GAP + trailing;
+          assert(trailing >= ROW_LEAD && content >= offset + vw - 1e-6, `${where}: the opening is past the content's end`);
+          checked++;
+        }
+      }
+    }
+  }
+  assert(checked > 1000);
+});
+
+Deno.test('the trailing padding is the 20pt gutter unless the opening needs more (an anchor at the end of the row)', () => {
+  assertEquals(openingLayout({ tileCount: 14, anchorIndex: 10, fontScale: 1, viewportWidth: 390 }).trailing, ROW_LEAD);
+  assertEquals(openingLayout({ tileCount: 8, anchorIndex: 2, fontScale: 1, viewportWidth: 390 }).trailing, ROW_LEAD);
+  // Seven tiles anchored on the last at Large: offset 74 + 390 = 464 is 30pt past the tiles' end (434), more than the gutter.
+  assertEquals(openingLayout({ tileCount: 7, anchorIndex: 6, fontScale: 1, viewportWidth: 390 }).trailing, 464 - 434);
+  assertEquals(openingLayout({ tileCount: 0, anchorIndex: -1, fontScale: 1, viewportWidth: 390 }), { offset: 0, trailing: ROW_LEAD });
+});
+
+Deno.test('the anchor is this week, else the last drawn tile', () => {
+  const t: SeasonTile[] = [{ kind: 'played', week: 1, result: 'W', gain: 1 }, { kind: 'this', week: 2, middle: 'live', result: null, reason: 'live', showLive: true }, { kind: 'upcoming', week: 3, opponent: 'X' }];
+  assertEquals(anchorIndex(t), 1);
+  assertEquals(anchorIndex([t[0], { kind: 'played', week: 2, result: 'L', gain: -1 }]), 1);
+});
+
+Deno.test('tile size: 54 x 76 at Large; width and height scale with text size up to 2.1x, no further', () => {
+  assertEquals([tileWidth(1), tileMinHeight(1)], [54, 76]);
+  assertEquals(tileWidth(2), 108);
+  assertEquals(tileWidth(3.1), 54 * 2.1);
+  assertEquals(tileWidth(3.1), tileWidth(5));
+  assertEquals(tileMinHeight(3.1), 76 * 2.1);
+  assertEquals(tileWidth(0.8), 54); // never smaller than Large
+  assert(tileWidth(NaN) === 54);
+});
+
+// ── Taps ────────────────────────────────────────────────────────────────────
+Deno.test('the title opens League on Schedule; this week opens Matchup; every other tile opens Schedule', () => {
+  assertEquals(SCHEDULE_HREF, { pathname: '/(tabs)/league', params: { segment: 'schedule' } });
+  assertEquals(leagueSegmentFromParam(SCHEDULE_HREF.params.segment), 'schedule', 'League accepts the segment');
+  assertEquals(THIS_WEEK_HREF, '/(tabs)/matchup');
+  assertEquals(STANDINGS_HREF.params.segment, 'standings'); // Standings is untouched
+  const kinds: SeasonTile[] = [
+    { kind: 'played', week: 1, result: 'W', gain: 1 }, { kind: 'unscored', week: 2 }, { kind: 'bye', week: 3 }, { kind: 'upcoming', week: 4, opponent: 'X' },
+  ];
+  for (const k of kinds) assertEquals(tileTargetsMatchup(k), false, k.kind);
+  assertEquals(tileTargetsMatchup({ kind: 'this', week: 5, middle: 'live', result: null, reason: 'live', showLive: true }), true);
+  assertEquals(tileHint({ kind: 'this', week: 5, middle: 'live', result: null, reason: 'live', showLive: true }), "Opens this week's matchup");
+  assertEquals(tileHint(kinds[0]), 'Opens League schedule');
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  assert(src.includes('onPress={() => router.push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF : SCHEDULE_HREF)}'));
+  assert(src.includes('onPress={() => router.push(SCHEDULE_HREF)}'));
+});
+
+// ── VoiceOver ───────────────────────────────────────────────────────────────
+Deno.test('tile labels read their content: week, result and score, bye, this week, opponent, not scored', () => {
+  assertEquals(tileLabel({ kind: 'played', week: 3, result: 'L', gain: -96.4 }), 'Week 3, lost, −$96.40');
+  assertEquals(tileLabel({ kind: 'played', week: 4, result: 'W', gain: 72.1 }), 'Week 4, won, +$72.10');
+  assertEquals(tileLabel({ kind: 'played', week: 2, result: 'T', gain: 0 }), 'Week 2, tied, $0.00');
+  assertEquals(tileLabel({ kind: 'bye', week: 5 }), 'Week 5, bye');
+  assertEquals(tileLabel({ kind: 'this', week: 6, middle: 'live', result: null, reason: 'live', showLive: true }), 'Week 6, this week, live');
+  assertEquals(tileLabel({ kind: 'this', week: 6, middle: 'ring', result: null, reason: 'closed', showLive: false }), 'Week 6, this week, market closed');
+  assertEquals(tileLabel({ kind: 'this', week: 6, middle: 'result', result: 'W', reason: 'scored', showLive: false }), 'Week 6, this week, won');
+  assertEquals(tileLabel({ kind: 'this', week: 6, middle: 'bye', result: null, reason: 'bye', showLive: false }), 'Week 6, this week, bye');
+  assertEquals(tileLabel({ kind: 'upcoming', week: 7, opponent: 'Paolo M.' }), 'Week 7, against Paolo M.');
+  assertEquals(tileLabel({ kind: 'unscored', week: 3 }), 'Week 3, not scored yet');
+});
+
+// ── The wiring ──────────────────────────────────────────────────────────────
+Deno.test('the component: keyed by the font scale, a header + button title, a one-line fitted score, the glyph capped at 2.0x', () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  assert(src.includes('<View key={fontScaleKey(fontScale)} style={styles.root} testID="your-season">'));
+  assert(src.includes('accessibilityLabel={YOUR_SEASON_TITLE}') && src.includes('accessibilityHint={OPENS_SCHEDULE_HINT}'));
+  assert(src.includes('<View accessibilityRole="header">'));
+  assert(src.includes('numberOfLines={1}\n          adjustsFontSizeToFit\n          minimumFontScale={SCORE_MIN_FONT_SCALE}'));
+  assert(src.includes('maxFontSizeMultiplier={GLYPH_MAX_SCALE}'));
+  assert(src.includes('keepMoney(formatMoney(tile.gain, { sign: \'always\' }))'));
+  assert(src.includes('contentOffset={{ x: offset, y: 0 }}'));
+  assert(src.includes('showsHorizontalScrollIndicator={false}'));
+  assert(!src.includes('pagingEnabled') && !src.includes('snapTo'));
+  // Never persisted.
+  assert(!src.includes('AsyncStorage') && !src.includes('SecureStore'));
+  // Min 44pt targets.
+  assert(src.includes('minHeight: 44,'));
+});
+
+Deno.test('the entrance is the Standings card\'s: staggered FadeInDown, none when Reduce Motion or on a league switch', () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  assert(src.includes('const entering = reduced || skipEntrance'));
+  assert(src.includes('FadeInDown.delay(stagger.delayFor(i))'));
+});
+
+Deno.test('the surfaces: played on surface + the card rim, this week on youTint + a 1.5pt you outline, ahead: no fill, a 1pt line', () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  assert(src.includes('const fill = isThis ? colors.youTint : upcoming ? undefined : colors.surface;'));
+  assert(src.includes("isThis ? { width: 1.5, color: colors.you } : upcoming ? { width: 1, color: colors.line } : { width: RIM_WIDTH, color: colors.rim }"));
+  // The ring is the neutral text2, never the live colour (live means live, §9C).
+  assert(src.includes("borderWidth: 1.5, borderColor: colors.text2 }} />"));
+  // "Live" only in live_open.
+  assert(src.includes('if (tile.showLive) bottom ='));
+});
+
+Deno.test('the Home screen feeds the strip from the view model\'s tiles, and nothing derives W/L from two gains', () => {
+  const home = SOURCES['app/(tabs)/index.tsx'];
+  assert(home.includes('<YourSeason tiles={seasonTiles} skipEntrance={skipEntrance} />'));
+  assert(!home.includes('resultFromGains'));
+  const strip = SOURCES['components/home/YourSeason.tsx'];
+  assert(!/>\s*[a-zA-Z.]*[gG]ain\s*[<>]/.test(strip.replace(/formatMoney\([^)]*\)/g, '')), 'no gain-vs-gain comparison in the component');
+  const pure = SOURCES['lib/home/yourSeason.ts'];
+  assert(!/\.gain\s*[<>]/.test(pure) && !/Gain\s*[<>]/.test(pure), 'no gain-vs-gain comparison in the tile builder');
+});
+
+Deno.test("the component's this-week branch never draws a score: no money formatter between `case 'this':` and its break", () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  const a = src.indexOf("case 'this':");
+  const block = src.slice(a, src.indexOf('break;', a));
+  assert(a > 0 && block.length > 20);
+  assert(!/formatMoney|keepMoney|\.gain\b/.test(block), 'this week shows a ring, the live dot, a letter or "Bye" and never a score');
+});
+
+Deno.test('the row pads its end by the layout\'s trailing, so a whole-tile opening is always reachable', () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  assert(src.includes('const { offset, trailing } = openingLayout({'));
+  assert(src.includes('contentContainerStyle={[styles.row, { paddingRight: trailing }]}'));
+  assert(src.includes('contentOffset={{ x: offset, y: 0 }}'));
+});
+
+Deno.test('"Wk N", "Live" and "Bye" are one line that shrinks to fit (a two-digit week never wraps at AX5)', () => {
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  const fit = 'numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}';
+  assert(src.includes(`style={styles.weekText} maxFontSizeMultiplier={LABEL_MAX_SCALE} ${fit}>{tileWeekText(tile)}`));
+  assert(src.includes(`style={styles.live} maxFontSizeMultiplier={LABEL_MAX_SCALE} ${fit}>{LIVE_CHIP}`));
+  assertEquals((src.match(new RegExp(`style=\\{styles\\.word\\} maxFontSizeMultiplier=\\{GLYPH_MAX_SCALE\\} ${fit.replace(/[{}]/g, '\\$&')}`, 'g')) ?? []).length, 2); // the two "Bye" words; the unscored dash is one glyph
+});
+
+Deno.test('inside a tile the label never outranks the value: "Wk N" and "Live" cap at the chip token (1.4x), the glyph and its slot at 2.0x', () => {
+  assertEquals(LABEL_MAX_SCALE, typeTokens.tag.maxScale); // the token itself, not a hand-typed number
+  assertEquals(LABEL_MAX_SCALE, 1.4);
+  assertEquals(GLYPH_MAX_SCALE, 2);
+  assert(LABEL_MAX_SCALE < GLYPH_MAX_SCALE);
+  const pure = SOURCES['lib/home/yourSeason.ts'];
+  assert(pure.includes('export const LABEL_MAX_SCALE = typeTokens.tag.maxScale as number;'));
+  assert(!/LABEL_MAX_SCALE = 1\./.test(pure));
+  const src = SOURCES['components/home/YourSeason.tsx'];
+  // "Wk N" and the bottom "Live": the label cap.
+  assert(src.includes('style={styles.weekText} maxFontSizeMultiplier={LABEL_MAX_SCALE} numberOfLines={1}'));
+  assert(src.includes('style={styles.live} maxFontSizeMultiplier={LABEL_MAX_SCALE} numberOfLines={1}'));
+  // The glyph, and "Bye" / the dash standing in the glyph slot: the glyph cap.
+  assert(src.includes('<Text variant="score.lg" color={color} maxFontSizeMultiplier={GLYPH_MAX_SCALE} style={styles.glyph}>'));
+  assertEquals((src.match(/style=\{styles\.word\} maxFontSizeMultiplier=\{GLYPH_MAX_SCALE\}/g) ?? []).length, 3); // Bye x2, the dash
+  // The upcoming tile's opponent name is a value-slot label: one line, tail-cut, capped like the labels (never above them).
+  assert(src.includes('numberOfLines={1} maxFontSizeMultiplier={LABEL_MAX_SCALE} style={styles.name}>'));
+  assert(src.slice(src.indexOf('style={styles.name}') - 140, src.indexOf('style={styles.name}')).includes('numberOfLines={1}'));
+  // The score keeps its fit and is capped no lower than the label (score >= label): SCORE_MAX_SCALE.
+  assertEquals(SCORE_MAX_SCALE, LABEL_MAX_SCALE);
+  assert(SCORE_MAX_SCALE >= LABEL_MAX_SCALE && SCORE_MAX_SCALE < GLYPH_MAX_SCALE);
+  assert(pure.includes('export const SCORE_MAX_SCALE = LABEL_MAX_SCALE;'));
+  const score = src.slice(src.indexOf('variant="score.sm"'), src.indexOf('variant="score.sm"') + 400);
+  assert(score.includes('maxFontSizeMultiplier={SCORE_MAX_SCALE}') && score.includes('adjustsFontSizeToFit') && score.includes('minimumFontScale={SCORE_MIN_FONT_SCALE}'));
+});

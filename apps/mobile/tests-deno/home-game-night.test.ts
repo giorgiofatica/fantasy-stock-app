@@ -59,9 +59,3 @@ Deno.test('Home uses tokens only: no colour literals, no text-transform style, n
   }
 });
 
-Deno.test('the season chart is the Game Night Chart, edge to edge, its two dates under the marks', () => {
-  const chart = SOURCES['components/home/SeasonChart.tsx'];
-  assert(chart.includes("import { Chart, type UnderRow } from '@/components/sp/gn';"));
-  assert(!chart.includes('areaPath') && !chart.includes('ClipPath'), 'no fill under a Game Night line');
-  assert(SOURCES['components/home/HomeSeason.tsx'].includes('bleed={space[6]}'));
-});

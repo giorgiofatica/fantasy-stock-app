@@ -26,6 +26,15 @@ export const HERO_TODAY_LABEL = 'today'; // board
  * label names the LINE's value (zero), not a computed figure. */
 export const CHART_ZERO_LABEL = '$0'; // board
 export const STANDINGS_CARD_TITLE = 'Standings'; // board
+/** The season strip's title and tile labels (Giorgio, approved as written, 2026-11-03). */
+export const YOUR_SEASON_TITLE = 'Your season'; // giorgio
+export function seasonTileWeekLabel(week: number): string {
+  return `Wk ${week}`; // giorgio
+}
+/** The bye tile's word (the chart's old glyph string; "Bye" in League › Schedule too). */
+export const SEASON_TILE_BYE = 'Bye';
+/** A past week with no score yet is a dash, never a W or an L. */
+export const SEASON_TILE_UNSCORED = '–';
 /** `throughWeek` is the already-resolved "last completed week" (week - 1
  * for a live week), NOT the league's total week count — code review
  * (2026-09-29) found the caller passing `numWeeks`, so this always read
@@ -355,29 +364,6 @@ export function heroWeekOrRoundLabel(phase: PhaseResult): string | null {
       // drop the segment. pre_draft/drafting never reach the hero at all.
       return null;
   }
-}
-
-// ── Season chart scrub label (Orchestrator ruling, 2026-09-30) ─────────────
-// A 'weekly' point (a past week's single real point, or the Week-1-open
-// anchor) is never labelled with a date -- there is no second real point
-// nearby to make a date meaningful, only a straight line to it. It reads
-// "Week N" plus that WEEK's OWN gain (the delta since the previous real
-// point), not the chart's cumulative y-value. A 'daily' point (the live
-// week only) keeps a date, formatted rather than a raw ISO string
-// (code review, 2026-09-29, found the raw "2026-09-22" reaching the UI).
-const SCRUB_DATE_FORMAT: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
-
-export function seasonScrubLabel(
-  point: { date: string; week: number; gain: number; kind: 'weekly' | 'daily' },
-  previousPointGain: number | null,
-): { primary: string; money: string } {
-  if (point.kind === 'weekly') {
-    const delta = point.gain - (previousPointGain ?? 0);
-    return { primary: `Week ${point.week}`, money: formatSignedCurrency(delta) };
-  }
-  const d = new Date(`${point.date}T00:00:00Z`);
-  const primary = Number.isNaN(d.getTime()) ? point.date : new Intl.DateTimeFormat('en-US', { ...SCRUB_DATE_FORMAT, timeZone: 'UTC' }).format(d);
-  return { primary, money: formatSignedCurrency(point.gain) };
 }
 
 // ── Unpriced-symbol captions (Design Lead ruling, 2026-09-29, I12) ─────────

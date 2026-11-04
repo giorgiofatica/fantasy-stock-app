@@ -10,7 +10,6 @@
  */
 import { assertEquals, assertAlmostEquals } from 'jsr:@std/assert';
 import { buildHomeViewModel, type GetHomeLeagueResult, type HomeLeagueMeta } from '../lib/home/buildHomeViewModel.ts';
-import { windowSeries } from '../lib/home/seasonGainSeries.ts';
 import { playoffRoundLabelForWeek } from '../lib/playoffs.ts';
 import { ROBERTO_WEEKS, FIXTURE_WEEK6_START, FIXTURE_WEEK6_END } from '../lib/home/homeFixtureData.ts';
 import { standardWeekSessions } from '../lib/time/marketWeek.ts';
@@ -103,47 +102,36 @@ function buildFixtureInput() {
   return { data, meta, quote, bars };
 }
 
-Deno.test('honesty check: the chart endpoint equals the hero season-gain number', () => {
+Deno.test('honesty check: the scored weeks Your season reads add up to the hero season gain (through week 5)', () => {
   const { data, meta, quote, bars } = buildFixtureInput();
   const now = new Date('2026-09-24T17:37:00-04:00'); // Thursday, after market close for bars purposes
   const vm = buildHomeViewModel({
     now, meta, market: { status: 'closed', reason: 'after_hours', nextOpenAt: null },
     data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
   });
-  const endpoint = vm.season!.points[vm.season!.points.length - 1].gain;
-  assertEquals(endpoint, vm.hero!.seasonGainDollars);
-});
-
-Deno.test('honesty check: the 1W endpoint equals the this-week live score', () => {
-  const { data, meta, quote, bars } = buildFixtureInput();
-  const now = new Date('2026-09-24T17:37:00-04:00');
-  const vm = buildHomeViewModel({
-    now, meta, market: { status: 'closed', reason: 'after_hours', nextOpenAt: null },
-    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
-  });
-  const win = windowSeries(vm.season!, '1W', 5); // week index 5 = week 6
-  const endpoint = win[win.length - 1].gain;
-  assertAlmostEquals(endpoint, vm.thisWeek!.you.gain, 0.01); // both round to the cent independently
-});
-
-Deno.test('honesty check: every completed week (1-5) is exactly ONE real point, pinned to its matchups gain — no cosmetic ramp', () => {
-  const { data, meta, quote, bars } = buildFixtureInput();
-  const now = new Date('2026-09-24T17:37:00-04:00');
-  const vm = buildHomeViewModel({
-    now, meta, market: { status: 'closed', reason: 'after_hours', nextOpenAt: null },
-    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
-  });
-  // No-cosmetic-ramp ruling (Orchestrator, 2026-09-30): a past, scored
-  // week contributes exactly one point (week 1 also carries the series'
-  // opening 0-anchor, so it has two), never a per-day interpolation.
+  // weeks 1-5 are the played tiles; their scores are the matchups' own gains
+  const played = vm.seasonTiles.filter((t) => t.kind === 'played');
+  assertEquals(played.map((t) => t.week), [1, 2, 3, 4, 5]);
+  const through5 = played.reduce((sum, t) => sum + (t.kind === 'played' ? t.gain : 0), 0);
+  assertAlmostEquals(through5, 129.99, 0.01);
   for (const w of ROBERTO_WEEKS) {
-    const weekPoints = vm.season!.points.filter((p) => p.week === w.week);
-    assertEquals(weekPoints.length, w.week === 1 ? 2 : 1);
-    for (const p of weekPoints) assertEquals(p.kind, 'weekly');
-    const last = weekPoints[weekPoints.length - 1];
-    const expectedBase = ROBERTO_WEEKS.filter((x) => x.week <= w.week).reduce((s, x) => s + x.gain, 0);
-    assertAlmostEquals(last.gain, Math.round(expectedBase * 100) / 100, 0.01);
+    const tile = vm.seasonTiles.find((t) => t.week === w.week);
+    assertEquals(tile?.kind, 'played');
+    if (tile?.kind === 'played') assertEquals(tile.gain, w.gain);
   }
+});
+
+Deno.test('Your season: this week is the one this-week tile and carries no score', () => {
+  const { data, meta, quote, bars } = buildFixtureInput();
+  const now = new Date('2026-09-24T13:37:00-04:00'); // Thu 1:37 PM ET, live
+  const vm = buildHomeViewModel({
+    now, meta, market: { status: 'open', reason: 'regular_session', nextOpenAt: null },
+    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
+  });
+  const thisTiles = vm.seasonTiles.filter((t) => t.kind === 'this');
+  assertEquals(thisTiles.length, 1);
+  assertEquals(thisTiles[0].week, 6);
+  assertEquals('gain' in thisTiles[0], false);
 });
 
 Deno.test('phase is live_open (Thursday, market open) and the this-week card has both sides', () => {
@@ -203,12 +191,56 @@ Deno.test('S7: an ongoing regular-season bye (current week, no opponent) still g
     data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
   });
   assertEquals(vm.phase.kind, 'bye');
-  // The loop that builds weeklyResults only walks PAST weeks
-  // (week_number < currentWeek) -- without this fix, the bye week itself
-  // (the current one) never reached weeklyResults at all, so the season
-  // chip row silently dropped it instead of showing "Bye W6".
-  const week6Result = vm.weeklyResults.find((w) => w.week === 6);
-  assertEquals(week6Result?.result, 'BYE');
+  assertEquals(vm.weeklyResults.find((w) => w.week === 6)?.result, 'BYE');
+  const tile = vm.seasonTiles.find((t) => t.week === 6);
+  assertEquals(tile?.kind === 'this' && tile.middle, 'bye');
+});
+
+// ── The overloaded-NULL trap (Orchestrator + Design Lead, 2026-11-03): weeklyResults folded two
+// different states into 'BYE' (no opponent, and an opponent whose gain was still null). Now the
+// discriminator is the opponent's PRESENCE, never a gain being null. ─────────────────────────
+
+/** Week 3 as a past row, edited, in the standard 6-week fixture at week 6. */
+function withWeek3(edit: (m: GetHomeLeagueResult['matchups'][number]) => void) {
+  const { data, meta, quote, bars } = buildFixtureInput();
+  const week3 = data.matchups.find((m) => m.week_number === 3)!;
+  edit(week3);
+  const now = new Date('2026-09-24T13:37:00-04:00');
+  return buildHomeViewModel({
+    now, meta, market: { status: 'open', reason: 'regular_session', nextOpenAt: null },
+    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
+  });
+}
+
+Deno.test('a past week with no opponent is a real bye (not W/L), whatever its gains', () => {
+  const vm = withWeek3((m) => { m.team2_user_id = null; m.team1_gain = null; m.team2_gain = null; });
+  assertEquals(vm.weeklyResults.find((w) => w.week === 3)?.result, 'BYE');
+  assertEquals(vm.seasonTiles.find((t) => t.week === 3)?.kind, 'bye');
+});
+
+Deno.test('a past week with an opponent and a null gain on THEIR side is not scored yet: not Bye, not W/L', () => {
+  const vm = withWeek3((m) => { m.team2_gain = null; });
+  assertEquals(vm.weeklyResults.find((w) => w.week === 3), undefined);
+  assertEquals(vm.seasonTiles.find((t) => t.week === 3)?.kind, 'unscored');
+});
+
+Deno.test('a past week with an opponent and a null gain on MY side is not scored yet: not Bye, not W/L', () => {
+  const vm = withWeek3((m) => { m.team1_gain = null; });
+  assertEquals(vm.weeklyResults.find((w) => w.week === 3), undefined);
+  assertEquals(vm.seasonTiles.find((t) => t.week === 3)?.kind, 'unscored');
+});
+
+Deno.test('a past week with an opponent and both gains null is not scored yet', () => {
+  const vm = withWeek3((m) => { m.team1_gain = null; m.team2_gain = null; });
+  assertEquals(vm.weeklyResults.find((w) => w.week === 3), undefined);
+  assertEquals(vm.seasonTiles.find((t) => t.week === 3)?.kind, 'unscored');
+});
+
+Deno.test('equal posted gains are a T, never a loss (ties are decided by the one result list)', () => {
+  const vm = withWeek3((m) => { m.team1_gain = 25; m.team2_gain = 25; });
+  assertEquals(vm.weeklyResults.find((w) => w.week === 3)?.result, 'T');
+  const tile = vm.seasonTiles.find((t) => t.week === 3);
+  assertEquals(tile?.kind === 'played' && tile.result, 'T');
 });
 
 Deno.test('C3: laterPlayoffWeek/lastPlayoffLoss are derived from matchups, not hardcoded false', () => {
@@ -328,12 +360,13 @@ Deno.test('R3: a live playoff week\'s gain never inflates the hero season gain',
   assertAlmostEquals(vm.hero!.seasonGainDollars, regularSeasonTotal, 0.01);
 });
 
-Deno.test('R3: the season chart never extends past the regular season into a live playoff week', () => {
+Deno.test('R3: a live playoff week is this week; weeks after it are not drawn until the bracket names an opponent', () => {
   const { data, meta, quote, bars } = buildFixtureInput();
   data.matchups[data.matchups.length - 1].team1_gain = 42.5;
   data.matchups[data.matchups.length - 1].team2_gain = -42.5;
   data.matchups.push(
     { week_number: 7, week_start: '2026-12-14T13:30:00.000Z', week_end: '2026-12-18T20:00:00.000Z', is_playoff: true, team1_user_id: MY_ID, team2_user_id: OPP_ID, team1_gain: null, team2_gain: null },
+    { week_number: 8, week_start: '2026-12-21T13:30:00.000Z', week_end: '2026-12-25T20:00:00.000Z', is_playoff: true, team1_user_id: MY_ID, team2_user_id: null, team1_gain: null, team2_gain: null },
   );
   const mySnapshots = ROBERTO.map((h) => ({ symbol: h.symbol, quantity: qty(h.draft), week_start_price: h.mon, entered_mid_week: false, created_at: '2026-12-14T13:30:00.000Z' }));
   data.current_week = { week_number: 7, my_snapshots: mySnapshots, my_trades: [], opponent_snapshots: [], opponent_trades: [] };
@@ -343,10 +376,8 @@ Deno.test('R3: the season chart never extends past the regular season into a liv
     now, meta: playoffMeta, market: { status: 'open', reason: 'regular_session', nextOpenAt: null },
     data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
   });
-  // 6 regular-season weeks, one point each, plus the series' own $0
-  // anchor point at week 1's open -- never an 8th point for the live
-  // playoff week.
-  assertEquals(vm.season!.points.length, 7);
+  assertEquals(vm.seasonTiles.map((t) => t.week), [1, 2, 3, 4, 5, 6, 7]); // no week 8
+  assertEquals(vm.seasonTiles[6].kind, 'this');
 });
 
 // ── I12 (Design Lead ruling, 2026-09-29): unpriced symbols reach the view
@@ -378,17 +409,6 @@ Deno.test('I12: a missing prevClose only shows up in unpricedToday, never in unp
   assertEquals(vm.hero!.unpricedToday, ['NVDA']);
   assertEquals(vm.hero!.unpricedValue, []);
   assertEquals(vm.thisWeek!.you.unpriced, []);
-});
-
-Deno.test('season gain through week 5 matches ROBERTO_WEEKS = 129.99, before this week live is added', () => {
-  const { data, meta, quote, bars } = buildFixtureInput();
-  const now = new Date('2026-09-24T17:37:00-04:00');
-  const vm = buildHomeViewModel({
-    now, meta, market: { status: 'closed', reason: 'after_hours', nextOpenAt: null },
-    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
-  });
-  const throughW5 = vm.season!.weekBase[5]; // cumulative just before week 6 starts
-  assertAlmostEquals(throughW5, 129.99, 1e-9);
 });
 
 // ── B1 (Design Lead, 2026-09-30): real market-calendar session bounds,

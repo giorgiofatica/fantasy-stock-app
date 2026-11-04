@@ -8,7 +8,6 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import { SOURCES } from './sourceManifest.generated.ts';
 import { buttonRadius, PILL_RADIUS } from '../components/sp/logic/buttonStatus.ts';
 import { rangeTabWidth, tabLabelWidth, TAB_MIN, TAB_LABEL_PAD } from '../components/sp/logic/gameNight.ts';
-import { layoutWeekMarks, marksCollide } from '../lib/home/weekMarks.ts';
 import { clearOf } from '../constants/tokens/color.ts';
 import { radius } from '../constants/tokens/radius.ts';
 import { draftStartStatusFixture, scheduledFixtureStartMs } from '../lib/game/autoStartFixture.ts';
@@ -42,26 +41,6 @@ Deno.test('range tabs: one width for every tab, the widest label + 16, at least 
   // The underline sits in a view that hugs the label, so it spans the LABEL, not the box.
   assert(pills.includes('<View testID="range-tab-label">'));
   assert(/rowTabs:\s*\{\s*gap: 0,/.test(pills));
-});
-
-// ── 3. The live week's dot under the line's end dot ─────────────────────────────
-Deno.test("the live week's mark sits under the end dot (its slot's end), and only it may pass the gutter", () => {
-  const slots = [{ start: 0, end: 60 }, { start: 60, end: 120 }, { start: 120, end: 368 }];
-  const marks = layoutWeekMarks([{ week: 1, result: 'W' }, { week: 2, result: 'L' }, { week: 3, result: 'LIVE' }], slots, 350);
-  const live = marks.find((m) => m.glyph === 'live')!;
-  assertEquals(live.x, 368); // the end dot's x, 18pt past the 350pt row
-  assertEquals(marks[0].x, 30); // the others stay centred under their weeks
-  assertEquals(marksCollide(marks, 350), false);
-  // A non-live mark at the same place would be pulled back inside the row.
-  const scored = layoutWeekMarks([{ week: 1, result: 'W' }, { week: 2, result: 'L' }, { week: 3, result: 'W' }], slots, 350);
-  assert(scored[2].x + scored[2].w / 2 <= 350);
-});
-
-// ── 4. No first-paint jump: the marks row is reserved before layout ─────────────
-Deno.test('the marks row is reserved before the chart has a width, so nothing below moves', () => {
-  const chart = SOURCES['components/sp/gn/Chart.tsx'];
-  assert(chart.includes(': <View style={{ height: underHeight ?? 0 }} />)'));
-  assert(SOURCES['components/home/SeasonChart.tsx'].includes('underHeight={marksRowHeight(fontScale)}'));
 });
 
 // ── 5. The champion wash fades to gold at alpha 0 ──────────────────────────────
@@ -118,52 +97,7 @@ Deno.test('This week: the two scores share a baseline when a name wraps (halves 
   assert(!/halves:\s*\{[^}]*alignItems/.test(card)); // the row's default stretch makes them equal height
 });
 
-// ── The season line's short states: one point per day on the dated axis ─────────
-Deno.test("Week 1's open and its Monday share a day: one point (the latest), and the weeks re-index", async () => {
-  const { mergeSameDay } = await import('../lib/home/seasonGainSeries.ts');
-  const p = (date: string, week: number, gain: number, kind: 'weekly' | 'daily' = 'daily') => ({ date, week, gain, kind, dayIndex: 0 });
-  // Monday before the first close: the anchor (0) and today's live point (+41.26).
-  const monday = mergeSameDay([p('2026-09-21T13:30:00Z', 1, 0, 'weekly'), p('2026-09-21', 1, 41.26)], [0]);
-  assertEquals(monday.points.map((x) => x.gain), [41.26]);
-  assertEquals(monday.weekStartIdx, [0]);
-  // Tuesday: Monday's close replaces the anchor, then Tuesday's live point.
-  const tuesday = mergeSameDay([p('2026-09-21T13:30:00Z', 1, 0, 'weekly'), p('2026-09-21', 1, 12), p('2026-09-22', 1, 41.26)], [0]);
-  assertEquals(tuesday.points.map((x) => x.gain), [12, 41.26]);
-  // A season: week 1 (anchor + Friday), week 2 (Friday), the live week (Mon, Tue) — nothing shares a day.
-  const pts = [p('2026-08-17T13:30:00Z', 1, 0, 'weekly'), p('2026-08-21', 1, 50, 'weekly'), p('2026-08-28', 2, 80, 'weekly'), p('2026-08-31', 3, 85), p('2026-09-01', 3, 90)];
-  const season = mergeSameDay(pts, [0, 2, 3]);
-  assertEquals(season.points.length, 5);
-  assertEquals(season.weekStartIdx, [0, 2, 3]);
-  // A merged week START moves to the point that replaced it.
-  const merged = mergeSameDay([p('2026-09-21T13:30:00Z', 1, 0, 'weekly'), p('2026-09-21', 1, 5), p('2026-09-22', 1, 9)], [0]);
-  assertEquals(merged.weekStartIdx, [0]);
-  assert(SOURCES['components/home/SeasonChart.tsx'].includes('const { points, weekStartIdx } = mergeSameDay(rawPoints, rawWeekStartIdx);'));
-});
-
 // ── Found in the capture pass ───────────────────────────────────────────────────
-Deno.test('1M keeps the past weeks: their full-timestamp dates are cut to a day before the window cut', async () => {
-  const { windowSeries } = await import('../lib/home/seasonGainSeries.ts');
-  const p = (date: string, week: number, gain: number, kind: 'weekly' | 'daily') => ({ date, week, gain, kind, dayIndex: 0 });
-  const result = {
-    points: [
-      p('2026-08-17T13:30:00.000Z', 1, 0, 'weekly'), p('2026-08-21T20:00:00.000Z', 1, 40, 'weekly'),
-      p('2026-08-28T20:00:00.000Z', 2, 100, 'weekly'), p('2026-09-04T20:00:00.000Z', 3, 3, 'weekly'),
-      p('2026-09-21', 4, 120, 'daily'), p('2026-09-24', 4, 340, 'daily'),
-    ],
-    weekStartIdx: [0, 2, 3, 4],
-    weekBase: [0, 40, 100, 3],
-  };
-  const m = windowSeries(result, '1M', 3);
-  // From Aug 25 (Sep 24 − 30 days): Aug 28, Sep 4, and the live days — never just the live week.
-  assertEquals(m.map((x) => x.date.slice(0, 10)), ['2026-08-28', '2026-09-04', '2026-09-21', '2026-09-24']);
-  assertEquals(m[0].gain, 0); // rebased to the window's first point
-});
-
-Deno.test('the range tabs never move on a tap: the marks row is there (empty) in 1W and 1M too', () => {
-  const chart = SOURCES['components/home/SeasonChart.tsx'];
-  assert(chart.includes('under={showMarks ? marksRow : () => <View style={{ height: marksRowHeight(fontScale) }} />}'));
-});
-
 Deno.test("the live mark sits under the CLAMPED end dot (Monday's dot is held 10pt in, its halo on screen)", () => {
   const chart = SOURCES['components/sp/gn/Chart.tsx'];
   assert(chart.includes('(i === geometry.points.length - 1 && end ? end.x : p.x) - bleed'));

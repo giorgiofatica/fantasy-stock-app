@@ -2,12 +2,12 @@
  * buildHomeViewModel: the ONE pure function that turns get_home_summary +
  * get_home_league + quotes + bars into everything Home's components
  * render. All decisions route through the Phase 3b-2 pure modules
- * (homePhase, liveWeekScore, seasonGainSeries, todayChange, teamValue,
+ * (homePhase, liveWeekScore, todayChange, teamValue,
  * seasonGain) — this module's only job is wiring their inputs from the
  * RPC shapes, never re-deciding anything itself. Pure and hermetic, so
- * it's the one place the "honesty check" (chart endpoint = hero gain,
- * 1W endpoint = this-week score, Friday points = matchups gains) can be
- * asserted as a test, not just eyeballed in production.
+ * it's the one place an "honesty check" (the strip's results = the matchups,
+ * the hero's season gain = the scored weeks) can be asserted as a test, not
+ * just eyeballed in production.
  *
  * The `useHomeLeague` hook (React/Supabase — not unit-testable) is a thin
  * shell around this: fetch summary + get_home_league + quote + bars (or
@@ -16,12 +16,12 @@
 
 import { homePhase, type HomePhaseInput, type MatchupRow, type PhaseResult, type MarketInfo } from './homePhase';
 import { liveWeekScore, type LiveSnapshot, type LiveTrade } from './liveWeekScore';
-import { buildSeasonGainSeries, type SeasonWeekInput, type SeasonGainSeriesResult } from './seasonGainSeries';
 import { todayChange, type TodayPosition } from './todayChange';
 import { teamValue, type StakeMode } from './teamValue';
 import { seasonGain } from './seasonGain';
 import { resolveWeekWindow, lastSessionCloseBefore, type MarketCalendarSession } from '../time/marketWeek';
 import { etDateParts } from '../time/etParts';
+import { buildSeasonTiles, type SeasonTile } from './yourSeason';
 
 export interface HomeLedgerRow {
   symbol: string;
@@ -119,7 +119,7 @@ export interface ThisWeekViewModel {
 export interface WeeklyResult {
   week: number;
   gain: number;
-  /** 'BYE' for a regular-season bye (no result — never a win or a loss). */
+  /** 'BYE' for a regular-season bye (no opponent: never a win or a loss). */
   result: 'W' | 'L' | 'T' | 'BYE';
 }
 
@@ -127,15 +127,18 @@ export interface HomeViewModel {
   phase: PhaseResult;
   hero: HeroViewModel | null;
   thisWeek: ThisWeekViewModel | null;
-  season: SeasonGainSeriesResult | null;
   standings: GetHomeLeagueResult['standings'];
   /** So a caller (index.tsx) can mark which standings row is "you" without
    * re-deriving the caller's id from elsewhere. */
   myUserId: string;
-  /** Every already-scored week's result for me — the Season card's W/L
-   * chips (spec: "W1...W(N-1) result chips"). Empty when nothing is
-   * scored yet. */
+  /** The ONE list that decides a week's W / L / T / bye for me (never re-derived from two
+   * gains elsewhere: a tie is a T). Every week with a row for me whose result is decided:
+   * a regular-season row with nobody across is a bye; a row with an opponent counts only
+   * once BOTH gains are posted. A half-posted week is absent here, so the strip shows it
+   * as "not scored yet", never a Bye, a W or an L. */
   weeklyResults: WeeklyResult[];
+  /** Home's "Your season" strip: one tile per week that has a row for me (lib/home/yourSeason). */
+  seasonTiles: SeasonTile[];
 }
 
 /** A SKIP sentinel draft row (forfeited pick: symbol 'SKIP', 0 qty) is not
@@ -318,7 +321,7 @@ export function buildHomeViewModel(input: HomeViewModelInput): HomeViewModel {
   // reason about (states 6/7/8 have no hero/this-week card at all).
   const inSeason = !['pre_draft', 'drafting', 'complete'].includes(phase.kind);
   if (!inSeason) {
-    return { phase, hero: null, thisWeek: null, season: null, standings: data.standings, myUserId: meta.myUserId, weeklyResults: [] };
+    return { phase, hero: null, thisWeek: null, standings: data.standings, myUserId: meta.myUserId, weeklyResults: [], seasonTiles: [] };
   }
 
   // The week THIS card is actually about — 'scored' can point at the
@@ -384,29 +387,33 @@ export function buildHomeViewModel(input: HomeViewModelInput): HomeViewModel {
   const scoredWeeklyGains: number[] = [];
   const weeklyResults: WeeklyResult[] = [];
   for (const m of data.matchups) {
-    if (m.week_number >= meta.currentWeek) continue;
-    if (m.is_playoff) continue;
     const isMe1 = m.team1_user_id === meta.myUserId;
+    const isMe2 = m.team2_user_id === meta.myUserId;
+    if (!isMe1 && !isMe2) continue;
     const g = isMe1 ? m.team1_gain : m.team2_gain;
     const opp = isMe1 ? m.team2_gain : m.team1_gain;
-    if (g !== null) {
-      scoredWeeklyGains.push(g);
-      const hasOpp = isMe1 ? !!m.team2_user_id : !!m.team1_user_id;
-      const result: WeeklyResult['result'] = !hasOpp ? 'BYE' : opp === null ? 'BYE' : g > opp ? 'W' : g < opp ? 'L' : 'T';
-      weeklyResults.push({ week: m.week_number, gain: g, result });
+    const hasOpp = isMe1 ? !!m.team2_user_id : !!m.team1_user_id;
+    // Season gain: every already-scored REGULAR week before this one (unchanged).
+    if (m.week_number < meta.currentWeek && !m.is_playoff && g !== null) scoredWeeklyGains.push(g);
+    // The result list. Discriminated on the opponent's PRESENCE, never on a gain being null
+    // (the overloaded-NULL trap): no opponent in the regular season is a real bye; an
+    // opponent with either gain still null is not decided yet, and is left out.
+    if (!hasOpp) {
+      if (!m.is_playoff) weeklyResults.push({ week: m.week_number, gain: g ?? 0, result: 'BYE' });
+    } else if (g !== null && opp !== null) {
+      weeklyResults.push({ week: m.week_number, gain: g, result: g > opp ? 'W' : g < opp ? 'L' : 'T' });
     }
   }
+  weeklyResults.sort((a, b) => a.week - b.week);
   const currentWeekLiveGain = currentRowScored || current?.isPlayoff ? null : myLive.gain;
   if (currentRowScored && current && !current.isPlayoff) {
     scoredWeeklyGains.push(current.myGain!);
   }
-  // S7 (Design Lead, 2026-09-30): an ONGOING bye (the current week, no
-  // opponent, not yet scored) still gets its own "Bye W6" chip -- the
-  // loop above only walks PAST weeks (week_number < currentWeek), so the
-  // bye week itself never reached weeklyResults at all.
-  if (current && !current.hasOpponent && !current.isPlayoff) {
-    weeklyResults.push({ week: current.week, gain: 0, result: 'BYE' });
-  }
+
+  const seasonTiles = buildSeasonTiles({
+    myUserId: meta.myUserId, phase, currentWeek: meta.currentWeek, matchups: data.matchups, weeklyResults,
+    nameOf: (id) => data.standings.find((x) => x.user_id === id)?.display_name || 'Opponent',
+  });
 
   const stake = teamValue({
     stakeMode: meta.stakeMode, notionalPerSlot: meta.notionalPerSlot, numRounds: meta.numRounds,
@@ -444,60 +451,5 @@ export function buildHomeViewModel(input: HomeViewModelInput): HomeViewModel {
     cashWentNegative: stake.cashWentNegative,
   };
 
-  // Season chart: one entry per week 1..currentWeek. Past weeks contribute
-  // exactly ONE point each (their own matchups gain, no per-day ramp — see
-  // seasonGainSeries's no-cosmetic-ramp doc, Orchestrator ruling
-  // 2026-09-30); only the current week uses real per-day granularity from
-  // `bars`.
-  //
-  // R3 (Design Lead, 2026-09-30): the line stops at the end of the
-  // REGULAR season -- meta.numWeeks is that boundary (playoffRoundLabel-
-  // ForWeek already treats it the same way, as "week - numWeeks = round").
-  // Playoff weeks show as round chips elsewhere, never as points on this
-  // gain line (same points_for-excludes-playoffs rule as the hero above).
-  const chartEndWeek = Math.min(meta.currentWeek, meta.numWeeks ?? meta.currentWeek);
-  const weeks: SeasonWeekInput[] = [];
-  let closesByDate: Record<string, Record<string, number>> = {};
-  for (let w = 1; w <= chartEndWeek; w++) {
-    const row = matchupRowFor(data, meta, w, marketCalendar);
-    const isCurrent = w === meta.currentWeek;
-    const weekStart = row?.weekStart ?? now.toISOString();
-    const weekEnd = row?.weekEnd ?? now.toISOString();
-    // No row at all for this week — a bye, a playoff bye, elimination,
-    // missed playoffs, or a genuinely un-generated week (found in code
-    // review, 2026-09-29: `current!.weekStart` crashed here for every one
-    // of those, since `current` is null whenever there's no row this
-    // week). Nothing to plot: flat at the running total.
-    if (isCurrent && !current) {
-      weeks.push({ week: w, weekStart, weekEnd, scoredGain: 0, snapshots: [], trades: [], tradingDays: [] });
-      continue;
-    }
-    if (!isCurrent || currentRowScored) {
-      const scoredGain = isCurrent ? current!.myGain : row ? (row.hasOpponent === false ? 0 : row.myGain) : 0;
-      weeks.push({ week: w, weekStart, weekEnd, scoredGain: scoredGain ?? 0, snapshots: [], trades: [], tradingDays: [] });
-    } else {
-      // The live current week: real bars from Monday through today.
-      const days = Object.values(bars)[0]?.map((b) => b.date).filter((d) => d >= dateOnly(current!.weekStart) && d <= todaysDateStr) ?? [todaysDateStr];
-      for (const [sym, series] of Object.entries(bars)) {
-        for (const b of series) {
-          if (!days.includes(b.date)) continue;
-          closesByDate[b.date] = closesByDate[b.date] ?? {};
-          closesByDate[b.date][sym.toUpperCase()] = b.close;
-        }
-      }
-      weeks.push({
-        week: w, weekStart, weekEnd, scoredGain: null, snapshots: myCurrentSnapshots, trades: myCurrentTrades,
-        tradingDays: days.length ? days : [todaysDateStr],
-      });
-    }
-  }
-  // R3: the same playoff exclusion as the weeks loop above -- otherwise a
-  // playoff-live week's live gain reaches the chart's endpoint through
-  // this separate "live" marker even though the loop itself never
-  // iterates that far anymore.
-  const season = buildSeasonGainSeries({
-    weeks, closesByDate, live: currentRowScored || current?.isPlayoff ? null : { gain: myLive.gain },
-  });
-
-  return { phase, hero, thisWeek, season, standings: data.standings, myUserId: meta.myUserId, weeklyResults };
+  return { phase, hero, thisWeek, standings: data.standings, myUserId: meta.myUserId, weeklyResults, seasonTiles };
 }

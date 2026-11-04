@@ -2,51 +2,123 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "6526e3f2f6e15259117ee6c38df55dcd78e602f0",
-    "commitShort": "6526e3f2",
+    "commit": "91bdea5f346823113ac144d01080376d2a94cbc2",
+    "commitShort": "91bdea5f",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/code-label-and-intro-cards",
+    "branch": "feat/home-your-season",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/_layout.tsx"
+        "path": "apps/mobile/app/(tabs)/index.tsx"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/components/home/HomeSeason.tsx"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/components/home/SeasonChart.tsx"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/components/home/YourSeason.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/app/create-league.tsx"
+        "path": "apps/mobile/lib/game/seamTables.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/game/DraftBlockersCard.tsx"
+        "path": "apps/mobile/lib/home/buildHomeViewModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/home/calmHome.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/home/devFixture.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/home/homeCopy.ts"
       },
       {
         "code": "??",
-        "path": "apps/mobile/lib/game/codeLabel.ts"
+        "path": "apps/mobile/lib/home/seasonFixture.ts"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/lib/home/seasonGainSeries.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/home/useHomeLeague.ts"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/lib/home/weekMarks.ts"
       },
       {
         "code": "??",
-        "path": "apps/mobile/lib/shell/onboardingSeenBySession.ts"
+        "path": "apps/mobile/lib/home/yourSeason.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/build-home-view-model.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/home-calm.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/home-game-night.test.ts"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/tests-deno/home-week-marks.test.ts"
       },
       {
         "code": "??",
-        "path": "apps/mobile/tests-deno/code-label-and-intro-cards.test.ts"
+        "path": "apps/mobile/tests-deno/home-your-season.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/keep-money.test.ts"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/tests-deno/season-chart-draw-key.test.ts"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/tests-deno/season-gain-series.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/segmented-xl.test.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/w4-home-gate-fixes.test.ts"
       }
     ],
-    "timestamp": "2026-11-03T19:20:50Z",
-    "sourceHash": "sha256:6b920e3dd0fe07d88155313c92e252d68b8a8018be7ea6f7baa8aa2dd5017d45",
+    "timestamp": "2026-11-03T21:58:17Z",
+    "sourceHash": "sha256:5c07db2cd747a4a9f350756d27d8278fb637c25b8596cc871a8193b8f0c62e7d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-10-22T01:22:49Z",
-    "ageHours": 306,
-    "ageDays": 12.7,
+    "ageHours": 308.6,
+    "ageDays": 12.9,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:d6107036938ffaf8a53341cfe733b6e3cdd021617f5b5f94ca31e3ea518feb9b",
@@ -19966,7 +20038,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('historical-bars')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:681"
+        "apps/mobile/lib/home/useHomeLeague.ts:695"
       ]
     },
     {
@@ -19978,7 +20050,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('quote')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:664"
+        "apps/mobile/lib/home/useHomeLeague.ts:678"
       ]
     },
     {
@@ -19990,7 +20062,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_home_league')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:637"
+        "apps/mobile/lib/home/useHomeLeague.ts:651"
       ]
     },
     {
@@ -22086,7 +22158,7 @@
           "detail": "quote — single-symbol live price. The most-invoked function in the app.",
           "files": [
             "apps/mobile/lib/game/useAllMatchups.ts:83",
-            "apps/mobile/lib/home/useHomeLeague.ts:664",
+            "apps/mobile/lib/home/useHomeLeague.ts:678",
             "apps/mobile/lib/money/priceReads.ts:38",
             "apps/web/src/components/TradeModal.jsx:159",
             "apps/web/src/components/TradeModal.jsx:63",
@@ -22145,7 +22217,7 @@
           ],
           "detail": "historical-bars — chart series for portfolio P/L.",
           "files": [
-            "apps/mobile/lib/home/useHomeLeague.ts:681",
+            "apps/mobile/lib/home/useHomeLeague.ts:695",
             "apps/mobile/lib/money/priceReads.ts:52",
             "apps/mobile/lib/money/useStockChartData.ts:46"
           ]
@@ -23413,8 +23485,8 @@
       "apps/mobile/lib/game/useDraftAutoStart.ts:79 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useDraftStatus.ts:46 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useLeaveLeague.ts:47 -> leave-league (via seamInvoke)",
-      "apps/mobile/lib/home/useHomeLeague.ts:664 -> quote",
-      "apps/mobile/lib/home/useHomeLeague.ts:681 -> historical-bars",
+      "apps/mobile/lib/home/useHomeLeague.ts:678 -> quote",
+      "apps/mobile/lib/home/useHomeLeague.ts:695 -> historical-bars",
       "apps/mobile/lib/invite/invitePreviewApi.ts:14 -> invite-preview",
       "apps/mobile/lib/money/priceReads.ts:38 -> quote",
       "apps/mobile/lib/money/priceReads.ts:52 -> historical-bars",
@@ -23468,7 +23540,7 @@
       "apps/mobile/lib/game/useSeasonPlayoffs.ts:30 -> get_season_matchups (via seamRpc)",
       "apps/mobile/lib/home/useDraftingData.ts:84 -> get_draft_clock",
       "apps/mobile/lib/home/useDraftingData.ts:85 -> get_draft_order",
-      "apps/mobile/lib/home/useHomeLeague.ts:637 -> get_home_league",
+      "apps/mobile/lib/home/useHomeLeague.ts:651 -> get_home_league",
       "apps/mobile/lib/home/usePreDraftData.ts:110 -> get_draft_order (via seamRpc)",
       "apps/mobile/lib/home/usePreDraftData.ts:111 -> get_league_display_names (via seamRpc)",
       "apps/mobile/lib/home/useSeasonResult.ts:8 -> get_season_result",

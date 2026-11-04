@@ -104,12 +104,12 @@ import { GIANLUIGI_HOLDINGS, ROBERTO_HOLDINGS, fixtureQty } from '../lib/home/ho
 const homeGain = (rows: typeof ROBERTO_HOLDINGS) => Math.round(rows.reduce((s, h) => s + fixtureQty(h) * (h.fri - h.mon), 0) * 100) / 100;
 
 Deno.test('F3: the week is closed exactly in the Home fixtures that score week 6', () => {
-  for (const f of ['scored', 'complete', 'complete_runner_up', 'playoff_live', 'playoff_bye', 'eliminated', 'missed_playoffs']) assertEquals(seamWeekClosed(f), true, f);
+  for (const f of ['scored', 'complete', 'complete_runner_up', 'playoff_live', 'playoff_bye', 'playoff_pending', 'eliminated', 'missed_playoffs']) assertEquals(seamWeekClosed(f), true, f);
   for (const f of ['live_open', 'live_closed', 'scoring', 'pre_season', 'bye', undefined]) assertEquals(seamWeekClosed(f), false, String(f));
   // The same list as fixtureHomeLeague's own isScored (source guard on its regularSeasonComplete).
   const home = SOURCES['lib/home/useHomeLeague.ts'];
   assert(home.includes("const regularSeasonComplete = isPlayoffState || fixture === 'complete' || fixture === 'complete_runner_up';"));
-  assert(home.includes("const isPlayoffState = isPlayoffLive || isPlayoffBye || isEliminated || isMissedPlayoffs;"));
+  assert(home.includes("const isPlayoffState = isPlayoffLive || isPlayoffBye || isEliminated || isMissedPlayoffs || isPlayoffPending;"));
   assert(home.includes("const isScored = fixture === 'scored' || regularSeasonComplete;"));
 });
 

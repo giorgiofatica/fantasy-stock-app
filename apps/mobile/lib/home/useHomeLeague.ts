@@ -37,6 +37,7 @@ import { standardWeekSessions, type MarketCalendarSession } from '../time/market
 import { matchupWeekExtras, parseMatchupFixture } from '../game/matchupFixture';
 import type { HoldingRow } from './homeFixtureData';
 import { seatify } from '../game/seamAccountDeletion';
+import { applySeasonVariant, parseSeasonFixture, scheduleAhead } from './seasonFixture';
 import {
   HOME_FIXTURE,
   ROBERTO_HOLDINGS,
@@ -167,14 +168,19 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
   const oppSnapshots = giaRows.map((h) => ({ symbol: h.symbol, quantity: qty(h), week_start_price: h.mon, entered_mid_week: false, created_at: FIXTURE_WEEK6_START }));
 
   const isPreSeason = fixture === 'pre_season';
+  // EXPO_PUBLIC_SEASON_FIXTURE (capture only, seasonFixture.ts): 'week11' makes the live week week 11.
+  const seasonVariant = parseSeasonFixture(process.env.EXPO_PUBLIC_SEASON_FIXTURE);
+  const liveWeekNo = seasonVariant === 'week11' ? 11 : 6;
   // W4 gate: Week 1 live (the season line's shortest states), on week 6's calendar dates.
   const isWeek1 = fixture === 'week1_monday' || fixture === 'week1_tuesday';
   const isBye = fixture === 'bye';
   const isPlayoffLive = fixture === 'playoff_live';
   const isPlayoffBye = fixture === 'playoff_bye';
   const isEliminated = fixture === 'eliminated';
+  // Home's "Your season" (2026-11-03): the round-2 game whose opponent the bracket has not named yet.
+  const isPlayoffPending = fixture === 'playoff_pending';
   const isMissedPlayoffs = fixture === 'missed_playoffs';
-  const isPlayoffState = isPlayoffLive || isPlayoffBye || isEliminated || isMissedPlayoffs;
+  const isPlayoffState = isPlayoffLive || isPlayoffBye || isEliminated || isMissedPlayoffs || isPlayoffPending;
   // B7 bullet 3 (Orchestrator, 2026-09-30): the regular season a playoff
   // fixture builds on must match `numWeeks`, or the season chart shows a
   // flat plateau for every week between the real history and numWeeks
@@ -210,7 +216,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
   const w6 = { won: outcome === 'won' ? 1 : 0, lost: outcome === 'lost' || outcome === 'withheld' ? 1 : 0, tied: outcome === 'tied' ? 1 : 0 };
 
   const week6 = {
-    week_number: isWeek1 ? 1 : 6, week_start: FIXTURE_WEEK6_START, week_end: FIXTURE_WEEK6_END,
+    week_number: isWeek1 ? 1 : liveWeekNo, week_start: FIXTURE_WEEK6_START, week_end: FIXTURE_WEEK6_END,
     is_playoff: false,
     team1_user_id: FIXTURE_USER_ID,
     team2_user_id: isBye ? null : 'gianluigi',
@@ -219,14 +225,15 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
 
   // S2 (Design Lead, 2026-09-30): a real week 7 row -- the whole season's
   // schedule is generated at draft completion (B3), so week 7 is already
-  // known (just ungained) the moment week 6 closes. Only 'scored' and
-  // 'bye' read this (via nextWeekStart, see homePhase.ts's own doc) --
-  // every other regular-season fixture hasn't reached week 6's close yet.
-  const week7 = {
-    week_number: 7, week_start: '2026-09-28T09:30:00.000-04:00', week_end: '2026-10-02T16:00:00.000-04:00',
-    is_playoff: false, team1_user_id: FIXTURE_USER_ID, team2_user_id: 'gianluigi',
-    team1_gain: null, team2_gain: null,
-  };
+  // known (just ungained) the moment week 6 closes. 'scored' and 'bye' read
+  // it (via nextWeekStart, see homePhase.ts's own doc). Home's "Your season"
+  // (2026-11-03) draws every week ahead, so the in-season regular fixtures
+  // hold the schedule to the league's last regular week (week 7 = Paolo M.,
+  // the board's "Wk 7"); the playoff and complete families have none.
+  const aheadWeeks = regularSeasonComplete ? [] : scheduleAhead({
+    firstWeek: liveWeekNo + 1, lastWeek: FIXTURE_LEAGUE.numWeeks, me: FIXTURE_USER_ID,
+    firstStartMs: Date.parse('2026-09-28T09:30:00.000-04:00') + (liveWeekNo - 6) * 7 * 24 * 3600 * 1000,
+  });
 
   // Playoff week numbers derived the way the backend does (Orchestrator,
   // 2026-09-30, B7 bullet 3): week = numWeeks + round -- never typed in.
@@ -266,11 +273,15 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
     team1_gain: null, team2_gain: null,
   };
 
-  const regularSeasonWeeks = robWeeks.map((w, i) => {
-    // Contiguous with week 6 (FIXTURE_WEEK6_START, Mon Sep 21): week 1 opens Mon Aug 17. W4's
-    // season chart sits on a calendar axis (§9C), which showed the old Jul 6 start as a
-    // seven-week flat gap before week 6 that no real league can have.
-    const monday = new Date(Date.UTC(2026, 7, 17 + i * 7, 13, 30));
+  // 'week11' (capture): ten weeks played before the live one, the gains cycling the board's five.
+  const playedWeeks = seasonVariant === 'week11'
+    ? Array.from({ length: liveWeekNo - 1 }, (_, i) => ({ week: i + 1, gain: robWeeks[i % robWeeks.length].gain }))
+    : robWeeks;
+  const regularSeasonWeeks = playedWeeks.map((w) => {
+    // Contiguous with the live week (week 6's Monday is FIXTURE_WEEK6_START, Mon Sep 21): week 1
+    // opens Mon Aug 17. W4's season chart sat on a calendar axis (§9C), which showed the old Jul 6
+    // start as a seven-week flat gap before week 6 that no real league can have.
+    const monday = new Date(Date.UTC(2026, 8, 21, 13, 30) - (liveWeekNo - w.week) * 7 * 24 * 3600 * 1000);
     const friday = new Date(monday.getTime() + 4 * 24 * 3600 * 1000 + 6.5 * 3600 * 1000);
     return {
       week_number: w.week, week_start: monday.toISOString(), week_end: friday.toISOString(),
@@ -291,7 +302,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
     team1_gain: null, team2_gain: null,
   };
 
-  const matchups = isPreSeason
+  const matchupsRaw = isPreSeason
     ? [preSeasonWeek1]
     : isWeek1
       ? [week6]
@@ -305,6 +316,9 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
     // missed_playoffs fixes above).
     : isMissedPlayoffs
       ? [...regularSeasonWeeks, week6] // the (nonexistent) playoff week is the only thing missing
+      : isPlayoffPending
+        // Round 1 scored (a win), round 2 named but its opponent not yet: Home's playoff_pending.
+        ? [...regularSeasonWeeks, week6, { ...wildCardWeek, team1_gain: 40, team2_gain: -10 }, round2ByeWeek]
       : isPlayoffBye
         ? [...regularSeasonWeeks, week6, round2ByeWeek] // no row at all for the current (wild-card) week
         : isEliminated
@@ -318,24 +332,24 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
             // code path that looks past week 6, so adding it for them too
             // would be inert but untested; scoped to just the two states
             // that need it.
-            : fixture === 'scored' || isBye
-              ? [...regularSeasonWeeks, week6, week7]
-              : [...regularSeasonWeeks, week6];
+            : [...regularSeasonWeeks, week6, ...aheadWeeks];
+  // Capture knobs for "Your season" (a past tie, bye or unscored week): the rows the real code reads.
+  const matchups = applySeasonVariant(matchupsRaw, seasonVariant);
 
   // currentWeek differs per playoff sub-state (Design Lead ruling,
   // 2026-09-30): a bye/live game is IN the wild-card week; eliminated is
   // read the week AFTER the lost round, since there is by definition no
   // row at all for me at the current week once I'm out.
-  const playoffCurrentWeek = isEliminated ? round2Week : round1Week;
+  const playoffCurrentWeek = isEliminated || isPlayoffPending ? round2Week : round1Week;
 
   const data: GetHomeLeagueResult = {
     my_ledger: { drafts: myDrafts, trades: matchupExtras.trades },
     current_week: {
-      week_number: isPlayoffState ? playoffCurrentWeek : isPreSeason || isWeek1 ? 1 : 6,
+      week_number: isPlayoffState ? playoffCurrentWeek : isPreSeason || isWeek1 ? 1 : liveWeekNo,
       // W4: on a bye you still hold your stocks (Matchup lists them under the bye scoreboard).
-      my_snapshots: isPreSeason || isEliminated || isMissedPlayoffs || isPlayoffBye ? [] : mySnapshots,
+      my_snapshots: isPreSeason || isEliminated || isMissedPlayoffs || isPlayoffBye || isPlayoffPending ? [] : mySnapshots,
       my_trades: matchupExtras.trades,
-      opponent_snapshots: isBye || isPreSeason || isEliminated || isMissedPlayoffs || isPlayoffBye ? [] : oppSnapshots,
+      opponent_snapshots: isBye || isPreSeason || isEliminated || isMissedPlayoffs || isPlayoffBye || isPlayoffPending ? [] : oppSnapshots,
       opponent_trades: [],
     },
     matchups,
@@ -408,7 +422,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
   const draftStatus = fixture === 'pre_draft' || fixture === 'pre_draft_waiting' ? 'not_started'
     : isDraftingFixture(fixture) ? 'in_progress' : 'completed';
   const seasonStatus = fixture === 'complete' || fixture === 'complete_runner_up' ? 'completed' : isPlayoffState ? 'playoffs' : 'active';
-  const currentWeek = isPlayoffState ? playoffCurrentWeek : isPreSeason || isWeek1 ? 1 : draftStatus === 'completed' ? 6 : 1;
+  const currentWeek = isPlayoffState ? playoffCurrentWeek : isPreSeason || isWeek1 ? 1 : draftStatus === 'completed' ? liveWeekNo : 1;
   // The real Monday 9:30 AM ET open (matches preSeasonWeek1.week_start
   // above) -- never a far-future placeholder, so preSeasonStartsLabel
   // reads a real, near date like the board's, not "2099".
@@ -439,7 +453,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
   // (homePhase.ts's live_open/live_closed branch reads market.status
   // directly) -- out of scope for this fix.
   const noLiveGameToday = fixture === 'scoring' || fixture === 'scored' || isBye
-    || isPlayoffBye || isEliminated || isMissedPlayoffs;
+    || isPlayoffBye || isEliminated || isMissedPlayoffs || isPlayoffPending;
   const market: MarketInfo = fixture === 'live_closed'
     // R2 (Design Lead, 2026-09-30): resumes FRIDAY 9:30 AM ET -- paired
     // with `now` below (Thursday 8 PM, after Thursday's own close).
@@ -459,7 +473,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
     // internally inconsistent with claiming the market was closed.
     : fixture === 'live_closed'
       ? new Date('2026-09-25T00:00:00.000Z')
-      : isEliminated
+      : isEliminated || isPlayoffPending
         ? new Date('2026-12-22T18:00:00.000Z') // into round 2's week, after the wild-card loss
         : isPlayoffState
           ? new Date('2026-12-15T18:00:00.000Z')
