@@ -42,6 +42,7 @@ import { Sheet } from '@/components/sp/Sheet';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { Field } from '@/components/shell/Field';
+import { useRowRemountKey } from '@/components/game/useRowRemountKey';
 import { ChoiceRow, RowDivider, RowWrap, SettingRow, SetupCard, WarnNote } from '@/components/game/SetupRows';
 
 interface SlotBuilderProps {
@@ -60,6 +61,8 @@ export default function SlotBuilder({ slots, onChange, categories, leagueSize, n
   const { colors } = useTheme();
   const { fontScale } = useWindowDimensions();
   const stacked = fontScale >= STACK_FONT_SCALE;
+  // The fields row starts its layout over after a text-size change (useRowRemountKey); frozen while one is focused.
+  const rowKey = useRowRemountKey();
   const [warnings, setWarnings] = useState<string[]>([]);
   const [checking, setChecking] = useState(false);
   const [partialNote, setPartialNote] = useState(false);
@@ -139,7 +142,7 @@ export default function SlotBuilder({ slots, onChange, categories, leagueSize, n
               <Icon name="close" size="headline" tone={disabled ? 'text3' : 'text2'} label={removeSlotLabel(i)} />
             </Pressable>
           </View>
-          <View style={[styles.fields, stacked && styles.fieldsStacked, disabled && styles.dim]}>
+          <View key={rowKey.key} style={[styles.fields, stacked && styles.fieldsStacked, disabled && styles.dim]}>
             <View style={styles.field}>
               <Field
                 label={SLOT_FIELD_LABELS.count}
@@ -149,6 +152,8 @@ export default function SlotBuilder({ slots, onChange, categories, leagueSize, n
                 keyboardType="numeric"
                 placeholder="1"
                 onChangeText={(t) => setSlot(i, { slotCount: countInput(t) })}
+                onFocus={rowKey.onFocus}
+                onBlur={rowKey.onBlur}
               />
             </View>
             <View style={styles.field}>
@@ -160,6 +165,8 @@ export default function SlotBuilder({ slots, onChange, categories, leagueSize, n
                 keyboardType="numeric"
                 placeholder="any"
                 onChangeText={(t) => setSlot(i, { priceMin: priceInput(t) })}
+                onFocus={rowKey.onFocus}
+                onBlur={rowKey.onBlur}
               />
             </View>
             <View style={styles.field}>
@@ -171,6 +178,8 @@ export default function SlotBuilder({ slots, onChange, categories, leagueSize, n
                 keyboardType="numeric"
                 placeholder="any"
                 onChangeText={(t) => setSlot(i, { priceMax: priceInput(t) })}
+                onFocus={rowKey.onFocus}
+                onBlur={rowKey.onBlur}
               />
             </View>
           </View>

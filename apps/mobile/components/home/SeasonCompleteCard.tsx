@@ -31,6 +31,7 @@ import {
 import { playoffRoundLabelForWeek } from '@/lib/playoffs';
 import { useBracket } from '@/lib/game/useBracket';
 import { seasonCompletePlace } from '@/lib/game/finalStandings';
+import { keepWeek } from '@/lib/game/keepDots';
 
 // Stockpile — <SeasonCompleteCard> (Phase 3b-2, state 8). Rebuilt to match
 // the board's HomeComplete exactly (Design Lead ruling, 2026-09-30, B6),
@@ -222,7 +223,7 @@ export function SeasonCompleteCard({
               <View style={tileStyle}>
                 <Text variant="caption" tone="secondary">{BEST_WEEK_TILE_TITLE}</Text>
                 <View style={styles.inlineRow}>
-                  <Text variant="headline">{bestWeekLine(result.best_week_number)} · </Text>
+                  <Text variant="headline">{keepWeek(bestWeekLine(result.best_week_number))} · </Text>
                   <Money value={result.best_week_gain} size="headline" colorBySign sign="always" />
                 </View>
               </View>
