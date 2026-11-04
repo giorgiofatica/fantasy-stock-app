@@ -27,10 +27,10 @@ Deno.test('row key: frozen while a field in the row is focused, then settles at 
 Deno.test('the hook is the focus-frozen scale key, with focus and blur handlers', () => {
   const src = SOURCES['components/game/useRowRemountKey.ts'];
   assert(src, 'useRowRemountKey is in the source manifest');
-  assertMatch(src, /const currentKey = fontScaleKey\(fontScale\);/);
-  assertMatch(src, /const key = inputRemountKey\(keyAtFocus !== null, keyAtFocus \?\? currentKey, currentKey\);/);
-  assertMatch(src, /onFocus: \(\) => setKeyAtFocus\(key\)/);
-  assertMatch(src, /onBlur: \(\) => setKeyAtFocus\(null\)/);
+  // The shared hook (focus-roundtrip.test.ts pins it) holds the focus-frozen key and the round trip; the row hook hands it on.
+  assertMatch(src, /import \{ useFocusRemountKey \} from '@\/components\/sp\/useFocusRemountKey';/);
+  assertMatch(src, /const \{ key, onFocus, onBlur \} = useFocusRemountKey\(\);/);
+  assertMatch(src, /return \{ key, onFocus, onBlur \};/);
 });
 
 Deno.test('SlotBuilder: the fields row is keyed; every field in it reports focus and blur; the state stays above', () => {
