@@ -2,25 +2,30 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "a1c7235534ab0523170964c6152b27ed9fae632b",
-    "commitShort": "a1c72355",
+    "commit": "3b0b8ed555460d266c56ec37a859daa5b35f7359",
+    "commitShort": "3b0b8ed5",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/keep-time-and-row-focus",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-11-04T19:41:58Z",
-    "sourceHash": "sha256:4f3884ee6996bd67cb0f4aaf2fdd9415b1e17618a144ed75d7854c9ef5c65b73",
+    "branch": "chore/db-snapshot-2026-11-04",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "docs/architecture/db-snapshot.json"
+      }
+    ],
+    "timestamp": "2026-11-04T22:00:47Z",
+    "sourceHash": "sha256:8d9b5b0960adbce7d95c6649731404b1d946e15a0891d9a9b979a5b1f56bfcc3",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-10-22T01:22:49Z",
-    "ageHours": 330.3,
-    "ageDays": 13.8,
+    "capturedAt": "2026-11-04T21:59:58Z",
+    "ageHours": 0,
+    "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:d6107036938ffaf8a53341cfe733b6e3cdd021617f5b5f94ca31e3ea518feb9b",
+    "hash": "sha256:63e656527b081b605afa2985a95e3e2dff7478470416f1ae991a33d8f3817ef6",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
@@ -24000,6 +24005,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=true"
     ],
-    "dbSnapshot": "sha256:d6107036938ffaf8a53341cfe733b6e3cdd021617f5b5f94ca31e3ea518feb9b"
+    "dbSnapshot": "sha256:63e656527b081b605afa2985a95e3e2dff7478470416f1ae991a33d8f3817ef6"
   }
 }
