@@ -71,12 +71,12 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/reset-password.tsx:159` | EmptyState | onSecondaryAction | `handleCancel` | route replace('/') |  |
 | `app/takeover.tsx:101` | TakeoverLanding | onRetry | `load` | fn load |  |
 | `app/username.tsx:21` | UsernamePickerExit | onPress | `back` | route replace('/profile'); route back |  |
-| `components/SlotBuilder.tsx:133` | Pressable | onPress | `inline: () => !disabled && removeSlot(i)` | fn removeSlot | `disabled` |
-| `components/SlotBuilder.tsx:190` | SettingRow | onPress | `inline: () => !disabled && setCategoryPickerFor(i)` | sheet setCategoryPickerFor(i) | `disabled` |
-| `components/SlotBuilder.tsx:213` | Button | onPress | `addSlot` | fn addSlot | `disabled` |
-| `components/SlotBuilder.tsx:219` | Button | onPress | `checkFeasibility` | fn checkFeasibility | `disabled` |
-| `components/SlotBuilder.tsx:232` | ChoiceRow | onPress | `inline: () => pick('')` | fn pick |  |
-| `components/SlotBuilder.tsx:238` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
+| `components/SlotBuilder.tsx:136` | Pressable | onPress | `inline: () => !disabled && removeSlot(i)` | fn removeSlot | `disabled` |
+| `components/SlotBuilder.tsx:199` | SettingRow | onPress | `inline: () => !disabled && setCategoryPickerFor(i)` | sheet setCategoryPickerFor(i) | `disabled` |
+| `components/SlotBuilder.tsx:222` | Button | onPress | `addSlot` | fn addSlot | `disabled` |
+| `components/SlotBuilder.tsx:228` | Button | onPress | `checkFeasibility` | fn checkFeasibility | `disabled` |
+| `components/SlotBuilder.tsx:241` | ChoiceRow | onPress | `inline: () => pick('')` | fn pick |  |
+| `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
 | `components/SymbolSearchField.tsx:127` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
 | `components/SymbolSearchField.tsx:158` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
 | `components/game/DraftBlockersCard.tsx:66` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
@@ -136,9 +136,9 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/home/PreDraftCard.tsx:289` | Button | onPress | `onShare` | share sheet |  |
 | `components/home/RenewalCountsCard.tsx:22` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/RunItBackCard.tsx:39` | Button | onPress | `inline: () => void runItBack()` | fn runItBack | `busy` |
-| `components/home/SeasonCompleteCard.tsx:247` | ListRow | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/home/StandingsCard.tsx:89` | PressableScale | onPress | `inline: () => router.push(STANDINGS_HREF)` | route push(STANDINGS_HREF) |  |
-| `components/home/StandingsCard.tsx:130` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
+| `components/home/SeasonCompleteCard.tsx:248` | ListRow | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/home/StandingsCard.tsx:90` | PressableScale | onPress | `inline: () => router.push(STANDINGS_HREF)` | route push(STANDINGS_HREF) |  |
+| `components/home/StandingsCard.tsx:131` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
 | `components/home/ThisWeekCard.tsx:148` | PressableScale | onPress | `inline: () => router.push(THIS_WEEK_HREF)` | route push(THIS_WEEK_HREF) |  |
 | `components/home/YourSeason.tsx:61` | PressableScale | onPress | `inline: () => router.push(SCHEDULE_HREF)` | route push(SCHEDULE_HREF) |  |
 | `components/home/YourSeason.tsx:161` | PressableScale | onPress | `inline: () => router.push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF ` | route push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF : SCHEDU) |  |
