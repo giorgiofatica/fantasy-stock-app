@@ -460,7 +460,9 @@ Deno.test('large text: the suggested name is FITTED (system size, shrunk only as
   const picker = code(SOURCES['components/shell/UsernamePicker.tsx']);
   assert(picker.includes('inputFontSize={suggestedFit}') && picker.includes('fittedFontSize(systemSize, tagWidth, fieldWidth)'));
   assert(!picker.includes('SUGGESTED_NAME_MAX_SCALE'), 'the flat cap is gone');
-  assert(code(SOURCES['components/shell/Field.tsx']).includes('allowFontScaling={inputFontSize ? false : undefined}'));
+  // A caller's own explicit size (the fitted suggestion) still turns native scaling off; so does the scale-aware size the remount
+  // fix gives every other field (input-remount-key.test.ts), and the caller's wins over it.
+  assert(code(SOURCES['components/shell/Field.tsx']).includes('allowFontScaling={inputFontSize || font ? false : undefined}'));
   assert(code(SOURCES['components/shell/FirstTimeTip.tsx']).includes('maxFontSizeMultiplier={TIP_MAX_SCALE}'));
   assert(code(SOURCES['components/shell/ConfirmedEmailNotice.tsx']).includes('maxFontSizeMultiplier={NOTICE_MAX_SCALE}'));
 });

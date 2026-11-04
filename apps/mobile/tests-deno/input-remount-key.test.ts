@@ -8,7 +8,7 @@
  * Run: cd apps/mobile/tests-deno && deno test .
  */
 import { assert, assertEquals, assertMatch } from 'jsr:@std/assert';
-import { fontScaleKey, inputHostKey, inputRemountKey, remountAutoFocus } from '../components/sp/logic/remeasureKey.ts';
+import { fontScaleKey, inputHostKey, inputRemountKey, remountAutoFocus, scaledInputFont } from '../components/sp/logic/remeasureKey.ts';
 import { remountOnScaleChange, type RemountProps } from '../lib/inputRemount.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
@@ -224,4 +224,91 @@ Deno.test('no TextInput escapes the hook: every file drawing a raw TextInput is 
     .map(([path]) => path);
   // A new one must use useInputRemountKey too (and be added above), or it brings the bug back.
   assertEquals(offenders, []);
+});
+
+// ── The placeholder (P1, live font-scale sweep 2, 2026-11-03) ────────────────────────────────────
+// A remounted field can reuse a recycled native view whose placeholder attributes are rebuilt only
+// when `textAttributes` differ from the view's last props; the scale is not in the props, so the
+// old size's placeholder stayed (remeasureKey.ts, "The PLACEHOLDER"). scaledInputFont puts it there.
+
+/** iOS's content-size multipliers (React Native's RCTFontSizeMultiplier table), smallest to largest. */
+const IOS_MULTIPLIERS = [0.823, 0.882, 0.941, 1.0, 1.118, 1.235, 1.353, 1.786, 2.143, 2.643, 3.143, 3.571];
+/** React Native's `floatEquality` epsilon (ReactCommon/react/utils/FloatComparison.h): two text
+ * attributes closer than this count as equal, and a recycled view skips its rebuild. */
+const RN_FLOAT_EPSILON = 0.005;
+
+Deno.test('scaledInputFont: the explicit size is fontSize x scale with native scaling off', () => {
+  assertEquals(scaledInputFont(18, 1, true), { fontSize: 18, allowFontScaling: false });
+  assertEquals(scaledInputFont(18, 3.571, true), { fontSize: 18 * 3.571, allowFontScaling: false });
+  assertEquals(scaledInputFont(17, 1.353, true), { fontSize: 17 * 1.353, allowFontScaling: false });
+});
+
+Deno.test('scaledInputFont: a host that may not remount, or has no usable size or scale, takes none', () => {
+  assertEquals(scaledInputFont(18, 3.571, false), null); // a credential host (lib/inputRemount.ts)
+  assertEquals(scaledInputFont(0, 1, true), null);
+  assertEquals(scaledInputFont(-4, 1, true), null);
+  assertEquals(scaledInputFont(Number.NaN, 1, true), null);
+  assertEquals(scaledInputFont(18, Number.NaN, true), null);
+  assertEquals(scaledInputFont(18, Number.POSITIVE_INFINITY, true), null);
+  assertEquals(scaledInputFont(18, 0, true), null);
+});
+
+Deno.test('scaledInputFont: any two different sizes differ by more than the float epsilon React Native compares with', () => {
+  // The cure only works if a recycled view SEES a different size; the app's smallest text input size is 17pt.
+  for (const base of [17, 18]) {
+    for (const a of IOS_MULTIPLIERS) {
+      for (const b of IOS_MULTIPLIERS) {
+        if (a === b) continue;
+        const da = scaledInputFont(base, a, true)!.fontSize;
+        const db = scaledInputFont(base, b, true)!.fontSize;
+        assert(Math.abs(da - db) > RN_FLOAT_EPSILON, `${base}pt at ${a} vs ${b}`);
+      }
+    }
+  }
+});
+
+Deno.test('scaledInputFont: the same scale gives the same size, so a fixed size never changes a prop', () => {
+  for (const m of IOS_MULTIPLIERS) assertEquals(scaledInputFont(18, m, true), scaledInputFont(18, m, true));
+});
+
+Deno.test('the hook hands the host its explicit size, and a latched credential host gets none', () => {
+  const src = SOURCES['components/sp/useInputRemountKey.ts'];
+  assertMatch(src, /fontProps: \(baseFontSize: number\) => scaledInputFont\(baseFontSize, fontScale, !credentialHost\.current\)/);
+});
+
+/** The size constant each host passes, and where its TextInput's style reads the same one. */
+const FONT_HOSTS: Record<string, { name: string; call: RegExp }> = {
+  'components/SymbolSearchField.tsx': { name: 'inputRemount', call: /const inputFont = inputRemount\.fontProps\(INPUT_FONT_SIZE\);/ },
+  'components/money/StockSearchScreen.tsx': { name: 'searchRemount', call: /const searchFont = searchRemount\.fontProps\(SEARCH_INPUT_FONT_SIZE\);/ },
+  'components/shell/Field.tsx': { name: 'remount', call: /const font = inputFontSize \? null : remount\.fontProps\(type\.body\.fontSize\);/ },
+};
+
+Deno.test('every TextInput host that remounts also puts the scale in its props: fontSize and allowFontScaling', () => {
+  assertEquals(Object.keys(FONT_HOSTS).sort(), Object.keys(HOSTS).sort());
+  for (const [path, { call }] of Object.entries(FONT_HOSTS)) {
+    const src = SOURCES[path];
+    assertMatch(src, call, path);
+    const tag = openingTags(src, 'TextInput')[0];
+    assertMatch(tag, /\ballowFontScaling=\{/, path);
+    assertMatch(tag, /fontSize: (inputFont|searchFont|font)\.fontSize/, path);
+  }
+});
+
+Deno.test('the two search inputs draw the size they pass: one constant in the style and in the props', () => {
+  const field = SOURCES['components/SymbolSearchField.tsx'];
+  assertMatch(field, /const INPUT_FONT_SIZE = 18;/);
+  assertMatch(field, /fontSize: INPUT_FONT_SIZE,/);
+  const search = SOURCES['components/money/StockSearchScreen.tsx'];
+  assertMatch(search, /const SEARCH_INPUT_FONT_SIZE = 17;/);
+  assertMatch(search, /input: \{[^}]*fontSize: SEARCH_INPUT_FONT_SIZE,/);
+});
+
+Deno.test("Field: a caller's own inputFontSize wins, and a spread prop cannot turn the scale props back off", () => {
+  const src = SOURCES['components/shell/Field.tsx'];
+  assertMatch(src, /inputFontSize \? \{ fontSize: inputFontSize \} : font \? \{ fontSize: font\.fontSize \} : null/);
+  assertMatch(src, /allowFontScaling=\{inputFontSize \|\| font \? false : undefined\}/);
+  // No Field passes allowFontScaling itself (it would come after the spread and win).
+  for (const [path, text] of Object.entries(SOURCES)) {
+    for (const tag of openingTags(text, 'Field')) assert(!/\ballowFontScaling\b/.test(tag), path);
+  }
 });

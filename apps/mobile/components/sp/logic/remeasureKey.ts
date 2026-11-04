@@ -32,6 +32,25 @@
 // (remountAutoFocus), or a size change would raise the keyboard on its own. A credential host (a
 // password or its email) is never remounted at all (lib/inputRemount.ts: iOS would offer to save
 // a half-typed password).
+//
+// The PLACEHOLDER (P1, live font-scale sweep 2, 2026-11-03: the draft room's "Search by ticker or
+// name..." kept its AX5 size in an L-size field after AX5 -> L, on the on-the-clock room and the
+// queue editor, though the field was already keyed by the scale). Isolated in the simulator:
+//  - the remount DID happen (the host rendered with the new key at the new fontScale), a second
+//    remount 500 ms later changed nothing, and the native multiplier at L is correct (a field given
+//    an explicit fontSize x fontScale with native scaling still ON drew L-size glyphs);
+//  - the cause is Fabric's view recycling. A remount unmounts the old native text field and mounts
+//    a new one, but the mounting layer hands the new node a RECYCLED native view, and
+//    RCTTextInputComponentView.updateProps diffs the new props against the view's OWN last props
+//    (`_props`, which prepareForRecycle never resets), not against the props it was passed. The
+//    placeholder is drawn from `defaultTextAttributes`, which are rebuilt (font size x the native
+//    multiplier) ONLY when `textAttributes` differ from those last props. The scale is not in the
+//    props, so a field remounted onto a view that last drew at another size sees identical
+//    attributes, skips the rebuild, and keeps that size's placeholder; the typed text is re-applied
+//    through state and is unaffected. Which view comes out of the pool depends on what the app
+//    mounted before, so the same change can heal one way and break the other;
+//  - a prop that DOES differ with the scale heals it (a letterSpacing above RN's float epsilon, or
+//    an explicit fontSize), so the fix puts the scale in the props: scaledInputFont.
 // Turning the native flag on would cover all of this, but that needs native code and a new build.
 
 /** The key for a Text drawn at `fontScale`: equal for equal scales, different for different
@@ -57,4 +76,20 @@ export function inputHostKey(remounts: boolean, keyAtMount: string, scaledKey: s
  * for a scale change must not take focus by itself. */
 export function remountAutoFocus(autoFocus: boolean | undefined, remounted: boolean): boolean | undefined {
   return remounted ? false : autoFocus;
+}
+
+/** The explicit size props for a TextInput host, so the scale is in its props: `fontSize` x `fontScale`
+ * with native scaling off, which iOS draws at the size it would scale `baseFontSize` to itself (it scales
+ * fontSize and lineHeight and nothing else, cappedType.ts), but which makes a recycled native view see
+ * a different `textAttributes` whenever the scale differs and so rebuild its placeholder attributes
+ * (see "The PLACEHOLDER" above). Null when the host takes no explicit size: one that may not remount
+ * (a credential host, lib/inputRemount.ts), a base size that is not positive, or a non-finite scale
+ * (it scales natively then). */
+export function scaledInputFont(
+  baseFontSize: number,
+  fontScale: number,
+  remounts: boolean
+): { fontSize: number; allowFontScaling: false } | null {
+  if (!remounts || !(baseFontSize > 0) || !Number.isFinite(fontScale) || !(fontScale > 0)) return null;
+  return { fontSize: baseFontSize * fontScale, allowFontScaling: false };
 }

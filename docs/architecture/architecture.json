@@ -2,114 +2,42 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "91bdea5f346823113ac144d01080376d2a94cbc2",
-    "commitShort": "91bdea5f",
+    "commit": "7f7659993cb9f35488ada80a795305e69e8cb026",
+    "commitShort": "7f765999",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/home-your-season",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/index.tsx"
-      },
-      {
-        "code": "D",
-        "path": "apps/mobile/components/home/HomeSeason.tsx"
-      },
-      {
-        "code": "D",
-        "path": "apps/mobile/components/home/SeasonChart.tsx"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/components/home/YourSeason.tsx"
+        "path": "apps/mobile/components/money/StockSearchScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seamTables.ts"
+        "path": "apps/mobile/components/shell/Field.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/home/buildHomeViewModel.ts"
+        "path": "apps/mobile/components/sp/logic/remeasureKey.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/home/calmHome.ts"
+        "path": "apps/mobile/components/sp/useInputRemountKey.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/home/devFixture.ts"
+        "path": "apps/mobile/components/SymbolSearchField.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/home/homeCopy.ts"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/lib/home/seasonFixture.ts"
-      },
-      {
-        "code": "D",
-        "path": "apps/mobile/lib/home/seasonGainSeries.ts"
+        "path": "apps/mobile/tests-deno/input-remount-key.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/home/useHomeLeague.ts"
-      },
-      {
-        "code": "D",
-        "path": "apps/mobile/lib/home/weekMarks.ts"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/lib/home/yourSeason.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/build-home-view-model.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/home-calm.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/home-game-night.test.ts"
-      },
-      {
-        "code": "D",
-        "path": "apps/mobile/tests-deno/home-week-marks.test.ts"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/tests-deno/home-your-season.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/keep-money.test.ts"
-      },
-      {
-        "code": "D",
-        "path": "apps/mobile/tests-deno/season-chart-draw-key.test.ts"
-      },
-      {
-        "code": "D",
-        "path": "apps/mobile/tests-deno/season-gain-series.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/segmented-xl.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/w4-home-gate-fixes.test.ts"
+        "path": "apps/mobile/tests-deno/onboarding-w4.test.ts"
       }
     ],
-    "timestamp": "2026-11-03T21:58:17Z",
+    "timestamp": "2026-11-04T01:09:19Z",
     "sourceHash": "sha256:5c07db2cd747a4a9f350756d27d8278fb637c25b8596cc871a8193b8f0c62e7d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -117,8 +45,8 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-10-22T01:22:49Z",
-    "ageHours": 308.6,
-    "ageDays": 12.9,
+    "ageHours": 311.8,
+    "ageDays": 13,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:d6107036938ffaf8a53341cfe733b6e3cdd021617f5b5f94ca31e3ea518feb9b",
