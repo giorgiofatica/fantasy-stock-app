@@ -15,6 +15,8 @@
 import { formatSignedCurrency } from '../weekStatus';
 import type { PhaseResult } from './homePhase';
 import { ordinal } from './ordinal';
+import { byResult, type WeekResult } from '../game/weekResult';
+import { tiedWeekLine } from '../game/finalBanner';
 
 // ── D1 hero (Concept A, decided 2026-09-29) — board, verbatim ─────────────
 // "+$343.59 · +2.86% season gain · +$121.26 today"
@@ -120,10 +122,15 @@ export const SCORING_MESSAGE = "Results post a few minutes after Friday's close.
 
 // ── State 4: week final, scored — NOT on the board. new-flagged. ───────────
 export const SCORED_CHIP = 'Final'; // giorgio (approved 2026-10-04)
-export function scoredResultLine(won: boolean, week: number, opponentName?: string): string {
+export function scoredResultLine(result: WeekResult, week: number, opponentName?: string): string {
   // spec: "You win Week 6" / "{opponent} wins Week 6" — board copy pattern
   // (onboarding card 3), reused verbatim; the subject swap was approved by Giorgio 2026-10-04.
-  return won ? `You win Week ${week}` : `${opponentName ?? 'Your opponent'} wins Week ${week}`;
+  // A tie names nobody: Matchup's own "Tied in Week 6" (finalBanner), reused, never a winner.
+  return byResult(result, {
+    W: `You win Week ${week}`,
+    L: `${opponentName ?? 'Your opponent'} wins Week ${week}`,
+    T: tiedWeekLine(week),
+  });
 }
 /** `when` is the next week's real `week_start` ISO timestamp, or null when
  * it isn't known yet (formats to "" rather than leaking a raw ISO string
@@ -423,10 +430,14 @@ export function thisWeekAccessibilityLabel(
   marginText: string,
   ahead: boolean,
   endsText: string,
+  /** A scored week's result line (scoredResultLine), which the card shows in place of the
+   * lead line: VoiceOver says it too, never "You lead by $0.00" on a tie. */
+  resultLine?: string,
 ): string {
   const liveWord = isLive ? 'live' : 'final';
+  const middle = resultLine ?? `${ahead ? 'You lead by' : 'You trail by'} ${marginText}`;
   return (
     `Week ${week}, ${liveWord}. You ${yourScore}, ${opponentName} ${opponentScore}. ` +
-    `${ahead ? 'You lead by' : 'You trail by'} ${marginText}. ${endsText}.`
+    `${middle}. ${endsText}.`
   );
 }

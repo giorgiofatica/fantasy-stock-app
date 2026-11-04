@@ -22,17 +22,26 @@ Deno.test('a posted week shows the result and your score, from your side', () =>
     myUserId: 'roberto', currentWeek: 3, numWeeks: 4, names,
     matchups: [m(1, 'roberto', 'paolo', 213.6, 90.44), m(2, 'gianluigi', 'roberto', 10, -4)],
   });
-  assertEquals(rows[0], { week: 1, opponent: 'Paolo M.', bye: false, state: 'past', won: true, tie: false, gain: 213.6, oppGain: 90.44 });
+  assertEquals(rows[0], { week: 1, opponent: 'Paolo M.', bye: false, state: 'past', result: 'W', gain: 213.6, oppGain: 90.44 });
   // From your side: you were team2 in week 2, so your gain is team2_gain (-4), and you lost to 10.
-  assertEquals(rows[1].won, false);
+  assertEquals(rows[1].result, 'L');
   assertEquals(rows[1].gain, -4);
   assertEquals(rows[1].oppGain, 10);
 });
 
-Deno.test('equal dollars show no W or L: the percent tiebreak decides, and this read does not carry it', () => {
-  const rows = buildSchedule({ myUserId: 'roberto', currentWeek: 2, numWeeks: 2, names, matchups: [m(1, 'roberto', 'paolo', 5, 5)] });
-  assertEquals(rows[0].won, false);
-  assertEquals(rows[0].tie, false);
+Deno.test('equal dollars: the server\'s winner decides (a percent tiebreak); with none carried, a T, never an L', () => {
+  // Was `won: false, tie: false`, which ScheduleList drew as an L.
+  const bare = buildSchedule({ myUserId: 'roberto', currentWeek: 2, numWeeks: 2, names, matchups: [m(1, 'roberto', 'paolo', 5, 5)] });
+  assertEquals(bare[0].result, 'T');
+  const tie = buildSchedule({ myUserId: 'roberto', currentWeek: 2, numWeeks: 2, names, matchups: [{ ...m(1, 'roberto', 'paolo', 5, 5), winner_user_id: null, is_tie: true }] });
+  assertEquals(tie[0].result, 'T');
+  const onPercent = buildSchedule({ myUserId: 'roberto', currentWeek: 2, numWeeks: 2, names, matchups: [{ ...m(1, 'roberto', 'paolo', 5, 5), winner_user_id: 'paolo', is_tie: false }] });
+  assertEquals(onPercent[0].result, 'L');
+});
+
+Deno.test('a half-posted past week (one gain only) has no result, never an L', () => {
+  const rows = buildSchedule({ myUserId: 'roberto', currentWeek: 3, numWeeks: 2, names, matchups: [m(1, 'roberto', 'paolo', 5, null)] });
+  assertEquals(rows[0].result, null);
 });
 
 Deno.test('this week is LIVE until it posts; the week after is NEXT; later weeks are future', () => {
@@ -47,7 +56,7 @@ Deno.test('this week is LIVE until it posts; the week after is NEXT; later weeks
 Deno.test('a bye is a neutral row: no result, no W or L', () => {
   const rows = buildSchedule({ myUserId: 'roberto', currentWeek: 2, numWeeks: 2, names, matchups: [m(1, 'roberto', null, 7, null)] });
   assertEquals(rows[0].bye, true);
-  assertEquals(rows[0].won, false);
+  assertEquals(rows[0].result, null);
   assertEquals(rows[0].gain, 7);
   assertEquals(rows[0].opponent, null);
 });

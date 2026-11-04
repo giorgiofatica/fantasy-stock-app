@@ -116,7 +116,7 @@ export function ThisWeekCard({
   const captionA11y = [youCaption, oppCaption].filter(Boolean).join('. ');
   const a11yLabel = scoring || preSeason
     ? `Week ${week}. ${scoringMessage ?? SCORING_MESSAGE}`
-    : `${thisWeekAccessibilityLabel(week, isLive, youText, opponentName, oppText, `${gap.toString()}${leadSuffix ? ` ${leadSuffix}` : ''}`, ahead, rightLabel)}${captionA11y ? `. ${captionA11y}` : ''}`;
+    : `${thisWeekAccessibilityLabel(week, isLive, youText, opponentName, oppText, `${gap.toString()}${leadSuffix ? ` ${leadSuffix}` : ''}`, ahead, rightLabel, resultLine)}${captionA11y ? `. ${captionA11y}` : ''}`;
 
   // H3: a leader change gets one accent wash (never a loop; no haptic —
   // this isn't user-initiated). Never on first paint — prevLeaderRef

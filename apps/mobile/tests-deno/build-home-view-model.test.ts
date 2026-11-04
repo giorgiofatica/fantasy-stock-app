@@ -172,7 +172,7 @@ Deno.test('C1: the weekend after current_week advances shows the REAL scored fin
   assertEquals(vm.thisWeek?.you.gain, 72.1);
   assertEquals(vm.thisWeek?.opponent.gain, -20.5);
   assertEquals(vm.thisWeek?.final, true);
-  assertEquals(vm.thisWeek?.won, true); // 72.1 > -20.5
+  assertEquals(vm.thisWeek?.result, 'W'); // 72.1 > -20.5
   // The opponent is week 6's opponent (still Gianluigi in this fixture,
   // but resolved via opponentUserId, not an assumption).
   assertEquals(vm.thisWeek?.opponentUserId, OPP_ID);
@@ -536,4 +536,87 @@ Deno.test('server parity: the live score is independent of marketCalendar -- liv
   assertEquals(withCalendar.phase.kind, 'live_open');
   assertAlmostEquals(withoutCalendar.thisWeek!.you.gain, withCalendar.thisWeek!.you.gain, 1e-9);
   assertAlmostEquals(withoutCalendar.thisWeek!.opponent.gain, withCalendar.thisWeek!.opponent.gain, 1e-9);
+});
+
+// ── A tied week is a T, everywhere (Design Lead P1, 2026-11-03) ─────────────
+// thisWeek.won was `myGain > opponentGain`, so a tied week read as a loss: the scored card said
+// "Gianluigi B. wins Week 6" while "Your season" showed T. Every surface now reads the one
+// decider (lib/game/weekResult): the server's winner, else dollars.
+
+/** Week 6 scored with these gains (and optionally the server's verdict), read Saturday. */
+function scoredWeek6(g1: number, g2: number, server?: { winner_user_id: string | null; is_tie: boolean }) {
+  const { data, meta, quote, bars } = buildFixtureInput();
+  const week6 = data.matchups.find((m) => m.week_number === 6)!;
+  Object.assign(week6, { team1_gain: g1, team2_gain: g2 }, server ?? {});
+  data.matchups.push({
+    week_number: 7, week_start: '2026-09-28T13:30:00.000Z', week_end: '2026-10-02T20:00:00.000Z',
+    is_playoff: false, team1_user_id: MY_ID, team2_user_id: OPP_ID, team1_gain: null, team2_gain: null,
+  });
+  data.current_week = { week_number: 7, my_snapshots: [], my_trades: [], opponent_snapshots: [], opponent_trades: [] };
+  return buildHomeViewModel({
+    now: new Date('2026-09-26T12:00:00.000Z'), meta: { ...meta, currentWeek: 7 },
+    market: { status: 'closed', reason: 'weekend', nextOpenAt: '2026-09-28T13:30:00.000Z' },
+    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
+  });
+}
+/** Every place week 6's result shows on Home: the card, the phase, the result list, the strip. */
+function week6Results(vm: ReturnType<typeof buildHomeViewModel>) {
+  const tile = vm.seasonTiles.find((t) => t.week === 6);
+  return {
+    card: vm.thisWeek?.result,
+    phase: vm.phase.kind === 'scored' ? vm.phase.result : 'not scored',
+    list: vm.weeklyResults.find((r) => r.week === 6)?.result,
+    strip: tile && (tile.kind === 'played' || tile.kind === 'this') ? tile.result : 'no tile',
+  };
+}
+
+Deno.test('a TIED scored week is a T on the card, the phase, the result list and the strip (server tie and no-verdict fallback)', () => {
+  for (const server of [undefined, { winner_user_id: null, is_tie: true }]) {
+    const vm = scoredWeek6(58.75, 58.75, server);
+    assertEquals(vm.phase.kind, 'scored');
+    assertEquals(week6Results(vm), { card: 'T', phase: 'T', list: 'T', strip: 'T' }, JSON.stringify(server));
+  }
+});
+
+Deno.test('a win and a loss are unchanged: W and L everywhere', () => {
+  assertEquals(week6Results(scoredWeek6(72.1, -20.5)), { card: 'W', phase: 'W', list: 'W', strip: 'W' });
+  assertEquals(week6Results(scoredWeek6(-20.5, 72.1)), { card: 'L', phase: 'L', list: 'L', strip: 'L' });
+  assertEquals(week6Results(scoredWeek6(72.1, -20.5, { winner_user_id: MY_ID, is_tie: false })), { card: 'W', phase: 'W', list: 'W', strip: 'W' });
+  assertEquals(week6Results(scoredWeek6(-20.5, 72.1, { winner_user_id: OPP_ID, is_tie: false })), { card: 'L', phase: 'L', list: 'L', strip: 'L' });
+});
+
+Deno.test('the SERVER decides where dollars cannot: a percent tiebreak and an empty portfolio are the server\'s result', () => {
+  // Equal dollars, the opponent wins on percent: an L, never a T.
+  assertEquals(week6Results(scoredWeek6(20, 20, { winner_user_id: OPP_ID, is_tie: false })), { card: 'L', phase: 'L', list: 'L', strip: 'L' });
+  // Equal dollars, I win on percent: a W.
+  assertEquals(week6Results(scoredWeek6(20, 20, { winner_user_id: MY_ID, is_tie: false })), { card: 'W', phase: 'W', list: 'W', strip: 'W' });
+  // My empty portfolio ($0) is an automatic loss even against −$40.
+  assertEquals(week6Results(scoredWeek6(0, -40, { winner_user_id: OPP_ID, is_tie: false })), { card: 'L', phase: 'L', list: 'L', strip: 'L' });
+});
+
+Deno.test('a playoff seed-tiebreak loss (equal gains, the other seed advances) reads eliminated', () => {
+  const { data, meta, quote, bars } = buildFixtureInput();
+  data.matchups.push(
+    { week_number: 15, week_start: '2026-12-14T13:30:00.000Z', week_end: '2026-12-18T20:00:00.000Z', is_playoff: true, team1_user_id: MY_ID, team2_user_id: OPP_ID, team1_gain: 25, team2_gain: 25, winner_user_id: OPP_ID, is_tie: false },
+  );
+  data.current_week = { week_number: 16, my_snapshots: [], my_trades: [], opponent_snapshots: [], opponent_trades: [] };
+  const vm = buildHomeViewModel({
+    now: new Date('2026-12-21T18:00:00.000Z'), meta: { ...meta, seasonStatus: 'playoffs', currentWeek: 16, playoffTeams: 4 },
+    market: { status: 'open', reason: 'regular_session', nextOpenAt: null },
+    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
+  });
+  assertEquals(vm.phase.kind, 'eliminated'); // was `myGain < oppGain`: 25 < 25 is false, so never eliminated
+});
+
+Deno.test('unscored (one gain posted) stays undecided: no result on the card, the list or the strip', () => {
+  const { data, meta, quote, bars } = buildFixtureInput();
+  const w5 = data.matchups.find((m) => m.week_number === 5)!;
+  w5.team2_gain = null;
+  const vm = buildHomeViewModel({
+    now: new Date('2026-09-24T13:37:00-04:00'), meta,
+    market: { status: 'open', reason: 'regular_session', nextOpenAt: null },
+    data, quote, bars, playoffRoundLabelForWeek, marketCalendar: [],
+  });
+  assertEquals(vm.weeklyResults.some((r) => r.week === 5), false);
+  assertEquals(vm.thisWeek?.result, null); // live week 6: no result yet
 });

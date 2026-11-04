@@ -90,6 +90,6 @@ Deno.test('finalGains: uses the server\'s gains for my side, whichever team I am
   const data = fixture();
   data.matchups[0].team1_gain = 351.77;
   data.matchups[0].team2_gain = -38.88;
-  assertEquals(finalGains(data, 'roberto'), { me: 351.77, opp: -38.88 });
-  assertEquals(finalGains(data, 'gianluigi'), { me: -38.88, opp: 351.77 });
+  assertEquals(finalGains(data, 'roberto'), { me: 351.77, opp: -38.88, result: 'W' });
+  assertEquals(finalGains(data, 'gianluigi'), { me: -38.88, opp: 351.77, result: 'L' });
 });

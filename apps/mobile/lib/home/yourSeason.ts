@@ -18,8 +18,10 @@ import { formatMoney } from '../../components/sp/logic/money';
 import { type as typeTokens } from '../../constants/tokens/type';
 import { seasonTileWeekLabel, SEASON_TILE_BYE, SEASON_TILE_UNSCORED } from './homeCopy';
 import type { PhaseResult } from './homePhase';
+import type { WeekResult } from '../game/weekResult';
 
-export type SeasonResult = 'W' | 'L' | 'T';
+/** The one result type (lib/game/weekResult), under the strip's name. */
+export type SeasonResult = WeekResult;
 
 /** A result row, as `buildHomeViewModel.weeklyResults` carries it. */
 export interface SeasonWeeklyResult {

@@ -16,6 +16,7 @@ import { toneOf } from '@/components/sp/logic/gameNight';
 import { formatMoney } from '@/components/sp/logic/money';
 import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 import { keepMoney } from '@/lib/game/keepDots';
+import { byResult } from '@/lib/game/weekResult';
 import { LIVE_CHIP, SEASON_TILE_BYE, SEASON_TILE_UNSCORED, YOUR_SEASON_TITLE } from '@/lib/home/homeCopy';
 import { SCHEDULE_HREF, THIS_WEEK_HREF } from '@/lib/home/calmHome';
 import {
@@ -102,7 +103,7 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
   const { colors } = useTheme();
   const w = tileWidth(fontScale);
   const dot = DOT * Math.min(Math.max(fontScale, 1), 2);
-  const toneColor = (r: SeasonResult) => (r === 'W' ? colors.gain : r === 'L' ? colors.loss : colors.text2);
+  const toneColor = (r: SeasonResult) => byResult(r, { W: colors.gain, L: colors.loss, T: colors.text2 });
 
   const isThis = tile.kind === 'this';
   const upcoming = tile.kind === 'upcoming';

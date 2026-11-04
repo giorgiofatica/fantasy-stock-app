@@ -303,11 +303,10 @@ function HomeBody({
         <ThisWeekCard week={week} isLive={false} you={thisWeek.you} opponent={thisWeek.opponent} opponentName={opponentName} youName={youName} rightLabel="" liveChipLabel={chrome.liveChipLabel} tag={chrome.tag} scoring />
       );
     } else if (phase.kind === 'scored') {
-      // `thisWeek.won` — the AUTHORITATIVE result from the pure phase
-      // module, never re-derived from the displayed gains (code review,
-      // 2026-09-29: `you.gain > opponent.gain` misreads a tie as a loss,
-      // since `false` there means "the opponent wins" in the old code).
-      const won = thisWeek.won ?? false;
+      // `thisWeek.result` — W / L / T from the one decider (lib/game/weekResult), never
+      // re-derived from the displayed gains. A boolean `won` here read a tie as a loss
+      // ("Gianluigi B. wins Week 6" on a tied week, Design Lead P1, 2026-11-03).
+      const result = thisWeek.result;
       middleCard = (
         <ThisWeekCard
           week={week}
@@ -319,7 +318,7 @@ function HomeBody({
           rightLabel={'nextStart' in phase ? nextWeekStartsLabel(week + 1, phase.nextStart) : ''}
           liveChipLabel={chrome.liveChipLabel}
           tag={chrome.tag}
-          resultLine={scoredResultLine(won, week, opponentName)}
+          resultLine={result ? scoredResultLine(result, week, opponentName) : undefined}
         />
       );
     } else {

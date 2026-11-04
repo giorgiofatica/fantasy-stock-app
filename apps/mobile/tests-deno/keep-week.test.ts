@@ -66,8 +66,9 @@ Deno.test('every Week N string the app draws in wrapping text never splits "Week
   const surfaces = [
     standingsThroughWeekCaption(10),
     standingsThroughWeekCaption(14),
-    scoredResultLine(true, 6),
-    scoredResultLine(false, 6, 'Roberto B.'),
+    scoredResultLine('W', 6),
+    scoredResultLine('L', 6, 'Roberto B.'),
+    scoredResultLine('T', 6),
     nextWeekStartsLabel(7, '2026-10-12T13:30:00Z'),
     nextWeekStartsLabel(7, null),
     weekOneLine('2026-10-05T13:30:00Z', 'Roberto B.'),

@@ -73,7 +73,7 @@ Deno.test('matchupView: live open and closed are both a scoreboard; closed says 
 
 Deno.test('matchupView: scoring is not final; scored is final with the result', () => {
   assertEquals(matchupView({ kind: 'scoring', week: 6, isPlayoff: false, round: null, weekEnd: 'x', ...base }), { kind: 'scoring' });
-  assertEquals(matchupView({ kind: 'scored', week: 6, won: true, isPlayoff: false, round: null, nextStart: null, ...base }), { kind: 'final', won: true });
+  assertEquals(matchupView({ kind: 'scored', week: 6, result: 'W', isPlayoff: false, round: null, nextStart: null, ...base }), { kind: 'final', result: 'W' });
 });
 
 Deno.test('matchupView: pre-season and bye have no scoreboard; a bye is the neutral state', () => {

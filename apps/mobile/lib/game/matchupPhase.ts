@@ -5,11 +5,12 @@
  * scoreboard (it's a neutral no-result, never W or L).
  */
 import type { PhaseResult } from '../home/homePhase';
+import type { WeekResult } from './weekResult';
 
 export type MatchupView =
   | { kind: 'scoreboard'; live: true; closed: boolean }
   | { kind: 'scoring' }
-  | { kind: 'final'; won: boolean | null }
+  | { kind: 'final'; result: WeekResult | null }
   | { kind: 'pre_season' }
   | { kind: 'bye' }
   | { kind: 'playoff_bye'; round: string | null }
@@ -28,7 +29,7 @@ export function matchupView(phase: PhaseResult): MatchupView {
     case 'scoring':
       return { kind: 'scoring' };
     case 'scored':
-      return { kind: 'final', won: phase.won };
+      return { kind: 'final', result: phase.result };
     case 'pre_season':
       return { kind: 'pre_season' };
     case 'bye':

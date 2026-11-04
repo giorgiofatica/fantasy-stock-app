@@ -28,6 +28,7 @@ import {
 } from '@/components/sp/gn';
 import { CATEGORIES, type Category } from '@/components/sp/logic/gameNight';
 import { formatMoney } from '@/components/sp/logic/money';
+import { byResult } from '@/lib/game/weekResult';
 import { SalePicker } from '@/components/money/SalePicker';
 
 // Stockpile — dev-only design gallery (§9A, "One design, two themes",
@@ -476,7 +477,7 @@ function GameNightGallery() {
         <Text variant="caption" tone="secondary">Home: the W/L marks, then the two end dates (start, today) under them</Text>
         <Chart points={[{ t: 0, value: 0 }, { t: 7, value: 120 }, { t: 14, value: 80 }, { t: 21, value: 210 }, { t: 28, value: 300 }, { t: 35, value: 280 }, { t: 37, value: 343.59 }]} base={0} axis={{ kind: 'dated', start: '2026-09-01', end: '2026-10-08', maxLabels: 2 }} bleed={space[6]} drawKey="g-home" formatValue={money} accessibilityLabel="Season gain"
           underPlacement="beforeAxis"
-          under={<View style={styles.marks}>{['W', 'W', 'L', 'W', 'L', 'W'].map((r, i) => <Text key={i} variant="callout" color={r === 'W' ? colors.gain : colors.loss} style={styles.mark}>{r}</Text>)}</View>} />
+          under={<View style={styles.marks}>{(['W', 'W', 'L', 'W', 'L', 'W'] as const).map((r, i) => <Text key={i} variant="callout" color={byResult(r, { W: colors.gain, L: colors.loss, T: colors.text2 })} style={styles.mark}>{r}</Text>)}</View>} />
         <Text variant="caption" tone="secondary">Down window (loss)</Text>
         <Chart points={[{ t: 0, value: 0 }, { t: 1, value: -12 }, { t: 2, value: -48.2 }]} base={0} axis={{ kind: 'week' }} bleed={space[6]} height={80} drawKey="g-loss" formatValue={money} accessibilityLabel="This week" />
         <Text variant="caption" tone="secondary">1Y, months</Text>

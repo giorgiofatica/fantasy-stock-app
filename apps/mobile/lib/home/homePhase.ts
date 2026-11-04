@@ -9,6 +9,8 @@
  * for the state table this implements.
  */
 
+import { weekResult, type ServerVerdict, type WeekResult } from '../game/weekResult';
+
 export type MarketStatus = 'open' | 'closed' | 'unknown';
 
 /** market_session_status()'s row, trimmed to what homePhase reads. */
@@ -43,6 +45,9 @@ export interface MatchupRow {
   /** False for a bye (no team on the other side) — distinct from "not
    * scored yet", which still has an opponent. */
   hasOpponent: boolean;
+  /** The server's verdict on this row (winner_user_id, from my side), or undefined when the
+   * RPC doesn't carry it: the result then falls back to dollars (lib/game/weekResult). */
+  verdict?: ServerVerdict;
 }
 
 export interface HomePhaseInput {
@@ -113,7 +118,7 @@ export type PhaseResult =
    * calendars either way -- it only carries the value through. */
   | ({ kind: 'pre_season'; seasonStartsAt: string | null } & BaseResult)
   | ({ kind: 'scoring'; week: number; isPlayoff: boolean; round: string | null; weekEnd: string } & BaseResult)
-  | ({ kind: 'scored'; week: number; won: boolean | null; isPlayoff: boolean; round: string | null; nextStart: string | null } & BaseResult)
+  | ({ kind: 'scored'; week: number; /** W / L / T (lib/game/weekResult); null = a bye, no result. */ result: WeekResult | null; isPlayoff: boolean; round: string | null; nextStart: string | null } & BaseResult)
   | ({ kind: 'bye'; week: number; nextStart: string | null } & BaseResult)
   | ({ kind: 'playoff_bye'; week: number; round: string | null } & BaseResult)
   /** A playoff row exists for THIS week, but the opponent slot is still
@@ -221,7 +226,9 @@ export function homePhase(
         return { kind: 'scoring', week: row.week, isPlayoff: row.isPlayoff, round, weekEnd: row.weekEnd, ...base };
       }
       // Both sides are in (or there was never an opponent to wait on).
-      const won = row.hasOpponent ? (row.myGain ?? 0) > (row.opponentGain ?? 0) : null;
+      // The ONE decider (lib/game/weekResult): the server's winner, else dollars. Never `>` on
+      // the two gains here: that read a tie as a loss (Design Lead P1, 2026-11-03).
+      const result = row.hasOpponent ? weekResult({ myGain: row.myGain, oppGain: row.opponentGain, verdict: row.verdict }) : null;
       // nextStart: a holiday-shifted Monday must read from real data, never
       // a weekday rule. Two cases, both correct because the schedule is
       // generated up front (B3) -- `nextWeekStart` (meta.currentWeek + 1)
@@ -239,11 +246,11 @@ export function homePhase(
       //     week's row -- unchanged from before this fix.
       const nextStart = row === current ? nextWeekStart : (current ? current.weekStart : null);
       if (now.getTime() < (nextStart ? new Date(nextStart).getTime() : Infinity)) {
-        return { kind: 'scored', week: row.week, won, isPlayoff: row.isPlayoff, round, nextStart, ...base };
+        return { kind: 'scored', week: row.week, result, isPlayoff: row.isPlayoff, round, nextStart, ...base };
       }
       // Fall through: nothing starts after `row` and we're past its end —
       // treat as scored with an unknown next start rather than crash.
-      return { kind: 'scored', week: row.week, won, isPlayoff: row.isPlayoff, round, nextStart: null, ...base };
+      return { kind: 'scored', week: row.week, result, isPlayoff: row.isPlayoff, round, nextStart: null, ...base };
     }
 
     // Row is live (weekStart <= now < weekEnd).
