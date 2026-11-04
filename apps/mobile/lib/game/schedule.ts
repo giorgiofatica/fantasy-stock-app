@@ -73,3 +73,12 @@ export function buildSchedule(input: {
   }
   return rows;
 }
+
+/** A past week you played with no result yet (half-posted, or not scored at all). Home's
+ * "Your season" tile draws that week as a dash (SEASON_TILE_UNSCORED), and League › Schedule
+ * draws the same dash, so the two never disagree. It is never a W, an L or a T. A bye
+ * (its own neutral row) and a past week with no matchup at all both have no opponent
+ * (`opponent: null`), so neither gets a dash, as in the tile. */
+export function isUnscoredPast(r: ScheduleRow): boolean {
+  return r.state === 'past' && r.opponent !== null && r.result === null;
+}
