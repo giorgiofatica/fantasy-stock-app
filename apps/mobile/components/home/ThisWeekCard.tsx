@@ -19,6 +19,7 @@ import { ScoreDigits } from '@/components/sp/game/ScoreDigits';
 import { TugBar } from '@/components/sp/game/TugBar';
 import { LiveDot } from '@/components/sp/game/LiveDot';
 import { Skeleton } from '@/components/Skeleton';
+import { keepName } from '@/lib/account/keepName';
 import { keepMoney, keepTime, keepWeek } from '@/lib/game/keepDots';
 import { scoreTone } from '@/lib/home/scoreTone';
 import { THIS_WEEK_TAG, YOU_LABEL, vsOpponentLabel, leadLabel, LIVE_CHIP, thisWeekAccessibilityLabel, SCORING_MESSAGE, sideUnpricedCaption } from '@/lib/home/homeCopy';
@@ -101,6 +102,9 @@ export function ThisWeekCard({
   const { fontScale } = useWindowDimensions();
   const [halvesWidth, setHalvesWidth] = useState(0);
   const oppLabel = vsOpponentLabel(opponentName);
+  // The two-line label breaks after "vs", never inside the name ("vs / Gianluigi B.", not "vs Gianluigi / B."): keepName glues a
+  // name of 20 characters or fewer. Display only; the fit test, the one-line fitted name and VoiceOver read the plain label.
+  const oppLabelKept = vsOpponentLabel(keepName(opponentName));
   const halfInner = halvesWidth / 2 - HALF_PAD_IN - HALF_PAD_OUT;
   const besideRoom = halfInner - (AVATAR + 2 * (AVATAR_RING + AVATAR_RING_GAP)) - WHO_GAP;
   const oppStacked = halvesWidth > 0 && !nameBesideAvatar(oppLabel, besideRoom, NAME_PT * fontScale);
@@ -196,7 +200,7 @@ export function ThisWeekCard({
               </Text>
             ) : (
               <Text variant="callout" tone="secondary" numberOfLines={2} style={styles.oppName}>
-                {oppLabel}
+                {oppLabelKept}
               </Text>
             )}
           </View>

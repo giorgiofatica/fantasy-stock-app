@@ -74,15 +74,12 @@ function openingTags(src: string, name: string): string[] {
 
 Deno.test('the hook: credential hosts keep their mount key (latched), others take the focus-frozen scale key', () => {
   const src = SOURCES['components/sp/useInputRemountKey.ts'];
-  assertMatch(src, /const currentKey = fontScaleKey\(fontScale\);/);
-  assertMatch(src, /const keyAtMount = useRef\(currentKey\);/);
+  assertMatch(src, /const focusKey = useFocusRemountKey\(\);/);
+  assertMatch(src, /const keyAtMount = useRef\(focusKey\.scaleKey\);/);
   assertMatch(src, /if \(!remountOnScaleChange\(props\)\) credentialHost\.current = true;/);
-  assertMatch(
-    src,
-    /const key = inputHostKey\(\s*!credentialHost\.current,\s*keyAtMount\.current,\s*inputRemountKey\(focused, keyAtFocus \?\? currentKey, currentKey\)\s*\);/
-  );
-  assertMatch(src, /onFocus: \(\) => setKeyAtFocus\(key\)/);
-  assertMatch(src, /onBlur: \(\) => setKeyAtFocus\(null\)/);
+  assertMatch(src, /const key = inputHostKey\(!credentialHost\.current, keyAtMount\.current, focusKey\.key\);/);
+  assertMatch(src, /onFocus: focusKey\.onFocus,/);
+  assertMatch(src, /onBlur: focusKey\.onBlur,/);
   assertMatch(src, /autoFocus: remountAutoFocus\(autoFocus, remounted\.current\)/);
   assertMatch(src, /if \(key !== keyAtMount\.current\) remounted\.current = true;/);
 });
