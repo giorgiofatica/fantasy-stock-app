@@ -499,9 +499,9 @@ building anything, and don't reopen a rule without him.
     be days old, with nothing saying so).
   - The row's text stops growing at 1.3×, as Holdings and Schedule rows do, so the buttons
     stay on the row at the largest text sizes.
-  - **Pending Giorgio:** the line "Prices at Wednesday's close." under the card's intro while
-    the market is closed (the day changes). Not approved yet; it stays out of the build until
-    he answers.
+  - While the market is closed, one line under the card's intro: "Prices at Wednesday's
+    close." (the day changes with the last close). Approved by Giorgio, 2026-11-05: "the copy
+    line is fine".
 
 ## Trading
 
