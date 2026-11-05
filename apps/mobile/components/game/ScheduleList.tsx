@@ -10,7 +10,8 @@ import { formatMoney } from '@/components/sp/logic/money';
 import { chipLook, toneOf } from '@/components/sp/logic/gameNight';
 import { MANAGER_ROW_GAP } from '@/components/sp/gn';
 import { radius, space } from '@/constants/tokens';
-import type { ScheduleRow } from '@/lib/game/schedule';
+import { isUnscoredPast, type ScheduleRow } from '@/lib/game/schedule';
+import { SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
 import { byResult } from '@/lib/game/weekResult';
 
 /** Every line of a row stops at the score's own cap (score.sm, 1.3×): the result stays the
@@ -28,8 +29,9 @@ export interface ScheduleListProps {
  * tile, 6pt apart like the standings (separation by space, §9C rule 2). The week, the
  * opponent's avatar and name, and the result with your score once it posts (the letter by
  * result, the score by sign); this week the §9C live chip ("Live", its dot drawn); the
- * week after, "Next". Every row here is your game, so none is shaded (B shades YOUR side
- * where you face someone; here that would be every row). A bye is neutral: never W or L. */
+ * week after, "Next"; a past week not scored yet, the season tile's dash. Every row here
+ * is your game, so none is shaded (B shades YOUR side where you face someone; here that
+ * would be every row). A bye is neutral: never W or L. */
 export function ScheduleList({ rows, playoffLine }: ScheduleListProps) {
   const { colors } = useTheme();
   // Large text: the result goes on its own line under the week (it was clipped off the card).
@@ -60,6 +62,9 @@ export function ScheduleList({ rows, playoffLine }: ScheduleListProps) {
                   <Text variant="score.sm" color={byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })}>{r.result}</Text>
                   <Text variant="score.sm" color={colors[toneOf(r.gain)]} style={styles.gain}>{keepMoney(formatMoney(r.gain, { sign: 'always' }))}</Text>
                 </View>
+              ) : isUnscoredPast(r) ? (
+                // Not scored yet (half-posted): Home's season tile's dash. VoiceOver keeps "Week N, against X".
+                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{SEASON_TILE_UNSCORED}</Text>
               ) : null}
             </View>
           </View>
