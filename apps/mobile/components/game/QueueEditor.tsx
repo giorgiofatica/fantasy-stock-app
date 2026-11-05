@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { useState } from 'react';
-import { View, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
 import { Button } from '@/components/sp/Button';
-import { Icon } from '@/components/sp/Icon';
 import { radius, space } from '@/constants/tokens';
 import SymbolSearchField from '@/components/SymbolSearchField';
 import { supabase } from '@/lib/supabase';
 import { seamRpc } from '@/lib/game/seamCalls';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { keepDots } from '@/lib/game/keepDots';
+import { QueueRow } from '@/components/game/QueueRow';
+import { useQueueQuotes } from '@/lib/game/useQueueQuotes';
+import { useQueueMarketLine } from '@/lib/game/useQueueMarketLine';
 import { savedQueueFrom } from '@/lib/game/draftQueueRead';
 import { normalizeQueue, moveItem, removeItem, addSymbol, queueRefusalLine, QUEUE_MAX } from '@/lib/game/draftQueue';
 
@@ -33,6 +35,9 @@ export function QueueEditor({ leagueId, initial, onSaved }: QueueEditorProps) {
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const dirty = queue.join(',') !== normalizeQueue(initial).join(',');
+  // The company and the draft search's price for every queued stock, read when the card opens (and for a stock added later).
+  const { names, prices } = useQueueQuotes(queue);
+  const closedLine = useQueueMarketLine();
 
   const onSelect = (r: ShapedSearchResult) => {
     if (!r.selectable) return;
@@ -56,27 +61,21 @@ export function QueueEditor({ leagueId, initial, onSaved }: QueueEditorProps) {
     <Card style={[styles.card, styles.searchCard]}>
       <Text variant="tag" tone="secondary">{keepDots(`Your queue · ${queue.length} of ${QUEUE_MAX}`)}</Text>
       <Text variant="caption" tone="secondary">If you step away, we'll auto-pick from your queue when your time runs out. You can come back any time.</Text>
-      {/* Nothing tappable does nothing (W4): a move that can't happen isn't drawn (the first
-          row has no up, the last no down); its 44 pt slot stays, so the columns hold still. */}
-      {queue.map((sym, i) => (
-        <View key={sym} style={styles.row}>
-          <Text variant="caption" tone="secondary" style={styles.pos}>{i + 1}</Text>
-          <Text variant="ticker" style={styles.sym}>{sym}</Text>
-          {i > 0 ? (
-            <Pressable onPress={() => setQueue((q) => moveItem(q, i, -1))} accessibilityRole="button" accessibilityLabel={`Move ${sym} up`} style={styles.hit}>
-              <Icon name="chevronUp" size="callout" tone="text2" />
-            </Pressable>
-          ) : <View style={styles.hit} />}
-          {i < queue.length - 1 ? (
-            <Pressable onPress={() => setQueue((q) => moveItem(q, i, 1))} accessibilityRole="button" accessibilityLabel={`Move ${sym} down`} style={styles.hit}>
-              <Icon name="chevronDown" size="callout" tone="text2" />
-            </Pressable>
-          ) : <View style={styles.hit} />}
-          <Pressable onPress={() => setQueue((q) => removeItem(q, i))} accessibilityRole="button" accessibilityLabel={`Remove ${sym} from your queue`} style={styles.hit}>
-            <Icon name="close" size="callout" tone="text2" />
-          </Pressable>
-        </View>
-      ))}
+      {closedLine ? <Text variant="caption" tone="secondary">{closedLine}</Text> : null}
+      <View>
+        {queue.map((sym, i) => (
+          <QueueRow
+            key={sym}
+            index={i}
+            count={queue.length}
+            symbol={sym}
+            name={names[sym.toUpperCase()]}
+            price={prices[sym.toUpperCase()]}
+            onMove={(delta) => setQueue((q) => moveItem(q, i, delta))}
+            onRemove={() => setQueue((q) => removeItem(q, i))}
+          />
+        ))}
+      </View>
       {queue.length < QUEUE_MAX ? (
         <SymbolSearchField value={search} onChangeText={setSearch} onSelect={onSelect} selectedSymbol="" ownedSymbols={NO_OWNED_SYMBOLS} captureAction="typeq" />
       ) : null}
@@ -98,11 +97,6 @@ const styles = StyleSheet.create({
   // The sp Card clips (overflow hidden), which cut the search's dropdown off at the card edge;
   // a search card lets it overflow, above the cards that follow it.
   searchCard: { overflow: 'visible', zIndex: 10 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space[1], minHeight: 44 },
-  pos: { minWidth: 20, fontVariant: ['tabular-nums'] },
-  sym: { flex: 1 },
-  // Each icon button reaches 44 pt (the craft floor).
-  hit: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   save: { marginTop: space[2], gap: space[2] },
   center: { textAlign: 'center' },
 });

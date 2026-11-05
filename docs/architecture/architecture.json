@@ -2,43 +2,79 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "2838456770789dfacb469ea2fe7c8f09ffe1ee74",
-    "commitShort": "28384567",
+    "commit": "949fd0ff6371f6710420978c74f2a6787bbfffe3",
+    "commitShort": "949fd0ff",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/symbols-search-limits",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/_shared/market-guard.test.ts"
+        "path": "apps/mobile/components/game/QueueEditor.tsx"
       },
       {
-        "code": "MM",
-        "path": "supabase/functions/_shared/market-guard.ts"
+        "code": "A",
+        "path": "apps/mobile/components/game/QueueRow.tsx"
       },
       {
-        "code": "MM",
-        "path": "supabase/functions/symbols-search/index.ts"
+        "code": "M",
+        "path": "apps/mobile/components/SymbolSearchField.tsx"
       },
       {
-        "code": "AM",
-        "path": "supabase/functions/symbols-search/prices.test.ts"
+        "code": "A",
+        "path": "apps/mobile/lib/game/queuePriceStore.ts"
       },
       {
-        "code": "AM",
-        "path": "supabase/functions/symbols-search/prices.ts"
+        "code": "A",
+        "path": "apps/mobile/lib/game/queueRow.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/seamCalls.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/seamFixtures.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/seamTables.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/game/useQueueMarketLine.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/game/useQueueQuotes.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/game-queue-row.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/gn-w4-draft.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sp-text-capped-size.test.ts"
       }
     ],
-    "timestamp": "2026-11-05T22:41:17Z",
-    "sourceHash": "sha256:2745dfc9e1603ead363e72ba5d4455a677efe1bfe5740f76e82ccc3d3e7a8710",
+    "timestamp": "2026-11-06T19:42:57Z",
+    "sourceHash": "sha256:79ff58e5cbd66110e9d9e2fee5dd176052518ef915a76e23ad768ae205530fbd",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 24.7,
-    "ageDays": 1,
+    "ageHours": 45.7,
+    "ageDays": 1.9,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:63e656527b081b605afa2985a95e3e2dff7478470416f1ae991a33d8f3817ef6",
@@ -10067,6 +10103,23 @@
       "drift": [],
       "annotation": null,
       "verified": true,
+      "id": "ui.game.useQueueQuotes",
+      "label": "useQueueQuotes.ts",
+      "sublabel": "mobile/lib/game/useQueueQuotes.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/lib/game/useQueueQuotes.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
       "id": "ui.game.useRenewalRoster",
       "label": "useRenewalRoster.ts",
       "sublabel": "mobile/lib/game/useRenewalRoster.ts",
@@ -19335,7 +19388,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('set_draft_queue')",
       "callSites": [
-        "apps/mobile/components/game/QueueEditor.tsx:45"
+        "apps/mobile/components/game/QueueEditor.tsx:50"
       ],
       "via": [
         "seamRpc"
@@ -19411,7 +19464,7 @@
       "payload": ".from('league_members').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:102"
+        "apps/mobile/lib/game/seamCalls.ts:104"
       ]
     },
     {
@@ -19424,7 +19477,7 @@
       "payload": ".from('leagues').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:96"
+        "apps/mobile/lib/game/seamCalls.ts:98"
       ]
     },
     {
@@ -19803,6 +19856,36 @@
       ],
       "callSites": [
         "apps/mobile/lib/game/useMemberSnapshots.ts:38"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.game.useQueueQuotes->fn.symbols-search",
+      "from": "ui.game.useQueueQuotes",
+      "to": "fn.symbols-search",
+      "protocol": "https-invoke",
+      "payload": "functions.invoke('symbols-search')",
+      "callSites": [
+        "apps/mobile/lib/game/useQueueQuotes.ts:32"
+      ],
+      "via": [
+        "seamInvoke"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.game.useQueueQuotes->tbl.symbols",
+      "from": "ui.game.useQueueQuotes",
+      "to": "tbl.symbols",
+      "protocol": "postgrest-select",
+      "payload": ".from('symbols').select('symbol, name')",
+      "columns": [
+        "symbol, name"
+      ],
+      "callSites": [
+        "apps/mobile/lib/game/useQueueQuotes.ts:77"
       ]
     },
     {
@@ -22106,6 +22189,7 @@
         "ui.useSymbolSearch",
         "fn.symbols-search",
         "ui.src.components.DraftControls.jsx",
+        "ui.game.useQueueQuotes",
         "fn.historical-bars",
         "ui.money.useStockChartData"
       ],
@@ -22164,10 +22248,12 @@
           "edge": [
             "e.ui.useSymbolSearch->fn.symbols-search",
             "e.ui.src.components.DraftControls.jsx->fn.symbols-search",
-            "e.ui.src.components.TradeModal.jsx->fn.symbols-search"
+            "e.ui.src.components.TradeModal.jsx->fn.symbols-search",
+            "e.ui.game.useQueueQuotes->fn.symbols-search"
           ],
           "detail": "symbols-search — typeahead over the symbols table.",
           "files": [
+            "apps/mobile/lib/game/useQueueQuotes.ts:32",
             "apps/mobile/lib/useSymbolSearch.ts:85",
             "apps/web/src/components/DraftControls.jsx:66",
             "apps/web/src/components/TradeModal.jsx:122"
@@ -23260,7 +23346,7 @@
         "surface": "client",
         "name": "seamInsertLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 91,
+        "line": 93,
         "kind": "seam-stub",
         "detail": "leagues.insert"
       },
@@ -23268,7 +23354,7 @@
         "surface": "client",
         "name": "seamInsertMember",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 99,
+        "line": 101,
         "kind": "seam-stub",
         "detail": "league_members.insert"
       },
@@ -23292,7 +23378,7 @@
         "surface": "client",
         "name": "seamSaveLeagueSlots",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 105,
+        "line": 107,
         "kind": "seam-stub",
         "detail": "league_draft_slots.delete, league_draft_slots.insert"
       },
@@ -23403,8 +23489,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 310,
-    "edges": 759,
+    "nodes": 311,
+    "edges": 761,
     "flows": 7,
     "drift": 33,
     "driftHigh": 0,
@@ -23450,6 +23536,7 @@
       "apps/mobile/lib/game/useDraftAutoStart.ts:79 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useDraftStatus.ts:46 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useLeaveLeague.ts:47 -> leave-league (via seamInvoke)",
+      "apps/mobile/lib/game/useQueueQuotes.ts:32 -> symbols-search (via seamInvoke)",
       "apps/mobile/lib/home/useHomeLeague.ts:679 -> quote",
       "apps/mobile/lib/home/useHomeLeague.ts:696 -> historical-bars",
       "apps/mobile/lib/invite/invitePreviewApi.ts:14 -> invite-preview",
@@ -23482,7 +23569,7 @@
     ],
     "rpcs": [
       "apps/mobile/app/(tabs)/league.tsx:146 -> renew_league (via seamRpc)",
-      "apps/mobile/components/game/QueueEditor.tsx:45 -> set_draft_queue (via seamRpc)",
+      "apps/mobile/components/game/QueueEditor.tsx:50 -> set_draft_queue (via seamRpc)",
       "apps/mobile/components/game/RenewalAsk.tsx:97 -> respond_to_renewal (via seamRpc)",
       "apps/mobile/components/game/RenewalReview.tsx:61 -> start_renewed_season (via seamRpc)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> nudge_renewal (via seamRpc, inferred)",
@@ -23622,9 +23709,9 @@
       "apps/mobile/lib/categoryData.ts:66 -> categories.select",
       "apps/mobile/lib/categoryData.ts:85 -> symbol_category_overrides.select",
       "apps/mobile/lib/categoryData.ts:96 -> symbols.select",
-      "apps/mobile/lib/game/seamCalls.ts:102 -> league_members.insert",
+      "apps/mobile/lib/game/seamCalls.ts:104 -> league_members.insert",
       "apps/mobile/lib/game/seamCalls.ts:67 -> leagues.update",
-      "apps/mobile/lib/game/seamCalls.ts:96 -> leagues.insert",
+      "apps/mobile/lib/game/seamCalls.ts:98 -> leagues.insert",
       "apps/mobile/lib/game/useAllMatchups.ts:45 -> matchups.select",
       "apps/mobile/lib/game/useAllMatchups.ts:58 -> week_snapshots.select",
       "apps/mobile/lib/game/useAllMatchups.ts:68 -> trades.select",
@@ -23639,6 +23726,7 @@
       "apps/mobile/lib/game/useLeaveLeague.ts:33 -> league_members.select",
       "apps/mobile/lib/game/useLeaveLeague.ts:60 -> league_members.select",
       "apps/mobile/lib/game/useMemberSnapshots.ts:38 -> week_snapshots.select",
+      "apps/mobile/lib/game/useQueueQuotes.ts:77 -> symbols.select",
       "apps/mobile/lib/game/useRosterData.ts:54 -> league_draft_slots.select",
       "apps/mobile/lib/game/useRosterData.ts:78 -> drafts.select",
       "apps/mobile/lib/game/useRosterData.ts:86 -> trades.select",

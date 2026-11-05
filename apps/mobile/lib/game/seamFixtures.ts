@@ -142,7 +142,7 @@ export function leaveLeagueFixture(body: Record<string, unknown>, fixture?: stri
 
 /** symbols-search for a capture: the board's sample stocks whose ticker or name starts
  * with the query (case-insensitive), with prices; up to `limit`. */
-const SEARCH_SAMPLE = [
+const SEARCH_SAMPLE: { symbol: string; name: string; price: number | null; is_draftable?: boolean }[] = [
   { symbol: 'AAPL', name: 'Apple Inc.', price: 211.42 },
   { symbol: 'AMD', name: 'Advanced Micro Devices', price: 160.0 },
   { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 236.4 },
@@ -156,6 +156,15 @@ const SEARCH_SAMPLE = [
   { symbol: 'V', name: 'Visa Inc.', price: 291.4 },
   // W4 Portfolio: a stock outside the league's list (an ETF), for the dimmed search row.
   { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', price: 571.2, is_draftable: false },
+  // The queue row's captures (Giorgio 2026-11-05, option A): a long company name, a 4-letter and a 5-letter ticker,
+  // BRK.B, and a stock whose price did not load (price null: the row shows "–"). Build 9's recording splits TEM and ROBO.
+  { symbol: 'MSFT', name: 'Microsoft Corporation', price: 512.18 },
+  { symbol: 'SBUX', name: 'Starbucks Corporation', price: 94.6 },
+  { symbol: 'BRK.B', name: 'Berkshire Hathaway Inc. Class B', price: 498.75 },
+  { symbol: 'RKLB', name: 'Rocket Lab Corporation', price: null },
+  { symbol: 'TEM', name: 'Tempus AI, Inc.', price: 71.3 },
+  { symbol: 'ROBO', name: 'ROBO Global Robotics and Automation Index ETF', price: 61.45 },
+  { symbol: 'TEMX', name: 'Tempus Example Holdings Incorporated', price: 18.2, is_draftable: false },
 ];
 /** A search sample's company name, for a sheet opened without one under the seam. */
 export function seamSearchName(symbol: string): string | null {
@@ -167,13 +176,13 @@ export function seamSearchPrice(symbol: string): number | null {
   return SEARCH_SAMPLE.find((s) => s.symbol === symbol.toUpperCase())?.price ?? null;
 }
 
-export function symbolsSearchFixture(body: Record<string, unknown>): { items: { symbol: string; name: string; price: number; is_draftable: boolean }[] } {
+export function symbolsSearchFixture(body: Record<string, unknown>): { items: { symbol: string; name: string; price: number | null; is_draftable: boolean }[] } {
   const q = String(body.q ?? '').trim().toUpperCase();
   const limit = typeof body.limit === 'number' ? body.limit : 8;
   const items = SEARCH_SAMPLE
     .filter((s) => q !== '' && (s.symbol.startsWith(q) || s.name.toUpperCase().startsWith(q)))
     .slice(0, limit)
-    .map((s) => ({ symbol: s.symbol, name: s.name, price: s.price, is_draftable: (s as { is_draftable?: boolean }).is_draftable !== false }));
+    .map((s) => ({ symbol: s.symbol, name: s.name, price: s.price, is_draftable: s.is_draftable !== false }));
   return { items };
 }
 
