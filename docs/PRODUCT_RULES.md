@@ -483,6 +483,25 @@ building anything, and don't reopen a rule without him.
 - **No "Auto" tag on the draft board** (2026-10-13, final; the A/B was cancelled): "no auto
   tag". A tile shows the pick, the category code and the ticker; an auto-pick is said in the
   pick log's words and to VoiceOver, never as a mark on the tile.
+- **The queue row** (2026-11-05, option A; board `#call-queue-row`, relayed by the
+  Orchestrator). On build 9 (step 16): "the queue only shows the ticker name, it should have
+  Corporation Name (with ... if the name is too long), ticker, and price." Shown A (like the
+  draft room's search) and B (like Holdings, with the round ticker badge), he picked: "i want
+  option A".
+  - A queue row reads: the position, the ticker over the company name, the price on the
+    ticker's line, then up / down / remove as before.
+  - The ticker is never cut and never split across lines; only the company name ends in
+    "…". When the ticker and the price don't both fit on one line, the price moves under the
+    ticker.
+  - The price is the stock's latest trade, the same number the draft search shows, read when
+    the card opens. A price that doesn't load shows "–", never "$0.00" and never a blank;
+    while it loads, a placeholder bar holds its place. No fallback to a stored price (it can
+    be days old, with nothing saying so).
+  - The row's text stops growing at 1.3×, as Holdings and Schedule rows do, so the buttons
+    stay on the row at the largest text sizes.
+  - **Pending Giorgio:** the line "Prices at Wednesday's close." under the card's intro while
+    the market is closed (the day changes). Not approved yet; it stays out of the build until
+    he answers.
 
 ## Trading
 
