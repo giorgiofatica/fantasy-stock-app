@@ -62,7 +62,7 @@ switch (18). Note the time and what you had just tapped if it happens.
   queue; force-quit and reopen; the queue is as you left it.
 - [ ] **Step 17. Text size back to normal (10).** Home and Portfolio look as before.
 
-## Part B · one throwaway email account
+## Part B · three throwaway email accounts (T1, T2, T3)
 
 - [ ] **Step 18. Allowlist three throwaway addresses (T1, T2, T3).** Sign-ups are gated, and a
   draft needs 4 members, so Part B uses three throwaways. In the Supabase SQL editor, addresses
@@ -72,7 +72,7 @@ switch (18). Note the time and what you had just tapped if it happens.
 - [ ] **Step 19. Sign T1, T2 and T3 up** (a simulator is easiest; signing out and in on your
   phone also works) and have all three **join League A** (step 14) with its code: 4 members.
 - [ ] **Step 20. Hand over, for real (8).** Your account, League A › League settings › Commissioner.
-  Right: the list shows the throwaway; Hand over names them once picked; Cancel. (Bots never
+  Right: the list shows T1, T2 and T3; Hand over names the one you pick; Cancel. (Bots never
   appear; that's by design.)
 - [ ] **Step 21. Move forward (11).** T1 leaves League A (League settings › Leave league): 3 in,
   3 playoff teams. Your Home or League tab names T1 with Move forward / Invite someone new. Tap
