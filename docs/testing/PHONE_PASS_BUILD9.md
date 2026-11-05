@@ -39,7 +39,8 @@ Start with the text size at AX5 (Larger Accessibility Sizes, slider right).
   placeholder resizes after AX5 → L.
 - [ ] **Login with the PASSWORD filled plus a live size change:** no "Save Password?" sheet.
 - [ ] **No intro cards** after Sign out, then Sign in.
-- [ ] **9. Pre-draft Home with Share.** A league with its draft more than an hour away: Members
+- [ ] **9. Pre-draft Home with Share.** A league with its draft more than an hour away (if you
+  have none, create one with a draft time tomorrow; it can be sitting 2's League A): Members
   card whole, "+N" circle whole, code and Share both there; Share opens the sheet.
 - [ ] **14. Save queue** in that pre-draft league: save, force-quit, reopen, queue intact.
 - [ ] **10. Text size back to normal.** Home and Portfolio look as before.
@@ -49,8 +50,15 @@ Start with the text size at AX5 (Larger Accessibility Sizes, slider right).
 ## Sitting 2 · one throwaway email account, same phone (or a simulator)
 
 Setup first: a throwaway address, allowlisted for sign-up (signups are gated; ask the
-Orchestrator for the one-line allowlist SQL), signed up, and joined to a **drafted** test league
-you commission (bots fill the other seats). Then, from that account's side where it says so:
+Orchestrator for the one-line allowlist SQL), then signed up. You need **two test leagues you
+commission**, and the throwaway joins **both before their drafts**, because a league refuses
+new members once its draft has started:
+- **League A**, pre-draft, its draft time more than an hour away, for items 8, 11, 12 and 13;
+- **League B**, which the throwaway joins with the code, then you add bots and let the draft run
+  (bots and the clock pick for everyone), for items 30 and 31. Its Former manager row is what
+  sitting 3's item 32 starts from, so keep League B.
+
+Then, from the throwaway's side where it says so:
 
 - [ ] **8. Hand over, for real.** A **pre-draft** test league with the throwaway as a member: the
   list shows them; Hand over names them once picked; Cancel. (Bots never appear; that's by design.)
@@ -71,9 +79,10 @@ Setup: a second real account on a second phone; a finished test league run back 
 everyone answered I'm in and the draft not yet set; a fixed-amount-slot league with two sales
 made during market hours.
 
-- [ ] **32. Find a new manager, for real.** From the Former manager row, Share with a real tap,
+- [ ] **32. Find a new manager, for real.** From League B's Former manager row (sitting 2), Share with a real tap,
   Messages to the other phone, tap: "Take over Former manager's team in {league}?" → Take the
-  team. The same link from a third account: "Someone already took this team."
+  team. The same link from a third account (a second allowlisted throwaway works): "Someone
+  already took this team."
 - [ ] **33. A hand-typed take link waits for a tap.** `fantasystockapp://take/CODE` in Notes:
   "Take over a team" with Find league / Not now; nothing about the league until Find league.
 - [ ] **7. The Renewal change sheet** at AX5.
