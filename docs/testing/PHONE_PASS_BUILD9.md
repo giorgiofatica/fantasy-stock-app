@@ -53,8 +53,9 @@ switch (18). Note the time and what you had just tapped if it happens.
 - [ ] **Step 12. Login with the PASSWORD filled plus a live size change.** Right: no "Save
   Password?" sheet.
 - [ ] **Step 13. No intro cards** after Sign out, then Sign in.
-- [ ] **Step 14. A pre-draft league with its draft more than an hour away.** If you have none,
-  create one now with a draft time tomorrow. (It is reused later as League A; don't draft it.)
+- [ ] **Step 14. Create League A.** Create league: **size 4, playoff teams 3**, draft time
+  tomorrow. Those two settings matter later (Part B) and can only be set at creation. Don't
+  draft it.
 - [ ] **Step 15. Pre-draft Home with Share (9).** In that league: Members card whole, "+N" circle
   whole, code and Share both there; Share opens the sheet with "Join my league with code …".
 - [ ] **Step 16. Save queue (14).** In that league: Build your queue, add stocks, move one, Save
@@ -63,27 +64,31 @@ switch (18). Note the time and what you had just tapped if it happens.
 
 ## Part B · one throwaway email account
 
-- [ ] **Step 18. Allowlist a throwaway address.** Sign-ups are gated. In the Supabase SQL editor,
-  with your address in lowercase:
-  `INSERT INTO public.signup_allowlist (email, note) VALUES (lower('THROWAWAY@example.com'), 'build-9 phone pass throwaway');`
-  (Deleting the account later leaves this row in place, so the address can sign up again.)
-- [ ] **Step 19. Sign the throwaway up** (a simulator or a second device is easiest; signing out
-  and in on your phone also works) and **join League A** (step 14) with its code.
+- [ ] **Step 18. Allowlist three throwaway addresses (T1, T2, T3).** Sign-ups are gated, and a
+  draft needs 4 members, so Part B uses three throwaways. In the Supabase SQL editor, addresses
+  in lowercase, one row each:
+  `INSERT INTO public.signup_allowlist (email, note) VALUES (lower('T1@example.com'), 'build-9 phone pass T1');`
+  (Deleting an account later leaves its row in place, so the address can sign up again.)
+- [ ] **Step 19. Sign T1, T2 and T3 up** (a simulator is easiest; signing out and in on your
+  phone also works) and have all three **join League A** (step 14) with its code: 4 members.
 - [ ] **Step 20. Hand over, for real (8).** Your account, League A › League settings › Commissioner.
   Right: the list shows the throwaway; Hand over names them once picked; Cancel. (Bots never
   appear; that's by design.)
-- [ ] **Step 21. Move forward (11).** The throwaway leaves League A (League settings › Leave
-  league). Your Home or League tab names them with Move forward / Invite someone new. Tap Move
-  forward. Right: it saves, the notice goes, and stays gone after a force-quit.
-- [ ] **Step 22. Invite someone new (12).** The throwaway rejoins with the code and leaves again.
-  Tap Invite someone new. Right: it saves; the notice stays until the throwaway joins again with
-  the code, then goes by itself.
-- [ ] **Step 23. The playoff-teams stepper (13).** League A with playoff teams set higher than the
-  managers in it: the card's minus lowers it; League settings agrees after a force-quit.
-- [ ] **Step 24. League B.** Create a second test league; the throwaway joins with the code
-  **before** the draft (a league refuses joins once its draft starts); add bots; let the draft run
-  (bots and the clock pick for everyone).
-- [ ] **Step 25. Delete the throwaway (30).** On the throwaway: Profile › Delete account. Wrong
+- [ ] **Step 21. Move forward (11).** T1 leaves League A (League settings › Leave league): 3 in,
+  3 playoff teams. Your Home or League tab names T1 with Move forward / Invite someone new. Tap
+  Move forward. Right: it saves, the notice goes, and stays gone after a force-quit.
+- [ ] **Step 22. Invite someone new (12).** T1 rejoins with the code and leaves again. Tap Invite
+  someone new. Right: it saves; the notice stays until T1 joins again with the code, then goes by
+  itself.
+- [ ] **Step 23. The playoff-teams stepper (13).** T1 and T2 leave League A: 2 in, 3 playoff teams.
+  Right: the card says "3 playoff teams, but 2 teams are in" with "Up to 2, one per team."; the
+  minus makes it 2 and the line clears; League settings shows 2 after a force-quit. (Playoff
+  teams can't be raised in the app; they're set at creation, which is why step 14 chose 3.)
+- [ ] **Step 24. League B.** Create a second test league, size 4, draft time soon. T1, T2 and T3
+  join with the code **before** the draft (a league refuses joins once its draft starts). Let the
+  draft run on the clock; the server picks for anyone who doesn't. (The phone can't add bots;
+  that's web-only and the web is paused.)
+- [ ] **Step 25. Delete T1 (30).** On T1: Profile › Delete account. Wrong
   password first. Right: "That password isn't right. Try again." and the field clears. Right
   password → Delete my account → "Are you sure?" → Delete. Right: signed out, sign-in shows
   "Your account is deleted."
@@ -96,14 +101,15 @@ switch (18). Note the time and what you had just tapped if it happens.
 - [ ] **Step 28. Find a new manager, for real (32).** Your account, League B › League settings ›
   Members › the Former manager row › Find a new manager › Share, a real tap, to the other phone in
   Messages. On it, tap the link. Right: "Take over Former manager's team in {league}?" → Take the
-  team puts that account in League B with that team. Open the same link from a third account (a
-  second allowlisted throwaway). Right: "Someone already took this team."
+  team puts that account in League B with that team. Open the same link from T3. Right:
+  "Someone already took this team."
 - [ ] **Step 29. A hand-typed take link waits for a tap (33).** A fresh Find a new manager link's
   code, typed as `fantasystockapp://take/CODE` into Notes while signed in, tapped. Right: "Take
   over a team" with Find league / Not now; nothing about the league until Find league; Not now
   does nothing.
-- [ ] **Step 30. A run-back league.** A finished test league, run back, with everyone having
-  answered I'm in except the second account, and the draft not yet set.
+- [ ] **Step 30. A run-back league.** A finished test league (League B once its season ends, or
+  an older one), run back, with everyone having answered I'm in except the second account, and
+  the draft not yet set.
 - [ ] **Step 31. The nudge (15).** The row of the one who hasn't replied › Nudge again. Right: the
   other phone buzzes; opening the sheet again says once a day and when you nudged.
 - [ ] **Step 32. The second account answers I'm in; then the Renewal change sheet at AX5 (7).**
