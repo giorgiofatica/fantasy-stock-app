@@ -22,8 +22,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/(tabs)/league.tsx:233` | LoadFailed | onRetry | `retry` | fn retry |  |
 | `app/(tabs)/league.tsx:276` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/league.tsx:464` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:531` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:542` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:533` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:544` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/matchup.tsx:121` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
 | `app/(tabs)/matchup.tsx:140` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/(tabs)/matchup.tsx:294` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
@@ -101,11 +101,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/LeaveLeagueSheets.tsx:120` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
 | `components/game/LeaveLeagueSheets.tsx:126` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
 | `components/game/LeaveLeagueSheets.tsx:140` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
-| `components/game/QueueEditor.tsx:64` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, -1))` | state setQueue |  |
-| `components/game/QueueEditor.tsx:69` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, 1))` | state setQueue |  |
-| `components/game/QueueEditor.tsx:73` | Pressable | onPress | `inline: () => setQueue((q) => removeItem(q, i))` | state setQueue |  |
-| `components/game/QueueEditor.tsx:79` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
-| `components/game/QueueEditor.tsx:85` | Button | onPress | `inline: () => void save()` | fn save | `saving` |
+| `components/game/QueueEditor.tsx:66` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, -1))` | state setQueue |  |
+| `components/game/QueueEditor.tsx:71` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, 1))` | state setQueue |  |
+| `components/game/QueueEditor.tsx:75` | Pressable | onPress | `inline: () => setQueue((q) => removeItem(q, i))` | state setQueue |  |
+| `components/game/QueueEditor.tsx:81` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
+| `components/game/QueueEditor.tsx:87` | Button | onPress | `inline: () => void save()` | fn save | `saving` |
 | `components/game/RenewalAsk.tsx:116` | Button | onPress | `inline: () => void answer(response)` | fn answer | `busy !== null && busy !== response` |
 | `components/game/RenewalAsk.tsx:131` | Button | onPress | `inline: () => void answer(refusal.response)` | fn answer | `busy !== null` |
 | `components/game/RenewalChangeSheet.tsx:41` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |

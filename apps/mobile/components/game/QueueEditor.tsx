@@ -11,12 +11,14 @@ import { supabase } from '@/lib/supabase';
 import { seamRpc } from '@/lib/game/seamCalls';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { keepDots } from '@/lib/game/keepDots';
+import { savedQueueFrom } from '@/lib/game/draftQueueRead';
 import { normalizeQueue, moveItem, removeItem, addSymbol, queueRefusalLine, QUEUE_MAX } from '@/lib/game/draftQueue';
 
 export interface QueueEditorProps {
   leagueId: string;
   initial: string[];
-  onSaved: () => void;
+  /** The list the server stored (set_draft_queue's `symbols`). */
+  onSaved: (saved: string[]) => void;
 }
 
 /** One Set for the life of the module: useSymbolSearch takes `ownedSymbols` as an effect dependency, so a fresh
@@ -47,7 +49,7 @@ export function QueueEditor({ leagueId, initial, onSaved }: QueueEditorProps) {
       Alert.alert('Not saved', queueRefusalLine(String(res?.reason ?? 'unknown'), res?.symbols));
       return;
     }
-    onSaved();
+    onSaved(savedQueueFrom(res, queue));
   };
 
   return (
