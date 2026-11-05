@@ -522,9 +522,11 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
 
         {/* Board (Draft lobby · "Your queue"): build the queue before the draft,
             so auto-pick has it from the first pick. Never seeded from a failed
-            read (draftQueueRead.ts): the save replaces the whole list. */}
+            read (draftQueueRead.ts): the save replaces the whole list. Keyed on the
+            loaded data's generation, never the re-read request (a request key
+            remounted the editor on Save with the pre-save list). */}
         {queue.status === 'ready' ? (
-          <QueueEditor key={queue.version} leagueId={leagueId} initial={queue.queue} onSaved={queue.refresh} />
+          <QueueEditor key={queue.editorKey} leagueId={leagueId} initial={queue.queue} onSaved={queue.saved} />
         ) : queue.status === 'error' ? (
           <Card style={styles.queueFailed}>
             <Text variant="callout">{QUEUE_LOAD_FAILED}</Text>

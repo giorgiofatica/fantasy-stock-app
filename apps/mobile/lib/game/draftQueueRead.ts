@@ -43,3 +43,54 @@ export const DRAFT_ROOM_LOAD_FAILED = "The draft room didn't load.";
 
 /** A renewed league's Run it back flow (LeagueRenewal), in the same form. */
 export const RENEWAL_LOAD_FAILED = "The renewal didn't load.";
+
+/**
+ * The lobby's queue as the editor sees it: the read plus `generation`, the
+ * editor's remount key. The editor seeds its local list from `initial` only
+ * when it mounts, so the key must change when the DATA changes, never when a
+ * re-read is merely requested. Keying on the request (origin/main up to this
+ * fix: `refresh` bumped a counter that was also the key) remounted the editor
+ * on Save with the pre-save list still current; the re-read then landed with
+ * no second remount, so the editor showed the old list beside "Not saved yet."
+ * and a second Save would have written the old list over the saved one
+ * (Giorgio's phone, 1.3.0 (9), 2026-11-05).
+ */
+export type QueueState = { read: QueueRead; generation: number };
+
+export const QUEUE_STATE_START: QueueState = { read: { status: 'loading' }, generation: 0 };
+
+function sameList(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((s, i) => s === b[i]);
+}
+
+/** Move to `next`. A ready list that differs from the current one is new data
+ * (generation + 1, the editor remounts on it); the same list keeps the
+ * generation, so a confirming re-read never remounts over edits in progress.
+ * Loading/error never bump: the editor isn't shown for them. */
+function moveTo(prev: QueueState, next: QueueRead): QueueState {
+  if (next === prev.read) return prev;
+  if (next.status === 'ready' && prev.read.status === 'ready' && sameList(next.queue, prev.read.queue)) return prev;
+  return { read: next, generation: next.status === 'ready' ? prev.generation + 1 : prev.generation };
+}
+
+/** A read landed (keeps nextQueueRead's rule: a failed re-read keeps the last good list). */
+export function queueStateOnRead(
+  prev: QueueState,
+  res: { data: { symbol: string; position: number }[] | null; error: unknown },
+): QueueState {
+  return moveTo(prev, nextQueueRead(prev.read, res));
+}
+
+/** A save the server accepted: what it stored is now the queue, at once, so
+ * the editor is clean on the saved list with no wait for the re-read. */
+export function queueStateOnSaved(prev: QueueState, saved: string[]): QueueState {
+  return moveTo(prev, { status: 'ready', queue: saved.slice() });
+}
+
+/** The list set_draft_queue stored, from its ok result (`symbols`, normalized
+ * server side). An ok result without a string list falls back to what was
+ * sent: the call replaces the whole queue, so an accepted save stored it. */
+export function savedQueueFrom(res: { symbols?: unknown } | null, sent: string[]): string[] {
+  const s = res?.symbols;
+  return Array.isArray(s) && s.every((x) => typeof x === 'string') ? (s as string[]).slice() : sent.slice();
+}

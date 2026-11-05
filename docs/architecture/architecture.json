@@ -2,22 +2,47 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "0206fb12e1b8fe27d80ac3683bb154d7c519e190",
-    "commitShort": "0206fb12",
+    "commit": "19ba90f00cb86b000878dc268507733538e106e7",
+    "commitShort": "19ba90f0",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-11-04T22:09:52Z",
-    "sourceHash": "sha256:8d9b5b0960adbce7d95c6649731404b1d946e15a0891d9a9b979a5b1f56bfcc3",
+    "branch": "fix/queue-save-stale-remount",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "apps/mobile/app/(tabs)/league.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/QueueEditor.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/draftQueueRead.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/useDraftQueue.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-draft-queue-read.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/tests-deno/game-draft-queue-save.test.ts"
+      }
+    ],
+    "timestamp": "2026-11-05T20:50:18Z",
+    "sourceHash": "sha256:55c760cc9b927b2b62b8bdf9fa5151fa4059781585b86a424e1a19fc0712513b",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 0.2,
-    "ageDays": 0,
+    "ageHours": 22.8,
+    "ageDays": 1,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:63e656527b081b605afa2985a95e3e2dff7478470416f1ae991a33d8f3817ef6",
@@ -19279,7 +19304,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('set_draft_queue')",
       "callSites": [
-        "apps/mobile/components/game/QueueEditor.tsx:43"
+        "apps/mobile/components/game/QueueEditor.tsx:45"
       ],
       "via": [
         "seamRpc"
@@ -19504,7 +19529,7 @@
         "symbol, position"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useDraftQueue.ts:22"
+        "apps/mobile/lib/game/useDraftQueue.ts:34"
       ]
     },
     {
@@ -23426,7 +23451,7 @@
     ],
     "rpcs": [
       "apps/mobile/app/(tabs)/league.tsx:146 -> renew_league (via seamRpc)",
-      "apps/mobile/components/game/QueueEditor.tsx:43 -> set_draft_queue (via seamRpc)",
+      "apps/mobile/components/game/QueueEditor.tsx:45 -> set_draft_queue (via seamRpc)",
       "apps/mobile/components/game/RenewalAsk.tsx:97 -> respond_to_renewal (via seamRpc)",
       "apps/mobile/components/game/RenewalReview.tsx:61 -> start_renewed_season (via seamRpc)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> nudge_renewal (via seamRpc, inferred)",
@@ -23575,7 +23600,7 @@
       "apps/mobile/lib/game/useBracket.ts:33 -> matchups.select",
       "apps/mobile/lib/game/useDraftAutoStart.ts:102 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/lib/game/useDraftAutoStart.ts:160 -> leagues.update (via seamUpdateLeague)",
-      "apps/mobile/lib/game/useDraftQueue.ts:22 -> draft_queue.select",
+      "apps/mobile/lib/game/useDraftQueue.ts:34 -> draft_queue.select",
       "apps/mobile/lib/game/useDraftRoom.ts:48 -> drafts.select",
       "apps/mobile/lib/game/useDraftRoom.ts:50 -> draft_queue.select",
       "apps/mobile/lib/game/useFinalLineups.ts:42 -> week_snapshots.select",
