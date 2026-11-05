@@ -8,12 +8,23 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../supabase';
 import { seamTable } from './seamCalls';
-import { QUEUE_STATE_START, queueStateOnRead, queueStateOnSaved, type QueueRead, type QueueState } from './draftQueueRead';
+import {
+  queueEditorKey,
+  queueStateFor,
+  queueStateOnRead,
+  queueStateOnSaved,
+  queueStateStart,
+  type QueueRead,
+  type QueueState,
+} from './draftQueueRead';
 
 export function useDraftQueue(
   leagueId: string | null,
-): QueueRead & { editorKey: number; refresh: () => void; saved: (symbols: string[]) => void } {
-  const [state, setState] = useState<QueueState>(QUEUE_STATE_START);
+): QueueRead & { editorKey: string; refresh: () => void; saved: (symbols: string[]) => void } {
+  const [stored, setState] = useState<QueueState>(() => queueStateStart(leagueId));
+  // The state belongs to one league: after a switch it reads as loading in
+  // this very render, never as the last league's list (draftQueueRead.ts).
+  const state = queueStateFor(stored, leagueId);
   // The re-read request. It re-runs the effect (which also cancels any read
   // still in flight, so a pre-save read can't land after a save); it is NOT the
   // editor's key.
@@ -21,11 +32,13 @@ export function useDraftQueue(
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
   // The editor's save went through: adopt the stored list now, then re-read.
   const saved = useCallback((symbols: string[]) => {
-    setState((s) => queueStateOnSaved(s, symbols));
+    setState((s) => queueStateOnSaved(s, leagueId, symbols));
     setVersion((v) => v + 1);
-  }, []);
+  }, [leagueId]);
 
   useEffect(() => {
+    // Commit the league's own state before any read of it lands.
+    setState((prev) => queueStateFor(prev, leagueId));
     if (!leagueId) return;
     let cancelled = false;
     (async () => {
@@ -33,11 +46,11 @@ export function useDraftQueue(
         const res = await seamTable<{ symbol: string; position: number }>('draft_queue', () =>
           supabase.from('draft_queue').select('symbol, position').eq('league_id', leagueId).order('position'),
         );
-        if (!cancelled) setState((prev) => queueStateOnRead(prev, res));
+        if (!cancelled) setState((prev) => queueStateOnRead(prev, leagueId, res));
       } catch (err) {
         if (cancelled) return;
         console.warn('[game:draft-queue] failed', (err as Error)?.message);
-        setState((prev) => queueStateOnRead(prev, { data: null, error: err }));
+        setState((prev) => queueStateOnRead(prev, leagueId, { data: null, error: err }));
       }
     })();
     return () => {
@@ -45,5 +58,5 @@ export function useDraftQueue(
     };
   }, [leagueId, version]);
 
-  return { ...state.read, editorKey: state.generation, refresh, saved };
+  return { ...state.read, editorKey: queueEditorKey(state), refresh, saved };
 }

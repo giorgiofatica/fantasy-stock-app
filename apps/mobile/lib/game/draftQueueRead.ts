@@ -54,10 +54,29 @@ export const RENEWAL_LOAD_FAILED = "The renewal didn't load.";
  * no second remount, so the editor showed the old list beside "Not saved yet."
  * and a second Save would have written the old list over the saved one
  * (Giorgio's phone, 1.3.0 (9), 2026-11-05).
+ *
+ * The state also belongs to ONE league (`leagueId`). The League tab keeps the
+ * same hook instance when the pill switches leagues, so without that, B would
+ * show A's list while B's read is in flight, and (two empty queues being the
+ * common case) A's unsaved edits would survive into B, where Save writes them.
  */
-export type QueueState = { read: QueueRead; generation: number };
+export type QueueState = { leagueId: string | null; read: QueueRead; generation: number };
 
-export const QUEUE_STATE_START: QueueState = { read: { status: 'loading' }, generation: 0 };
+/** A league's queue before its first read. */
+export function queueStateStart(leagueId: string | null): QueueState {
+  return { leagueId, read: { status: 'loading' }, generation: 0 };
+}
+
+/** The state as it belongs to `leagueId`: another league's state is dropped
+ * for a fresh, loading one (the same render, so no frame shows A's list as B's). */
+export function queueStateFor(prev: QueueState, leagueId: string | null): QueueState {
+  return prev.leagueId === leagueId ? prev : queueStateStart(leagueId);
+}
+
+/** The editor's remount key: the league AND the loaded data's generation. */
+export function queueEditorKey(state: QueueState): string {
+  return `${state.leagueId ?? ''}:${state.generation}`;
+}
 
 function sameList(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((s, i) => s === b[i]);
@@ -70,20 +89,27 @@ function sameList(a: string[], b: string[]): boolean {
 function moveTo(prev: QueueState, next: QueueRead): QueueState {
   if (next === prev.read) return prev;
   if (next.status === 'ready' && prev.read.status === 'ready' && sameList(next.queue, prev.read.queue)) return prev;
-  return { read: next, generation: next.status === 'ready' ? prev.generation + 1 : prev.generation };
+  return { ...prev, read: next, generation: next.status === 'ready' ? prev.generation + 1 : prev.generation };
 }
 
-/** A read landed (keeps nextQueueRead's rule: a failed re-read keeps the last good list). */
+/** A read for `leagueId` landed (keeps nextQueueRead's rule: a failed re-read
+ * keeps the last good list). A read for any other league than the state's is
+ * ignored: it can't be this state's data. */
 export function queueStateOnRead(
   prev: QueueState,
+  leagueId: string | null,
   res: { data: { symbol: string; position: number }[] | null; error: unknown },
 ): QueueState {
+  if (prev.leagueId !== leagueId) return prev;
   return moveTo(prev, nextQueueRead(prev.read, res));
 }
 
-/** A save the server accepted: what it stored is now the queue, at once, so
- * the editor is clean on the saved list with no wait for the re-read. */
-export function queueStateOnSaved(prev: QueueState, saved: string[]): QueueState {
+/** A save the server accepted for `leagueId`: what it stored is now that
+ * league's queue, at once, so the editor is clean on the saved list with no
+ * wait for the re-read. A save for any other league than the state's (the
+ * user switched while it was in flight) is ignored. */
+export function queueStateOnSaved(prev: QueueState, leagueId: string | null, saved: string[]): QueueState {
+  if (prev.leagueId !== leagueId) return prev;
   return moveTo(prev, { status: 'ready', queue: saved.slice() });
 }
 

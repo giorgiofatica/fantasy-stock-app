@@ -77,7 +77,7 @@ Deno.test('useDraftRoom reads the queue through nextQueueRead, never `.data ?? [
 });
 
 Deno.test('useDraftQueue reads through queueStateOnRead (nextQueueRead\'s rule)', () => {
-  assertEquals(lobbySrc.includes('queueStateOnRead(prev, res)'), true);
+  assertEquals(lobbySrc.includes('queueStateOnRead(prev, leagueId, res)'), true);
 });
 
 Deno.test('DraftRoom seeds QueueEditor only from a ready read', () => {

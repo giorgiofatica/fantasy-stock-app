@@ -2,20 +2,12 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "19ba90f00cb86b000878dc268507733538e106e7",
-    "commitShort": "19ba90f0",
+    "commit": "cf24880e611779af8f59aad892798a0a5692770b",
+    "commitShort": "cf24880e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/queue-save-stale-remount",
     "dirty": true,
     "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/league.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/QueueEditor.tsx"
-      },
       {
         "code": "M",
         "path": "apps/mobile/lib/game/draftQueueRead.ts"
@@ -29,19 +21,19 @@
         "path": "apps/mobile/tests-deno/game-draft-queue-read.test.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "apps/mobile/tests-deno/game-draft-queue-save.test.ts"
       }
     ],
-    "timestamp": "2026-11-05T20:50:18Z",
-    "sourceHash": "sha256:55c760cc9b927b2b62b8bdf9fa5151fa4059781585b86a424e1a19fc0712513b",
+    "timestamp": "2026-11-05T20:54:06Z",
+    "sourceHash": "sha256:b5828a44110df80dfb79128a68a17e1e6dd2085ce4f8b152a9f5a582838546c5",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 22.8,
+    "ageHours": 22.9,
     "ageDays": 1,
     "staleAfterDays": 14,
     "stale": false,
@@ -19529,7 +19521,7 @@
         "symbol, position"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useDraftQueue.ts:34"
+        "apps/mobile/lib/game/useDraftQueue.ts:47"
       ]
     },
     {
@@ -23600,7 +23592,7 @@
       "apps/mobile/lib/game/useBracket.ts:33 -> matchups.select",
       "apps/mobile/lib/game/useDraftAutoStart.ts:102 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/lib/game/useDraftAutoStart.ts:160 -> leagues.update (via seamUpdateLeague)",
-      "apps/mobile/lib/game/useDraftQueue.ts:34 -> draft_queue.select",
+      "apps/mobile/lib/game/useDraftQueue.ts:47 -> draft_queue.select",
       "apps/mobile/lib/game/useDraftRoom.ts:48 -> drafts.select",
       "apps/mobile/lib/game/useDraftRoom.ts:50 -> draft_queue.select",
       "apps/mobile/lib/game/useFinalLineups.ts:42 -> week_snapshots.select",

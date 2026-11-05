@@ -15,10 +15,12 @@
  */
 import { assertEquals, assertThrows } from 'jsr:@std/assert';
 import {
-  QUEUE_STATE_START,
   nextQueueRead,
+  queueEditorKey,
+  queueStateFor,
   queueStateOnRead,
   queueStateOnSaved,
+  queueStateStart,
   savedQueueFrom,
   type QueueRead,
   type QueueState,
@@ -44,12 +46,13 @@ interface Keying<S> {
 }
 
 /** The fix: the key is the loaded data's generation. A re-read request moves nothing. */
+const LEAGUE = 'league-a';
 const FIX: Keying<QueueState> = {
-  start: QUEUE_STATE_START,
+  start: queueStateStart(LEAGUE),
   read: (s) => s.read,
   key: (s) => s.generation,
-  onRead: queueStateOnRead,
-  onSaved: queueStateOnSaved,
+  onRead: (s, res) => queueStateOnRead(s, LEAGUE, res),
+  onSaved: (s, stored) => queueStateOnSaved(s, LEAGUE, stored),
   refresh: (s) => s,
 };
 
@@ -66,10 +69,10 @@ const ORIGIN_MAIN: Keying<Old> = {
 
 /** QueueEditor's mount rule, rendered against one hook state. */
 function makeEditor() {
-  let key: number | null = null;
+  let key: number | string | null = null;
   let local: string[] = [];
   return {
-    render(read: QueueRead, k: number) {
+    render(read: QueueRead, k: number | string) {
       if (read.status !== 'ready') {
         key = null; // not shown (loading / error): unmounted
         return null;
@@ -158,7 +161,7 @@ Deno.test('the generation moves on data, not on requests or failures', () => {
   assertEquals(FIX.onRead(s, ok(['SG'])), s); // same list: same state
   assertEquals(FIX.onSaved(s, ['SG']), s); // a save of the same list: no remount
   s = FIX.onSaved(s, ['SG', 'SBUX']);
-  assertEquals(s, { read: { status: 'ready', queue: ['SG', 'SBUX'] }, generation: 2 });
+  assertEquals(s, { leagueId: LEAGUE, read: { status: 'ready', queue: ['SG', 'SBUX'] }, generation: 2 });
 });
 
 Deno.test('a failed first read is an error, never [] (draftQueueRead\'s rule), and Try again recovers', () => {
@@ -201,11 +204,155 @@ Deno.test('league.tsx keys QueueEditor on editorKey and passes saved, never the 
 
 Deno.test('useDraftQueue: editorKey is the generation, saved adopts the stored list, version is not exposed', () => {
   const src = code(hookSrc);
-  assertEquals(src.includes('return { ...state.read, editorKey: state.generation, refresh, saved };'), true);
-  assertEquals(src.includes('setState((s) => queueStateOnSaved(s, symbols));'), true);
+  assertEquals(src.includes('return { ...state.read, editorKey: queueEditorKey(state), refresh, saved };'), true);
+  assertEquals(src.includes('setState((s) => queueStateOnSaved(s, leagueId, symbols));'), true);
+  assertEquals(src.includes('const state = queueStateFor(stored, leagueId);'), true);
+  // The effect commits the league's own state, or a read for B would be ignored against A's stored state.
+  assertEquals(src.includes('setState((prev) => queueStateFor(prev, leagueId));'), true);
+  // `saved` is bound to the league whose editor handed it over.
+  assertEquals(/queueStateOnSaved\(s, leagueId, symbols\)\); *\n *setVersion\(\(v\) => v \+ 1\);\n *\}, \[leagueId\]\);/.test(src), true);
+  assertEquals(src.includes('queueStateOnRead(prev, leagueId, res)'), true);
   assertEquals(/editorKey:\s*version/.test(src), false);
 });
 
 Deno.test('QueueEditor hands onSaved the stored list from set_draft_queue', () => {
   assertEquals(code(editorSrc).includes('onSaved(savedQueueFrom(res, queue));'), true);
+});
+
+// ── The league switch: LeagueLobby is not keyed by league, so the hook instance survives the pill ──
+
+/** The hook as the League tab drives it: one instance, `leagueId` changes under it. */
+function makeHook(first: string) {
+  let leagueId = first;
+  let stored = queueStateStart(first);
+  return {
+    /** What a render returns: the state as it belongs to the current league (same render). */
+    view: () => {
+      const state = queueStateFor(stored, leagueId);
+      return { read: state.read, key: queueEditorKey(state) };
+    },
+    /** The league pill: new prop now, the effect commits the reset after the render. */
+    switchTo(next: string) {
+      leagueId = next;
+    },
+    effect() {
+      stored = queueStateFor(stored, leagueId);
+    },
+    /** A read for `forLeague` landed (a cancelled one never does). */
+    onRead(res: Res, forLeague = leagueId) {
+      stored = queueStateOnRead(stored, forLeague, res);
+    },
+    /** The editor's onSaved, bound to the league whose render handed it over. */
+    onSaved(symbols: string[], forLeague = leagueId) {
+      stored = queueStateOnSaved(stored, forLeague, symbols);
+    },
+  };
+}
+
+Deno.test('switch A → B: B shows loading in the same render, then B\'s list; the editor remounts clean even when both lists match', () => {
+  const hook = makeHook('A');
+  const ed = makeEditor();
+  hook.effect();
+  hook.onRead(ok([])); // A: an empty queue, the common case
+  let v = hook.view();
+  assertEquals(ed.render(v.read, v.key), { shown: [], notSavedYet: false });
+  ed.edit((q) => addSymbol(q, 'NVDA')); // A: unsaved edit, not saved
+  assertEquals(ed.render(v.read, v.key), { shown: ['NVDA'], notSavedYet: true });
+
+  hook.switchTo('B');
+  v = hook.view(); // the very render after the pill: before any effect
+  assertEquals(v.read, { status: 'loading' }); // never A's list under B
+  assertEquals(ed.render(v.read, v.key), null); // the editor is gone
+  hook.effect();
+  assertEquals(hook.view().read, { status: 'loading' });
+
+  hook.onRead(ok([])); // B lands with the SAME (empty) list as A
+  v = hook.view();
+  assertEquals(ed.render(v.read, v.key), { shown: [], notSavedYet: false }); // A's NVDA is gone
+});
+
+Deno.test('the same switch on origin/main\'s state shape would carry A\'s edits into B (what the guard prevents)', () => {
+  // A single state with no league in it: B's identical list moves nothing.
+  let s = FIX.onRead(FIX.start, ok([]));
+  const ed = makeEditor();
+  ed.render(s.read, s.generation);
+  ed.edit((q) => addSymbol(q, 'NVDA'));
+  s = FIX.onRead(s, ok([])); // "B" lands, same list: generation does not move
+  assertEquals(ed.render(s.read, s.generation), { shown: ['NVDA'], notSavedYet: true });
+});
+
+Deno.test('switch A → B → A: A reads fresh, never B\'s list', () => {
+  const hook = makeHook('A');
+  hook.effect();
+  hook.onRead(ok(['SG']));
+  hook.switchTo('B');
+  hook.effect();
+  hook.onRead(ok(['AAPL', 'MSFT']));
+  hook.switchTo('A');
+  assertEquals(hook.view().read, { status: 'loading' });
+  hook.effect();
+  hook.onRead(ok(['SG']));
+  assertEquals(hook.view().read, { status: 'ready', queue: ['SG'] });
+});
+
+Deno.test('a save for A that lands after the switch to B is ignored (B keeps its own state)', () => {
+  const hook = makeHook('A');
+  hook.effect();
+  hook.onRead(ok(['SG']));
+  hook.switchTo('B');
+  hook.effect();
+  hook.onRead(ok(['AAPL']));
+  hook.onSaved(['SG', 'SBUX'], 'A'); // A's slow save resolves now
+  assertEquals(hook.view().read, { status: 'ready', queue: ['AAPL'] });
+});
+
+Deno.test('a read for A that lands after the switch to B is ignored', () => {
+  const hook = makeHook('A');
+  hook.effect();
+  hook.switchTo('B');
+  hook.effect();
+  hook.onRead(ok(['SG']), 'A');
+  assertEquals(hook.view().read, { status: 'loading' });
+});
+
+Deno.test('the editor key carries the league: same generation, different league, different key', () => {
+  const a = queueEditorKey(queueStateOnRead(queueStateStart('A'), 'A', ok(['SG'])));
+  const b = queueEditorKey(queueStateOnRead(queueStateStart('B'), 'B', ok(['SG'])));
+  assertEquals(a === b, false);
+});
+
+Deno.test('queueStateFor keeps the state for its own league and starts a loading one for another', () => {
+  const s = queueStateOnRead(queueStateStart('A'), 'A', ok(['SG']));
+  assertEquals(queueStateFor(s, 'A'), s);
+  assertEquals(queueStateFor(s, 'B'), queueStateStart('B'));
+});
+
+// ── "Same list" means the same symbols in the same order, not the same length ──
+// (the queue edited on another device: a re-read of equal length can still be new data)
+
+Deno.test('a same-length re-read in a different order is new data: the generation bumps, the editor remounts', () => {
+  let s = FIX.onRead(FIX.start, ok(['SG', 'SBUX', 'ROBO']));
+  const g = s.generation;
+  const ed = makeEditor();
+  ed.render(s.read, s.generation);
+  s = FIX.onRead(s, ok(['ROBO', 'SG', 'SBUX'])); // reordered elsewhere
+  assertEquals(s.generation, g + 1);
+  assertEquals(s.read, { status: 'ready', queue: ['ROBO', 'SG', 'SBUX'] });
+  assertEquals(ed.render(s.read, s.generation), { shown: ['ROBO', 'SG', 'SBUX'], notSavedYet: false });
+});
+
+Deno.test('a same-length re-read with a different symbol is new data: the generation bumps, the editor remounts', () => {
+  let s = FIX.onRead(FIX.start, ok(['SG', 'SBUX', 'ROBO']));
+  const g = s.generation;
+  const ed = makeEditor();
+  ed.render(s.read, s.generation);
+  s = FIX.onRead(s, ok(['SG', 'SBUX', 'TEMPUS'])); // swapped elsewhere
+  assertEquals(s.generation, g + 1);
+  assertEquals(ed.render(s.read, s.generation), { shown: ['SG', 'SBUX', 'TEMPUS'], notSavedYet: false });
+});
+
+Deno.test('a same-length save is new data too (a reorder saved here)', () => {
+  let s = FIX.onRead(FIX.start, ok(['SG', 'SBUX']));
+  s = FIX.onSaved(s, ['SBUX', 'SG']);
+  assertEquals(s, { leagueId: LEAGUE, read: { status: 'ready', queue: ['SBUX', 'SG'] }, generation: 2 });
 });
