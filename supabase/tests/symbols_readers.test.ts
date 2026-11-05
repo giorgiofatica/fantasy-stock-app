@@ -37,6 +37,9 @@ const FAKE_ENV: Record<string, string> = {
   SB_PUBLISHABLE_KEY: PUBLISHABLE,
   ALPACA_API_KEY: 'test-alpaca-id',
   ALPACA_API_SECRET: 'test-alpaca-secret',
+  // symbols-search's per-user limiter (_shared/market-guard.ts guardSignedInCaller)
+  // is service_role-only; the fake below answers it. Never a real key.
+  SB_SECRET_KEY_INTERNAL: 'sb_secret_test-not-a-secret',
 };
 const SAVED_ENV = new Map(Object.keys(FAKE_ENV).map((k) => [k, Deno.env.get(k)]));
 
@@ -53,6 +56,16 @@ function install(opts: { failCaller?: boolean } = {}): { seen: Seen[]; alpaca: s
   globalThis.fetch = (async (input: Request | URL | string, init?: RequestInit) => {
     const req = input instanceof Request ? input : new Request(String(input), init);
     const url = new URL(req.url);
+    // GoTrue: only the caller's JWT is a real user (symbols-search's guard).
+    if (url.pathname === '/auth/v1/user') {
+      return req.headers.get('Authorization') === `Bearer ${CALLER_JWT}`
+        ? new Response(JSON.stringify({ id: 'caller-user-id', aud: 'authenticated', role: 'authenticated' }), { status: 200 })
+        : new Response(JSON.stringify({ code: 403, msg: 'invalid claim: missing sub claim' }), { status: 403 });
+    }
+    // The per-user limiter: under the limit.
+    if (url.pathname === '/rest/v1/rpc/check_and_bump_rate_limit') {
+      return new Response('true', { status: 200, headers: { 'content-type': 'application/json' } });
+    }
     if (url.hostname === 'data.alpaca.markets') {
       alpaca.push(url.toString());
       return new Response(JSON.stringify({ trades: { AAPL: { p: 200 } } }), { status: 200 });
@@ -127,14 +140,16 @@ Deno.test({
         } finally { f.restore(); }
       });
 
-      await t.step('symbols-search: anon-JWT caller → refused as an ERROR (not "no matches"), no Alpaca fetch', async () => {
+      await t.step('symbols-search: anon-JWT caller → refused as an ERROR (not "no matches"), no read, no Alpaca fetch', async () => {
+        // Since 2026-11-05 the per-user guard refuses a caller with no real user
+        // (401) BEFORE the symbols read, so the table grant is now the second
+        // layer, not the first. Still an error, never an empty list.
         const f = install();
         try {
           const res = await post(search, ANON_JWT, { q: 'AAPL' });
-          assertEquals(res.status, 500);
-          assertEquals(await res.json(), { items: [], error: 'lookup_failed' });
-          assert(f.seen.length > 0);
-          for (const s of f.seen) assertEquals(s.authorization, `Bearer ${ANON_JWT}`);
+          assertEquals(res.status, 401);
+          assertEquals((await res.json()).error, 'not_authenticated');
+          assertEquals(f.seen, [], 'a caller with no real user must not reach the symbols read');
           assertEquals(f.alpaca, [], 'an anon caller must not be able to use search as a price proxy');
         } finally { f.restore(); }
       });

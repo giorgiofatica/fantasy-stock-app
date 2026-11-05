@@ -2,38 +2,42 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "cf24880e611779af8f59aad892798a0a5692770b",
-    "commitShort": "cf24880e",
+    "commit": "2838456770789dfacb469ea2fe7c8f09ffe1ee74",
+    "commitShort": "28384567",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/queue-save-stale-remount",
+    "branch": "fix/symbols-search-limits",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/draftQueueRead.ts"
+        "path": "supabase/functions/_shared/market-guard.test.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useDraftQueue.ts"
+        "code": "MM",
+        "path": "supabase/functions/_shared/market-guard.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-draft-queue-read.test.ts"
+        "code": "MM",
+        "path": "supabase/functions/symbols-search/index.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-draft-queue-save.test.ts"
+        "code": "AM",
+        "path": "supabase/functions/symbols-search/prices.test.ts"
+      },
+      {
+        "code": "AM",
+        "path": "supabase/functions/symbols-search/prices.ts"
       }
     ],
-    "timestamp": "2026-11-05T20:54:06Z",
-    "sourceHash": "sha256:b5828a44110df80dfb79128a68a17e1e6dd2085ce4f8b152a9f5a582838546c5",
+    "timestamp": "2026-11-05T22:41:17Z",
+    "sourceHash": "sha256:2745dfc9e1603ead363e72ba5d4455a677efe1bfe5740f76e82ccc3d3e7a8710",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 22.9,
+    "ageHours": 24.7,
     "ageDays": 1,
     "staleAfterDays": 14,
     "stale": false,
@@ -1225,15 +1229,19 @@
         "verifyJwt": true,
         "verifyJwtSource": "supabase/config.toml:237",
         "authGuard": null,
-        "localModules": [],
-        "tests": [],
+        "localModules": [
+          "prices.ts"
+        ],
+        "tests": [
+          "prices.test.ts"
+        ],
         "envVars": [
           "ALPACA_API_KEY",
           "ALPACA_API_SECRET",
           "SB_PUBLISHABLE_KEY",
           "SUPABASE_URL"
         ],
-        "lines": 180
+        "lines": 226
       },
       "db": null,
       "declared": null,
@@ -1246,7 +1254,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/symbols-search/index.ts",
-        "line": 69
+        "line": 96
       }
     },
     {
@@ -1783,6 +1791,25 @@
       "kind": "edge-module",
       "source": {
         "path": "supabase/functions/snapshot-week-start/plan.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.symbols-search/prices",
+      "label": "prices.ts",
+      "sublabel": "symbols-search",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/symbols-search/prices.ts",
         "line": 1
       }
     },
@@ -12921,7 +12948,19 @@
       "protocol": "vendor-https",
       "payload": "https://data.alpaca.markets/v2/stocks/trades/latest",
       "callSites": [
-        "supabase/functions/symbols-search/index.ts:40"
+        "supabase/functions/symbols-search/index.ts:70"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.symbols-search->mod.symbols-search/prices",
+      "from": "fn.symbols-search",
+      "to": "mod.symbols-search/prices",
+      "protocol": "esm-import",
+      "payload": "import from './prices.ts'",
+      "callSites": [
+        "supabase/functions/symbols-search/index.ts"
       ]
     },
     {
@@ -12936,11 +12975,11 @@
         "symbol,name,is_draftable"
       ],
       "callSites": [
-        "supabase/functions/symbols-search/index.ts:113",
-        "supabase/functions/symbols-search/index.ts:122",
-        "supabase/functions/symbols-search/index.ts:133",
-        "supabase/functions/symbols-search/index.ts:144",
-        "supabase/functions/symbols-search/index.ts:155"
+        "supabase/functions/symbols-search/index.ts:160",
+        "supabase/functions/symbols-search/index.ts:169",
+        "supabase/functions/symbols-search/index.ts:180",
+        "supabase/functions/symbols-search/index.ts:191",
+        "supabase/functions/symbols-search/index.ts:202"
       ]
     },
     {
@@ -23364,8 +23403,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 309,
-    "edges": 758,
+    "nodes": 310,
+    "edges": 759,
     "flows": 7,
     "drift": 33,
     "driftHigh": 0,
@@ -23394,7 +23433,7 @@
       "snapshot-week-end[close.ts]",
       "snapshot-week-start[plan.ts]",
       "symbol-name[]",
-      "symbols-search[]",
+      "symbols-search[prices.ts]",
       "ticker-quotes[]",
       "validate-and-record-pick[]"
     ],
@@ -23795,11 +23834,11 @@
       "supabase/functions/snapshot-week-start/index.ts:626 -> matchups.update",
       "supabase/functions/snapshot-week-start/index.ts:765 -> week_snapshots.upsert",
       "supabase/functions/symbol-name/index.ts:41 -> symbols.select",
-      "supabase/functions/symbols-search/index.ts:113 -> symbols.select",
-      "supabase/functions/symbols-search/index.ts:122 -> symbols.select",
-      "supabase/functions/symbols-search/index.ts:133 -> symbols.select",
-      "supabase/functions/symbols-search/index.ts:144 -> symbols.select",
-      "supabase/functions/symbols-search/index.ts:155 -> symbols.select",
+      "supabase/functions/symbols-search/index.ts:160 -> symbols.select",
+      "supabase/functions/symbols-search/index.ts:169 -> symbols.select",
+      "supabase/functions/symbols-search/index.ts:180 -> symbols.select",
+      "supabase/functions/symbols-search/index.ts:191 -> symbols.select",
+      "supabase/functions/symbols-search/index.ts:202 -> symbols.select",
       "supabase/functions/validate-and-record-pick/index.ts:340 -> symbols.select",
       "supabase/functions/validate-and-record-pick/index.ts:6 -> drafts.insert"
     ],

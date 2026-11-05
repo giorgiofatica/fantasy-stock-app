@@ -1,6 +1,6 @@
 /**
  * Caller guard for the market-data functions (quote, historical-bars,
- * ticker-quotes). Giorgio, 2026-10-08: "I don't want people to be able to
+ * ticker-quotes, symbols-search). Giorgio, 2026-10-08: "I don't want people to be able to
  * scrape anything." These functions spend the shared server-side Alpaca key,
  * so an unguarded one is a free, anonymous price proxy.
  *
@@ -103,4 +103,45 @@ export function capSymbolList(raw: unknown[], max: number): { symbols: string[];
     if (v && !seen.has(v)) { seen.add(v); all.push(v); }
   }
   return { symbols: all.slice(0, max), truncated: all.slice(max) };
+}
+
+export type GuardResult =
+  | { ok: true; userId: string }
+  | { ok: false; status: number; body: { error: string; message: string } };
+
+/** The guard's decision, pure: no real user -> 401; a limiter verdict other
+ * than an explicit 'ok' (limited, unavailable, or none at all) -> 429/503. */
+export function guardDecision(user: { id: string } | null, verdict: LimitVerdict | null): GuardResult {
+  if (!user) return { ok: false, ...REFUSAL.not_authenticated };
+  if (verdict !== 'ok') return { ok: false, ...refusalFor(verdict ?? 'unavailable') };
+  return { ok: true, userId: user.id };
+}
+
+/**
+ * The whole per-user guard for a CALLER-SCOPED function (symbols-search), whose
+ * own file must never hold a secret-key client (supabase/tests/
+ * symbols_readers.test.ts: a caller-scoped symbols reader "must not touch the
+ * secret key", so a symbols read can never silently run as service_role). The
+ * limiter is service_role-only, so its client is built HERE from
+ * SB_SECRET_KEY_INTERNAL, used for the one rpc, and never returned.
+ *
+ * Fail closed, like ticker-quotes: no real user (getUser) -> 401; the limiter
+ * erroring, unreachable, or the secret missing -> 503, never a pass. Runs
+ * before any DB read or Alpaca call. Never throws.
+ */
+export async function guardSignedInCaller(req: Request, bucket: string, limitPerMin: number): Promise<GuardResult> {
+  try {
+    const url = Deno.env.get('SUPABASE_URL') ?? '';
+    const user = await resolveUser(url, Deno.env.get('SB_PUBLISHABLE_KEY') ?? '', req.headers.get('Authorization'));
+    if (!user) return guardDecision(null, null);
+    const secret = Deno.env.get('SB_SECRET_KEY_INTERNAL') ?? '';
+    if (!url || !secret) return guardDecision(user, 'unavailable');
+    const limiter = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
+    return guardDecision(user, await checkRateLimits(limiter, bucket, [{ subject: `user:${user.id}`, limit: limitPerMin }]));
+  } catch {
+    // A misconfiguration (an empty URL or publishable key makes createClient
+    // throw inside resolveUser) is a refusal with CORS headers, not an
+    // uncaught 500. No user could be proven, so: 401's sibling, 503.
+    return { ok: false, ...REFUSAL.rate_limit_unavailable };
+  }
 }
