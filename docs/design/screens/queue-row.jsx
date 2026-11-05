@@ -50,11 +50,15 @@
   );
 
   // ── Today: the position, the ticker, up / down / remove. ──
+  /** Uncapped text at AX5 is about 3.1× (the board's 2.4 is the capped-row approximation); Today's ticker has no cap. */
+  const ax = (x) => (x > 1 ? 3.1 : 1);
   function RowToday({ s, i, n, x }) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, minHeight: 44 }}>
-        <Pos i={i} x={x} />
-        <span className="dr-t" style={{ ...fs(16, x, ROW), flex: 1 }}>{s.t}</span>
+        {/* As it ships: the number and the ticker grow with no cap, so at your size a 4-letter
+            ticker runs into the buttons and cuts ("SB…", your 12:40 recording). */}
+        <span className="dr-cap dr-num" style={{ ...fs(12, ax(x)), minWidth: 20, flex: 'none' }}>{i + 1}</span>
+        <span className="dr-t" style={{ ...fs(16, ax(x)), flex: 1, ...ell }}>{s.t}</span>
         <Controls i={i} n={n} x={x} />
       </div>
     );
@@ -147,17 +151,18 @@
           </div>
         </header>
         <ul className="b-inv__notes">
-          <li><b>Today:</b> the number, the ticker, and up / down / remove. Nothing says what the company is or what it costs.</li>
+          <li><b>Today:</b> the number, the ticker, and up / down / remove. Nothing says what the company is or what it costs. At your size the ticker grows with no limit, so a 4-letter ticker runs into the buttons and gets cut: "SB…" and "RO…" in your 12:40 recording.</li>
           <li><b>A · Like the draft room's search.</b> The ticker over the company name, the price on the ticker's line, as the search shows the stocks you queue from. The company gets the whole width left of the buttons and ends in "…" only when it runs out ("Berkshire Hathaway Inc. Cl…"). <b>Cost: small, about a day:</b> the names and prices come the same way the search gets them; the queue itself doesn't change.</li>
           <li><b>B · Like your Holdings.</b> The same three, behind Portfolio's round ticker badge, so a queued stock looks the way it will once you own it. The badge costs the name about 50pt: at Large "Costco Wholesale Corporat…" in A is "Costco Wholesale…" in B. At your size, "Microsoft Corporati…" in A is "Microsoft C…" in B. And a ticker with its price no longer fits on one line, even at Large, so in B the price drops under the ticker and every row grows a line. <b>Cost: the same as A.</b></li>
           <li><b>The price</b> is the stock's latest trade, the same number the draft search shows. While the market is open it's live when you open the card. When it's closed it's the last close, and one line under the card's intro says so: <b>"Prices at Wednesday's close."</b> <NEW /> (the day changes; the same wording as Matchup's approved "Ordered by Wednesday's close"). If a price doesn't load it shows "–", never "$0.00" and never a blank, and the rest of the row stays. While it loads, a grey bar holds its place. We don't fall back to an older stored price: it can be about two days old, and nothing would say so.</li>
+          <li><b>The ticker is never cut, in A or B.</b> Only the company name gets "…". The ticker stays whole on one line; when the ticker and the price don't both fit, the price moves under the ticker, never the other way round. (The draft search's own list breaks a ticker across two lines at your size, "RO" over "BO" in your recording; the queue doesn't copy that, and the search gets the same fix separately.)</li>
           <li><b>At your size:</b> the row's words stop growing at 1.3×, as on Holdings and Schedule, so the buttons stay on the same line and the name keeps its room. A keeps the ticker and price on one line (only the longest ticker, BRK.B, drops its price under it) and shows most of each name; B shows a word of each name and takes three lines a row.</li>
           <li><b>Recommended: A.</b> It gives the name the most room, which is the thing you asked to see. It matches the list you queue from, so a stock reads the same in the search and in your queue. The queue is a list of picks you want, not stocks you own, so Holdings' look would promise something that hasn't happened yet. Pick B if you'd rather the queue preview your roster.</li>
           <li><b>New words, to approve as written:</b> "Prices at Wednesday's close." (only when the market is closed; Monday through Friday by the day). Everything else is a ticker, a company name, a price or "–".</li>
           {archived ? <li>{decidedNote}</li> : null}
         </ul>
         <h3 className="b-sub">Today, as build 9 ships it</h3>
-        <Grid>{four('today', 'Today')}</Grid>
+        <Grid>{four('today', 'Today', { x: 'As on your phone: the ticker grows with no limit and gets cut. An approximation of your text size; the build gate checks the real thing.' })}</Grid>
         <h3 className="b-sub">A · Like the draft room's search: ticker, company, price</h3>
         <Grid>{four('A', 'A', { l: 'RKLB\'s price didn\'t load, so it shows "–". BRK.B\'s long name ends in "…".' })}</Grid>
         <h3 className="b-sub">B · Like your Holdings: the ticker badge, then the same three</h3>
