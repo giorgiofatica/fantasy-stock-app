@@ -10,6 +10,14 @@
 //   never keyed on the toggle: remounting a filled password field raises iOS's "Save Password?" sheet
 //   (lib/inputRemount.ts), and a remount would also drop the keyboard.
 // - A field the caller did not mark secure never takes the toggle.
+//
+// Known iOS behaviour, NOT fixed here (measured on the iOS 27 simulator, 2026-11-06, L and AX5): once a
+// secure field has been shown and is hidden again, UIKit clears its content on the NEXT keystroke (the
+// system's secure-entry "clear on insertion"; a blur and refocus does the same). So show -> hide -> type
+// replaces the whole password with the typed characters. Typing while it is SHOWN keeps everything, and so
+// does hiding without typing afterwards. If the Design Lead wants it handled, the fix is a one-shot in
+// Field: after a show -> hide, treat the first onChangeText that is not an edit of the previous value
+// (neither a prefix of it nor an extension of it) as an insertion and append it to the previous value.
 
 export const SHOW_PASSWORD = 'Show password';
 export const HIDE_PASSWORD = 'Hide password';
