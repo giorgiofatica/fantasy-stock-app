@@ -2,7 +2,7 @@
 // Design Lead, 2026-10-21. Game Night, Light AND Dark. Giorgio decided all three calls the same
 // day (A "Former manager"; B one line per league; B the Members pill + the seat's team view) and
 // approved the new strings as written; the calls are in the Archive and "Decided" below is the
-// set W4 builds.
+// set W4 builds. 2026-11-06: Giorgio changed the seat's label to B, "Open team" (SEAT below).
 // Review notes sit UNDER the phones (Giorgio, 2026-10-14), never inside them.
 
 (function () {
@@ -198,12 +198,14 @@
     );
   }
   const FORMER = 'Former manager';
+  /** The seat's label as decided: B, "Open team" (Giorgio, 2026-11-06; it was A, FORMER, from 2026-10-21). */
+  const SEAT = 'Open team';
   /** The plan's draft body (A), verbatim, with the placeholder filled in. */
   const BODY_A = `This deletes your account right away. Your leagues keep playing: in any league that has already drafted this season, your team stays as '${FORMER}' and your commissioner can hand it to a new manager. Past seasons keep your results under that name too.`;
   /** Roberto's leagues for the screen: one he runs, one he plays in, one he runs alone, one before its draft. */
   const MY_LEAGUES = [
-    { name: 'Stock Scudetto', a: `You run Stock Scudetto. Paolo M. becomes the commissioner.`, b: `Your team stays as “${FORMER}”. Paolo M. becomes the commissioner.` },
-    { name: 'Friday Night Stocks', a: null, b: `Your team stays as “${FORMER}”. The commissioner can hand it to a new manager.` },
+    { name: 'Stock Scudetto', a: `You run Stock Scudetto. Paolo M. becomes the commissioner.`, b: `Your team stays as “${SEAT}”. Paolo M. becomes the commissioner.` },
+    { name: 'Friday Night Stocks', a: null, b: `Your team stays as “${SEAT}”. The commissioner can hand it to a new manager.` },
     { name: 'Serie A Traders', a: null, b: 'It hasn’t drafted yet, so you leave it.' },
     { name: 'Solo Stocks', a: 'Solo Stocks has no other managers, so it is deleted with your account.', b: 'No other managers, so it’s deleted with your account.' },
   ];
@@ -255,7 +257,7 @@
                     </div>
                   ))}
                 </Card>
-                <Sub x={x}>Past seasons keep your results under “{FORMER}”.</Sub>
+                <Sub x={x}>Past seasons keep your results under “{SEAT}”.</Sub>
               </>
             )}
             <Proof kind={proof} state={state} x={x} />
@@ -328,7 +330,7 @@
       <Th t={t}>
         <Device noTabs full label={`The deleted seat's team, with Find a new manager for the commissioner, ${t}`}>
           <div style={{ padding: `56px ${G}px 24px`, display: 'grid', gap: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Title size={24}>{FORMER}</Title><span className="dr-muted" style={{ display: 'grid', placeItems: 'center', width: 44, height: 44 }}><Icon d={ICON.close} size={20} /></span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Title size={24}>{SEAT}</Title><span className="dr-muted" style={{ display: 'grid', placeItems: 'center', width: 44, height: 44 }}><Icon d={ICON.close} size={20} /></span></div>
             <span className="dr-cap">Portfolio value · includes cash</span>
             <span className="dr-score" style={{ fontSize: 40, lineHeight: '44px' }}>$6,290.48</span>
             <span className="dr-call"><b className="dr-gain">+$290.48 · +4.84%</b> <span className="dr-muted">since the draft</span></span>
@@ -364,7 +366,7 @@
           </div>
         )}>
           <div style={{ padding: `56px ${G}px 24px`, display: 'grid', gap: 14 }}>
-            <Title size={24}>{FORMER}</Title>
+            <Title size={24}>{SEAT}</Title>
             <span className="dr-score" style={{ fontSize: 40, lineHeight: '44px' }}>$6,290.48</span>
           </div>
         </Device>
@@ -391,7 +393,7 @@
           <div style={{ padding: `56px ${G}px 24px`, minHeight: 786, marginBottom: -66, boxSizing: 'border-box', display: 'grid', gridTemplateRows: '1fr auto', gap: 18 }}>
             <div style={{ display: 'grid', gap: 16, alignContent: 'center', justifyItems: 'center', textAlign: 'center', textWrap: 'balance' }}>
               <Seat size={64} />
-              <Title>Take over {FORMER}'s team in {LEAGUE}?</Title>
+              <Title>Take over the open team in {LEAGUE}?</Title>
               <Card pad="12px 18px"><span className="dr-call dr-num" style={{ fontSize: 17, fontWeight: 800, color: 'var(--c-text)' }}>1–5, 6th</span></Card>
             </div>
             <div style={{ display: 'grid', gap: 10 }}><Btn>Take the team</Btn><TextLink color="var(--c-text-2)">Not now</TextLink></div>
@@ -428,7 +430,7 @@
           <li><b>B · "Open team":</b> says the seat can be taken. But after the season (History) nothing is open about it, and a few lines get awkward: the takeover screen would read "Take over Open team's team", and your push "{'{Name}'} took over Open team's team." B would need those two rewritten.</li>
           <li><b>Both:</b> the default avatar (a person glyph on a neutral disc), never initials of the label; the label in the secondary text colour, so it reads as a placeholder, not a person.</li>
           <li><b>Recommended: A.</b> It stays true in every season and every sentence it goes into, with no rewrites.</li>
-          {archived ? <li><b>Decided by Giorgio (2026-10-21): A, "Former manager".</b></li> : null}
+          {archived ? <li><b>Decided by Giorgio (2026-10-21): A, "Former manager".</b> <b>Changed by Giorgio (2026-11-06): B, "Open team"</b> (his words: "B: Open Team"). The two sentences that named the seat are reworded so they don't read "Open team's team": the takeover question "Take over the open team in {'{league}'}?" and the commissioner's push "{'{Name}'} took over the open team." Both approved by Giorgio the same day ("both sentences are fine"). Past seasons keep the same label.</li> : null}
         </>}>
         {['A', 'B'].map((v) => ['dark', 'light'].map((t) => (
           <React.Fragment key={v + t}>
@@ -489,9 +491,9 @@
           {archived ? <li><b>Decided by Giorgio (2026-10-21): B</b>, the Members pill, the standings row uniform (it opens the seat's team view, where the button is).</li> : null}
         </>}>
         <h3 className="b-sub">A · on both lists</h3>
-        <Grid>{[...quad('fam', 'A · Members', (p) => <Members {...p} label={FORMER} find />), ...quad('fas', 'A · Standings', (p) => <Standings {...p} label={FORMER} commish findLink />)]}</Grid>
+        <Grid>{[...quad('fam', 'A · Members', (p) => <Members {...p} label={SEAT} find />), ...quad('fas', 'A · Standings', (p) => <Standings {...p} label={SEAT} commish findLink />)]}</Grid>
         <h3 className="b-sub">B · Members, and the seat's team</h3>
-        <Grid>{[...quad('fbm', 'B · Members', (p) => <Members {...p} label={FORMER} find />), ...quad('fbt', 'B · the seat\'s team', SeatTeam, 'Opened by tapping the seat\'s standings row (which looks like any other row). The commissioner sees the button; nobody else does.')]}</Grid>
+        <Grid>{[...quad('fbm', 'B · Members', (p) => <Members {...p} label={SEAT} find />), ...quad('fbt', 'B · the seat\'s team', SeatTeam, 'Opened by tapping the seat\'s standings row (which looks like any other row). The commissioner sees the button; nobody else does.')]}</Grid>
         <h3 className="b-sub">Then: the share sheet, the landing, and "already taken"</h3>
         <Grid>{[
           fig('sh', 'Share sheet · Light', <Share t="light" />, 'iOS draws the sheet; the app supplies the message and the link. NEW: "Take over a team in Stock Scudetto".'),
@@ -505,8 +507,8 @@
   // ── As decided (2026-10-21): the frames W4 builds ──
   function Decided() {
     return (
-      <Sec id="account-deletion" title="Account deletion, as decided (2026-10-21): the frames"
-        intro={<>Giorgio's picks: the seat reads "Former manager" (A); the delete screen explains each league on its own line (B); "Find a new manager" is a pill on Members, and the standings row stays like every other row and opens the seat's team, where the button is (B). Every new string was approved as written. The three calls are in the Archive. The wording is in PRODUCT_RULES "Account deletion".</>}
+      <Sec id="account-deletion" title="Account deletion, as decided (2026-10-21; the seat's label changed 2026-11-06): the frames"
+        intro={<>Giorgio's picks: the seat reads "Open team" (B, changed 2026-11-06 from A, "Former manager"); the delete screen explains each league on its own line (B); "Find a new manager" is a pill on Members, and the standings row stays like every other row and opens the seat's team, where the button is (B). Every new string was approved as written. The three calls are in the Archive. The wording is in PRODUCT_RULES "Account deletion".</>}
         notes={<>
           <li><b>For W4 · the destructive button</b> is the lossFill pill with onYou ink (both themes), the same as Sell and Leave league.</li>
           <li><b>For W4 · "Delete my account" stays dimmed until the proof is in hand</b>; the proof line right above it ("Enter your password to continue" / "Confirm it's you to continue") is its visible reason (UX rule 8). After an Apple or Google proof, "Confirmed with Apple / Google" replaces the button above it.</li>
@@ -514,12 +516,12 @@
           <li><b>For W4 · nothing is sent until "Delete"</b> on the alert; "Keep my account" is the alert's default (cancel style).</li>
           <li><b>For W4 · "already taken"</b> has no heading and centres its panel and "Go to Home", the invite arrival's dead-link pattern.</li>
         </>}>
-        <h3 className="b-sub">The seat reads "Former manager": Standings, Matchup, History, Members</h3>
+        <h3 className="b-sub">The seat reads "Open team": Standings, Matchup, History, Members</h3>
         {['dark', 'light'].map((t) => <Grid key={t}>{[
-          fig(`ds${t}`, `Standings · ${t === 'dark' ? 'Dark' : 'Light'}`, <Standings t={t} label={FORMER} />),
-          fig(`dm${t}`, `Matchup · ${t === 'dark' ? 'Dark' : 'Light'}`, <Matchup t={t} label={FORMER} />),
-          fig(`dh${t}`, `History · ${t === 'dark' ? 'Dark' : 'Light'}`, <History t={t} label={FORMER} />),
-          fig(`db${t}`, `Members · ${t === 'dark' ? 'Dark' : 'Light'}`, <Members t={t} label={FORMER} />),
+          fig(`ds${t}`, `Standings · ${t === 'dark' ? 'Dark' : 'Light'}`, <Standings t={t} label={SEAT} />),
+          fig(`dm${t}`, `Matchup · ${t === 'dark' ? 'Dark' : 'Light'}`, <Matchup t={t} label={SEAT} />),
+          fig(`dh${t}`, `History · ${t === 'dark' ? 'Dark' : 'Light'}`, <History t={t} label={SEAT} />),
+          fig(`db${t}`, `Members · ${t === 'dark' ? 'Dark' : 'Light'}`, <Members t={t} label={SEAT} />),
         ]}</Grid>)}
         <h3 className="b-sub">Profile's last row, then the delete screen (one line per league)</h3>
         <Grid>{[...quad('dpr', 'Profile', Profile), ...quad('dsb', 'Delete your account?', (p) => <DeleteScreen {...p} v="B" />)]}</Grid>
@@ -534,7 +536,7 @@
         <Grid>{[...quad('dal', 'Are you sure?', Alert), fig('dfl', 'Couldn\'t delete · Light', <DeleteScreen t="light" state="filled" failed />)]}</Grid>
         <Grid>{[...quad('dxx', 'XXXL', (p) => <DeleteScreen {...p} x={2.4} />, 'An approximation of Accessibility XXXL; the build gate checks the real thing.'), ...quad('dso', 'Your account is deleted.', SignedOut)]}</Grid>
         <h3 className="b-sub">The commissioner: the Members pill, the uniform standings row, the seat's team</h3>
-        <Grid>{[...quad('dfm', 'Members', (p) => <Members {...p} label={FORMER} find />), ...quad('dfs', 'Standings (the row opens the team)', (p) => <Standings {...p} label={FORMER} commish />)]}</Grid>
+        <Grid>{[...quad('dfm', 'Members', (p) => <Members {...p} label={SEAT} find />), ...quad('dfs', 'Standings (the row opens the team)', (p) => <Standings {...p} label={SEAT} commish />)]}</Grid>
         <Grid>{quad('dft', 'The seat\'s team', SeatTeam, 'The commissioner sees "Find a new manager"; nobody else does.')}</Grid>
         <h3 className="b-sub">The takeover: share, landing, already taken</h3>
         <Grid>{[fig('dsh', 'Share sheet · Light', <Share t="light" />), ...quad('dtk', 'Takeover landing', (p) => <Takeover {...p} />), fig('dtt', 'Already taken · Light', <Takeover t="light" taken />)]}</Grid>
