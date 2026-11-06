@@ -67,7 +67,11 @@ switch (18). Note the time and what you had just tapped if it happens.
 - [ ] **Step 18. Allowlist three throwaway addresses (T1, T2, T3).** Sign-ups are gated, and a
   draft needs 4 members, so Part B uses three throwaways. In the Supabase SQL editor, addresses
   in lowercase, one row each:
-  `INSERT INTO public.signup_allowlist (email, note) VALUES (lower('T1@example.com'), 'build-9 phone pass T1');`
+  `INSERT INTO public.signup_allowlist (email, note) VALUES (lower('you+t1@gmail.com'), 'build-9 phone pass T1');`
+  **Use a real email domain.** Supabase Auth refuses example.com and other test domains at
+  sign-up ("Please enter a valid email address"; its `email_address_invalid`: "Example and test
+  domains are currently not supported"). Plus-addressing on a real inbox works (`you+t1@gmail.com`,
+  `+t2`, `+t3`); with Confirm email off, no mail is sent to it.
   (Deleting an account later leaves its row in place, so the address can sign up again.)
 - [ ] **Step 19. Sign T1, T2 and T3 up** (a simulator is easiest; signing out and in on your
   phone also works) and have all three **join League A** (step 14) with its code: 4 members.
