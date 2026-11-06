@@ -47,7 +47,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/create-league.tsx:622` | Button | onPress | `goNext` | fn goNext | `blocked` |
 | `app/forgot-password.tsx:135` | EmptyState | onAction | `backToSignIn` | route replace('/login') |  |
 | `app/forgot-password.tsx:137` | EmptyState | onSecondaryAction | `inline: () => { setSent(false); handleResetPassword(); }` | state setSent |  |
-| `app/forgot-password.tsx:170` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |
+| `app/forgot-password.tsx:172` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |
 | `app/join-league.tsx:496` | Button | onPress | `primary.onPress` | prop primary.onPress | `view.action === 'join_disabled'` |
 | `app/join-league.tsx:510` | Button | onPress | `find` | fn find | `!trimmed` |
 | `app/join-league.tsx:578` | Button | onPress | `onContinue` | prop onContinue (the caller's) |  |
@@ -60,10 +60,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/league-settings.tsx:513` | SlotBuilder | onChange | `inline: (next) => { setSlots(next); setSlotsError(null); }` | state setSlots | `isLocked` |
 | `app/league-settings.tsx:552` | SettingRow | onPress | `inline: commissionerRow.pressable ? () => { setLeaveError(null); set` | sheet setTransferOpen(true) |  |
 | `app/league-settings.tsx:596` | Button | onPress | `inline: () => void Share.share({ message: inviteShareMessage(code) }` | share sheet |  |
-| `app/login.tsx:165` | Pressable | onPress | `handleResend` | fn handleResend |  |
-| `app/login.tsx:172` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
-| `app/login.tsx:181` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
-| `app/login.tsx:182` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
+| `app/login.tsx:167` | Pressable | onPress | `handleResend` | fn handleResend |  |
+| `app/login.tsx:174` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
+| `app/login.tsx:183` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
+| `app/login.tsx:184` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
 | `app/pick-username.tsx:15` | UsernamePickerExit | onPress | `signOut` | fn signOut (from a hook or import) |  |
 | `app/reset-password.tsx:125` | EmptyState | onAction | `inline: () => router.replace('/')` | route replace('/') |  |
 | `app/reset-password.tsx:139` | Pressable | onPress | `handleCancel` | route replace('/') |  |

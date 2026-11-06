@@ -140,6 +140,8 @@ export default function SignInScreen() {
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
+          autoCorrect={false}
+          spellCheck={false}
           textContentType="username"
           returnKeyType="next"
           onSubmitEditing={() => passwordRef.current?.focus()}

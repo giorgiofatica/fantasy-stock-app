@@ -168,6 +168,8 @@ export default function CreateAccountScreen() {
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
+          autoCorrect={false}
+          spellCheck={false}
           textContentType="emailAddress"
           returnKeyType="next"
           onSubmitEditing={() => passwordRef.current?.focus()}
