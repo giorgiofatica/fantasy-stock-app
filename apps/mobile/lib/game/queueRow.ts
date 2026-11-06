@@ -13,6 +13,10 @@ import { marketClosedAt } from '../home/homeCopy';
 /** The row's text stops growing here, as Holdings and Schedule rows do, so the buttons stay on the row at the largest sizes. */
 export const QUEUE_ROW_TEXT_MAX_SCALE = 1.3;
 
+/** One symbol's answer in a symbols-search batch: a clean answer (`ok`: a price, or null = no price / not a ticker) or a
+ * failed read (retry it; never a price, never cached as an answer). */
+export type BatchAnswer = { ok: true; price: number | null } | { ok: false };
+
 /** The price cell of a stock whose price is missing. An en dash, never "$0.00" and never a blank. */
 export const NO_PRICE = '–';
 
@@ -47,18 +51,35 @@ export function pricesClosedLine(marketStatus: string | null | undefined, lastCl
 }
 
 /**
- * The price out of a symbols-search response for ONE asked symbol. The search matches by prefix and by name, so a
- * stock that isn't there (delisted, a typo) answers with its neighbours: only the item whose symbol IS the asked one
- * counts, and only with a usable price. Everything else is null.
+ * The answers out of a symbols-search BATCH response (`{ prices: {SYM: number|null}, failed: [...], invalid: [...] }`), one per
+ * asked symbol (queuePriceStore.ts):
+ *   - a symbol in `prices` is a clean answer, a number or null ("no price"); a number that is not usable (zero, negative,
+ *     under a cent) is null, as everywhere: "–", never "$0.00";
+ *   - a symbol in `failed` is a FAILED read (the server could not ask; retry it), even if `prices` also names it;
+ *   - a symbol in `invalid` is not a ticker: a clean "–" (asking again would answer the same);
+ *   - a symbol the response says nothing about is a failed read too. The server accounts for every symbol it was sent
+ *     ("Nothing is dropped"), so silence means a response we cannot read, never a price.
+ * A response that is not an object fails every symbol. Keys are matched exactly, upper-cased on both sides.
  */
-export function priceFromSearch(data: unknown, symbol: string): number | null {
-  const items = (data as { items?: unknown } | null | undefined)?.items;
-  if (!Array.isArray(items)) return null;
-  const want = symbol.toUpperCase();
-  for (const item of items as { symbol?: unknown; price?: unknown }[]) {
-    if (typeof item?.symbol === 'string' && item.symbol.toUpperCase() === want) return usablePrice(item.price) ? item.price : null;
+export function answersFromBatch(data: unknown, asked: readonly string[]): Record<string, BatchAnswer> {
+  const body = (data && typeof data === 'object' && !Array.isArray(data) ? data : {}) as { prices?: unknown; failed?: unknown; invalid?: unknown };
+  const prices = body.prices && typeof body.prices === 'object' && !Array.isArray(body.prices) ? (body.prices as Record<string, unknown>) : {};
+  const upperSet = (v: unknown) => new Set(Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').map((x) => x.toUpperCase()) : []);
+  const failed = upperSet(body.failed);
+  const invalid = upperSet(body.invalid);
+  const pricesByUpper = new Map<string, unknown>();
+  for (const [k, v] of Object.entries(prices)) pricesByUpper.set(k.toUpperCase(), v);
+  const out: Record<string, BatchAnswer> = {};
+  for (const raw of asked) {
+    const s = raw.toUpperCase();
+    if (failed.has(s)) out[s] = { ok: false };
+    else if (invalid.has(s)) out[s] = { ok: true, price: null };
+    else if (pricesByUpper.has(s)) {
+      const p = pricesByUpper.get(s);
+      out[s] = { ok: true, price: usablePrice(p) ? p : null };
+    } else out[s] = { ok: false };
   }
-  return null;
+  return out;
 }
 
 /** The names out of a symbols read ({symbol, name} rows) by uppercase ticker; rows with no usable name are left out. */

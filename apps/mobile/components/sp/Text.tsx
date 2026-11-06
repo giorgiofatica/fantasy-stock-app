@@ -2,7 +2,7 @@
 import { Text as RNText, TextProps as RNTextProps, StyleSheet, useWindowDimensions, type TextStyle } from 'react-native';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { resolveFontFamily } from './logic/fontWeight';
-import { cappedSpText } from './logic/cappedType';
+import { cappedSpText, subLineCap } from './logic/cappedType';
 import { fontScaleKey } from './logic/remeasureKey';
 
 import { type, TypeVariant } from '@/constants/tokens';
@@ -27,6 +27,10 @@ export interface TextProps extends RNTextProps {
    * change in the same frame as an animation (the draft room's your-turn flash). Given
    * one, the text renders as Animated.Text; without one, nothing changes. */
   animatedStyle?: AnimatedStyle<TextStyle>;
+  /** This Text is a SUB-LINE of a title in this variant (the caption under a headline, the
+   * sentence under a tag): its cap is never higher than the title's (logic/cappedType.ts
+   * `subLineCap`), so at the largest accessibility sizes it cannot outgrow the title above it. */
+  subOf?: TypeVariant;
 }
 
 // Score variants render digits that must never wrap onto a second line —
@@ -42,6 +46,7 @@ export function Text({
   maxFontSizeMultiplier,
   allowFontScaling: callerAllowFontScaling,
   animatedStyle,
+  subOf,
   children,
   ...rest
 }: TextProps) {
@@ -68,7 +73,7 @@ export function Text({
   // ("FINAL" → "FINA") once §9C widened the tag's tracking. Other children keep textTransform.
   const upperInJs = typeStyle.textTransform === 'uppercase' && typeof children === 'string';
   const content = upperInJs ? (children as string).toUpperCase() : children;
-  const resolvedMaxFontSizeMultiplier = maxFontSizeMultiplier ?? typeStyle.maxScale;
+  const resolvedMaxFontSizeMultiplier = subLineCap(maxFontSizeMultiplier ?? typeStyle.maxScale, subOf ? type[subOf].maxScale : undefined);
 
   // A caller's fontWeight picks the matching Archivo face (iOS ignores fontWeight on a
   // single-weight family: logic/fontWeight.ts); the weight itself is then cleared.

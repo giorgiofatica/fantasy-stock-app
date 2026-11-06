@@ -80,7 +80,7 @@ export function MagicMoveTile({ symbol, name, fromRect, toRect, onArrived }: Mag
   return (
     <Animated.View style={[styles.tile, style, { backgroundColor: colors.surface }]} pointerEvents="none">
       <Text variant="headline" numberOfLines={1}>{symbol}</Text>
-      {name ? <Text variant="caption" tone="secondary" numberOfLines={1}>{name}</Text> : null}
+      {name ? <Text variant="caption" tone="secondary" numberOfLines={1} subOf="headline">{name}</Text> : null}
     </Animated.View>
   );
 }

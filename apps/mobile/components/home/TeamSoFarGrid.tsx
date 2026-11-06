@@ -37,7 +37,7 @@ export function TeamSoFarGrid({ title, caption, symbols, numRounds }: TeamSoFarG
     <Card style={styles.card}>
       <View style={styles.header}>
         <Text variant="headline">{title ?? YOUR_TEAM_SO_FAR}</Text>
-        <Text variant="caption" tone="secondary">{caption ?? teamSoFarCaption(symbols.length, numRounds)}</Text>
+        <Text variant="caption" tone="secondary" subOf="headline">{caption ?? teamSoFarCaption(symbols.length, numRounds)}</Text>
       </View>
       <View style={styles.slotGrid}>
         {slots.map((symbol, i) =>
@@ -66,10 +66,15 @@ const styles = StyleSheet.create({
     gap: space[3],
     borderRadius: radius.lg,
   },
+  // P3 (2026-11-06, AX5): the room's "1 of 6 · $1,000 per slot" ran off the card's right edge.
+  // The caption wraps onto its own line, to the left, the same as Home's Members header.
   header: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
+    columnGap: space[3],
+    rowGap: space[1],
   },
   slotGrid: {
     flexDirection: 'row',

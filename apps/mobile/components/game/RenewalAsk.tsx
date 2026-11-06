@@ -62,7 +62,7 @@ export function RenewalAskBody({ leagueId, commissionerName, answered, onSaved, 
         ) : null}
       </View>
       <Text variant="headline">{askQuestion(commissionerName)}</Text>
-      <Text variant="callout" tone="secondary">{ASK_LINE}</Text>
+      <Text variant="callout" tone="secondary" subOf="headline">{ASK_LINE}</Text>
     </>
   );
   // The action: the two answers, a refusal under them, and the note about changing the answer.

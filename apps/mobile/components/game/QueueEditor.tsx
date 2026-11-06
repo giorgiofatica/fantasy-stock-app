@@ -60,8 +60,8 @@ export function QueueEditor({ leagueId, initial, onSaved }: QueueEditorProps) {
   return (
     <Card style={[styles.card, styles.searchCard]}>
       <Text variant="tag" tone="secondary">{keepDots(`Your queue · ${queue.length} of ${QUEUE_MAX}`)}</Text>
-      <Text variant="caption" tone="secondary">If you step away, we'll auto-pick from your queue when your time runs out. You can come back any time.</Text>
-      {closedLine ? <Text variant="caption" tone="secondary">{closedLine}</Text> : null}
+      <Text variant="caption" tone="secondary" subOf="tag">If you step away, we'll auto-pick from your queue when your time runs out. You can come back any time.</Text>
+      {closedLine ? <Text variant="caption" tone="secondary" subOf="tag">{closedLine}</Text> : null}
       <View>
         {queue.map((sym, i) => (
           <QueueRow

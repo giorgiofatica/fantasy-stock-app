@@ -2,38 +2,42 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "7022cb3b1c20f003398ba4cdcc1e0bc964a74812",
-    "commitShort": "7022cb3b",
+    "commit": "841eb77d989dade087e1330fd6dca0137f9d1df5",
+    "commitShort": "841eb77d",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "A",
-        "path": "apps/mobile/components/shell/authFieldReveal.ts"
+        "code": "M",
+        "path": "apps/mobile/lib/game/queuePriceStore.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/AuthScaffold.tsx"
+        "path": "apps/mobile/lib/game/queueRow.ts"
       },
       {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/auth-fields-above-keyboard.test.ts"
+        "code": "M",
+        "path": "apps/mobile/lib/game/seamFixtures.ts"
       },
       {
-        "code": "UU",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+        "code": "M",
+        "path": "apps/mobile/lib/game/useQueueQuotes.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-queue-row.test.ts"
       }
     ],
-    "timestamp": "2026-11-06T23:18:50Z",
-    "sourceHash": "sha256:79ff58e5cbd66110e9d9e2fee5dd176052518ef915a76e23ad768ae205530fbd",
+    "timestamp": "2026-11-06T23:37:08Z",
+    "sourceHash": "sha256:94cb9607198d8879dc27330f5023c863404cdcd6c951e430b675d0d2d90d5175",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 49.3,
+    "ageHours": 49.6,
     "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -19827,7 +19831,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('symbols-search')",
       "callSites": [
-        "apps/mobile/lib/game/useQueueQuotes.ts:32"
+        "apps/mobile/lib/game/useQueueQuotes.ts:33"
       ],
       "via": [
         "seamInvoke"
@@ -19845,7 +19849,7 @@
         "symbol, name"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useQueueQuotes.ts:77"
+        "apps/mobile/lib/game/useQueueQuotes.ts:78"
       ]
     },
     {
@@ -22213,7 +22217,7 @@
           ],
           "detail": "symbols-search — typeahead over the symbols table.",
           "files": [
-            "apps/mobile/lib/game/useQueueQuotes.ts:32",
+            "apps/mobile/lib/game/useQueueQuotes.ts:33",
             "apps/mobile/lib/useSymbolSearch.ts:85",
             "apps/web/src/components/DraftControls.jsx:66",
             "apps/web/src/components/TradeModal.jsx:122"
@@ -23496,7 +23500,7 @@
       "apps/mobile/lib/game/useDraftAutoStart.ts:79 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useDraftStatus.ts:46 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useLeaveLeague.ts:47 -> leave-league (via seamInvoke)",
-      "apps/mobile/lib/game/useQueueQuotes.ts:32 -> symbols-search (via seamInvoke)",
+      "apps/mobile/lib/game/useQueueQuotes.ts:33 -> symbols-search (via seamInvoke)",
       "apps/mobile/lib/home/useHomeLeague.ts:679 -> quote",
       "apps/mobile/lib/home/useHomeLeague.ts:696 -> historical-bars",
       "apps/mobile/lib/invite/invitePreviewApi.ts:14 -> invite-preview",
@@ -23686,7 +23690,7 @@
       "apps/mobile/lib/game/useLeaveLeague.ts:33 -> league_members.select",
       "apps/mobile/lib/game/useLeaveLeague.ts:60 -> league_members.select",
       "apps/mobile/lib/game/useMemberSnapshots.ts:38 -> week_snapshots.select",
-      "apps/mobile/lib/game/useQueueQuotes.ts:77 -> symbols.select",
+      "apps/mobile/lib/game/useQueueQuotes.ts:78 -> symbols.select",
       "apps/mobile/lib/game/useRosterData.ts:54 -> league_draft_slots.select",
       "apps/mobile/lib/game/useRosterData.ts:78 -> drafts.select",
       "apps/mobile/lib/game/useRosterData.ts:86 -> trades.select",

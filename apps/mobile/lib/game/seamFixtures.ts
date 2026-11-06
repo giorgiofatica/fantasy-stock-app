@@ -176,6 +176,23 @@ export function seamSearchPrice(symbol: string): number | null {
   return SEARCH_SAMPLE.find((s) => s.symbol === symbol.toUpperCase())?.price ?? null;
 }
 
+/** symbols-search's batch mode (`{ symbols: [...] }`, live since #339): the sample stocks' prices by exact ticker; a ticker with
+ * no sample (or no price) answers null, as a stock with no trade does; a string that is not an Alpaca-format ticker is `invalid`.
+ * Nothing in `failed`: the fixture has no outage to show. */
+export function symbolsBatchFixture(body: Record<string, unknown>): { prices: Record<string, number | null>; failed: string[]; invalid: string[] } {
+  const prices: Record<string, number | null> = {};
+  const invalid: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of Array.isArray(body.symbols) ? body.symbols : []) {
+    const s = String(raw).trim().toUpperCase();
+    if (!s || seen.has(s)) continue;
+    seen.add(s);
+    if (!/^[A-Z]{1,6}(\.[A-Z]{1,2})?$/.test(s)) invalid.push(s);
+    else prices[s] = SEARCH_SAMPLE.find((x) => x.symbol === s)?.price ?? null;
+  }
+  return { prices, failed: [], invalid };
+}
+
 export function symbolsSearchFixture(body: Record<string, unknown>): { items: { symbol: string; name: string; price: number | null; is_draftable: boolean }[] } {
   const q = String(body.q ?? '').trim().toUpperCase();
   const limit = typeof body.limit === 'number' ? body.limit : 8;
@@ -197,7 +214,7 @@ export function invokeFixtureFor(
   leaveFixture?: string | null,
 ): { data: unknown; error: null } | null {
   if (fn === 'leave-league') return { data: leaveLeagueFixture(body, leaveFixture), error: null };
-  if (fn === 'symbols-search') return { data: symbolsSearchFixture(body), error: null };
+  if (fn === 'symbols-search') return { data: Array.isArray(body.symbols) ? symbolsBatchFixture(body) : symbolsSearchFixture(body), error: null };
   if (fn === 'validate-and-record-pick') {
     const pick = body.action === 'auto_pick' ? { pick_source: 'auto_best' } : { pick_source: 'manual' };
     return { data: { ok: true, pick: { symbol: body.symbol ?? 'NVDA', ...pick }, pick_source: pick.pick_source, draft_complete: false }, error: null };

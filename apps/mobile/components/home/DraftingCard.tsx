@@ -72,7 +72,7 @@ export function DraftingCard({ leagueId, myUserId, numRounds }: DraftingCardProp
             <Text variant="title" style={{ color: colors.liveText }}>
               {YOURE_ON_THE_CLOCK}
             </Text>
-            <Text variant="callout" tone="secondary">
+            <Text variant="callout" tone="secondary" subOf="title">
               {onTheClockLine(turn.round, turn.overallPick, secondsLeft)}
             </Text>
           </>

@@ -13,7 +13,7 @@ export function ChampBanner({ tag, line }: { tag: string; line: string }) {
         <Icon name="trophy" size="headline" tone="live" />
         <View style={styles.text}>
           <Text variant="tag" tone="secondary">{tag}</Text>
-          <Text variant="callout" style={{ fontWeight: '700' }}>{line}</Text>
+          <Text variant="callout" style={{ fontWeight: '700' }} subOf="tag">{line}</Text>
         </View>
       </View>
     </Card>

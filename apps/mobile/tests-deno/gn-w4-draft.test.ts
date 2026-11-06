@@ -423,7 +423,7 @@ Deno.test('the waiting card counts managers only toward the minimum ("6 of 4 man
   assertEquals(managersProgressShown(3, 4), true);
   assertEquals(managersProgressShown(4, 4), false);
   assertEquals(managersProgressShown(6, 4), false);
-  assert(SOURCES['components/game/DraftLobby.tsx'].includes('{managersProgressShown(data.memberCount, data.minMembers) ? <Text variant="caption" tone="secondary">{managersProgressCaption(data.memberCount, data.minMembers)}</Text> : null}'));
+  assert(SOURCES['components/game/DraftLobby.tsx'].includes('{managersProgressShown(data.memberCount, data.minMembers) ? <Text variant="caption" tone="secondary" subOf="tag">{managersProgressCaption(data.memberCount, data.minMembers)}</Text> : null}'));
 });
 
 Deno.test('the 90-second clock fixture: 88 s left of a 90 s pick', () => {

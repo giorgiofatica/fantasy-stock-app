@@ -41,15 +41,15 @@ export function DraftLobby({ data, myUserId, draftDate, pickSeconds, rounds, now
         <Card style={styles.card}>
           <Text variant="tag" tone="secondary">Draft starts in</Text>
           <Text variant="score.md" style={styles.countdown}>{countdown ?? '—'}</Text>
-          <Text variant="caption" tone="secondary">{keepDots(when ? `${when} · ${pickClockLine(pickSeconds, rounds)}` : pickClockLine(pickSeconds, rounds))}</Text>
+          <Text variant="caption" tone="secondary" subOf="score.md">{keepDots(when ? `${when} · ${pickClockLine(pickSeconds, rounds)}` : pickClockLine(pickSeconds, rounds))}</Text>
         </Card>
       ) : null}
 
       {data.waiting || !order ? (
         <Card style={styles.card}>
           <Text variant="tag" tone="secondary">{keepDots('Draft order · waiting')}</Text>
-          <Text variant="callout">{orderWaitingLine(data.minMembers)}</Text>
-          {managersProgressShown(data.memberCount, data.minMembers) ? <Text variant="caption" tone="secondary">{managersProgressCaption(data.memberCount, data.minMembers)}</Text> : null}
+          <Text variant="callout" subOf="tag">{orderWaitingLine(data.minMembers)}</Text>
+          {managersProgressShown(data.memberCount, data.minMembers) ? <Text variant="caption" tone="secondary" subOf="tag">{managersProgressCaption(data.memberCount, data.minMembers)}</Text> : null}
         </Card>
       ) : (
         // Game Night (W4): the order is Standings' ManagerRow tiles on the page (`surface`, radius
@@ -58,7 +58,7 @@ export function DraftLobby({ data, myUserId, draftDate, pickSeconds, rounds, now
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <Text variant="tag" tone="secondary">Draft order</Text>
-            {orderSetLine(orderWasSetLine(data.finalizeAt), draftDate) ? <Text variant="caption" tone="secondary">{keepTime(orderSetLine(orderWasSetLine(data.finalizeAt), draftDate) ?? '')}</Text> : null}
+            {orderSetLine(orderWasSetLine(data.finalizeAt), draftDate) ? <Text variant="caption" tone="secondary" subOf="tag">{keepTime(orderSetLine(orderWasSetLine(data.finalizeAt), draftDate) ?? '')}</Text> : null}
             {seat > 0 ? (
               <Text variant="callout" style={{ color: colors.youText, fontWeight: '700' }}>
                 {`You pick ${ordinal(seat)}`}

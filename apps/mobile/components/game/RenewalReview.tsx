@@ -72,7 +72,7 @@ export function RenewalReview({ leagueId, inviteCode, counts, repliesPending, se
     <View style={styles.stack}>
       <Text variant="tag" tone="secondary">{settings.name}</Text>
       <Text variant="title">Season 2</Text>
-      <Text variant="callout" tone="secondary">Everything carries over from Season 1. Change anything before the draft.</Text>
+      <Text variant="callout" tone="secondary" subOf="title">Everything carries over from Season 1. Change anything before the draft.</Text>
       <Card style={styles.card}>
         <Row label="Who's in" value={`${counts.in} back · ${counts.new} new`} />
         <Row label="Teams" value={teams.value} sub={keepCodeIn(teams.sub, inviteCode)} />
