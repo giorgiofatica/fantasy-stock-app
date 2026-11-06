@@ -39,3 +39,17 @@ Deno.test('capSymbolList: normalise, dedupe in order, cap, and REPORT the overfl
   assertEquals(capSymbolList([' aapl', 'AAPL', 'msft', '', null, 'nvda'], 2), { symbols: ['AAPL', 'MSFT'], truncated: ['NVDA'] });
   assertEquals(capSymbolList([], 5), { symbols: [], truncated: [] });
 });
+
+Deno.test('guardDecision: no real user -> 401; anything but an explicit ok -> 429/503; ok admits', async () => {
+  const { guardDecision } = await import('./market-guard.ts');
+  assertEquals(guardDecision(null, 'ok'), { ok: false, status: 401, body: { error: 'not_authenticated', message: 'Please sign in.' } });
+  assertEquals(guardDecision(null, null).ok, false);
+  const limited = guardDecision({ id: 'u' }, 'limited');
+  assertEquals(limited.ok ? 0 : limited.status, 429);
+  const down = guardDecision({ id: 'u' }, 'unavailable');
+  assertEquals(down.ok ? 0 : down.status, 503);
+  // No verdict at all is not a pass (fail closed).
+  const none = guardDecision({ id: 'u' }, null);
+  assertEquals(none.ok ? 0 : none.status, 503);
+  assertEquals(guardDecision({ id: 'u' }, 'ok'), { ok: true, userId: 'u' });
+});

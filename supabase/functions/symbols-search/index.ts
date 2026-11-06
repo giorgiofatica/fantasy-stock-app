@@ -1,7 +1,39 @@
+// supabase/functions/symbols-search/index.ts
+// The draft/trade stock search, and (2026-11-05) a batch price read for the
+// pre-draft queue. Every price here is a request on the SHARED app key
+// (ALPACA_API_KEY), the key the snapshot jobs, record-trade and ticker-quotes
+// depend on, so:
+//   * a real signed-in user (getUser, not just a gateway-valid JWT: the public
+//     anon key passes verify_jwt) is required, under a FAIL-CLOSED per-user
+//     limit, checked before any symbols read or Alpaca call;
+//   * prices come from a 60 s server-side cache first (./prices.ts);
+//   * `{ symbols: [...] }` prices up to 50 exact tickers in ONE Alpaca request
+//     (no search, no fuzzy matching), so the queue is one call, not fifty.
+// Alpaca error text is never returned.
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { guardSignedInCaller } from '../_shared/market-guard.ts';
+import { ALPACA_TIMEOUT_MS } from '../_shared/alpaca-price.ts';
+import type { BatchFetchResult } from '../_shared/price-bisect.ts';
+import { isLatestTradesBody, lookupPrices, parseRequest, PriceCache, pricesFromLatestTrades } from './prices.ts';
 
-let requestOrigin = '';
+/**
+ * Calls per signed-in user per minute (60 s fixed window, both modes together).
+ * Sized from real use, 2026-11-05:
+ *   * the pre-draft queue (useQueueQuotes, feat/queue-row-a) asks ONE call per
+ *     queued stock when the card opens, 4 at a time, then reuses an answer for
+ *     60 s; the queue holds at most 50 -> at most 50 calls per opening, and the
+ *     60 s reuse means a second burst lands in a later window;
+ *   * draft-room / trade search types through a 300 ms debounce, so a call
+ *     fires only after a pause: ~20-40 a minute of hard searching;
+ *   * a stock added to the queue costs one more call each.
+ * Peak legitimate ~= 50 + 40 + a few = under 100. 120 (ticker-quotes' number)
+ * leaves headroom over that without letting a loop run free: 120 calls is at
+ * most 120 x MAX_ALPACA_REQUESTS_PER_CALL Alpaca requests, and far fewer with
+ * the cache. Once the queue switches to the batch mode (one call per opening),
+ * the peak drops to ~45 and this can come down to 60.
+ */
+export const USER_LIMIT_PER_MIN = 120;
 
 function isAllowedOrigin(origin: string): boolean {
   if (!origin) return false;
@@ -11,7 +43,10 @@ function isAllowedOrigin(origin: string): boolean {
   return false;
 }
 
-function getCorsHeaders() {
+// Per request, not module state: the guard, the limiter and Alpaca are awaits,
+// and a module-level origin could be overwritten by a concurrent request in the
+// same isolate before this one answers.
+function getCorsHeaders(requestOrigin: string) {
   const allowedOrigin = isAllowedOrigin(requestOrigin) ? requestOrigin : 'https://fantasy-stock-app.vercel.app';
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
@@ -20,60 +55,72 @@ function getCorsHeaders() {
   };
 }
 
-const json = (b: unknown, s = 200) =>
-  new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json', ...getCorsHeaders() } });
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-// Fetch prices for multiple symbols from Alpaca
-async function fetchPrices(symbols: string[]): Promise<Record<string, number | null>> {
-  const prices: Record<string, number | null> = {};
-  if (symbols.length === 0) return prices;
+/** Per isolate; best effort (a cold isolate starts empty). */
+const priceCache = new PriceCache();
 
+/** ONE multi-symbol latest-trades request. A failure is a status, never a
+ * throw and never an empty success (prices.ts decides what a status means). */
+async function fetchLatestTrades(symbols: string[]): Promise<BatchFetchResult> {
   const key = env('ALPACA_API_KEY');
   const secret = env('ALPACA_API_SECRET');
-  if (!key || !secret) return prices;
-
+  if (!key || !secret) return { ok: false, status: 0 };
+  const url = `https://data.alpaca.markets/v2/stocks/trades/latest?symbols=${symbols.map(encodeURIComponent).join(',')}&feed=iex`;
   try {
-    // Alpaca multi-symbol latest trades endpoint
-    const symbolsParam = symbols.join(',');
-    const url = `https://data.alpaca.markets/v2/stocks/trades/latest?symbols=${encodeURIComponent(symbolsParam)}&feed=iex`;
-
     const res = await fetch(url, {
-      headers: {
-        'APCA-API-KEY-ID': key,
-        'APCA-API-SECRET-KEY': secret,
-        'Accept': 'application/json',
-      },
+      signal: AbortSignal.timeout(ALPACA_TIMEOUT_MS),
+      headers: { 'APCA-API-KEY-ID': key, 'APCA-API-SECRET-KEY': secret, 'Accept': 'application/json' },
     });
-
-    if (res.ok) {
-      const data = await res.json();
-      // Response format: { trades: { AAPL: { p: 195.50, ... }, MSFT: { p: 420.00, ... } } }
-      if (data?.trades) {
-        for (const sym of symbols) {
-          const trade = data.trades[sym];
-          if (trade?.p && Number.isFinite(Number(trade.p))) {
-            prices[sym] = Number(trade.p);
-          }
-        }
-      }
+    if (!res.ok) {
+      console.error('symbols-search: alpaca trades/latest failed', res.status);
+      await res.body?.cancel();
+      return { ok: false, status: res.status };
     }
-  } catch {
-    // Silently fail - prices are optional enhancement
+    // A 200 that is not a latest-trades body ({}, an error shape, trades: null)
+    // is a FAILED read, never "no trades": otherwise every symbol would be
+    // cached as a clean null for 60 s (reviewers, 2026-11-05).
+    const body = await res.json().catch(() => null);
+    if (!isLatestTradesBody(body)) {
+      console.error('symbols-search: alpaca trades/latest returned a non-trades body');
+      return { ok: false, status: 0 };
+    }
+    return { ok: true, prices: pricesFromLatestTrades(body, symbols) };
+  } catch (e) {
+    console.error('symbols-search: alpaca trades/latest error', String(e).slice(0, 120));
+    return { ok: false, status: 0 };
   }
-
-  return prices;
 }
 
 Deno.serve(async (req) => {
-  requestOrigin = req.headers.get('Origin') || '';
+  const cors = getCorsHeaders(req.headers.get('Origin') || '');
+  const json = (b: unknown, s = 200) =>
+    new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json', ...cors } });
 
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: getCorsHeaders() });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
-  const { q, limit = 10, includePrices = true } = await req.json().catch(() => ({}));
-  const query = String(q || '').trim().toUpperCase();
-  if (!query) return json({ items: [] });
+  const parsed = parseRequest(await req.json().catch(() => ({})));
+  if (parsed.mode === 'bad') return json({ error: parsed.error, message: parsed.message }, 400);
+  if (parsed.mode === 'empty') return json(parsed.batch ? { prices: {}, failed: [], invalid: [] } : { items: [] });
+
+  // The guard, before any symbols read or Alpaca call.
+  const guard = await guardSignedInCaller(req, 'symbols-search', USER_LIMIT_PER_MIN);
+  if (!guard.ok) return json(guard.body, guard.status);
+
+  // ── Batch price mode: exact tickers, one Alpaca request, no symbols read. ──
+  // `prices` holds every asked ticker that got an ANSWER (a number, or null =
+  // no trade); `failed` is a read that did not happen (retry it; it is not a
+  // "no price"); `invalid` is input that is not a ticker. Nothing is dropped.
+  if (parsed.mode === 'batch') {
+    const r = await lookupPrices(parsed.symbols, { cache: priceCache, fetchLatest: fetchLatestTrades });
+    const prices: Record<string, number | null> = {};
+    for (const s of parsed.symbols) if (r.prices.has(s)) prices[s] = r.prices.get(s) ?? null;
+    const body = { prices, failed: r.failed, invalid: parsed.invalid };
+    if (r.failed.length > 0 && r.prices.size === 0) return json({ error: 'price_unavailable', ...body }, 502);
+    return json(body);
+  }
+  const { query, limit, includePrices } = parsed;
 
   // Query AS THE CALLER (publishable key + the caller's JWT), never as bare
   // anon and never with the secret key: symbols is signed-in only
@@ -86,7 +133,7 @@ Deno.serve(async (req) => {
   // Smart search with relevance-based ordering
   // Priority: 1) Exact symbol, 2) Symbol starts-with, 3) Name starts-with, 4) Symbol/Name contains
   let items: Array<{ symbol: string; name: string; price?: number | null; is_draftable?: boolean }> = [];
-  const maxResults = Math.min(15, Number(limit) || 10);
+  const maxResults = limit;
   const seen = new Set<string>();
 
   // A failed read must never look like "no matches" (CLAUDE.md success
@@ -164,16 +211,15 @@ Deno.serve(async (req) => {
 
   // Items are already deduplicated via the seen Set in addItems
 
-  // Optionally fetch prices for search results
+  // Optionally fetch prices for search results (cache first, one Alpaca
+  // request for the rest). `priceErrors` names the results whose price read
+  // FAILED, so a failure is never mistaken for "this stock has no price".
+  let priceErrors: string[] = [];
   if (includePrices && items.length > 0) {
-    const symbols = items.map((item: { symbol: string }) => item.symbol);
-    const prices = await fetchPrices(symbols);
-
-    // Attach prices to items
-    for (const item of items as Array<{ symbol: string; name: string; price?: number | null }>) {
-      item.price = prices[item.symbol] ?? null;
-    }
+    const r = await lookupPrices(items.map((item) => item.symbol), { cache: priceCache, fetchLatest: fetchLatestTrades });
+    for (const item of items) item.price = r.prices.get(item.symbol) ?? null;
+    priceErrors = r.failed;
   }
 
-  return json({ items });
+  return json({ items, priceErrors });
 });
