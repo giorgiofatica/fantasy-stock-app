@@ -383,6 +383,8 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-draft-clock', title: 'The clock while you search', decision: 'A: while it is your pick and the clock card is off the screen, a small clock pinned at the top (the ring, the seconds, "Your pick"). "Your pick" approved with A.', date: '2026-11-06', rec: 'PRODUCT_RULES (The clock while you search)', render: () => window.KSDraftClockArchived },
+    { id: 'call-top-bar', title: 'The top bar', decision: 'A and A: the avatar on every tab (Portfolio too), no phase chip in the bar; the bar scrolls away with the page, with a short fade behind the clock once scrolled. No new words.', date: '2026-11-06', rec: 'PRODUCT_RULES (The top bar)', render: () => window.KSTopBarArchived },
     { id: 'call-queue-row', title: 'The queue row', decision: 'A: like the draft room\'s search. The ticker over the company name (cut with "…" when long), the price on the ticker\'s line; the ticker is never cut; "–" when a price is missing. "Prices at Wednesday\'s close." approved (copy, 2026-11-05).', date: '2026-11-05', rec: 'PRODUCT_RULES (The queue row)', render: () => window.KSQueueRowArchived },
     { id: 'call-home-chart', title: 'The chart on Home', decision: 'A: no chart. This week moves up under the hero; then "Your season", one tile per week (W / L and your score, this week outlined, the weeks ahead with who you play); then Standings. "Your season" and "Wk N" approved as written.', date: '2026-11-03', rec: 'PRODUCT_RULES (No chart on Home) · PR #320', render: () => window.KSHomeChartArchived },
     { id: 'call-del-label', title: 'A deleted manager\'s seat label', decision: 'B, "Open team" (changed 2026-11-06; it was A, "Former manager", from 2026-10-21), with the default avatar (never initials), in the secondary text colour, everywhere a name would be, past seasons included. The takeover question and push say "the open team".', date: '2026-10-21', rec: 'PRODUCT_RULES (Account deletion)', render: () => window.KSDelLabelArchived },
@@ -492,6 +494,8 @@
           </div>
         </header>
 
+        {window.KSDraftClock ? <window.KSDraftClock /> : null}
+        {window.KSTopBar ? <window.KSTopBar /> : null}
         {window.KSQueueRow ? <window.KSQueueRow /> : null}
         {window.KSHomeChart ? <window.KSHomeChart /> : null}
         {window.KSDirections ? <window.KSDirections /> : null}

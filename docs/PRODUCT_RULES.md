@@ -258,6 +258,17 @@ building anything, and don't reopen a rule without him.
   deletion scrubs the name and avatar too, so a deleted manager's seat shows a placeholder
   label instead ("we stick with the plan and change the product rules. we need to comply
   with the apple rules."). See **Account deletion** under League lifecycle.
+- **The top bar** (2026-11-06, build 11, board `#call-top-bar`; his words: "the top bar with
+  your profile icon doesnt appear on the portfolio page but does on the other tabs. also i dont
+  love how it so clearly cuts off the page like that, not sure if theres a work around but maybe
+  the top bar shouldnt always stay at the top and cutoff as you scroll." Then "A for both"):
+  - **The same bar on every tab:** your league's pill on the left, your avatar (Profile) on the
+    right. Portfolio shows the avatar too, and no phase chip; no tab shows the phase chip in the
+    bar (each tab's own content says the phase).
+  - **The bar scrolls away with the page.** It is the top of the page, not a fixed frame: it goes
+    up with the content, so nothing is sliced under a fixed edge. Behind the clock the page colour
+    fades out over a few points once you've scrolled, so nothing runs into the time. To switch
+    league or open Profile mid-page: scroll back up, or tap the clock. No new words.
 - **No added caveats:** implement Giorgio's rules as stated. Don't add exceptions he didn't ask for.
 - **Product name:** "Stockpile" must go (a live trademark), with Stockade the front-runner,
   but naming is DEFERRED to pre-launch. Keep the bundle id, slug and scheme.
@@ -502,6 +513,15 @@ building anything, and don't reopen a rule without him.
   - While the market is closed, one line under the card's intro: "Prices at Wednesday's
     close." (the day changes with the last close). Approved by Giorgio, 2026-11-05: "the copy
     line is fine".
+- **The clock while you search** (2026-11-06, option A; board `#call-draft-clock`, relayed by
+  the Orchestrator; his words: "A for clock"). On your running clock the search scrolls up to
+  clear the keyboard, which took the clock card off the screen while you choose.
+  - While it is your pick and your clock is running, and the clock card is off the screen, a
+    small clock is pinned at the top of the draft room: the ring, the seconds, and "Your pick".
+    It goes when the card is back in view, when you pick, or when your turn ends.
+  - "Your pick" is approved as written with A (he picked A from frames labelled with it; the
+    Orchestrator told him it was new wording).
+  - The room's order stays as it is: the clock card, the draft board, then the search.
 
 ## Trading
 
