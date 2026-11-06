@@ -8,8 +8,9 @@ export const FADE_IN_POINTS = 24;
 /** Points BELOW the status bar over which the page colour fades to clear ("a few points"). */
 export const FADE_SOFT_POINTS = 10;
 
-/** Points between the fade's lower edge and a field the search reveal scrolls up. */
-export const REVEAL_GAP = 12;
+/** Points between the fade's lower edge and a field the search reveal scrolls up (a caller may ask for more: the draft room's
+ * pinned clock sits in that space while your clock runs). */
+export const REVEAL_MARGIN = 12;
 
 /** 0 at rest (and while pulling down past the top), 1 once scrolled FADE_IN_POINTS. */
 export function topFadeOpacity(scrollY: number): number {
@@ -35,7 +36,7 @@ export function clearOf(hex: string): string {
 }
 
 /** Where the search reveal puts a field, measured from the top of the scroll content, which now starts at the very top of
- * the screen (the bar is inside it): just under the status-bar fade, not under a bar that has scrolled away. */
-export function revealMargin(topInset: number): number {
-  return topFadeHeight(topInset) + REVEAL_GAP;
+ * the screen (the bar is inside it): `below` points under the status-bar fade, not under a bar that has scrolled away. */
+export function revealMargin(topInset: number, below: number = REVEAL_MARGIN): number {
+  return topFadeHeight(topInset) + below;
 }

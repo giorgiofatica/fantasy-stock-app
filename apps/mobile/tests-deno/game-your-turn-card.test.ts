@@ -121,6 +121,7 @@ Deno.test('the chime logs its evidence in dev only (a simulator recording has no
 
 Deno.test('B-4: no clock (auto-picking, idle) draws no clock row, never an empty gap', () => {
   assert(room.includes('const clockLabel = pickClockLabel(shownClock);'));
-  assert(room.includes('{clockLabel ? (\n            <ClockRing'));
-  assertEquals((room.match(/pickClockLabel\(/g) ?? []).length, 1); // the row and its text share one label
+  assert(room.includes('{clockLabel ? (\n            <View ref={ringRef} collapsable={false}>\n              <ClockRing'));
+  // The row and its text share one label; the pinned clock reads the same one (pinLabel), ahead of the early returns.
+  assertEquals((room.match(/pickClockLabel\(/g) ?? []).length, 2);
 });

@@ -7,7 +7,8 @@ import { useCaptureAction } from '@/lib/money/captureScript';
 import { ScrollFoldContext, useScrollFoldSource } from './scrollFold';
 import { ScrollRevealContext, makeScrollReveal } from './scrollReveal';
 import { TopFade } from './TopFade';
-import { revealMargin } from './topBarFade';
+import { topFadeHeight } from './topBarFade';
+import { PinnedSlotContext } from './scrollPinned';
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -60,23 +61,29 @@ export interface BarsRefreshProps {
   header?: ReactNode;
   /** The page colour the fade behind the status bar fades from (default: the game screens' `bg`). */
   fadeColor?: string;
+  /** Something pinned at the top of the page (just under the fade), over the content: it does not scroll. A child can fill the
+   * slot instead (usePinned, scrollPinned.ts) when it is the one that knows what to pin: the draft room's clock chip. */
+  pinned?: ReactNode;
 }
 
-export function BarsRefresh({ onRefresh, children, contentContainerStyle, header, fadeColor }: BarsRefreshProps) {
+export function BarsRefresh({ onRefresh, children, contentContainerStyle, header, fadeColor, pinned: pinnedProp }: BarsRefreshProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
   // Where the search reveal puts a field: just under the status-bar fade (the bar is part of the content now).
-  const marginRef = useRef(revealMargin(insets.top));
-  marginRef.current = revealMargin(insets.top);
-  const getRevealMargin = () => marginRef.current;
+  const insetRef = useRef(insets.top);
+  insetRef.current = insets.top;
+  const getTopInset = () => insetRef.current;
+  // The pinned slot (a child fills it through context, scrollPinned.ts): drawn over the page, not in the scroll content.
+  const [pinnedByChild, setPinned] = useState<ReactNode | null>(null);
+  const pinned = pinnedProp ?? pinnedByChild;
   const [refreshing, setRefreshing] = useState(false);
   // 3c-2, UX rule 7: children can tell what's below the fold (StandingsTable pins your row).
   const fold = useScrollFoldSource();
   const measureRef = useRef<View>(null);
   // The Android branch's own scroll view (the iOS one keeps its ref in IosBarsRefresh).
   const androidScrollRef = useRef<Animated.ScrollView>(null);
-  const androidReveal = useRef(makeScrollReveal(() => androidScrollRef.current as never, getRevealMargin)).current;
+  const androidReveal = useRef(makeScrollReveal(() => androidScrollRef.current as never, getTopInset)).current;
   const onAndroidScroll = useAnimatedScrollHandler({
     onScroll: (e) => {
       scrollY.value = e.contentOffset.y;
@@ -101,6 +108,7 @@ export function BarsRefresh({ onRefresh, children, contentContainerStyle, header
     return (
       <View ref={measureRef} style={styles.fill} onLayout={onViewLayout}>
         <ScrollFoldContext.Provider value={fold.value}>
+          <PinnedSlotContext.Provider value={setPinned}>
           <ScrollRevealContext.Provider value={androidReveal}>
           <Animated.ScrollView
             ref={androidScrollRef}
@@ -115,7 +123,9 @@ export function BarsRefresh({ onRefresh, children, contentContainerStyle, header
             <View style={[contentContainerStyle, styles.pageBody]}>{children}</View>
           </Animated.ScrollView>
           </ScrollRevealContext.Provider>
+          </PinnedSlotContext.Provider>
           <TopFade scrollY={scrollY} color={fadeColor ?? colors.bg} />
+          <PinnedLayer node={pinned} topInset={insets.top} />
         </ScrollFoldContext.Provider>
       </View>
     );
@@ -123,6 +133,7 @@ export function BarsRefresh({ onRefresh, children, contentContainerStyle, header
   return (
     <View ref={measureRef} style={styles.fill} onLayout={onViewLayout}>
       <ScrollFoldContext.Provider value={fold.value}>
+        <PinnedSlotContext.Provider value={setPinned}>
         <IosBarsRefresh
           refreshing={refreshing}
           run={run}
@@ -132,12 +143,25 @@ export function BarsRefresh({ onRefresh, children, contentContainerStyle, header
           onScrolled={fold.emit}
           scrollY={scrollY}
           topInset={insets.top}
-          getRevealMargin={getRevealMargin}
+          getTopInset={getTopInset}
         >
           {children}
         </IosBarsRefresh>
+        </PinnedSlotContext.Provider>
         <TopFade scrollY={scrollY} color={fadeColor ?? colors.bg} />
+        <PinnedLayer node={pinned} topInset={insets.top} />
       </ScrollFoldContext.Provider>
+    </View>
+  );
+}
+
+/** The pinned slot: over the page (and over the fade), at the fade's lower edge, centred; it takes touches only where the pinned
+ * element does. Nothing when empty. */
+function PinnedLayer({ node, topInset }: { node: ReactNode | null; topInset: number }) {
+  if (!node) return null;
+  return (
+    <View pointerEvents="box-none" style={[styles.pinned, { top: topFadeHeight(topInset) }]}>
+      {node}
     </View>
   );
 }
@@ -152,7 +176,7 @@ function IosBarsRefresh({
   onScrolled,
   scrollY,
   topInset,
-  getRevealMargin,
+  getTopInset,
 }: {
   refreshing: boolean;
   run: () => void;
@@ -167,7 +191,7 @@ function IosBarsRefresh({
   scrollY: SharedValue<number>;
   /** The status bar's inset: the pull's bars start below it. */
   topInset: number;
-  getRevealMargin: () => number;
+  getTopInset: () => number;
 }) {
   const { reduced, duration, easing } = useMotion();
   const pull = useSharedValue(0);
@@ -175,7 +199,7 @@ function IosBarsRefresh({
   const pulse = [useSharedValue(1), useSharedValue(1), useSharedValue(1)] as const;
   const scrollRef = useRef<Animated.ScrollView>(null);
   // A search field low on the tab asks for itself to be scrolled up above the keyboard (scrollReveal.ts).
-  const reveal = useRef(makeScrollReveal(() => scrollRef.current as never, getRevealMargin)).current;
+  const reveal = useRef(makeScrollReveal(() => scrollRef.current as never, getTopInset)).current;
   // DEV captures only (lib/shell/fixtureRoute.ts).
   useFixtureScrollEnd(scrollRef as never);
   // DEV capture script only (a no-op without the seam and a script): scroll to y, as a swipe would.
@@ -274,6 +298,13 @@ function useRise(pull: SharedValue<number>, i: number, refreshing: boolean, redu
 const styles = StyleSheet.create({
   fill: {
     flex: 1,
+  },
+  pinned: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 20,
   },
   // The scroll content: the header, then the page. The page grows to fill a short tab (the placeholders centre in it).
   page: {

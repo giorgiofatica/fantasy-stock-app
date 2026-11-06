@@ -2,47 +2,27 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "b8ecc3a63cf421cb1a71de54103472969239dc02",
-    "commitShort": "b8ecc3a6",
+    "commit": "292e3d6151525c6d781106e2a17f02df247c1b3c",
+    "commitShort": "292e3d61",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/index.tsx"
+        "code": "A",
+        "path": "apps/mobile/components/game/DraftClockChip.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/league.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/DraftBoard.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/home/YourSeason.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
+        "path": "apps/mobile/components/game/DraftRoom.tsx"
       },
       {
         "code": "M",
         "path": "apps/mobile/components/shell/BarsRefresh.tsx"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/components/shell/NoLeagueState.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/shell/PhasePlaceholder.tsx"
+        "code": "A",
+        "path": "apps/mobile/components/shell/scrollPinned.ts"
       },
       {
         "code": "M",
@@ -50,35 +30,27 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/ShellHeader.tsx"
-      },
-      {
-        "code": "A",
         "path": "apps/mobile/components/shell/topBarFade.ts"
       },
       {
-        "code": "A",
-        "path": "apps/mobile/components/shell/TopFade.tsx"
-      },
-      {
         "code": "M",
-        "path": "apps/mobile/components/sp/gn/SegmentTabs.tsx"
+        "path": "apps/mobile/components/sp/gn/ClockRing.tsx"
       },
       {
         "code": "M",
         "path": "apps/mobile/components/SymbolSearchField.tsx"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-standings.test.ts"
+        "code": "A",
+        "path": "apps/mobile/lib/game/draftClockChip.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/draft-clock-chip.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/gn-sweep.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/league-game-night.test.ts"
+        "path": "apps/mobile/tests-deno/game-your-turn-card.test.ts"
       },
       {
         "code": "M",
@@ -89,12 +61,12 @@
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       },
       {
-        "code": "A",
+        "code": "M",
         "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-06T23:50:47Z",
-    "sourceHash": "sha256:73d1adc45795aae17a6cc4221ea4b264af21a835ccfc77a2ecc1ede0513756e1",
+    "timestamp": "2026-11-06T23:50:54Z",
+    "sourceHash": "sha256:ea8e88ed0c0bbc30ebd5abaa0bfbe211794271c6d2ebd5fef7db0189587a2b04",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -19388,9 +19360,9 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('validate-and-record-pick')",
       "callSites": [
-        "apps/mobile/components/game/DraftRoom.tsx:220",
-        "apps/mobile/components/game/DraftRoom.tsx:244",
-        "apps/mobile/components/game/DraftRoom.tsx:289"
+        "apps/mobile/components/game/DraftRoom.tsx:227",
+        "apps/mobile/components/game/DraftRoom.tsx:251",
+        "apps/mobile/components/game/DraftRoom.tsx:296"
       ],
       "via": [
         "seamInvoke"
@@ -23543,9 +23515,9 @@
     "invokes": [
       "apps/mobile/app/join-league.tsx:85 -> preview-league",
       "apps/mobile/app/join-league.tsx:94 -> join-league",
-      "apps/mobile/components/game/DraftRoom.tsx:220 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:244 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:289 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:227 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:251 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:296 -> validate-and-record-pick (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:21 -> delete-account (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:38 -> join-league (via seamInvoke)",
       "apps/mobile/lib/game/useAllMatchups.ts:83 -> quote (via seamInvoke)",

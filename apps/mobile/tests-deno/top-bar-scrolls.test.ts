@@ -10,7 +10,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  FADE_IN_POINTS, FADE_SOFT_POINTS, clearOf, revealMargin, topFadeHeight, topFadeOpacity, topFadeStops,
+  FADE_IN_POINTS, FADE_SOFT_POINTS, REVEAL_MARGIN, clearOf, revealMargin, topFadeHeight, topFadeOpacity, topFadeStops,
 } from '../components/shell/topBarFade.ts';
 import { revealOffset } from '../components/sp/logic/searchField.ts';
 import { shouldPinYourRow } from '../lib/game/standings.ts';
@@ -52,7 +52,9 @@ Deno.test('the fade is the same colour all the way (#RRGGBB -> #RRGGBB00), never
 });
 
 Deno.test('the search reveal lands a field just under the status-bar fade, never inside it', () => {
-  assertEquals(revealMargin(59), 59 + FADE_SOFT_POINTS + 12);
+  assertEquals(REVEAL_MARGIN, 12);
+  assertEquals(revealMargin(59), 59 + FADE_SOFT_POINTS + REVEAL_MARGIN);
+  assertEquals(revealMargin(59, 78), 59 + FADE_SOFT_POINTS + 78); // the draft room's own margin, while your clock runs
   for (const inset of [0, 20, 47, 59, 62]) assert(revealMargin(inset) > topFadeHeight(inset), `inset ${inset}`);
   // A field 1000pt down the page (the bar is part of the content now): the scroll offset puts it revealMargin under the top.
   assertEquals(revealOffset(1000, revealMargin(59)), 1000 - 81);
@@ -184,14 +186,14 @@ Deno.test('pull to refresh still works with the bar inside: iOS bars + onEndDrag
 });
 
 Deno.test('the search reveal measures from the top of the content and leaves the status-bar fade clear, on both platforms', () => {
-  assert(bars.includes('marginRef.current = revealMargin(insets.top);'));
-  assertEquals((bars.match(/getRevealMargin\)/g) ?? []).length, 2);
+  assert(bars.includes('insetRef.current = insets.top;'));
+  assertEquals((bars.match(/getTopInset\)/g) ?? []).length, 2);
   const reveal = code(SOURCES['components/shell/scrollReveal.ts']);
-  assert(reveal.includes('getMargin: () => number = () => 16'));
-  assert(reveal.includes('(node, margin = getMargin()) =>'));
-  assert(reveal.includes('scroll.scrollTo({ y: revealOffset(y, margin), animated: true })'));
-  // The one caller names no margin of its own: the provider decides.
-  assert(code(SOURCES['components/SymbolSearchField.tsx']).includes('reveal?.(containerRef.current)'));
+  assert(reveal.includes('getTopInset: () => number = () => 0'));
+  assert(reveal.includes('(node, below = REVEAL_MARGIN) =>'));
+  assert(reveal.includes('scroll.scrollTo({ y: revealOffset(y, revealMargin(getTopInset(), below)), animated: true })'));
+  // A caller that names no margin (the queue) gets REVEAL_MARGIN under the fade; the draft room names its own while your clock runs.
+  assert(code(SOURCES['components/SymbolSearchField.tsx']).includes('reveal?.(containerRef.current, revealMarginRef.current)'));
 });
 
 Deno.test('the league sheet still opens from the pill, and the pill is in the bar', () => {

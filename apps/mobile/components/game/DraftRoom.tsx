@@ -1,12 +1,18 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, View, StyleSheet } from 'react-native';
+import { AppState, Keyboard, View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { cancelAnimation, useAnimatedReaction, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
 import { Button } from '@/components/sp/Button';
 import { ClockRing } from '@/components/sp/gn';
+import { DraftClockChip } from '@/components/game/DraftClockChip';
+import { useScrollFold } from '@/components/shell/scrollFold';
+import { useScrollReveal } from '@/components/shell/scrollReveal';
+import { usePinned } from '@/components/shell/scrollPinned';
+import { topFadeHeight } from '@/components/shell/topBarFade';
 import { useLargeText } from '@/components/sp/useLargeText';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useMotion } from '@/components/sp/motion';
@@ -23,6 +29,7 @@ import { QueueEditor } from './QueueEditor';
 import { DRAFT_ROOM_LOAD_FAILED, QUEUE_LOAD_FAILED } from '@/lib/game/draftQueueRead';
 import { managerAtPick } from '@/lib/game/draftBoard';
 import { CARD_LINE_MAX_SCALE, clockCardKind, clockRingTone, draftOffered } from '@/lib/game/draftClockCard';
+import { CARD_REVEAL_BELOW, CHIP_MIN_HEIGHT, chipRevealBelow, clockIsYoursAndRunning, showClockChip } from '@/lib/game/draftClockChip';
 import { useSymbolCategories } from '@/lib/game/useSymbolCategories';
 import { keepDots, keepMoney } from '@/lib/game/keepDots';
 import { DraftBoard } from '@/components/game/DraftBoard';
@@ -312,6 +319,59 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
     room.refresh();
   };
 
+  // The pinned clock (draftClockChip.ts; Giorgio, 2026-11-06, option A). While it is your pick and your clock runs, the search scrolls up
+  // to clear the keyboard and takes the clock card off the page; a small clock is pinned at the top while the card's RING is off it.
+  // The ring (not the card) is measured, as StandingsTable measures its row: window coordinates per throttled scroll event.
+  const fold = useScrollFold();
+  const reveal = useScrollReveal();
+  const insets = useSafeAreaInsets();
+  const ringRef = useRef<View>(null);
+  const cardRef = useRef<View>(null);
+  const [chipShown, setChipShown] = useState(false);
+  const [chipHeight, setChipHeight] = useState(CHIP_MIN_HEIGHT);
+  const pinKind = clockCardKind({ isMyTurn, stalled: stalledAt === onClockPick, clockKind: shownClock.kind });
+  const pinLabel = pickClockLabel(shownClock);
+  // Yours and running, with the card on screen: it ends with your turn, a stall, the auto-pick, leaving the room, and the draft.
+  const clockRunning = room.status === 'ready' && !draftDone && roomOnScreen && clockIsYoursAndRunning(pinKind, pinLabel);
+  const pinLatest = useRef({ kind: pinKind, label: pinLabel });
+  pinLatest.current = { kind: pinKind, label: pinLabel };
+  const fadeHeight = topFadeHeight(insets.top);
+  useEffect(() => {
+    if (!clockRunning || !fold) {
+      setChipShown(false);
+      return;
+    }
+    const check = () => {
+      const vp = fold.viewport();
+      if (!vp || !ringRef.current) return;
+      ringRef.current.measureInWindow((_x, y, _w, h) => {
+        const { kind, label } = pinLatest.current;
+        setChipShown(showClockChip({ kind, clockLabel: label, ringBottom: y + h, viewTop: vp.top, fadeHeight }));
+      });
+    };
+    check();
+    const off = fold.subscribe(check);
+    return off;
+  }, [clockRunning, fold, fadeHeight]);
+  // A tap shows the clock: the card scrolls back under the fade and the keyboard goes down. The field keeps its text.
+  const showTheClock = () => {
+    Keyboard.dismiss();
+    reveal?.(cardRef.current, CARD_REVEAL_BELOW);
+  };
+  usePinned(
+    clockRunning ? (
+      <DraftClockChip
+        visible={chipShown}
+        label={pinLabel}
+        secondsLeft={shownClock.secondsLeft}
+        totalSeconds={room.pickSeconds}
+        tone={clockRingTone(shownClock.kind)}
+        onPress={showTheClock}
+        onHeight={setChipHeight}
+      />
+    ) : null,
+  );
+
   if (room.status === 'error') {
     return (
       <Card style={styles.card}>
@@ -361,6 +421,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
           tint with a 2 pt live edge, the ring running down, "You're on the clock" in liveText.
           The flash is a live layer over the tint, under the text; it never takes a touch.
           Someone else's turn: the plain card, the same ring. B-4: no clock, no ring. */}
+      <View ref={cardRef} collapsable={false}>
       <Card style={[styles.card, onTheClock ? { backgroundColor: colors.accentTint } : null]}>
         {onTheClock ? <Animated.View testID="your-turn-flash" pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: colors.live }, flashStyle]} /> : null}
         {/* The 2 pt live edge, drawn over the card's 1 pt rim (a border sat inside it: a double line). */}
@@ -368,14 +429,16 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
         {stalled?.tag ? <Text variant="tag" color={colors.liveText}>{stalled.tag}</Text> : null}
         <View style={[styles.clockRow, largeText ? styles.clockRowStacked : null]}>
           {clockLabel ? (
-            <ClockRing
-              label={clockLabel}
-              secondsLeft={shownClock.secondsLeft}
-              totalSeconds={room.pickSeconds}
-              tone={clockRingTone(shownClock.kind)}
-              textColor={clockRest}
-              textAnimatedStyle={onTheClock ? clockInk : undefined}
-            />
+            <View ref={ringRef} collapsable={false}>
+              <ClockRing
+                label={clockLabel}
+                secondsLeft={shownClock.secondsLeft}
+                totalSeconds={room.pickSeconds}
+                tone={clockRingTone(shownClock.kind)}
+                textColor={clockRest}
+                textAnimatedStyle={onTheClock ? clockInk : undefined}
+              />
+            </View>
           ) : null}
           <View style={[styles.clockText, largeText ? styles.clockTextStacked : null]} accessible accessibilityLabel={[headline, clockLabel, roundLine].filter(Boolean).join(', ')} accessibilityRole={onTheClock ? 'header' : undefined}>
             {onTheClock ? (
@@ -396,6 +459,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
         {stalled?.line ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary">{stalled.line}</Text> : null}
         {waitingForPrices === onClockPick && !stalled ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary" animatedStyle={onTheClock ? captionInk : undefined}>{AUTO_PICK_WAITING_FOR_PRICES}</Text> : null}
       </Card>
+      </View>
 
       <DraftBoard
         order={room.order}
@@ -421,6 +485,8 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
             selectedSymbol={selected ?? ''}
             ownedSymbols={owned}
             captureAction="type"
+            // While your clock runs the field lands below the pinned clock, shown or not (the reveal is what scrolls the card away).
+            revealMargin={clockRunning ? chipRevealBelow(chipHeight) : undefined}
           />
           {/* Nothing tappable does nothing: Draft shows once there's a stock to draft (the
               screen's one primary, the accent pill), and waits while the pick is sent. */}

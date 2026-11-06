@@ -23,16 +23,20 @@ export interface ClockRingProps {
   /** The clock's colour (the your-turn flash re-inks it on the UI thread). */
   textColor: string;
   textAnimatedStyle?: AnimatedStyle<TextStyle>;
+  /** The pinned clock chip's ring (draftClockChip.ts): a smaller ring with a thinner stroke, and NO text inside. */
+  size?: number;
+  stroke?: number;
+  bare?: boolean;
 }
 
-export function ClockRing({ label, secondsLeft, totalSeconds, tone, textColor, textAnimatedStyle }: ClockRingProps) {
+export function ClockRing({ label, secondsLeft, totalSeconds, tone, textColor, textAnimatedStyle, size = CLOCK_RING_SIZE, stroke = CLOCK_RING_STROKE, bare = false }: ClockRingProps) {
   const { colors } = useTheme();
-  const arc = clockRingArc(secondsLeft, totalSeconds);
-  const c = CLOCK_RING_SIZE / 2;
+  const arc = clockRingArc(secondsLeft, totalSeconds, size, stroke);
+  const c = size / 2;
   return (
-    <View style={styles.ring} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Svg width={CLOCK_RING_SIZE} height={CLOCK_RING_SIZE} style={StyleSheet.absoluteFill}>
-        <Circle cx={c} cy={c} r={arc.radius} fill="none" stroke={colors.track} strokeWidth={CLOCK_RING_STROKE} />
+    <View style={[styles.ring, { width: size, height: size }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+        <Circle cx={c} cy={c} r={arc.radius} fill="none" stroke={colors.track} strokeWidth={stroke} />
         <Circle
           testID="clock-ring-arc"
           cx={c}
@@ -40,31 +44,31 @@ export function ClockRing({ label, secondsLeft, totalSeconds, tone, textColor, t
           r={arc.radius}
           fill="none"
           stroke={colors[tone]}
-          strokeWidth={CLOCK_RING_STROKE}
+          strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={arc.circumference}
           strokeDashoffset={arc.dashOffset}
           transform={`rotate(-90 ${c} ${c})`}
         />
       </Svg>
-      <Text
-        variant="score.md"
-        color={textColor}
-        animatedStyle={textAnimatedStyle}
-        maxFontSizeMultiplier={CLOCK_RING_TEXT_MAX_SCALE}
-        numberOfLines={1}
-        style={styles.clock}
-      >
-        {label}
-      </Text>
+      {bare ? null : (
+        <Text
+          variant="score.md"
+          color={textColor}
+          animatedStyle={textAnimatedStyle}
+          maxFontSizeMultiplier={CLOCK_RING_TEXT_MAX_SCALE}
+          numberOfLines={1}
+          style={styles.clock}
+        >
+          {label}
+        </Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   ring: {
-    width: CLOCK_RING_SIZE,
-    height: CLOCK_RING_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },
