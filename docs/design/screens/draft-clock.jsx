@@ -116,13 +116,13 @@
     fig(`${v}xl`, `${cap} · your size (AX5) · Light`, <RoomK t="light" v={v} x={2.4} />, notes.x || AX_NOTE),
   ];
 
-  function CallClock() {
+  function CallClock({ archived }) {
     return (
       <section className="b-sec" id="call-draft-clock" aria-labelledby="call-draft-clock-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Draft</span>
           <div>
-            <h2 id="call-draft-clock-h">Your call: the clock while you search</h2>
+            <h2 id="call-draft-clock-h">{archived ? 'Decided: A, the clock while you search' : 'Your call: the clock while you search'}</h2>
             <p className="b-job">On your turn you type in the search, and the screen scrolls the search up so its results clear the keyboard (the build-10 fix). The clock card sits above the draft board, so it goes off the screen exactly while you choose, with 60-second picks. Nothing on screen says how long you have left until you scroll back up. Drawn typing "A" with the results open, the way the screen sits after it scrolls.</p>
           </div>
         </header>
@@ -130,6 +130,7 @@
           <li><b>Today</b> (with the top bar's A): the search and its results at the top, the keyboard below. No clock anywhere.</li>
           <li><b>A · A small clock pinned at the top.</b> While it's your pick and the clock card is off screen, a small pill holds the top of the screen: the same ring, the seconds, and "Your pick" <NEW />. It goes away when the card scrolls back into view, when you pick, or when your turn ends. At your size the field and four results still fit above the keyboard. <b>Cost: small to medium.</b> A new piece that watches whether the card is on screen (the way Standings already pins your row).</li>
           <li><b>B · The search sits right under the clock card.</b> Only on your turn (the search is only there on your turn anyway): the order becomes clock, search, then the draft board. The scroll stops at the clock card instead of the search, so the clock, the field and the results show together above the keyboard. No new words. At your size the clock card is tall, so only one or two results fit above the keyboard; the rest scroll inside their box. <b>Cost: small.</b> Two blocks swap places on your turn, and the scroll aims at the clock card.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-06): "A for clock".</b> The small clock pinned at the top while the card is off the screen; "Your pick" approved with it. Rules: PRODUCT_RULES, "The clock while you search".</li> : null}
           <li><b>Recommended: A.</b> At your size, which is how you play, B leaves room for one or two results while A keeps the clock and four results in view. A also leaves the room's order as it is (clock, draft board, search). At the standard size both work; B's advantage there is that it adds nothing new. Pick B if you'd rather have no new piece and accept fewer results at your size.</li>
           <li><b>New words:</b> A only, "Your pick". B has none.</li>
         </ul>
@@ -146,5 +147,7 @@
     );
   }
 
-  window.KSDraftClock = () => <CallClock />;
+  // Decided 2026-11-06 (A); the call lives in the Archive (board.jsx).
+  window.KSDraftClock = () => null;
+  window.KSDraftClockArchived = () => <CallClock archived />;
 })();

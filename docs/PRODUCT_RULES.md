@@ -513,6 +513,15 @@ building anything, and don't reopen a rule without him.
   - While the market is closed, one line under the card's intro: "Prices at Wednesday's
     close." (the day changes with the last close). Approved by Giorgio, 2026-11-05: "the copy
     line is fine".
+- **The clock while you search** (2026-11-06, option A; board `#call-draft-clock`, relayed by
+  the Orchestrator; his words: "A for clock"). On your running clock the search scrolls up to
+  clear the keyboard, which took the clock card off the screen while you choose.
+  - While it is your pick and your clock is running, and the clock card is off the screen, a
+    small clock is pinned at the top of the draft room: the ring, the seconds, and "Your pick".
+    It goes when the card is back in view, when you pick, or when your turn ends.
+  - "Your pick" is approved as written with A (he picked A from frames labelled with it; the
+    Orchestrator told him it was new wording).
+  - The room's order stays as it is: the clock card, the draft board, then the search.
 
 ## Trading
 
