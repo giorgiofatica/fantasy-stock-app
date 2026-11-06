@@ -2,70 +2,34 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "292e3d6151525c6d781106e2a17f02df247c1b3c",
-    "commitShort": "292e3d61",
+    "commit": "3f82f7ae1a21428e451641404871fb9f4416236d",
+    "commitShort": "3f82f7ae",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
+    "branch": "feat/top-bar-scrolls",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "A",
-        "path": "apps/mobile/components/game/DraftClockChip.tsx"
-      },
-      {
         "code": "M",
-        "path": "apps/mobile/components/game/DraftRoom.tsx"
+        "path": "apps/mobile/components/shell/AuthScaffold.tsx"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/components/shell/BarsRefresh.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/components/shell/scrollPinned.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/shell/scrollReveal.ts"
+        "code": "??",
+        "path": "apps/mobile/components/shell/FooterFade.tsx"
       },
       {
         "code": "M",
         "path": "apps/mobile/components/shell/topBarFade.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/ClockRing.tsx"
+        "code": "??",
+        "path": "apps/mobile/tests-deno/footer-fade.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/SymbolSearchField.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/game/draftClockChip.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/draft-clock-chip.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-your-turn-card.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/queue-search-keyboard.test.ts"
-      },
-      {
-        "code": "UU",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-06T23:50:54Z",
+    "timestamp": "2026-11-06T23:53:14Z",
     "sourceHash": "sha256:ea8e88ed0c0bbc30ebd5abaa0bfbe211794271c6d2ebd5fef7db0189587a2b04",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -73,7 +37,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 49.8,
+    "ageHours": 49.9,
     "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,

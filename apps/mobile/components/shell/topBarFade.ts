@@ -40,3 +40,17 @@ export function clearOf(hex: string): string {
 export function revealMargin(topInset: number, below: number = REVEAL_MARGIN): number {
   return topFadeHeight(topInset) + below;
 }
+
+/** The docked footer's fade (AuthScaffold; a design-lead P3, "no hard edges"): the page colour fades up over this many points above the
+ * footer, so a line of content that runs under the footer's top edge softens into it instead of being sliced. */
+export const FOOTER_FADE_POINTS = 12;
+
+/** How much of the footer's fade shows: full while there is at least FOOTER_FADE_POINTS of content still below the scroll window,
+ * fading out as the last of it comes up (nothing runs under the footer then), and nothing at all when the content fits. */
+export function footerFadeOpacity(g: { scrollY: number; viewportHeight: number; contentHeight: number }): number {
+  'worklet';
+  if (!(g.viewportHeight > 0) || !(g.contentHeight > g.viewportHeight)) return 0;
+  const remaining = g.contentHeight - g.viewportHeight - Math.max(0, g.scrollY);
+  if (!(remaining > 0)) return 0;
+  return Math.min(1, remaining / FOOTER_FADE_POINTS);
+}

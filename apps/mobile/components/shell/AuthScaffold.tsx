@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
+import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
 import { fieldRevealOffset, footerSecondaryShown, keyboardUpAfter, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { FooterFade } from '@/components/shell/FooterFade';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -56,6 +58,10 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
   const [keyboardUp, setKeyboardUp] = useState(false);
   const inField = useRef(false);
   const viewportHeight = useRef(0);
+  // The footer's fade (FooterFade): where the scroll window is in its content, so the fade shows only while content runs under the footer.
+  const scrollY = useSharedValue(0);
+  const windowHeight = useSharedValue(0);
+  const contentHeight = useSharedValue(0);
   const fontScaleRef = useRef(fontScale);
   fontScaleRef.current = fontScale;
 
@@ -118,21 +124,32 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           </Text>
         </Pressable>
       ) : null}
-      <ScrollView
-        ref={setScroll}
-        onFocus={() => step('focus')}
-        onBlur={() => step('blur')}
-        onLayout={(e) => {
-          viewportHeight.current = e.nativeEvent.layout.height;
-          step('layout');
-        }}
-        style={styles.fill}
-        contentContainerStyle={[styles.body, centerBody && styles.bodyCentered, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
-      >
-        {children}
-      </ScrollView>
+      <View style={styles.fill}>
+        <ScrollView
+          ref={setScroll}
+          onFocus={() => step('focus')}
+          onBlur={() => step('blur')}
+          onLayout={(e) => {
+            viewportHeight.current = e.nativeEvent.layout.height;
+            windowHeight.value = e.nativeEvent.layout.height;
+            step('layout');
+          }}
+          onScroll={(e) => {
+            scrollY.value = e.nativeEvent.contentOffset.y;
+          }}
+          onContentSizeChange={(_w, h) => {
+            contentHeight.value = h;
+          }}
+          scrollEventThrottle={16}
+          style={styles.fill}
+          contentContainerStyle={[styles.body, centerBody && styles.bodyCentered, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
+          {children}
+        </ScrollView>
+        {footer ? <FooterFade scrollY={scrollY} viewportHeight={windowHeight} contentHeight={contentHeight} color={colors.bg} /> : null}
+      </View>
       {footer ? (
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[5]) }]}>
           {footer}
