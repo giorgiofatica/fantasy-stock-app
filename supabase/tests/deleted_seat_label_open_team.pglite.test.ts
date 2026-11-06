@@ -75,9 +75,14 @@ Deno.test({
     await n(L1, 'r1', A, { commissioner_name: OLD, league_name: 'Alpha', season_number: 2 });
     await n(L2, 'r2', B, { commissioner_name: 'bob_b', league_name: 'Beta', season_number: 2 });
     await n(L3, 'r3', null, {});
+    // scrub step 4 also stores subject_name (alone, and next to commissioner_name): both keys are backfilled.
+    await n(L1, 'r4', A, { subject_name: OLD, league_name: 'Gamma', season_number: 3 });
+    await n(L2, 'r5', A, { subject_name: OLD, commissioner_name: OLD, league_name: 'Delta' });
+    await n(L3, 'r6', B, { subject_name: 'bob_b', commissioner_name: 'bob_b', league_name: 'Eps' });
     const stored = async () => ({
       rc: (await db.query<Row>(`select league_id, departed from league_roster_reconfirm order by league_id`)).rows,
-      nt: (await db.query<Row>(`select league_id, detail from league_notifications order by league_id`)).rows,
+      nt: Object.fromEntries((await db.query<Row>(`select user_id, detail from league_notifications order by user_id`)).rows
+        .map((r: Row) => [r.user_id, r.detail])),
     });
     const before = await stored();
     assert(JSON.stringify(before).includes(OLD), 'fixture: the old wording is stored');
@@ -105,9 +110,12 @@ Deno.test({
         [A, NEW], [B, 'bob_b'], ['3c3c3c3c-0000-4000-8000-0000000000c3', NEW]], 'order kept, only the label entries changed');
       assertEquals(after.rc[0].departed[0].left_at, '2026-11-01T00:00:00Z', 'other keys are kept');
       assertEquals(after.rc[1].departed, before.rc[1].departed, 'a reconfirm with no label is byte-identical');
-      assertEquals(after.nt[0].detail, { commissioner_name: NEW, league_name: 'Alpha', season_number: 2 });
-      assertEquals(after.nt[1].detail, before.nt[1].detail, 'a real name is untouched');
-      assertEquals(after.nt[2].detail, before.nt[2].detail, 'an empty detail stays empty');
+      assertEquals(after.nt.r1, { commissioner_name: NEW, league_name: 'Alpha', season_number: 2 });
+      assertEquals(after.nt.r2, before.nt.r2, 'a real name is untouched');
+      assertEquals(after.nt.r3, before.nt.r3, 'an empty detail stays empty');
+      assertEquals(after.nt.r4, { subject_name: NEW, league_name: 'Gamma', season_number: 3 }, 'subject_name alone, other keys kept');
+      assertEquals(after.nt.r5, { subject_name: NEW, commissioner_name: NEW, league_name: 'Delta' }, 'both keys in one row');
+      assertEquals(after.nt.r6, before.nt.r6, 'a real subject_name and commissioner_name are untouched');
       assertFalse(JSON.stringify(after).includes(OLD), 'no stored copy of the old wording remains');
     });
 
