@@ -266,7 +266,9 @@ Deno.test('capture-script actions (DEV, headless captures): each calls the handl
   assert(code(SOURCES['lib/money/captureScript.ts']).includes('const STEPS = SEAM_ON ? parseCaptureScript(process.env.EXPO_PUBLIC_CAPTURE_SCRIPT) : [];'));
   const field = code(SOURCES['components/SymbolSearchField.tsx']);
   assert(field.includes("captureAction = '',")); // unset: no action registered (useCaptureAction skips '')
-  assert(field.includes("useCaptureAction(captureAction, (q) => handleChangeText(q ?? ''));"));
+  // The capture types through typeInto, the field's own typing step, not the guarded native handler (queue-search-keyboard):
+  // the script never focuses the field, so a pick earlier in the script must not shut it.
+  assert(field.includes("useCaptureAction(captureAction, (q) => typeInto(q ?? ''));"));
   assert(code(SOURCES['components/game/DraftRoom.tsx']).includes('captureAction="type"'));
   assert(code(SOURCES['components/game/QueueEditor.tsx']).includes('captureAction="typeq"'));
   // Try again's own handler: the re-read.

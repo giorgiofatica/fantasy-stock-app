@@ -4,6 +4,7 @@ import { Platform, RefreshControl, ScrollView, StyleProp, StyleSheet, View, View
 import { useFixtureScrollEnd } from '@/lib/shell/fixtureRoute';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { ScrollFoldContext, useScrollFoldSource } from './scrollFold';
+import { ScrollRevealContext, makeScrollReveal } from './scrollReveal';
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -52,6 +53,9 @@ export function BarsRefresh({ onRefresh, children, contentContainerStyle }: Bars
   // 3c-2, UX rule 7: children can tell what's below the fold (StandingsTable pins your row).
   const fold = useScrollFoldSource();
   const measureRef = useRef<View>(null);
+  // The Android branch's own scroll view (the iOS one keeps its ref in IosBarsRefresh).
+  const androidScrollRef = useRef<ScrollView>(null);
+  const androidReveal = useRef(makeScrollReveal(() => androidScrollRef.current)).current;
   const onViewLayout = () => {
     measureRef.current?.measureInWindow((_x, y, _w, h) => fold.setViewport({ top: y, bottom: y + h }));
   };
@@ -69,15 +73,19 @@ export function BarsRefresh({ onRefresh, children, contentContainerStyle }: Bars
     return (
       <View ref={measureRef} style={styles.fill} onLayout={onViewLayout}>
         <ScrollFoldContext.Provider value={fold.value}>
+          <ScrollRevealContext.Provider value={androidReveal}>
           <ScrollView
-            contentContainerStyle={contentContainerStyle}
+            ref={androidScrollRef}
+            // A search field low on the tab scrolls above the keyboard, and a tap on a result selects it (iOS does the same below).
             keyboardShouldPersistTaps="handled"
+            contentContainerStyle={contentContainerStyle}
             onScroll={fold.emit}
             scrollEventThrottle={16}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={run} colors={[colors.accent]} tintColor={colors.accent} />}
           >
             {children}
           </ScrollView>
+          </ScrollRevealContext.Provider>
         </ScrollFoldContext.Provider>
       </View>
     );
@@ -112,6 +120,8 @@ function IosBarsRefresh({
   const armed = useSharedValue(false);
   const pulse = [useSharedValue(1), useSharedValue(1), useSharedValue(1)] as const;
   const scrollRef = useRef<Animated.ScrollView>(null);
+  // A search field low on the tab asks for itself to be scrolled up above the keyboard (scrollReveal.ts).
+  const reveal = useRef(makeScrollReveal(() => scrollRef.current as never)).current;
   // DEV captures only (lib/shell/fixtureRoute.ts).
   useFixtureScrollEnd(scrollRef as never);
   // DEV capture script only (a no-op without the seam and a script): scroll to y, as a swipe would.
@@ -183,7 +193,7 @@ function IosBarsRefresh({
           </Text>
         ) : null}
       </View>
-      {children}
+      <ScrollRevealContext.Provider value={reveal}>{children}</ScrollRevealContext.Provider>
     </Animated.ScrollView>
   );
 }
