@@ -614,17 +614,21 @@ building anything, and don't reopen a rule without him.
   screen says once "Your account is deleted."; the same email may sign up again as a new
   account with no history.
   **Giorgio's board picks (2026-10-21, `#call-del-label`, `#call-del-screen`, `#call-del-find`):**
-  - **The seat's label is "Former manager"** (A), everywhere a deleted manager's name would
-    be (standings, matchups, history, Members, Home), with the default avatar (a person glyph
-    on a neutral disc, never initials of the label), in the secondary text colour.
+  - **The seat's label is "Open team"** (B; **changed 2026-11-06**, Giorgio: "B: Open Team". It
+    was A, "Former manager", from 2026-10-21), everywhere a deleted manager's name would be
+    (standings, matchups, history and past seasons, Members, Home), with the default avatar (a
+    person glyph on a neutral disc, never initials of the label), in the secondary text colour.
+    The two sentences that named the seat are reworded so they never read "Open team's team":
+    the takeover question **"Take over the open team in {league}?"** and the commissioner's push
+    **"{Name} took over the open team."** (both NEW, from the Design Lead, pending Giorgio's OK).
   - **The delete screen explains each league on its own line** (B): "Delete your account?",
     then "This deletes your account right away.", then one line per league, verbatim:
-    "Your team stays as “Former manager”. {Earliest member} becomes the commissioner." (a
-    league you run, with other managers) / "Your team stays as “Former manager”. The
+    "Your team stays as “Open team”. {Earliest member} becomes the commissioner." (a
+    league you run, with other managers) / "Your team stays as “Open team”. The
     commissioner can hand it to a new manager." (a league you play in) / "It hasn’t drafted
     yet, so you leave it." (before its draft) / "No other managers, so it’s deleted with your
-    account." (a league you run alone); then "Past seasons keep your results under “Former
-    manager”." Then the proof and "Delete my account".
+    account." (a league you run alone); then "Past seasons keep your results under “Open
+    team”." Then the proof and "Delete my account".
   - **"Find a new manager" is a pill on the seat's Members row** (B), for the commissioner
     only. The standings row looks like every other row and opens the seat's team view (as
     every row does), where "Find a new manager" is the commissioner's button.
