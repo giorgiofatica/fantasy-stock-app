@@ -7,7 +7,7 @@
 //   2. before the draft                          -> they simply leave it
 //   3. a league they run, others in it           -> "{earliest member} becomes the commissioner."
 //   4. a league they play in                     -> "The commissioner can hand it to a new manager."
-//   5. a finished season you only PLAYED in      -> "Your team stays as “Former manager”." alone: nothing is left to hand
+//   5. a finished season you only PLAYED in      -> "Your team stays as “Open team”." alone: nothing is left to hand
 //      over (plan decision 9; Design Lead, 2026-10-21). One you RAN with others is rule 3: the title passes in every
 //      window, so the full approved line names the successor.
 // The successor is picked the way the server picks: earliest `joined_at`, then `user_id`; leavers, deleted seats

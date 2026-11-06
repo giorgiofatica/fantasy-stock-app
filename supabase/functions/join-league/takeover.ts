@@ -93,24 +93,21 @@ export interface TakeoverPushInput {
   leagueId: string | null;
   leagueName: string | null;
   newName: string | null;
-  /** deleted_manager_label(), read from the database so the board's pick lives in one place. */
-  placeholder: string | null;
 }
 
 /**
- * The push to the commissioner. COPY IS PROVISIONAL for the Design Lead (plan:
- * "{Name} took over {placeholder}'s team."). The placeholder comes from
- * deleted_manager_label(), never a literal; without it the copy says "an open team"
- * rather than guess a label the board may change.
+ * The push to the commissioner: "{Name} took over the open team." (Giorgio, 2026-11-06,
+ * approved verbatim). The sentence is fixed text, not built from the seat's label: the seat
+ * reads "Open team" (deleted_manager_label()), and splicing that in would say "Open team's
+ * team", which is why the board reworded it.
  */
 export function takeoverMessage(i: TakeoverPushInput) {
   // Bounded: both are user-authored text that ends up in a push title and body.
   const league = (i.leagueName?.trim() || 'your league').slice(0, LEAGUE_NAME_MAX);
   const who = (i.newName?.trim() || 'A new manager').slice(0, LEAGUE_NAME_MAX);
-  const seat = i.placeholder?.trim() ? `${i.placeholder.trim()}'s team` : 'an open team';
   return {
     title: league,
-    body: `${who} took over ${seat}.`,
+    body: `${who} took over the open team.`,
     data: { type: 'seat_taken_over', league_id: i.leagueId },
   };
 }

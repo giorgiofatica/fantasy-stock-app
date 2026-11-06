@@ -79,18 +79,19 @@ Deno.test('client response: an unknown reason, status or null is unhandled, neve
   }
 });
 
-Deno.test('push copy: names the new manager and the placeholder from the database', () => {
-  assertEquals(takeoverMessage({ leagueId: L, leagueName: 'Alpha', newName: 'Roberto B.', placeholder: 'Former manager' }), {
+Deno.test('push copy: "{Name} took over the open team." (approved verbatim, 2026-11-06)', () => {
+  assertEquals(takeoverMessage({ leagueId: L, leagueName: 'Alpha', newName: 'Roberto B.' }), {
     title: 'Alpha',
-    body: "Roberto B. took over Former manager's team.",
+    body: 'Roberto B. took over the open team.',
     data: { type: 'seat_taken_over', league_id: L },
   });
 });
 
-Deno.test('push copy: without a placeholder or names it never invents a label', () => {
-  const m = takeoverMessage({ leagueId: null, leagueName: null, newName: null, placeholder: '  ' });
+Deno.test('push copy: without names it never invents one, and it never splices the seat label in', () => {
+  const m = takeoverMessage({ leagueId: null, leagueName: null, newName: null });
   assertEquals(m.title, 'your league');
-  assertEquals(m.body, 'A new manager took over an open team.');
+  assertEquals(m.body, 'A new manager took over the open team.');
+  assertFalse(/Open team|Former manager/.test(m.body), 'the sentence is fixed text: never "Open team\'s team"');
 });
 
 // ---- takeover_preview ----------------------------------------------------------------

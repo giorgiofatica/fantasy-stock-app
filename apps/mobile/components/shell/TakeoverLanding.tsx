@@ -18,16 +18,18 @@ import { JOIN_COPY, blockMessage } from '@/lib/join/joinPreview';
 import { ARRIVAL_COPY } from '@/lib/invite/arrivalView';
 
 // Account deletion (W4) — the takeover landing (board "Takeover landing" and "Already taken"). The default avatar
-// over "Take over {label}'s team in {League}?" and the seat's record, centred in the space above the actions;
+// over "Take over the open team in {League}?" and the seat's record, centred in the space above the actions;
 // "Take the team" and "Not now" dock at the bottom. A dead link has NO heading: the refusal panel and one way out
 // are centred (the invite arrival's dead-link pattern, which the board names).
 
 const DISC = 64;
 
 /**
- * The heading's own ceiling. At the `display` style's 1.6× (51pt) "Former manager's" is ~460pt wide on a ~340pt screen, so
- * keeping each name on one line (keepName) is physically impossible and the iOS layout broke both names word by word
- * (F20 XXXL). At 1.15× (~37pt) both names fit on one line each; at Large (1.0) nothing changes. A longer league name
+ * The heading's own ceiling. At the `display` style's 1.6× (51pt) the old "Former manager's team in …" heading was ~460pt wide on a ~340pt
+ * screen, so keeping each name on one line (keepName) was physically impossible and the iOS layout broke both names word
+ * by word (F20 XXXL). At 1.15× (~37pt) both names fit on one line each; at Large (1.0) nothing changes. The heading is
+ * now "Take over the open team in {League}?" (2026-11-06): shorter, so this cap is conservative; re-shoot F20 before
+ * relaxing it. A longer league name
  * still wraps between its words (keepName leaves names over 20 characters breakable).
  */
 export const TAKEOVER_TITLE_MAX_SCALE = 1.15;
@@ -148,7 +150,7 @@ export function TakeoverLanding({
     >
       <View style={styles.block}>
         <Avatar name={label} size={DISC} tone="neutral" />
-        <ScreenTitle style={styles.title} maxFontSizeMultiplier={TAKEOVER_TITLE_MAX_SCALE}>{takeoverQuestion(keepName(label), keepName(found.leagueName))}</ScreenTitle>
+        <ScreenTitle style={styles.title} maxFontSizeMultiplier={TAKEOVER_TITLE_MAX_SCALE}>{takeoverQuestion(keepName(found.leagueName))}</ScreenTitle>
         <Card style={styles.record}>
           <Text variant="headline" maxFontSizeMultiplier={LINK_MAX_SCALE} style={styles.num}>
             {recordLine(found.wins, found.losses, found.rank)}

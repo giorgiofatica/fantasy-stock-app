@@ -60,7 +60,10 @@ export const TAKEOVER_TAP_TITLE = 'Take over a team';
 export function takeoverShareSentence(leagueName: string): string {
   return `Take over a team in ${leagueName}`;
 }
-/** The landing's question: "Take over Former manager's team in Stock Scudetto?" */
-export function takeoverQuestion(label: string, leagueName: string): string {
-  return `Take over ${label}'s team in ${leagueName}?`;
+/**
+ * The landing's question: "Take over the open team in Stock Scudetto?" (approved verbatim, Giorgio, 2026-11-06). Fixed
+ * text around the league name: splicing the seat's label in would read "Take over Open team's team".
+ */
+export function takeoverQuestion(leagueName: string): string {
+  return `Take over the open team in ${leagueName}?`;
 }

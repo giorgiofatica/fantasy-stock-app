@@ -228,15 +228,15 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/ShellTabBar.tsx:151` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:152` | Pressable | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
 | `components/shell/SocialSignIn.tsx:107` | Button | onPress | `inline: () => run('google')` | fn run | `busy === 'apple'` |
-| `components/shell/TakeoverLanding.tsx:74` | Link | onPress | `onHome` | prop onHome (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:86` | Link | onPress | `onOpen` | prop onOpen (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:100` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:101` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:129` | Link | onPress | `onRetry` | prop onRetry (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:130` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:144` | Button | onPress | `onTake` | prop onTake (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:145` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) | `taking` |
-| `components/shell/TakeoverLanding.tsx:165` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
+| `components/shell/TakeoverLanding.tsx:76` | Link | onPress | `onHome` | prop onHome (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:88` | Link | onPress | `onOpen` | prop onOpen (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:102` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:103` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:131` | Link | onPress | `onRetry` | prop onRetry (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:132` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:146` | Button | onPress | `onTake` | prop onTake (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:147` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) | `taking` |
+| `components/shell/TakeoverLanding.tsx:167` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/shell/UsernamePicker.tsx:263` | Chip | onPress | `inline: () => onChange(s)` | fn onChange |  |
 | `components/shell/UsernamePicker.tsx:272` | Button | onPress | `onContinue` | sheet setEmailJustConfirmed(false) | `mode === 'suggesting' \|\| (!view.canConti` |
 | `components/shell/UsernamePicker.tsx:273` | Button | onPress | `startEditing` | fn startEditing |  |

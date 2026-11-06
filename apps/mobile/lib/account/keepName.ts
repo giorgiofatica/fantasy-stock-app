@@ -1,9 +1,9 @@
 // Account deletion (W4) — a name that never splits across lines in a sentence (Design Lead gate, 2026-10-21): the seat's
-// label ("Former manager"), a league's name, a successor's name. Display only (VoiceOver reads the same words; the copy is
+// label ("Open team"), a league's name, a successor's name. Display only (VoiceOver reads the same words; the copy is
 // unchanged and shared with the tests as plain text).
 //
 //   hyphens: a hyphenated word keeps its hyphen's word whole (keepHyphens, the arrival's keepName).
-//   spaces:  a name of `keepWhole` characters or fewer gets no-break spaces, so "Former manager" and "Stock Scudetto" stay
+//   spaces:  a name of `keepWhole` characters or fewer gets no-break spaces, so "Open team" and "Stock Scudetto" stay
 //            on one line. A LONGER name keeps its spaces breakable: a 39-character league name glued into one run would be
 //            wider than the screen and wrap mid-word, which is worse than a break between its words.
 

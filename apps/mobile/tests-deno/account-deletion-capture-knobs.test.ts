@@ -14,7 +14,7 @@ Deno.test('seatify: off returns the very same value; on replaces only the seat\'
   const v = { a: ['Gianluigi B.', 'Paolo M.'], n: { display_name: 'Gianluigi Buonarroti', x: 3 } };
   assertStrictEquals(seatify(v, false), v);
   const out = seatify(v, true);
-  assertEquals(out, { a: ['Former manager', 'Paolo M.'], n: { display_name: 'Former manager', x: 3 } });
+  assertEquals(out, { a: ['Open team', 'Paolo M.'], n: { display_name: 'Open team', x: 3 } });
   assert(isDeletedSeatName(out.a[0]));
   assertEquals(v.a[0], 'Gianluigi B.'); // the input is not mutated
 });

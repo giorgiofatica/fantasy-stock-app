@@ -120,18 +120,16 @@ const takeOverCalls = (f: Fake) => f.rpcs.filter((r) => r.name === 'take_over_te
 Deno.test('takeover: the user id is the JWT\'s, never the body\'s; success pushes the commissioner AFTER commit', async () => {
   const f = new Fake();
   f.rpc.take_over_team = () => ok(TAKEN_OVER);
-  f.rpc.deleted_manager_label = () => ok('Former manager');
   const res = await post(f, takeover({ user_id: BODY_USER, p_user_id: BODY_USER, league_id: BODY_USER }));
   assertEquals(res.status, 200);
   assertEquals(await res.json(), { ok: true, status: 'taken_over', league: { id: LEAGUE, name: 'Alpha' } });
   assertEquals(takeOverCalls(f).length, 1);
   assertEquals(takeOverCalls(f)[0].args, { p_code: CODE, p_user_id: JWT_USER });
   assertEquals(f.pushes.length, 1);
-  assertEquals(f.pushes[0].body, "Roberto B. took over Former manager's team.");
+  assertEquals(f.pushes[0].body, 'Roberto B. took over the open team.');
   assertEquals((f.pushes[0].data as { league_id: string }).league_id, LEAGUE, 'the push deep-links to the database\'s league');
   assertEquals((f.pushes[0].data as { type: string }).type, 'seat_taken_over');
-  const order = f.rpcs.map((r) => r.name);
-  assert(order.indexOf('take_over_team') < order.indexOf('deleted_manager_label'), 'push copy is built after the commit');
+  assertFalse(f.rpcs.some((r) => r.name === 'deleted_manager_label'), 'the sentence is fixed text: no label read');
 });
 
 Deno.test("takeover 'taken': a second taker gets a clean refusal and NO push", async () => {
@@ -162,12 +160,12 @@ Deno.test('takeover: an odd value from the database in the push copy can never t
   assertEquals((await res.json()).ok, true);
 });
 
-Deno.test('takeover: the seat_label the SQL returned is used (no second rpc); without it the label rpc is the fallback', async () => {
+Deno.test('takeover: the push sentence ignores the seat_label (it would read "Open team\'s team")', async () => {
   const f = new Fake();
-  f.rpc.take_over_team = () => ok({ ...TAKEN_OVER, seat_label: 'Former manager' });
-  f.rpc.deleted_manager_label = () => ok('SHOULD NOT BE USED');
+  f.rpc.take_over_team = () => ok({ ...TAKEN_OVER, seat_label: 'Open team' });
   await post(f, takeover());
-  assertEquals(f.pushes[0].body, "Roberto B. took over Former manager's team.");
+  assertEquals(f.pushes[0].body, 'Roberto B. took over the open team.');
+  assertFalse(String(f.pushes[0].body).includes("Open team's"));
   assertFalse(f.rpcs.some((r) => r.name === 'deleted_manager_label'));
 });
 
@@ -195,12 +193,12 @@ Deno.test('a literal JSON null body is a clean 400, never a crash', async () => 
   assertEquals(f.rpcs.filter((r) => r.name === 'join_league_by_code').length, 0);
 });
 
-Deno.test('takeover: the label rpc failing falls back to generic copy, still pushes', async () => {
+Deno.test('takeover: the push does not depend on the label rpc at all (deploys before the migration still read right)', async () => {
   const f = new Fake();
   f.rpc.take_over_team = () => ok(TAKEN_OVER);
   f.rpc.deleted_manager_label = () => new Response(JSON.stringify({ message: 'nope', code: '42883' }), { status: 404, headers: JSON_HEADERS });
   await post(f, takeover());
-  assertEquals(f.pushes[0].body, 'Roberto B. took over an open team.');
+  assertEquals(f.pushes[0].body, 'Roberto B. took over the open team.');
 });
 
 Deno.test('takeover: an rpc ERROR is a 500, never a fabricated success, and nothing is pushed', async () => {

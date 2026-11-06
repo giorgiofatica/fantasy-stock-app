@@ -7,7 +7,7 @@
 //   EXPO_PUBLIC_TAKEOVER_FIXTURE   found | tap (a scheme-origin link: waits for a tap) | taken | dead | unknown: join-league's takeover_preview / takeover answers.
 //   create_takeover_invite         answers {code} so "Find a new manager" opens the real share sheet.
 
-import { FORMER_MANAGER_FALLBACK } from '../account/deletedSeat';
+import { OPEN_TEAM_FALLBACK } from '../account/deletedSeat';
 
 /** A takeover code as the server mints it: exactly 10 characters, A-Z / 0-9. */
 export const FIXTURE_TAKEOVER_CODE = 'QX7P4KM3AB';
@@ -15,7 +15,7 @@ export const FIXTURE_TAKEOVER_CODE = 'QX7P4KM3AB';
 const SEAT_NAMES: readonly string[] = ['Gianluigi B.', 'Gianluigi Buonarroti', 'Gianluigi Buffonetti'];
 
 /** Deep-replaces the fixture seat's names by the deleted-seat label. Off: the SAME value, untouched. */
-export function seatify<T>(value: T, on: boolean, label: string = FORMER_MANAGER_FALLBACK): T {
+export function seatify<T>(value: T, on: boolean, label: string = OPEN_TEAM_FALLBACK): T {
   if (!on) return value;
   const walk = (v: unknown): unknown => {
     if (typeof v === 'string') return SEAT_NAMES.includes(v) ? label : v;

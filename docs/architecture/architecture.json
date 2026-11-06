@@ -2,42 +2,82 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "841eb77d989dade087e1330fd6dca0137f9d1df5",
-    "commitShort": "841eb77d",
+    "commit": "9c4995592b079d12619a07f690becab99d17f703",
+    "commitShort": "9c499559",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/queuePriceStore.ts"
+        "path": "apps/mobile/components/league/MembersSection.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/queueRow.ts"
+        "path": "apps/mobile/components/shell/TakeoverLanding.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seamFixtures.ts"
+        "path": "apps/mobile/lib/account/deleteCopy.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/useQueueQuotes.ts"
+        "path": "apps/mobile/lib/account/deletedSeat.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/game-queue-row.test.ts"
+        "path": "apps/mobile/lib/account/keepName.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/account/leagueLines.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/seamAccountDeletion.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/account-deletion-capture-knobs.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/account-deletion-dl-fixes.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/account-deletion-wiring.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/account-deletion.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/join-league/index.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/join-league/takeover.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/join-league/takeover.ts"
+      },
+      {
+        "code": "A",
+        "path": "supabase/migrations/20261127000000_deleted_seat_label_open_team.sql"
       }
     ],
-    "timestamp": "2026-11-06T23:37:08Z",
-    "sourceHash": "sha256:94cb9607198d8879dc27330f5023c863404cdcd6c951e430b675d0d2d90d5175",
+    "timestamp": "2026-11-06T23:39:48Z",
+    "sourceHash": "sha256:5c22f47f49c931c743a095ae90e739b7e68f9ece446aee481222215033958da9",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 49.6,
+    "ageHours": 49.7,
     "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -829,7 +869,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 204
+        "lines": 194
       },
       "db": null,
       "declared": null,
@@ -3406,10 +3446,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261125000001_deleted_seat_and_label.sql:72"
+          "supabase/migrations/20261125000001_deleted_seat_and_label.sql:72",
+          "supabase/migrations/20261127000000_deleted_seat_label_open_team.sql:51"
         ],
-        "latestDefinition": "supabase/migrations/20261125000001_deleted_seat_and_label.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261127000000_deleted_seat_label_open_team.sql",
+        "redefinitions": 2
       },
       "drift": [
         {
@@ -3427,8 +3468,8 @@
       "sublabel": "authenticated, service_role",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261125000001_deleted_seat_and_label.sql",
-        "line": 72
+        "path": "supabase/migrations/20261127000000_deleted_seat_label_open_team.sql",
+        "line": 51
       }
     },
     {
@@ -11607,25 +11648,13 @@
     {
       "annotation": null,
       "verified": true,
-      "id": "e.fn.join-league->pg.deleted_manager_label",
-      "from": "fn.join-league",
-      "to": "pg.deleted_manager_label",
-      "protocol": "postgrest-rpc",
-      "payload": "rpc('deleted_manager_label')",
-      "callSites": [
-        "supabase/functions/join-league/index.ts:169"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
       "id": "e.fn.join-league->pg.join_league_by_code",
       "from": "fn.join-league",
       "to": "pg.join_league_by_code",
       "protocol": "postgrest-rpc",
       "payload": "rpc('join_league_by_code')",
       "callSites": [
-        "supabase/functions/join-league/index.ts:195"
+        "supabase/functions/join-league/index.ts:185"
       ]
     },
     {
@@ -21680,7 +21709,7 @@
           "edge": "e.fn.join-league->pg.join_league_by_code",
           "detail": "Atomic membership insert + invite accept. p_user_id comes from the verified JWT, never the request body. EXECUTE is service_role only, so the client cannot reach this directly.",
           "files": [
-            "supabase/functions/join-league/index.ts:195"
+            "supabase/functions/join-league/index.ts:185"
           ]
         },
         {
@@ -23454,7 +23483,7 @@
   "orphanAnnotations": [],
   "stats": {
     "nodes": 311,
-    "edges": 761,
+    "edges": 760,
     "flows": 7,
     "drift": 33,
     "driftHigh": 0,
@@ -23606,8 +23635,7 @@
       "supabase/functions/invite-preview/index.ts:39 -> invite_preview_lookup",
       "supabase/functions/join-league/index.ts:129 -> takeover_preview",
       "supabase/functions/join-league/index.ts:150 -> take_over_team",
-      "supabase/functions/join-league/index.ts:169 -> deleted_manager_label",
-      "supabase/functions/join-league/index.ts:195 -> join_league_by_code",
+      "supabase/functions/join-league/index.ts:185 -> join_league_by_code",
       "supabase/functions/join-league/index.ts:46 -> check_and_bump_rate_limit",
       "supabase/functions/join-league/index.ts:49 -> check_and_bump_rate_limit",
       "supabase/functions/join-league/index.ts:73 -> check_and_bump_rate_limit",
@@ -24081,7 +24109,8 @@
       "20261125000009_unclocked_deleted_seat_turns.sql",
       "20261125000010_schedule_heal_account_deletions.sql",
       "20261125000011_deleted_seat_sweep_guard.sql",
-      "20261126000000_get_home_league_result.sql"
+      "20261126000000_get_home_league_result.sql",
+      "20261127000000_deleted_seat_label_open_team.sql"
     ],
     "config": [
       "delete-account=true",
