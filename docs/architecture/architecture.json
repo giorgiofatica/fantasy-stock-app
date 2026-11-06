@@ -2,70 +2,30 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "949fd0ff6371f6710420978c74f2a6787bbfffe3",
-    "commitShort": "949fd0ff",
+    "commit": "7022cb3b1c20f003398ba4cdcc1e0bc964a74812",
+    "commitShort": "7022cb3b",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
+        "code": "A",
+        "path": "apps/mobile/components/shell/authFieldReveal.ts"
+      },
+      {
         "code": "M",
-        "path": "apps/mobile/components/game/QueueEditor.tsx"
+        "path": "apps/mobile/components/shell/AuthScaffold.tsx"
       },
       {
         "code": "A",
-        "path": "apps/mobile/components/game/QueueRow.tsx"
+        "path": "apps/mobile/tests-deno/auth-fields-above-keyboard.test.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/components/SymbolSearchField.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/game/queuePriceStore.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/game/queueRow.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/seamCalls.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/seamFixtures.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/seamTables.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/game/useQueueMarketLine.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/game/useQueueQuotes.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/game-queue-row.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/gn-w4-draft.test.ts"
-      },
-      {
-        "code": "M",
+        "code": "UU",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sp-text-capped-size.test.ts"
       }
     ],
-    "timestamp": "2026-11-06T19:42:57Z",
+    "timestamp": "2026-11-06T23:18:50Z",
     "sourceHash": "sha256:79ff58e5cbd66110e9d9e2fee5dd176052518ef915a76e23ad768ae205530fbd",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -73,8 +33,8 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 45.7,
-    "ageDays": 1.9,
+    "ageHours": 49.3,
+    "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:63e656527b081b605afa2985a95e3e2dff7478470416f1ae991a33d8f3817ef6",
