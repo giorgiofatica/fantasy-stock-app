@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles`/`cardShadow` are declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -19,6 +19,8 @@ import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { useSymbolSearch, type UseSymbolSearchOptions } from '@/lib/useSymbolSearch';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { useCaptureAction } from '@/lib/money/captureScript';
+import { useScrollReveal } from '@/components/shell/scrollReveal';
+import { acceptsChange, listJustOpened, nextPhase, type FieldPhase } from '@/components/sp/logic/searchField';
 
 interface SymbolSearchFieldProps extends UseSymbolSearchOptions {
   /** Controlled input text (typically uppercase — matches both call sites'
@@ -40,6 +42,9 @@ interface SymbolSearchFieldProps extends UseSymbolSearchOptions {
   /** DEV capture script only: the action name that types into THIS field (a screen can hold
    * two fields, the room's and the queue's). Unset: no action. */
   captureAction?: string;
+  /** The queue's search: a pick returns the box to EMPTY (the placeholder), as it is a list to add to. Unset: the caller
+   * keeps the text it set (the draft room shows the picked symbol). */
+  clearOnSelect?: boolean;
 }
 
 export default function SymbolSearchField({
@@ -55,8 +60,15 @@ export default function SymbolSearchField({
   debounceMs,
   limit,
   captureAction = '',
+  clearOnSelect = false,
 }: SymbolSearchFieldProps) {
   const [showResults, setShowResults] = useState(false);
+  const containerRef = useRef<View>(null);
+  const inputRef = useRef<TextInput>(null);
+  // searchField.ts: after a pick the field takes no input until the next focus, so a late change event from the native box
+  // (the blur Keyboard.dismiss() causes) cannot write the typed text back into a field that was just emptied.
+  const phase = useRef<FieldPhase>('idle');
+  const reveal = useScrollReveal();
   const { results, loading, error, retry } = useSymbolSearch(value, selectedSymbol, {
     ownedSymbols,
     allowUndraftable,
@@ -65,13 +77,16 @@ export default function SymbolSearchField({
     limit,
   });
 
-  const handleChangeText = (text: string) => {
-    const upper = text.toUpperCase();
-    onChangeText(upper);
+  const typeInto = (text: string) => {
+    onChangeText(text.toUpperCase());
     setShowResults(true);
   };
-  // DEV capture script only (a no-op without the seam and a script): types as a finger would.
-  useCaptureAction(captureAction, (q) => handleChangeText(q ?? ''));
+  const handleChangeText = (text: string) => {
+    if (!acceptsChange(phase.current)) return;
+    typeInto(text);
+  };
+  // DEV capture script only (a no-op without the seam and a script): types as a finger would (never focused, so not guarded).
+  useCaptureAction(captureAction, (q) => typeInto(q ?? ''));
 
   // G-10 (pass-2b gate, §9A): every colour from the theme, so Dark is dark here too.
   // gn-sweep (§9C rule 2): no rule line between results — rows divide by their own 12pt
@@ -80,7 +95,10 @@ export default function SymbolSearchField({
 
   const handleSelect = (result: ShapedSearchResult) => {
     if (!result.selectable) return;
+    phase.current = nextPhase(phase.current, 'pick');
     setShowResults(false);
+    // The native box is its own buffer: empty it here too, not only through the controlled value.
+    if (clearOnSelect) inputRef.current?.clear();
     Keyboard.dismiss();
     onSelect(result);
   };
@@ -95,6 +113,30 @@ export default function SymbolSearchField({
   // The scale goes in the props too: a remounted field can reuse a recycled native view that keeps its
   // old placeholder size otherwise (remeasureKey.ts, "The PLACEHOLDER").
   const inputFont = inputRemount.fontProps(INPUT_FONT_SIZE);
+  // The field and its whole results list stay above the keyboard (searchField.ts): scroll the field up under the top edge when
+  // it takes focus, when the keyboard has finished opening, and when its results open (the page just grew).
+  const listOpen = visible && results.length > 0;
+  const wasOpen = useRef(false);
+  const scrollFieldUp = () => reveal?.(containerRef.current);
+  useEffect(() => {
+    const opened = listJustOpened(wasOpen.current, listOpen);
+    wasOpen.current = listOpen;
+    if (!opened) return;
+    const t = setTimeout(scrollFieldUp, 60);
+    return () => clearTimeout(t);
+    // scrollFieldUp closes over the stable reveal + ref; only the list opening should re-run this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listOpen]);
+  useEffect(() => {
+    if (!inputRemount.focused) return;
+    const sub = Keyboard.addListener('keyboardDidShow', scrollFieldUp);
+    const t = setTimeout(scrollFieldUp, 60);
+    return () => {
+      sub.remove();
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputRemount.focused]);
   // A result's ticker is never cut or split (Giorgio 2026-11-05, build 9's recording: "TE" over "M" at the largest size):
   // the row's text stops growing at 1.3×, as the queue row's does, and the ticker can't shrink (styles.resultSymbol).
   const rowText = (fontSize: number, lineHeight: number) => {
@@ -107,8 +149,9 @@ export default function SymbolSearchField({
   const priceText = rowText(14, 18);
 
   return (
-    <View style={styles.container}>
+    <View ref={containerRef} style={styles.container}>
       <TextInput
+        ref={inputRef}
         key={inputRemount.key}
         autoFocus={inputRemount.autoFocus}
         style={[styles.textInput, { backgroundColor: colors.inset, color: colors.text, borderColor: colors.border }, inputFont && { fontSize: inputFont.fontSize }]}
@@ -120,10 +163,14 @@ export default function SymbolSearchField({
         autoCapitalize="characters"
         autoCorrect={false}
         onFocus={() => {
+          phase.current = nextPhase(phase.current, 'focus');
           inputRemount.onFocus();
           if (value && value.toUpperCase() !== selectedSymbol.toUpperCase()) setShowResults(true);
         }}
-        onBlur={inputRemount.onBlur}
+        onBlur={() => {
+          phase.current = nextPhase(phase.current, 'blur');
+          inputRemount.onBlur();
+        }}
       />
       {(loading || extraLoading) && value.length > 0 && (
         <ActivityIndicator size="small" color={colors.accent} style={styles.spinner} />
@@ -218,17 +265,14 @@ const styles = StyleSheet.create({
     right: 14,
     top: 12,
   },
+  // In the page's flow, not floating over it: the page has to GROW by the list, or it cannot scroll far enough to lift the
+  // list above the keyboard (the absolute list added no height; queue-search-keyboard).
   resultsContainer: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
     borderWidth: 1,
     borderTopWidth: 0,
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
     maxHeight: 250,
-    zIndex: 100,
   },
   resultsList: {
     maxHeight: 250,
@@ -284,16 +328,11 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   noResultsContainer: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
     borderWidth: 1,
     borderTopWidth: 0,
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
     padding: 16,
-    zIndex: 100,
   },
   noResultsText: {
     fontSize: 14,
