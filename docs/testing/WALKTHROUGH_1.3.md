@@ -200,7 +200,10 @@ step. For the invite steps you need **[2+ accounts]**.
 ## 6. Deleting an account and taking over a team
 
 The server side is live (2026-10-22); the screens arrive with the account-deletion app PR. **Use
-throwaway test accounts only: a deletion cannot be undone.** You'll need a test league with
+throwaway test accounts only: a deletion cannot be undone.** Give each one a real email domain:
+Supabase refuses example.com and other test domains at sign-up, but plus-addressing on a real
+inbox works (`you+t1@gmail.com`). Sign-ups are gated, so allowlist each address first
+(`public.signup_allowlist`). You'll need a test league with
 **[2+ accounts]**, and for item 29 a test Apple ID that has signed in to the app.
 
 - [ ] **29. Delete an account that signed in with Apple.** **[iPhone]** On a test account: Profile ›
