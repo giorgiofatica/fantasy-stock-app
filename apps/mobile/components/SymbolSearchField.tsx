@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
+import { cappedTextProps } from '@/components/sp/logic/cappedType';
+import { QUEUE_ROW_TEXT_MAX_SCALE } from '@/lib/game/queueRow';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { useSymbolSearch, type UseSymbolSearchOptions } from '@/lib/useSymbolSearch';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
@@ -93,6 +95,16 @@ export default function SymbolSearchField({
   // The scale goes in the props too: a remounted field can reuse a recycled native view that keeps its
   // old placeholder size otherwise (remeasureKey.ts, "The PLACEHOLDER").
   const inputFont = inputRemount.fontProps(INPUT_FONT_SIZE);
+  // A result's ticker is never cut or split (Giorgio 2026-11-05, build 9's recording: "TE" over "M" at the largest size):
+  // the row's text stops growing at 1.3×, as the queue row's does, and the ticker can't shrink (styles.resultSymbol).
+  const rowText = (fontSize: number, lineHeight: number) => {
+    const c = cappedTextProps({ fontSize, lineHeight }, fontScale, QUEUE_ROW_TEXT_MAX_SCALE);
+    return { props: { allowFontScaling: c.allowFontScaling, maxFontSizeMultiplier: c.maxFontSizeMultiplier }, size: c.style };
+  };
+  const tickerText = rowText(16, 20);
+  const badgeText = rowText(11, 14);
+  const nameText = rowText(12, 16);
+  const priceText = rowText(14, 18);
 
   return (
     <View style={styles.container}>
@@ -129,16 +141,39 @@ export default function SymbolSearchField({
               >
                 <View style={styles.resultLeft}>
                   <View style={styles.resultSymbolRow}>
-                    <Text style={[styles.resultSymbol, { color: colors.text }]}>{item.symbol}</Text>
+                    <Text
+                      numberOfLines={1}
+                      {...tickerText.props}
+                      style={[styles.resultSymbol, { color: colors.text }, tickerText.size]}
+                    >
+                      {item.symbol}
+                    </Text>
                     {item.badgeLabel && (
-                      <Text style={[styles.badge, { color: colors.warnText, borderColor: colors.warnText }]}>{item.badgeLabel}</Text>
+                      <Text
+                        {...badgeText.props}
+                        style={[styles.badge, { color: colors.warnText, borderColor: colors.warnText }, badgeText.size]}
+                      >
+                        {item.badgeLabel}
+                      </Text>
                     )}
                   </View>
-                  <Text style={[styles.resultName, { color: colors.text2 }]} numberOfLines={1}>
+                  <Text
+                    style={[styles.resultName, { color: colors.text2 }, nameText.size]}
+                    {...nameText.props}
+                    numberOfLines={1}
+                  >
                     {item.name}
                   </Text>
                 </View>
-                {item.price ? <Text style={[styles.resultPrice, { color: colors.text2 }]}>${item.price.toFixed(2)}</Text> : null}
+                {item.price ? (
+                  <Text
+                    numberOfLines={1}
+                    {...priceText.props}
+                    style={[styles.resultPrice, { color: colors.text2 }, priceText.size]}
+                  >
+                    ${item.price.toFixed(2)}
+                  </Text>
+                ) : null}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -210,16 +245,23 @@ const styles = StyleSheet.create({
   },
   resultLeft: {
     flex: 1,
+    // Lets the company name (never the ticker) give way to the price beside it.
+    minWidth: 0,
     marginRight: 12,
   },
+  // A line that wraps: a badge ("NOT DRAFTABLE") drops under the ticker instead of squeezing it.
   resultSymbolRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 6,
+    columnGap: 6,
+    rowGap: 2,
   },
   resultSymbol: {
     fontSize: 16,
     fontFamily: 'Inter_700Bold',
+    // The ticker never shrinks, so it is never cut or split across lines.
+    flexShrink: 0,
   },
   badge: {
     // §9B: the 11pt floor.
@@ -239,6 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter_600SemiBold',
     fontVariant: ['tabular-nums'],
+    flexShrink: 0,
   },
   noResultsContainer: {
     position: 'absolute',

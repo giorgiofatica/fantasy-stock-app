@@ -194,18 +194,20 @@ Deno.test('the stress draft: 16 seats (max_teams) of 20-character names, your tu
 // ── Nothing tappable does nothing ────────────────────────────────────────────────
 
 Deno.test('the queue draws no move that can\'t happen, and Save only with something to save', () => {
+  // The row (QueueRow.tsx, Giorgio 2026-11-05) draws the moves; the editor draws Save.
   const q = strip(SOURCES['components/game/QueueEditor.tsx']);
-  assert(q.includes('{i > 0 ? ('));
-  assert(q.includes('{i < queue.length - 1 ? ('));
-  assert(!q.includes('disabled={i === 0}'));
-  assert(!q.includes('disabled={i === queue.length - 1}'));
+  const row = strip(SOURCES['components/game/QueueRow.tsx']);
+  assert(row.includes('{index > 0 ? ('));
+  assert(row.includes('{index < count - 1 ? ('));
+  assert(!row.includes('disabled={index === 0}'));
+  assert(!row.includes('disabled={index === count - 1}'));
   assert(q.includes('{dirty ? ('));
   assert(q.includes('<Button label="Save queue" variant="secondary"'));
   assert(q.includes('Not saved yet.'));
 });
 
 Deno.test('Draft complete and the lobby divide rows by space, never by rules', () => {
-  for (const p of ['components/game/DraftComplete.tsx', 'components/game/DraftLobby.tsx', 'components/game/DraftRoom.tsx', 'components/game/DraftBoard.tsx', 'components/game/QueueEditor.tsx']) {
+  for (const p of ['components/game/DraftComplete.tsx', 'components/game/DraftLobby.tsx', 'components/game/DraftRoom.tsx', 'components/game/DraftBoard.tsx', 'components/game/QueueEditor.tsx', 'components/game/QueueRow.tsx']) {
     const src = strip(SOURCES[p]);
     assert(!/borderTopWidth|borderBottomWidth|hairlineWidth/.test(src), p);
   }
@@ -215,7 +217,7 @@ Deno.test('Draft complete and the lobby divide rows by space, never by rules', (
 
 const TOUCHED = [
   'components/game/DraftBoard.tsx', 'components/game/DraftRoom.tsx', 'components/game/DraftLobby.tsx',
-  'components/game/DraftComplete.tsx', 'components/game/QueueEditor.tsx', 'components/game/LoadingSkeletons.tsx',
+  'components/game/DraftComplete.tsx', 'components/game/QueueEditor.tsx', 'components/game/QueueRow.tsx', 'components/game/LoadingSkeletons.tsx',
   'components/sp/gn/ClockRing.tsx', 'components/sp/gn/DraftTile.tsx',
 ];
 

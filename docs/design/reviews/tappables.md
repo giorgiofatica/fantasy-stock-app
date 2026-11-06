@@ -4,8 +4,8 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **241** tappables in **87** files.
-- **93** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **241** tappables in **88** files.
+- **94** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **49** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
@@ -77,8 +77,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:228` | Button | onPress | `checkFeasibility` | fn checkFeasibility | `disabled` |
 | `components/SlotBuilder.tsx:241` | ChoiceRow | onPress | `inline: () => pick('')` | fn pick |  |
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
-| `components/SymbolSearchField.tsx:127` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
-| `components/SymbolSearchField.tsx:158` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
+| `components/SymbolSearchField.tsx:139` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
+| `components/SymbolSearchField.tsx:193` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
 | `components/game/DraftBlockersCard.tsx:67` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:68` | Button | onPress | `inline: () => onReconfirm('invite')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:94` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
@@ -101,11 +101,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/LeaveLeagueSheets.tsx:120` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
 | `components/game/LeaveLeagueSheets.tsx:126` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
 | `components/game/LeaveLeagueSheets.tsx:140` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
-| `components/game/QueueEditor.tsx:66` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, -1))` | state setQueue |  |
-| `components/game/QueueEditor.tsx:71` | Pressable | onPress | `inline: () => setQueue((q) => moveItem(q, i, 1))` | state setQueue |  |
-| `components/game/QueueEditor.tsx:75` | Pressable | onPress | `inline: () => setQueue((q) => removeItem(q, i))` | state setQueue |  |
-| `components/game/QueueEditor.tsx:81` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
-| `components/game/QueueEditor.tsx:87` | Button | onPress | `inline: () => void save()` | fn save | `saving` |
+| `components/game/QueueEditor.tsx:80` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
+| `components/game/QueueEditor.tsx:86` | Button | onPress | `inline: () => void save()` | fn save | `saving` |
+| `components/game/QueueRow.tsx:64` | Pressable | onPress | `inline: () => onMove(-1)` | fn onMove |  |
+| `components/game/QueueRow.tsx:69` | Pressable | onPress | `inline: () => onMove(1)` | fn onMove |  |
+| `components/game/QueueRow.tsx:73` | Pressable | onPress | `onRemove` | prop onRemove (the caller's) |  |
 | `components/game/RenewalAsk.tsx:116` | Button | onPress | `inline: () => void answer(response)` | fn answer | `busy !== null && busy !== response` |
 | `components/game/RenewalAsk.tsx:131` | Button | onPress | `inline: () => void answer(refusal.response)` | fn answer | `busy !== null` |
 | `components/game/RenewalChangeSheet.tsx:41` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |

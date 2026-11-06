@@ -80,6 +80,8 @@ export async function seamTable<T>(
     lost: process.env.EXPO_PUBLIC_HOME_FIXTURE === 'scored' && process.env.EXPO_PUBLIC_SCORED_OUTCOME === 'lost',
     // The League fixture's playoffs in progress: the Wild card scored, the Semifinals not yet.
     playoffsLive: process.env.EXPO_PUBLIC_LEAGUE_FIXTURE === 'playoffs_live',
+    // The queue row's captures: the board's queue instead of AAPL, CRM, V.
+    queueRow: process.env.EXPO_PUBLIC_QUEUE_FIXTURE === 'row',
   });
   if (rows) return { data: seatify(rows, DELETED_SEAT) as T[], error: null, count: rows.length };
   return real();

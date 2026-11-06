@@ -104,7 +104,7 @@ Deno.test('wiring: the raw RN Texts outside the primitive (PhaseChip, ScoreDigit
 
 Deno.test('inventory: no raw react-native Text sets a cap outside the files that apply the explicit size', () => {
   // Every source that names `maxFontSizeMultiplier` on a raw RN Text must be one of the three
-  // that route it through cappedType (RollingMoney's two paths, PhaseChip, ScoreDigits) or the
+  // that route it through cappedType (RollingMoney's two paths, PhaseChip, ScoreDigits, SymbolSearchField) or the
   // primitive itself; a new raw capped Text elsewhere would be exposed to the twin bug.
   const rawRN = /import\s*\{[^}]*\bText as RNText\b[^}]*\}\s*from 'react-native'|import\s*\{[^}]*\bText\b[^}]*\}\s*from 'react-native'/;
   const allowed = new Set([
@@ -112,6 +112,8 @@ Deno.test('inventory: no raw react-native Text sets a cap outside the files that
     'components/home/RollingMoney.tsx',
     'components/sp/PhaseChip.tsx',
     'components/sp/game/ScoreDigits.tsx',
+    // The draft search's result rows (Giorgio 2026-11-05: never cut the ticker): the same explicit size.
+    'components/SymbolSearchField.tsx',
   ]);
   const offenders: string[] = [];
   for (const [path, src] of Object.entries(SOURCES)) {

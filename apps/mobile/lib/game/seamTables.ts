@@ -132,13 +132,16 @@ function playoffMatchups(live = false) {
 }
 
 /** The fixture rows for a table read, or null when the seam is off (the real query stands). */
-export function seamTableRows(on: boolean, table: SeamTableName, roomVariant: DraftRoomVariant = 'on_clock', opts: { weekClosed?: boolean; bye?: boolean; lost?: boolean; playoffsLive?: boolean } = {}): unknown[] | null {
+export function seamTableRows(on: boolean, table: SeamTableName, roomVariant: DraftRoomVariant = 'on_clock', opts: { weekClosed?: boolean; bye?: boolean; lost?: boolean; playoffsLive?: boolean; queueRow?: boolean } = {}): unknown[] | null {
   if (!on) return null;
   switch (table) {
     case 'drafts':
       // The board's draft, as far as EXPO_PUBLIC_DRAFT_ROOM_FIXTURE says (seamRoom.ts).
       return draftRoomPicks(roomVariant);
     case 'draft_queue':
+      // EXPO_PUBLIC_QUEUE_FIXTURE=row (the queue row's captures, 2026-11-05): a long company name, a 4- and a 5-letter
+      // ticker, BRK.B, and RKLB, whose price does not load. The default stays AAPL, CRM, V.
+      if (opts.queueRow) return ['NVDA', 'MSFT', 'COST', 'BRK.B', 'SBUX', 'RKLB'].map((symbol, i) => ({ symbol, position: i + 1 }));
       return [
         { symbol: 'AAPL', position: 1 },
         { symbol: 'CRM', position: 2 },
