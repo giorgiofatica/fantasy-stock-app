@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { forwardRef, ReactNode, useCallback, useEffect, useRef } from 'react';
+import { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
-import { fieldRevealOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { fieldRevealOffset, footerSecondaryShown, keyboardUpAfter, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -24,6 +24,9 @@ export interface AuthScaffoldProps {
   children: ReactNode;
   /** Docked under the body; lifted above the keyboard when it opens. */
   footer?: ReactNode;
+  /** The footer's secondary line (create account's "Already have an account? Sign in"), docked under `footer` and hidden while the
+   * keyboard is up, so the primary button is all the footer takes from the window the fields scroll in (authFieldReveal.ts). */
+  footerSecondary?: ReactNode;
   back?: { label: string; onPress: () => void };
   /** Centre the body in the space above the footer (the invite arrival); it scrolls when it is taller. */
   centerBody?: boolean;
@@ -35,7 +38,7 @@ interface RevealScroll {
   getInnerViewRef?: () => unknown;
 }
 
-export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, back, centerBody }, ref) {
+export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { fontScale } = useWindowDimensions();
@@ -50,6 +53,7 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
     },
     [ref],
   );
+  const [keyboardUp, setKeyboardUp] = useState(false);
   const inField = useRef(false);
   const viewportHeight = useRef(0);
   const fontScaleRef = useRef(fontScale);
@@ -88,6 +92,17 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
     return () => subs.forEach((x) => x.remove());
   }, [step]);
 
+  // The footer's secondary line goes while the keyboard is up. WILL events (iOS) so it is gone before the keyboard has finished
+  // rising; Android has only the DID pair. Its going (and its return) resizes the scroll view, so onLayout re-scrolls to the field.
+  useEffect(() => {
+    const ios = Platform.OS === 'ios';
+    const subs = [
+      Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardUp(keyboardUpAfter('show'))),
+      Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardUp(keyboardUpAfter('hide'))),
+    ];
+    return () => subs.forEach((x) => x.remove());
+  }, []);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -118,7 +133,12 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
       >
         {children}
       </ScrollView>
-      {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[5]) }]}>{footer}</View> : null}
+      {footer ? (
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[5]) }]}>
+          {footer}
+          {footerSecondaryShown(keyboardUp) ? footerSecondary : null}
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 });

@@ -31,8 +31,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/(tabs)/matchup.tsx:450` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
 | `app/+not-found.tsx:37` | Button | onPress | `goHome` | route replace('/') |  |
 | `app/create-account.tsx:127` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
-| `app/create-account.tsx:130` | Button | onPress | `handleCreate` | fn handleCreate |  |
-| `app/create-account.tsx:131` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
+| `app/create-account.tsx:129` | Button | onPress | `handleCreate` | fn handleCreate |  |
+| `app/create-account.tsx:134` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-league.tsx:319` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
 | `app/create-league.tsx:377` | ChoiceRow | onPress | `inline: () => patch({ durationDays: d.value })` | fn patch |  |
 | `app/create-league.tsx:398` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
@@ -183,7 +183,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/TradeReviewPanel.tsx:156` | Pressable | onPress | `onBack` | prop onBack (the caller's) |  |
 | `components/shell/AppearancePicker.tsx:38` | ThemeOption | onPress | `inline: () => changeAppearance(o.id)` | fn changeAppearance |  |
 | `components/shell/AppearancePicker.tsx:52` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/shell/AuthScaffold.tsx:98` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
+| `components/shell/AuthScaffold.tsx:113` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
 | `components/shell/ConfirmEmailSent.tsx:68` | EmptyState | onAction | `onBack` | prop onBack (the caller's) |  |
 | `components/shell/ConfirmEmailSent.tsx:70` | EmptyState | onSecondaryAction | `resend` | fn resend |  |
 | `components/shell/ConfirmedEmailNotice.tsx:40` | Pressable | onPress | `inline: () => setConfirmFailedNotice(false)` | sheet setConfirmFailedNotice(false) |  |

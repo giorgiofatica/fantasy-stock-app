@@ -6,7 +6,8 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  BOTTOM_BREATHING, BOX_BORDER, LABEL_GAP, LABEL_LINE_HEIGHT, TOP_BREATHING, fieldRevealOffset, labelReach, stepReveal, type RevealEvent,
+  BOTTOM_BREATHING, BOX_BORDER, LABEL_GAP, LABEL_LINE_HEIGHT, TOP_BREATHING, fieldRevealOffset, footerSecondaryShown, keyboardUpAfter, labelReach, stepReveal,
+  type RevealEvent,
 } from '../components/shell/authFieldReveal.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
@@ -134,4 +135,64 @@ Deno.test('the screens\' Field props are untouched by this fix: the scaffold alo
     assert(!SOURCES[f].includes('authFieldReveal'), f);
     assert(!SOURCES[f].includes('scrollReveal'), f);
   }
+});
+
+
+// ---- the footer's secondary line goes while the keyboard is up (Design Lead gate on #345: Create account failed at AX5) ---------
+
+Deno.test('the keyboard is up after a show and down after a hide', () => {
+  assertEquals(keyboardUpAfter('show'), true);
+  assertEquals(keyboardUpAfter('hide'), false);
+});
+
+Deno.test('the footer\'s secondary line shows with the keyboard down and goes while it is up', () => {
+  assertEquals(footerSecondaryShown(false), true);
+  assertEquals(footerSecondaryShown(true), false);
+  // The whole cycle: down -> up -> down.
+  assertEquals([false, keyboardUpAfter('show'), keyboardUpAfter('hide')].map(footerSecondaryShown), [true, false, true]);
+});
+
+Deno.test('AuthScaffold docks footerSecondary UNDER the footer and gates it on the keyboard', () => {
+  assert(scaffold.includes('footerSecondary?: ReactNode;'));
+  assert(scaffold.includes('function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref)'));
+  const dock = scaffold.slice(scaffold.indexOf('{footer ? ('), scaffold.indexOf('</KeyboardAvoidingView>'));
+  // Primary first, then the secondary only when the keyboard is down; both inside the one docked footer View.
+  assert(dock.indexOf('{footer}') !== -1 && dock.indexOf('{footer}') < dock.indexOf('footerSecondaryShown(keyboardUp) ? footerSecondary : null'));
+  assert(dock.includes('styles.footer'));
+});
+
+Deno.test('the keyboard state comes from the WILL events on iOS (the line is gone before the keyboard has finished rising)', () => {
+  assert(scaffold.includes("ios ? 'keyboardWillShow' : 'keyboardDidShow'"));
+  assert(scaffold.includes("ios ? 'keyboardWillHide' : 'keyboardDidHide'"));
+  assert(scaffold.includes("setKeyboardUp(keyboardUpAfter('show'))"));
+  assert(scaffold.includes("setKeyboardUp(keyboardUpAfter('hide'))"));
+  assert(scaffold.includes("const ios = Platform.OS === 'ios';"));
+});
+
+Deno.test('the footer shrinking resizes the scroll view, whose onLayout re-scrolls to the focused field', () => {
+  // The window grows when the secondary line goes (and shrinks when it returns): the layout handler is what re-reveals.
+  assert(scaffold.includes("step('layout');"));
+});
+
+Deno.test('Create account puts "Already have an account? Sign in" in footerSecondary, not in the footer', () => {
+  const src = SOURCES['app/create-account.tsx'];
+  assert(src.includes('footerSecondary={footerSecondary}'));
+  assert(src.includes('footer={footer}'));
+  const noComments = (t: string) => t.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  const footerDecl = noComments(src.slice(src.indexOf('const footer = '), src.indexOf('const footerSecondary = ')));
+  assert(footerDecl.includes('label="Create account"') && footerDecl.includes('label="Sign in instead"'));
+  assert(!footerDecl.includes('Already have an account?'));
+  const secondaryDecl = src.slice(src.indexOf('const footerSecondary = '), src.indexOf('if (sentTo)'));
+  assert(secondaryDecl.includes('Already have an account?'));
+  assert(secondaryDecl.includes("router.replace('/login')"));
+  // Signups paused: the footer is "Sign in instead" alone; there is no second line to hide or show.
+  assert(secondaryDecl.includes('paused ? null'));
+});
+
+Deno.test('the password rules checklist is capped at 1.3x, the same as row text, glyph and label alike', () => {
+  const field = SOURCES['components/shell/Field.tsx'];
+  assert(field.includes('export const RULES_MAX_SCALE = 1.3;'));
+  const rules = field.slice(field.indexOf('{rules.map('), field.indexOf('</View>\n      ) : null}', field.indexOf('{rules.map(')));
+  assertEquals((rules.match(/maxFontSizeMultiplier=\{RULES_MAX_SCALE\}/g) ?? []).length, 2);
+  assert(rules.includes("{rule.ok ? '✓' : '○'}") && rules.includes('{rule.label}'));
 });

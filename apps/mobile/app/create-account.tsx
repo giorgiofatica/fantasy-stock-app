@@ -126,14 +126,16 @@ export default function CreateAccountScreen() {
   const footer = paused ? (
     <Button label="Sign in instead" variant="secondary" onPress={() => router.replace('/login')} />
   ) : (
-    <>
-      <Button label="Create account" status={status} onPress={handleCreate} />
-      <Pressable onPress={() => router.replace('/login')} accessibilityRole="link" style={styles.switch} hitSlop={8}>
-        <Text variant="body" tone="secondary" style={styles.center}>
-          Already have an account? <Text variant="body" color={colors.accent} style={styles.bold}>Sign in</Text>
-        </Text>
-      </Pressable>
-    </>
+    <Button label="Create account" status={status} onPress={handleCreate} />
+  );
+  // The "Already have an account?" line is the footer's secondary: it goes while the keyboard is up (AuthScaffold), so the fields
+  // keep the window at the largest text size.
+  const footerSecondary = paused ? null : (
+    <Pressable onPress={() => router.replace('/login')} accessibilityRole="link" style={styles.switch} hitSlop={8}>
+      <Text variant="body" tone="secondary" style={styles.center}>
+        Already have an account? <Text variant="body" color={colors.accent} style={styles.bold}>Sign in</Text>
+      </Text>
+    </Pressable>
   );
 
   if (sentTo) {
@@ -148,7 +150,7 @@ export default function CreateAccountScreen() {
   }
 
   return (
-    <AuthScaffold ref={scrollRef} footer={footer}>
+    <AuthScaffold ref={scrollRef} footer={footer} footerSecondary={footerSecondary}>
       <BrandLockup />
       <View style={styles.heading}>
         <ScreenTitle>Create account</ScreenTitle>

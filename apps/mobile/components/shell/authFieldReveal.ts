@@ -67,3 +67,22 @@ export function fieldRevealOffset({ inputTop, inputHeight, viewportHeight, fontS
   const inputBottomVisible = inputTop + inputHeight + BOTTOM_BREATHING - viewportHeight;
   return Math.max(0, labelAtTop, inputBottomVisible);
 }
+
+/**
+ * The docked footer's SECONDARY line (create account's "Already have an account? Sign in") is hidden while the keyboard is up.
+ * At the largest accessibility size that one line, wrapped to three lines, took ~200pt of a window the keyboard had already cut
+ * to ~130pt, so only one field fitted above the footer: the bug again, at Giorgio's size (Design Lead gate on #345). With the
+ * keyboard up the footer is its primary button alone; the line returns when the keyboard closes. The look with the keyboard
+ * down does not change.
+ */
+export type KeyboardPhase = 'show' | 'hide';
+
+/** Whether the keyboard is up after this event (the screen reads it from keyboardWillShow / keyboardWillHide, so the line goes
+ * BEFORE the keyboard has finished rising and nothing jumps). */
+export function keyboardUpAfter(event: KeyboardPhase): boolean {
+  return event === 'show';
+}
+
+export function footerSecondaryShown(keyboardUp: boolean): boolean {
+  return !keyboardUp;
+}
