@@ -3,39 +3,40 @@
  * stock, read when the queue card opens and again only for a stock added later.
  *
  * - NAMES: one batched read of public.symbols (the table the draft search reads its names from), kept for the session.
- * - PRICES: the draft search's own number. symbols-search with limit 1 answers the exact ticker first, with Alpaca's latest
- *   trade, so the queue and the search can never disagree; only an item whose symbol IS the asked one counts (a missing
- *   stock would otherwise answer with a prefix neighbour's price: queuePriceStore / priceFromSearch). Live when the card
- *   opens during market hours, the last close otherwise (a latest trade IS the last close then). No fallback to
- *   symbols.last_price: it can be days old with nothing saying so.
- *   symbols-search has no rate limit and no server cache, so every read goes through ONE session-wide store
- *   (queuePriceStore.ts): a price read in the last 60 s is reused, a symbol already being fetched is shared, and four
- *   requests at most are in flight at once, across every mount of the card.
+ * - PRICES: symbols-search's BATCH mode (`{ symbols: [...] }`, live since #339): the exact tickers, ONE call for the whole
+ *   queue (chunked at 50), Alpaca's latest trade, a 60 s cache on the server, so the queue and the draft search read the same
+ *   number. Live when the card opens during market hours, the last close otherwise (a latest trade IS the last close then).
+ *   No fallback to symbols.last_price: it can be days old with nothing saying so. Every read goes through ONE session-wide
+ *   store (queuePriceStore.ts): a price read in the last 60 s is reused, a symbol already being fetched is shared.
+ *   The response is `{ prices: {SYM: number|null}, failed: [...], invalid: [...] }` (queueRow.ts answersFromBatch): a value
+ *   in `prices` is a clean answer; `failed`, or a whole-call error (a 429/502/503, a supabase-js `{ error }`), is a failed
+ *   read; `invalid` is "–".
  *
- * A failed read is never a guess and never a blank: the price stays "–" (a name with no line), and it is asked again after
- * 15 s. With the capture seam on, the fixture's sample stocks (seamFixtures.ts) and no real call.
+ * A failed read is never a guess and never a blank: the price stays "–" (a name with no line), is not cached as an answer,
+ * and is asked again after 15 s. With the capture seam on, the fixture's sample stocks (seamFixtures.ts) and no real call.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../supabase';
 import { SEAM_ON } from './devSeam';
 import { seamInvoke } from './seamCalls';
 import { seamSearchName } from './seamFixtures';
-import { namesFromRows, priceFromSearch, symbolsToRead, type QueuePrice } from './queueRow';
+import { answersFromBatch, namesFromRows, symbolsToRead, type BatchAnswer, type QueuePrice } from './queueRow';
 import { createPriceStore } from './queuePriceStore';
 
 /** Capture seam only: the prices never answer, so the placeholder bar stays up for the "loading" still. */
 const PRICES_NEVER_ANSWER = SEAM_ON && process.env.EXPO_PUBLIC_QUEUE_PRICES_FIXTURE === 'loading';
 
-/** One stock's latest trade, as the draft search shows it. Throws on a failed read; null for a clean "no price". */
-async function fetchQueuePrice(symbol: string): Promise<number | null> {
+/** The latest trade of every symbol, in ONE call. Throws when the call failed as a whole (a symbol in `failed` is not that:
+ * it comes back as a failed answer, and its neighbours keep theirs). */
+async function fetchQueuePrices(symbols: string[]): Promise<Record<string, BatchAnswer>> {
   if (PRICES_NEVER_ANSWER) return new Promise<never>(() => {});
-  const { data, error } = await seamInvoke('symbols-search', { body: { q: symbol, limit: 1, includePrices: true } });
-  if (error) throw error; // supabase-js resolves a failure as { error }; it does not throw (CLAUDE.md, success signals #5)
-  return priceFromSearch(data, symbol);
+  const { data, error } = await seamInvoke('symbols-search', { body: { symbols } });
+  if (error) throw error; // supabase-js resolves a failure as { error }; it does not throw (CLAUDE.md, success signals #5). A 429/502/503 lands here.
+  return answersFromBatch(data, symbols);
 }
 
 /** Session-wide: shared by every mount of the card (a re-opened card, a league switched back to). */
-const priceStore = createPriceStore(fetchQueuePrice);
+const priceStore = createPriceStore(fetchQueuePrices);
 /** Session-wide: a company's name rarely changes. */
 const nameCache = new Map<string, string>();
 
