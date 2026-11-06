@@ -390,7 +390,7 @@ export default function CreateLeagueWizard() {
       <SetupCard style={styles.cardStack}>
         <View style={styles.spread}>
           <Text variant="headline">Pick clock</Text>
-          <Text variant="callout" style={[styles.bold, styles.tabular]}>{`${state.pickSeconds} seconds`}</Text>
+          <Text variant="callout" style={[styles.bold, styles.tabular]} subOf="headline">{`${state.pickSeconds} seconds`}</Text>
         </View>
         <SegmentedControl
           options={PICK_SECONDS_OPTIONS.map((o) => ({ label: o.label, value: String(o.value) }))}
@@ -520,7 +520,7 @@ export default function CreateLeagueWizard() {
       {state.stakeMode === 'price_tiers' ? (
         <View style={styles.section}>
           <Text variant="headline" accessibilityRole="header">Roster slots</Text>
-          <Text variant="caption" tone="secondary">
+          <Text variant="caption" tone="secondary" subOf="headline">
             {rosterSlotsCaption('price_tiers')}
           </Text>
           {state.slots.length === 0 ? (

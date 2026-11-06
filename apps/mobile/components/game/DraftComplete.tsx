@@ -45,7 +45,7 @@ export function DraftComplete({ roster, caption, finished, weekLine, bye, onSeeM
       <Card style={styles.hero}>
         <Text variant="tag" color={colors.liveText}>{DRAFT_COMPLETE_TAG}</Text>
         <Text variant="title">{YOUR_TEAM_IS_SET}</Text>
-        <Text variant="callout" tone={finished ? undefined : 'secondary'} accessibilityLiveRegion="polite">
+        <Text variant="callout" tone={finished ? undefined : 'secondary'} accessibilityLiveRegion="polite" subOf="title">
           {finished ? keepTime(keepWeek(weekLine)) : FINISHING_THE_DRAFT}
         </Text>
         {/* S-2: the finalize heal lives here now, never on the legacy draft screen. */}
@@ -57,7 +57,7 @@ export function DraftComplete({ roster, caption, finished, weekLine, bye, onSeeM
       <View style={styles.section}>
         <View style={styles.sectionHead}>
           <Text variant="headline">{YOUR_ROSTER}</Text>
-          <Text variant="caption" tone="secondary">{caption}</Text>
+          <Text variant="caption" tone="secondary" subOf="headline">{caption}</Text>
         </View>
         <Card style={styles.rows}>
           {/* Game Night rule 2: rows divide by space, never by rules. */}

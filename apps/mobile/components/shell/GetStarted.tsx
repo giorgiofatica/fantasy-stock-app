@@ -75,7 +75,7 @@ function Choice({
           <Text variant="headline" style={styles.bold}>
             {title}
           </Text>
-          <Text variant="callout" tone="secondary">
+          <Text variant="callout" tone="secondary" subOf="headline">
             {description}
           </Text>
         </View>

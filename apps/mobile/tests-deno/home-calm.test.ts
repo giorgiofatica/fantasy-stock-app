@@ -231,7 +231,7 @@ Deno.test('Standings header: at large text the caption and chevron wrap to their
   assert(/header:\s*\{\s*flexDirection: 'row',\s*flexWrap: 'wrap',/.test(card));
   assert(/headerRight:\s*\{[^}]*flexShrink: 1,/.test(card));
   assert(/headerCaption:\s*\{\s*flexShrink: 1,/.test(card));
-  assert(card.includes('<Text variant="caption" tone="secondary" style={styles.headerCaption}>'));
+  assert(card.includes('<Text variant="caption" tone="secondary" style={styles.headerCaption} subOf="headline">'));
 });
 
 Deno.test("the static end dot is never clipped: the Game Night Chart keeps its whole halo on screen", () => {

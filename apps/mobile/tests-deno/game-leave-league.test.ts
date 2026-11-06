@@ -286,7 +286,7 @@ Deno.test('a member\'s League settings: ONLY Invite code (with Share), the Commi
 
 Deno.test('the transfer sheet shows the ruled line under its title (source guard)', () => {
   const v = SOURCES['components/game/LeaveLeagueSheets.tsx'];
-  assertEquals(v.includes('{TRANSFER_TITLE}</Text>\n          <Text variant="callout" tone="secondary">{TRANSFER_NOTE}</Text>'), true);
+  assertEquals(v.includes('{TRANSFER_TITLE}</Text>\n          <Text variant="callout" tone="secondary" subOf="title">{TRANSFER_NOTE}</Text>'), true);
 });
 
 Deno.test('League settings is a modal: its Cancel is text only, no back chevron (G-7; source guard)', () => {

@@ -129,7 +129,7 @@ export function TransferCommissionerSheet({ visible, candidates, busy, error, on
       >
         <View style={styles.stack}>
           <Text variant="title" accessibilityRole="header">{TRANSFER_TITLE}</Text>
-          <Text variant="callout" tone="secondary">{TRANSFER_NOTE}</Text>
+          <Text variant="callout" tone="secondary" subOf="title">{TRANSFER_NOTE}</Text>
           <Text variant="tag" tone="secondary">{WHO_TAKES_OVER}</Text>
           <SetupCard>
             <View accessibilityRole="radiogroup">

@@ -66,12 +66,12 @@ Deno.test('every capped variant engages at XXXL and stays native at Large', () =
 });
 
 Deno.test('wiring: the sp Text primitive reads the system scale and applies cappedSpText', () => {
-  assert(text.includes("import { cappedSpText } from './logic/cappedType';"));
+  assert(text.includes("import { cappedSpText, subLineCap } from './logic/cappedType';"));
   assert(text.includes('const { fontScale } = useWindowDimensions();'));
   assert(text.includes('const flatStyle = StyleSheet.flatten(style) as TextStyle | undefined;'));
   assert(text.includes('const capped = cappedSpText(typeStyle, flatStyle, callerAllowFontScaling, fontScale, resolvedMaxFontSizeMultiplier);'));
-  // The cap it applies is the prop OR the variant's own, as before.
-  assert(text.includes('const resolvedMaxFontSizeMultiplier = maxFontSizeMultiplier ?? typeStyle.maxScale;'));
+  // The cap it applies is the prop OR the variant's own, as before, and never above the title's when the Text is a sub-line (`subOf`: ax5-sublines.test.ts).
+  assert(text.includes('const resolvedMaxFontSizeMultiplier = subLineCap(maxFontSizeMultiplier ?? typeStyle.maxScale, subOf ? type[subOf].maxScale : undefined);'));
 });
 
 Deno.test('wiring: the capped size lands AFTER the caller style, and both render paths take the capped props', () => {

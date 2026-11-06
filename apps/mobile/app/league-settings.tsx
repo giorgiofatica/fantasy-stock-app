@@ -500,7 +500,7 @@ export default function LeagueSettingsScreen() {
       {/* Roster slots (Phase 4). */}
       <View style={styles.section}>
         <Text variant="headline" accessibilityRole="header">Roster slots</Text>
-        <Text variant="caption" tone="secondary">
+        <Text variant="caption" tone="secondary" subOf="headline">
           {rosterSlotsCaption(stakeMode)}
         </Text>
         {slotsError ? (

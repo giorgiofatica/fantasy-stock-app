@@ -74,3 +74,13 @@ export function cappedSpText(
     cap,
   );
 }
+
+/** A sub-line's cap (P3, Design Lead 2026-11-05/06, Giorgio's phone at AX5): the cap it would have
+ * on its own (`ownCap`: a prop, else its variant's), never ABOVE the title it sits under (`titleCap`).
+ * Without it a `caption`/`callout` (uncapped) under a `headline`/`title`/`tag` (capped at 1.4-1.6)
+ * grows past that title: "1 of 4 joined" drew bigger than "Members". No title cap -> the sub-line's
+ * own cap stands; no cap of its own -> it takes the title's. */
+export function subLineCap(ownCap: number | undefined, titleCap: number | undefined): number | undefined {
+  if (titleCap === undefined) return ownCap;
+  return ownCap === undefined ? titleCap : Math.min(ownCap, titleCap);
+}

@@ -105,7 +105,7 @@ export function DraftBlockersCard({
       <Text variant="tag" color={colors.warnText}>{keepTime(copy.tag)}</Text>
       <View style={styles.head}>
         <Text variant="headline" style={styles.bold}>{keepTime(copy.title)}</Text>
-        <Text variant="caption">{keepTime(copy.line)}</Text>
+        <Text variant="caption" subOf="headline">{keepTime(copy.line)}</Text>
       </View>
       {blockers.map((b, i) => (
         <Card key={`${b.code}-${i}`} style={styles.blocker}>

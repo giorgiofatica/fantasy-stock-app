@@ -100,7 +100,7 @@ export function StandingsCard({ rows, throughWeek, skipEntrance = false }: Stand
         <Text variant="headline" style={styles.title}>{STANDINGS_CARD_TITLE}</Text>
         <View style={styles.headerRight}>
           {throughWeekShown(throughWeek) ? (
-            <Text variant="caption" tone="secondary" style={styles.headerCaption}>
+            <Text variant="caption" tone="secondary" style={styles.headerCaption} subOf="headline">
               {keepWeek(standingsThroughWeekCaption(throughWeek))}
             </Text>
           ) : null}

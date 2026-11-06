@@ -155,13 +155,13 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
       case 'postponedTitle':
         return <Text variant="title">{memberPostponedCopy(commissionerName, 'home').title}</Text>;
       case 'postponedLine':
-        return <Text variant="callout" tone="secondary">{memberPostponedCopy(commissionerName, 'home').line}</Text>;
+        return <Text variant="callout" tone="secondary" subOf="title">{memberPostponedCopy(commissionerName, 'home').line}</Text>;
       case 'noDate':
         // GS-11: no draft block while a renewal's replies are pending (the counts card says why).
         return homeNoDateBlock(true, repliesPending) ? (
           <View style={styles.stack}>
             <Text variant="title">{NO_DATE_TITLE}</Text>
-            <Text variant="callout" tone="secondary">{setsTime ? PICK_A_TIME_HOME : noDateCopy(ds.isCommissioner, commissionerName)}</Text>
+            <Text variant="callout" tone="secondary" subOf="title">{setsTime ? PICK_A_TIME_HOME : noDateCopy(ds.isCommissioner, commissionerName)}</Text>
           </View>
         ) : null;
       case 'roomOpenTag':
@@ -189,7 +189,7 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
             <Text variant="tag" style={{ color: colors.liveText }}>
               {DRAFT_ORDER_WAITING_TAG}
             </Text>
-            <Text variant="callout" style={styles.orderWaitingLine}>
+            <Text variant="callout" style={styles.orderWaitingLine} subOf="tag">
               {orderWaitingLine(minMembers)}
             </Text>
             <View style={styles.progressRow} accessibilityLabel={`${memberCount} of ${minMembers} managers`}>
@@ -259,7 +259,7 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
       <Card style={styles.card}>
         <View style={styles.sectionHeader}>
           <Text variant="headline">{MEMBERS_TITLE}</Text>
-          <Text variant="caption" tone="secondary">
+          <Text variant="caption" tone="secondary" subOf="headline">
             {waiting ? membersNeededCaption(memberCount, minMembers) : membersJoinedCaption(members.length, numParticipants)}
           </Text>
         </View>
