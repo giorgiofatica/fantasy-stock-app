@@ -14,7 +14,7 @@ import {
   TAKEN_LINE, handOverLine, pastSeasonsLine, stayLine, successorLine, takeoverQuestion, takeoverShareSentence,
 } from '../lib/account/deleteCopy.ts';
 import {
-  FORMER_MANAGER_FALLBACK, deletedManagerLabel, isDeletedSeatName, resetDeletedManagerLabel, setDeletedManagerLabel,
+  OPEN_TEAM_FALLBACK, deletedManagerLabel, isDeletedSeatName, resetDeletedManagerLabel, setDeletedManagerLabel,
 } from '../lib/account/deletedSeat.ts';
 import { proofInHand, proofKindFor, type DeleteProof } from '../lib/account/proofKind.ts';
 import {
@@ -65,59 +65,60 @@ Deno.test('copy: Giorgio\'s approved strings, character for character', () => {
   assertEquals(GO_TO_HOME, 'Go to Home');
   assertEquals(NOT_DRAFTED_LINE, 'It hasn’t drafted yet, so you leave it.');
   assertEquals(NO_OTHERS_LINE, 'No other managers, so it’s deleted with your account.');
-  assertEquals(successorLine('Former manager', 'Paolo M.'), 'Your team stays as “Former manager”. Paolo M. becomes the commissioner.');
-  assertEquals(handOverLine('Former manager'), 'Your team stays as “Former manager”. The commissioner can hand it to a new manager.');
-  assertEquals(pastSeasonsLine('Former manager'), 'Past seasons keep your results under “Former manager”.');
+  assertEquals(successorLine('Open team', 'Paolo M.'), 'Your team stays as “Open team”. Paolo M. becomes the commissioner.');
+  assertEquals(handOverLine('Open team'), 'Your team stays as “Open team”. The commissioner can hand it to a new manager.');
+  assertEquals(pastSeasonsLine('Open team'), 'Past seasons keep your results under “Open team”.');
   assertEquals(takeoverShareSentence('Stock Scudetto'), 'Take over a team in Stock Scudetto');
-  assertEquals(takeoverQuestion('Former manager', 'Stock Scudetto'), "Take over Former manager's team in Stock Scudetto?");
+  assertEquals(takeoverQuestion('Stock Scudetto'), 'Take over the open team in Stock Scudetto?');
 });
 
 // ── The label: one literal, the server's wins, no username can collide ───────
 
-Deno.test('label: the fallback is "Former manager"; the server\'s answer replaces it; blank/garbage is ignored', () => {
+Deno.test('label: the fallback is "Open team"; the server\'s answer replaces it; blank/garbage is ignored', () => {
   resetDeletedManagerLabel();
-  assertEquals(deletedManagerLabel(), 'Former manager');
-  assertEquals(FORMER_MANAGER_FALLBACK, 'Former manager');
-  setDeletedManagerLabel('Open team');
   assertEquals(deletedManagerLabel(), 'Open team');
+  assertEquals(OPEN_TEAM_FALLBACK, 'Open team');
+  setDeletedManagerLabel('Vacant seat');
+  assertEquals(deletedManagerLabel(), 'Vacant seat');
   setDeletedManagerLabel('   ');
   setDeletedManagerLabel(null);
   setDeletedManagerLabel(42);
   setDeletedManagerLabel('x'.repeat(61));
-  assertEquals(deletedManagerLabel(), 'Open team');
+  assertEquals(deletedManagerLabel(), 'Vacant seat');
   resetDeletedManagerLabel();
 });
 
 Deno.test('label: isDeletedSeatName is exact (trimmed), never a prefix, a case-fold or a person', () => {
   resetDeletedManagerLabel();
-  assert(isDeletedSeatName('Former manager'));
-  assert(isDeletedSeatName('  Former manager '));
-  assertFalse(isDeletedSeatName('former manager'));
-  assertFalse(isDeletedSeatName('Former manager 2'));
-  assertFalse(isDeletedSeatName('Former'));
+  assert(isDeletedSeatName('Open team'));
+  assert(isDeletedSeatName('  Open team '));
+  assertFalse(isDeletedSeatName('open team'));
+  assertFalse(isDeletedSeatName('Open team 2'));
+  assertFalse(isDeletedSeatName('Open'));
+  assertFalse(isDeletedSeatName('Former manager'), 'the retired wording is just a name now');
   assertFalse(isDeletedSeatName(''));
   assertFalse(isDeletedSeatName(null));
   assertFalse(isDeletedSeatName(undefined));
-  setDeletedManagerLabel('Open team');
-  assert(isDeletedSeatName('Open team'));
-  assertFalse(isDeletedSeatName('Former manager'), 'the server\'s label is the one that counts once known');
+  setDeletedManagerLabel('Vacant seat');
+  assert(isDeletedSeatName('Vacant seat'));
+  assertFalse(isDeletedSeatName('Open team'), 'the server\'s label is the one that counts once known');
   resetDeletedManagerLabel();
 });
 
 Deno.test('label: no username can BE the label (a space is not a username character), so a name match cannot collide', () => {
   const re = new RegExp(USERNAME_PATTERN);
-  assertFalse(re.test(FORMER_MANAGER_FALLBACK));
+  assertFalse(re.test(OPEN_TEAM_FALLBACK));
   assertFalse(re.test('Open team'));
-  assert(FORMER_MANAGER_FALLBACK.includes(' '));
+  assert(OPEN_TEAM_FALLBACK.includes(' '));
 });
 
 // ── The avatar never shows initials of the label ────────────────────────────
 
-Deno.test('avatar: the deleted seat\'s name would produce initials ("FM") that the Avatar must never draw', () => {
+Deno.test('avatar: the deleted seat\'s name would produce initials ("OT") that the Avatar must never draw', () => {
   // The Avatar branches on isDeletedSeatName BEFORE it calls discInitials (pinned in the wiring test); here the
-  // premise: the label does yield initials, so an Avatar that forgot the branch would visibly show "FM".
-  assertEquals(avatarInitials(FORMER_MANAGER_FALLBACK), 'FM');
-  assert(isDeletedSeatName(FORMER_MANAGER_FALLBACK));
+  // premise: the label does yield initials, so an Avatar that forgot the branch would visibly show "OT".
+  assertEquals(avatarInitials(OPEN_TEAM_FALLBACK), 'OT');
+  assert(isDeletedSeatName(OPEN_TEAM_FALLBACK));
 });
 
 // ── The proof ───────────────────────────────────────────────────────────────
@@ -324,15 +325,15 @@ const league = (over: Partial<DeleteLeagueInput> & { draft?: string; season?: st
   ...over,
 });
 const NOW = Date.now();
-const L = 'Former manager';
+const L = 'Open team';
 
 Deno.test('lines: the four approved lines, by situation', () => {
   // runs it, others in it, drafted
   assertEquals(
     leagueLine(league({ commissionerId: ME, members: [member(ME, '2026-01-01'), member('u-p', '2026-01-03', { displayName: 'Paolo M.' })] }), ME, L, NOW).line,
-    'Your team stays as “Former manager”. Paolo M. becomes the commissioner.');
+    'Your team stays as “Open team”. Paolo M. becomes the commissioner.');
   // plays in
-  assertEquals(leagueLine(league({}), ME, L, NOW).line, 'Your team stays as “Former manager”. The commissioner can hand it to a new manager.');
+  assertEquals(leagueLine(league({}), ME, L, NOW).line, 'Your team stays as “Open team”. The commissioner can hand it to a new manager.');
   // before its draft
   assertEquals(leagueLine(league({ draft: 'not_started' }), ME, L, NOW).line, NOT_DRAFTED_LINE);
   // runs it alone
@@ -344,7 +345,7 @@ Deno.test('lines: running it alone beats the draft window (the league is deleted
 });
 
 Deno.test('lines: a finished season cuts the sentence before the hand-over (nothing left to hand over)', () => {
-  assertEquals(leagueLine(league({ season: 'completed' }), ME, L, NOW).line, 'Your team stays as “Former manager”.');
+  assertEquals(leagueLine(league({ season: 'completed' }), ME, L, NOW).line, 'Your team stays as “Open team”.');
 });
 
 Deno.test('lines: the successor is the earliest joined, user_id breaks the tie; leavers, deleted seats and bots never count', () => {
@@ -363,7 +364,7 @@ Deno.test('lines: the successor is the earliest joined, user_id breaks the tie; 
 
 Deno.test('lines: a successor with no known name falls back to the short sentence, never "undefined becomes the commissioner"', () => {
   const l = league({ commissionerId: ME, members: [member(ME, '2026-01-01'), member('u-p', '2026-01-03', { displayName: null })] });
-  assertEquals(leagueLine(l, ME, L, NOW).line, 'Your team stays as “Former manager”.');
+  assertEquals(leagueLine(l, ME, L, NOW).line, 'Your team stays as “Open team”.');
 });
 
 Deno.test('lines: the label is a parameter (the server\'s word), never baked in', () => {
@@ -593,16 +594,16 @@ Deno.test('Find a new manager: the commissioner, on a deleted seat, from draft c
 
 Deno.test('Members: you first, the rest A–Z, deleted seats last; only current members; the seat is marked, never renamed', () => {
   const names = [
-    { user_id: 'u-b', display_name: 'beta' }, { user_id: 'u-seat', display_name: 'Former manager' }, { user_id: ME, display_name: 'Zed' },
+    { user_id: 'u-b', display_name: 'beta' }, { user_id: 'u-seat', display_name: 'Open team' }, { user_id: ME, display_name: 'Zed' },
     { user_id: 'u-a', display_name: 'Alpha' }, { user_id: 'u-gone', display_name: 'Left' }, { user_id: 'u-null', display_name: null },
   ];
-  const rows = membersRows(names, [ME, 'u-a', 'u-b', 'u-seat', 'u-null'], 'u-a', ME, 'Former manager');
+  const rows = membersRows(names, [ME, 'u-a', 'u-b', 'u-seat', 'u-null'], 'u-a', ME, 'Open team');
   assertEquals(rows.map((r) => r.userId), [ME, 'u-a', 'u-b', 'u-null', 'u-seat']);
   assertEquals(rows.find((r) => r.userId === 'u-seat')?.deleted, true);
   assertEquals(rows.find((r) => r.userId === 'u-a')?.isCommissioner, true);
   assertEquals(rows.find((r) => r.userId === ME)?.isYou, true);
   assertFalse(rows.some((r) => r.userId === 'u-gone'), 'a member who left is not listed');
-  assertEquals(rows.find((r) => r.userId === 'u-null')?.name, 'Former manager', 'a missing name reads as the placeholder, never blank');
+  assertEquals(rows.find((r) => r.userId === 'u-null')?.name, 'Open team', 'a missing name reads as the placeholder, never blank');
 });
 
 // ── W3's contract: proof_expired, proof age, 10-character codes ─────────────
@@ -735,8 +736,8 @@ Deno.test('DL copy: a wrong password clears the proof, marks the field, and keep
 
 Deno.test('DL copy: a finished league you RAN with others names the successor; one you only played in is the short sentence', () => {
   const ran = league({ season: 'completed', commissionerId: ME, members: [member(ME, '2026-01-01'), member('u-p', '2026-01-03', { displayName: 'Paolo M.' })] });
-  assertEquals(leagueLine(ran, ME, L, NOW).line, 'Your team stays as \u201cFormer manager\u201d. Paolo M. becomes the commissioner.');
-  assertEquals(leagueLine(league({ season: 'completed' }), ME, L, NOW).line, 'Your team stays as \u201cFormer manager\u201d.');
+  assertEquals(leagueLine(ran, ME, L, NOW).line, 'Your team stays as \u201cOpen team\u201d. Paolo M. becomes the commissioner.');
+  assertEquals(leagueLine(league({ season: 'completed' }), ME, L, NOW).line, 'Your team stays as \u201cOpen team\u201d.');
   // ...and one you ran alone is deleted
   assertEquals(leagueLine(league({ season: 'completed', commissionerId: ME, members: [member(ME, '2026-01-01')] }), ME, L, NOW).line, NO_OTHERS_LINE);
 });

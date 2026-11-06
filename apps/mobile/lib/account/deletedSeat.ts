@@ -4,7 +4,7 @@
 // already returns it for a deleted seat, so every mobile name that arrives from the server arrives as the label.
 // The app therefore needs the label for exactly two things: (1) to recognise a seat, so its avatar is the default
 // person glyph and never initials of the label (Giorgio's board pick), and (2) to fill the delete screen's lines
-// and the takeover question. FORMER_MANAGER_FALLBACK is the ONE client literal: it stands in until the server's
+// (the takeover question is fixed text and no longer takes it). OPEN_TEAM_FALLBACK is the ONE client literal: it stands in until the server's
 // answer has been read once, and is never used when the server's is known.
 //
 // RECOGNISING A SEAT BY ITS NAME is safe only because the label is a reserved sentinel: it contains a space and
@@ -15,7 +15,7 @@
 // Pure (no React Native / supabase imports) so tests-deno exercises it hermetically; the fetch is
 // lib/account/deletedLabelStore.ts.
 
-export const FORMER_MANAGER_FALLBACK = 'Former manager';
+export const OPEN_TEAM_FALLBACK = 'Open team';
 
 type Listener = () => void;
 
@@ -31,7 +31,7 @@ export function setDeletedManagerLabel(label: unknown): void {
 }
 
 export function deletedManagerLabel(): string {
-  return serverLabel ?? FORMER_MANAGER_FALLBACK;
+  return serverLabel ?? OPEN_TEAM_FALLBACK;
 }
 
 export function subscribeDeletedLabel(listener: Listener): () => void {

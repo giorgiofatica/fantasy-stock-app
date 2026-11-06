@@ -216,12 +216,12 @@ inbox works (`you+t1@gmail.com`). Sign-ups are gated, so allowlist each address 
   wrong password first. Right: **"That password isn't right. Try again."** under the field, the field
   clears. Then the right password: deleted as in 29.
 - [ ] **31. What the league sees.** **[2+ accounts]** On another account in that league: Standings,
-  Matchup and the team view show **"Former manager"** with the plain person avatar, never the old
+  Matchup and the team view show **"Open team"** with the plain person avatar, never the old
   name. If the deleted account was the commissioner, someone else is commissioner now.
 - [ ] **32. Find a new manager, for real.** **[2+ accounts]** As the commissioner: League settings ›
-  Members › the **Former manager** row › **Find a new manager**, then **Share** and send it to the
+  Members › the **Open team** row › **Find a new manager**, then **Share** and send it to the
   other phone in Messages with a **real tap** on the share sheet. Right: the message carries a link.
-  On the other phone tap it. Right: the app opens on **"Take over Former manager's team in
+  On the other phone tap it. Right: the app opens on **"Take over the open team in
   {league}?"**; **Take the team** puts that account in the league with that team. Open the same link
   again from a third account. Right: **"Someone already took this team."**
 - [ ] **33. A takeover link typed by hand waits for a tap.** **[2+ accounts]** While signed in, type

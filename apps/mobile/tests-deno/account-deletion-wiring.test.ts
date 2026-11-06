@@ -144,10 +144,10 @@ Deno.test('avatar: a deleted seat is drawn BEFORE initials are computed, and its
   assertFalse(branch.includes('uri'), 'no photo on a deleted seat');
 });
 
-Deno.test('label: "Former manager" has ONE client literal (the server\'s is read; this is only the fallback)', () => {
+Deno.test('label: "Open team" has ONE client literal (the server\'s is read; this is only the fallback)', () => {
   const holders: string[] = [];
   for (const [path, text] of Object.entries(SOURCES)) {
-    if (/Former manager/i.test(strip(text)) && !path.startsWith('lib/dev')) holders.push(path);
+    if (/Open team/.test(strip(text)) && !path.startsWith('lib/dev')) holders.push(path);
   }
   assertEquals(holders, ['lib/account/deletedSeat.ts']);
   // Everything else takes it as a parameter or reads the server's.

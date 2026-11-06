@@ -15,7 +15,7 @@ import { JOIN_COPY } from '@/lib/join/joinPreview';
 
 // Account deletion (W4) — League settings › "Members · N" after the draft (board "Decided": the Members pill).
 // Each manager is a row: avatar, name, a "Commissioner" tag on the commissioner. A deleted manager's seat reads
-// "Former manager" in the secondary ink over the default avatar (Avatar and useSeatInk own both), and the COMMISSIONER
+// "Open team" in the secondary ink over the default avatar (Avatar and useSeatInk own both), and the COMMISSIONER
 // alone sees the "Find a new manager" pill on it. Everyone else's rows are the same shape; the pill is the only difference.
 
 /** The row's text caps at 2× (as Profile's rows do) so a name never outgrows the screen's title. */

@@ -47,7 +47,7 @@ Deno.test('proof lines: "Confirm it\'s you…", "Confirmed with …" and "Couldn
 // ── 3. Names that never split ───────────────────────────────────────────────
 
 Deno.test('keepName: a name up to 20 characters is glued with no-break spaces; a longer one keeps its breaks; hyphens stay whole', () => {
-  assertEquals(keepName('Former manager'), `Former${NBSP}manager`);
+  assertEquals(keepName('Open team'), `Open${NBSP}team`);
   assertEquals(keepName('Stock Scudetto'), `Stock${NBSP}Scudetto`);
   assertEquals(keepName('Friday Night Stocks'), `Friday${NBSP}Night${NBSP}Stocks`);
   const long = 'The Wall Street Wolves of Provo Valley';
@@ -55,14 +55,14 @@ Deno.test('keepName: a name up to 20 characters is glued with no-break spaces; a
   assertEquals(keepName(long), long, 'a long name must stay breakable (an unbreakable run wider than the screen splits mid-word)');
   assertEquals(keepName('Jean-Luc Picard Co'), `Jean-⁠Luc${NBSP}Picard${NBSP}Co`);
   assertEquals(keepName(''), '');
-  assertEquals(keepName(`Former manager`).replaceAll(NBSP, ' '), 'Former manager', 'display only: the same words');
+  assertEquals(keepName(`Open team`).replaceAll(NBSP, ' '), 'Open team', 'display only: the same words');
 });
 
 Deno.test('keepName: applied to the heading, the past-seasons line and the league lines (label, league name, successor)', () => {
-  const heading = takeoverQuestion(keepName('Former manager'), keepName('Stock Scudetto'));
-  assertFalse(/Former manager|Stock Scudetto/.test(heading), 'no breakable space inside either name');
-  assertEquals(heading.replaceAll(NBSP, ' '), "Take over Former manager's team in Stock Scudetto?");
-  assertFalse(pastSeasonsLine(keepName('Former manager')).includes('Former manager'));
+  const heading = takeoverQuestion(keepName('Stock Scudetto'));
+  assertFalse(/Stock Scudetto/.test(heading), 'no breakable space inside the league name');
+  assertEquals(heading.replaceAll(NBSP, ' '), 'Take over the open team in Stock Scudetto?');
+  assertFalse(pastSeasonsLine(keepName('Open team')).includes('Open team'));
   const ME = 'u-me';
   const l: DeleteLeagueInput = {
     id: 'L', name: 'Stock Scudetto', commissionerId: ME,
@@ -72,15 +72,15 @@ Deno.test('keepName: applied to the heading, the past-seasons line and the leagu
       { user_id: 'u-p', joined_at: '2026-01-02', hidden: false, displayName: 'Paolo M.', isBot: false, deleted: false },
     ],
   };
-  const r = leagueLine(l, ME, 'Former manager', Date.now(), keepName);
+  const r = leagueLine(l, ME, 'Open team', Date.now(), keepName);
   assertEquals(r.name, `Stock${NBSP}Scudetto`);
-  assert(r.line.includes(`Former${NBSP}manager`) && r.line.includes(`Paolo${NBSP}M.`));
-  assertFalse(r.line.includes('Former manager'));
+  assert(r.line.includes(`Open${NBSP}team`) && r.line.includes(`Paolo${NBSP}M.`));
+  assertFalse(r.line.includes('Open team'));
   // with no `keep` the strings are the approved plain text (the tests above pin them)
-  assertEquals(leagueLine(l, ME, 'Former manager', Date.now()).line, 'Your team stays as “Former manager”. Paolo M. becomes the commissioner.');
+  assertEquals(leagueLine(l, ME, 'Open team', Date.now()).line, 'Your team stays as “Open team”. Paolo M. becomes the commissioner.');
   // wiring: each surface actually passes through it
   assert(src('components/shell/DeleteAccountView.tsx').includes('pastSeasonsLine(keepName(label))'));
-  assert(src('components/shell/TakeoverLanding.tsx').includes('takeoverQuestion(keepName(label), keepName(found.leagueName))'));
+  assert(src('components/shell/TakeoverLanding.tsx').includes('takeoverQuestion(keepName(found.leagueName))'));
   assert(src('app/delete-account.tsx').includes('leagueLine(l, meId, label, Date.now(), keepName)'));
 });
 

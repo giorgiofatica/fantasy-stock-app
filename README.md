@@ -19,7 +19,7 @@ The [project status log](docs/STATUS.md) records deployment evidence, release co
 - **Compete each week:** compare dollar gains in head-to-head matchups, follow standings, and advance through playoffs. A duration format supports a single longer competition.
 - **Manage the season:** make simulated trades, inspect portfolio performance, and retain results across seasons.
 - **Join and come back:** join from an invite link, sign in with Apple, Google, or email, and run a finished league back for another season with the same group.
-- **Leave cleanly:** delete your account in the app. Past seasons keep your results under "Former manager", and the commissioner can hand your team to someone new with a takeover link.
+- **Leave cleanly:** delete your account in the app. Past seasons keep your results under "Open team", and the commissioner can hand your team to someone new with a takeover link.
 
 No brokerage account or real-money deposit is required. [The design decision behind simulated investing](docs/decisions/DR-001-in-house-simulated-trading.md) explains the scope and tradeoffs.
 

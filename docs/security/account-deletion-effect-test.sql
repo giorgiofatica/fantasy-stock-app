@@ -25,7 +25,7 @@
 -- EXPECTED OUTPUT: the verdict line, then every line ends in PASS.
 --   G1  trades has NO foreign key to auth.users                           PASS
 --   G2  league_members.deleted_at + freeze trigger fires on it            PASS
---   G3  deleted_manager_label() = 'Former manager', never a username       PASS
+--   G3  deleted_manager_label() = 'Open team', never a username       PASS
 --   G4  19 service-only functions: definer, path pinned, service_role only PASS
 --   G5  8 internals: owner only; authenticated: the 3 client RPCs          PASS
 --   G6  account_deletions: RLS on, no policies, no API-role privilege      PASS
@@ -88,7 +88,7 @@ begin
 
   lbl := public.deleted_manager_label();
   out := out || format(E'G3 label=%L username-shaped=%s  %s\n', lbl, lbl ~ '^[A-Za-z0-9_]{3,20}$',
-    case when lbl = 'Former manager' and lbl !~ '^[A-Za-z0-9_]{3,20}$' then 'PASS' else 'FAIL' end);
+    case when lbl = 'Open team' and lbl !~ '^[A-Za-z0-9_]{3,20}$' then 'PASS' else 'FAIL' end);
 
   select string_agg(proname || '=' || coalesce(proacl::text, 'NULL'), ' ') into acl
     from pg_proc p join pg_namespace s on s.oid = p.pronamespace

@@ -161,21 +161,11 @@ Deno.serve(async (req: Request) => {
       if (data?.status === 'taken_over' && data?.notice_id && data?.notify_user_id) {
         try {
           const str = (v: unknown) => (typeof v === 'string' ? v : null);
-          // take_over_team returns the label it used (seat_label); otherwise read it from the database,
-          // never a literal (the board's pick lives in one SQL function).
-          let placeholder: string | null = str(data.seat_label);
-          if (!placeholder) {
-            try {
-              const { data: label, error: labelErr } = await admin.rpc('deleted_manager_label');
-              if (!labelErr && typeof label === 'string') placeholder = label;
-            } catch { /* copy falls back to "an open team" */ }
-          }
           const pushed = await deliverNotice(admin, 'seat_taken_over', String(data.notice_id), String(data.notify_user_id),
             takeoverMessage({
               leagueId: uuidOrNull(data.league_id),
               leagueName: str(data.league_name),
               newName: str(data.new_name),
-              placeholder,
             }));
           console.log('seat_taken_over', JSON.stringify({ notice: data.notice_id, push_status: pushed }));
         } catch (e) {

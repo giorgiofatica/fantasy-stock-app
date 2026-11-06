@@ -32,7 +32,7 @@ import { applyFrom, loadChain, migrationFiles, readMigration } from './full_chai
 type Row = any;
 
 const ROOT = new URL('../../', import.meta.url);
-const LABEL = 'Former manager';
+const LABEL = 'Open team';
 
 const A = 'a1a1a1a1-0000-4000-8000-0000000000a1';
 const B = 'b2b2b2b2-0000-4000-8000-0000000000b2';
@@ -179,13 +179,18 @@ begin
 });
 
 Deno.test('account deletion: the label is one constant that can never be a username', async () => {
-  const sql = await readMigration('20261125000001_deleted_seat_and_label.sql');
   const code = (src: string) => src.split('\n').filter((l) => !/^\s*--/.test(l)).join('\n');
-  assertEquals((code(sql).match(/'Former manager'/g) ?? []).length, 1, 'the wording lives in exactly one place');
+  const ORIGINAL = '20261125000001_deleted_seat_and_label.sql';
+  const RENAMED = '20261127000000_deleted_seat_label_open_team.sql';
+  // The wording lives where deleted_manager_label() is DEFINED: the original migration (applied, never edited:
+  // it still says the old wording) and the one that re-created the function. The first is history; the second is
+  // the live constant. Nothing else may hardcode either.
+  assertEquals((code(await readMigration(ORIGINAL)).match(/'Former manager'/g) ?? []).length, 1);
+  assertEquals((code(await readMigration(RENAMED)).match(/'Open team'/g) ?? []).length, 1, 'the live wording lives in exactly one place');
   for (const f of await migrationFiles()) {
     if (f >= '20261125000000') {
       const n = (code(await readMigration(f)).match(/'Former manager'|'Open team'/g) ?? []).length;
-      if (f !== '20261125000001_deleted_seat_and_label.sql') assertEquals(n, 0, `${f} hardcodes the label`);
+      if (f !== ORIGINAL && f !== RENAMED) assertEquals(n, 0, `${f} hardcodes the label`);
     }
   }
   assert(!/^[A-Za-z0-9_]{3,20}$/.test(LABEL), 'user_profiles_username_format must reject the label');
