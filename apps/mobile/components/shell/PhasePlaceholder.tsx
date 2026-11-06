@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { space } from '@/constants/tokens';
 import { EmptyState, type EmptyStateIconProps } from '@/components/sp/EmptyState';
@@ -20,13 +20,15 @@ export interface PhasePlaceholderProps {
   icon: (props: EmptyStateIconProps) => ReactNode;
   heading: string;
   message: string;
-  showAvatar?: boolean;
   actionLabel?: string;
   onAction?: () => void;
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
-  /** S5: pull to refresh with the rising bars (Home). */
+  /** S5: pull to refresh with the rising bars. Without it the page still scrolls, with the top bar in it. */
   onRefresh?: () => Promise<void>;
+  /** Drawn INSIDE a tab's own scroll content (Home's and Matchup's failed or not-started body): just the message, with no
+   * bar and no scroll view of its own, because the tab already has both (a second bar would sit under the first). */
+  embedded?: boolean;
 }
 
 export function PhasePlaceholder({
@@ -34,12 +36,12 @@ export function PhasePlaceholder({
   icon,
   heading,
   message,
-  showAvatar,
   actionLabel,
   onAction,
   secondaryActionLabel,
   onSecondaryAction,
   onRefresh,
+  embedded = false,
 }: PhasePlaceholderProps) {
   const { colors } = useTheme();
 
@@ -55,18 +57,15 @@ export function PhasePlaceholder({
     />
   );
 
+  if (embedded) return <View style={styles.embedded}>{body}</View>;
+
   return (
+    // The same top bar as every tab (the league pill, your avatar; no phase chip), scrolling away with the page
+    // (the board's "A for both", 2026-11-06).
     <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      {/* The phase chip lives in the header, right of the pill (Design Lead
-          ruling); Home (the avatar screen) has none. */}
-      <ShellHeader title={title} showAvatar={showAvatar} showPhase={!showAvatar} />
-      {onRefresh ? (
-        <BarsRefresh onRefresh={onRefresh} contentContainerStyle={styles.content}>
-          {body}
-        </BarsRefresh>
-      ) : (
-        <ScrollView contentContainerStyle={styles.content}>{body}</ScrollView>
-      )}
+      <BarsRefresh onRefresh={onRefresh} header={<ShellHeader title={title} showAvatar />} contentContainerStyle={styles.content}>
+        {body}
+      </BarsRefresh>
     </View>
   );
 }
@@ -74,6 +73,11 @@ export function PhasePlaceholder({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  embedded: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: space[10],
   },
   content: {
     flexGrow: 1,

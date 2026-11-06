@@ -100,7 +100,8 @@ for (const [file, title] of [['app/(tabs)/index.tsx', 'Home'], ['app/(tabs)/leag
 Deno.test('LeaguesFailedState: the load-failed heading, the retry line and Try again, which re-reads', () => {
   const src = code(SOURCES['components/shell/NoLeagueState.tsx']);
   const block = src.slice(src.indexOf('export function LeaguesFailedState'), src.indexOf('export function LeagueListGate'));
-  for (const s of ['showAvatar', 'heading={LEAGUES_LOAD_FAILED}', 'message={MONEY_COPY.loadRetryMessage}', 'actionLabel={MONEY_COPY.tryAgain}', 'onAction={onRefresh}', 'onRefresh={onRefresh}']) {
+  // (The avatar is no longer a per-caller switch: PhasePlaceholder carries it on every tab, see top-bar-scrolls.test.ts.)
+  for (const s of ['heading={LEAGUES_LOAD_FAILED}', 'message={MONEY_COPY.loadRetryMessage}', 'actionLabel={MONEY_COPY.tryAgain}', 'onAction={onRefresh}', 'onRefresh={onRefresh}']) {
     assert(block.includes(s), s);
   }
 });

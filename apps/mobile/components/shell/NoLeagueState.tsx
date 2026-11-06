@@ -24,7 +24,6 @@ export function NoLeagueState({ title, onRefresh }: { title: string; onRefresh?:
   return (
     <PhasePlaceholder
       title={title}
-      showAvatar
       icon={() => <Icon name="trophy" size="title" tone="text2" />}
       heading={NO_LEAGUE_COPY.heading}
       message={NO_LEAGUE_COPY.message}
@@ -42,7 +41,6 @@ export function LeaguesFailedState({ title, onRefresh }: { title: string; onRefr
   return (
     <PhasePlaceholder
       title={title}
-      showAvatar
       icon={() => <Icon name="alert" size="title" tone="text2" />}
       heading={LEAGUES_LOAD_FAILED}
       message={MONEY_COPY.loadRetryMessage}

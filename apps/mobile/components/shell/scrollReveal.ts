@@ -21,9 +21,11 @@ interface RevealScroll {
   getInnerViewRef?: () => unknown;
 }
 
-/** The provider's side: the field's top in the scroll CONTENT (measured against the inner content view), then a scroll to it. */
-export function makeScrollReveal(getScroll: () => RevealScroll | null | undefined): ScrollReveal {
-  return (node, margin = 16) => {
+/** The provider's side: the field's top in the scroll CONTENT (measured against the inner content view), then a scroll to it.
+ * `getMargin` is where a field lands below the scroll view's top when the caller names none: BarsRefresh passes the
+ * status-bar fade's lower edge plus a gap (topBarFade.revealMargin), since the top bar now scrolls away inside the content. */
+export function makeScrollReveal(getScroll: () => RevealScroll | null | undefined, getMargin: () => number = () => 16): ScrollReveal {
+  return (node, margin = getMargin()) => {
     const scroll = getScroll();
     const inner = scroll?.getInnerViewRef?.();
     if (!node || !scroll || !inner) return;

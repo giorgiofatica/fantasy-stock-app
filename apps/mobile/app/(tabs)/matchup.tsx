@@ -112,8 +112,7 @@ function MatchupScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ShellHeader title="Matchup" showAvatar />
-      <BarsRefresh onRefresh={onRefresh} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[5] }}>
+      <BarsRefresh onRefresh={onRefresh} header={<ShellHeader title="Matchup" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[5] }}>
         {m.derived ? (
           <SegmentedControl
             options={[{ label: 'My matchup', value: 'mine' }, { label: 'All matchups', value: 'all' }]}
@@ -200,7 +199,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
   useCaptureAction('me', () => { if (user && derived) openTeam(user.id, derived.live.me.name, true)?.onPress(); });
   if (status === 'error') {
     return (
-      <PhasePlaceholder title="Matchup" icon={() => <Icon name="alert" size="title" tone="text2" />} heading="Couldn't load this matchup" message="Pull down to try again." onRefresh={onRefresh} />
+      <PhasePlaceholder title="Matchup" icon={() => <Icon name="alert" size="title" tone="text2" />} heading="Couldn't load this matchup" message="Pull down to try again." embedded />
     );
   }
   if (status === 'no-league') return null;
@@ -211,7 +210,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
   const youName = live.me.name;
 
   if (view.kind === 'not_started') {
-    return <PhasePlaceholder title="Matchup" icon={() => <Icon name="trophy" size="title" tone="text2" />} heading="Not started yet" message="Your matchups start when the draft is done." onRefresh={onRefresh} />;
+    return <PhasePlaceholder title="Matchup" icon={() => <Icon name="trophy" size="title" tone="text2" />} heading="Not started yet" message="Your matchups start when the draft is done." embedded />;
   }
 
   if (view.kind === 'pre_season') {

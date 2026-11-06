@@ -60,7 +60,7 @@ export function SegmentTabs<V extends string>({ options, value, onChange, width 
   });
   if (scroll) {
     return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist" style={styles.bleed} contentContainerStyle={styles.row}>
+      <ScrollView horizontal scrollsToTop={false} showsHorizontalScrollIndicator={false} accessibilityRole="tablist" style={styles.bleed} contentContainerStyle={styles.row}>
         {tabs}
       </ScrollView>
     );

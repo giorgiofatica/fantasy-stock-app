@@ -125,8 +125,8 @@ Deno.test('the field scrolls itself up when it takes focus, when the keyboard op
 
 Deno.test('BarsRefresh (every tab\'s scroll view) provides the reveal on iOS and on Android', () => {
   assertEquals((bars.match(/ScrollRevealContext\.Provider/g) ?? []).length, 4); // two open + two close tags
-  assert(bars.includes('makeScrollReveal(() => scrollRef.current as never)'));
-  assert(bars.includes('makeScrollReveal(() => androidScrollRef.current)'));
+  assert(bars.includes('makeScrollReveal(() => scrollRef.current as never, getRevealMargin)'));
+  assert(bars.includes('makeScrollReveal(() => androidScrollRef.current as never, getRevealMargin)'));
   // The keyboard behaviours the reveal relies on stay on.
   assert(bars.includes('automaticallyAdjustKeyboardInsets'));
   assertEquals((bars.match(/keyboardShouldPersistTaps="handled"/g) ?? []).length, 2);

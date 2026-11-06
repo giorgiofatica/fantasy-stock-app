@@ -178,7 +178,7 @@ export default function SymbolSearchField({
 
       {visible && results.length > 0 && (
         <View key={`results-${remountKey}`} style={[styles.resultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
-          <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+          <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled" nestedScrollEnabled scrollsToTop={false}>
             {results.map((item) => (
               <TouchableOpacity
                 key={item.symbol}

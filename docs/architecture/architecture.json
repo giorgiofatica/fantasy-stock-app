@@ -2,82 +2,106 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "9c4995592b079d12619a07f690becab99d17f703",
-    "commitShort": "9c499559",
+    "commit": "b8ecc3a63cf421cb1a71de54103472969239dc02",
+    "commitShort": "b8ecc3a6",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/league/MembersSection.tsx"
+        "path": "apps/mobile/app/(tabs)/index.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/TakeoverLanding.tsx"
+        "path": "apps/mobile/app/(tabs)/league.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/account/deleteCopy.ts"
+        "path": "apps/mobile/app/(tabs)/matchup.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/account/deletedSeat.ts"
+        "path": "apps/mobile/components/game/DraftBoard.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/account/keepName.ts"
+        "path": "apps/mobile/components/home/YourSeason.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/account/leagueLines.ts"
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seamAccountDeletion.ts"
+        "path": "apps/mobile/components/shell/BarsRefresh.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion-capture-knobs.test.ts"
+        "path": "apps/mobile/components/shell/NoLeagueState.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion-dl-fixes.test.ts"
+        "path": "apps/mobile/components/shell/PhasePlaceholder.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion-wiring.test.ts"
+        "path": "apps/mobile/components/shell/scrollReveal.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/join-league/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/join-league/takeover.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/join-league/takeover.ts"
+        "path": "apps/mobile/components/shell/ShellHeader.tsx"
       },
       {
         "code": "A",
-        "path": "supabase/migrations/20261127000000_deleted_seat_label_open_team.sql"
+        "path": "apps/mobile/components/shell/topBarFade.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/components/shell/TopFade.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/SegmentTabs.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/SymbolSearchField.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-standings.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/gn-sweep.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/league-game-night.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/queue-search-keyboard.test.ts"
+      },
+      {
+        "code": "UU",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-06T23:39:48Z",
-    "sourceHash": "sha256:5c22f47f49c931c743a095ae90e739b7e68f9ece446aee481222215033958da9",
+    "timestamp": "2026-11-06T23:50:47Z",
+    "sourceHash": "sha256:73d1adc45795aae17a6cc4221ea4b264af21a835ccfc77a2ecc1ede0513756e1",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 49.7,
+    "ageHours": 49.8,
     "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -20489,7 +20513,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -20507,7 +20531,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -20525,7 +20549,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -20543,7 +20567,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -23676,10 +23700,10 @@
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> drafts.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> league_draft_slots.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> trades.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> categories.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> drafts.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> trades.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> categories.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> drafts.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> trades.select (via useRosterData)",
       "apps/mobile/lib/LeagueContext.tsx:178 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:180 -> league_seasons.select",
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",

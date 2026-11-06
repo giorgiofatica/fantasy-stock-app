@@ -129,7 +129,7 @@ function HomeBody({
         icon={() => <Icon name="alert" size="title" tone="text2" />}
         heading="Couldn't load this league"
         message="Pull down to try again."
-        onRefresh={onRefresh}
+        embedded
       />
     );
   }
@@ -208,7 +208,7 @@ function HomeBody({
     // Shouldn't reach here (every remaining phase.kind builds the money
     // views), but never render nothing silently if it ever does.
     return (
-      <PhasePlaceholder title="Home" icon={() => <Icon name="pending" size="title" tone="text2" />} heading="One moment" message="" onRefresh={onRefresh} />
+      <PhasePlaceholder title="Home" icon={() => <Icon name="pending" size="title" tone="text2" />} heading="One moment" message="" embedded />
     );
   }
 
@@ -382,12 +382,14 @@ function HomeBody({
 // and no-leagues carded EmptyState are unchanged from that phase.
 //
 // Layout note (carry-over 1, the 3b-1 review — "Home's content must start
-// below the real header height, measured not hard-coded"): ShellHeader and
-// the scrollable body below are plain FLEXBOX SIBLINGS in a column, never
-// an absolutely-positioned header over content, so there is nothing to
+// below the real header height, measured not hard-coded"): the header is the
+// FIRST CHILD of the scroll content (the top bar scrolls away with the page,
+// 2026-11-06), laid out in the same column as the body, never an
+// absolutely-positioned header over content, so there is nothing to
 // measure or offset in the first place — a taller header (the pill
 // wrapping the league name at Accessibility XL) simply pushes the body
-// down, by ordinary layout, with no extra code and no jump.
+// down, by ordinary layout, with no extra code and no jump. The loading
+// state below has no scroll view, and draws the same bar at the same place.
 export default function HomeScreen() {
   const { leagues, loading, loadFailed, refresh, activeLeagueId, activeLeague } = useLeagueContext();
   const { colors } = useTheme();
@@ -431,8 +433,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ShellHeader title="Home" showAvatar />
-      <BarsRefresh onRefresh={refresh} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
+      <BarsRefresh onRefresh={refresh} header={<ShellHeader title="Home" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
         {/* 24pt between Home's blocks (a calm Home, 2026-10-12), on the wrapper that holds
             them (PR 217). Never compressed to win back the 17e's fold. */}
         <HomeLeagueTransition key={activeLeagueId ?? 'none'} style={{ gap: space[7] }}>
