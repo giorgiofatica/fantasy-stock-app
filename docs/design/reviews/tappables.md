@@ -4,8 +4,8 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **241** tappables in **88** files.
-- **94** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **242** tappables in **89** files.
+- **95** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **49** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
@@ -210,6 +210,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/NoLeagueState.tsx:32` | PhasePlaceholder | onAction | `inline: () => router.push('/create-league')` | route push('/create-league') |  |
 | `components/shell/NoLeagueState.tsx:34` | PhasePlaceholder | onSecondaryAction | `inline: () => router.push('/join-league')` | route push('/join-league') |  |
 | `components/shell/NoLeagueState.tsx:50` | PhasePlaceholder | onAction | `onRefresh` | prop onRefresh (the caller's) |  |
+| `components/shell/PasswordReveal.tsx:25` | Pressable | onPress | `reveal.toggle` | prop reveal.toggle |  |
 | `components/shell/PhasePlaceholder.tsx:52` | EmptyState | onAction | `onAction` | prop onAction (the caller's) |  |
 | `components/shell/PhasePlaceholder.tsx:54` | EmptyState | onSecondaryAction | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
 | `components/shell/ProfileView.tsx:63` | Row | onPress | `onUsername` | prop onUsername (the caller's) |  |

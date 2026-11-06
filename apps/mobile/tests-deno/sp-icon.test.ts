@@ -12,7 +12,7 @@ import {
 const NAMES: IconName[] = [
   'chevronRight', 'chevronLeft', 'chevronDown', 'chevronUp', 'check', 'circle', 'info',
   'close', 'search', 'add', 'remove', 'share', 'trophy', 'lock', 'mail', 'alert', 'star', 'starFilled',
-  'checkCircle', 'pending', 'bell', 'person',
+  'checkCircle', 'pending', 'bell', 'person', 'eye', 'eyeOff',
   'tabHome', 'tabHomeSelected', 'tabMatchup', 'tabMatchupSelected', 'tabLeague', 'tabLeagueSelected', 'tabPortfolio', 'tabPortfolioSelected',
 ];
 
@@ -32,6 +32,9 @@ Deno.test('the name map is exhaustive and matches the spec table', () => {
   // The player card's Save is the outline star; Saved the same star filled.
   assertEquals(ICON_GLYPHS.star, 'star-outline');
   assertEquals(ICON_GLYPHS.starFilled, 'star');
+  // A password field's toggle: the open eye shows, the struck-through eye hides (lib/passwordReveal.ts).
+  assertEquals(ICON_GLYPHS.eye, 'eye-outline');
+  assertEquals(ICON_GLYPHS.eyeOff, 'eye-off-outline');
 });
 
 Deno.test('outline by default: no glyph is a filled variant (filled is only for a selected state)', () => {

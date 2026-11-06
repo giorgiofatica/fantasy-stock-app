@@ -174,8 +174,14 @@ Deno.test('every credential Field in the app is in the tables above: the screens
     assertMatch(tag, new RegExp(`textContentType="${contentType}"`), path);
   }
   // No secure field exists outside those four files, so none can escape the helper's table
-  // (the helper and the hook only mention the prop).
-  const INFRA = new Set(['lib/inputRemount.ts', 'components/sp/useInputRemountKey.ts']);
+  // (the helper, the hook, Field, which passes the prop through, and the show / hide toggle only mention it).
+  const INFRA = new Set([
+    'lib/inputRemount.ts',
+    'components/sp/useInputRemountKey.ts',
+    'components/shell/Field.tsx',
+    'lib/passwordReveal.ts',
+    'components/shell/PasswordReveal.tsx',
+  ]);
   const others = Object.entries(SOURCES)
     .filter(([path, src]) => /\bsecureTextEntry\b/.test(src) && !(path in files) && !INFRA.has(path))
     .map(([path]) => path);
@@ -205,8 +211,12 @@ Deno.test('every TextInput host takes the hook: key, autoFocus, and both focus h
 
 Deno.test("Field takes autoFocus out of the spread props, so a caller's cannot override the remount's", () => {
   const src = SOURCES['components/shell/Field.tsx'];
-  assertMatch(src, /\binputFontSize, autoFocus, onFocus, onBlur, \.\.\.input \}/);
-  assertMatch(src, /const remount = useInputRemountKey\(autoFocus, input\);/);
+  assertMatch(src, /\binputFontSize, autoFocus, onFocus, onBlur, secureTextEntry, \.\.\.input \}/);
+  // The hook sees the CALLER's secureTextEntry (it was taken out of the spread for the show / hide toggle).
+  assertMatch(
+    src,
+    /const remount = useInputRemountKey\(autoFocus, \{ secureTextEntry, textContentType: input\.textContentType, autoComplete: input\.autoComplete \}\);/
+  );
   // The spread comes after the hook's props would let input.key / input.autoFocus win: it holds neither.
   const tag = openingTags(src, 'TextInput')[0];
   assert(tag.indexOf('{...input}') > tag.indexOf('autoFocus='), 'spread is last, and holds no autoFocus');
