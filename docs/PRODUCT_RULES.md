@@ -620,7 +620,8 @@ building anything, and don't reopen a rule without him.
     person glyph on a neutral disc, never initials of the label), in the secondary text colour.
     The two sentences that named the seat are reworded so they never read "Open team's team":
     the takeover question **"Take over the open team in {league}?"** and the commissioner's push
-    **"{Name} took over the open team."** (both NEW, from the Design Lead, pending Giorgio's OK).
+    **"{Name} took over the open team."** (both approved by Giorgio, 2026-11-06: "both sentences
+    are fine").
   - **The delete screen explains each league on its own line** (B): "Delete your account?",
     then "This deletes your account right away.", then one line per league, verbatim:
     "Your team stays as “Open team”. {Earliest member} becomes the commissioner." (a
