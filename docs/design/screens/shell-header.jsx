@@ -170,13 +170,13 @@
     fig(`${v}xl`, `${cap} · your size (AX5) · Light`, <Frame t="light" v={v} x={2.4} />, notes.x || AX_NOTE),
   ];
 
-  function CallTopBar() {
+  function CallTopBar({ archived }) {
     return (
       <section className="b-sec" id="call-top-bar" aria-labelledby="call-top-bar-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Shell</span>
           <div>
-            <h2 id="call-top-bar-h">Your call: the top bar</h2>
+            <h2 id="call-top-bar-h">{archived ? 'Decided: A and A, the top bar' : 'Your call: the top bar'}</h2>
             <p className="b-job">Your words on build 11: "the top bar with your profile icon doesnt appear on the portfolio page but does on the other tabs. also i dont love how it so clearly cuts off the page like that, not sure if theres a work around but maybe the top bar shouldnt always stay at the top and cutoff as you scroll." Two choices below: first what the bar shows on Portfolio, then what the bar does when you scroll. You can pick them separately.</p>
           </div>
         </header>
@@ -187,6 +187,7 @@
           <li><b>A · The avatar, no chip.</b> The bar is the same on all four tabs: your league on the left, you on the right. What phase the league is in is already the first thing each tab says: Portfolio's "Trading opens after the draft.", Home's countdown, League's draft card, and each league's line in the list behind the pill. <b>Cost: small.</b> One line on Portfolio.</li>
           <li><b>B · The chip and the avatar.</b> Portfolio keeps "Pre-draft" and adds the avatar. At your size the three don't fit on one line: the chip and the avatar keep their room, so your league's name is the one that gets cut. <b>Cost: small.</b></li>
           <li><b>Should the chip be on every tab?</b> No. It would say the phase a second time on every screen, and at your size it would cut your league's name on all four tabs.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-06): "A for both".</b> The avatar on every tab, no chip; the bar scrolls away with the page, with the fade behind the clock. Rules: PRODUCT_RULES, "The top bar".</li> : null}
           <li><b>Recommended: A.</b> The same bar on every tab, so your profile is always in the same corner, and nothing in the bar repeats what the screen already says.</li>
         </ul>
         <Grid>{[
@@ -201,7 +202,7 @@
         <h3 className="b-sub">2 · What the bar does when you scroll</h3>
         <ul className="b-inv__notes">
           <li><b>Today:</b> the bar sits on a solid strip of the page colour that never moves, so whatever scrolls up is sliced off in a straight line under it ("Share invite code" cut in half in your screenshot). At your size the bar takes about 75pt, every screen, all the time.</li>
-          <li><b>A · The bar scrolls away with the page.</b> It is the top of the page, not a frame around it. Scroll down and it goes up with everything else; behind the clock the page colour fades out over a few points, so nothing slides into the time and no line cuts across. To switch league or open your profile, scroll back to the top, or tap the clock (iPhone's own shortcut to the top of any page). Every tab opens at the top, so the bar is there whenever you arrive. <b>Cost: small.</b> The bar moves inside the page, and the page starts just under the clock. The pull-to-refresh bars already sit above the page's top, so they appear above the bar as today. The search reveal (#340) and Standings' pinned row (your row stays in view) measure the page's top edge, so one number in each changes, from under the bar to under the clock.</li>
+          <li><b>A · The bar scrolls away with the page.</b> It is the top of the page, not a frame around it. Scroll down and it goes up with everything else; behind the clock the page colour fades out over a few points, so nothing slides into the time and no line cuts across. To switch league or open your profile, scroll back to the top, or tap the clock (iPhone's own shortcut to the top of any page). Every tab opens at the top, so the bar is there whenever you arrive. <b>Cost: small.</b> The bar moves inside the page, and the page starts just under the clock. The pull-to-refresh bars already sit above the page's top, so they appear above the bar as today. The search reveal (#340) measures from the page's top edge, so its one number changes, from under the bar to under the clock. (Standings' pinned row watches only the bottom edge, so it needs nothing.)</li>
           <li><b>B · The bar stays, and you see the page through it.</b> At the top of a page it looks like today. Once content is under it, the bar turns see-through and blurred, with a 1pt line under it, the way Settings and Mail look on iPhone. It no longer slices the page, but it still stays at the top, at full height. <b>Cost: medium.</b> The blur needs a new library (expo-blur), so a new app build. The bar floats over the page instead of sitting above it, so the pull-to-refresh bars, the search reveal and Standings' pinned row each need the bar's height added.</li>
           <li><b>C · The bar hides as you scroll down and comes back as you scroll up.</b> Like Safari. While reading down you get the whole screen; the moment you scroll up a little it slides back. When it's back it needs a background again, so the straight edge comes back with it (or C adds B's blur, and B's cost). <b>Cost: large.</b> Tracking which way you're scrolling, keeping it from hiding while you pull to refresh or while the league list is open, and the search reveal has to aim for a bar that may or may not be there.</li>
           <li><b>One more thing it touches:</b> the draft room's clock call (drawn next). If the bar scrolls away (A), a pinned clock would be the only thing at the top while it's your pick; with B it would sit under the bar; with C it would jump as the bar comes and goes.</li>
@@ -231,5 +232,7 @@
     );
   }
 
-  window.KSTopBar = () => <CallTopBar />;
+  // Decided 2026-11-06 (A and A); the call lives in the Archive (board.jsx).
+  window.KSTopBar = () => null;
+  window.KSTopBarArchived = () => <CallTopBar archived />;
 })();
