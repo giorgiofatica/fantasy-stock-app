@@ -18,6 +18,10 @@ import { PasswordRevealButton, usePasswordReveal } from './PasswordReveal';
 // animation anywhere in this file. They are announced to VoiceOver through
 // accessibilityLiveRegion.
 
+/** The rule checklist's text cap, the same 1.3x as the app's row text: at the largest accessibility size all five rules still fit under
+ * Password in the window the keyboard leaves (auth-fields-above-keyboard, Design Lead gate on #345). */
+export const RULES_MAX_SCALE = 1.3;
+
 export interface FieldRule {
   ok: boolean;
   label: string;
@@ -142,10 +146,10 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
                 accessibilityLabel={`${rule.label}, ${rule.ok ? 'met' : 'not met'}`}
                 style={styles.ruleRow}
               >
-                <Text variant="caption" color={color} style={styles.rule}>
+                <Text variant="caption" color={color} maxFontSizeMultiplier={RULES_MAX_SCALE} style={styles.rule}>
                   {rule.ok ? '✓' : '○'}
                 </Text>
-                <Text variant="caption" color={color} style={[styles.rule, styles.ruleLabel]}>
+                <Text variant="caption" color={color} maxFontSizeMultiplier={RULES_MAX_SCALE} style={[styles.rule, styles.ruleLabel]}>
                   {rule.label}
                 </Text>
               </View>

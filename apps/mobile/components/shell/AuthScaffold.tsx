@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { forwardRef, ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
+import { fieldRevealOffset, footerSecondaryShown, keyboardUpAfter, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -12,19 +13,95 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 // `bg`, safe areas, a scrolling body, and an optional footer that rides
 // above the keyboard (spec row 2: "the button stays above the keyboard").
 // An optional back row matches the board's "‹ Back to sign in".
+//
+// Fields above the keyboard (auth-fields-above-keyboard, 2026-11-06): the footer is docked OUTSIDE the ScrollView, so with the
+// keyboard up the scroll view's window is only what sits above that footer, and a form taller than the window hid its second
+// field (Create account showed Email, then the button: Password was out of sight and the form read as email-only). A field
+// that takes focus is now scrolled to the top of that window (authFieldReveal.ts), so the next field and its rules sit under it.
+// The scaffold hears focus because it bubbles up from the TextInput to the ScrollView; no screen or Field prop is involved.
 
 export interface AuthScaffoldProps {
   children: ReactNode;
   /** Docked under the body; lifted above the keyboard when it opens. */
   footer?: ReactNode;
+  /** The footer's secondary line (create account's "Already have an account? Sign in"), docked under `footer` and hidden while the
+   * keyboard is up, so the primary button is all the footer takes from the window the fields scroll in (authFieldReveal.ts). */
+  footerSecondary?: ReactNode;
   back?: { label: string; onPress: () => void };
   /** Centre the body in the space above the footer (the invite arrival); it scrolls when it is taller. */
   centerBody?: boolean;
 }
 
-export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, back, centerBody }, ref) {
+/** The slice of a ScrollView the reveal needs: its typings omit getInnerViewRef (the content view the field is measured against), which exists at runtime. */
+interface RevealScroll {
+  scrollTo(opts: { y: number; animated: boolean }): void;
+  getInnerViewRef?: () => unknown;
+}
+
+export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
+
+  // The scaffold's own handle on the ScrollView, beside the caller's (delete-account scrolls it to the end).
+  const scrollRef = useRef<ScrollView | null>(null);
+  const setScroll = useCallback(
+    (node: ScrollView | null) => {
+      scrollRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref],
+  );
+  const [keyboardUp, setKeyboardUp] = useState(false);
+  const inField = useRef(false);
+  const viewportHeight = useRef(0);
+  const fontScaleRef = useRef(fontScale);
+  fontScaleRef.current = fontScale;
+
+  /** Scroll the focused field to the top of the window (its label just under the edge; the input always stays in). */
+  const revealFocused = useCallback(() => {
+    const scroll = scrollRef.current as unknown as RevealScroll | null;
+    const inner = scroll?.getInnerViewRef?.();
+    const input = TextInput.State.currentlyFocusedInput();
+    if (!scroll || !inner || !input) return;
+    input.measureLayout(
+      inner as never,
+      (_x, y, _w, h) =>
+        scroll.scrollTo({
+          y: fieldRevealOffset({ inputTop: y, inputHeight: h, viewportHeight: viewportHeight.current, fontScale: fontScaleRef.current }),
+          animated: true,
+        }),
+      () => {},
+    );
+  }, []);
+
+  const step = useCallback(
+    (event: RevealEvent) => {
+      const s = stepReveal(inField.current, event);
+      inField.current = s.focused;
+      if (s.reveal) revealFocused();
+    },
+    [revealFocused],
+  );
+
+  // A focus can land BEFORE the keyboard has shrunk the window (the content cannot scroll yet), so scroll again once the keyboard has
+  // resized the scroll view (onLayout) and when it has settled (its events). Only while a field is focused.
+  useEffect(() => {
+    const subs = [Keyboard.addListener('keyboardDidShow', () => step('keyboard')), Keyboard.addListener('keyboardDidChangeFrame', () => step('keyboard'))];
+    return () => subs.forEach((x) => x.remove());
+  }, [step]);
+
+  // The footer's secondary line goes while the keyboard is up. WILL events (iOS) so it is gone before the keyboard has finished
+  // rising; Android has only the DID pair. Its going (and its return) resizes the scroll view, so onLayout re-scrolls to the field.
+  useEffect(() => {
+    const ios = Platform.OS === 'ios';
+    const subs = [
+      Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardUp(keyboardUpAfter('show'))),
+      Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardUp(keyboardUpAfter('hide'))),
+    ];
+    return () => subs.forEach((x) => x.remove());
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -42,7 +119,13 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
         </Pressable>
       ) : null}
       <ScrollView
-        ref={ref}
+        ref={setScroll}
+        onFocus={() => step('focus')}
+        onBlur={() => step('blur')}
+        onLayout={(e) => {
+          viewportHeight.current = e.nativeEvent.layout.height;
+          step('layout');
+        }}
         style={styles.fill}
         contentContainerStyle={[styles.body, centerBody && styles.bodyCentered, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}
         keyboardShouldPersistTaps="handled"
@@ -50,7 +133,12 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
       >
         {children}
       </ScrollView>
-      {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[5]) }]}>{footer}</View> : null}
+      {footer ? (
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[5]) }]}>
+          {footer}
+          {footerSecondaryShown(keyboardUp) ? footerSecondary : null}
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 });
