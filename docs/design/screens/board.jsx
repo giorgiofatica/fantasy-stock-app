@@ -379,6 +379,7 @@
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
+    ['call-top-bar', 'The top bar: Portfolio\'s avatar, and what the bar does when you scroll'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
@@ -492,6 +493,7 @@
           </div>
         </header>
 
+        {window.KSTopBar ? <window.KSTopBar /> : null}
         {window.KSQueueRow ? <window.KSQueueRow /> : null}
         {window.KSHomeChart ? <window.KSHomeChart /> : null}
         {window.KSDirections ? <window.KSDirections /> : null}
