@@ -6,6 +6,7 @@ import { radius, space, type } from '@/constants/tokens';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
+import { PasswordRevealButton, usePasswordReveal } from './PasswordReveal';
 
 // Phase 3b-1 — the board's form field (docs/design/screens/screens.css
 // .ks-field*): a label, a 50pt box on `surface` with a `borderStrong`
@@ -58,14 +59,19 @@ export function FieldError({ children }: { children: ReactNode }) {
 }
 
 export const Field = forwardRef<TextInput, FieldProps>(function Field(
-  { label, error, invalid = false, helper, rules, trailing, chosen = false, inputFontSize, autoFocus, onFocus, onBlur, ...input },
+  { label, error, invalid = false, helper, rules, trailing, chosen = false, inputFontSize, autoFocus, onFocus, onBlur, secureTextEntry, ...input },
   ref
 ) {
   const { colors } = useTheme();
   // Keyed by the scale while unfocused, frozen while focused (remeasureKey.ts): an unfocused filled
   // field otherwise keeps its old-size text in a grown box after a Dynamic Type change. Not a
   // credential field (lib/inputRemount.ts): remounting a password or its email raises iOS's "Save Password?" sheet.
-  const remount = useInputRemountKey(autoFocus, input);
+  // The caller's own secureTextEntry is what makes it a credential host, whatever the toggle shows.
+  const remount = useInputRemountKey(autoFocus, { secureTextEntry, textContentType: input.textContentType, autoComplete: input.autoComplete });
+  // Every secure field gets the show / hide eye (lib/passwordReveal.ts), hidden on every mount. The toggle
+  // changes ONLY the secureTextEntry prop: the TextInput below is one element whose key never follows it,
+  // so a tap never remounts a filled password field (iOS's "Save Password?" sheet) or drops the keyboard.
+  const reveal = usePasswordReveal(secureTextEntry);
   const focused = remount.focused;
   // The scale goes in the props too, or a remounted field can reuse a recycled native view that keeps its old
   // placeholder size (remeasureKey.ts, "The PLACEHOLDER"). A caller's own explicit size (`inputFontSize`) wins;
@@ -74,6 +80,8 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   const inError = !!error || invalid;
   const emphasised = inError || focused || chosen;
   const borderColor = inError ? colors.danger : focused || chosen ? colors.accent : colors.borderStrong;
+  // Keep the text from shifting when the border thickens.
+  const boxPadding = emphasised ? space[4] + 1 : space[4] + 2;
 
   return (
     <View style={styles.field}>
@@ -85,8 +93,7 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
             backgroundColor: colors.surface,
             borderColor,
             borderWidth: emphasised ? 2 : 1,
-            // Keep the text from shifting when the border thickens.
-            paddingHorizontal: emphasised ? space[4] + 1 : space[4] + 2,
+            paddingHorizontal: boxPadding,
           },
         ]}
       >
@@ -108,9 +115,11 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
           }}
           style={[styles.input, { color: colors.text }, inputFontSize ? { fontSize: inputFontSize } : font ? { fontSize: font.fontSize } : null]}
           allowFontScaling={inputFontSize || font ? false : undefined}
+          secureTextEntry={reveal.secureTextEntry}
           {...input}
         />
         {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
+        {reveal.hasToggle ? <PasswordRevealButton reveal={reveal} boxPadding={boxPadding} /> : null}
       </View>
       {error ? (
         <FieldError>{error}</FieldError>

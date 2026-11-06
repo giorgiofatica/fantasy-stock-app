@@ -11,6 +11,8 @@ export type IconName =
   | 'bell'
   // The deleted manager's default avatar (account deletion W4): a person glyph on a neutral disc.
   | 'person'
+  // A password field's show / hide toggle (components/shell/PasswordReveal.tsx): the action it takes.
+  | 'eye' | 'eyeOff'
   // The tab bar's four tabs: outline when idle, filled when selected (TabIcon).
   | 'tabHome' | 'tabHomeSelected' | 'tabMatchup' | 'tabMatchupSelected'
   | 'tabLeague' | 'tabLeagueSelected' | 'tabPortfolio' | 'tabPortfolioSelected';
@@ -46,6 +48,10 @@ export const ICON_GLYPHS: Record<IconName, string> = {
   // The notifications ask (W4): the bell on its disc.
   bell: 'notifications-outline',
   person: 'person-outline',
+  // The password toggle: an open eye while the password is hidden ("Show password"), the struck-through
+  // eye while it is shown ("Hide password").
+  eye: 'eye-outline',
+  eyeOff: 'eye-off-outline',
   // The tab bar (Design Lead ruling 2026-09-29): home, the line chart, the trophy, the bars.
   // The filled glyph is the selected state only, the one exception to "outline by default".
   tabHome: 'home-outline',

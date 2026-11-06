@@ -4,8 +4,8 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **241** tappables in **88** files.
-- **94** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **242** tappables in **89** files.
+- **95** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **49** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
@@ -47,7 +47,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/create-league.tsx:622` | Button | onPress | `goNext` | fn goNext | `blocked` |
 | `app/forgot-password.tsx:135` | EmptyState | onAction | `backToSignIn` | route replace('/login') |  |
 | `app/forgot-password.tsx:137` | EmptyState | onSecondaryAction | `inline: () => { setSent(false); handleResetPassword(); }` | state setSent |  |
-| `app/forgot-password.tsx:170` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |
+| `app/forgot-password.tsx:172` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |
 | `app/join-league.tsx:496` | Button | onPress | `primary.onPress` | prop primary.onPress | `view.action === 'join_disabled'` |
 | `app/join-league.tsx:510` | Button | onPress | `find` | fn find | `!trimmed` |
 | `app/join-league.tsx:578` | Button | onPress | `onContinue` | prop onContinue (the caller's) |  |
@@ -60,10 +60,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/league-settings.tsx:513` | SlotBuilder | onChange | `inline: (next) => { setSlots(next); setSlotsError(null); }` | state setSlots | `isLocked` |
 | `app/league-settings.tsx:552` | SettingRow | onPress | `inline: commissionerRow.pressable ? () => { setLeaveError(null); set` | sheet setTransferOpen(true) |  |
 | `app/league-settings.tsx:596` | Button | onPress | `inline: () => void Share.share({ message: inviteShareMessage(code) }` | share sheet |  |
-| `app/login.tsx:165` | Pressable | onPress | `handleResend` | fn handleResend |  |
-| `app/login.tsx:172` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
-| `app/login.tsx:181` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
-| `app/login.tsx:182` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
+| `app/login.tsx:167` | Pressable | onPress | `handleResend` | fn handleResend |  |
+| `app/login.tsx:174` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
+| `app/login.tsx:183` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
+| `app/login.tsx:184` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
 | `app/pick-username.tsx:15` | UsernamePickerExit | onPress | `signOut` | fn signOut (from a hook or import) |  |
 | `app/reset-password.tsx:125` | EmptyState | onAction | `inline: () => router.replace('/')` | route replace('/') |  |
 | `app/reset-password.tsx:139` | Pressable | onPress | `handleCancel` | route replace('/') |  |
@@ -210,6 +210,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/NoLeagueState.tsx:32` | PhasePlaceholder | onAction | `inline: () => router.push('/create-league')` | route push('/create-league') |  |
 | `components/shell/NoLeagueState.tsx:34` | PhasePlaceholder | onSecondaryAction | `inline: () => router.push('/join-league')` | route push('/join-league') |  |
 | `components/shell/NoLeagueState.tsx:50` | PhasePlaceholder | onAction | `onRefresh` | prop onRefresh (the caller's) |  |
+| `components/shell/PasswordReveal.tsx:25` | Pressable | onPress | `reveal.toggle` | prop reveal.toggle |  |
 | `components/shell/PhasePlaceholder.tsx:52` | EmptyState | onAction | `onAction` | prop onAction (the caller's) |  |
 | `components/shell/PhasePlaceholder.tsx:54` | EmptyState | onSecondaryAction | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
 | `components/shell/ProfileView.tsx:63` | Row | onPress | `onUsername` | prop onUsername (the caller's) |  |
