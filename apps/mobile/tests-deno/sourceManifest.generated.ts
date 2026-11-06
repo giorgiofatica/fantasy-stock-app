@@ -291,215 +291,216 @@ import s287 from '../lib/game/matchupPhase.ts' with { type: 'text' };
 import s288 from '../lib/game/matchupRoster.ts' with { type: 'text' };
 import s289 from '../lib/game/matchupRosterView.ts' with { type: 'text' };
 import s290 from '../lib/game/memberWeek.ts' with { type: 'text' };
-import s291 from '../lib/game/playerCardModel.ts' with { type: 'text' };
-import s292 from '../lib/game/playoffTeamsSave.ts' with { type: 'text' };
-import s293 from '../lib/game/queuePriceStore.ts' with { type: 'text' };
-import s294 from '../lib/game/queueRow.ts' with { type: 'text' };
-import s295 from '../lib/game/readGuard.ts' with { type: 'text' };
-import s296 from '../lib/game/renewal.ts' with { type: 'text' };
-import s297 from '../lib/game/renewalFixture.ts' with { type: 'text' };
-import s298 from '../lib/game/renewalLobby.ts' with { type: 'text' };
-import s299 from '../lib/game/renewalPickers.ts' with { type: 'text' };
-import s300 from '../lib/game/renewalReview.ts' with { type: 'text' };
-import s301 from '../lib/game/revealOnce.ts' with { type: 'text' };
-import s302 from '../lib/game/schedule.ts' with { type: 'text' };
-import s303 from '../lib/game/seamAccountDeletion.ts' with { type: 'text' };
-import s304 from '../lib/game/seamCalls.ts' with { type: 'text' };
-import s305 from '../lib/game/seamFixtures.ts' with { type: 'text' };
-import s306 from '../lib/game/seamRoom.ts' with { type: 'text' };
-import s307 from '../lib/game/seamTables.ts' with { type: 'text' };
-import s308 from '../lib/game/settingsSave.ts' with { type: 'text' };
-import s309 from '../lib/game/slotBuilderCopy.ts' with { type: 'text' };
-import s310 from '../lib/game/standings.ts' with { type: 'text' };
-import s311 from '../lib/game/symbolCategories.ts' with { type: 'text' };
-import s312 from '../lib/game/teamLink.ts' with { type: 'text' };
-import s313 from '../lib/game/useAllMatchups.ts' with { type: 'text' };
-import s314 from '../lib/game/useBracket.ts' with { type: 'text' };
-import s315 from '../lib/game/useDraftAutoStart.ts' with { type: 'text' };
-import s316 from '../lib/game/useDraftQueue.ts' with { type: 'text' };
-import s317 from '../lib/game/useDraftRoom.ts' with { type: 'text' };
-import s318 from '../lib/game/useDraftStatus.ts' with { type: 'text' };
-import s319 from '../lib/game/useFinalLineups.ts' with { type: 'text' };
-import s320 from '../lib/game/useLeadChyron.ts' with { type: 'text' };
-import s321 from '../lib/game/useLeagueHistory.ts' with { type: 'text' };
-import s322 from '../lib/game/useLeagueStandings.ts' with { type: 'text' };
-import s323 from '../lib/game/useLeaveLeague.ts' with { type: 'text' };
-import s324 from '../lib/game/useMatchup.ts' with { type: 'text' };
-import s325 from '../lib/game/useMemberSnapshots.ts' with { type: 'text' };
-import s326 from '../lib/game/useQueueMarketLine.ts' with { type: 'text' };
-import s327 from '../lib/game/useQueueQuotes.ts' with { type: 'text' };
-import s328 from '../lib/game/useRenewalRoster.ts' with { type: 'text' };
-import s329 from '../lib/game/useRevealOnce.ts' with { type: 'text' };
-import s330 from '../lib/game/useRosterData.ts' with { type: 'text' };
-import s331 from '../lib/game/useSeasonPlayoffs.ts' with { type: 'text' };
-import s332 from '../lib/game/useSymbolCategories.ts' with { type: 'text' };
-import s333 from '../lib/game/useWeekOne.ts' with { type: 'text' };
-import s334 from '../lib/game/weekResult.ts' with { type: 'text' };
-import s335 from '../lib/game/yourTurn.ts' with { type: 'text' };
-import s336 from '../lib/game/yourTurnAlert.ts' with { type: 'text' };
-import s337 from '../lib/game/yourTurnPush.ts' with { type: 'text' };
-import s338 from '../lib/home/bestWeek.ts' with { type: 'text' };
-import s339 from '../lib/home/buildHomeViewModel.ts' with { type: 'text' };
-import s340 from '../lib/home/calmHome.ts' with { type: 'text' };
-import s341 from '../lib/home/devFixture.ts' with { type: 'text' };
-import s342 from '../lib/home/draftCountdown.ts' with { type: 'text' };
-import s343 from '../lib/home/draftTurn.ts' with { type: 'text' };
-import s344 from '../lib/home/homeCopy.ts' with { type: 'text' };
-import s345 from '../lib/home/homeFixtureData.ts' with { type: 'text' };
-import s346 from '../lib/home/homePhase.ts' with { type: 'text' };
-import s347 from '../lib/home/liveWeekScore.ts' with { type: 'text' };
-import s348 from '../lib/home/marketWeek.ts' with { type: 'text' };
-import s349 from '../lib/home/ordinal.ts' with { type: 'text' };
-import s350 from '../lib/home/preDraftMembers.ts' with { type: 'text' };
-import s351 from '../lib/home/scoreTone.ts' with { type: 'text' };
-import s352 from '../lib/home/seasonFixture.ts' with { type: 'text' };
-import s353 from '../lib/home/seasonGain.ts' with { type: 'text' };
-import s354 from '../lib/home/teamValue.ts' with { type: 'text' };
-import s355 from '../lib/home/todayChange.ts' with { type: 'text' };
-import s356 from '../lib/home/useDraftingData.ts' with { type: 'text' };
-import s357 from '../lib/home/useHomeLeague.ts' with { type: 'text' };
-import s358 from '../lib/home/usePreDraftData.ts' with { type: 'text' };
-import s359 from '../lib/home/useSeasonResult.ts' with { type: 'text' };
-import s360 from '../lib/home/yourSeason.ts' with { type: 'text' };
-import s361 from '../lib/inputRemount.ts' with { type: 'text' };
-import s362 from '../lib/invite/arrivalView.ts' with { type: 'text' };
-import s363 from '../lib/invite/autoJoin.ts' with { type: 'text' };
-import s364 from '../lib/invite/inviteCopy.ts' with { type: 'text' };
-import s365 from '../lib/invite/inviteFixture.ts' with { type: 'text' };
-import s366 from '../lib/invite/inviteJoin.ts' with { type: 'text' };
-import s367 from '../lib/invite/inviteLink.ts' with { type: 'text' };
-import s368 from '../lib/invite/invitePreview.ts' with { type: 'text' };
-import s369 from '../lib/invite/invitePreviewApi.ts' with { type: 'text' };
-import s370 from '../lib/invite/pendingInvite.ts' with { type: 'text' };
-import s371 from '../lib/invite/pendingInviteStore.ts' with { type: 'text' };
-import s372 from '../lib/invite/pendingInviteTypes.ts' with { type: 'text' };
-import s373 from '../lib/invite/pendingTakeover.ts' with { type: 'text' };
-import s374 from '../lib/invite/pendingTakeoverStore.ts' with { type: 'text' };
-import s375 from '../lib/invite/takeoverLink.ts' with { type: 'text' };
-import s376 from '../lib/invite/useArrivalInvite.ts' with { type: 'text' };
-import s377 from '../lib/invite/usePendingInvite.ts' with { type: 'text' };
-import s378 from '../lib/inviteCode.ts' with { type: 'text' };
-import s379 from '../lib/join/devFixture.ts' with { type: 'text' };
-import s380 from '../lib/join/joinFixtureGate.ts' with { type: 'text' };
-import s381 from '../lib/join/joinPreview.ts' with { type: 'text' };
-import s382 from '../lib/join/joinedFacts.ts' with { type: 'text' };
-import s383 from '../lib/links/webDomain.ts' with { type: 'text' };
-import s384 from '../lib/marketHours.ts' with { type: 'text' };
-import s385 from '../lib/matchupScreenState.ts' with { type: 'text' };
-import s386 from '../lib/money/budgetFigures.ts' with { type: 'text' };
-import s387 from '../lib/money/buyQuantity.ts' with { type: 'text' };
-import s388 from '../lib/money/buyRowLine.ts' with { type: 'text' };
-import s389 from '../lib/money/buyingPower.ts' with { type: 'text' };
-import s390 from '../lib/money/captureScript.ts' with { type: 'text' };
-import s391 from '../lib/money/cashSpent.ts' with { type: 'text' };
-import s392 from '../lib/money/categoryNames.ts' with { type: 'text' };
-import s393 from '../lib/money/cleanCompanyName.ts' with { type: 'text' };
-import s394 from '../lib/money/devFixture.ts' with { type: 'text' };
-import s395 from '../lib/money/fixtureMode.ts' with { type: 'text' };
-import s396 from '../lib/money/formatShares.ts' with { type: 'text' };
-import s397 from '../lib/money/ledgerCache.ts' with { type: 'text' };
-import s398 from '../lib/money/marketOpensLabel.ts' with { type: 'text' };
-import s399 from '../lib/money/moneyCopy.ts' with { type: 'text' };
-import s400 from '../lib/money/playerPortfolio.ts' with { type: 'text' };
-import s401 from '../lib/money/portfolioChart.ts' with { type: 'text' };
-import s402 from '../lib/money/portfolioLedger.ts' with { type: 'text' };
-import s403 from '../lib/money/portfolioModel.ts' with { type: 'text' };
-import s404 from '../lib/money/portfolioSeam.ts' with { type: 'text' };
-import s405 from '../lib/money/portfolioView.ts' with { type: 'text' };
-import s406 from '../lib/money/preDraftPortfolio.ts' with { type: 'text' };
-import s407 from '../lib/money/prevClose.ts' with { type: 'text' };
-import s408 from '../lib/money/priceReads.ts' with { type: 'text' };
-import s409 from '../lib/money/recordTrade.ts' with { type: 'text' };
-import s410 from '../lib/money/recordTradeOutcome.ts' with { type: 'text' };
-import s411 from '../lib/money/refusals.ts' with { type: 'text' };
-import s412 from '../lib/money/reviewMachine.ts' with { type: 'text' };
-import s413 from '../lib/money/reviewModel.ts' with { type: 'text' };
-import s414 from '../lib/money/reviewPresentation.ts' with { type: 'text' };
-import s415 from '../lib/money/salePicker.ts' with { type: 'text' };
-import s416 from '../lib/money/sheetRequests.ts' with { type: 'text' };
-import s417 from '../lib/money/stockChartSeries.ts' with { type: 'text' };
-import s418 from '../lib/money/stockSearchOwnership.ts' with { type: 'text' };
-import s419 from '../lib/money/stockSheetApi.ts' with { type: 'text' };
-import s420 from '../lib/money/stockSheetFacts.ts' with { type: 'text' };
-import s421 from '../lib/money/stockSheetModel.ts' with { type: 'text' };
-import s422 from '../lib/money/stressFixture.ts' with { type: 'text' };
-import s423 from '../lib/money/tierContract.ts' with { type: 'text' };
-import s424 from '../lib/money/tradeBodies.ts' with { type: 'text' };
-import s425 from '../lib/money/tradeGate.ts' with { type: 'text' };
-import s426 from '../lib/money/tradeHistory.ts' with { type: 'text' };
-import s427 from '../lib/money/useMoneyStockSearch.ts' with { type: 'text' };
-import s428 from '../lib/money/usePlayerPortfolioData.ts' with { type: 'text' };
-import s429 from '../lib/money/usePortfolioData.ts' with { type: 'text' };
-import s430 from '../lib/money/usePortfolioLedger.ts' with { type: 'text' };
-import s431 from '../lib/money/useStockChartData.ts' with { type: 'text' };
-import s432 from '../lib/money/useStockSheetData.ts' with { type: 'text' };
-import s433 from '../lib/money/useTradeSubmit.ts' with { type: 'text' };
-import s434 from '../lib/motion/magicMove.ts' with { type: 'text' };
-import s435 from '../lib/notifications.ts' with { type: 'text' };
-import s436 from '../lib/passwordReveal.ts' with { type: 'text' };
-import s437 from '../lib/plCoverage.ts' with { type: 'text' };
-import s438 from '../lib/playoffs.ts' with { type: 'text' };
-import s439 from '../lib/pushTokenStore.ts' with { type: 'text' };
-import s440 from '../lib/readResult.ts' with { type: 'text' };
-import s441 from '../lib/recoveryLink.ts' with { type: 'text' };
-import s442 from '../lib/shell/activeLeague.ts' with { type: 'text' };
-import s443 from '../lib/shell/captureDev.ts' with { type: 'text' };
-import s444 from '../lib/shell/captureKnobs.ts' with { type: 'text' };
-import s445 from '../lib/shell/confirmedChip.ts' with { type: 'text' };
-import s446 from '../lib/shell/devFixture.ts' with { type: 'text' };
-import s447 from '../lib/shell/firstRun.ts' with { type: 'text' };
-import s448 from '../lib/shell/firstTimeTip.ts' with { type: 'text' };
-import s449 from '../lib/shell/firstTimeTipPolicy.ts' with { type: 'text' };
-import s450 from '../lib/shell/fitText.ts' with { type: 'text' };
-import s451 from '../lib/shell/fixtureIds.ts' with { type: 'text' };
-import s452 from '../lib/shell/fixtureRoute.ts' with { type: 'text' };
-import s453 from '../lib/shell/gamertag.ts' with { type: 'text' };
-import s454 from '../lib/shell/leagueRead.ts' with { type: 'text' };
-import s455 from '../lib/shell/leagueSheet.ts' with { type: 'text' };
-import s456 from '../lib/shell/notificationRoute.ts' with { type: 'text' };
-import s457 from '../lib/shell/onboardingSeenBySession.ts' with { type: 'text' };
-import s458 from '../lib/shell/pendingRoute.ts' with { type: 'text' };
-import s459 from '../lib/shell/profileBack.ts' with { type: 'text' };
-import s460 from '../lib/shell/pushAsk.ts' with { type: 'text' };
-import s461 from '../lib/shell/pushAskPolicy.ts' with { type: 'text' };
-import s462 from '../lib/shell/readSequence.ts' with { type: 'text' };
-import s463 from '../lib/shell/resetCaptureView.ts' with { type: 'text' };
-import s464 from '../lib/shell/resumeTarget.ts' with { type: 'text' };
-import s465 from '../lib/shell/signInTransition.ts' with { type: 'text' };
-import s466 from '../lib/shell/themeDip.ts' with { type: 'text' };
-import s467 from '../lib/shell/usernameApi.ts' with { type: 'text' };
-import s468 from '../lib/shell/usernameMachine.ts' with { type: 'text' };
-import s469 from '../lib/shell/usernameRules.ts' with { type: 'text' };
-import s470 from '../lib/stakesLine.ts' with { type: 'text' };
-import s471 from '../lib/supabase.ts' with { type: 'text' };
-import s472 from '../lib/symbolSearch.ts' with { type: 'text' };
-import s473 from '../lib/time/etParts.ts' with { type: 'text' };
-import s474 from '../lib/time/marketWeek.ts' with { type: 'text' };
-import s475 from '../lib/useAuth.ts' with { type: 'text' };
-import s476 from '../lib/useLeagues.ts' with { type: 'text' };
-import s477 from '../lib/usePortfolio.ts' with { type: 'text' };
-import s478 from '../lib/useStockNames.ts' with { type: 'text' };
-import s479 from '../lib/useStockPrices.ts' with { type: 'text' };
-import s480 from '../lib/useSymbolSearch.ts' with { type: 'text' };
-import s481 from '../lib/uuid.ts' with { type: 'text' };
-import s482 from '../lib/weekStatus.ts' with { type: 'text' };
-import s483 from '../constants/Colors.ts' with { type: 'text' };
-import s484 from '../constants/brand.ts' with { type: 'text' };
-import s485 from '../constants/confirmEmailCopy.ts' with { type: 'text' };
-import s486 from '../constants/passwordRules.ts' with { type: 'text' };
-import s487 from '../constants/theme/colors.ts' with { type: 'text' };
-import s488 from '../constants/theme/index.ts' with { type: 'text' };
-import s489 from '../constants/theme/shadows.ts' with { type: 'text' };
-import s490 from '../constants/theme/spacing.ts' with { type: 'text' };
-import s491 from '../constants/theme/typography.ts' with { type: 'text' };
-import s492 from '../constants/tokens/color.ts' with { type: 'text' };
-import s493 from '../constants/tokens/contrastPairs.ts' with { type: 'text' };
-import s494 from '../constants/tokens/elevation.ts' with { type: 'text' };
-import s495 from '../constants/tokens/index.ts' with { type: 'text' };
-import s496 from '../constants/tokens/motion.ts' with { type: 'text' };
-import s497 from '../constants/tokens/radius.ts' with { type: 'text' };
-import s498 from '../constants/tokens/space.ts' with { type: 'text' };
-import s499 from '../constants/tokens/type.ts' with { type: 'text' };
+import s291 from '../lib/game/pickLogRow.ts' with { type: 'text' };
+import s292 from '../lib/game/playerCardModel.ts' with { type: 'text' };
+import s293 from '../lib/game/playoffTeamsSave.ts' with { type: 'text' };
+import s294 from '../lib/game/queuePriceStore.ts' with { type: 'text' };
+import s295 from '../lib/game/queueRow.ts' with { type: 'text' };
+import s296 from '../lib/game/readGuard.ts' with { type: 'text' };
+import s297 from '../lib/game/renewal.ts' with { type: 'text' };
+import s298 from '../lib/game/renewalFixture.ts' with { type: 'text' };
+import s299 from '../lib/game/renewalLobby.ts' with { type: 'text' };
+import s300 from '../lib/game/renewalPickers.ts' with { type: 'text' };
+import s301 from '../lib/game/renewalReview.ts' with { type: 'text' };
+import s302 from '../lib/game/revealOnce.ts' with { type: 'text' };
+import s303 from '../lib/game/schedule.ts' with { type: 'text' };
+import s304 from '../lib/game/seamAccountDeletion.ts' with { type: 'text' };
+import s305 from '../lib/game/seamCalls.ts' with { type: 'text' };
+import s306 from '../lib/game/seamFixtures.ts' with { type: 'text' };
+import s307 from '../lib/game/seamRoom.ts' with { type: 'text' };
+import s308 from '../lib/game/seamTables.ts' with { type: 'text' };
+import s309 from '../lib/game/settingsSave.ts' with { type: 'text' };
+import s310 from '../lib/game/slotBuilderCopy.ts' with { type: 'text' };
+import s311 from '../lib/game/standings.ts' with { type: 'text' };
+import s312 from '../lib/game/symbolCategories.ts' with { type: 'text' };
+import s313 from '../lib/game/teamLink.ts' with { type: 'text' };
+import s314 from '../lib/game/useAllMatchups.ts' with { type: 'text' };
+import s315 from '../lib/game/useBracket.ts' with { type: 'text' };
+import s316 from '../lib/game/useDraftAutoStart.ts' with { type: 'text' };
+import s317 from '../lib/game/useDraftQueue.ts' with { type: 'text' };
+import s318 from '../lib/game/useDraftRoom.ts' with { type: 'text' };
+import s319 from '../lib/game/useDraftStatus.ts' with { type: 'text' };
+import s320 from '../lib/game/useFinalLineups.ts' with { type: 'text' };
+import s321 from '../lib/game/useLeadChyron.ts' with { type: 'text' };
+import s322 from '../lib/game/useLeagueHistory.ts' with { type: 'text' };
+import s323 from '../lib/game/useLeagueStandings.ts' with { type: 'text' };
+import s324 from '../lib/game/useLeaveLeague.ts' with { type: 'text' };
+import s325 from '../lib/game/useMatchup.ts' with { type: 'text' };
+import s326 from '../lib/game/useMemberSnapshots.ts' with { type: 'text' };
+import s327 from '../lib/game/useQueueMarketLine.ts' with { type: 'text' };
+import s328 from '../lib/game/useQueueQuotes.ts' with { type: 'text' };
+import s329 from '../lib/game/useRenewalRoster.ts' with { type: 'text' };
+import s330 from '../lib/game/useRevealOnce.ts' with { type: 'text' };
+import s331 from '../lib/game/useRosterData.ts' with { type: 'text' };
+import s332 from '../lib/game/useSeasonPlayoffs.ts' with { type: 'text' };
+import s333 from '../lib/game/useSymbolCategories.ts' with { type: 'text' };
+import s334 from '../lib/game/useWeekOne.ts' with { type: 'text' };
+import s335 from '../lib/game/weekResult.ts' with { type: 'text' };
+import s336 from '../lib/game/yourTurn.ts' with { type: 'text' };
+import s337 from '../lib/game/yourTurnAlert.ts' with { type: 'text' };
+import s338 from '../lib/game/yourTurnPush.ts' with { type: 'text' };
+import s339 from '../lib/home/bestWeek.ts' with { type: 'text' };
+import s340 from '../lib/home/buildHomeViewModel.ts' with { type: 'text' };
+import s341 from '../lib/home/calmHome.ts' with { type: 'text' };
+import s342 from '../lib/home/devFixture.ts' with { type: 'text' };
+import s343 from '../lib/home/draftCountdown.ts' with { type: 'text' };
+import s344 from '../lib/home/draftTurn.ts' with { type: 'text' };
+import s345 from '../lib/home/homeCopy.ts' with { type: 'text' };
+import s346 from '../lib/home/homeFixtureData.ts' with { type: 'text' };
+import s347 from '../lib/home/homePhase.ts' with { type: 'text' };
+import s348 from '../lib/home/liveWeekScore.ts' with { type: 'text' };
+import s349 from '../lib/home/marketWeek.ts' with { type: 'text' };
+import s350 from '../lib/home/ordinal.ts' with { type: 'text' };
+import s351 from '../lib/home/preDraftMembers.ts' with { type: 'text' };
+import s352 from '../lib/home/scoreTone.ts' with { type: 'text' };
+import s353 from '../lib/home/seasonFixture.ts' with { type: 'text' };
+import s354 from '../lib/home/seasonGain.ts' with { type: 'text' };
+import s355 from '../lib/home/teamValue.ts' with { type: 'text' };
+import s356 from '../lib/home/todayChange.ts' with { type: 'text' };
+import s357 from '../lib/home/useDraftingData.ts' with { type: 'text' };
+import s358 from '../lib/home/useHomeLeague.ts' with { type: 'text' };
+import s359 from '../lib/home/usePreDraftData.ts' with { type: 'text' };
+import s360 from '../lib/home/useSeasonResult.ts' with { type: 'text' };
+import s361 from '../lib/home/yourSeason.ts' with { type: 'text' };
+import s362 from '../lib/inputRemount.ts' with { type: 'text' };
+import s363 from '../lib/invite/arrivalView.ts' with { type: 'text' };
+import s364 from '../lib/invite/autoJoin.ts' with { type: 'text' };
+import s365 from '../lib/invite/inviteCopy.ts' with { type: 'text' };
+import s366 from '../lib/invite/inviteFixture.ts' with { type: 'text' };
+import s367 from '../lib/invite/inviteJoin.ts' with { type: 'text' };
+import s368 from '../lib/invite/inviteLink.ts' with { type: 'text' };
+import s369 from '../lib/invite/invitePreview.ts' with { type: 'text' };
+import s370 from '../lib/invite/invitePreviewApi.ts' with { type: 'text' };
+import s371 from '../lib/invite/pendingInvite.ts' with { type: 'text' };
+import s372 from '../lib/invite/pendingInviteStore.ts' with { type: 'text' };
+import s373 from '../lib/invite/pendingInviteTypes.ts' with { type: 'text' };
+import s374 from '../lib/invite/pendingTakeover.ts' with { type: 'text' };
+import s375 from '../lib/invite/pendingTakeoverStore.ts' with { type: 'text' };
+import s376 from '../lib/invite/takeoverLink.ts' with { type: 'text' };
+import s377 from '../lib/invite/useArrivalInvite.ts' with { type: 'text' };
+import s378 from '../lib/invite/usePendingInvite.ts' with { type: 'text' };
+import s379 from '../lib/inviteCode.ts' with { type: 'text' };
+import s380 from '../lib/join/devFixture.ts' with { type: 'text' };
+import s381 from '../lib/join/joinFixtureGate.ts' with { type: 'text' };
+import s382 from '../lib/join/joinPreview.ts' with { type: 'text' };
+import s383 from '../lib/join/joinedFacts.ts' with { type: 'text' };
+import s384 from '../lib/links/webDomain.ts' with { type: 'text' };
+import s385 from '../lib/marketHours.ts' with { type: 'text' };
+import s386 from '../lib/matchupScreenState.ts' with { type: 'text' };
+import s387 from '../lib/money/budgetFigures.ts' with { type: 'text' };
+import s388 from '../lib/money/buyQuantity.ts' with { type: 'text' };
+import s389 from '../lib/money/buyRowLine.ts' with { type: 'text' };
+import s390 from '../lib/money/buyingPower.ts' with { type: 'text' };
+import s391 from '../lib/money/captureScript.ts' with { type: 'text' };
+import s392 from '../lib/money/cashSpent.ts' with { type: 'text' };
+import s393 from '../lib/money/categoryNames.ts' with { type: 'text' };
+import s394 from '../lib/money/cleanCompanyName.ts' with { type: 'text' };
+import s395 from '../lib/money/devFixture.ts' with { type: 'text' };
+import s396 from '../lib/money/fixtureMode.ts' with { type: 'text' };
+import s397 from '../lib/money/formatShares.ts' with { type: 'text' };
+import s398 from '../lib/money/ledgerCache.ts' with { type: 'text' };
+import s399 from '../lib/money/marketOpensLabel.ts' with { type: 'text' };
+import s400 from '../lib/money/moneyCopy.ts' with { type: 'text' };
+import s401 from '../lib/money/playerPortfolio.ts' with { type: 'text' };
+import s402 from '../lib/money/portfolioChart.ts' with { type: 'text' };
+import s403 from '../lib/money/portfolioLedger.ts' with { type: 'text' };
+import s404 from '../lib/money/portfolioModel.ts' with { type: 'text' };
+import s405 from '../lib/money/portfolioSeam.ts' with { type: 'text' };
+import s406 from '../lib/money/portfolioView.ts' with { type: 'text' };
+import s407 from '../lib/money/preDraftPortfolio.ts' with { type: 'text' };
+import s408 from '../lib/money/prevClose.ts' with { type: 'text' };
+import s409 from '../lib/money/priceReads.ts' with { type: 'text' };
+import s410 from '../lib/money/recordTrade.ts' with { type: 'text' };
+import s411 from '../lib/money/recordTradeOutcome.ts' with { type: 'text' };
+import s412 from '../lib/money/refusals.ts' with { type: 'text' };
+import s413 from '../lib/money/reviewMachine.ts' with { type: 'text' };
+import s414 from '../lib/money/reviewModel.ts' with { type: 'text' };
+import s415 from '../lib/money/reviewPresentation.ts' with { type: 'text' };
+import s416 from '../lib/money/salePicker.ts' with { type: 'text' };
+import s417 from '../lib/money/sheetRequests.ts' with { type: 'text' };
+import s418 from '../lib/money/stockChartSeries.ts' with { type: 'text' };
+import s419 from '../lib/money/stockSearchOwnership.ts' with { type: 'text' };
+import s420 from '../lib/money/stockSheetApi.ts' with { type: 'text' };
+import s421 from '../lib/money/stockSheetFacts.ts' with { type: 'text' };
+import s422 from '../lib/money/stockSheetModel.ts' with { type: 'text' };
+import s423 from '../lib/money/stressFixture.ts' with { type: 'text' };
+import s424 from '../lib/money/tierContract.ts' with { type: 'text' };
+import s425 from '../lib/money/tradeBodies.ts' with { type: 'text' };
+import s426 from '../lib/money/tradeGate.ts' with { type: 'text' };
+import s427 from '../lib/money/tradeHistory.ts' with { type: 'text' };
+import s428 from '../lib/money/useMoneyStockSearch.ts' with { type: 'text' };
+import s429 from '../lib/money/usePlayerPortfolioData.ts' with { type: 'text' };
+import s430 from '../lib/money/usePortfolioData.ts' with { type: 'text' };
+import s431 from '../lib/money/usePortfolioLedger.ts' with { type: 'text' };
+import s432 from '../lib/money/useStockChartData.ts' with { type: 'text' };
+import s433 from '../lib/money/useStockSheetData.ts' with { type: 'text' };
+import s434 from '../lib/money/useTradeSubmit.ts' with { type: 'text' };
+import s435 from '../lib/motion/magicMove.ts' with { type: 'text' };
+import s436 from '../lib/notifications.ts' with { type: 'text' };
+import s437 from '../lib/passwordReveal.ts' with { type: 'text' };
+import s438 from '../lib/plCoverage.ts' with { type: 'text' };
+import s439 from '../lib/playoffs.ts' with { type: 'text' };
+import s440 from '../lib/pushTokenStore.ts' with { type: 'text' };
+import s441 from '../lib/readResult.ts' with { type: 'text' };
+import s442 from '../lib/recoveryLink.ts' with { type: 'text' };
+import s443 from '../lib/shell/activeLeague.ts' with { type: 'text' };
+import s444 from '../lib/shell/captureDev.ts' with { type: 'text' };
+import s445 from '../lib/shell/captureKnobs.ts' with { type: 'text' };
+import s446 from '../lib/shell/confirmedChip.ts' with { type: 'text' };
+import s447 from '../lib/shell/devFixture.ts' with { type: 'text' };
+import s448 from '../lib/shell/firstRun.ts' with { type: 'text' };
+import s449 from '../lib/shell/firstTimeTip.ts' with { type: 'text' };
+import s450 from '../lib/shell/firstTimeTipPolicy.ts' with { type: 'text' };
+import s451 from '../lib/shell/fitText.ts' with { type: 'text' };
+import s452 from '../lib/shell/fixtureIds.ts' with { type: 'text' };
+import s453 from '../lib/shell/fixtureRoute.ts' with { type: 'text' };
+import s454 from '../lib/shell/gamertag.ts' with { type: 'text' };
+import s455 from '../lib/shell/leagueRead.ts' with { type: 'text' };
+import s456 from '../lib/shell/leagueSheet.ts' with { type: 'text' };
+import s457 from '../lib/shell/notificationRoute.ts' with { type: 'text' };
+import s458 from '../lib/shell/onboardingSeenBySession.ts' with { type: 'text' };
+import s459 from '../lib/shell/pendingRoute.ts' with { type: 'text' };
+import s460 from '../lib/shell/profileBack.ts' with { type: 'text' };
+import s461 from '../lib/shell/pushAsk.ts' with { type: 'text' };
+import s462 from '../lib/shell/pushAskPolicy.ts' with { type: 'text' };
+import s463 from '../lib/shell/readSequence.ts' with { type: 'text' };
+import s464 from '../lib/shell/resetCaptureView.ts' with { type: 'text' };
+import s465 from '../lib/shell/resumeTarget.ts' with { type: 'text' };
+import s466 from '../lib/shell/signInTransition.ts' with { type: 'text' };
+import s467 from '../lib/shell/themeDip.ts' with { type: 'text' };
+import s468 from '../lib/shell/usernameApi.ts' with { type: 'text' };
+import s469 from '../lib/shell/usernameMachine.ts' with { type: 'text' };
+import s470 from '../lib/shell/usernameRules.ts' with { type: 'text' };
+import s471 from '../lib/stakesLine.ts' with { type: 'text' };
+import s472 from '../lib/supabase.ts' with { type: 'text' };
+import s473 from '../lib/symbolSearch.ts' with { type: 'text' };
+import s474 from '../lib/time/etParts.ts' with { type: 'text' };
+import s475 from '../lib/time/marketWeek.ts' with { type: 'text' };
+import s476 from '../lib/useAuth.ts' with { type: 'text' };
+import s477 from '../lib/useLeagues.ts' with { type: 'text' };
+import s478 from '../lib/usePortfolio.ts' with { type: 'text' };
+import s479 from '../lib/useStockNames.ts' with { type: 'text' };
+import s480 from '../lib/useStockPrices.ts' with { type: 'text' };
+import s481 from '../lib/useSymbolSearch.ts' with { type: 'text' };
+import s482 from '../lib/uuid.ts' with { type: 'text' };
+import s483 from '../lib/weekStatus.ts' with { type: 'text' };
+import s484 from '../constants/Colors.ts' with { type: 'text' };
+import s485 from '../constants/brand.ts' with { type: 'text' };
+import s486 from '../constants/confirmEmailCopy.ts' with { type: 'text' };
+import s487 from '../constants/passwordRules.ts' with { type: 'text' };
+import s488 from '../constants/theme/colors.ts' with { type: 'text' };
+import s489 from '../constants/theme/index.ts' with { type: 'text' };
+import s490 from '../constants/theme/shadows.ts' with { type: 'text' };
+import s491 from '../constants/theme/spacing.ts' with { type: 'text' };
+import s492 from '../constants/theme/typography.ts' with { type: 'text' };
+import s493 from '../constants/tokens/color.ts' with { type: 'text' };
+import s494 from '../constants/tokens/contrastPairs.ts' with { type: 'text' };
+import s495 from '../constants/tokens/elevation.ts' with { type: 'text' };
+import s496 from '../constants/tokens/index.ts' with { type: 'text' };
+import s497 from '../constants/tokens/motion.ts' with { type: 'text' };
+import s498 from '../constants/tokens/radius.ts' with { type: 'text' };
+import s499 from '../constants/tokens/space.ts' with { type: 'text' };
+import s500 from '../constants/tokens/type.ts' with { type: 'text' };
 
 // [path, text] pairs, not a path-keyed object literal (see the generator).
 const ENTRIES: [string, string][] = [
@@ -794,215 +795,216 @@ const ENTRIES: [string, string][] = [
   ['lib/game/matchupRoster.ts', s288],
   ['lib/game/matchupRosterView.ts', s289],
   ['lib/game/memberWeek.ts', s290],
-  ['lib/game/playerCardModel.ts', s291],
-  ['lib/game/playoffTeamsSave.ts', s292],
-  ['lib/game/queuePriceStore.ts', s293],
-  ['lib/game/queueRow.ts', s294],
-  ['lib/game/readGuard.ts', s295],
-  ['lib/game/renewal.ts', s296],
-  ['lib/game/renewalFixture.ts', s297],
-  ['lib/game/renewalLobby.ts', s298],
-  ['lib/game/renewalPickers.ts', s299],
-  ['lib/game/renewalReview.ts', s300],
-  ['lib/game/revealOnce.ts', s301],
-  ['lib/game/schedule.ts', s302],
-  ['lib/game/seamAccountDeletion.ts', s303],
-  ['lib/game/seamCalls.ts', s304],
-  ['lib/game/seamFixtures.ts', s305],
-  ['lib/game/seamRoom.ts', s306],
-  ['lib/game/seamTables.ts', s307],
-  ['lib/game/settingsSave.ts', s308],
-  ['lib/game/slotBuilderCopy.ts', s309],
-  ['lib/game/standings.ts', s310],
-  ['lib/game/symbolCategories.ts', s311],
-  ['lib/game/teamLink.ts', s312],
-  ['lib/game/useAllMatchups.ts', s313],
-  ['lib/game/useBracket.ts', s314],
-  ['lib/game/useDraftAutoStart.ts', s315],
-  ['lib/game/useDraftQueue.ts', s316],
-  ['lib/game/useDraftRoom.ts', s317],
-  ['lib/game/useDraftStatus.ts', s318],
-  ['lib/game/useFinalLineups.ts', s319],
-  ['lib/game/useLeadChyron.ts', s320],
-  ['lib/game/useLeagueHistory.ts', s321],
-  ['lib/game/useLeagueStandings.ts', s322],
-  ['lib/game/useLeaveLeague.ts', s323],
-  ['lib/game/useMatchup.ts', s324],
-  ['lib/game/useMemberSnapshots.ts', s325],
-  ['lib/game/useQueueMarketLine.ts', s326],
-  ['lib/game/useQueueQuotes.ts', s327],
-  ['lib/game/useRenewalRoster.ts', s328],
-  ['lib/game/useRevealOnce.ts', s329],
-  ['lib/game/useRosterData.ts', s330],
-  ['lib/game/useSeasonPlayoffs.ts', s331],
-  ['lib/game/useSymbolCategories.ts', s332],
-  ['lib/game/useWeekOne.ts', s333],
-  ['lib/game/weekResult.ts', s334],
-  ['lib/game/yourTurn.ts', s335],
-  ['lib/game/yourTurnAlert.ts', s336],
-  ['lib/game/yourTurnPush.ts', s337],
-  ['lib/home/bestWeek.ts', s338],
-  ['lib/home/buildHomeViewModel.ts', s339],
-  ['lib/home/calmHome.ts', s340],
-  ['lib/home/devFixture.ts', s341],
-  ['lib/home/draftCountdown.ts', s342],
-  ['lib/home/draftTurn.ts', s343],
-  ['lib/home/homeCopy.ts', s344],
-  ['lib/home/homeFixtureData.ts', s345],
-  ['lib/home/homePhase.ts', s346],
-  ['lib/home/liveWeekScore.ts', s347],
-  ['lib/home/marketWeek.ts', s348],
-  ['lib/home/ordinal.ts', s349],
-  ['lib/home/preDraftMembers.ts', s350],
-  ['lib/home/scoreTone.ts', s351],
-  ['lib/home/seasonFixture.ts', s352],
-  ['lib/home/seasonGain.ts', s353],
-  ['lib/home/teamValue.ts', s354],
-  ['lib/home/todayChange.ts', s355],
-  ['lib/home/useDraftingData.ts', s356],
-  ['lib/home/useHomeLeague.ts', s357],
-  ['lib/home/usePreDraftData.ts', s358],
-  ['lib/home/useSeasonResult.ts', s359],
-  ['lib/home/yourSeason.ts', s360],
-  ['lib/inputRemount.ts', s361],
-  ['lib/invite/arrivalView.ts', s362],
-  ['lib/invite/autoJoin.ts', s363],
-  ['lib/invite/inviteCopy.ts', s364],
-  ['lib/invite/inviteFixture.ts', s365],
-  ['lib/invite/inviteJoin.ts', s366],
-  ['lib/invite/inviteLink.ts', s367],
-  ['lib/invite/invitePreview.ts', s368],
-  ['lib/invite/invitePreviewApi.ts', s369],
-  ['lib/invite/pendingInvite.ts', s370],
-  ['lib/invite/pendingInviteStore.ts', s371],
-  ['lib/invite/pendingInviteTypes.ts', s372],
-  ['lib/invite/pendingTakeover.ts', s373],
-  ['lib/invite/pendingTakeoverStore.ts', s374],
-  ['lib/invite/takeoverLink.ts', s375],
-  ['lib/invite/useArrivalInvite.ts', s376],
-  ['lib/invite/usePendingInvite.ts', s377],
-  ['lib/inviteCode.ts', s378],
-  ['lib/join/devFixture.ts', s379],
-  ['lib/join/joinFixtureGate.ts', s380],
-  ['lib/join/joinPreview.ts', s381],
-  ['lib/join/joinedFacts.ts', s382],
-  ['lib/links/webDomain.ts', s383],
-  ['lib/marketHours.ts', s384],
-  ['lib/matchupScreenState.ts', s385],
-  ['lib/money/budgetFigures.ts', s386],
-  ['lib/money/buyQuantity.ts', s387],
-  ['lib/money/buyRowLine.ts', s388],
-  ['lib/money/buyingPower.ts', s389],
-  ['lib/money/captureScript.ts', s390],
-  ['lib/money/cashSpent.ts', s391],
-  ['lib/money/categoryNames.ts', s392],
-  ['lib/money/cleanCompanyName.ts', s393],
-  ['lib/money/devFixture.ts', s394],
-  ['lib/money/fixtureMode.ts', s395],
-  ['lib/money/formatShares.ts', s396],
-  ['lib/money/ledgerCache.ts', s397],
-  ['lib/money/marketOpensLabel.ts', s398],
-  ['lib/money/moneyCopy.ts', s399],
-  ['lib/money/playerPortfolio.ts', s400],
-  ['lib/money/portfolioChart.ts', s401],
-  ['lib/money/portfolioLedger.ts', s402],
-  ['lib/money/portfolioModel.ts', s403],
-  ['lib/money/portfolioSeam.ts', s404],
-  ['lib/money/portfolioView.ts', s405],
-  ['lib/money/preDraftPortfolio.ts', s406],
-  ['lib/money/prevClose.ts', s407],
-  ['lib/money/priceReads.ts', s408],
-  ['lib/money/recordTrade.ts', s409],
-  ['lib/money/recordTradeOutcome.ts', s410],
-  ['lib/money/refusals.ts', s411],
-  ['lib/money/reviewMachine.ts', s412],
-  ['lib/money/reviewModel.ts', s413],
-  ['lib/money/reviewPresentation.ts', s414],
-  ['lib/money/salePicker.ts', s415],
-  ['lib/money/sheetRequests.ts', s416],
-  ['lib/money/stockChartSeries.ts', s417],
-  ['lib/money/stockSearchOwnership.ts', s418],
-  ['lib/money/stockSheetApi.ts', s419],
-  ['lib/money/stockSheetFacts.ts', s420],
-  ['lib/money/stockSheetModel.ts', s421],
-  ['lib/money/stressFixture.ts', s422],
-  ['lib/money/tierContract.ts', s423],
-  ['lib/money/tradeBodies.ts', s424],
-  ['lib/money/tradeGate.ts', s425],
-  ['lib/money/tradeHistory.ts', s426],
-  ['lib/money/useMoneyStockSearch.ts', s427],
-  ['lib/money/usePlayerPortfolioData.ts', s428],
-  ['lib/money/usePortfolioData.ts', s429],
-  ['lib/money/usePortfolioLedger.ts', s430],
-  ['lib/money/useStockChartData.ts', s431],
-  ['lib/money/useStockSheetData.ts', s432],
-  ['lib/money/useTradeSubmit.ts', s433],
-  ['lib/motion/magicMove.ts', s434],
-  ['lib/notifications.ts', s435],
-  ['lib/passwordReveal.ts', s436],
-  ['lib/plCoverage.ts', s437],
-  ['lib/playoffs.ts', s438],
-  ['lib/pushTokenStore.ts', s439],
-  ['lib/readResult.ts', s440],
-  ['lib/recoveryLink.ts', s441],
-  ['lib/shell/activeLeague.ts', s442],
-  ['lib/shell/captureDev.ts', s443],
-  ['lib/shell/captureKnobs.ts', s444],
-  ['lib/shell/confirmedChip.ts', s445],
-  ['lib/shell/devFixture.ts', s446],
-  ['lib/shell/firstRun.ts', s447],
-  ['lib/shell/firstTimeTip.ts', s448],
-  ['lib/shell/firstTimeTipPolicy.ts', s449],
-  ['lib/shell/fitText.ts', s450],
-  ['lib/shell/fixtureIds.ts', s451],
-  ['lib/shell/fixtureRoute.ts', s452],
-  ['lib/shell/gamertag.ts', s453],
-  ['lib/shell/leagueRead.ts', s454],
-  ['lib/shell/leagueSheet.ts', s455],
-  ['lib/shell/notificationRoute.ts', s456],
-  ['lib/shell/onboardingSeenBySession.ts', s457],
-  ['lib/shell/pendingRoute.ts', s458],
-  ['lib/shell/profileBack.ts', s459],
-  ['lib/shell/pushAsk.ts', s460],
-  ['lib/shell/pushAskPolicy.ts', s461],
-  ['lib/shell/readSequence.ts', s462],
-  ['lib/shell/resetCaptureView.ts', s463],
-  ['lib/shell/resumeTarget.ts', s464],
-  ['lib/shell/signInTransition.ts', s465],
-  ['lib/shell/themeDip.ts', s466],
-  ['lib/shell/usernameApi.ts', s467],
-  ['lib/shell/usernameMachine.ts', s468],
-  ['lib/shell/usernameRules.ts', s469],
-  ['lib/stakesLine.ts', s470],
-  ['lib/supabase.ts', s471],
-  ['lib/symbolSearch.ts', s472],
-  ['lib/time/etParts.ts', s473],
-  ['lib/time/marketWeek.ts', s474],
-  ['lib/useAuth.ts', s475],
-  ['lib/useLeagues.ts', s476],
-  ['lib/usePortfolio.ts', s477],
-  ['lib/useStockNames.ts', s478],
-  ['lib/useStockPrices.ts', s479],
-  ['lib/useSymbolSearch.ts', s480],
-  ['lib/uuid.ts', s481],
-  ['lib/weekStatus.ts', s482],
-  ['constants/Colors.ts', s483],
-  ['constants/brand.ts', s484],
-  ['constants/confirmEmailCopy.ts', s485],
-  ['constants/passwordRules.ts', s486],
-  ['constants/theme/colors.ts', s487],
-  ['constants/theme/index.ts', s488],
-  ['constants/theme/shadows.ts', s489],
-  ['constants/theme/spacing.ts', s490],
-  ['constants/theme/typography.ts', s491],
-  ['constants/tokens/color.ts', s492],
-  ['constants/tokens/contrastPairs.ts', s493],
-  ['constants/tokens/elevation.ts', s494],
-  ['constants/tokens/index.ts', s495],
-  ['constants/tokens/motion.ts', s496],
-  ['constants/tokens/radius.ts', s497],
-  ['constants/tokens/space.ts', s498],
-  ['constants/tokens/type.ts', s499],
+  ['lib/game/pickLogRow.ts', s291],
+  ['lib/game/playerCardModel.ts', s292],
+  ['lib/game/playoffTeamsSave.ts', s293],
+  ['lib/game/queuePriceStore.ts', s294],
+  ['lib/game/queueRow.ts', s295],
+  ['lib/game/readGuard.ts', s296],
+  ['lib/game/renewal.ts', s297],
+  ['lib/game/renewalFixture.ts', s298],
+  ['lib/game/renewalLobby.ts', s299],
+  ['lib/game/renewalPickers.ts', s300],
+  ['lib/game/renewalReview.ts', s301],
+  ['lib/game/revealOnce.ts', s302],
+  ['lib/game/schedule.ts', s303],
+  ['lib/game/seamAccountDeletion.ts', s304],
+  ['lib/game/seamCalls.ts', s305],
+  ['lib/game/seamFixtures.ts', s306],
+  ['lib/game/seamRoom.ts', s307],
+  ['lib/game/seamTables.ts', s308],
+  ['lib/game/settingsSave.ts', s309],
+  ['lib/game/slotBuilderCopy.ts', s310],
+  ['lib/game/standings.ts', s311],
+  ['lib/game/symbolCategories.ts', s312],
+  ['lib/game/teamLink.ts', s313],
+  ['lib/game/useAllMatchups.ts', s314],
+  ['lib/game/useBracket.ts', s315],
+  ['lib/game/useDraftAutoStart.ts', s316],
+  ['lib/game/useDraftQueue.ts', s317],
+  ['lib/game/useDraftRoom.ts', s318],
+  ['lib/game/useDraftStatus.ts', s319],
+  ['lib/game/useFinalLineups.ts', s320],
+  ['lib/game/useLeadChyron.ts', s321],
+  ['lib/game/useLeagueHistory.ts', s322],
+  ['lib/game/useLeagueStandings.ts', s323],
+  ['lib/game/useLeaveLeague.ts', s324],
+  ['lib/game/useMatchup.ts', s325],
+  ['lib/game/useMemberSnapshots.ts', s326],
+  ['lib/game/useQueueMarketLine.ts', s327],
+  ['lib/game/useQueueQuotes.ts', s328],
+  ['lib/game/useRenewalRoster.ts', s329],
+  ['lib/game/useRevealOnce.ts', s330],
+  ['lib/game/useRosterData.ts', s331],
+  ['lib/game/useSeasonPlayoffs.ts', s332],
+  ['lib/game/useSymbolCategories.ts', s333],
+  ['lib/game/useWeekOne.ts', s334],
+  ['lib/game/weekResult.ts', s335],
+  ['lib/game/yourTurn.ts', s336],
+  ['lib/game/yourTurnAlert.ts', s337],
+  ['lib/game/yourTurnPush.ts', s338],
+  ['lib/home/bestWeek.ts', s339],
+  ['lib/home/buildHomeViewModel.ts', s340],
+  ['lib/home/calmHome.ts', s341],
+  ['lib/home/devFixture.ts', s342],
+  ['lib/home/draftCountdown.ts', s343],
+  ['lib/home/draftTurn.ts', s344],
+  ['lib/home/homeCopy.ts', s345],
+  ['lib/home/homeFixtureData.ts', s346],
+  ['lib/home/homePhase.ts', s347],
+  ['lib/home/liveWeekScore.ts', s348],
+  ['lib/home/marketWeek.ts', s349],
+  ['lib/home/ordinal.ts', s350],
+  ['lib/home/preDraftMembers.ts', s351],
+  ['lib/home/scoreTone.ts', s352],
+  ['lib/home/seasonFixture.ts', s353],
+  ['lib/home/seasonGain.ts', s354],
+  ['lib/home/teamValue.ts', s355],
+  ['lib/home/todayChange.ts', s356],
+  ['lib/home/useDraftingData.ts', s357],
+  ['lib/home/useHomeLeague.ts', s358],
+  ['lib/home/usePreDraftData.ts', s359],
+  ['lib/home/useSeasonResult.ts', s360],
+  ['lib/home/yourSeason.ts', s361],
+  ['lib/inputRemount.ts', s362],
+  ['lib/invite/arrivalView.ts', s363],
+  ['lib/invite/autoJoin.ts', s364],
+  ['lib/invite/inviteCopy.ts', s365],
+  ['lib/invite/inviteFixture.ts', s366],
+  ['lib/invite/inviteJoin.ts', s367],
+  ['lib/invite/inviteLink.ts', s368],
+  ['lib/invite/invitePreview.ts', s369],
+  ['lib/invite/invitePreviewApi.ts', s370],
+  ['lib/invite/pendingInvite.ts', s371],
+  ['lib/invite/pendingInviteStore.ts', s372],
+  ['lib/invite/pendingInviteTypes.ts', s373],
+  ['lib/invite/pendingTakeover.ts', s374],
+  ['lib/invite/pendingTakeoverStore.ts', s375],
+  ['lib/invite/takeoverLink.ts', s376],
+  ['lib/invite/useArrivalInvite.ts', s377],
+  ['lib/invite/usePendingInvite.ts', s378],
+  ['lib/inviteCode.ts', s379],
+  ['lib/join/devFixture.ts', s380],
+  ['lib/join/joinFixtureGate.ts', s381],
+  ['lib/join/joinPreview.ts', s382],
+  ['lib/join/joinedFacts.ts', s383],
+  ['lib/links/webDomain.ts', s384],
+  ['lib/marketHours.ts', s385],
+  ['lib/matchupScreenState.ts', s386],
+  ['lib/money/budgetFigures.ts', s387],
+  ['lib/money/buyQuantity.ts', s388],
+  ['lib/money/buyRowLine.ts', s389],
+  ['lib/money/buyingPower.ts', s390],
+  ['lib/money/captureScript.ts', s391],
+  ['lib/money/cashSpent.ts', s392],
+  ['lib/money/categoryNames.ts', s393],
+  ['lib/money/cleanCompanyName.ts', s394],
+  ['lib/money/devFixture.ts', s395],
+  ['lib/money/fixtureMode.ts', s396],
+  ['lib/money/formatShares.ts', s397],
+  ['lib/money/ledgerCache.ts', s398],
+  ['lib/money/marketOpensLabel.ts', s399],
+  ['lib/money/moneyCopy.ts', s400],
+  ['lib/money/playerPortfolio.ts', s401],
+  ['lib/money/portfolioChart.ts', s402],
+  ['lib/money/portfolioLedger.ts', s403],
+  ['lib/money/portfolioModel.ts', s404],
+  ['lib/money/portfolioSeam.ts', s405],
+  ['lib/money/portfolioView.ts', s406],
+  ['lib/money/preDraftPortfolio.ts', s407],
+  ['lib/money/prevClose.ts', s408],
+  ['lib/money/priceReads.ts', s409],
+  ['lib/money/recordTrade.ts', s410],
+  ['lib/money/recordTradeOutcome.ts', s411],
+  ['lib/money/refusals.ts', s412],
+  ['lib/money/reviewMachine.ts', s413],
+  ['lib/money/reviewModel.ts', s414],
+  ['lib/money/reviewPresentation.ts', s415],
+  ['lib/money/salePicker.ts', s416],
+  ['lib/money/sheetRequests.ts', s417],
+  ['lib/money/stockChartSeries.ts', s418],
+  ['lib/money/stockSearchOwnership.ts', s419],
+  ['lib/money/stockSheetApi.ts', s420],
+  ['lib/money/stockSheetFacts.ts', s421],
+  ['lib/money/stockSheetModel.ts', s422],
+  ['lib/money/stressFixture.ts', s423],
+  ['lib/money/tierContract.ts', s424],
+  ['lib/money/tradeBodies.ts', s425],
+  ['lib/money/tradeGate.ts', s426],
+  ['lib/money/tradeHistory.ts', s427],
+  ['lib/money/useMoneyStockSearch.ts', s428],
+  ['lib/money/usePlayerPortfolioData.ts', s429],
+  ['lib/money/usePortfolioData.ts', s430],
+  ['lib/money/usePortfolioLedger.ts', s431],
+  ['lib/money/useStockChartData.ts', s432],
+  ['lib/money/useStockSheetData.ts', s433],
+  ['lib/money/useTradeSubmit.ts', s434],
+  ['lib/motion/magicMove.ts', s435],
+  ['lib/notifications.ts', s436],
+  ['lib/passwordReveal.ts', s437],
+  ['lib/plCoverage.ts', s438],
+  ['lib/playoffs.ts', s439],
+  ['lib/pushTokenStore.ts', s440],
+  ['lib/readResult.ts', s441],
+  ['lib/recoveryLink.ts', s442],
+  ['lib/shell/activeLeague.ts', s443],
+  ['lib/shell/captureDev.ts', s444],
+  ['lib/shell/captureKnobs.ts', s445],
+  ['lib/shell/confirmedChip.ts', s446],
+  ['lib/shell/devFixture.ts', s447],
+  ['lib/shell/firstRun.ts', s448],
+  ['lib/shell/firstTimeTip.ts', s449],
+  ['lib/shell/firstTimeTipPolicy.ts', s450],
+  ['lib/shell/fitText.ts', s451],
+  ['lib/shell/fixtureIds.ts', s452],
+  ['lib/shell/fixtureRoute.ts', s453],
+  ['lib/shell/gamertag.ts', s454],
+  ['lib/shell/leagueRead.ts', s455],
+  ['lib/shell/leagueSheet.ts', s456],
+  ['lib/shell/notificationRoute.ts', s457],
+  ['lib/shell/onboardingSeenBySession.ts', s458],
+  ['lib/shell/pendingRoute.ts', s459],
+  ['lib/shell/profileBack.ts', s460],
+  ['lib/shell/pushAsk.ts', s461],
+  ['lib/shell/pushAskPolicy.ts', s462],
+  ['lib/shell/readSequence.ts', s463],
+  ['lib/shell/resetCaptureView.ts', s464],
+  ['lib/shell/resumeTarget.ts', s465],
+  ['lib/shell/signInTransition.ts', s466],
+  ['lib/shell/themeDip.ts', s467],
+  ['lib/shell/usernameApi.ts', s468],
+  ['lib/shell/usernameMachine.ts', s469],
+  ['lib/shell/usernameRules.ts', s470],
+  ['lib/stakesLine.ts', s471],
+  ['lib/supabase.ts', s472],
+  ['lib/symbolSearch.ts', s473],
+  ['lib/time/etParts.ts', s474],
+  ['lib/time/marketWeek.ts', s475],
+  ['lib/useAuth.ts', s476],
+  ['lib/useLeagues.ts', s477],
+  ['lib/usePortfolio.ts', s478],
+  ['lib/useStockNames.ts', s479],
+  ['lib/useStockPrices.ts', s480],
+  ['lib/useSymbolSearch.ts', s481],
+  ['lib/uuid.ts', s482],
+  ['lib/weekStatus.ts', s483],
+  ['constants/Colors.ts', s484],
+  ['constants/brand.ts', s485],
+  ['constants/confirmEmailCopy.ts', s486],
+  ['constants/passwordRules.ts', s487],
+  ['constants/theme/colors.ts', s488],
+  ['constants/theme/index.ts', s489],
+  ['constants/theme/shadows.ts', s490],
+  ['constants/theme/spacing.ts', s491],
+  ['constants/theme/typography.ts', s492],
+  ['constants/tokens/color.ts', s493],
+  ['constants/tokens/contrastPairs.ts', s494],
+  ['constants/tokens/elevation.ts', s495],
+  ['constants/tokens/index.ts', s496],
+  ['constants/tokens/motion.ts', s497],
+  ['constants/tokens/radius.ts', s498],
+  ['constants/tokens/space.ts', s499],
+  ['constants/tokens/type.ts', s500],
 ];
 
 /** Every app source file, by path relative to apps/mobile, as text. */

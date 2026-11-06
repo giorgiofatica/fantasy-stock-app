@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Keyboard, View, StyleSheet } from 'react-native';
+import { AppState, Keyboard, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { cancelAnimation, useAnimatedReaction, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -32,6 +32,7 @@ import { CARD_LINE_MAX_SCALE, clockCardKind, clockRingTone, draftOffered } from 
 import { CARD_REVEAL_BELOW, CHIP_MIN_HEIGHT, chipRevealBelow, clockIsYoursAndRunning, showClockChip } from '@/lib/game/draftClockChip';
 import { useSymbolCategories } from '@/lib/game/useSymbolCategories';
 import { keepDots, keepMoney } from '@/lib/game/keepDots';
+import { PICK_LOG_MAX_SCALE, pickLogLabelText, pickLogLayout } from '@/lib/game/pickLogRow';
 import { DraftBoard } from '@/components/game/DraftBoard';
 import { PICK_SENDING, YOUR_ROSTER, afterPickLine, budgetLeft, isAutoPick, myDraftedSoFar, pickClockLabel, pickRowView, pickRefusalView, AUTO_PICK_WAITING_FOR_PRICES, picksUntilYouLine, rosterCaption, roundPickLine, liveClock } from '@/lib/game/draftRoom';
 import { TeamSoFarGrid } from '@/components/home/TeamSoFarGrid';
@@ -281,6 +282,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
   const categories = useSymbolCategories(pickedSymbols);
   // At the large text sizes the ring sits over the headline instead of beside it.
   const largeText = useLargeText();
+  const { fontScale } = useWindowDimensions();
 
   const onSelect = (r: ShapedSearchResult) => {
     if (!r.selectable) return;
@@ -511,11 +513,29 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
           {log.map(([pick, p]) => {
             // G-4: your own auto-pick reads "from your queue".
             const row = pickRowView({ symbol: p.symbol, source: p.source }, managerAtPick(pick, room.order) === myUserId);
-            return (
+            // Latest picks at the large text sizes (DL P1, 2026-11-06): two lines, the number and ticker over the
+            // label, every part capped at 1.3 (lib/game/pickLogRow.ts). Below the step, the one line as before.
+            const twoLine = pickLogLayout(fontScale) === 'two-line';
+            const number = <Text variant="caption" tone="secondary" maxFontSizeMultiplier={PICK_LOG_MAX_SCALE} style={styles.logPick}>{pick}</Text>;
+            const ticker = <Text variant="ticker" maxFontSizeMultiplier={PICK_LOG_MAX_SCALE} style={twoLine ? undefined : styles.logTicker}>{row.symbolCell}</Text>;
+            const who = row.label ? (
+              <Text variant="caption" tone="secondary" maxFontSizeMultiplier={PICK_LOG_MAX_SCALE} style={twoLine ? undefined : styles.logWho}>
+                {pickLogLabelText(row.label, twoLine ? 'two-line' : 'one-line')}
+              </Text>
+            ) : null;
+            return twoLine ? (
+              <View key={pick} style={styles.logRowStacked}>
+                {number}
+                <View style={styles.logStack}>
+                  {ticker}
+                  {who}
+                </View>
+              </View>
+            ) : (
               <View key={pick} style={styles.logRow}>
-                <Text variant="caption" tone="secondary" style={styles.logPick}>{pick}</Text>
-                <Text variant="ticker" style={styles.logTicker}>{row.symbolCell}</Text>
-                {row.label ? <Text variant="caption" tone="secondary" style={styles.logWho}>{keepDots(`· ${row.label}`)}</Text> : null}
+                {number}
+                {ticker}
+                {who}
               </View>
             );
           })}
@@ -559,6 +579,9 @@ const styles = StyleSheet.create({
   clockTextStacked: { flex: 0 },
   bold: { fontFamily: typeFontFamily.bold },
   logRow: { flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 32 },
+  // Two lines (large text): the number beside the ticker's line, the label under the ticker.
+  logRowStacked: { flexDirection: 'row', alignItems: 'baseline', gap: space[3], minHeight: 32 },
+  logStack: { flex: 1 },
   logPick: { minWidth: 24, textAlign: 'right', fontVariant: ['tabular-nums'] },
   // Holds a five-letter ticker (GOOGL at 16/800) so the labels line up.
   logTicker: { minWidth: 64 },
