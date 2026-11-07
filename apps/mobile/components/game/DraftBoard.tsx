@@ -64,6 +64,7 @@ export function DraftBoard({ order, rounds, picks, onClockPick, clock, names, my
       <ScrollView
         ref={scroller}
         horizontal
+        scrollsToTop={false}
         scrollEnabled={layout.scrolls}
         showsHorizontalScrollIndicator={layout.scrolls}
         style={styles.scroller}

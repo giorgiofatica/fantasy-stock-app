@@ -2,82 +2,42 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "9c4995592b079d12619a07f690becab99d17f703",
-    "commitShort": "9c499559",
+    "commit": "3f82f7ae1a21428e451641404871fb9f4416236d",
+    "commitShort": "3f82f7ae",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
+    "branch": "feat/top-bar-scrolls",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/league/MembersSection.tsx"
+        "path": "apps/mobile/components/shell/AuthScaffold.tsx"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/components/shell/FooterFade.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/TakeoverLanding.tsx"
+        "path": "apps/mobile/components/shell/topBarFade.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/tests-deno/footer-fade.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/account/deleteCopy.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/account/deletedSeat.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/account/keepName.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/account/leagueLines.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/seamAccountDeletion.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion-capture-knobs.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion-dl-fixes.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion-wiring.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/account-deletion.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/join-league/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/join-league/takeover.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/join-league/takeover.ts"
-      },
-      {
-        "code": "A",
-        "path": "supabase/migrations/20261127000000_deleted_seat_label_open_team.sql"
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-06T23:39:48Z",
-    "sourceHash": "sha256:5c22f47f49c931c743a095ae90e739b7e68f9ece446aee481222215033958da9",
+    "timestamp": "2026-11-06T23:53:14Z",
+    "sourceHash": "sha256:ea8e88ed0c0bbc30ebd5abaa0bfbe211794271c6d2ebd5fef7db0189587a2b04",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 49.7,
+    "ageHours": 49.9,
     "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -19364,9 +19324,9 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('validate-and-record-pick')",
       "callSites": [
-        "apps/mobile/components/game/DraftRoom.tsx:220",
-        "apps/mobile/components/game/DraftRoom.tsx:244",
-        "apps/mobile/components/game/DraftRoom.tsx:289"
+        "apps/mobile/components/game/DraftRoom.tsx:227",
+        "apps/mobile/components/game/DraftRoom.tsx:251",
+        "apps/mobile/components/game/DraftRoom.tsx:296"
       ],
       "via": [
         "seamInvoke"
@@ -20489,7 +20449,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -20507,7 +20467,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -20525,7 +20485,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -20543,7 +20503,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:89"
+        "apps/mobile/components/money/PortfolioScreen.tsx:90"
       ],
       "via": [
         "useRosterData"
@@ -23519,9 +23479,9 @@
     "invokes": [
       "apps/mobile/app/join-league.tsx:85 -> preview-league",
       "apps/mobile/app/join-league.tsx:94 -> join-league",
-      "apps/mobile/components/game/DraftRoom.tsx:220 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:244 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:289 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:227 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:251 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:296 -> validate-and-record-pick (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:21 -> delete-account (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:38 -> join-league (via seamInvoke)",
       "apps/mobile/lib/game/useAllMatchups.ts:83 -> quote (via seamInvoke)",
@@ -23676,10 +23636,10 @@
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> drafts.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> league_draft_slots.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> trades.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> categories.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> drafts.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:89 -> trades.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> categories.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> drafts.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> trades.select (via useRosterData)",
       "apps/mobile/lib/LeagueContext.tsx:178 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:180 -> league_seasons.select",
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",

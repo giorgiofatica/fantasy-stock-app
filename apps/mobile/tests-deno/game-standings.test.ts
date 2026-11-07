@@ -109,5 +109,6 @@ Deno.test('BarsRefresh tells its children where the fold is, on iOS and Android 
   const bars = SOURCES['components/shell/BarsRefresh.tsx'];
   assertEquals((bars.match(/<ScrollFoldContext\.Provider value=\{fold\.value\}>/g) ?? []).length, 2);
   assertEquals(bars.includes('runOnJS(onScrolled)();'), true);
-  assertEquals(bars.includes('onScroll={fold.emit}'), true);
+  // Android's handler emits the signal from the UI thread, as iOS's does (the scroll view is animated on both now).
+  assertEquals((bars.match(/runOnJS\(onScrolled\)\(\);|runOnJS\(fold\.emit\)\(\);/g) ?? []).length, 2);
 });

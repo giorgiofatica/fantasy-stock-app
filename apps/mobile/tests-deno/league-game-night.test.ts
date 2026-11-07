@@ -356,7 +356,7 @@ Deno.test('P3: the small fixes (bye indent, final head, week-1 ranks, error avat
   assert(league.includes('throughLabel={null}'), 'final standings: no "Through Week N" beside "After the playoffs"');
   assert(league.includes('nothingScored={throughWeek === 0}'));
   assert(SOURCES['components/sp/gn/ManagerRow.tsx'].includes('color={rank === 1 && rankLeads ? colors.text : colors.text2}'));
-  assert(league.includes('<PhasePlaceholder title="League" showAvatar icon={() => <Icon name="alert"'));
+  assert(league.includes('<PhasePlaceholder title="League" icon={() => <Icon name="alert"'));
   assert(!SOURCES['components/game/HistoryList.tsx'].includes('<Text variant="title">History</Text>'));
   const settings = SOURCES['app/league-settings.tsx'];
   assertEquals((settings.match(/<InviteRow code=/g) ?? []).length, 2, 'commissioner and member share the one row');

@@ -177,8 +177,8 @@ export default function LeagueScreen() {
 
   if (inSeason) {
     if (st.status === 'error') {
-      // showAvatar: Profile stays reachable from the failed state too (W4 DL gate).
-      return <PhasePlaceholder title="League" showAvatar icon={() => <Icon name="alert" size="title" tone="text2" />} heading="Couldn't load the standings" message="Pull down to try again." onRefresh={onPull} />;
+      // Profile stays reachable from the failed state too (W4 DL gate): every placeholder carries the avatar.
+      return <PhasePlaceholder title="League" icon={() => <Icon name="alert" size="title" tone="text2" />} heading="Couldn't load the standings" message="Pull down to try again." onRefresh={onPull} />;
     }
     const ready = st.status === 'ready';
     const rows = buildStandingsRows(st.standings, user?.id ?? '', st.previousRanks);
@@ -189,8 +189,7 @@ export default function LeagueScreen() {
     const contentWidth = width - space[6] * 2;
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <ShellHeader title="League" showAvatar />
-        <BarsRefresh onRefresh={onPull} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
+        <BarsRefresh onRefresh={onPull} header={<ShellHeader title="League" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
           <View style={styles.stack}>
             {ready && RUN_IT_BACK_ON && phase && showRunItBackStrip({ phase, isCommissioner, hasSuccessor: !!activeLeague?.successor_league_id }) ? (
               <Card style={styles.strip}>
@@ -368,8 +367,7 @@ function LeagueRenewalScreen({ leagueId, createdAt, onScheduled }: { leagueId: s
   const banner = championBanner(hist.rows);
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ShellHeader title="League" showAvatar />
-      <BarsRefresh onRefresh={refresh} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
+      <BarsRefresh onRefresh={refresh} header={<ShellHeader title="League" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
         {banner ? <ChampBanner tag={banner.tag} line={banner.line} /> : null}
         <LeagueRenewal
           key={key}
@@ -406,8 +404,7 @@ function LeagueDraftRoom({ leagueId, rounds, onEnding, onEndingDone }: { leagueI
   const { colors } = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ShellHeader title="League" showAvatar />
-      <BarsRefresh onRefresh={refresh} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
+      <BarsRefresh onRefresh={refresh} header={<ShellHeader title="League" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
         <DraftRoom
           leagueId={leagueId}
           myUserId={user?.id ?? ''}
@@ -449,12 +446,12 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ShellHeader title="League" showAvatar />
       <BarsRefresh
         onRefresh={async () => {
           auto.reread();
           await refresh();
         }}
+        header={<ShellHeader title="League" showAvatar />}
         // 16pt between the lobby's blocks, the draft room's own gap (Design Lead, Draft gate item 4).
         contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[5] }}
       >

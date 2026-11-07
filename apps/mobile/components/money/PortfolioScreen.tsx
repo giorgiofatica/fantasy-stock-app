@@ -16,7 +16,7 @@
  * stock sheet instead, so no row is ever a dead tap.
  */
 import React, { useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { radius, space } from '@/constants/tokens';
@@ -28,6 +28,7 @@ import { Icon } from '@/components/sp/Icon';
 import { Chart, PlayerCard, RangePills, type PlayerCardOwnership } from '@/components/sp/gn';
 import { formatMoney } from '@/components/sp/logic/money';
 import { ShellHeader } from '@/components/shell/ShellHeader';
+import { BarsRefresh } from '@/components/shell/BarsRefresh';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { HoldingRow, ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
@@ -169,7 +170,6 @@ export function PortfolioScreen() {
   }
 
   // DEV capture only (captureScript): the same handlers a tap runs.
-  const scrollRef = useRef<ScrollView>(null);
   useCaptureAction('range', (r) => { if (r === '1W' || r === '1M' || r === 'Season') setRange(r); });
   useCaptureAction('card', (sym) => { if (sym) openRow(sym, ledgerState.ledger?.symbol_names[sym] ?? sym); });
   useCaptureAction('sell', () => {
@@ -181,7 +181,7 @@ export function PortfolioScreen() {
   useCaptureAction('sheet', (sym) => { if (sym) stockSheet.open(sym, { name: ledgerState.ledger?.symbol_names[sym] ?? null }); });
   useCaptureAction('search', () => router.push('/stock-search'));
   useCaptureAction('league', (id) => { if (id) setActiveLeagueId(id); });
-  useCaptureAction('scroll', (y) => scrollRef.current?.scrollTo({ y: Number(y) || 0, animated: false }));
+  // (The 'scrollto' step lives in BarsRefresh, on every tab's scroll view: Portfolio's page is one now.)
 
   let body: React.ReactNode;
   const preDraft = activeLeague ? preDraftPortfolio(activeLeague.draft_status, activeLeague.draft_date) : null;
@@ -353,8 +353,8 @@ export function PortfolioScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.moneyBg }]}>
-      <ShellHeader title="Portfolio" showPhase />
-      <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>{body}</ScrollView>
+      {/* The same top bar as every tab (pill + avatar, no chip), first thing in the page so it scrolls away. */}
+      <BarsRefresh header={<ShellHeader title="Portfolio" showAvatar />} fadeColor={colors.moneyBg} contentContainerStyle={styles.content}>{body}</BarsRefresh>
       {card && ownership ? (
         <PlayerCard
           {...card.data}

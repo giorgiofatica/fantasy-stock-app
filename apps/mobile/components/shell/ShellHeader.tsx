@@ -5,34 +5,35 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
 import { Avatar } from '@/components/sp/Avatar';
-import { PhaseChip } from '@/components/sp/PhaseChip';
 import { LeaguePill } from '@/components/shell/LeaguePill';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { useSession } from '@/lib/SessionProvider';
-import { chipLabelFor, chipPhaseFor } from '@/lib/shell/leagueSheet';
 import { profileFromPathname, profileHref } from '@/lib/shell/profileBack';
 
 // Phase 3b-1 — every tab's header (spec row 10; DESIGN_DIRECTION §3 IA):
-// the league pill on the left of every league-scoped header, and on Home
-// the avatar on the right (Profile left the tab bar; the avatar is its
-// entry). With no leagues there is nothing to scope, so the header shows
-// the screen's title instead of a pill (board "Home with no leagues").
+// the league pill on the left of every league-scoped header and the avatar
+// on the right (Profile left the tab bar; the avatar is its entry). With no
+// leagues there is nothing to scope, so the header shows the screen's title
+// instead of a pill (board "Home with no leagues").
+//
+// The top bar (Giorgio, 2026-11-06, "A for both"): the SAME bar on every tab,
+// Portfolio included, and no tab shows a phase chip in it (each tab's own
+// content says the phase). It is the first thing inside the tab's scroll
+// content (BarsRefresh's `header`), so it scrolls away with the page. A
+// sub-screen with its own back control (Stock search, Trade history) passes
+// no `showAvatar`: Profile is a tab-level entry, and the back control is there.
 
 export interface ShellHeaderProps {
   /** Shown when there is no active league (zero leagues). */
   title: string;
-  /** Home only: the avatar that opens Profile. */
+  /** Every tab: the avatar that opens Profile. Omitted only on a sub-screen that has a back control. */
   showAvatar?: boolean;
-  /** League-scoped tabs (Matchup / League / Portfolio): the active league's
-   * PhaseChip right of the pill, like the board's headers. Home has none. */
-  showPhase?: boolean;
 }
 
-export function ShellHeader({ title, showAvatar = false, showPhase = false }: ShellHeaderProps) {
+export function ShellHeader({ title, showAvatar = false }: ShellHeaderProps) {
   const insets = useSafeAreaInsets();
-  const { activeLeague, leagues, loading, sheetLeagues, activeLeagueId } = useLeagueContext();
-  const activeSheet = showPhase ? sheetLeagues.find((l) => l.id === activeLeagueId) ?? null : null;
+  const { activeLeague, leagues, loading } = useLeagueContext();
   const { username, user } = useSession();
   const displayName = username ?? user?.email ?? '';
   // Profile's back link names the tab it came from (W8 F3): the pathname at the moment of the tap.
@@ -49,12 +50,6 @@ export function ShellHeader({ title, showAvatar = false, showPhase = false }: Sh
       ) : (
         <ScreenTitle style={styles.title}>{title}</ScreenTitle>
       )}
-      {activeSheet ? (
-        // Wrapped: PhaseChip's own alignSelf would pin it to the row's top.
-        <View style={styles.chip}>
-          <PhaseChip phase={chipPhaseFor(activeSheet.seasonPhase, activeSheet.marketOpen)} label={chipLabelFor(activeSheet)} onPageBackground />
-        </View>
-      ) : null}
       {showAvatar ? (
         <Pressable
           onPress={() => router.push(profileHref(profileFromPathname(pathname)))}
@@ -83,8 +78,5 @@ const styles = StyleSheet.create({
   },
   pending: {
     minHeight: 36,
-  },
-  chip: {
-    alignSelf: 'center',
   },
 });

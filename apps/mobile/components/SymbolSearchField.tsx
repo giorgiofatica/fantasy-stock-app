@@ -45,6 +45,9 @@ interface SymbolSearchFieldProps extends UseSymbolSearchOptions {
   /** The queue's search: a pick returns the box to EMPTY (the placeholder), as it is a list to add to. Unset: the caller
    * keeps the text it set (the draft room shows the picked symbol). */
   clearOnSelect?: boolean;
+  /** Points UNDER the status-bar fade where the scroll-up puts this field's top (default REVEAL_MARGIN, 12). The draft room asks for
+   * more while your clock runs, so the field lands below its pinned clock (draftClockChip.chipRevealBelow). */
+  revealMargin?: number;
 }
 
 export default function SymbolSearchField({
@@ -61,6 +64,7 @@ export default function SymbolSearchField({
   limit,
   captureAction = '',
   clearOnSelect = false,
+  revealMargin,
 }: SymbolSearchFieldProps) {
   const [showResults, setShowResults] = useState(false);
   const containerRef = useRef<View>(null);
@@ -117,7 +121,10 @@ export default function SymbolSearchField({
   // it takes focus, when the keyboard has finished opening, and when its results open (the page just grew).
   const listOpen = visible && results.length > 0;
   const wasOpen = useRef(false);
-  const scrollFieldUp = () => reveal?.(containerRef.current);
+  // The margin is read when the scroll happens (the chip's height arrives after the first render), not when the effect was set up.
+  const revealMarginRef = useRef(revealMargin);
+  revealMarginRef.current = revealMargin;
+  const scrollFieldUp = () => reveal?.(containerRef.current, revealMarginRef.current);
   useEffect(() => {
     const opened = listJustOpened(wasOpen.current, listOpen);
     wasOpen.current = listOpen;
@@ -178,7 +185,7 @@ export default function SymbolSearchField({
 
       {visible && results.length > 0 && (
         <View key={`results-${remountKey}`} style={[styles.resultsContainer, { backgroundColor: colors.surface }, elevation.card]}>
-          <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+          <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled" nestedScrollEnabled scrollsToTop={false}>
             {results.map((item) => (
               <TouchableOpacity
                 key={item.symbol}

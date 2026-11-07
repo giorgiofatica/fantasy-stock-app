@@ -117,7 +117,7 @@ Deno.test('the results, "no matches" and "didn\'t load" panels are in the page\'
 });
 
 Deno.test('the field scrolls itself up when it takes focus, when the keyboard opens, and when its results open', () => {
-  assert(field.includes('const scrollFieldUp = () => reveal?.(containerRef.current);'));
+  assert(field.includes('const scrollFieldUp = () => reveal?.(containerRef.current, revealMarginRef.current);'));
   assert(field.includes("Keyboard.addListener('keyboardDidShow', scrollFieldUp)"));
   assert(field.includes('listJustOpened(wasOpen.current, listOpen)'));
   assert(field.includes('<View ref={containerRef} style={styles.container}>'));
@@ -125,8 +125,8 @@ Deno.test('the field scrolls itself up when it takes focus, when the keyboard op
 
 Deno.test('BarsRefresh (every tab\'s scroll view) provides the reveal on iOS and on Android', () => {
   assertEquals((bars.match(/ScrollRevealContext\.Provider/g) ?? []).length, 4); // two open + two close tags
-  assert(bars.includes('makeScrollReveal(() => scrollRef.current as never)'));
-  assert(bars.includes('makeScrollReveal(() => androidScrollRef.current)'));
+  assert(bars.includes('makeScrollReveal(() => scrollRef.current as never, getTopInset)'));
+  assert(bars.includes('makeScrollReveal(() => androidScrollRef.current as never, getTopInset)'));
   // The keyboard behaviours the reveal relies on stay on.
   assert(bars.includes('automaticallyAdjustKeyboardInsets'));
   assertEquals((bars.match(/keyboardShouldPersistTaps="handled"/g) ?? []).length, 2);

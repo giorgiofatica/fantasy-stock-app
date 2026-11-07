@@ -73,6 +73,8 @@ export function YourSeason({ tiles, skipEntrance = false }: YourSeasonProps) {
       </View>
       <ScrollView
         horizontal
+        // Only the tab's one main scroll view answers a tap on the clock (scroll to top); a second one cancels it.
+        scrollsToTop={false}
         showsHorizontalScrollIndicator={false}
         // No paging, no snapping: a plain strip. The offset is a mount-time value.
         contentOffset={{ x: offset, y: 0 }}

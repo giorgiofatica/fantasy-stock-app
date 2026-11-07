@@ -4,8 +4,8 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **242** tappables in **89** files.
-- **95** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **244** tappables in **90** files.
+- **96** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **49** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
@@ -16,19 +16,19 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | Where | Element | Prop | Handler | Destination | Disabled when |
 |---|---|---|---|---|---|
 | `app/(tabs)/index.tsx:276` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
-| `app/(tabs)/league.tsx:200` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
-| `app/(tabs)/league.tsx:218` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
-| `app/(tabs)/league.tsx:223` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:233` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:276` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/league.tsx:464` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:533` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:544` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/matchup.tsx:121` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
-| `app/(tabs)/matchup.tsx:140` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
-| `app/(tabs)/matchup.tsx:294` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
-| `app/(tabs)/matchup.tsx:315` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
-| `app/(tabs)/matchup.tsx:450` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `app/(tabs)/league.tsx:199` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
+| `app/(tabs)/league.tsx:217` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
+| `app/(tabs)/league.tsx:222` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:232` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:275` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:461` | Button | onPress | `auto.reread` | prop auto.reread |  |
+| `app/(tabs)/league.tsx:530` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:541` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
+| `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
+| `app/(tabs)/matchup.tsx:293` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
+| `app/(tabs)/matchup.tsx:314` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `app/(tabs)/matchup.tsx:449` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
 | `app/+not-found.tsx:37` | Button | onPress | `goHome` | route replace('/') |  |
 | `app/create-account.tsx:127` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:129` | Button | onPress | `handleCreate` | fn handleCreate |  |
@@ -77,12 +77,13 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:228` | Button | onPress | `checkFeasibility` | fn checkFeasibility | `disabled` |
 | `components/SlotBuilder.tsx:241` | ChoiceRow | onPress | `inline: () => pick('')` | fn pick |  |
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
-| `components/SymbolSearchField.tsx:186` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
-| `components/SymbolSearchField.tsx:240` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
+| `components/SymbolSearchField.tsx:193` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
+| `components/SymbolSearchField.tsx:247` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
 | `components/game/DraftBlockersCard.tsx:67` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:68` | Button | onPress | `inline: () => onReconfirm('invite')` | fn onReconfirm | `busy` |
 | `components/game/DraftBlockersCard.tsx:94` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
 | `components/game/DraftBlockersCard.tsx:118` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
+| `components/game/DraftClockChip.tsx:57` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/DraftComplete.tsx:53` | Button | onPress | `onRetryFinish` | prop onRetryFinish (the caller's) | `finishing` |
 | `components/game/DraftComplete.tsx:84` | Button | onPress | `onSeeMatchup` | prop onSeeMatchup (the caller's) |  |
 | `components/game/DraftDateSheet.tsx:71` | DateTimePicker | onChange | `inline: (event, selectedDate) => { if (Platform.OS !== 'ios') setAnd` | state setAndroidPicking |  |
@@ -90,10 +91,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftDateSheet.tsx:94` | Pressable | onPress | `inline: () => run({ type: 'set_later' })` | fn run |  |
 | `components/game/DraftDateSheet.tsx:108` | Pressable | onPress | `inline: () => run({ type: 'dismiss' })` | fn run |  |
 | `components/game/DraftDateSheet.tsx:114` | Pressable | onPress | `inline: () => setAndroidPicking(true)` | state setAndroidPicking |  |
-| `components/game/DraftRoom.tsx:319` | Button | onPress | `room.refresh` | prop room.refresh |  |
-| `components/game/DraftRoom.tsx:420` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
-| `components/game/DraftRoom.tsx:428` | Button | onPress | `draft` | fn draft | `pending` |
-| `components/game/DraftRoom.tsx:466` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/DraftRoom.tsx:369` | DraftClockChip | onPress | `showTheClock` | fn showTheClock |  |
+| `components/game/DraftRoom.tsx:379` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/DraftRoom.tsx:484` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
+| `components/game/DraftRoom.tsx:494` | Button | onPress | `draft` | fn draft | `pending` |
+| `components/game/DraftRoom.tsx:532` | Button | onPress | `room.refresh` | prop room.refresh |  |
 | `components/game/LeagueRenewal.tsx:47` | Button | onPress | `inline: () => setRetry((n) => n + 1)` | state setRetry |  |
 | `components/game/LeaveLeagueSheets.tsx:29` | Pressable | onPress | `inline: view.enabled ? onPress : undefined` | fn onPress (conditional) | `!view.enabled` |
 | `components/game/LeaveLeagueSheets.tsx:67` | Button | onPress | `onLeave` | prop onLeave (the caller's) | `busy` |
@@ -141,7 +143,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/home/StandingsCard.tsx:131` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
 | `components/home/ThisWeekCard.tsx:152` | PressableScale | onPress | `inline: () => router.push(THIS_WEEK_HREF)` | route push(THIS_WEEK_HREF) |  |
 | `components/home/YourSeason.tsx:62` | PressableScale | onPress | `inline: () => router.push(SCHEDULE_HREF)` | route push(SCHEDULE_HREF) |  |
-| `components/home/YourSeason.tsx:162` | PressableScale | onPress | `inline: () => router.push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF ` | route push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF : SCHEDU) |  |
+| `components/home/YourSeason.tsx:164` | PressableScale | onPress | `inline: () => router.push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF ` | route push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF : SCHEDU) |  |
 | `components/league/LeagueStates.tsx:44` | Button | onPress | `onRetry` | prop onRetry (the caller's) |  |
 | `components/league/MembersSection.tsx:63` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
 | `components/money/HoldingRow.tsx:82` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
@@ -183,7 +185,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/TradeReviewPanel.tsx:156` | Pressable | onPress | `onBack` | prop onBack (the caller's) |  |
 | `components/shell/AppearancePicker.tsx:38` | ThemeOption | onPress | `inline: () => changeAppearance(o.id)` | fn changeAppearance |  |
 | `components/shell/AppearancePicker.tsx:52` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/shell/AuthScaffold.tsx:113` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
+| `components/shell/AuthScaffold.tsx:119` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
 | `components/shell/ConfirmEmailSent.tsx:68` | EmptyState | onAction | `onBack` | prop onBack (the caller's) |  |
 | `components/shell/ConfirmEmailSent.tsx:70` | EmptyState | onSecondaryAction | `resend` | fn resend |  |
 | `components/shell/ConfirmedEmailNotice.tsx:40` | Pressable | onPress | `inline: () => setConfirmFailedNotice(false)` | sheet setConfirmFailedNotice(false) |  |
@@ -207,12 +209,12 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/LeagueSheetRow.tsx:35` | PressableScale | onPress | `inline: () => onPick(league.id, league.name, labelRef)` | fn onPick |  |
 | `components/shell/NewPasswordForm.tsx:113` | Button | onPress | `handleUpdate` | sheet setConfirmError(null); sheet setConfirmError("Passwords don't match.") | `!password \|\| !confirm` |
 | `components/shell/NewPasswordForm.tsx:114` | Pressable | onPress | `onCancel` | prop onCancel (the caller's) |  |
-| `components/shell/NoLeagueState.tsx:32` | PhasePlaceholder | onAction | `inline: () => router.push('/create-league')` | route push('/create-league') |  |
-| `components/shell/NoLeagueState.tsx:34` | PhasePlaceholder | onSecondaryAction | `inline: () => router.push('/join-league')` | route push('/join-league') |  |
-| `components/shell/NoLeagueState.tsx:50` | PhasePlaceholder | onAction | `onRefresh` | prop onRefresh (the caller's) |  |
+| `components/shell/NoLeagueState.tsx:31` | PhasePlaceholder | onAction | `inline: () => router.push('/create-league')` | route push('/create-league') |  |
+| `components/shell/NoLeagueState.tsx:33` | PhasePlaceholder | onSecondaryAction | `inline: () => router.push('/join-league')` | route push('/join-league') |  |
+| `components/shell/NoLeagueState.tsx:48` | PhasePlaceholder | onAction | `onRefresh` | prop onRefresh (the caller's) |  |
 | `components/shell/PasswordReveal.tsx:25` | Pressable | onPress | `reveal.toggle` | prop reveal.toggle |  |
-| `components/shell/PhasePlaceholder.tsx:52` | EmptyState | onAction | `onAction` | prop onAction (the caller's) |  |
-| `components/shell/PhasePlaceholder.tsx:54` | EmptyState | onSecondaryAction | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
+| `components/shell/PhasePlaceholder.tsx:54` | EmptyState | onAction | `onAction` | prop onAction (the caller's) |  |
+| `components/shell/PhasePlaceholder.tsx:56` | EmptyState | onSecondaryAction | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
 | `components/shell/ProfileView.tsx:63` | Row | onPress | `onUsername` | prop onUsername (the caller's) |  |
 | `components/shell/ProfileView.tsx:67` | Row | onPress | `onChangePassword` | prop onChangePassword (the caller's) |  |
 | `components/shell/ProfileView.tsx:69` | Row | onPress | `onAppearance` | prop onAppearance (the caller's) |  |
@@ -222,7 +224,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/ProfileView.tsx:125` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/PushPrePrompt.tsx:38` | Button | onPress | `onContinue` | prop onContinue (the caller's) |  |
 | `components/shell/PushPrePrompt.tsx:40` | Pressable | onPress | `onNotNow` | prop onNotNow (the caller's) | `status !== 'idle'` |
-| `components/shell/ShellHeader.tsx:60` | Pressable | onPress | `inline: () => router.push(profileHref(profileFromPathname(pathname))` | route push(profileHref(profileFromPathname(pathname))) |  |
+| `components/shell/ShellHeader.tsx:55` | Pressable | onPress | `inline: () => router.push(profileHref(profileFromPathname(pathname))` | route push(profileHref(profileFromPathname(pathname))) |  |
 | `components/shell/ShellTabBar.tsx:108` | TabItem | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:109` | TabItem | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:151` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
