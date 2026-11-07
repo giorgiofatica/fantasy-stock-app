@@ -3373,7 +3373,7 @@
             "securityDefiner": false
         }
     ],
-    "capturedAt": "2026-11-04T21:59:58Z",
+    "capturedAt": "2026-11-07T00:19:06Z",
     "publications": [
         {
             "table": "drafts",
@@ -3509,7 +3509,7 @@
             "publication": "supabase_realtime"
         },
         {
-            "table": "messages_2026_10_10",
+            "table": "messages_2026_11_05",
             "schema": "realtime",
             "columns": [
                 "topic",
@@ -3526,7 +3526,7 @@
             "publication": "supabase_realtime_messages_publication"
         },
         {
-            "table": "messages_2026_10_11",
+            "table": "messages_2026_11_06",
             "schema": "realtime",
             "columns": [
                 "topic",
@@ -3543,7 +3543,7 @@
             "publication": "supabase_realtime_messages_publication"
         },
         {
-            "table": "messages_2026_10_12",
+            "table": "messages_2026_11_07",
             "schema": "realtime",
             "columns": [
                 "topic",
@@ -3560,7 +3560,7 @@
             "publication": "supabase_realtime_messages_publication"
         },
         {
-            "table": "messages_2026_10_13",
+            "table": "messages_2026_11_08",
             "schema": "realtime",
             "columns": [
                 "topic",
@@ -3577,41 +3577,7 @@
             "publication": "supabase_realtime_messages_publication"
         },
         {
-            "table": "messages_2026_10_14",
-            "schema": "realtime",
-            "columns": [
-                "topic",
-                "extension",
-                "payload",
-                "event",
-                "private",
-                "updated_at",
-                "inserted_at",
-                "id",
-                "binary_payload",
-                "skip_broadcast"
-            ],
-            "publication": "supabase_realtime_messages_publication"
-        },
-        {
-            "table": "messages_2026_10_15",
-            "schema": "realtime",
-            "columns": [
-                "topic",
-                "extension",
-                "payload",
-                "event",
-                "private",
-                "updated_at",
-                "inserted_at",
-                "id",
-                "binary_payload",
-                "skip_broadcast"
-            ],
-            "publication": "supabase_realtime_messages_publication"
-        },
-        {
-            "table": "messages_2026_10_16",
+            "table": "messages_2026_11_09",
             "schema": "realtime",
             "columns": [
                 "topic",
