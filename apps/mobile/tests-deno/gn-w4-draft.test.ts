@@ -259,7 +259,7 @@ Deno.test('keepDots: no line starts with "·"; short segments stay whole; long o
 
 Deno.test('every "·" line the draft surfaces draw goes through keepDots (source guard)', () => {
   const room = SOURCES['components/game/DraftRoom.tsx'];
-  for (const n of ['{keepDots(roundLine)}', '{keepDots(afterPickLine(', 'caption={keepMoney(keepDots(caption))}', '{keepDots(`· ${row.label}`)}']) assert(room.includes(n), n);
+  for (const n of ['{keepDots(roundLine)}', '{keepDots(afterPickLine(', 'caption={keepMoney(keepDots(caption))}', 'pickLogLabelText(row.label']) assert(room.includes(n), n); // the pick log's label goes through keepDots inside pickLogLabelText (pickLogRow.ts)
   assert(SOURCES['components/game/QueueEditor.tsx'].includes('{keepDots(`Your queue · ${queue.length} of ${QUEUE_MAX}`)}'));
   assert(SOURCES['components/game/DraftLobby.tsx'].includes("{keepDots('Draft order · waiting')}"));
   assert(SOURCES['components/game/DraftComplete.tsx'].includes('{keepMoney(keepDots(rosterPickCaption(r)))}'));

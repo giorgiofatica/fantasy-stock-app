@@ -2,42 +2,42 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "3f82f7ae1a21428e451641404871fb9f4416236d",
-    "commitShort": "3f82f7ae",
+    "commit": "b9b828460987cec893b77595257e57bc8529935d",
+    "commitShort": "b9b82846",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/top-bar-scrolls",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/AuthScaffold.tsx"
+        "path": "apps/mobile/components/game/DraftRoom.tsx"
       },
       {
-        "code": "??",
-        "path": "apps/mobile/components/shell/FooterFade.tsx"
+        "code": "A",
+        "path": "apps/mobile/lib/game/pickLogRow.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/game-pick-log-row.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/topBarFade.ts"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/tests-deno/footer-fade.test.ts"
+        "path": "apps/mobile/tests-deno/gn-w4-draft.test.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-06T23:53:14Z",
-    "sourceHash": "sha256:ea8e88ed0c0bbc30ebd5abaa0bfbe211794271c6d2ebd5fef7db0189587a2b04",
+    "timestamp": "2026-11-07T00:03:29Z",
+    "sourceHash": "sha256:45afc617b064e85931836a66db75fa865460bdcdf0c9b0dc766f623de1dbc204",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 49.9,
+    "ageHours": 50.1,
     "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -19324,9 +19324,9 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('validate-and-record-pick')",
       "callSites": [
-        "apps/mobile/components/game/DraftRoom.tsx:227",
-        "apps/mobile/components/game/DraftRoom.tsx:251",
-        "apps/mobile/components/game/DraftRoom.tsx:296"
+        "apps/mobile/components/game/DraftRoom.tsx:228",
+        "apps/mobile/components/game/DraftRoom.tsx:252",
+        "apps/mobile/components/game/DraftRoom.tsx:298"
       ],
       "via": [
         "seamInvoke"
@@ -23479,9 +23479,9 @@
     "invokes": [
       "apps/mobile/app/join-league.tsx:85 -> preview-league",
       "apps/mobile/app/join-league.tsx:94 -> join-league",
-      "apps/mobile/components/game/DraftRoom.tsx:227 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:251 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:296 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:228 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:252 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:298 -> validate-and-record-pick (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:21 -> delete-account (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:38 -> join-league (via seamInvoke)",
       "apps/mobile/lib/game/useAllMatchups.ts:83 -> quote (via seamInvoke)",
