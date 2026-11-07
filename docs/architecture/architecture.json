@@ -2,46 +2,30 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "b9b828460987cec893b77595257e57bc8529935d",
-    "commitShort": "b9b82846",
+    "commit": "1cb165a38e163742ba8ecc60b201accaf0c97044",
+    "commitShort": "1cb165a3",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
+    "branch": "docs/status-2026-11-06",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/game/DraftRoom.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/game/pickLogRow.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/game-pick-log-row.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/gn-w4-draft.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+        "path": "docs/architecture/db-snapshot.json"
       }
     ],
-    "timestamp": "2026-11-07T00:03:29Z",
-    "sourceHash": "sha256:45afc617b064e85931836a66db75fa865460bdcdf0c9b0dc766f623de1dbc204",
+    "timestamp": "2026-11-07T00:19:44Z",
+    "sourceHash": "sha256:df5877a4513d3921bdcc837255acdff052b8e949970a0ebd93fd04c5226d6b02",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-11-04T21:59:58Z",
-    "ageHours": 50.1,
-    "ageDays": 2.1,
+    "capturedAt": "2026-11-07T00:19:06Z",
+    "ageHours": 0,
+    "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:63e656527b081b605afa2985a95e3e2dff7478470416f1ae991a33d8f3817ef6",
+    "hash": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
@@ -24097,6 +24081,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=true"
     ],
-    "dbSnapshot": "sha256:63e656527b081b605afa2985a95e3e2dff7478470416f1ae991a33d8f3817ef6"
+    "dbSnapshot": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966"
   }
 }
