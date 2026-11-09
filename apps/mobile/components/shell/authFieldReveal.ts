@@ -4,10 +4,14 @@
  * the keyboard up the scroll view's visible window is only what sits between the top of the screen and the footer, and nothing
  * moved the fields into it.
  *
- * The rule: a field that takes focus is scrolled to the TOP of that window (its label just under the edge). Whatever fits
- * below it (the next field, its rule checklist) is then in the window too, and the brand lockup, heading and "Continue with
- * Apple" scroll off the top. The focused INPUT always stays fully in the window, even where the window is too short for the
- * label above it too (the largest accessibility text size): then the label gives way, never the box being typed into.
+ * Build 13 (Giorgio's recording of 1.3.0 (12): "it shoots the screen up super high ... a huge gap, and then the create account
+ * button"): build 12 fixed that by scrolling the focused field's LABEL to the TOP of the window, which overshoots. His ruling: scroll
+ * the MINIMUM needed, so the focused field, with its error and rules, just clears the docked footer (the existing breathing room),
+ * and never pin it to the top. A field already in the window does not move the page at all.
+ *
+ * The rule is containment, not placement: take the region that must be on screen, and move the offset only as far as it takes to bring
+ * that region inside the window (see `revealOffset`). Create account at the default size: Password focused scrolls a few dozen points,
+ * and Email stays on screen above it.
  *
  * Pure (no React Native imports) so the rules are testable under Deno.
  */
@@ -34,38 +38,53 @@ export function stepReveal(focused: boolean, event: RevealEvent): { focused: boo
   }
 }
 
-/** The Field label's line height (the `callout` token), its gap to the box, and the box's border: see components/shell/Field.tsx. */
-export const LABEL_LINE_HEIGHT = 18;
-export const LABEL_GAP = 6; // space[2] + 2
-export const BOX_BORDER = 2;
-/** A sliver of the content above the label, so the label does not sit hard against the window's edge. */
+/** A sliver of the content above the field's label, so the label does not sit hard against the window's edge. */
 export const TOP_BREATHING = 4;
-/** Clear space kept under the input's box (above the docked footer). */
+/** Clear space kept under the region (above the docked footer). */
 export const BOTTOM_BREATHING = 6;
 
-/** How far above the INPUT's top the field's label starts, at this font scale (the label is a callout Text, which scales with the system size). */
-export function labelReach(fontScale: number): number {
-  const scale = fontScale > 0 ? fontScale : 1;
-  return Math.ceil(LABEL_LINE_HEIGHT * scale) + LABEL_GAP + BOX_BORDER;
-}
-
 export interface RevealInput {
-  /** The focused input's top and height, in the scroll CONTENT's coordinates. */
+  /** The scroll view's offset right now. */
+  current: number;
+  /** The whole Field (its label at the top, its error and rules at the bottom), in the scroll CONTENT's coordinates. */
+  blockTop: number;
+  blockBottom: number;
+  /** The focused input's box, same coordinates. */
   inputTop: number;
-  inputHeight: number;
+  inputBottom: number;
   /** The scroll view's visible height right now (it shrinks when the keyboard opens). */
   viewportHeight: number;
-  fontScale: number;
+  /** The scrolled content's full height. */
+  contentHeight: number;
+}
+
+/** The offsets (top, bottom) a region needs on screen, widest first: what the person should see, then less and less of it, down to the box. */
+function regions(i: RevealInput): Array<[number, number]> {
+  return [
+    [i.blockTop - TOP_BREATHING, i.blockBottom + BOTTOM_BREATHING], // the field with its error and rules
+    [i.blockTop - TOP_BREATHING, i.inputBottom + BOTTOM_BREATHING], // its label and box (the rules give way)
+    [i.inputTop - TOP_BREATHING, i.inputBottom + BOTTOM_BREATHING], // the box alone (the label gives way)
+  ];
 }
 
 /**
- * The scroll offset for a focused field. Label at the top of the window; but never so little that the input's bottom edge falls
- * below the window, and never negative (a field already near the top does not pull the content past its start).
+ * The scroll offset after a field takes focus: the CURRENT one when the region that matters already sits inside the window, else the
+ * smallest move that brings it in. The region is the widest of {field + rules, label + box, box} that fits the window; where even the box
+ * does not fit, its bottom edge (the line being typed on) is kept in. Never negative, never past the end of the content.
  */
-export function fieldRevealOffset({ inputTop, inputHeight, viewportHeight, fontScale }: RevealInput): number {
-  const labelAtTop = inputTop - labelReach(fontScale) - TOP_BREATHING;
-  const inputBottomVisible = inputTop + inputHeight + BOTTOM_BREATHING - viewportHeight;
-  return Math.max(0, labelAtTop, inputBottomVisible);
+export function revealOffset(i: RevealInput): number {
+  const room = i.viewportHeight;
+  const max = Math.max(0, i.contentHeight - room);
+  const region = regions(i).find(([top, bottom]) => bottom - top <= room);
+  let target = i.current;
+  if (!region) {
+    target = i.inputBottom + BOTTOM_BREATHING - room; // not even the box fits: show the bottom of it
+  } else if (region[0] < i.current) {
+    target = region[0]; // above the window: scroll up just far enough
+  } else if (region[1] > i.current + room) {
+    target = region[1] - room; // under the window: scroll down just far enough
+  }
+  return Math.min(Math.max(0, target), max);
 }
 
 /**

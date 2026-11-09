@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { forwardRef, ReactNode } from 'react';
+import { forwardRef, ReactNode, useContext, useRef } from 'react';
 import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
 import { radius, space, type } from '@/constants/tokens';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
+import { FieldBlockContext } from './FieldBlockContext';
 import { PasswordRevealButton, usePasswordReveal } from './PasswordReveal';
 import { secureHostInputProps } from '@/lib/passwordReveal';
 
@@ -68,6 +69,9 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   ref
 ) {
   const { colors } = useTheme();
+  // The whole field's view, handed to the auth scaffold on focus so its scroll keeps the error and rules in view too (authFieldReveal.ts).
+  const block = useRef<View>(null);
+  const announceBlock = useContext(FieldBlockContext);
   // Keyed by the scale while unfocused, frozen while focused (remeasureKey.ts): an unfocused filled
   // field otherwise keeps its old-size text in a grown box after a Dynamic Type change. Not a
   // credential field (lib/inputRemount.ts): remounting a password or its email raises iOS's "Save Password?" sheet.
@@ -89,7 +93,7 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   const boxPadding = emphasised ? space[4] + 1 : space[4] + 2;
 
   return (
-    <View style={styles.field}>
+    <View ref={block} collapsable={false} style={styles.field}>
       <FieldLabel>{label}</FieldLabel>
       <View
         style={[
@@ -111,6 +115,7 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
           placeholderTextColor={colors.text2}
           selectionColor={colors.accent}
           onFocus={(e) => {
+            announceBlock?.(block.current);
             remount.onFocus();
             onFocus?.(e);
           }}

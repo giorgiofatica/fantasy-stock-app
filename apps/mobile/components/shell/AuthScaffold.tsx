@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
-import { fieldRevealOffset, footerSecondaryShown, keyboardUpAfter, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { footerSecondaryShown, keyboardUpAfter, revealOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { FieldBlockContext } from '@/components/shell/FieldBlockContext';
 import { FooterFade } from '@/components/shell/FooterFade';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
@@ -19,8 +20,9 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 // Fields above the keyboard (auth-fields-above-keyboard, 2026-11-06): the footer is docked OUTSIDE the ScrollView, so with the
 // keyboard up the scroll view's window is only what sits above that footer, and a form taller than the window hid its second
 // field (Create account showed Email, then the button: Password was out of sight and the form read as email-only). A field
-// that takes focus is now scrolled to the top of that window (authFieldReveal.ts), so the next field and its rules sit under it.
-// The scaffold hears focus because it bubbles up from the TextInput to the ScrollView; no screen or Field prop is involved.
+// that takes focus is now scrolled INTO that window, by the minimum it takes (authFieldReveal.ts: the field with its error and rules just
+// clears the footer, and a field already in view does not move the page). The scaffold hears focus because it bubbles up from the TextInput
+// to the ScrollView; a Field also names its whole view through FieldBlockContext, so the rules and the error count.
 
 export interface AuthScaffoldProps {
   children: ReactNode;
@@ -43,7 +45,6 @@ interface RevealScroll {
 export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { fontScale } = useWindowDimensions();
 
   // The scaffold's own handle on the ScrollView, beside the caller's (delete-account scrolls it to the end).
   const scrollRef = useRef<ScrollView | null>(null);
@@ -62,10 +63,14 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
   const scrollY = useSharedValue(0);
   const windowHeight = useSharedValue(0);
   const contentHeight = useSharedValue(0);
-  const fontScaleRef = useRef(fontScale);
-  fontScaleRef.current = fontScale;
+  // Where the scroll view is now (the onScroll below), and the focused Field's whole view (FieldBlockContext).
+  const offset = useRef(0);
+  const focusedBlock = useRef<View | null>(null);
+  const announceBlock = useCallback((block: View | null) => {
+    focusedBlock.current = block;
+  }, []);
 
-  /** Scroll the focused field to the top of the window (its label just under the edge; the input always stays in). */
+  /** Bring the focused field into the window by the minimum it takes: its error and rules too where they fit, the box always. */
   const revealFocused = useCallback(() => {
     const scroll = scrollRef.current as unknown as RevealScroll | null;
     const inner = scroll?.getInnerViewRef?.();
@@ -73,14 +78,28 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
     if (!scroll || !inner || !input) return;
     input.measureLayout(
       inner as never,
-      (_x, y, _w, h) =>
-        scroll.scrollTo({
-          y: fieldRevealOffset({ inputTop: y, inputHeight: h, viewportHeight: viewportHeight.current, fontScale: fontScaleRef.current }),
-          animated: true,
-        }),
+      (_x, inputTop, _w, inputHeight) => {
+        const place = (blockTop: number, blockBottom: number) => {
+          const y = revealOffset({
+            current: offset.current,
+            blockTop,
+            blockBottom,
+            inputTop,
+            inputBottom: inputTop + inputHeight,
+            viewportHeight: viewportHeight.current,
+            contentHeight: contentHeight.value,
+          });
+          // Already in the window: the page does not move at all.
+          if (Math.abs(y - offset.current) >= 0.5) scroll.scrollTo({ y, animated: true });
+        };
+        const block = focusedBlock.current;
+        // A focused input with no Field around it is its own block (just the box).
+        if (!block) return place(inputTop, inputTop + inputHeight);
+        block.measureLayout(inner as never, (_bx, blockTop, _bw, blockHeight) => place(blockTop, blockTop + blockHeight), () => place(inputTop, inputTop + inputHeight));
+      },
       () => {},
     );
-  }, []);
+  }, [contentHeight]);
 
   const step = useCallback(
     (event: RevealEvent) => {
@@ -136,6 +155,7 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           }}
           onScroll={(e) => {
             scrollY.value = e.nativeEvent.contentOffset.y;
+            offset.current = e.nativeEvent.contentOffset.y;
           }}
           onContentSizeChange={(_w, h) => {
             contentHeight.value = h;
@@ -146,7 +166,7 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          {children}
+          <FieldBlockContext.Provider value={announceBlock}>{children}</FieldBlockContext.Provider>
         </ScrollView>
         {footer ? <FooterFade scrollY={scrollY} viewportHeight={windowHeight} contentHeight={contentHeight} color={colors.bg} /> : null}
       </View>
