@@ -840,6 +840,24 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
 - **One no-league empty state on every tab** (Home, Matchup, League, Portfolio): Create a
   league / Join with a code (recommendation taken).
 
+- **Sign-in and sign-up screens behave like a short native form** (2026-11-09, from Giorgio's
+  build 1.3.0 (12) recordings; spec `docs/plans/2026-11-09-auth-screen-layout.md`):
+  - No scrolling when everything fits: "There really should not be a reason why it should be
+    able to scroll." The screen returns to rest when the keyboard closes.
+  - A focused field moves the screen only as far as it must: "When I click on the password
+    field, it like shoots the like screen up super high. So the password thing is at the very
+    top, and there's a huge gap". Never pinned to the top; this replaces the build-12 rule.
+  - The wordmark is never cut: "the stockpile at the top is cut off."
+  - An error sits where its cause is; a message that is not about a field never marks a field.
+  - **Show / hide password** (2026-11-06): "we should add a hide/view eye icon for the
+    password so you can see what you are typing". Every password field has the eye; a visible
+    password still gets no keyboard suggestions.
+  - **Copy, approved 2026-11-09** ("A, try again later"), for the email send limit:
+    "We can't send another email right now. Try again later." The request limit keeps
+    "Too many attempts — please wait a minute and try again."
+  - The confirmation email's look is out of date ("has like an old stockpile logo that needs
+    to be updated"); it is redrawn in the current look as part of launch prep.
+
 ## How decisions get made
 
 - Every product/design choice goes to Giorgio as side-by-side mockups ("Your call" on the

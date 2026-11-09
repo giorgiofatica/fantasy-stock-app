@@ -1,6 +1,6 @@
 # Auth screens: scrolling, focus and layout fixes (build 13)
 
-Status: Draft (rules from Giorgio's build-12 recordings, 2026-11-09; one copy line awaits his OK)
+Status: Building (rules from Giorgio's build-12 recordings, 2026-11-09; R6 copy approved by Giorgio 2026-11-09; PR #352)
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 ## Goal
@@ -39,12 +39,12 @@ and `…14-09-38_1.MP4`. Not in the repo (captures stay out).
 | R3 | **Minimum reveal.** A field that takes focus moves the screen only as far as needed for its whole block (label, box, error line, rule checklist) to sit above the docked button with the existing breathing space. Already visible → no movement. It is never pinned to the top. Where the block cannot fit (largest text), the box being typed into wins, then its label, as today. This REPLACES #345's "scrolled to the TOP of that window" rule in `authFieldReveal.ts`. | Giorgio 11-09 |
 | R4 | **The wordmark is never cut.** The brand lockup shows the whole product name at every text size on every screen that has it; no clip, no "…". Build 11 showed it whole, build 12 reads "Stockpil": find the regression, do not just widen a box. | Giorgio 11-09 |
 | R5 | **Errors sit where the cause is** (UX rules 8/9). A password problem stays under Password; an email problem (invalid, already registered) goes under Email; anything else (the email send limit, a request limit, network) is a form-level message with NO red border on any field. Placement = an existing pattern (the `WarnPanel` used for paused sign-ups, or a line above the primary button); the Design Lead picks which. | Planner, standing rule |
-| R6 | **The email send limit says the truth.** `over_email_send_rate_limit` gets its own line; `over_request_rate_limit` keeps "Too many attempts — please wait a minute and try again." NEW copy, awaiting Giorgio: "We can't send another email right now. Try again later." | Planner; copy pending |
+| R6 | **The email send limit says the truth.** `over_email_send_rate_limit` gets its own line; `over_request_rate_limit` keeps "Too many attempts — please wait a minute and try again." Copy approved by Giorgio 2026-11-09 ("A, try again later", in the Orchestrator's chat): "We can't send another email right now. Try again later." | Giorgio 2026-11-09 |
 | R7 | **A visible password is still a password.** With the eye open the field keeps `autoCorrect={false}`, `spellCheck={false}` and its password content type; the keyboard neither predicts nor learns it. Check the QuickType bar (it offered saved email addresses over the visible password in the recording). | Planner, security floor |
 
 ## Open questions
 
-1. R6's sentence, for Giorgio (not blocking the build of R1–R5, R7).
+1. ~~R6's sentence~~ Approved 2026-11-09.
 2. For the Design Lead: R5's form-level placement, and whether R3's breathing constants
    (`TOP_BREATHING` 4, `BOTTOM_BREATHING` 6) still read right once the field is no longer at
    the top.
