@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { SharedValue, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useMotion } from '@/components/sp/motion';
 import { brand } from '@/constants/brand';
+import { type } from '@/constants/tokens';
+import { wordmarkSize } from '@/components/shell/brandWordmark';
 
 // Phase 3b-1 — the refined bars as animatable Views (S4 auth brand moment,
 // S5 pull-to-refresh). Same proportions as sp/BrandMark (8/12/16 of a 24
@@ -67,10 +69,14 @@ export function useRisingBars() {
 /** The bars plus the wordmark (brand.name) — the auth screens' header. */
 export function BrandLockup() {
   const rise = useRisingBars();
+  const { fontScale } = useWindowDimensions();
+  // The wordmark is the one Text here whose box hugs its glyphs, so it carries its scale in its props (explicit size, native scaling off):
+  // a box measured at another font scale than it is drawn at clipped its last letter ("Stockpil", build 12). See brandWordmark.ts.
+  const size = wordmarkSize(fontScale, type.title.maxScale ?? 1);
   return (
     <View style={styles.lockup} accessible accessibilityRole="header" accessibilityLabel={brand.name}>
       <BrandBars size={30} rise={rise} />
-      <Text variant="title" style={styles.wordmark}>
+      <Text variant="title" allowFontScaling={false} numberOfLines={1} style={[styles.wordmark, size]}>
         {brand.wordmark}
       </Text>
     </View>
