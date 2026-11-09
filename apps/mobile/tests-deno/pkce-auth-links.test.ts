@@ -893,7 +893,7 @@ Deno.test('resend cooldown: enforced INSIDE signUp (every caller covered) and fo
   assert(fp.indexOf('resetCooldown.markSent(email)') > fp.indexOf('resetPasswordForEmail('), 'and marked only after a send');
   assert(fp.includes('if (!r.error) resetCooldown.markSent(email);'), 'a SUCCESSFUL send marks the floor (not only the throw path)');
   assertEquals(fp.split('resetCooldown.remainingMs(email) > 0').length - 1, 2, 'checked on the fast path AND again inside the critical section');
-  assert(fp.includes('setError(getAuthErrorMessage(RESEND_TOO_SOON));'));
+  assert(fp.includes('setError(fromAuthError(RESEND_TOO_SOON));'));
   assertFalse(fp.includes('confirmationCooldown'), 'a reset email never blocks a sign-up email, or the reverse');
 });
 

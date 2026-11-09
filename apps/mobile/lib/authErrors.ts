@@ -44,13 +44,11 @@ export function isEmailNotConfirmedError(error: any): boolean {
 
 /**
  * The email-send cap's line (`over_email_send_rate_limit` with GoTrue's "email rate limit exceeded"). Supabase's built-in SMTP is capped
- * PER HOUR and for the whole project, so "wait a minute" (the per-request line) is false for it. The same code also carries the per-address
- * ONE-MINUTE interval ("For security purposes, you can only request this after N seconds"): that one keeps the minute line (classifyAuthError).
- *
- * PENDING APPROVAL: this wording is NEW COPY that Giorgio has not approved (build 13 fix, 2026-11-09). The placeholder is the
- * Orchestrator's; the approved wording is a one-line change to this constant, and nothing else in the app spells it.
+ * PER HOUR and for the whole project, so "wait a minute" (the per-request line) is false for it; "later" is true whatever sends the mail.
+ * The same code also carries the per-address ONE-MINUTE interval ("For security purposes, you can only request this after N seconds"):
+ * that one keeps the minute line (classifyAuthError). Giorgio's wording, approved 2026-11-09 ("A, try again later").
  */
-export const EMAIL_RATE_LIMIT_MESSAGE = "We can't send another email right now. Try again in about an hour.";
+export const EMAIL_RATE_LIMIT_MESSAGE = "We can't send another email right now. Try again later.";
 
 /** The per-request rate limit's line (`over_request_rate_limit`, and any rate-limit message without a code). */
 export const REQUEST_RATE_LIMIT_MESSAGE = 'Too many attempts — please wait a minute and try again.';
@@ -130,7 +128,7 @@ export function getAuthErrorMessage(error: any, weakPasswordMessage?: string, pr
 }
 
 /**
- * Where an auth error is shown on a form with an Email and a Password field (Create account): on the field it is ABOUT, or, when it is
+ * Where an auth error is shown on a form with an Email and a Password field (Create account, Sign in): on the field it is ABOUT, or, when it is
  * about neither (a rate limit, the network, a refusal, anything unmapped), in the form's own message with no red border anywhere.
  * Build 12 put "Too many attempts" under Password, red-bordering a field that was fine.
  */
@@ -141,10 +139,22 @@ export function authErrorTarget(error: any): AuthErrorTarget {
     case 'invalid_email':
     case 'user_already_exists':
       return 'email';
+    // A wrong sign-in password is a password problem (a wrong email reads the same, on purpose: GoTrue never says which).
+    case 'invalid_credentials':
     case 'weak_password':
     case 'same_password':
       return 'password';
     default:
       return 'form';
   }
+}
+
+/** The message AND where it belongs (R5 of docs/plans/2026-11-09-auth-screen-layout.md), decided together from one verdict. */
+export interface AuthErrorReport {
+  message: string;
+  target: AuthErrorTarget;
+}
+
+export function getAuthError(error: any, weakPasswordMessage?: string, productName?: string): AuthErrorReport {
+  return { message: getAuthErrorMessage(error, weakPasswordMessage, productName), target: authErrorTarget(error) };
 }

@@ -97,7 +97,7 @@ Deno.test('getAuthErrorMessage: the EMAIL-send cap has its own line, and it is n
   const email = getAuthErrorMessage({ code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' });
   assertEquals(email, EMAIL_RATE_LIMIT_MESSAGE);
   assertEquals(email.includes('minute'), false);
-  assertEquals(email.includes('hour'), true);
+  assertEquals(email, "We can't send another email right now. Try again later.", "Giorgio's approved wording, verbatim");
   assertNotEquals(email, REQUEST_RATE_LIMIT_MESSAGE);
 });
 
@@ -126,8 +126,8 @@ Deno.test('the approved wording is ONE constant: no other app source spells the 
   const needle = "We can't send another email";
   const hits = Object.entries(SOURCES).filter(([, t]) => t.includes(needle)).map(([f]) => f);
   assertEquals(hits, ['lib/authErrors.ts']);
-  // And it is marked pending approval where it lives, so nobody ships it as settled copy.
-  assert(SOURCES['lib/authErrors.ts'].includes('PENDING APPROVAL'));
+  // Approved (2026-11-09): no pending marker is left on it.
+  assert(!SOURCES['lib/authErrors.ts'].includes('PENDING APPROVAL'));
 });
 
 // Which part of a form shows an error (lib/authErrors.ts authErrorTarget; lib/auth/formError.ts draws it).

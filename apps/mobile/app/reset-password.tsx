@@ -16,7 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/useAuth';
 import { isRecoverySession, setRecoverySession, subscribeRecoverySession } from '@/lib/auth/recoverySession';
 import { resetScreenState, RESET_VERIFY_TIMEOUT_MS } from '@/lib/recoveryLink';
-import { getAuthErrorMessage } from '@/lib/authErrors';
+import { fromAuthError, type FormErrorState } from '@/lib/auth/formError';
 import { parseResetCaptureView } from '@/lib/shell/resetCaptureView';
 import { pendingRoute } from '@/lib/shell/pendingRoute';
 
@@ -107,9 +107,9 @@ export default function ResetPasswordScreen() {
     router.replace('/');
   }
 
-  async function updatePassword(password: string): Promise<string | null> {
+  async function updatePassword(password: string): Promise<FormErrorState | null> {
     const { error } = await supabase.auth.updateUser({ password });
-    if (error) return getAuthErrorMessage(error, PASSWORD_RULE_SENTENCE, brand.name);
+    if (error) return fromAuthError(error, PASSWORD_RULE_SENTENCE, brand.name);
     setRecoverySession(false);
     return null;
   }

@@ -8,7 +8,7 @@
 //   - "enter your email and password" is the form's message too, with only the EMPTY field(s) marked.
 // The words are lib/authErrors.ts's; this file only decides the home and the borders.
 
-import { authErrorTarget, getAuthErrorMessage, type AuthErrorTarget } from '../authErrors';
+import { getAuthError, type AuthErrorTarget } from '../authErrors';
 
 export interface FormErrorState {
   target: AuthErrorTarget;
@@ -31,12 +31,13 @@ export const NO_FORM_ERROR_VIEW: FormErrorView = { emailError: null, emailInvali
 
 /** A server (or transport) error from signUp, routed to where it belongs. */
 export function fromAuthError(error: unknown, weakPasswordMessage?: string, productName?: string): FormErrorState {
-  return {
-    target: authErrorTarget(error),
-    message: getAuthErrorMessage(error, weakPasswordMessage, productName),
-    emailInvalid: false,
-    passwordInvalid: false,
-  };
+  const { message, target } = getAuthError(error, weakPasswordMessage, productName);
+  return { target, message, emailInvalid: false, passwordInvalid: false };
+}
+
+/** A message of the screen's own (not from the server): on the named field, or the form's. */
+export function localError(target: AuthErrorTarget, message: string): FormErrorState {
+  return { target, message, emailInvalid: false, passwordInvalid: false };
 }
 
 /** Submit with a field empty: the form's message, and only the empty field(s) red. */
@@ -46,7 +47,7 @@ export function missingFields(email: string, password: string): FormErrorState {
 
 /** The local password-rule check failed: about the password, so on the Password field. */
 export function weakPasswordLocal(message: string): FormErrorState {
-  return { target: 'password', message, emailInvalid: false, passwordInvalid: false };
+  return localError('password', message);
 }
 
 /** What the screen draws for a state: one message in one place, and a red box only where it is earned. */

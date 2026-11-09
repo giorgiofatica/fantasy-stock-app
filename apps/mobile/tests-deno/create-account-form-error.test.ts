@@ -16,7 +16,7 @@ Deno.test('no error: nothing on any field, no form message', () => {
 
 Deno.test('the email-send cap is the FORM\'s message: no field error, no red border anywhere', () => {
   const v = viewOf(fromAuthError({ code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' }, RULE, 'Stockpile'));
-  assertEquals(v.formMessage, "We can't send another email right now. Try again in about an hour.");
+  assertEquals(v.formMessage, "We can't send another email right now. Try again later.");
   assertEquals([v.emailError, v.passwordError, v.emailInvalid, v.passwordInvalid], [null, null, false, false]);
 });
 
