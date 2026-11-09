@@ -7,6 +7,7 @@ import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { PasswordRevealButton, usePasswordReveal } from './PasswordReveal';
+import { secureHostInputProps } from '@/lib/passwordReveal';
 
 // Phase 3b-1 — the board's form field (docs/design/screens/screens.css
 // .ks-field*): a label, a 50pt box on `surface` with a `borderStrong`
@@ -121,6 +122,9 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
           allowFontScaling={inputFontSize || font ? false : undefined}
           secureTextEntry={reveal.secureTextEntry}
           {...input}
+          // AFTER the spread: a secure host keeps these in the shown state too, so the keyboard neither suggests nor learns the password
+          // (lib/passwordReveal.ts). textContentType / autoComplete stay the caller's, spread above, and never change on a toggle.
+          {...secureHostInputProps(secureTextEntry)}
         />
         {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
         {reveal.hasToggle ? <PasswordRevealButton reveal={reveal} boxPadding={boxPadding} /> : null}

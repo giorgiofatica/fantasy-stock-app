@@ -58,3 +58,25 @@ export function revealTrailingMargin(glyphPt: number, boxPaddingPt: number): num
   const inset = (REVEAL_HIT_PT - glyphPt) / 2;
   return -Math.min(inset, Math.max(boxPaddingPt, 0));
 }
+
+/**
+ * The input props a password field keeps in BOTH states, shown or hidden (build 13, Giorgio's recording of 1.3.0 (12): with the eye open
+ * the QuickType bar offered his saved email addresses over the password). Once `secureTextEntry` is off, iOS treats the box as ordinary
+ * text: it autocorrects, spell-checks, LEARNS the word, and suggests. So a secure host pins these, whatever the toggle shows.
+ *
+ * What stays with the caller and never changes on a toggle: `textContentType` (password / newPassword / ...) and `autoComplete`; they are
+ * spread through Field untouched, so the system still knows the box is a password. Only `secureTextEntry` flips (the no-remount rule, above).
+ */
+export interface SecureHostInput {
+  autoCorrect: false;
+  spellCheck: false;
+  autoCapitalize: 'none';
+}
+
+const SECURE_HOST_INPUT: SecureHostInput = { autoCorrect: false, spellCheck: false, autoCapitalize: 'none' };
+
+/** The pinned props for a field its caller marked secure, else nothing (a plain text field keeps whatever its caller chose). */
+export function secureHostInputProps(callerSecure: boolean | undefined): SecureHostInput | Record<string, never> {
+  return callerSecure === true ? SECURE_HOST_INPUT : {};
+}
+
