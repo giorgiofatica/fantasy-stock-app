@@ -22,3 +22,8 @@ import { parseDeleteFixture } from '../account/deleteCapture';
 
 export const DELETE_FIXTURE = parseDeleteFixture(__DEV__, process.env.EXPO_PUBLIC_DELETE_FIXTURE);
 export const DELETED_NOTICE_FIXTURE = __DEV__ && process.env.EXPO_PUBLIC_DELETED_NOTICE === '1';
+
+// Create account (build 13): a mocked sign-up error and dummy pre-filled values (lib/auth/signupCapture.ts). Dev builds only.
+import { parseSignupCapture } from '../auth/signupCapture';
+
+export const SIGNUP_CAPTURE = parseSignupCapture(__DEV__, { error: process.env.EXPO_PUBLIC_SIGNUP_ERROR, prefill: process.env.EXPO_PUBLIC_SIGNUP_PREFILL });

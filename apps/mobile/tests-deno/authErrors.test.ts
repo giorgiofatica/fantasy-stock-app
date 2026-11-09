@@ -17,8 +17,9 @@
  * weakPasswordMessage rather than importing PASSWORD_RULE_SENTENCE; the
  * real call sites (login.tsx, reset-password.tsx) pass the real one.
  */
-import { assertEquals } from 'jsr:@std/assert';
-import { getAuthErrorMessage, isSignupsPausedError } from '../lib/authErrors.ts';
+import { assert, assertEquals, assertNotEquals } from 'jsr:@std/assert';
+import { authErrorTarget, classifyAuthError, EMAIL_RATE_LIMIT_MESSAGE, getAuthErrorMessage, isSignupsPausedError, REQUEST_RATE_LIMIT_MESSAGE } from '../lib/authErrors.ts';
+import { SOURCES } from './sourceManifest.generated.ts';
 
 const RULE_SENTENCE_STANDIN = 'Use at least 8 characters, with an uppercase letter, a lowercase letter, a number, and a symbol.';
 
@@ -88,6 +89,81 @@ Deno.test('getAuthErrorMessage: rate limited', () => {
     getAuthErrorMessage({ code: 'over_request_rate_limit', message: 'For security purposes, you can only request this once every 60 seconds.' }),
     'Too many attempts — please wait a minute and try again.'
   );
+});
+
+// Build 13 (Giorgio's recording of 1.3.0 (12)): Supabase's built-in SMTP is capped PER HOUR for the whole project, so the email-send
+// cap cannot say "wait a minute". It has its own line; the per-request cap keeps the minute.
+Deno.test('getAuthErrorMessage: the EMAIL-send cap has its own line, and it is not the one-minute line', () => {
+  const email = getAuthErrorMessage({ code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' });
+  assertEquals(email, EMAIL_RATE_LIMIT_MESSAGE);
+  assertEquals(email.includes('minute'), false);
+  assertEquals(email.includes('hour'), true);
+  assertNotEquals(email, REQUEST_RATE_LIMIT_MESSAGE);
+});
+
+Deno.test('getAuthErrorMessage: the per-request cap keeps the one-minute line (unchanged wording)', () => {
+  assertEquals(REQUEST_RATE_LIMIT_MESSAGE, 'Too many attempts — please wait a minute and try again.');
+  assertEquals(getAuthErrorMessage({ code: 'over_request_rate_limit', message: 'x' }), REQUEST_RATE_LIMIT_MESSAGE);
+  // A rate-limit message with no code (a transport quirk) is the per-request line, not the hour line.
+  assertEquals(getAuthErrorMessage({ message: 'Rate limit exceeded' }), REQUEST_RATE_LIMIT_MESSAGE);
+  assertEquals(getAuthErrorMessage({ message: 'For security purposes, you can only request this after 12 seconds.' }), REQUEST_RATE_LIMIT_MESSAGE);
+});
+
+Deno.test('the email cap is also recognised from its message when GoTrue sends no code', () => {
+  assertEquals(classifyAuthError({ message: 'Email rate limit exceeded' }), 'email_rate_limit');
+  assertEquals(classifyAuthError({ code: 'over_email_send_rate_limit' }), 'email_rate_limit');
+});
+
+// GoTrue sends over_email_send_rate_limit for the per-address minimum interval too; only the message tells the two apart.
+Deno.test('over_email_send_rate_limit WITH the minimum-interval message is the one-minute line, not the hour line', () => {
+  const interval = { code: 'over_email_send_rate_limit', message: 'For security purposes, you can only request this after 60 seconds.' };
+  assertEquals(classifyAuthError(interval), 'request_rate_limit');
+  assertEquals(getAuthErrorMessage(interval), REQUEST_RATE_LIMIT_MESSAGE);
+  assertEquals(authErrorTarget(interval), 'form');
+});
+
+Deno.test('the approved wording is ONE constant: no other app source spells the email-cap line', () => {
+  const needle = "We can't send another email";
+  const hits = Object.entries(SOURCES).filter(([, t]) => t.includes(needle)).map(([f]) => f);
+  assertEquals(hits, ['lib/authErrors.ts']);
+  // And it is marked pending approval where it lives, so nobody ships it as settled copy.
+  assert(SOURCES['lib/authErrors.ts'].includes('PENDING APPROVAL'));
+});
+
+// Which part of a form shows an error (lib/authErrors.ts authErrorTarget; lib/auth/formError.ts draws it).
+Deno.test('authErrorTarget: field errors stay on their field', () => {
+  assertEquals(authErrorTarget({ code: 'weak_password', message: 'Password should be at least 8 characters.' }), 'password');
+  assertEquals(authErrorTarget({ code: 'email_address_invalid', message: 'x' }), 'email');
+  assertEquals(authErrorTarget({ message: 'Unable to validate email address: invalid format' }), 'email');
+  assertEquals(authErrorTarget({ code: 'user_already_exists', message: 'User already registered' }), 'email');
+});
+
+Deno.test('authErrorTarget: an error about no field is the FORM\'s (rate limits, network, signups paused, generic, nothing)', () => {
+  for (const e of [
+    { code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' },
+    { code: 'over_request_rate_limit', message: 'x' },
+    { message: 'Network request failed' },
+    { message: 'Signups not open for new signups' },
+    { message: 'boom' },
+    {},
+    null,
+  ]) {
+    assertEquals(authErrorTarget(e), 'form', JSON.stringify(e));
+  }
+});
+
+Deno.test('every kind classifyAuthError can return has a message AND a target (they read one verdict, so they cannot drift)', () => {
+  const samples = [
+    { code: 'invalid_credentials' }, { code: 'email_not_confirmed' }, { code: 'user_already_exists' }, { code: 'same_password' },
+    { code: 'weak_password' }, { code: 'email_address_invalid' }, { code: 'over_email_send_rate_limit' }, { code: 'over_request_rate_limit' },
+    { message: 'Signups not open for new signups' }, { message: 'Network request failed' }, { message: 'zzz' },
+  ];
+  const kinds = new Set(samples.map(classifyAuthError));
+  assertEquals(kinds.size, samples.length, 'each sample is a distinct kind');
+  for (const e of samples) {
+    assert(getAuthErrorMessage(e).length > 0);
+    assert(['email', 'password', 'form'].includes(authErrorTarget(e)));
+  }
 });
 
 Deno.test('getAuthErrorMessage: signups closed — Giorgio\'s final text, verbatim, through brand.name', () => {
