@@ -67,6 +67,7 @@ export default function CreateAccountScreen() {
   const creating = useRef(false);
 
   const passwordRules = PASSWORD_REQUIREMENTS.map((r) => ({ label: r.label, ok: r.test(password) }));
+  const errorView = viewOf(formError);
 
   /** The signups-paused refusal: the panel replaces the primary, the keyboard drops and the panel
    * scrolls into view (a jump under Reduce Motion). */
@@ -75,6 +76,23 @@ export default function CreateAccountScreen() {
     Keyboard.dismiss();
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: !reduced }), 0);
   }
+
+  // The form's message appears under the fields: bring it into the window (a jump under Reduce Motion), after it has laid out, and again when the
+  // keyboard has finished closing (Return blurs the field: the footer's second line comes back and shortens the window, so the message would
+  // otherwise sit under the footer at the largest text size).
+  const formMessage = errorView.formMessage;
+  useEffect(() => {
+    if (!formMessage) return;
+    const toEnd = () => scrollRef.current?.scrollToEnd({ animated: !reduced });
+    const t = setTimeout(toEnd, 0);
+    const hidden = Keyboard.addListener('keyboardDidHide', toEnd);
+    return () => {
+      clearTimeout(t);
+      hidden.remove();
+    };
+    // The message text is the trigger; `reduced` only picks the animation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formMessage]);
 
   // DEV captures only (lib/shell/captureKnobs.ts): take the SAME refusal path once the form has
   // laid out, so the capture shows what a real refusal shows (the panel scrolled into view).
@@ -127,15 +145,10 @@ export default function CreateAccountScreen() {
     setStatus('done');
   }
 
-  const errorView = viewOf(formError);
   const footer = paused ? (
     <Button label="Sign in instead" variant="secondary" onPress={() => router.replace('/login')} />
   ) : (
-    <>
-      {/* The form's own message (a rate limit, the network, a missing field): docked here so it is always in view, and no field wears it. */}
-      {errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null}
-      <Button label="Create account" status={status} onPress={handleCreate} />
-    </>
+    <Button label="Create account" status={status} onPress={handleCreate} />
   );
   // The "Already have an account?" line is the footer's secondary: it goes while the keyboard is up (AuthScaffold), so the fields
   // keep the window at the largest text size.
@@ -205,6 +218,9 @@ export default function CreateAccountScreen() {
           rules={passwordRules}
         />
       </View>
+      {/* The form's own message (a rate limit, the network, a missing field), under the fields and in the scroll body: docked in the footer it
+          would take most of the screen at the largest text size. No field wears it. It is scrolled into view when it appears (above). */}
+      {errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null}
       {paused ? (
         <WarnPanel text={`${brand.name} is not open for new signups yet — check back soon. Existing accounts can still sign in.`} />
       ) : null}
