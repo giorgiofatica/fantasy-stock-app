@@ -72,7 +72,8 @@ Deno.test('a layout and a content-size change both settle: the offset is clamped
   assert(onSize.includes('contentHeightRef.current = h;') && onSize.includes('settle();'));
   const settle = scaffold.slice(scaffold.indexOf('const settle = useCallback'), scaffold.indexOf('const step = useCallback'));
   assert(settle.includes('settleOffset(offset.current, contentHeightRef.current, viewportHeight.current)'));
-  assert(settle.includes('scrollTo({ y, animated: false })'), 'the clamp is instant: no animation back to 0');
+  assert(settle.includes('scrollTo({ y, animated: !reducedRef.current })'), 'back to rest animates, and is instant under Reduce Motion (R2)');
+  assert(scaffold.includes('const { reduced } = useMotion();'));
   assert(settle.includes('offset.current = y;'));
 });
 

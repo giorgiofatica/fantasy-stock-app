@@ -11,6 +11,7 @@ import { FooterFade } from '@/components/shell/FooterFade';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
+import { useMotion } from '@/components/sp/motion';
 
 // Phase 3b-1 — the frame every auth / first-run screen shares: the theme's
 // `bg`, safe areas, a scrolling body, and an optional footer that rides
@@ -45,6 +46,9 @@ interface RevealScroll {
 export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { reduced } = useMotion();
+  const reducedRef = useRef(reduced);
+  reducedRef.current = reduced;
 
   // The scaffold's own handle on the ScrollView, beside the caller's (delete-account scrolls it to the end).
   const scrollRef = useRef<ScrollView | null>(null);
@@ -110,7 +114,8 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
     const y = settleOffset(offset.current, contentHeightRef.current, viewportHeight.current);
     if (y !== null) {
       offset.current = y;
-      (scrollRef.current as unknown as RevealScroll | null)?.scrollTo({ y, animated: false });
+      // Back to rest animates, except under Reduce Motion (R2 of docs/plans/2026-11-09-auth-screen-layout.md).
+      (scrollRef.current as unknown as RevealScroll | null)?.scrollTo({ y, animated: !reducedRef.current });
     }
   }, []);
 
