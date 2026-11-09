@@ -5,7 +5,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
-import { footerSecondaryShown, keyboardUpAfter, revealOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { contentFits, footerSecondaryShown, keyboardUpAfter, revealOffset, settleOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
 import { FieldBlockContext } from '@/components/shell/FieldBlockContext';
 import { FooterFade } from '@/components/shell/FooterFade';
 import { Icon } from '@/components/sp/Icon';
@@ -59,6 +59,9 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
   const [keyboardUp, setKeyboardUp] = useState(false);
   const inField = useRef(false);
   const viewportHeight = useRef(0);
+  const contentHeightRef = useRef(0);
+  // Scrolling (and the bounce) only while the content is taller than the window (authFieldReveal.ts contentFits).
+  const [scrollable, setScrollable] = useState(false);
   // The footer's fade (FooterFade): where the scroll window is in its content, so the fade shows only while content runs under the footer.
   const scrollY = useSharedValue(0);
   const windowHeight = useSharedValue(0);
@@ -100,6 +103,16 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
       () => {},
     );
   }, [contentHeight]);
+
+  /** The window or the content changed: scroll only if there is something to scroll, and put the offset back where it can be (a fitting page rests at 0). */
+  const settle = useCallback(() => {
+    setScrollable(!contentFits(contentHeightRef.current, viewportHeight.current));
+    const y = settleOffset(offset.current, contentHeightRef.current, viewportHeight.current);
+    if (y !== null) {
+      offset.current = y;
+      (scrollRef.current as unknown as RevealScroll | null)?.scrollTo({ y, animated: false });
+    }
+  }, []);
 
   const step = useCallback(
     (event: RevealEvent) => {
@@ -151,6 +164,7 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           onLayout={(e) => {
             viewportHeight.current = e.nativeEvent.layout.height;
             windowHeight.value = e.nativeEvent.layout.height;
+            settle();
             step('layout');
           }}
           onScroll={(e) => {
@@ -159,7 +173,12 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           }}
           onContentSizeChange={(_w, h) => {
             contentHeight.value = h;
+            contentHeightRef.current = h;
+            settle();
           }}
+          scrollEnabled={scrollable}
+          alwaysBounceVertical={false}
+          bounces={scrollable}
           scrollEventThrottle={16}
           style={styles.fill}
           contentContainerStyle={[styles.body, centerBody && styles.bodyCentered, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}

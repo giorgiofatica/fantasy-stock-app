@@ -88,6 +88,32 @@ export function revealOffset(i: RevealInput): number {
 }
 
 /**
+ * A screen that fits does not scroll (build 13, Giorgio: "There really should not be a reason why it should be able to scroll.").
+ * With the keyboard down Create account's content fits the window, yet build 12 let it scroll, bounce, and REST at different offsets (the
+ * brand at y 67 / 113 / 150, the title under the status bar): a reveal had scrolled it while the keyboard was up, and UIKit never
+ * re-clamps an offset when the window GROWS back. So:
+ *   - scrolling (and the bounce) is on only while the content is taller than the window (`contentFits`);
+ *   - whenever the window or the content changes, the offset is clamped into the range it can have now (`settleOffset`): content that
+ *     fits rests at 0, and an offset past the end comes back to the end.
+ * #345's reveal sets no content inset, so the stale offset was the whole of it.
+ */
+const FIT_SLACK = 0.5; // layout rounds to the pixel: half a point of overflow is not a reason to scroll
+
+/** Whether the content fits the window (nothing to scroll). Before either has been measured it counts as fitting, so nothing scrolls or bounces on a blank frame. */
+export function contentFits(contentHeight: number, viewportHeight: number): boolean {
+  if (!(contentHeight > 0) || !(viewportHeight > 0)) return true;
+  return contentHeight <= viewportHeight + FIT_SLACK;
+}
+
+/** The offset to snap to when the current one is outside what the content can scroll to now, or null when it is fine where it is. */
+export function settleOffset(current: number, contentHeight: number, viewportHeight: number): number | null {
+  if (!(viewportHeight > 0) || !(contentHeight > 0)) return null; // not measured yet: leave it
+  const max = contentFits(contentHeight, viewportHeight) ? 0 : contentHeight - viewportHeight;
+  if (current < 0 || current > max) return Math.min(Math.max(current, 0), max);
+  return null;
+}
+
+/**
  * The docked footer's SECONDARY line (create account's "Already have an account? Sign in") is hidden while the keyboard is up.
  * At the largest accessibility size that one line, wrapped to three lines, took ~200pt of a window the keyboard had already cut
  * to ~130pt, so only one field fitted above the footer: the bug again, at Giorgio's size (Design Lead gate on #345). With the
