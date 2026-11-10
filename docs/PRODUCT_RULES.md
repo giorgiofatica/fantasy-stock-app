@@ -847,6 +847,9 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
   - A focused field moves the screen only as far as it must: "When I click on the password
     field, it like shoots the like screen up super high. So the password thing is at the very
     top, and there's a huge gap". Never pinned to the top; this replaces the build-12 rule.
+  - **When the field, its rules and an error can't all fit above the keyboard** (largest text
+    sizes): the box being typed in stays in view; the error and the rules give way first, then
+    the label (2026-11-10, Giorgio: "A, box wins").
   - The wordmark is never cut: "the stockpile at the top is cut off."
   - An error sits where its cause is; a message that is not about a field never marks a field.
   - **Show / hide password** (2026-11-06): "we should add a hide/view eye icon for the
