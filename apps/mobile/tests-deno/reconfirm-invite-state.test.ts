@@ -161,10 +161,10 @@ Deno.test("the 'invite' fixture carries choice 'invite' on the reconfirm blocker
 });
 
 Deno.test('EXPO_PUBLIC_DRAFT_START_FIXTURE takes an :invite flag, alone or with :member', () => {
-  assertEquals(parseDraftStartFixture('at_risk:invite'), { state: 'at_risk', member: false, invite: true });
-  assertEquals(parseDraftStartFixture('at_risk:member:invite'), { state: 'at_risk', member: true, invite: true });
-  assertEquals(parseDraftStartFixture('at_risk:invite:member'), { state: 'at_risk', member: true, invite: true });
-  assertEquals(parseDraftStartFixture('at_risk'), { state: 'at_risk', member: false, invite: false });
+  assertEquals(parseDraftStartFixture('at_risk:invite'), { state: 'at_risk', member: false, invite: true, below4: false });
+  assertEquals(parseDraftStartFixture('at_risk:member:invite'), { state: 'at_risk', member: true, invite: true, below4: false });
+  assertEquals(parseDraftStartFixture('at_risk:invite:member'), { state: 'at_risk', member: true, invite: true, below4: false });
+  assertEquals(parseDraftStartFixture('at_risk'), { state: 'at_risk', member: false, invite: false, below4: false });
   const res = invokeFixtureFor('draft-control', { action: 'status' }, 'postponed:invite', null) as { data: { blockers: { code: string; choice?: string }[] } };
   assertEquals(res.data.blockers.find((b) => b.code === 'roster_reconfirm_required')?.choice, 'invite');
 });
@@ -199,10 +199,11 @@ Deno.test('the League tab draws the lobby through lobbyShowsOrder, never a defau
   assert(!LEAGUE.includes('view?.order ?? true'));
 });
 
-// ── "Move forward" below 4 members: one gate, ruling pending ──
+// ── "Move forward" below 4 members: one gate (Giorgio's rule B: from four up, as before; below it, no choice) ──
 
-Deno.test('showMoveForward is the one gate for both Move forward buttons, and returns true until the ruling', () => {
-  for (const members of [0, 1, 2, 3, 4, 5, 8, 12]) assertEquals(showMoveForward(members), true, `${members}`);
+Deno.test('showMoveForward is the one gate for both Move forward buttons: offered from four managers up, never below', () => {
+  for (const members of [0, 1, 2, 3]) assertEquals(showMoveForward(members), false, `${members}`);
+  for (const members of [4, 5, 8, 12]) assertEquals(showMoveForward(members), true, `${members}`);
   assertEquals(CARD.split('showMoveForward(view.members)').length - 1, 2, 'one gate per button, none hand-rolled');
   // Each gate wraps its own button: the pending "Move forward with N" and the waiting "... instead".
   assert(/showMoveForward\(view\.members\) \? \(\s*<TextAction label=\{view\.moveForward\}/.test(CARD));
@@ -235,12 +236,12 @@ Deno.test('the foot only when the owning sub-card is gone, or the owner is the f
 });
 
 Deno.test('the card renders the refusal once: inside its sub-card under the controls, or at the foot, never both', () => {
-  assert(CARD.includes('const placement = errorPlacement(error, errorOwner, blockers);'));
+  assert(CARD.includes('const placement = errorPlacement(error, errorOwner, cards);'));
   // Inside the sub-card, after the controls (fixFor), inside the Card.
   assert(/\{fixFor\(b\)\}\s*\{placement\.subCard === i \? errorLine : null\}\s*<\/Card>/.test(CARD));
   // At the foot only on the fallback, after the sub-cards and the Pick-a-new-time block.
   assertEquals(CARD.split('errorLine : null').length - 1, 2, 'sub-card and foot, nothing else');
-  assert(CARD.indexOf('{placement.foot ? errorLine : null}') > CARD.indexOf('{blockers.map((b, i) => ('));
+  assert(CARD.indexOf('{placement.foot ? errorLine : null}') > CARD.indexOf('{cards.map((b, i) => ('));
   assert(CARD.indexOf('{placement.foot ? errorLine : null}') > CARD.indexOf('label={PICK_NEW_TIME}'));
   // The live region stays on the one line element.
   assertEquals(CARD.split('accessibilityLiveRegion="polite"').length - 1, 1);
@@ -524,4 +525,162 @@ Deno.test('the stepper label takes the cap only when asked: other callers scale 
   for (const f of ['app/create-league.tsx', 'components/game/RenewalChangeSheet.tsx', 'app/league-settings.tsx']) {
     if (SOURCES[f]?.includes('<Stepper')) assert(!SOURCES[f].includes('labelMaxScale'), `${f} is unchanged`);
   }
+});
+
+// ── Giorgio's rule B: below four managers, ONE sub-card (PRODUCT_RULES "When managers leave before the draft, below four") ──
+// Phone pass step 23 (League A, 2 of 4): "Move forward with 2" could only be refused. Below four there is no Move forward and no
+// Invite someone new: the reconfirm and not_enough_members blockers are drawn as one card (who left, "Fewer than 4 teams have
+// joined.", the code and Share). The server is untouched: both codes stay. At four or more, nothing changes.
+
+import { MIN_DRAFT_MEMBERS, belowMinLine, blockerClause, blockerTitle, mergeBelowMin } from '../lib/game/autoStart.ts';
+
+type B = { code: string; [k: string]: unknown };
+const GONE = (members: number, choice?: string, extra: Record<string, unknown> = {}): B => ({
+  code: 'roster_reconfirm_required', departed: [{ name: 'Gianluigi B.' }, { name: 'Paolo M.' }], membersBefore: 4, members, ...(choice ? { choice } : {}), ...extra,
+});
+const SHORT = (have: number, need = 4): B => ({ code: 'not_enough_members', have, need });
+const PLAYOFF: B = { code: 'playoff_teams_exceeds_members', playoffTeams: 8, members: 7 };
+
+Deno.test('the client\'s minimum is the server\'s (draft-control rules.ts MIN_DRAFT_MEMBERS)', async () => {
+  assertEquals(MIN_DRAFT_MEMBERS, 4);
+  const rules = await Deno.readTextFile(new URL('../../../supabase/functions/draft-control/rules.ts', import.meta.url));
+  assert(/MIN_DRAFT_MEMBERS\s*=\s*4\b/.test(rules), 'the server still says four');
+});
+
+Deno.test('the line is the existing clause as a sentence: "Fewer than 4 teams have joined."', () => {
+  assertEquals(belowMinLine(), 'Fewer than 4 teams have joined.');
+  assertEquals(belowMinLine(4), 'Fewer than 4 teams have joined.');
+  assertEquals(belowMinLine(5), 'Fewer than 5 teams have joined.');
+  assertEquals(blockerClause({ code: 'not_enough_members', need: 4 }), 'fewer than 4 teams have joined', 'the source of the sentence');
+});
+
+Deno.test('below four the two blockers are ONE: the leaver card absorbs not_enough_members, the rest of the list is kept in order', () => {
+  const list = [GONE(2, 'pending'), SHORT(2), { code: 'draft_date_not_reached' }];
+  const merged = mergeBelowMin(list, 2);
+  assertEquals(merged.map((b) => b.code), ['roster_reconfirm_required', 'draft_date_not_reached']);
+  assertEquals(merged[0].absorbs, ['not_enough_members']);
+  assertEquals(merged[0].need, 4);
+  assertEquals(merged[0].departed, list[0].departed);
+  assertEquals(blockerTitle(merged[0]), 'Gianluigi B. and Paolo M. left the league');
+  // The server's list is not mutated: the card combines, the data does not change.
+  assertEquals(list.map((b) => b.code), ['roster_reconfirm_required', 'not_enough_members', 'draft_date_not_reached']);
+  assertEquals(list[0].absorbs, undefined);
+});
+
+Deno.test('from four up, and with no reconfirm, the list is returned as it came (nothing changes)', () => {
+  for (const members of [4, 5, 7]) {
+    const list = [GONE(members, 'pending'), PLAYOFF];
+    assert(mergeBelowMin(list, members) === list, `${members} keeps the same list`);
+  }
+  const justShort = [SHORT(3)];
+  assert(mergeBelowMin(justShort, 3) === justShort, 'a league that never had a reconfirm keeps its not_enough_members card');
+  assert(mergeBelowMin([], 2).length === 0);
+});
+
+Deno.test('the blocker\'s own member count decides (as reconfirmView does), the league\'s only when it has none', () => {
+  // The blocker says 3 although the league row says 9 (a stale list): the server judged it, so merged.
+  assertEquals(mergeBelowMin([GONE(3), SHORT(3)], 9).map((b) => b.code), ['roster_reconfirm_required']);
+  // The blocker says 4 although the league row says 2: four is enough, nothing merges.
+  const four = [GONE(4, 'pending'), SHORT(2)];
+  assert(mergeBelowMin(four, 2) === four);
+  // No count on the blocker: the league's.
+  const noCount: B = { code: 'roster_reconfirm_required', departed: [{ name: 'A' }] };
+  assertEquals(mergeBelowMin([noCount, SHORT(2)], 2).length, 1);
+  assert(mergeBelowMin([noCount], 6)[0] === noCount);
+});
+
+Deno.test('a reconfirm below four without the server\'s not_enough_members is still the one card, with the default need', () => {
+  const merged = mergeBelowMin([GONE(3, 'invite')], 3);
+  assertEquals(merged.length, 1);
+  assertEquals(merged[0].need, 4);
+  assertEquals(mergeBelowMin([GONE(2), SHORT(2, 5)], 2)[0].need, 5, 'the need the server spoke of');
+});
+
+Deno.test('below four there is no choice to draw, whatever the choice: pending, invite or none', () => {
+  for (const choice of ['pending', 'invite', undefined, 'mystery']) {
+    const v = reconfirmView(mergeBelowMin([GONE(2, choice), SHORT(2)], 2)[0], 2);
+    assertEquals(v, { mode: 'below_min', members: 2, line: 'Fewer than 4 teams have joined.' }, `${choice}`);
+  }
+  // The inviting state is not drawn at all below four: the merged card wins.
+  assertEquals(reconfirmView(GONE(3, 'invite'), 3).mode, 'below_min');
+  assertEquals(reconfirmView(GONE(1, 'pending'), 8).mode, 'below_min', 'the blocker\'s count, not the league\'s');
+});
+
+Deno.test('at four or more the two modes are as they were', () => {
+  assertEquals(reconfirmView(GONE(4, 'pending'), 4).mode, 'choose');
+  assertEquals(reconfirmView(GONE(7, 'pending'), 7), { mode: 'choose', members: 7 });
+  assertEquals(reconfirmView(GONE(5, 'invite'), 5).mode, 'inviting');
+  assertEquals(reconfirmView({ code: 'roster_reconfirm_required' }, 4).mode, 'choose');
+});
+
+Deno.test('a refusal owned by either code lands in the merged sub-card', () => {
+  const merged = mergeBelowMin([GONE(2), SHORT(2)], 2);
+  assertEquals(errorPlacement('x', 'roster_reconfirm_required', merged), { subCard: 0, foot: false });
+  assertEquals(errorPlacement('x', 'not_enough_members', merged), { subCard: 0, foot: false });
+  // Unmerged (four or more), not_enough_members has no card: the fallback is the foot, as before.
+  assertEquals(errorPlacement('x', 'not_enough_members', [GONE(5)]), { subCard: -1, foot: true });
+  // Another card's code never matches the merged one.
+  assertEquals(errorPlacement('x', 'playoff_teams_exceeds_members', merged), { subCard: -1, foot: true });
+});
+
+Deno.test('the merged title keeps both names whole (no-break inside each)', () => {
+  const merged = mergeBelowMin([GONE(2), SHORT(2)], 2)[0];
+  const t = keepDepartedNames(merged, blockerTitle(merged));
+  assertEquals(t, 'Gianluigi' + NB + 'B. and Paolo' + NB + 'M. left the league');
+});
+
+Deno.test('the card draws the merged list and, below four, only the line and the invite row: no button of any kind', () => {
+  assert(CARD.includes('const cards = mergeBelowMin(blockers, memberCount);'));
+  assert(CARD.includes('{cards.map((b, i) => ('));
+  const branch = CARD.slice(CARD.indexOf("if (view.mode === 'below_min') {"), CARD.indexOf("if (view.mode === 'inviting') {"));
+  assert(branch.length > 60, 'the below_min branch exists, before the inviting one');
+  assert(branch.includes('{view.line}') && branch.includes('{inviteRow()}'));
+  assert(branch.indexOf('{view.line}') < branch.indexOf('{inviteRow()}'), 'the line, then the code');
+  assert(branch.includes('maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}'), 'the line is capped like every sub-card line');
+  for (const control of ['Button', 'TextAction', 'choose(', 'onReconfirm', 'moveForward', 'INVITE_SOMEONE_NEW']) {
+    assert(!branch.includes(control), 'no ' + control + ' below four');
+  }
+  // The gates still guard both buttons for four or more.
+  assertEquals(CARD.split('showMoveForward(view.members)').length - 1, 2);
+});
+
+Deno.test('the Pick-a-new-time gate still counts the server\'s blockers, not the merged cards (still blocked until four are in)', () => {
+  assert(CARD.includes('const blocked = blockers.length > 0;'));
+});
+
+// ── the dev seam's 2-of-4 league ──
+
+Deno.test('<state>:below4 is a league of two (two of four left): the server\'s two blockers, no playoff blocker, member_count 2', () => {
+  assertEquals(parseDraftStartFixture('postponed:below4'), { state: 'postponed', member: false, invite: false, below4: true });
+  assertEquals(parseDraftStartFixture('at_risk:below4:invite'), { state: 'at_risk', member: false, invite: true, below4: true });
+  assertEquals(parseDraftStartFixture('at_risk:invite:member:below4'), { state: 'at_risk', member: true, invite: true, below4: true });
+  for (const state of ['at_risk', 'postponed'] as const) {
+    const s = draftStartStatusFixture(state, false, NOW, false, true) as { member_count: number; blockers: B[] };
+    assertEquals(s.member_count, 2, state);
+    const fixable = fixableBlockers(s.blockers);
+    assertEquals(fixable.map((b) => b.code), ['roster_reconfirm_required', 'not_enough_members'], state);
+    assertEquals(fixable[0].members, 2);
+    assertEquals(fixable[0].choice, 'pending');
+    assertEquals(mergeBelowMin(fixable, 2).length, 1, state);
+    // The choice the flag combines with.
+    const inv = draftStartStatusFixture(state, false, NOW, true, true) as { blockers: B[] };
+    assertEquals(fixableBlockers(inv.blockers)[0].choice, 'invite');
+  }
+});
+
+Deno.test('without the flag the sample league is unchanged: seven in, the reconfirm and the playoff blocker, nothing merges', () => {
+  for (const state of ['at_risk', 'postponed'] as const) {
+    const s = draftStartStatusFixture(state, false, NOW) as { member_count: number; blockers: B[] };
+    assertEquals(s.member_count, 7);
+    const fixable = fixableBlockers(s.blockers);
+    assertEquals(fixable.map((b) => b.code), ['roster_reconfirm_required', 'playoff_teams_exceeds_members']);
+    assert(mergeBelowMin(fixable, 7) === fixable);
+  }
+});
+
+Deno.test('the seam serves it through draft-control status when the flag is in EXPO_PUBLIC_DRAFT_START_FIXTURE', () => {
+  const res = invokeFixtureFor('draft-control', { action: 'status' }, 'postponed:below4', null, null) as { data: { member_count: number; blockers: B[] } };
+  assertEquals(res.data.member_count, 2);
+  assertEquals(fixableBlockers(res.data.blockers).length, 2);
+  assert(SOURCES['lib/game/seamFixtures.ts'].includes('picked.invite, picked.below4)'));
 });

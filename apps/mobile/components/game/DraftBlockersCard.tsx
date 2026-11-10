@@ -20,6 +20,7 @@ import {
   blockersCardCopy,
   errorPlacement,
   keepDepartedNames,
+  mergeBelowMin,
   moveForwardLabel,
   playoffFixLine,
   reconfirmView,
@@ -89,6 +90,8 @@ export function DraftBlockersCard({
 }: DraftBlockersCardProps) {
   const { colors } = useTheme();
   const copy = blockersCardCopy(phase, deadlineLabel);
+  // Below four, who left and "Fewer than 4 teams have joined." are ONE sub-card (rule B); from four up the list is as it came.
+  const cards = mergeBelowMin(blockers, memberCount);
   const { min, max } = playoffStepperBounds(memberCount);
   const current = playoffTeams ?? 0;
 
@@ -117,6 +120,15 @@ export function DraftBlockersCard({
   const fixFor = (b: Blocker) => {
     if (b.code === 'roster_reconfirm_required') {
       const view = reconfirmView(b, memberCount);
+      if (view.mode === 'below_min') {
+        // No choice below four: the line, then the code and Share (the shared invite row; Share is null while hidden).
+        return (
+          <>
+            <Text variant="caption" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}>{view.line}</Text>
+            {inviteRow()}
+          </>
+        );
+      }
       if (view.mode === 'inviting') {
         return (
           <>
@@ -165,7 +177,7 @@ export function DraftBlockersCard({
     return keepDepartedNames(b, view.mode === 'inviting' ? view.title : blockerTitle(b));
   };
   // A refusal sits under the controls of the sub-card that caused it; the foot only when that sub-card is gone.
-  const placement = errorPlacement(error, errorOwner, blockers);
+  const placement = errorPlacement(error, errorOwner, cards);
   const errorLine = error ? (
     <Text variant="callout" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE} color={colors.danger} accessibilityLiveRegion="polite">
       {error}
@@ -180,7 +192,7 @@ export function DraftBlockersCard({
         <Text variant="headline" style={styles.bold}>{keepTime(copy.title)}</Text>
         <Text variant="caption" subOf="headline">{keepTime(copy.line)}</Text>
       </View>
-      {blockers.map((b, i) => (
+      {cards.map((b, i) => (
         <Card key={`${b.code}-${i}`} style={styles.blocker}>
           <Text variant="callout" subOf="headline" style={styles.bold}>{subCardTitle(b)}</Text>
           {fixFor(b)}
