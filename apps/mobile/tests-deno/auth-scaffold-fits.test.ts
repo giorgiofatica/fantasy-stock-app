@@ -7,7 +7,7 @@
  * Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { contentFits, settleOffset } from '../components/shell/authFieldReveal.ts';
+import { contentFits, rememberRest, restTarget, settleOffset } from '../components/shell/authFieldReveal.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
 Deno.test('contentFits: content no taller than the window fits (nothing to scroll), taller does not', () => {
@@ -86,4 +86,42 @@ Deno.test('the keyboard closing is covered by the layout path: the window grows,
 Deno.test('#345\'s reveal leaves no content inset behind (the stale offset was the whole of the rest-position bug)', () => {
   const code = (t: string) => t.split('\n').filter((l) => !l.trim().startsWith('//') && !l.trim().startsWith('*')).join('\n');
   assert(!/contentInset|automaticallyAdjust|scrollIndicatorInsets|contentContainerStyle=\{[^}]*(top|marginTop)/.test(code(scaffold)));
+});
+
+// ---- "exactly as before it opened": the page returns to where it was (the largest text size does not fit, so 0 is not the answer) -------
+
+Deno.test('rememberRest: the offset at which a field took focus from no field is the rest', () => {
+  assertEquals(rememberRest(null, false, false, 120), 120);
+  assertEquals(rememberRest(300, false, false, 0), 0, 'a fresh focus replaces an old rest');
+});
+
+Deno.test('rememberRest: Email -> Password (a blur, then a focus, the keyboard staying up) keeps the FIRST rest, not the scrolled offset', () => {
+  // focus Email at offset 120 -> the reveal scrolls to 400 -> blur (returning) -> focus Password: still 120.
+  const first = rememberRest(null, false, false, 120);
+  assertEquals(rememberRest(first, false, true, 400), 120);
+  // And moving focus straight between fields (no blur seen in between) keeps it too.
+  assertEquals(rememberRest(first, true, false, 400), 120);
+});
+
+Deno.test('restTarget: back to the remembered offset, clamped to what the content can scroll to now', () => {
+  assertEquals(restTarget(120, 2000, 800), 120);
+  assertEquals(restTarget(1500, 2000, 800), 1200, 'past the end comes back to the end');
+  assertEquals(restTarget(-40, 2000, 800), 0);
+  assertEquals(restTarget(120, 700, 800), 0, 'a page that fits rests at 0 whatever was remembered');
+});
+
+Deno.test('the scaffold records the rest on a focus from no field, and returns to it once the keyboard has closed', () => {
+  assert(scaffold.includes('restOffset.current = rememberRest(restOffset.current, inField.current, returning.current, offset.current);'));
+  assert(scaffold.includes("} else if (event === 'blur') {\n        returning.current = true;"));
+  const settle = scaffold.slice(scaffold.indexOf('const settle = useCallback'), scaffold.indexOf('const step = useCallback'));
+  assert(settle.includes('if (returning.current && !inField.current && restOffset.current !== null) {'));
+  assert(settle.includes('restTarget(restOffset.current, contentHeightRef.current, viewportHeight.current)'));
+  // The record is taken BEFORE inField is updated, or the first focus would look like a focus from inside a field.
+  assert(scaffold.indexOf('rememberRest(restOffset.current') < scaffold.indexOf('inField.current = s.focused;'));
+});
+
+Deno.test('the return ends when the keyboard has finished closing, and a drag cancels it (nothing pulls a page the person is holding)', () => {
+  assert(scaffold.includes("Keyboard.addListener('keyboardDidHide', () => {\n        settle();\n        returning.current = false;"));
+  const drag = scaffold.slice(scaffold.indexOf('onScrollBeginDrag={'), scaffold.indexOf('onScroll={'));
+  assert(drag.includes('returning.current = false;') && drag.includes('restOffset.current = null;'));
 });

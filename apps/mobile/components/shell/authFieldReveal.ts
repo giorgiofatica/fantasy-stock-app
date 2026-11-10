@@ -114,6 +114,25 @@ export function settleOffset(current: number, contentHeight: number, viewportHei
 }
 
 /**
+ * "Close the keyboard: the screen is exactly as before it opened" (plan R2, Done means). A page that FITS returns to 0 (settleOffset); a page that
+ * does not fit (the largest text size) keeps whatever offset a reveal left it at, so it would rest scrolled. So the scaffold remembers the offset
+ * at which focus BEGAN and, once the keyboard has closed, puts the page back there (clamped to what the content can scroll to now).
+ *
+ * `rememberRest`: the offset to return to. Taken when a field takes focus from NO field (not Email -> Password: that blur is followed by a focus
+ * while the keyboard stays up, and must not overwrite the rest the first focus recorded, which would be the scrolled offset).
+ */
+export function rememberRest(previous: number | null, wasInField: boolean, returning: boolean, offset: number): number | null {
+  if (wasInField || returning) return previous;
+  return offset;
+}
+
+/** Where the page goes back to: the remembered rest, never below 0 or past the end of the content (0 when it fits). */
+export function restTarget(rest: number, contentHeight: number, viewportHeight: number): number {
+  const max = contentFits(contentHeight, viewportHeight) ? 0 : Math.max(0, contentHeight - viewportHeight);
+  return Math.min(Math.max(rest, 0), max);
+}
+
+/**
  * The docked footer's SECONDARY line (create account's "Already have an account? Sign in") is hidden while the keyboard is up.
  * At the largest accessibility size that one line, wrapped to three lines, took ~200pt of a window the keyboard had already cut
  * to ~130pt, so only one field fitted above the footer: the bug again, at Giorgio's size (Design Lead gate on #345). With the

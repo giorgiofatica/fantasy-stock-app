@@ -5,7 +5,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
-import { contentFits, footerSecondaryShown, keyboardUpAfter, revealOffset, settleOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { contentFits, footerSecondaryShown, keyboardUpAfter, rememberRest, restTarget, revealOffset, settleOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
 import { FieldBlockContext } from '@/components/shell/FieldBlockContext';
 import { FooterFade } from '@/components/shell/FooterFade';
 import { Icon } from '@/components/sp/Icon';
@@ -72,6 +72,10 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
   const contentHeight = useSharedValue(0);
   // Where the scroll view is now (the onScroll below), and the focused Field's whole view (FieldBlockContext).
   const offset = useRef(0);
+  // The offset the page had before a field took focus, and whether a blur is waiting for the keyboard to finish closing: the page goes back to
+  // that offset once it has (authFieldReveal.ts rememberRest / restTarget).
+  const restOffset = useRef<number | null>(null);
+  const returning = useRef(false);
   const focusedBlock = useRef<View | null>(null);
   const announceBlock = useCallback((block: View | null) => {
     focusedBlock.current = block;
@@ -108,20 +112,32 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
     );
   }, [contentHeight]);
 
-  /** The window or the content changed: scroll only if there is something to scroll, and put the offset back where it can be (a fitting page rests at 0). */
+  /** The window or the content changed: scroll only if there is something to scroll, and put the offset back where it can be (a fitting page rests at 0;
+   * after a blur, once the keyboard has closed, the page returns to where it was before the field took focus). */
   const settle = useCallback(() => {
     setScrollable(!contentFits(contentHeightRef.current, viewportHeight.current));
-    const y = settleOffset(offset.current, contentHeightRef.current, viewportHeight.current);
+    const scroll = scrollRef.current as unknown as RevealScroll | null;
+    let y = settleOffset(offset.current, contentHeightRef.current, viewportHeight.current);
+    if (returning.current && !inField.current && restOffset.current !== null) {
+      const back = restTarget(restOffset.current, contentHeightRef.current, viewportHeight.current);
+      if (Math.abs(back - offset.current) >= 0.5) y = back;
+    }
     if (y !== null) {
       offset.current = y;
       // Back to rest animates, except under Reduce Motion (R2 of docs/plans/2026-11-09-auth-screen-layout.md).
-      (scrollRef.current as unknown as RevealScroll | null)?.scrollTo({ y, animated: !reducedRef.current });
+      scroll?.scrollTo({ y, animated: !reducedRef.current });
     }
   }, []);
 
   const step = useCallback(
     (event: RevealEvent) => {
       const s = stepReveal(inField.current, event);
+      if (event === 'focus') {
+        restOffset.current = rememberRest(restOffset.current, inField.current, returning.current, offset.current);
+        returning.current = false;
+      } else if (event === 'blur') {
+        returning.current = true;
+      }
       inField.current = s.focused;
       if (s.reveal) revealFocused();
     },
@@ -131,9 +147,17 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
   // A focus can land BEFORE the keyboard has shrunk the window (the content cannot scroll yet), so scroll again once the keyboard has
   // resized the scroll view (onLayout) and when it has settled (its events). Only while a field is focused.
   useEffect(() => {
-    const subs = [Keyboard.addListener('keyboardDidShow', () => step('keyboard')), Keyboard.addListener('keyboardDidChangeFrame', () => step('keyboard'))];
+    const subs = [
+      Keyboard.addListener('keyboardDidShow', () => step('keyboard')),
+      Keyboard.addListener('keyboardDidChangeFrame', () => step('keyboard')),
+      // The keyboard has finished closing (and the footer's second line is back): the last chance to put the page where it was, then the return is over.
+      Keyboard.addListener('keyboardDidHide', () => {
+        settle();
+        returning.current = false;
+      }),
+    ];
     return () => subs.forEach((x) => x.remove());
-  }, [step]);
+  }, [step, settle]);
 
   // The footer's secondary line goes while the keyboard is up. WILL events (iOS) so it is gone before the keyboard has finished
   // rising; Android has only the DID pair. Its going (and its return) resizes the scroll view, so onLayout re-scrolls to the field.
@@ -171,6 +195,11 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
             windowHeight.value = e.nativeEvent.layout.height;
             settle();
             step('layout');
+          }}
+          // A drag is the person taking the page: whatever rest was remembered is theirs to change, so nothing pulls it back.
+          onScrollBeginDrag={() => {
+            returning.current = false;
+            restOffset.current = null;
           }}
           onScroll={(e) => {
             scrollY.value = e.nativeEvent.contentOffset.y;
