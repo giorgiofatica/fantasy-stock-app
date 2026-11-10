@@ -473,6 +473,13 @@ building anything, and don't reopen a rule without him.
   - His picks: "A, a button into the room"; "A, the ESPN way" (rows show Queue, and Draft
     only when it is your pick); "A, it tells you, you tap" (at the start the app never
     replaces the screen you are on).
+  - **The order reveal:** the first time you open the room, "some sort of little animation
+    … that kind of reveals what their draft pick is". Chosen: the board seats itself (the
+    avatars shuffle and settle, your number appears alone, then the board comes in). Nothing
+    overlaps the number: "the draft grid and stuff kind of disappears for a second for that
+    big visual to pop up." And "A, keep it a surprise": your position shows nowhere, the
+    room-open notification included, until you have entered the room once. This replaces the
+    2026-10-06 line that the room-open push carries your draft position.
 - **When a draft can't start** (2026-10-06):
   - The commissioner is warned BEFORE the room opens, with time to fix it.
   - The real gate is room-open time (T−1h). If the league still isn't ready then, the

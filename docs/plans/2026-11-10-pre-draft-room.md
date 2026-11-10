@@ -1,6 +1,6 @@
 # The draft room: familiar, open an hour early, phone then laptop
 
-Status: Draft (all four decisions settled with Giorgio 2026-11-10; awaiting his "approved")
+Status: Draft (decisions and the order reveal settled with Giorgio 2026-11-10; awaiting his "approved")
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 ## Goal
@@ -40,6 +40,14 @@ All 2026-11-10, verbatim.
   just be more condensed."
 - His picks from the mockups: "A, a button into the room" · "A, the ESPN way" · "A, it
   tells you, you tap".
+- The reveal: "when someone first opens up the draft room … whenever they first open it up,
+  I want maybe like some sort of little animation of a sort that kind of reveals what their
+  draft pick is … Something cool animation that like this is your draft pick". Of four
+  concepts: "I think I like three the most" (the board seats itself). On the first sketch:
+  "I don't love that there's like a box that's on top of like the grid, and then there's
+  like, oh, intersecting lines and overlapping … the draft grid and stuff kind of disappears
+  for a second for that big visual to pop up." On the revised sketch: "much better". And:
+  "A, keep it a surprise".
 
 Earlier rulings that still hold: "the draft room will open at 11 a.m. and the draft will
 automatically start at noon" (2026-10-06); the board keeps the app's own look, "without it
@@ -62,13 +70,18 @@ being like a carbon copy of Sleeper" (2026-10-12). Familiar structure, Game Nigh
 | 11 | Before T−1h | Today's lobby (countdown, queue). The order is set when the room opens, so there is no board earlier. | Standing rule |
 | 12 | Chat, "who is here", draft grades, reactions | Not in this plan. Each is its own decision; none is needed for the room to feel familiar. | Planner |
 | 13 | A league that is not ready at T−1h | Postponed, as today; no room, and the postponed card says why. | Standing rule |
+| 14 | The order reveal | The first time you enter the room for a draft whose order was drawn at random, the order is revealed on the board: every manager's avatar shuffles along the top (fast, then slowing), they settle into their columns and the position labels fade in, your avatar is ringed and your number appears alone as large type ("You pick / 3rd / of 6"), then the number lifts away and the board and your highlighted column fade in. You are then in the room; nothing to dismiss. | Giorgio (concept 3, revised sketch) |
+| 15 | Nothing overlaps | During the shuffle and the number the board's grid is NOT drawn: an empty stage, no card or box behind the number, no lines crossing it. The grid appears only after the number has gone. | Giorgio |
+| 16 | Reveal ground rules | Once per draft per manager, on the first entry; three to four seconds; a tap skips to the end state; skipped entirely when the draft is live or within 30 seconds of starting, and when the order was not random; with Reduce Motion the end state shows with no animation; one short haptic as your column lights. In a league wider than the screen it ends centred on your column. "Seen" is remembered on the device per league and draft; a reinstall may replay it, which is harmless. | Planner |
+| 17 | Keep it a surprise | Until you have entered the room once, your position is shown nowhere else: the room-open push no longer states it, and Home's and League's cards and the lobby do not show the order. After your first entry they do. Someone who never enters before the draft simply sees their position, with no animation. This CHANGES the 2026-10-06 rule that the room-open push carries your draft position. Proposed push line (NEW copy, his to approve on the board): "The draft room is open. Come see where you pick." | Giorgio (A) |
 
 ## Open questions
 
 None for the plan. The Design Lead draws the phone room and the laptop room from these
 decisions; Giorgio approves the screens and any NEW copy on the board before the build
 (the Stocks / Queue / Team tab names, "Enter the draft room", the live card's lines, the
-slot wording, the line that says when picking starts).
+slot wording, the line that says when picking starts, the room-open push). The reveal is
+gated from a simulator RECORDING, not stills: pacing, the hold on the number, the haptic.
 
 ## Scope
 
@@ -121,6 +134,13 @@ shows where each phone tab lands so the two read as one room.
   2026-11-06 stands.
 - **Familiar, not copied.** Structure from the references; colours, tiles and type are Game
   Night. Third-party screenshots stay in `~/fantasy-stock-design-review/references/`.
+- **The surprise leaking.** The order is on the server from T−1h and `get_draft_order`
+  returns it; the surprise is a presentation rule, not a secret. The cards and the push must
+  not print it before the first entry, and the leaguemate team view and any other surface
+  that could show seat numbers is checked too. A manager who has seen it can tell the
+  others; that is fine.
+- **The reveal in the way.** It must never delay a pick: skipped when live or within 30
+  seconds of the start, and a tap ends it.
 - **Two sizes drifting.** The laptop build later must reuse the phone room's state logic
   and row-action function, not re-derive them.
 
@@ -132,6 +152,9 @@ shows where each phone tab lands so the two read as one room.
 - At T the room goes live in place; outside the room the card goes live and the app does
   not navigate by itself.
 - A postponed league has no room.
+- First entry plays the reveal once, with no element overlapping the number; a second
+  entry does not; Reduce Motion shows the end state; entering a live draft skips it; before
+  the first entry neither the push nor any card shows the manager's position.
 - Deno tests for state selection and the row-action table; simulator recordings across
   T−1h and T, in the room and outside it; Design Lead PASS at L and AX5 in both themes;
   Giorgio drafts a real League on his phone and it reads as familiar.
