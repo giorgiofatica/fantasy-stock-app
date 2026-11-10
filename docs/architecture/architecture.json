@@ -2,42 +2,26 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "fbf49f1dd3eec3bc6f80005bea31ab7730fdc8ae",
-    "commitShort": "fbf49f1d",
+    "commit": "73cb3b743ab11160fcada59cabbce2132fba489c",
+    "commitShort": "73cb3b74",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/reconfirm-invite-state",
+    "branch": "fix/reconfirm-clears-at-four",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "M",
-        "path": "apps/mobile/lib/game/autoStart.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useDraftAutoStart.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useDraftStatus.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-auto-start.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/reconfirm-invite-state.test.ts"
+        "code": "??",
+        "path": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql"
       }
     ],
-    "timestamp": "2026-11-10T18:20:00Z",
-    "sourceHash": "sha256:d5a64aa8932aef7992b2d712b76aa57a2d58bdbdd821f4325eb79b04a46a1dae",
+    "timestamp": "2026-11-10T19:13:01Z",
+    "sourceHash": "sha256:39b781a8cd9eae95164013affb4d09205384f9247ad9d05be92e587977500820",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 90,
+    "ageHours": 90.9,
     "ageDays": 3.8,
     "staleAfterDays": 14,
     "stale": false,
@@ -2360,10 +2344,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261125000004_leave_before_draft_shared.sql:42"
+          "supabase/migrations/20261125000004_leave_before_draft_shared.sql:42",
+          "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:162"
         ],
-        "latestDefinition": "supabase/migrations/20261125000004_leave_before_draft_shared.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql",
+        "redefinitions": 2
       },
       "drift": [],
       "annotation": null,
@@ -2373,8 +2358,8 @@
       "sublabel": "SECURITY DEFINER · owner only",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261125000004_leave_before_draft_shared.sql",
-        "line": 42
+        "path": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql",
+        "line": 162
       }
     },
     {
@@ -5793,10 +5778,11 @@
           "supabase/migrations/20260930000000_join_league_refuse_mid_draft.sql:33",
           "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:31",
           "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:68",
-          "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:38"
+          "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:38",
+          "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:275"
         ],
-        "latestDefinition": "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql",
-        "redefinitions": 5
+        "latestDefinition": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql",
+        "redefinitions": 6
       },
       "drift": [],
       "annotation": "EXECUTE is service_role only, which is the correct shape: the client never calls it, the join-league edge function does, and that function passes the JWT-verified user id rather than anything from the request body. An earlier version was authenticated-callable with a forgeable p_user_id.",
@@ -5806,8 +5792,8 @@
       "sublabel": "SECURITY DEFINER · service_role",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql",
-        "line": 38
+        "path": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql",
+        "line": 275
       }
     },
     {
@@ -8879,7 +8865,8 @@
       },
       "declared": {
         "touchedBy": [
-          "supabase/migrations/20261107000000_leave_league_schema.sql"
+          "supabase/migrations/20261107000000_leave_league_schema.sql",
+          "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql"
         ],
         "rlsEnabled": true
       },
@@ -13421,7 +13408,10 @@
       "callSites": [
         "supabase/migrations/20261125000004_leave_before_draft_shared.sql:62",
         "supabase/migrations/20261125000004_leave_before_draft_shared.sql:76",
-        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:80"
+        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:80",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:183",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:197",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:201"
       ]
     },
     {
@@ -13434,7 +13424,21 @@
       "payload": "DELETE league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:80"
+        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:80",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:201"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._leave_league_before_draft->tbl.league_notifications",
+      "from": "pg._leave_league_before_draft",
+      "to": "tbl.league_notifications",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_notifications (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:237"
       ]
     },
     {
@@ -13447,7 +13451,8 @@
       "payload": "INSERT league_notifications (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:109"
+        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:109",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:245"
       ]
     },
     {
@@ -13460,7 +13465,8 @@
       "payload": "SELECT league_renewal_responses (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:70"
+        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:70",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:191"
       ]
     },
     {
@@ -13473,7 +13479,8 @@
       "payload": "SELECT league_roster_reconfirm (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:88"
+        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:88",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:209"
       ]
     },
     {
@@ -13486,7 +13493,8 @@
       "payload": "INSERT league_roster_reconfirm (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:96"
+        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:96",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:219"
       ]
     },
     {
@@ -13499,7 +13507,8 @@
       "payload": "SELECT leagues (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:58"
+        "supabase/migrations/20261125000004_leave_before_draft_shared.sql:58",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:179"
       ]
     },
     {
@@ -15948,7 +15957,8 @@
         "supabase/migrations/20260930000000_join_league_refuse_mid_draft.sql:44",
         "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:42",
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:79",
-        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:49"
+        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:49",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:287"
       ]
     },
     {
@@ -15965,7 +15975,8 @@
         "supabase/migrations/20260930000000_join_league_refuse_mid_draft.sql:93",
         "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:91",
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:132",
-        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:103"
+        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:103",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:341"
       ]
     },
     {
@@ -15987,7 +15998,9 @@
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:104",
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:123",
         "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:75",
-        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:94"
+        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:94",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:313",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:332"
       ]
     },
     {
@@ -16004,7 +16017,8 @@
         "supabase/migrations/20260930000000_join_league_refuse_mid_draft.sql:89",
         "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:87",
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:128",
-        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:99"
+        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:99",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:337"
       ]
     },
     {
@@ -16019,7 +16033,9 @@
       "callSites": [
         "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:95",
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:136",
-        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:107"
+        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:107",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:350",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:366"
       ]
     },
     {
@@ -16034,7 +16050,9 @@
       "callSites": [
         "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:95",
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:136",
-        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:107"
+        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:107",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:350",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:366"
       ]
     },
     {
@@ -16061,7 +16079,10 @@
         "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:92",
         "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:47",
         "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:54",
-        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:63"
+        "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:63",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:285",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:292",
+        "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:301"
       ]
     },
     {
@@ -21681,7 +21702,8 @@
             "supabase/migrations/20260930000000_join_league_refuse_mid_draft.sql:89",
             "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:87",
             "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:128",
-            "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:99"
+            "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:99",
+            "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:337"
           ]
         },
         {
@@ -21693,7 +21715,8 @@
             "supabase/migrations/20260930000000_join_league_refuse_mid_draft.sql:93",
             "supabase/migrations/20261107000005_join_clears_invite_reconfirm.sql:91",
             "supabase/migrations/20261123000000_join_refuses_once_room_opens.sql:132",
-            "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:103"
+            "supabase/migrations/20261125000008_takeover_codes_not_join_codes.sql:103",
+            "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:341"
           ]
         }
       ],
@@ -22714,10 +22737,11 @@
       "node": "pg._leave_league_before_draft",
       "label": "_leave_league_before_draft(p_league_id uuid, p_user_id text, p_leaver_name text)",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261125000004_leave_before_draft_shared.sql:42",
+      "source": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:162",
       "outbound": [
         "tbl.league_members",
         "tbl.league_members",
+        "tbl.league_notifications",
         "tbl.league_notifications",
         "tbl.league_renewal_responses",
         "tbl.league_roster_reconfirm",
@@ -23443,7 +23467,7 @@
   "orphanAnnotations": [],
   "stats": {
     "nodes": 311,
-    "edges": 760,
+    "edges": 761,
     "flows": 7,
     "drift": 33,
     "driftHigh": 0,
@@ -24070,7 +24094,8 @@
       "20261125000010_schedule_heal_account_deletions.sql",
       "20261125000011_deleted_seat_sweep_guard.sql",
       "20261126000000_get_home_league_result.sql",
-      "20261127000000_deleted_seat_label_open_team.sql"
+      "20261127000000_deleted_seat_label_open_team.sql",
+      "20261128000000_reconfirm_clears_at_four.sql"
     ],
     "config": [
       "delete-account=true",
