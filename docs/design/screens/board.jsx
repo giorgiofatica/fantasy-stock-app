@@ -379,6 +379,7 @@
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
+    ['call-below-four', 'When a league drops below 4 before its draft'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
@@ -494,6 +495,7 @@
           </div>
         </header>
 
+        {window.KSBelowFour ? <window.KSBelowFour /> : null}
         {window.KSDraftClock ? <window.KSDraftClock /> : null}
         {window.KSTopBar ? <window.KSTopBar /> : null}
         {window.KSQueueRow ? <window.KSQueueRow /> : null}
