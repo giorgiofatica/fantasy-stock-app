@@ -506,6 +506,18 @@ export function lobbyView(phase: LobbyPhase, isCommissioner: boolean, fixableCou
   }
 }
 
+/**
+ * Whether the League tab paints the draft lobby's order card ("Draft order · waiting", or the order itself).
+ * It follows the phase (lobbyView.order: false when postponed). While the status read has not answered there
+ * is NO phase, and the card must not be guessed: it used to default to shown, so a postponed league painted
+ * "Draft order · waiting" for about a second before the Postponed card replaced it (phone pass 1.3.0 (12),
+ * 2026-11-10). Unknown paints nothing. A failed read is the exception: the "didn't load" card has its own
+ * Try again, and the lobby under it is the last honest thing on the page.
+ */
+export function lobbyShowsOrder(view: Pick<LobbyView, 'order'> | null, statusFailed: boolean): boolean {
+  return view ? view.order : statusFailed;
+}
+
 // ── Home's pre-draft card, from the same view ────────────────────────────
 
 export interface HomeView {

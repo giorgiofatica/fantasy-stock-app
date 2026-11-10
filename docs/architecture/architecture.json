@@ -2,27 +2,35 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "1cb165a38e163742ba8ecc60b201accaf0c97044",
-    "commitShort": "1cb165a3",
+    "commit": "740ec7b09e18b1262f4cd63847c352c3110b5417",
+    "commitShort": "740ec7b0",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "docs/status-2026-11-06",
+    "branch": "fix/reconfirm-invite-state",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "docs/architecture/db-snapshot.json"
+        "path": "apps/mobile/app/(tabs)/league.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/autoStart.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/reconfirm-invite-state.test.ts"
       }
     ],
-    "timestamp": "2026-11-07T00:19:44Z",
-    "sourceHash": "sha256:df5877a4513d3921bdcc837255acdff052b8e949970a0ebd93fd04c5226d6b02",
+    "timestamp": "2026-11-10T18:13:52Z",
+    "sourceHash": "sha256:ed94d84dfb8a376260bdc6471e671c679bb8dad1fa7c67fc209e354d4616d915",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 0,
-    "ageDays": 0,
+    "ageHours": 89.9,
+    "ageDays": 3.7,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966",
@@ -20138,7 +20146,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('renew_league')",
       "callSites": [
-        "apps/mobile/app/(tabs)/league.tsx:146"
+        "apps/mobile/app/(tabs)/league.tsx:147"
       ],
       "via": [
         "seamRpc"
@@ -23505,7 +23513,7 @@
       "apps/web/src/pages/JoinLeague.jsx:49 -> join-league"
     ],
     "rpcs": [
-      "apps/mobile/app/(tabs)/league.tsx:146 -> renew_league (via seamRpc)",
+      "apps/mobile/app/(tabs)/league.tsx:147 -> renew_league (via seamRpc)",
       "apps/mobile/components/game/QueueEditor.tsx:50 -> set_draft_queue (via seamRpc)",
       "apps/mobile/components/game/RenewalAsk.tsx:97 -> respond_to_renewal (via seamRpc)",
       "apps/mobile/components/game/RenewalReview.tsx:61 -> start_renewed_season (via seamRpc)",

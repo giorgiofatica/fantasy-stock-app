@@ -16,14 +16,14 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | Where | Element | Prop | Handler | Destination | Disabled when |
 |---|---|---|---|---|---|
 | `app/(tabs)/index.tsx:276` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
-| `app/(tabs)/league.tsx:199` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
-| `app/(tabs)/league.tsx:217` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
-| `app/(tabs)/league.tsx:222` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:232` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:275` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/league.tsx:461` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:530` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:541` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:200` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
+| `app/(tabs)/league.tsx:218` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
+| `app/(tabs)/league.tsx:223` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:233` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:276` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:462` | Button | onPress | `auto.reread` | prop auto.reread |  |
+| `app/(tabs)/league.tsx:531` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:542` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
 | `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/(tabs)/matchup.tsx:293` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |

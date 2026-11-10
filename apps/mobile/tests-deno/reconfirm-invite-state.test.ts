@@ -160,3 +160,33 @@ Deno.test('EXPO_PUBLIC_DRAFT_START_FIXTURE takes an :invite flag, alone or with 
   const res = invokeFixtureFor('draft-control', { action: 'status' }, 'postponed:invite', null) as { data: { blockers: { code: string; choice?: string }[] } };
   assertEquals(res.data.blockers.find((b) => b.code === 'roster_reconfirm_required')?.choice, 'invite');
 });
+
+// ── P3: the League tab painted the wrong card first ──
+// A postponed league showed "Draft order · waiting" for about a second before the Postponed card replaced it:
+// league.tsx drew the lobby on `view?.order ?? true`, and `view` is null until the draft-control status answers.
+
+import { lobbyView, lobbyShowsOrder } from '../lib/game/autoStart.ts';
+
+const LEAGUE = SOURCES['app/(tabs)/league.tsx'];
+
+Deno.test('before the status answers, the order card is not painted (nothing is guessed)', () => {
+  assertEquals(lobbyShowsOrder(null, false), false);
+});
+
+Deno.test('a failed status read keeps the lobby under the "didn\'t load" card', () => {
+  assertEquals(lobbyShowsOrder(null, true), true);
+});
+
+Deno.test('once known, the lobby follows the phase: shown for every phase but postponed', () => {
+  for (const commissioner of [true, false]) {
+    assertEquals(lobbyShowsOrder(lobbyView('postponed', commissioner, 1), false), false, 'postponed');
+    for (const phase of ['no_date', 'scheduled', 'at_risk', 'room_open', 'starting', 'started'] as const) {
+      assertEquals(lobbyShowsOrder(lobbyView(phase, commissioner, 1), false), true, phase);
+    }
+  }
+});
+
+Deno.test('the League tab draws the lobby through lobbyShowsOrder, never a default-to-shown', () => {
+  assert(LEAGUE.includes("{!data.loading && lobbyShowsOrder(view, ds.status === 'error') ? ("));
+  assert(!LEAGUE.includes('view?.order ?? true'));
+});
