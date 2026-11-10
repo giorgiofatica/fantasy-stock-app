@@ -379,6 +379,7 @@
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
+    ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
@@ -494,6 +495,7 @@
           </div>
         </header>
 
+        {window.KSRule12Sweep ? <window.KSRule12Sweep /> : null}
         {window.KSDraftClock ? <window.KSDraftClock /> : null}
         {window.KSTopBar ? <window.KSTopBar /> : null}
         {window.KSQueueRow ? <window.KSQueueRow /> : null}
