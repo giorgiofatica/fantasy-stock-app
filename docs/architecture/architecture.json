@@ -2,26 +2,46 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "73cb3b743ab11160fcada59cabbce2132fba489c",
-    "commitShort": "73cb3b74",
+    "commit": "67a937ae7016933a7add38f9f23a508122b9763e",
+    "commitShort": "67a937ae",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/reconfirm-clears-at-four",
+    "branch": "fix/draft-pick-prunes-queues",
     "dirty": true,
     "dirtyPaths": [
       {
+        "code": "M",
+        "path": "apps/mobile/components/game/DraftRoom.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/QueueEditor.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/draftQueue.ts"
+      },
+      {
         "code": "??",
-        "path": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql"
+        "path": "apps/mobile/tests-deno/queue-drafted-leaves.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/_shared/auto-pick.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql"
       }
     ],
-    "timestamp": "2026-11-10T19:13:01Z",
-    "sourceHash": "sha256:39b781a8cd9eae95164013affb4d09205384f9247ad9d05be92e587977500820",
+    "timestamp": "2026-11-10T20:36:16Z",
+    "sourceHash": "sha256:2be7fb653a5eb57943f0eeb953efc908273deb94109f889bd9bf70441a1f8edc",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 90.9,
+    "ageHours": 92.3,
     "ageDays": 3.8,
     "staleAfterDays": 14,
     "stale": false,
@@ -6423,6 +6443,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:79"
+        ],
+        "latestDefinition": "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.prune_drafted_symbol_from_queues",
+      "label": "prune_drafted_symbol_from_queues()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql",
+        "line": 79
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -7002,10 +7053,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:323"
+          "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:323",
+          "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:107"
         ],
-        "latestDefinition": "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql",
+        "redefinitions": 2
       },
       "drift": [],
       "annotation": null,
@@ -7015,8 +7067,8 @@
       "sublabel": "SECURITY DEFINER · authenticated, service_role",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql",
-        "line": 323
+        "path": "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql",
+        "line": 107
       }
     },
     {
@@ -16681,6 +16733,32 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.prune_drafted_symbol_from_queues->tbl.draft_queue",
+      "from": "pg.prune_drafted_symbol_from_queues",
+      "to": "tbl.draft_queue",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT draft_queue (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:82"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.prune_drafted_symbol_from_queues->tbl.draft_queue#delete",
+      "from": "pg.prune_drafted_symbol_from_queues",
+      "to": "tbl.draft_queue",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE draft_queue (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:82"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.record_draft_watch->tbl.draft_postponements",
       "from": "pg.record_draft_watch",
       "to": "tbl.draft_postponements",
@@ -17617,7 +17695,8 @@
       "payload": "SELECT draft_queue (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:372"
+        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:372",
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:166"
       ]
     },
     {
@@ -17630,7 +17709,8 @@
       "payload": "DELETE draft_queue (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:372"
+        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:372",
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:166"
       ]
     },
     {
@@ -17643,7 +17723,21 @@
       "payload": "INSERT draft_queue (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:373"
+        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:373",
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:167"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.set_draft_queue->tbl.drafts",
+      "from": "pg.set_draft_queue",
+      "to": "tbl.drafts",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT drafts (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:161"
       ]
     },
     {
@@ -17656,7 +17750,8 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:335"
+        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:335",
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:119"
       ]
     },
     {
@@ -17669,7 +17764,8 @@
       "payload": "SELECT leagues (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:342"
+        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:342",
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:126"
       ]
     },
     {
@@ -17682,7 +17778,8 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:367"
+        "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql:367",
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:151"
       ]
     },
     {
@@ -18566,6 +18663,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.tbl.drafts->pg.prune_drafted_symbol_from_queues",
+      "from": "tbl.drafts",
+      "to": "pg.prune_drafted_symbol_from_queues",
+      "protocol": "pg-trigger",
+      "payload": "trigger on drafts",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql:100"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.tbl.drafts->pg.refuse_new_skip_rows",
       "from": "tbl.drafts",
       "to": "pg.refuse_new_skip_rows",
@@ -19362,7 +19472,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('set_draft_queue')",
       "callSites": [
-        "apps/mobile/components/game/QueueEditor.tsx:50"
+        "apps/mobile/components/game/QueueEditor.tsx:66"
       ],
       "via": [
         "seamRpc"
@@ -22256,6 +22366,16 @@
   ],
   "drift": [
     {
+      "node": "pg.prune_drafted_symbol_from_queues",
+      "label": "prune_drafted_symbol_from_queues()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -23398,6 +23518,12 @@
   },
   "unverified": [
     {
+      "scope": "pg.prune_drafted_symbol_from_queues",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -23466,13 +23592,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 311,
-    "edges": 761,
+    "nodes": 312,
+    "edges": 765,
     "flows": 7,
-    "drift": 33,
-    "driftHigh": 0,
+    "drift": 34,
+    "driftHigh": 1,
     "deadCode": 63,
-    "unverified": 11
+    "unverified": 12
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -23546,7 +23672,7 @@
     ],
     "rpcs": [
       "apps/mobile/app/(tabs)/league.tsx:147 -> renew_league (via seamRpc)",
-      "apps/mobile/components/game/QueueEditor.tsx:50 -> set_draft_queue (via seamRpc)",
+      "apps/mobile/components/game/QueueEditor.tsx:66 -> set_draft_queue (via seamRpc)",
       "apps/mobile/components/game/RenewalAsk.tsx:97 -> respond_to_renewal (via seamRpc)",
       "apps/mobile/components/game/RenewalReview.tsx:61 -> start_renewed_season (via seamRpc)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> nudge_renewal (via seamRpc, inferred)",
@@ -24095,7 +24221,8 @@
       "20261125000011_deleted_seat_sweep_guard.sql",
       "20261126000000_get_home_league_result.sql",
       "20261127000000_deleted_seat_label_open_team.sql",
-      "20261128000000_reconfirm_clears_at_four.sql"
+      "20261128000000_reconfirm_clears_at_four.sql",
+      "20261129000000_draft_pick_prunes_queues.sql"
     ],
     "config": [
       "delete-account=true",
