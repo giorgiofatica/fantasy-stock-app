@@ -95,9 +95,8 @@ switch (18). Note the time and what you had just tapped if it happens.
   Move forward. Right: it saves, the notice goes, and stays gone after a force-quit.
 - [ ] **Step 22. Invite someone new (12).** T1 rejoins with the code and leaves again. Tap Invite
   someone new. Right: it saves; the notice stays until T1 joins again with the code, then goes by
-  itself. **On build 13:** this can't be re-run in League A. A four-team league that loses a
-  manager is below four, and now shows one card with no buttons. Leave this step marked Failed
-  until its re-run is added here.
+  itself. **Failed on build 12.** Its re-run on build 13 is step 22b, further down. This step clears
+  by itself when 22b passes; don't re-mark it here.
 - [ ] **Step 23. League B, and the playoff-teams stepper (13).** The stepper only appears once four
   managers are in (draft-control computes the playoff blocker only above the 4-member floor), so
   it is checked in a new league, not League A. As yourself: Create league, **size 6, playoff teams
@@ -123,11 +122,48 @@ switch (18). Note the time and what you had just tapped if it happens.
      league" box and its two buttons are gone; "Fewer than 4 teams have joined" is gone; **Pick a
      new draft time** is bright and can be tapped, with no tap from you first. Wrong: either box is
      still there, or the button is still faded. Don't pick a draft time yet; a later step sets it.
+- [ ] **Step 22a. Make a fifth account, T4.** (Page id 46.) The re-run of step 22 needs five people
+  in one league, and you have four accounts.
+  1. Supabase SQL editor, first:
+     `INSERT INTO public.signup_allowlist (email, note) VALUES (lower('you+t4@gmail.com'), 'build-9 phone pass T4');`
+     The account can't be created until this row exists.
+  2. Supabase dashboard › Authentication › Users › Add user › Create new user. That email, a
+     password you choose, and tick **Auto Confirm User**. Don't use the app's Create account for
+     this one: that is what hit the email limit with T3.
+  Right: T4 is in the Users list. This one needs no build, so it can be done while build 13 is
+  still building.
 - [ ] **Step 24c. Install build 13.** (Page id 43.) Build 13 carries the fixes for step 22, Create
   account and the queue. Run the build commands waiting in the Orchestrator's chat, paste the
   output there so it can confirm the build's commit, then install build 13 from TestFlight. Right:
   TestFlight shows build 13 installed. **Do this before step 25:** once T1 is deleted, League A has
   three managers and can never draft, and step 24e needs that draft.
+- [ ] **Step 22b. Invite someone new, on build 13.** (Page id 47.) On build 13, at your usual
+  text size. This uses a new league, League C, and doesn't touch League A. **Don't tap "Move forward
+  with 4" or "Move forward with 4 instead" at any point:** either one answers the question for good.
+  1. As yourself: Create league, **size 6, playoff teams 4**, draft time **a week from now** on a
+     quarter hour (a real time, not "later"). Copy its invite code.
+  2. As T1, T2, T3 and T4 in turn: sign in › tap the league name at the top left › Join with code ›
+     League C's code › sign out. T4 is asked for a username the first time; any will do. Members
+     reads 5 of 6.
+  3. As T1: League C › League settings › Leave league › Leave. Sign out.
+  4. As yourself, open League C on the League tab. Right, before you tap anything: a warning card
+     titled "The draft can't start yet", and inside it one section, "{T1's name} left the league",
+     with two buttons: Move forward with 4 and Invite someone new.
+  5. Tap **Invite someone new**. Right: the button shows a spinner while it saves, then the section
+     changes to "Invite someone to take {T1's name}'s place", the line "Share the code. When someone
+     joins, the draft is ready to go.", the invite code, Share invite code, and a text link "Move
+     forward with 4 instead". The two buttons are gone. Nothing is larger than the card's title and
+     the name isn't split across lines. (If you tap Share invite code, cancel the share sheet.)
+  6. Force-quit the app and open it again. Right: League C still shows "Invite someone to take …",
+     not the two buttons.
+  7. As T1: join League C again with the code. Sign out. Nobody else joins or leaves between parts 5
+     and 7.
+  8. As yourself: League C. Right: the whole warning card is gone with no tap from you, and League
+     shows the normal countdown to the draft.
+  Wrong, at part 5: the button dims and the section stays "left the league" with the same two
+  buttons (what build 12 did), the spinner never ends, or an error line appears. Wrong, at part 6:
+  the two buttons are back. Wrong, at part 8: any "left the league" or "Invite someone to take …"
+  section is still there.
 - [ ] **Step 24d. League A: one card when a manager leaves.** (Page id 45.) On build 13, at your
   usual text size. Do this before 24e, which sets League A's draft time: a manager can only leave
   while the draft is unset or more than an hour away.
@@ -161,7 +197,8 @@ switch (18). Note the time and what you had just tapped if it happens.
 - [ ] **Step 25. Delete T1 (30).** On T1: Profile › Delete account. Wrong
   password first. Right: "That password isn't right. Try again." and the field clears. Right
   password → Delete my account → "Are you sure?" → Delete. Right: signed out, sign-in shows
-  "Your account is deleted."
+  "Your account is deleted." T1 is also in League C, so League C will show "left the
+  league" again after this. That is expected; leave it.
 - [ ] **Step 26. What the league sees (31).** Your account, League B: Standings, Matchup and the
   team view show "Open team" with the plain avatar, never the old name. Keep League B.
 
