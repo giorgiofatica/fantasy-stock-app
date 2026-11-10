@@ -16,7 +16,8 @@ import { ConfirmEmailSent } from '@/components/shell/ConfirmEmailSent';
 import { ConfirmedEmailNotice } from '@/components/shell/ConfirmedEmailNotice';
 import { DeletedAccountNotice } from '@/components/shell/DeletedAccountNotice';
 import { usePendingInvite } from '@/lib/invite/usePendingInvite';
-import { Field, FieldError } from '@/components/shell/Field';
+import { Field } from '@/components/shell/Field';
+import { FormMessage } from '@/components/shell/FormMessage';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { SocialSignIn } from '@/components/shell/SocialSignIn';
 import { isEmailNotConfirmedError } from '@/lib/authErrors';
@@ -169,7 +170,7 @@ export default function SignInScreen() {
           error={errorView.passwordError}
           invalid={errorView.passwordInvalid}
         />
-        {errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null}
+        {errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}
         {unconfirmed ? (
           <Pressable onPress={handleResend} accessibilityRole="link" style={styles.resend}>
             <Text variant="body" color={colors.accent} style={styles.bold}>

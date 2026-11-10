@@ -15,7 +15,8 @@ import { AuthScaffold } from '@/components/shell/AuthScaffold';
 import { BrandLockup } from '@/components/shell/BrandBars';
 import { ConfirmEmailSent } from '@/components/shell/ConfirmEmailSent';
 import { usePendingInvite } from '@/lib/invite/usePendingInvite';
-import { Field, FieldError } from '@/components/shell/Field';
+import { Field } from '@/components/shell/Field';
+import { FormMessage } from '@/components/shell/FormMessage';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { SocialSignIn } from '@/components/shell/SocialSignIn';
 import { isSignupsPausedError } from '@/lib/authErrors';
@@ -76,23 +77,6 @@ export default function CreateAccountScreen() {
     Keyboard.dismiss();
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: !reduced }), 0);
   }
-
-  // The form's message appears under the fields: bring it into the window (a jump under Reduce Motion), after it has laid out, and again when the
-  // keyboard has finished closing (Return blurs the field: the footer's second line comes back and shortens the window, so the message would
-  // otherwise sit under the footer at the largest text size).
-  const formMessage = errorView.formMessage;
-  useEffect(() => {
-    if (!formMessage) return;
-    const toEnd = () => scrollRef.current?.scrollToEnd({ animated: !reduced });
-    const t = setTimeout(toEnd, 0);
-    const hidden = Keyboard.addListener('keyboardDidHide', toEnd);
-    return () => {
-      clearTimeout(t);
-      hidden.remove();
-    };
-    // The message text is the trigger; `reduced` only picks the animation.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formMessage]);
 
   // DEV captures only (lib/shell/captureKnobs.ts): take the SAME refusal path once the form has
   // laid out, so the capture shows what a real refusal shows (the panel scrolled into view).
@@ -219,8 +203,9 @@ export default function CreateAccountScreen() {
         />
       </View>
       {/* The form's own message (a rate limit, the network, a missing field), under the fields and in the scroll body: docked in the footer it
-          would take most of the screen at the largest text size. No field wears it. It is scrolled into view when it appears (above). */}
-      {errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null}
+          would take most of the screen at the largest text size. No field wears it. FormMessage caps it at 1.6x and tells the scaffold, which scrolls
+          the minimum to keep it in view (a focused field's reveal counts it). */}
+      {errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}
       {paused ? (
         <WarnPanel text={`${brand.name} is not open for new signups yet — check back soon. Existing accounts can still sign in.`} />
       ) : null}

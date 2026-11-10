@@ -74,22 +74,16 @@ Deno.test('Create account draws each error where viewOf says, and nowhere else',
 
 Deno.test('the form message sits in the SCROLL BODY under the fields, never in the docked footer (at AX5 a docked message took most of the screen)', () => {
   const footer = create.slice(create.indexOf('const footer = '), create.indexOf('const footerSecondary = '));
-  assert(!footer.includes('formMessage') && !footer.includes('FieldError'), 'the footer is the primary button alone');
+  assert(!footer.includes('formMessage') && !footer.includes('FormMessage'), 'the footer is the primary button alone');
   const body = create.slice(create.indexOf('<AuthScaffold'));
-  const fields = body.indexOf('<View style={styles.fields}>');
-  const message = body.indexOf('errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null');
-  assert(fields > -1 && message > body.indexOf('</View>', body.indexOf('rules={passwordRules}')), 'after the fields block');
+  const message = body.indexOf('errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null');
+  assert(message > body.indexOf('</View>', body.indexOf('rules={passwordRules}')), 'after the fields block');
   assert(message < body.indexOf('<WarnPanel'), 'and before the signups-paused panel');
 });
 
-Deno.test('the message is scrolled into view when it appears (the keyboard may be up), a jump under Reduce Motion', () => {
-  const effect = create.slice(create.indexOf('const formMessage = errorView.formMessage;'), create.indexOf('// DEV captures only'));
-  assert(effect.includes('if (!formMessage) return;'));
-  assert(effect.includes('scrollRef.current?.scrollToEnd({ animated: !reduced })'));
-  assert(effect.includes('const t = setTimeout(toEnd, 0);'), 'once it has laid out');
-  assert(effect.includes("Keyboard.addListener('keyboardDidHide', toEnd)"), 'and again when the keyboard has finished closing (the footer\'s second line is back)');
-  assert(effect.includes('clearTimeout(t);') && effect.includes('hidden.remove();'), 'both are cleaned up');
-  assert(effect.includes('[formMessage]'));
+Deno.test('Create account no longer scrolls to its own message: FormMessage tells the scaffold, which owns the reveal (form-message.test.ts)', () => {
+  assert(!create.includes('const formMessage = errorView.formMessage;'));
+  assert(!create.includes("Keyboard.addListener('keyboardDidHide'"));
 });
 
 Deno.test('a server refusal and the local checks all go through the state, and typing clears it', () => {

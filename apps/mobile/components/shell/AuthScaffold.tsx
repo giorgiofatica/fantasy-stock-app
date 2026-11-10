@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
 import { contentFits, footerSecondaryShown, keyboardUpAfter, rememberRest, restTarget, revealOffset, settleOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
-import { FieldBlockContext } from '@/components/shell/FieldBlockContext';
+import { FieldBlockContext, RevealTailContext, type RevealTail } from '@/components/shell/FieldBlockContext';
 import { FooterFade } from '@/components/shell/FooterFade';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
@@ -80,6 +80,8 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
   const announceBlock = useCallback((block: View | null) => {
     focusedBlock.current = block;
   }, []);
+  // The form's message under the fields (FormMessage), when there is one: the reveal counts it, so it clears the docked button like the rules do.
+  const tailView = useRef<View | null>(null);
 
   /** Bring the focused field into the window by the minimum it takes: its error and rules too where they fit, the box always. */
   const revealFocused = useCallback(() => {
@@ -103,10 +105,17 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           // Already in the window: the page does not move at all.
           if (Math.abs(y - offset.current) >= 0.5) scroll.scrollTo({ y, animated: true });
         };
+        // The message below the fields extends the block's bottom: label .. rules .. message must clear the footer, or, where that cannot fit, the
+        // rules and the message give way before the label, and the label before the box.
+        const withTail = (top: number, bottom: number) => {
+          const tail = tailView.current;
+          if (!tail) return place(top, bottom);
+          tail.measureLayout(inner as never, (_tx, tailTop, _tw, tailHeight) => place(top, Math.max(bottom, tailTop + tailHeight)), () => place(top, bottom));
+        };
         const block = focusedBlock.current;
         // A focused input with no Field around it is its own block (just the box).
-        if (!block) return place(inputTop, inputTop + inputHeight);
-        block.measureLayout(inner as never, (_bx, blockTop, _bw, blockHeight) => place(blockTop, blockTop + blockHeight), () => place(inputTop, inputTop + inputHeight));
+        if (!block) return withTail(inputTop, inputTop + inputHeight);
+        block.measureLayout(inner as never, (_bx, blockTop, _bw, blockHeight) => withTail(blockTop, blockTop + blockHeight), () => withTail(inputTop, inputTop + inputHeight));
       },
       () => {},
     );
@@ -144,6 +153,25 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
     [revealFocused],
   );
 
+  const tail = useMemo<RevealTail>(
+    () => ({
+      register: (view) => {
+        tailView.current = view;
+      },
+      // A form message has just appeared (or changed). The rest the page remembered no longer describes what is on screen. With a field focused,
+      // the minimum scroll now includes the message; with none, the page goes to it (it is under the fields, below the fold at large text).
+      appeared: () => {
+        restOffset.current = null;
+        returning.current = false;
+        setTimeout(() => {
+          if (inField.current) revealFocused();
+          else (scrollRef.current as ScrollView | null)?.scrollToEnd({ animated: !reducedRef.current });
+        }, 0);
+      },
+    }),
+    [revealFocused],
+  );
+
   // A focus can land BEFORE the keyboard has shrunk the window (the content cannot scroll yet), so scroll again once the keyboard has
   // resized the scroll view (onLayout) and when it has settled (its events). Only while a field is focused.
   useEffect(() => {
@@ -154,6 +182,8 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
       Keyboard.addListener('keyboardDidHide', () => {
         settle();
         returning.current = false;
+        // A form message is showing: the footer's second line is back and the window shorter, so keep the message in view.
+        if (tailView.current) (scrollRef.current as ScrollView | null)?.scrollToEnd({ animated: !reducedRef.current });
       }),
     ];
     return () => subs.forEach((x) => x.remove());
@@ -219,7 +249,9 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          <FieldBlockContext.Provider value={announceBlock}>{children}</FieldBlockContext.Provider>
+          <FieldBlockContext.Provider value={announceBlock}>
+            <RevealTailContext.Provider value={tail}>{children}</RevealTailContext.Provider>
+          </FieldBlockContext.Provider>
         </ScrollView>
         {footer ? <FooterFade scrollY={scrollY} viewportHeight={windowHeight} contentHeight={contentHeight} color={colors.bg} /> : null}
       </View>

@@ -73,7 +73,7 @@ Deno.test('Sign in routes every error through the state and draws each in its ow
   assert(login.includes('setError(fromAuthError(resendError, PASSWORD_RULE_SENTENCE, brand.name))'));
   assert(login.includes('error={errorView.passwordError}') && login.includes('invalid={errorView.passwordInvalid}'));
   assert(login.includes('error={errorView.emailError}') && login.includes('invalid={errorView.emailInvalid}'));
-  assert(login.includes('{errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null}'));
+  assert(login.includes('{errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}'));
   assert(!login.includes('error={error}'), 'the whole error never goes to the Password field again');
   assert(!/getAuthErrorMessage\(/.test(login));
 });
@@ -90,7 +90,7 @@ Deno.test('Forgot password routes through the state: Email for an address proble
   assert(forgot.includes('setError(fromAuthError(resetError))'));
   assert(forgot.includes("localError('form', 'Could not start a secure password reset on this device. Please try again.')"));
   assert(forgot.includes('error={errorView.emailError}') && forgot.includes('invalid={errorView.emailInvalid}'));
-  assert(forgot.includes('{errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null}'));
+  assert(forgot.includes('{errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}'));
   assert(!/getAuthErrorMessage\(/.test(forgot));
 });
 
@@ -98,7 +98,7 @@ Deno.test('the new-password form: a password problem on New password, anything e
   assert(form.includes('submit: (password: string) => Promise<FormErrorState | null>;'));
   assert(form.includes("if (error.target === 'password') setPasswordError(error.message);"));
   assert(form.includes('else setFormError(error);'));
-  assert(form.includes('{formMessage ? <FieldError>{formMessage}</FieldError> : null}'));
+  assert(form.includes('{formMessage ? <FormMessage>{formMessage}</FormMessage> : null}'));
   // The stale form message goes with the next attempt and with typing.
   assert(form.includes('setFormError(null);'));
   for (const f of ['app/change-password.tsx', 'app/reset-password.tsx']) {

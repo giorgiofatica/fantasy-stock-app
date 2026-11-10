@@ -8,7 +8,8 @@ import { Button, type ButtonStatus } from '@/components/sp/Button';
 import { Text } from '@/components/sp/Text';
 import { useMotion } from '@/components/sp/motion';
 import { useLargeText } from '@/components/sp/useLargeText';
-import { Field, FieldError } from '@/components/shell/Field';
+import { Field } from '@/components/shell/Field';
+import { FormMessage } from '@/components/shell/FormMessage';
 import { viewOf, type FormErrorState } from '@/lib/auth/formError';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 
@@ -118,7 +119,7 @@ export function NewPasswordForm({ submit, onDone, onCancel }: NewPasswordFormPro
           error={confirmError}
         />
       </View>
-      {formMessage ? <FieldError>{formMessage}</FieldError> : null}
+      {formMessage ? <FormMessage>{formMessage}</FormMessage> : null}
       <Button label="Update password" status={status} onPress={handleUpdate} disabled={!password || !confirm} />
       <Pressable onPress={onCancel} accessibilityRole="button" style={styles.cancel} hitSlop={8}>
         <Text variant="body" tone="secondary">

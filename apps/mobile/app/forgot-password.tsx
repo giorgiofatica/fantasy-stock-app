@@ -9,7 +9,8 @@ import { EmptyState } from '@/components/sp/EmptyState';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { AuthScaffold } from '@/components/shell/AuthScaffold';
-import { Field, FieldError } from '@/components/shell/Field';
+import { Field } from '@/components/shell/Field';
+import { FormMessage } from '@/components/shell/FormMessage';
 import { fromAuthError, localError, viewOf, type FormErrorState } from '@/lib/auth/formError';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { supabase } from '@/lib/supabase';
@@ -173,7 +174,7 @@ export default function ForgotPasswordScreen() {
         error={errorView.emailError}
         invalid={errorView.emailInvalid}
       />
-      {errorView.formMessage ? <FieldError>{errorView.formMessage}</FieldError> : null}
+      {errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}
       <Button label="Send reset link" status={status} onPress={handleResetPassword} />
     </AuthScaffold>
   );
