@@ -16,6 +16,8 @@
  * Pure (no React Native imports) so the rules are testable under Deno.
  */
 
+import { FOOTER_FADE_POINTS } from './topBarFade';
+
 export type RevealEvent = 'focus' | 'blur' | 'layout' | 'keyboard';
 
 /**
@@ -40,8 +42,10 @@ export function stepReveal(focused: boolean, event: RevealEvent): { focused: boo
 
 /** A sliver of the content above the field's label, so the label does not sit hard against the window's edge. */
 export const TOP_BREATHING = 4;
-/** Clear space kept under the region (above the docked footer). */
-export const BOTTOM_BREATHING = 6;
+/** Clear space kept under the region (above the docked footer): the footer fade's height plus 4pt. The fade (FooterFade) draws over the last
+ * FOOTER_FADE_POINTS of the window, so a region that stopped 6pt short of the footer had its last line under the fade. Read from the SAME constant
+ * the fade uses, so the two cannot drift (Design Lead ruling, 2026-11-09). */
+export const BOTTOM_BREATHING = FOOTER_FADE_POINTS + 4;
 
 export interface RevealInput {
   /** The scroll view's offset right now. */

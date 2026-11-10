@@ -8,6 +8,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { BOTTOM_BREATHING, TOP_BREATHING, revealOffset, type RevealInput } from '../components/shell/authFieldReveal.ts';
+import { FOOTER_FADE_POINTS } from '../components/shell/topBarFade.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
 // Create account on the iPhone 17e simulator at Large, measured in the app (content coordinates, offset 0, 2026-11-09):
@@ -31,8 +32,8 @@ function input(over: Partial<RevealInput> & Pick<RevealInput, 'current'>): Revea
 
 Deno.test('Create account, Password focused from the top: a few dozen points, NOT the field pinned to the top', () => {
   const y = revealOffset(input({ current: 0 }));
-  assertEquals(y, L.passwordBlock[1] + BOTTOM_BREATHING - L.viewportHeight); // the rules just clear the footer: 424 + 6 - 386 = 44
-  assertEquals(y, 44);
+  assertEquals(y, L.passwordBlock[1] + BOTTOM_BREATHING - L.viewportHeight); // the rules just clear the footer: 424 + 16 - 386 = 54
+  assertEquals(y, 54);
   // The old rule put the label at the top (303 - 26 - 4 = 273): six times as far.
   assert(y < 273 / 4, `${y} must be far short of pinning the field to the top`);
 });
@@ -62,11 +63,22 @@ Deno.test('a focus from a deeper offset scrolls UP only as far as the label (wit
   assertEquals(y, L.emailBlock[0] - TOP_BREATHING);
 });
 
-Deno.test('the breathing room is literal: 4pt above the label, 6pt under the region', () => {
-  assertEquals([TOP_BREATHING, BOTTOM_BREATHING], [4, 6]);
-  // Scrolling up lands the label 4pt under the window's edge; scrolling down leaves 6pt under the rules.
+Deno.test('the breathing room: 4pt above the label, and under the region the footer fade\'s height plus 4pt, read from the fade\'s own constant', () => {
+  // Design Lead ruling 2026-11-09: TOP stays 4; BOTTOM = the footer fade's height + 4, so a last line is never under the fade.
+  assertEquals(TOP_BREATHING, 4);
+  assertEquals(FOOTER_FADE_POINTS, 12);
+  assertEquals(BOTTOM_BREATHING, FOOTER_FADE_POINTS + 4);
+  // Scrolling up lands the label 4pt under the window's edge; scrolling down leaves the full breathing room under the rules.
   assertEquals(revealOffset(input({ current: 500, contentHeight: 2000 })), L.passwordBlock[0] - 4);
-  assertEquals(revealOffset(input({ current: 0, contentHeight: 2000 })) + L.viewportHeight, L.passwordBlock[1] + 6);
+  assertEquals(revealOffset(input({ current: 0, contentHeight: 2000 })) + L.viewportHeight, L.passwordBlock[1] + BOTTOM_BREATHING);
+  assert(BOTTOM_BREATHING > FOOTER_FADE_POINTS, 'the last line clears the fade');
+});
+
+Deno.test('BOTTOM_BREATHING is derived from FooterFade\'s constant in source, not a second literal (they cannot drift)', () => {
+  const reveal = SOURCES['components/shell/authFieldReveal.ts'];
+  assert(reveal.includes("import { FOOTER_FADE_POINTS } from './topBarFade';"));
+  assert(reveal.includes('export const BOTTOM_BREATHING = FOOTER_FADE_POINTS + 4;'));
+  assert(SOURCES['components/shell/FooterFade.tsx'].includes('FOOTER_FADE_POINTS'), 'the fade draws with the same constant');
 });
 
 Deno.test('a window that holds label + box but not the rules scrolls to keep the LABEL in (not just the box)', () => {
@@ -102,7 +114,7 @@ Deno.test('AX5, a window that holds label + box but not the rules: label and box
 });
 
 Deno.test('a window that cannot hold even the box still shows its bottom edge (the typed line)', () => {
-  assertEquals(revealOffset({ current: 0, viewportHeight: 120, contentHeight: 2000, blockTop: 480, blockBottom: 700, inputTop: 500, inputBottom: 650 }), 536); // 650 + 6 - 120
+  assertEquals(revealOffset({ current: 0, viewportHeight: 120, contentHeight: 2000, blockTop: 480, blockBottom: 700, inputTop: 500, inputBottom: 650 }), 650 + BOTTOM_BREATHING - 120);
 });
 
 Deno.test('the move is minimal: the result is never further than the nearest offset that brings the region in', () => {
