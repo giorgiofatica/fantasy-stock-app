@@ -15,15 +15,15 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 
 | Where | Element | Prop | Handler | Destination | Disabled when |
 |---|---|---|---|---|---|
-| `app/(tabs)/index.tsx:276` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
+| `app/(tabs)/index.tsx:280` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
 | `app/(tabs)/league.tsx:200` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
 | `app/(tabs)/league.tsx:218` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
 | `app/(tabs)/league.tsx:223` | LoadFailed | onRetry | `retry` | fn retry |  |
 | `app/(tabs)/league.tsx:233` | LoadFailed | onRetry | `retry` | fn retry |  |
 | `app/(tabs)/league.tsx:276` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/league.tsx:462` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:531` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:542` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:463` | Button | onPress | `auto.reread` | prop auto.reread |  |
+| `app/(tabs)/league.tsx:532` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:543` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
 | `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/(tabs)/matchup.tsx:293` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
@@ -134,10 +134,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/Stepper.tsx:77` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
 | `components/home/DraftingCard.tsx:85` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/PhaseMessageCard.tsx:33` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
-| `components/home/PreDraftCard.tsx:208` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |
-| `components/home/PreDraftCard.tsx:209` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/home/PreDraftCard.tsx:215` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |
 | `components/home/PreDraftCard.tsx:216` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/home/PreDraftCard.tsx:290` | Button | onPress | `onShare` | share sheet |  |
+| `components/home/PreDraftCard.tsx:223` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/home/PreDraftCard.tsx:297` | Button | onPress | `onShare` | share sheet |  |
 | `components/home/RenewalCountsCard.tsx:22` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/RunItBackCard.tsx:39` | Button | onPress | `inline: () => void runItBack()` | fn runItBack | `busy` |
 | `components/home/SeasonCompleteCard.tsx:248` | ListRow | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
