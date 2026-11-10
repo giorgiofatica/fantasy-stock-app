@@ -16,6 +16,7 @@
  * marked NEW is flagged for the Design Lead.
  */
 import { etDateParts } from '../time/etParts';
+import { keepName } from '../account/keepName';
 import { defaultDraftDate } from './draftDateSave';
 
 const MIN = 60 * 1000;
@@ -221,6 +222,19 @@ export function fixableBlockers(blockers: readonly Blocker[]): Blocker[] {
 function departedNames(b: Blocker): string[] {
   const d = Array.isArray(b.departed) ? (b.departed as { name?: unknown }[]) : [];
   return d.map((x) => (typeof x?.name === 'string' ? x.name : '')).filter(Boolean);
+}
+
+/**
+ * A departed manager's name is one piece on screen (Design Lead gate on #356, AX5: "Invite someone to take Sofia / F.'s place"):
+ * every name the blocker lists gets keepName's no-break spaces (and its hyphen joiners; a name over keepName's 20 characters
+ * stays breakable, so a long name wraps between its words rather than run off the screen). Display only, applied at the render
+ * (as the other keep* helpers are): the strings above stay plain, for the tests and for VoiceOver. The possessive "'s" has no space before it, so
+ * it stays with the name.
+ */
+export function keepDepartedNames(b: Blocker, text: string): string {
+  let out = text;
+  for (const name of departedNames(b)) out = out.replace(name, () => keepName(name));
+  return out;
 }
 
 /** When no clause fits (Design Lead ruling). */

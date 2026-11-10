@@ -19,6 +19,7 @@ import {
   blockerTitle,
   blockersCardCopy,
   errorPlacement,
+  keepDepartedNames,
   moveForwardLabel,
   playoffFixLine,
   reconfirmView,
@@ -159,7 +160,7 @@ export function DraftBlockersCard({
   const subCardTitle = (b: Blocker) => {
     if (b.code !== 'roster_reconfirm_required') return blockerTitle(b);
     const view = reconfirmView(b, memberCount);
-    return view.mode === 'inviting' ? view.title : blockerTitle(b);
+    return keepDepartedNames(b, view.mode === 'inviting' ? view.title : blockerTitle(b));
   };
   // A refusal sits under the controls of the sub-card that caused it; the foot only when that sub-card is gone.
   const placement = errorPlacement(error, errorOwner, blockers);

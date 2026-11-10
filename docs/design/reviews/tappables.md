@@ -79,12 +79,12 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
 | `components/SymbolSearchField.tsx:193` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
 | `components/SymbolSearchField.tsx:247` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
-| `components/game/DraftBlockersCard.tsx:72` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled \|\| loading` |
-| `components/game/DraftBlockersCard.tsx:111` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
-| `components/game/DraftBlockersCard.tsx:124` | TextAction | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:132` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:134` | Button | onPress | `inline: () => choose('invite')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:189` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
+| `components/game/DraftBlockersCard.tsx:73` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled \|\| loading` |
+| `components/game/DraftBlockersCard.tsx:112` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
+| `components/game/DraftBlockersCard.tsx:125` | TextAction | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:133` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:135` | Button | onPress | `inline: () => choose('invite')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:190` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
 | `components/game/DraftClockChip.tsx:57` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/DraftComplete.tsx:53` | Button | onPress | `onRetryFinish` | prop onRetryFinish (the caller's) | `finishing` |
 | `components/game/DraftComplete.tsx:84` | Button | onPress | `onSeeMatchup` | prop onSeeMatchup (the caller's) |  |

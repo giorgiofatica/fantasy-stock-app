@@ -18,6 +18,7 @@ import {
   errorPlacement,
   fixableBlockers,
   inviteWaitingTitle,
+  keepDepartedNames,
   moveForwardInsteadLabel,
   moveForwardLabel,
   SETTLE_CAP_MS,
@@ -112,7 +113,7 @@ Deno.test('the waiting sub-card\'s title is the approved one; the other blockers
   assert(CARD.includes('{subCardTitle(b)}'));
   assert(!CARD.includes('{blockerTitle(b)}'), 'the card must not render the raw clause for the reconfirm blocker');
   assert(CARD.includes("if (b.code !== 'roster_reconfirm_required') return blockerTitle(b);"));
-  assert(CARD.includes("return view.mode === 'inviting' ? view.title : blockerTitle(b);"), 'the waiting state titles itself');
+  assert(CARD.includes("return keepDepartedNames(b, view.mode === 'inviting' ? view.title : blockerTitle(b));"), 'the waiting state titles itself, and both titles keep the name whole');
 });
 
 Deno.test('the invite row is shared: one label over one code, Share only when it is shown (null while hidden)', () => {
@@ -401,4 +402,46 @@ Deno.test('the text action reports a saving choice (spinner, no second press) an
   assert(ACTION.includes('{loading ? <ActivityIndicator size="small" color={colors.accent} /> : null}'));
   assert(ACTION.includes("busy: loading"));
   assert(ACTION.includes('disabled && !loading ? styles.dim : null'));
+});
+
+// ── a departed manager's name never breaks (DL gate on #356, AX5: "Sofia / F.'s place") ──
+
+const NB = ' ';
+const WJ = '⁠';
+const plain = (t: string) => t.replaceAll(NB, ' ').replaceAll(WJ, '');
+const SOFIA_B = { code: 'roster_reconfirm_required', departed: [{ name: 'Sofia F.' }], membersBefore: 8, members: 7, choice: 'invite' };
+
+Deno.test('both titles keep the name whole: a no-break space inside it, the possessive stays attached', () => {
+  assertEquals(keepDepartedNames(SOFIA_B, inviteWaitingTitle('Sofia F.')), "Invite someone to take Sofia" + NB + "F.'s place");
+  assertEquals(keepDepartedNames(SOFIA_B, 'Sofia F. left the league'), 'Sofia' + NB + 'F. left the league');
+  // The words AROUND the name still wrap: only the name is glued.
+  const t = keepDepartedNames(SOFIA_B, inviteWaitingTitle('Sofia F.'));
+  assert(t.startsWith('Invite someone to take Sofia'));
+  assertEquals(t.split(' ').length, 6, 'six breakable pieces: Invite / someone / to / take / the name (one piece) / place');
+  assertEquals(plain(t), "Invite someone to take Sofia F.'s place");
+});
+
+Deno.test('display only: removing the glue gives back the plain string; the pure strings are untouched', () => {
+  for (const text of ["Invite someone to take Sofia F.'s place", 'Sofia F. left the league']) assertEquals(plain(keepDepartedNames(SOFIA_B, text)), text);
+  assertEquals(inviteWaitingTitle('Sofia F.'), "Invite someone to take Sofia F.'s place"); // no NBSP in the source of truth
+});
+
+Deno.test('two names, hyphens, a long name, an unrelated text, no names', () => {
+  const two = { code: 'roster_reconfirm_required', departed: [{ name: 'Sofia F.' }, { name: 'Ana P.' }] };
+  assertEquals(keepDepartedNames(two, 'Sofia F. and Ana P. left the league'), 'Sofia' + NB + 'F. and Ana' + NB + 'P. left the league');
+  const hy = { code: 'roster_reconfirm_required', departed: [{ name: 'Anne-Marie L.' }] };
+  assertEquals(keepDepartedNames(hy, 'Anne-Marie L. left the league'), 'Anne-' + WJ + 'Marie' + NB + 'L. left the league');
+  // Over keepName's 20 characters a name stays breakable: wrapping between its words beats running off the screen.
+  const long = { code: 'roster_reconfirm_required', departed: [{ name: 'Maximilian Alexander Q.' }] };
+  assertEquals(keepDepartedNames(long, 'Maximilian Alexander Q. left the league'), 'Maximilian Alexander Q. left the league');
+  assertEquals(keepDepartedNames(SOFIA_B, 'The draft can’t start yet'), 'The draft can’t start yet');
+  assertEquals(keepDepartedNames({ code: 'roster_reconfirm_required' }, 'Sofia F. left'), 'Sofia F. left');
+  assertEquals(keepDepartedNames({ code: 'roster_reconfirm_required', departed: [{ name: '' }] }, 'x left'), 'x left');
+});
+
+Deno.test("the card applies it to the roster blocker's title in both states, and only there", () => {
+  const body = CARD.slice(CARD.indexOf('const subCardTitle = (b: Blocker) =>'), CARD.indexOf('const blocked'));
+  assert(body.includes("if (b.code !== 'roster_reconfirm_required') return blockerTitle(b);"), 'other blockers keep their plain title');
+  assertEquals(body.split('keepDepartedNames(').length - 1, 1, 'one gate for both states');
+  assert(!CARD.includes('{blockerTitle(b)}'));
 });
