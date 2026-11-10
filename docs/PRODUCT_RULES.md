@@ -281,6 +281,18 @@ building anything, and don't reopen a rule without him.
   user's in." The market's own times too: "yes, market times should be local too". Display
   only: the market, the trading window, weeks and scoring keep running on Eastern Time.
 
+- **No heading-plus-explainer pattern** (2026-11-10, said twice in one day). On Create
+  league's Season step: "I really don't like this style of mainline like managers and then
+  this like smaller subtitle that explains it. I think one that is very just red flag of like
+  AI built, vibe coded. Secondly, I think it makes it far too cluttered." On the draft room's
+  queue card: "I don't like this format of like header and then this text sub header that
+  explains things … It just makes it cluttered. You use way too many words". So: a label is
+  not followed by a grey sentence explaining it. The screen should make the thing clear by
+  its layout and controls; where a fact is truly needed it is one short line, a value, or a
+  one-time tip, "the right kind of balance between providing the user with the right
+  information they need … but then also not clutter the UI." The Design Lead sweeps existing
+  screens for it; new screens are gated on it.
+
 ## Scoring and standings
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
@@ -480,6 +492,15 @@ building anything, and don't reopen a rule without him.
     big visual to pop up." And "A, keep it a surprise": your position shows nowhere, the
     room-open notification included, until you have entered the room once. This replaces the
     2026-10-06 line that the room-open push carries your draft position.
+  - **In the room:** on your pick you draft straight from your queue ("I should be able to
+    draft right from there"); a stock anyone drafts "disappears" from every queue; Latest
+    picks show "the … actual name" beside the ticker.
+  - **After the draft:** "right after you're done, it shows your draft recap. And then later,
+    there should be some way in the app to kind of go back and see like the draft as a whole
+    … like a little draft recap room", with "little superlatives … Just kind of a little fun
+    interactive thing." A Draft recap row on the League tab opens Awards, Board and Teams;
+    "include all the awards" (Big spender, Bargain hunter, Quickest draw, Down to the wire,
+    On autopilot, All in, Spread out, First off the board, Steal of the draft).
 - **When a draft can't start** (2026-10-06):
   - The commissioner is warned BEFORE the room opens, with time to fix it.
   - The real gate is room-open time (T−1h). If the league still isn't ready then, the
