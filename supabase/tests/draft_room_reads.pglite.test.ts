@@ -16,8 +16,8 @@
  *     returns order null and league_draft_order has no rows, for a random-order league, until the gate clears;
  *   - a signed-in non-member is refused by every read (zero rows, {ok:false}, or 42501), and anon cannot
  *     execute the three RPCs at all (proacl: no anon, no PUBLIC — CLAUDE.md "Postgres function grants").
- * It also pins one behaviour that is a product question, not a bug (see the step's comment): a MANUAL-order
- * league's members can read the commissioner's open order before T-1h.
+ * It also pins one ruled behaviour (see the step's comment): a MANUAL-order league's members can read the
+ * commissioner's open order before T-1h.
  *
  * Time is relative to the DB clock (now()), so the windows are real. Run:
  *   deno test --allow-read --allow-env --allow-sys --allow-run supabase/tests/draft_room_reads.pglite.test.ts
@@ -199,13 +199,12 @@ Deno.test({
       for (const [fn, g] of Object.entries(by)) assertFalse((g as string[]).some((x) => x === 'anon' || x === 'PUBLIC'), fn);
     });
 
-    // ---- product question, pinned so a change is deliberate -------------------------------------------
+    // ---- ruled, pinned so a change is deliberate ------------------------------------------------------
     // A MANUAL-order league has an order from the first read (the commissioner's seed, editable until T-1h), and
-    // get_draft_order returns it to EVERY member, not only the commissioner. That is the 20261013000000 design
-    // ("A member reads the order and its state"), not a leak of a server secret; but decision 11 ("there is no
-    // board earlier") and decision 17 (your position is shown nowhere before your first entry) are about what the
-    // CLIENT shows. Whether members may see a manual order being arranged is Giorgio's call; flip this if he rules
-    // it hidden.
+    // get_draft_order returns it to EVERY member, not only the commissioner: the 20261013000000 design ("A member
+    // reads the order and its state"). Ruled 2026-11-10 (draft room plan, at plan level; Giorgio may veto): the
+    // order STAYS visible before T-1h. The reveal and the surprise (decisions 16 and 17, presentation only) apply
+    // only to a randomly drawn order; an order the commissioner set by hand is a published setting, not a draw.
     await t.step('manual mode, before T-1h: a member can read the open (seeded) order', async () => {
       const MANUAL = await league(180, 'manual');
       const r = await roomReads(MEMBER, MANUAL);

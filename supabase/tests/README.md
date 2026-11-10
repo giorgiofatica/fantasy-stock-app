@@ -916,8 +916,8 @@ the draft starts. It proves:
 - a member reads only their own queue;
 - a signed-in non-member is refused by every read, and anon cannot execute the three RPCs (proacl:
   no anon, no PUBLIC);
-- pinned as a product question, not a bug: a manual-order league's members can read the
-  commissioner's open order before T−1h.
+- ruled (2026-11-10, draft room plan): a manual-order league's members can read the commissioner's
+  open order before T−1h; the reveal and the surprise apply only to a random order.
 
 Mutants it catches: anon granted execute on `get_draft_order`; the gate clause removed from
 `_draft_order_sync` (the order then appears before the gate has judged the league).
