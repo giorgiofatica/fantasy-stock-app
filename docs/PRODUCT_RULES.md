@@ -667,6 +667,18 @@ building anything, and don't reopen a rule without him.
     proof); the share text "Take over a team in {league}"; on a takeover link already used,
     "Someone already took this team." with "Go to Home" (no heading); "Not now" under "Take
     the team" (reused from the notifications ask); and the league lines above.
+- **When managers leave before the draft, below four** (2026-11-10, from the build 1.3.0 (12)
+  phone pass, where "Move forward with 2" could only be refused):
+  - Below four managers there is no "Move forward" and no "Invite someone new" button: one
+    card says who left, "Fewer than 4 teams have joined.", the invite code and Share (board
+    pick **B**, made in the Orchestrator's chat; copy approved there: "Invite someone to take
+    their place"). A league needs four to draft, so inviting is the only path and is treated
+    as already chosen.
+  - Once four are back in: "A, four are in so it's ready". No extra tap; the question does not
+    come back, and the draft time can be picked. Someone who comes back is never listed as
+    having left.
+  - With four or more still in after a leave (six down to five), nothing changes: the
+    commissioner still chooses between moving forward and inviting someone new.
 - **Playoffs:** the commissioner sets any playoff team count P from 2 up to the number of
   managers (never more). The bracket is derived (weeks = ceil(log2 P); byes to the top
   seeds). Rounds are named by teams left: Final / Semifinals / Quarterfinals / Round of
