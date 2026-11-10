@@ -899,3 +899,27 @@ redefined since.
   code, read, not tested).
 
 Run: `deno test --allow-read --allow-env supabase/tests/social_signup.pglite.test.ts`
+
+## draft_room_reads.pglite.test.ts
+
+The draft room's reads before the start (plan `docs/plans/2026-11-10-pre-draft-room.md`, W2), on the
+whole migration chain (`full_chain.ts`). The room becomes a route from T−1h, so each read
+`lib/game/useDraftRoom.ts` makes (`get_draft_clock`, `get_draft_order`, `drafts`,
+`get_league_display_names`, `draft_queue`) must answer a member who is not the commissioner before
+the draft starts. It proves:
+- before T−1h, in the room window before the gate clears, and once the order is set, every read
+  answers the member with a clean waiting shape (clock not running, no deadline, zero picks), never
+  an error;
+- a random order is not on the server before the gate clears: `get_draft_order` returns
+  `order: null` and `league_draft_order` has no rows. Once the gate clears, the member's read sets it
+  (the lazy reveal) with one entry per member;
+- a member reads only their own queue;
+- a signed-in non-member is refused by every read, and anon cannot execute the three RPCs (proacl:
+  no anon, no PUBLIC);
+- pinned as a product question, not a bug: a manual-order league's members can read the
+  commissioner's open order before T−1h.
+
+Mutants it catches: anon granted execute on `get_draft_order`; the gate clause removed from
+`_draft_order_sync` (the order then appears before the gate has judged the league).
+
+Run: `deno test --allow-read --allow-env --allow-sys --allow-run supabase/tests/draft_room_reads.pglite.test.ts`
