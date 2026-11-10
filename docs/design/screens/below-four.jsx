@@ -109,17 +109,18 @@
     fig(`${v}xl`, `${cap} · your size (AX5) · Light`, <Frame t="light" v={v} x={2.4} />, notes.x || AX),
   ];
 
-  function CallBelowFour() {
+  function CallBelowFour({ archived }) {
     return (
       <section className="b-sec" id="call-below-four" aria-labelledby="call-below-four-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Draft</span>
           <div>
-            <h2 id="call-below-four-h">Your call: when a league drops below 4</h2>
+            <h2 id="call-below-four-h">{archived ? 'Decided: B, one card below 4' : 'Your call: when a league drops below 4'}</h2>
             <p className="b-job">Your phone pass, step 23: two managers left Stock Scudetto before its draft, so it has 2 of 4. Your rule for someone leaving is that the commissioner chooses "move forward with 1 less" or "invite someone new to replace". But a league needs at least 4 managers to draft, so "Move forward with 2" can never work: tapping it is refused ("Lower the playoff teams first"), and there is nowhere to lower them. With 4 or more managers nothing changes in either option.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
+          {archived ? <li><b>Decided by Giorgio (2026-11-10): B.</b> Below 4, one card: who left, "Fewer than 4 teams have joined.", the invite code and Share; no "Move forward". At 4 or more, unchanged. "Invite someone to take their place" approved the same day ("sentence is fine"). Rules: PRODUCT_RULES, "Below 4, there is nothing to move forward with".</li> : null}
           <li><b>Today:</b> two cards. "Gianluigi B. and Paolo M. left the league" with "Move forward with 2" (which can't work) and "Invite someone new"; then "Fewer than 4 teams have joined" with the invite code and Share. Two cards ask for the same thing, and one of their buttons does nothing.</li>
           <li><b>A · Keep the leaver card, without "Move forward".</b> Below 4 it offers only "Invite someone new"; tapping it shows the code and Share, without "Move forward with 2 instead". The "Fewer than 4" card stays. <b>Cost: small.</b> No new words.</li>
           <li><b>B · One card below 4.</b> Who left, then "Fewer than 4 teams have joined.", the invite code and Share invite code. No "Move forward", no "Invite someone new" step: sharing the code is inviting someone new. <b>Cost: small.</b> No new words (the line is the existing card's title).</li>
@@ -136,5 +137,7 @@
     );
   }
 
-  window.KSBelowFour = () => <CallBelowFour />;
+  // Decided 2026-11-10 (B); the call lives in the Archive (board.jsx).
+  window.KSBelowFour = () => null;
+  window.KSBelowFourArchived = () => <CallBelowFour archived />;
 })();

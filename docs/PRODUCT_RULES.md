@@ -678,6 +678,19 @@ building anything, and don't reopen a rule without him.
     the league for that player; history is kept.
   - When someone leaves before the draft, the commissioner must reconfirm: "move forward
     with 1 less" or "invite someone new to replace".
+  - **Below 4, there is nothing to move forward with** (2026-11-10, phone pass step 23, build
+    12; Giorgio picked B, board #call-below-four, relayed by the Orchestrator; his word: "B").
+    A league needs 4 managers to draft, so below 4 the commissioner is not offered "Move
+    forward with N" or "Move forward with N instead". The leaver card and "Fewer than 4 teams
+    have joined" become ONE card: who left (the title), then "Fewer than 4 teams have joined.",
+    the invite code and Share invite code. At 4 or more, nothing changes: "Move forward with N"
+    and "Invite someone new", and the inviting state with "Move forward with N instead".
+  - **"Invite someone to take their place"** (approved 2026-11-10, his words: "sentence is
+    fine"): the inviting state's title when two or more left or the leaver isn't named; with
+    one named leaver it is "Invite someone to take {name}'s place".
+  - Open (Planner + Design Lead, 2026-11-10): what happens when joins bring a below-4 league
+    back to 4. Today the row stays "pending" through the joins, so the choose card would come
+    back at 4 naming the people who left (or who just rejoined).
 - **Leave league is ON in 1.3** (2026-10-30, Giorgio, during the 1.3.0 (5) phone pass, relayed by the
   Orchestrator): build 5 shipped with the switch unset, so no one could leave and League settings was
   unreachable in season. Every member gets League settings (and Leave league inside it) in the real builds;

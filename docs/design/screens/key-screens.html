@@ -10515,17 +10515,18 @@ window.KS_REFS = {
     fig(`${v}xl`, `${cap} · your size (AX5) · Light`, <Frame t="light" v={v} x={2.4} />, notes.x || AX),
   ];
 
-  function CallBelowFour() {
+  function CallBelowFour({ archived }) {
     return (
       <section className="b-sec" id="call-below-four" aria-labelledby="call-below-four-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Draft</span>
           <div>
-            <h2 id="call-below-four-h">Your call: when a league drops below 4</h2>
+            <h2 id="call-below-four-h">{archived ? 'Decided: B, one card below 4' : 'Your call: when a league drops below 4'}</h2>
             <p className="b-job">Your phone pass, step 23: two managers left Stock Scudetto before its draft, so it has 2 of 4. Your rule for someone leaving is that the commissioner chooses "move forward with 1 less" or "invite someone new to replace". But a league needs at least 4 managers to draft, so "Move forward with 2" can never work: tapping it is refused ("Lower the playoff teams first"), and there is nowhere to lower them. With 4 or more managers nothing changes in either option.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
+          {archived ? <li><b>Decided by Giorgio (2026-11-10): B.</b> Below 4, one card: who left, "Fewer than 4 teams have joined.", the invite code and Share; no "Move forward". At 4 or more, unchanged. "Invite someone to take their place" approved the same day ("sentence is fine"). Rules: PRODUCT_RULES, "Below 4, there is nothing to move forward with".</li> : null}
           <li><b>Today:</b> two cards. "Gianluigi B. and Paolo M. left the league" with "Move forward with 2" (which can't work) and "Invite someone new"; then "Fewer than 4 teams have joined" with the invite code and Share. Two cards ask for the same thing, and one of their buttons does nothing.</li>
           <li><b>A · Keep the leaver card, without "Move forward".</b> Below 4 it offers only "Invite someone new"; tapping it shows the code and Share, without "Move forward with 2 instead". The "Fewer than 4" card stays. <b>Cost: small.</b> No new words.</li>
           <li><b>B · One card below 4.</b> Who left, then "Fewer than 4 teams have joined.", the invite code and Share invite code. No "Move forward", no "Invite someone new" step: sharing the code is inviting someone new. <b>Cost: small.</b> No new words (the line is the existing card's title).</li>
@@ -10542,7 +10543,9 @@ window.KS_REFS = {
     );
   }
 
-  window.KSBelowFour = () => <CallBelowFour />;
+  // Decided 2026-11-10 (B); the call lives in the Archive (board.jsx).
+  window.KSBelowFour = () => null;
+  window.KSBelowFourArchived = () => <CallBelowFour archived />;
 })();
 
 </script>
@@ -11876,11 +11879,11 @@ window.KS_REFS = {
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
-    ['call-below-four', 'When a league drops below 4 before its draft'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-below-four', title: 'When a league drops below 4 before its draft', decision: 'B: below 4, one card (who left, "Fewer than 4 teams have joined.", the invite code and Share), no "Move forward"; at 4 or more, unchanged. "Invite someone to take their place" approved.', date: '2026-11-10', rec: 'PRODUCT_RULES (Below 4, there is nothing to move forward with)', render: () => window.KSBelowFourArchived },
     { id: 'call-draft-clock', title: 'The clock while you search', decision: 'A: while it is your pick and the clock card is off the screen, a small clock pinned at the top (the ring, the seconds, "Your pick"). "Your pick" approved with A.', date: '2026-11-06', rec: 'PRODUCT_RULES (The clock while you search)', render: () => window.KSDraftClockArchived },
     { id: 'call-top-bar', title: 'The top bar', decision: 'A and A: the avatar on every tab (Portfolio too), no phase chip in the bar; the bar scrolls away with the page, with a short fade behind the clock once scrolled. No new words.', date: '2026-11-06', rec: 'PRODUCT_RULES (The top bar)', render: () => window.KSTopBarArchived },
     { id: 'call-queue-row', title: 'The queue row', decision: 'A: like the draft room\'s search. The ticker over the company name (cut with "…" when long), the price on the ticker\'s line; the ticker is never cut; "–" when a price is missing. "Prices at Wednesday\'s close." approved (copy, 2026-11-05).', date: '2026-11-05', rec: 'PRODUCT_RULES (The queue row)', render: () => window.KSQueueRowArchived },
