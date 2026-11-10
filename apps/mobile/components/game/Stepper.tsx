@@ -27,9 +27,11 @@ export interface StepperProps {
    * a 2 pt warn-line border on the box. Warn, never red (§9B: blockers keep
    * the warn tint; red is for field errors, losses and destructive actions). */
   emphasis?: 'warn';
+  /** A ceiling for the label's Dynamic Type scale (the blockers card caps it under its sub-card title). Unset: the label scales freely, as before. */
+  labelMaxScale?: number;
 }
 
-export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncrement, disabled = false, emphasis }: StepperProps) {
+export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncrement, disabled = false, emphasis, labelMaxScale }: StepperProps) {
   const { colors } = useTheme();
   // At accessibility sizes the box goes UNDER the label (W4 Onboarding, XL): beside it, the label's
   // column was too narrow and "Managers" broke mid-word ("Manager / s").
@@ -54,7 +56,7 @@ export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncr
       style={[styles.row, stacked && styles.rowStacked, disabled && styles.dim]}
     >
       <View style={stacked ? styles.textsStacked : styles.texts}>
-        <Text variant="callout" style={styles.label}>
+        <Text variant="callout" maxFontSizeMultiplier={labelMaxScale} style={styles.label}>
           {label}
         </Text>
         {sub ? (

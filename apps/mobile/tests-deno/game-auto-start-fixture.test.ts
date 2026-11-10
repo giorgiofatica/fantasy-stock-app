@@ -44,8 +44,8 @@ Deno.test('at risk and postponed carry the board\'s two blockers', () => {
 });
 
 Deno.test('the viewer: commissioner by default, ":member" for a member', () => {
-  assertEquals(parseDraftStartFixture('postponed'), { state: 'postponed', member: false, invite: false });
-  assertEquals(parseDraftStartFixture('postponed:member'), { state: 'postponed', member: true, invite: false });
+  assertEquals(parseDraftStartFixture('postponed'), { state: 'postponed', member: false, invite: false, below4: false });
+  assertEquals(parseDraftStartFixture('postponed:member'), { state: 'postponed', member: true, invite: false, below4: false });
   assertEquals(parseDraftStartFixture('bogus'), null);
   assertEquals(parseDraftStartFixture(undefined), null);
   assertEquals(draftStartStatusFixture('at_risk', true, NOW).is_commissioner, false);

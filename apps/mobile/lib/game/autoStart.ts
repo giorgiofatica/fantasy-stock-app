@@ -16,6 +16,7 @@
  * marked NEW is flagged for the Design Lead.
  */
 import { etDateParts } from '../time/etParts';
+import { keepName } from '../account/keepName';
 import { defaultDraftDate } from './draftDateSave';
 
 const MIN = 60 * 1000;
@@ -223,6 +224,19 @@ function departedNames(b: Blocker): string[] {
   return d.map((x) => (typeof x?.name === 'string' ? x.name : '')).filter(Boolean);
 }
 
+/**
+ * A departed manager's name is one piece on screen (Design Lead gate on #356, AX5: "Invite someone to take Sofia / F.'s place"):
+ * every name the blocker lists gets keepName's no-break spaces (and its hyphen joiners; a name over keepName's 20 characters
+ * stays breakable, so a long name wraps between its words rather than run off the screen). Display only, applied at the render
+ * (as the other keep* helpers are): the strings above stay plain, for the tests and for VoiceOver. The possessive "'s" has no space before it, so
+ * it stays with the name.
+ */
+export function keepDepartedNames(b: Blocker, text: string): string {
+  let out = text;
+  for (const name of departedNames(b)) out = out.replace(name, () => keepName(name));
+  return out;
+}
+
 /** When no clause fits (Design Lead ruling). */
 export const FALLBACK_CLAUSE = 'something in League settings needs fixing';
 
@@ -307,6 +321,16 @@ export function readSettled(readKey: number, target: number): boolean {
 export const SETTLE_CAP_MS = 15_000;
 
 /**
+ * The blockers card's text order at every size (Design Lead gate on #356, AX5: the sub-cards' text outgrew the card's own title,
+ * "Sofia F. left the league" in 40pt under a 27pt "The draft can't start yet"): outer title >= sub-card title >= lines.
+ * The outer title is a `headline` (capped 1.6). The sub-card title is a `callout` `subOf="headline"`, so it takes the LOWER of its own
+ * cap (none) and the title's, 1.6, which is the cap on the card's title: it is smaller at every size because it is 13pt under a 17pt
+ * title at the same ceiling. The lines under it ("Share the code. When someone joins...", "Up to 7, one per team."), the playoff
+ * stepper's label and a fix's refusal cap at this, so none of them can outrank the sub-card's own title.
+ */
+export const SUB_CARD_LINE_MAX_SCALE = 1.6;
+
+/**
  * Which part of the blockers card a fix's refusal belongs to: the blocker code whose sub-card holds the control that
  * was pressed, or 'draft_time' (the Pick a new draft time button sits at the card's foot). PRODUCT_RULES, auth
  * screens, R5: an error sits where its cause is. Giorgio's phone, build 12: "Move forward with 2" printed its
@@ -322,31 +346,67 @@ export type FixOwner = 'roster_reconfirm_required' | 'playoff_teams_exceeds_memb
 export function errorPlacement(
   error: string | null | undefined,
   owner: string | null | undefined,
-  blockers: readonly { code: string }[],
+  blockers: readonly { code: string; absorbs?: unknown }[],
 ): { subCard: number; foot: boolean } {
   if (!error) return { subCard: -1, foot: false };
-  const i = owner ? blockers.findIndex((b) => b.code === owner) : -1;
+  // A merged card (mergeBelowMin) also owns the codes it absorbed.
+  const owns = (b: { code: string; absorbs?: unknown }) => b.code === owner || (Array.isArray(b.absorbs) && b.absorbs.includes(owner));
+  const i = owner ? blockers.findIndex(owns) : -1;
   return { subCard: i, foot: i === -1 };
 }
 
+/** A draft needs this many managers (draft-control rules.ts MIN_DRAFT_MEMBERS; a test reads the server's value). */
+export const MIN_DRAFT_MEMBERS = 4;
+
 /**
  * Whether "Move forward with N" (pending) and "Move forward with N instead" (waiting) are offered. ONE rule for
- * both buttons. Below 4 members they cannot work: confirm_league_roster refuses playoff teams > members, the
+ * both buttons. Below the minimum they cannot work: confirm_league_roster refuses playoff teams > members, the
  * playoff stepper is only emitted from 4, and a draft cannot start below MIN_DRAFT_MEMBERS (phone pass step 23).
- * The Design Lead and Giorgio have not ruled (the lean: offer only the invite path below 4), so until they do
- * this returns true and nothing changes; the ruling is a one-line change here plus tests.
+ * Giorgio's rule B (2026-11-10, PRODUCT_RULES "When managers leave before the draft, below four"): from 4 up
+ * the commissioner still chooses; below it there is no choice to make (mergeBelowMin draws the one invite card).
  */
 export function showMoveForward(members: number): boolean {
-  void members;
-  return true;
+  return members >= MIN_DRAFT_MEMBERS;
+}
+
+/** The members a roster blocker speaks about: its own count (the server judged it), else the league's. */
+function rosterMembers(b: Blocker, memberCount: number): number {
+  return typeof b.members === 'number' ? b.members : memberCount;
+}
+
+/** "Fewer than 4 teams have joined." The existing clause (blockerClause), capitalised, as the sentence the card draws. */
+export function belowMinLine(need: number = MIN_DRAFT_MEMBERS): string {
+  const clause = blockerClause({ code: 'not_enough_members', need });
+  return `${clause.charAt(0).toUpperCase()}${clause.slice(1)}.`;
+}
+
+/**
+ * Giorgio's rule B: with fewer than MIN_DRAFT_MEMBERS in, the roster_reconfirm_required and not_enough_members
+ * blockers are ONE sub-card: who left, "Fewer than 4 teams have joined.", the code and Share, no choice of any kind
+ * (a league needs four to draft, so inviting is the only path and is already chosen: 'pending' or 'invite' alike).
+ * The server still sends both codes; only the card combines them. The merged blocker keeps the reconfirm's names and
+ * members, absorbs not_enough_members (its refusals land here, errorPlacement) and carries the `need` it spoke of.
+ * From 4 up, and for a league with no reconfirm, the list is returned as it came.
+ */
+export function mergeBelowMin(blockers: Blocker[], memberCount: number): Blocker[] {
+  const roster = blockers.find((b) => b.code === 'roster_reconfirm_required');
+  if (!roster || rosterMembers(roster, memberCount) >= MIN_DRAFT_MEMBERS) return blockers;
+  const short = blockers.find((b) => b.code === 'not_enough_members');
+  const need = typeof short?.need === 'number' ? short.need : MIN_DRAFT_MEMBERS;
+  return blockers
+    .filter((b) => b.code !== 'not_enough_members')
+    .map((b) => (b === roster ? { ...b, absorbs: ['not_enough_members'], need } : b));
 }
 
 export type ReconfirmView =
   | { mode: 'choose'; members: number }
-  | { mode: 'inviting'; members: number; title: string; line: string; moveForward: string };
+  | { mode: 'inviting'; members: number; title: string; line: string; moveForward: string }
+  | { mode: 'below_min'; members: number; line: string };
 
 export function reconfirmView(b: Blocker, memberCount: number): ReconfirmView {
-  const members = typeof b.members === 'number' ? b.members : memberCount;
+  const members = rosterMembers(b, memberCount);
+  // Below the minimum there is no choice to show, whatever the server's `choice` says.
+  if (members < MIN_DRAFT_MEMBERS) return { mode: 'below_min', members, line: belowMinLine(typeof b.need === 'number' ? b.need : MIN_DRAFT_MEMBERS) };
   if (b.choice !== 'invite') return { mode: 'choose', members };
   const names = departedNames(b);
   return {

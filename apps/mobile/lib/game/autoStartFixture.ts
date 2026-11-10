@@ -5,7 +5,8 @@
  * tests see them. Picked with EXPO_PUBLIC_DRAFT_START_FIXTURE=<state>, or
  * <state>:member for a member's view, <state>:invite once the commissioner chose "Invite someone
  * new" (the reconfirm blocker's choice 'invite'); flags combine, e.g. at_risk:member:invite (dev
- * builds with the seam on only).
+ * builds with the seam on only). <state>:below4 is a league that dropped below four (rule B): two of four
+ * managers left, two remain, and the server's two blockers for it (the reconfirm and not_enough_members).
  * Sample: the board's Serie A Traders (Sofia F. left; 8 playoff teams, 7 in).
  */
 import type { StartState } from './autoStart';
@@ -16,16 +17,20 @@ const iso = (ms: number) => new Date(ms).toISOString();
 
 export const DRAFT_START_FIXTURE_STATES: readonly StartState[] = ['no_date', 'scheduled', 'at_risk', 'room_open', 'due', 'postponed', 'started'];
 
-/** "at_risk" / "postponed:member" / "at_risk:invite" → the state, the viewer and the reconfirm choice; null if unknown. */
-export function parseDraftStartFixture(raw: string | null | undefined): { state: StartState; member: boolean; invite: boolean } | null {
+/** "at_risk" / "postponed:member" / "at_risk:invite" / "postponed:below4" → the state, the viewer, the reconfirm choice and the size; null if unknown. */
+export function parseDraftStartFixture(raw: string | null | undefined): { state: StartState; member: boolean; invite: boolean; below4: boolean } | null {
   if (!raw) return null;
   const [state, ...flags] = raw.split(':');
   if (!(DRAFT_START_FIXTURE_STATES as readonly string[]).includes(state)) return null;
-  return { state: state as StartState, member: flags.includes('member'), invite: flags.includes('invite') };
+  return { state: state as StartState, member: flags.includes('member'), invite: flags.includes('invite'), below4: flags.includes('below4') };
 }
 
 const sofiaLeft = (choice: 'pending' | 'invite') => ({ code: 'roster_reconfirm_required', departed: [{ name: 'Sofia F.' }], membersBefore: 8, members: 7, choice });
 const PLAYOFF_8_OF_7 = { code: 'playoff_teams_exceeds_members', playoffTeams: 8, members: 7 };
+// Rule B's league (the board's Stock Scudetto): four came, two left, two remain. The server sends BOTH blockers, and no playoff one
+// (the stepper's blocker is only emitted from four).
+const twoOfFourLeft = (choice: 'pending' | 'invite') => ({ code: 'roster_reconfirm_required', departed: [{ name: 'Gianluigi B.' }, { name: 'Paolo M.' }], membersBefore: 4, members: 2, choice });
+const NOT_ENOUGH_2_OF_4 = { code: 'not_enough_members', have: 2, need: 4 };
 
 /**
  * A draft-control confirm_roster refusal for the capture seam (EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL=<reason>, dev
@@ -64,10 +69,13 @@ export function fixtureOrderSet(state: StartState): boolean {
   return state === 'room_open' || state === 'due' || state === 'started';
 }
 
-export function draftStartStatusFixture(state: StartState, member: boolean, nowMs: number, invite = false): Record<string, unknown> {
-  const SOFIA_LEFT = sofiaLeft(invite ? 'invite' : 'pending');
+export function draftStartStatusFixture(state: StartState, member: boolean, nowMs: number, invite = false, below4 = false): Record<string, unknown> {
+  const choice = invite ? 'invite' : 'pending';
+  // The reconfirm and its companion blockers, in the server's order: the sample's (Sofia, 8 playoff teams in 7) or rule B's (2 of 4).
+  const LEFT = below4 ? twoOfFourLeft(choice) : sofiaLeft(choice);
+  const COMPANION = below4 ? NOT_ENOUGH_2_OF_4 : PLAYOFF_8_OF_7;
   // server_now: the DB clock the status was judged at (feat/draft-auto-start 3f0eb8d).
-  const base = { ok: true, is_commissioner: !member, bots_allowed: false, bots_needed: 0, member_count: 7, min_members: 4, postponed: null, server_now: iso(nowMs) };
+  const base = { ok: true, is_commissioner: !member, bots_allowed: false, bots_needed: 0, member_count: below4 ? 2 : 7, min_members: 4, postponed: null, server_now: iso(nowMs) };
   const notReached = (t: number) => ({ code: 'draft_date_not_reached', draftDate: iso(t) });
   switch (state) {
     case 'no_date':
@@ -78,7 +86,7 @@ export function draftStartStatusFixture(state: StartState, member: boolean, nowM
     }
     case 'at_risk': {
       const t = fixtureStartsAtMs('at_risk', nowMs) as number;
-      return { ...base, can_start: false, start_state: 'at_risk', starts_at: iso(t), blockers: [SOFIA_LEFT, PLAYOFF_8_OF_7, notReached(t)] };
+      return { ...base, can_start: false, start_state: 'at_risk', starts_at: iso(t), blockers: [LEFT, COMPANION, notReached(t)] };
     }
     case 'room_open': {
       const t = fixtureStartsAtMs('room_open', nowMs) as number;
@@ -94,7 +102,7 @@ export function draftStartStatusFixture(state: StartState, member: boolean, nowM
         start_state: 'postponed',
         starts_at: null,
         postponed: { from: iso(from + HOUR), stage: 'room_open', reason: 'roster_reconfirm_required' },
-        blockers: [SOFIA_LEFT, PLAYOFF_8_OF_7, { code: 'no_draft_date' }, { code: 'draft_postponed' }],
+        blockers: [LEFT, COMPANION, { code: 'no_draft_date' }, { code: 'draft_postponed' }],
       };
     }
     case 'started':
