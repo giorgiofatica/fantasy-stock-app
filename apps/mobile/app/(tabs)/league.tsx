@@ -435,12 +435,13 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
   const { activeLeague, refresh } = useLeagueContext();
   const { user } = useAuth();
   const { colors } = useTheme();
-  const data = usePreDraftData(leagueId);
   const queue = useDraftQueue(leagueId);
   // Auto-start (3c-2): the shared hook (Home uses it too); only the lobby
   // asks the server to start at 0:00.
   const auto = useDraftAutoStart(leagueId, { kick: true });
   const { ds, view, serverNow } = auto;
+  // The order re-reads with the status (T-1h, T, fixes, pull-to-refresh): set at T-1h, never stale "waiting".
+  const data = usePreDraftData(leagueId, auto.statusKey);
 
   const commissionerName =
     data.members.find((m) => m.userId === activeLeague?.commissioner_id)?.displayName || COMMISSIONER_FALLBACK;

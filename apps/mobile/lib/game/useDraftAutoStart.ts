@@ -220,6 +220,9 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
     serverNow,
     retrying,
     reread,
+    /** The status re-read counter (the T-1h and T boundaries, the poll from T, fixes, reread()). A read that must
+     * follow the same moments keys on it: usePreDraftData's order (the stale "waiting" found on League B). */
+    statusKey,
     fixable,
     roomLabel: ds.startsAt ? etTimeLabel(roomOpensAtMs(ds.startsAt)) : null,
     postponedLabel: postponedAt !== null ? etTimeLabel(postponedAt) : null,

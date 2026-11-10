@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Share, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
@@ -83,15 +83,22 @@ export interface PreDraftCardProps {
    * last reply lands; Build your queue, Members and the invite code stay (newcomers join
    * by code meanwhile). The counts card above carries the reason. */
   repliesPending?: boolean;
+  /** Home's pull-to-refresh count: each pull re-reads the draft status, and with it the order. */
+  pullKey?: number;
 }
 
-export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, draftDate, numParticipants, repliesPending = false }: PreDraftCardProps) {
+export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, draftDate, numParticipants, repliesPending = false, pullKey = 0 }: PreDraftCardProps) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const { activeLeague } = useLeagueContext();
-  const { waiting, members, loading, finalizeAt, memberCount, minMembers, orderRevealed } = usePreDraftData(leagueId);
   const auto = useDraftAutoStart(leagueId, { kick: false });
-  const { ds, phase, serverNow } = auto;
+  const { ds, phase, serverNow, reread } = auto;
+  // The order re-reads with the status (T-1h, T, the poll from T, a pull): set at T-1h, never stale "waiting".
+  const { waiting, members, loading, finalizeAt, memberCount, minMembers, orderRevealed } = usePreDraftData(leagueId, auto.statusKey);
+  // Home's pull re-reads the status (the first value is the mount's own read).
+  useEffect(() => {
+    if (pullKey > 0) reread();
+  }, [pullKey, reread]);
   const view = phase ? homeView(phase, ds.isCommissioner, auto.fixable.length) : null;
   const commissionerName = members.find((m) => m.userId === activeLeague?.commissioner_id)?.displayName || COMMISSIONER_FALLBACK;
 

@@ -2,47 +2,22 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "67a937ae7016933a7add38f9f23a508122b9763e",
-    "commitShort": "67a937ae",
+    "commit": "ed94ec57e758cc7e7f95ff4b80dde0d927524ed4",
+    "commitShort": "ed94ec57",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/draft-pick-prunes-queues",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/DraftRoom.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/QueueEditor.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/draftQueue.ts"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/tests-deno/queue-drafted-leaves.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/auto-pick.test.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/migrations/20261129000000_draft_pick_prunes_queues.sql"
-      }
-    ],
-    "timestamp": "2026-11-10T20:36:16Z",
-    "sourceHash": "sha256:2be7fb653a5eb57943f0eeb953efc908273deb94109f889bd9bf70441a1f8edc",
+    "branch": "feat/draft-room-reads",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-10T20:49:15Z",
+    "sourceHash": "sha256:f91c0f4eeaf2c1bf486470963cba47b1bc435613f606d514a57e06c3fbfd4ba7",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 92.3,
-    "ageDays": 3.8,
+    "ageHours": 92.5,
+    "ageDays": 3.9,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966",
@@ -20206,7 +20181,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_draft_order')",
       "callSites": [
-        "apps/mobile/lib/home/usePreDraftData.ts:110"
+        "apps/mobile/lib/home/usePreDraftData.ts:112"
       ],
       "via": [
         "seamRpc"
@@ -20221,7 +20196,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_league_display_names')",
       "callSites": [
-        "apps/mobile/lib/home/usePreDraftData.ts:111"
+        "apps/mobile/lib/home/usePreDraftData.ts:113"
       ],
       "via": [
         "seamRpc"
@@ -23696,8 +23671,8 @@
       "apps/mobile/lib/home/useDraftingData.ts:84 -> get_draft_clock",
       "apps/mobile/lib/home/useDraftingData.ts:85 -> get_draft_order",
       "apps/mobile/lib/home/useHomeLeague.ts:652 -> get_home_league",
-      "apps/mobile/lib/home/usePreDraftData.ts:110 -> get_draft_order (via seamRpc)",
-      "apps/mobile/lib/home/usePreDraftData.ts:111 -> get_league_display_names (via seamRpc)",
+      "apps/mobile/lib/home/usePreDraftData.ts:112 -> get_draft_order (via seamRpc)",
+      "apps/mobile/lib/home/usePreDraftData.ts:113 -> get_league_display_names (via seamRpc)",
       "apps/mobile/lib/home/useSeasonResult.ts:8 -> get_season_result",
       "apps/mobile/lib/home/useSeasonResult.ts:97 -> get_season_result",
       "apps/mobile/lib/money/usePortfolioLedger.ts:22 -> get_portfolio_ledger",

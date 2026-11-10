@@ -109,6 +109,7 @@ function HomeBody({
   leagueId,
   onRefresh,
   skipEntrance,
+  pullKey,
 }: {
   status: string;
   viewModel: ReturnType<typeof useHomeLeague>['viewModel'];
@@ -118,6 +119,8 @@ function HomeBody({
   /** True when this Home body was mounted by a LEAGUE SWITCH, not the
    * screen's first open (H5, Design Lead ruling 2026-09-29, Blocking 1). */
   skipEntrance: boolean;
+  /** How many times Home was pulled: PreDraftCard re-reads the draft status and order on each. */
+  pullKey: number;
 }) {
   // Error checked BEFORE the `!viewModel` fallback (code review,
   // 2026-09-29: a first-load failure has no viewModel yet, so the old
@@ -151,6 +154,7 @@ function HomeBody({
       numRounds: league.num_rounds,
       draftDate: league.draft_date,
       numParticipants: league.num_participants,
+      pullKey,
     };
     // R4: the commissioner of a renewed league sees the counts while replies come in (GS-11: and no draft block).
     return RUN_IT_BACK_ON && league.previous_league_id && league.commissioner_id === myUserId
@@ -394,6 +398,12 @@ export default function HomeScreen() {
   const { leagues, loading, loadFailed, refresh, activeLeagueId, activeLeague } = useLeagueContext();
   const { colors } = useTheme();
   const { status, viewModel } = useHomeLeague(activeLeagueId);
+  // A pull also re-reads the pre-draft card's status and order (they are the card's own reads, not the context's).
+  const [pullKey, setPullKey] = useState(0);
+  const onPull = useCallback(async () => {
+    setPullKey((k) => k + 1);
+    await refresh();
+  }, [refresh]);
 
   // H5 (Design Lead ruling, 2026-09-29, Blocking 1): entrance animations
   // (hero rise, chart draw-in, standings stagger) play only on Home's
@@ -433,11 +443,11 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <BarsRefresh onRefresh={refresh} header={<ShellHeader title="Home" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
+      <BarsRefresh onRefresh={onPull} header={<ShellHeader title="Home" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[6] }}>
         {/* 24pt between Home's blocks (a calm Home, 2026-10-12), on the wrapper that holds
             them (PR 217). Never compressed to win back the 17e's fold. */}
         <HomeLeagueTransition key={activeLeagueId ?? 'none'} style={{ gap: space[7] }}>
-          <HomeBody status={status} viewModel={viewModel} league={activeLeague} leagueId={activeLeagueId} onRefresh={refresh} skipEntrance={skipEntrance} />
+          <HomeBody status={status} viewModel={viewModel} league={activeLeague} leagueId={activeLeagueId} onRefresh={refresh} skipEntrance={skipEntrance} pullKey={pullKey} />
         </HomeLeagueTransition>
       </BarsRefresh>
     </View>
