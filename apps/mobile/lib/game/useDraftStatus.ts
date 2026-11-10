@@ -29,11 +29,14 @@ export interface DraftStatus {
   postponed: Postponed | null;
   /** The server's clock minus the phone's (ms); 0 when unknown. */
   serverOffsetMs: number;
+  /** The refreshKey of the read behind this state (ready OR error); -1 before the first. A caller that asked for a
+   * re-read knows it has landed once this reaches the key it asked with. */
+  readKey: number;
 }
 
 const EMPTY: DraftStatus = {
   status: 'idle', canStart: false, isCommissioner: false, memberCount: 0, minMembers: 4, blockers: [],
-  startState: null, startsAt: null, postponed: null, serverOffsetMs: 0,
+  startState: null, startsAt: null, postponed: null, serverOffsetMs: 0, readKey: -1,
 };
 
 export function useDraftStatus(leagueId: string | null, enabled: boolean, refreshKey: number): DraftStatus {
@@ -50,7 +53,7 @@ export function useDraftStatus(leagueId: string | null, enabled: boolean, refres
       if (cancelled) return;
       if (!functionOk(read)) {
         console.warn('[game:draft-status] failed', read.transport ? 'transport' : read.reason);
-        setState({ ...EMPTY, status: 'error' });
+        setState({ ...EMPTY, status: 'error', readKey: refreshKey });
         return;
       }
       const data = read.body as Record<string, any>;
@@ -78,6 +81,7 @@ export function useDraftStatus(leagueId: string | null, enabled: boolean, refres
         blockers: (data.blockers ?? []) as Blocker[],
         ...start,
         serverOffsetMs: offset,
+        readKey: refreshKey,
       });
     })();
     return () => {

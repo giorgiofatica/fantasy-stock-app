@@ -20,6 +20,8 @@ import {
   inviteWaitingTitle,
   moveForwardInsteadLabel,
   moveForwardLabel,
+  SETTLE_CAP_MS,
+  readSettled,
   reconfirmView,
   showMoveForward,
 } from '../lib/game/autoStart.ts';
@@ -252,9 +254,66 @@ Deno.test('every refusal the hook records names the sub-card of the control that
   assertEquals(calls.length, 4);
   const by = (needle: string) => calls.find((c) => c.src.includes(needle))?.owner;
   assertEquals(by('outcome.line'), 'playoff_teams_exceeds_members'); // the stepper
-  assertEquals(by('confirmRosterRefusal'), 'roster_reconfirm_required'); // Move forward / Invite someone new
+  assertEquals(by('refusal'), 'roster_reconfirm_required'); // Move forward / Invite someone new
   assertEquals(by('value.error'), 'draft_time'); // the new-time sheet
   assertEquals(by('draftTimeRefusal'), 'draft_time');
   // A setter that takes no owner cannot be called by mistake.
   assert(HOOK.includes('const setFixError = (message: string | null, owner: FixOwner) =>'));
+});
+
+// ── a saved fix holds the card busy until the status re-read has landed ──
+// Before: setBusy(false) ran the moment the save returned, and reread() + refresh() followed. For the length of the
+// re-read the buttons were idle again with the old blocker still on screen: Giorgio's "nothing happened".
+
+const STATUS = SOURCES['lib/game/useDraftStatus.ts'];
+/** The body of `async function-const name`, up to the next blank line + 2-space const (the hook's own layout). */
+const bodyOf = (src: string, name: string) => {
+  const a = src.indexOf(`  const ${name} = async`);
+  assert(a !== -1, name);
+  const b = src.indexOf('\n  };\n', a);
+  return src.slice(a, b);
+};
+
+Deno.test('a re-read has landed once its key is reached; an older read has not', () => {
+  assertEquals(readSettled(5, 5), true);
+  assertEquals(readSettled(6, 5), true); // a later read superseded it
+  assertEquals(readSettled(4, 5), false);
+  assertEquals(readSettled(-1, 0), false); // nothing has been read yet
+  assertEquals(SETTLE_CAP_MS, 15_000);
+});
+
+Deno.test('the status records the key of the read behind it, for a failed read too (a failed re-read still ends busy)', () => {
+  assert(STATUS.includes('readKey: number;'));
+  assert(STATUS.includes('readKey: -1,'));
+  assert(STATUS.includes("setState({ ...EMPTY, status: 'error', readKey: refreshKey });"));
+  assert(STATUS.includes('        readKey: refreshKey,\n      });'));
+});
+
+Deno.test('a saved reconfirm holds busy: the success path has no setBusy(false) of its own, only settleAfterSave', () => {
+  const body = bodyOf(HOOK, 'reconfirm');
+  assert(body.includes('await settleAfterSave();'));
+  // The only release in the function is the refusal branch (nothing changed, nothing to wait for).
+  assertEquals(body.split('setBusy(false)').length - 1, 1);
+  const refusalBranch = body.slice(body.indexOf('if (refusal !== null) {'), body.indexOf('await settleAfterSave();'));
+  assert(refusalBranch.includes('setBusy(false)'));
+  // No release between the invoke returning and the branch.
+  assert(!body.slice(0, body.indexOf('if (refusal !== null) {')).includes('setBusy(false)'));
+});
+
+Deno.test('a saved playoff-teams change holds busy too; a refusal that changed nothing releases it', () => {
+  const body = bodyOf(HOOK, 'setPlayoffTeams');
+  assertEquals(body.split('await settleAfterSave();').length - 1, 2, 'saved, and locked (the room opened under us)');
+  assertEquals(body.split('setBusy(false)').length - 1, 1, 'only the plain refusal releases');
+  assert(body.includes("if (outcome.kind === 'locked') await settleAfterSave();\n      else setBusy(false);"));
+  assert(!body.slice(0, body.indexOf('const outcome')).includes('setBusy(false)'), 'not released before the outcome is read');
+});
+
+Deno.test('busy ends when the re-read lands, or at the cap: the card is never stuck busy', () => {
+  assert(HOOK.includes('if (readSettled(ds.readKey, settleAt)) {\n      setSettleAt(null);\n      setBusy(false);'));
+  assert(HOOK.includes('}, SETTLE_CAP_MS);'));
+  assert(HOOK.includes('return () => clearTimeout(t);'));
+  // The refresh is awaited, but its failure cannot skip the wait: the key is handed over in a finally.
+  assert(/try \{\s*await refresh\(\);\s*\} finally \{\s*setSettleAt\(target\);/.test(HOOK));
+  // The wait is for the key this save asked for, which only rereadKey hands out.
+  assert(HOOK.includes('const target = rereadKey();'));
 });

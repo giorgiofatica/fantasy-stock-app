@@ -295,6 +295,18 @@ export function moveForwardInsteadLabel(members: number): string {
 }
 
 /**
+ * A saved fix keeps the card busy (the tapped button's spinner) until the status re-read that follows it has LANDED,
+ * success or failure: `readKey` is the refresh key of the read behind the current status, `target` the key the save
+ * asked for. The card used to go idle the moment the save returned and show the old blocker for the length of the
+ * re-read, which is exactly Giorgio's "nothing happened" (phone pass 1.3.0 (12)). A failed re-read ends it too, via
+ * the "didn't load" path, and SETTLE_CAP_MS ends it if a read never answers: the card is never stuck busy.
+ */
+export function readSettled(readKey: number, target: number): boolean {
+  return readKey >= target;
+}
+export const SETTLE_CAP_MS = 15_000;
+
+/**
  * Which part of the blockers card a fix's refusal belongs to: the blocker code whose sub-card holds the control that
  * was pressed, or 'draft_time' (the Pick a new draft time button sits at the card's foot). PRODUCT_RULES, auth
  * screens, R5: an error sits where its cause is. Giorgio's phone, build 12: "Move forward with 2" printed its
