@@ -2,15 +2,19 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "740ec7b09e18b1262f4cd63847c352c3110b5417",
-    "commitShort": "740ec7b0",
+    "commit": "ecbf9105cb4429cd706f6c400d0a197cafcd6a59",
+    "commitShort": "ecbf9105",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/reconfirm-invite-state",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/league.tsx"
+        "path": "apps/mobile/components/game/AutoStartBlockers.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/DraftBlockersCard.tsx"
       },
       {
         "code": "M",
@@ -18,18 +22,26 @@
       },
       {
         "code": "M",
+        "path": "apps/mobile/lib/game/useDraftAutoStart.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-auto-start.test.ts"
+      },
+      {
+        "code": "M",
         "path": "apps/mobile/tests-deno/reconfirm-invite-state.test.ts"
       }
     ],
-    "timestamp": "2026-11-10T18:13:52Z",
-    "sourceHash": "sha256:ed94d84dfb8a376260bdc6471e671c679bb8dad1fa7c67fc209e354d4616d915",
+    "timestamp": "2026-11-10T18:17:05Z",
+    "sourceHash": "sha256:43341b7290768b6fd2e41cf49d01e4d2adc6247edd964fbdeee03f159ea3c6d0",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 89.9,
+    "ageHours": 90,
     "ageDays": 3.7,
     "staleAfterDays": 14,
     "stale": false,
@@ -19522,8 +19534,8 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('draft-control')",
       "callSites": [
-        "apps/mobile/lib/game/useDraftAutoStart.ts:120",
-        "apps/mobile/lib/game/useDraftAutoStart.ts:79"
+        "apps/mobile/lib/game/useDraftAutoStart.ts:125",
+        "apps/mobile/lib/game/useDraftAutoStart.ts:80"
       ],
       "via": [
         "seamInvoke"
@@ -19539,8 +19551,8 @@
       "payload": ".from('leagues').update()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/useDraftAutoStart.ts:102",
-        "apps/mobile/lib/game/useDraftAutoStart.ts:160"
+        "apps/mobile/lib/game/useDraftAutoStart.ts:107",
+        "apps/mobile/lib/game/useDraftAutoStart.ts:165"
       ],
       "via": [
         "seamUpdateLeague"
@@ -23477,8 +23489,8 @@
       "apps/mobile/lib/account/accountApi.ts:21 -> delete-account (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:38 -> join-league (via seamInvoke)",
       "apps/mobile/lib/game/useAllMatchups.ts:83 -> quote (via seamInvoke)",
-      "apps/mobile/lib/game/useDraftAutoStart.ts:120 -> draft-control (via seamInvoke)",
-      "apps/mobile/lib/game/useDraftAutoStart.ts:79 -> draft-control (via seamInvoke)",
+      "apps/mobile/lib/game/useDraftAutoStart.ts:125 -> draft-control (via seamInvoke)",
+      "apps/mobile/lib/game/useDraftAutoStart.ts:80 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useDraftStatus.ts:46 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useLeaveLeague.ts:47 -> leave-league (via seamInvoke)",
       "apps/mobile/lib/game/useQueueQuotes.ts:33 -> symbols-search (via seamInvoke)",
@@ -23660,8 +23672,8 @@
       "apps/mobile/lib/game/useAllMatchups.ts:58 -> week_snapshots.select",
       "apps/mobile/lib/game/useAllMatchups.ts:68 -> trades.select",
       "apps/mobile/lib/game/useBracket.ts:33 -> matchups.select",
-      "apps/mobile/lib/game/useDraftAutoStart.ts:102 -> leagues.update (via seamUpdateLeague)",
-      "apps/mobile/lib/game/useDraftAutoStart.ts:160 -> leagues.update (via seamUpdateLeague)",
+      "apps/mobile/lib/game/useDraftAutoStart.ts:107 -> leagues.update (via seamUpdateLeague)",
+      "apps/mobile/lib/game/useDraftAutoStart.ts:165 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/lib/game/useDraftQueue.ts:47 -> draft_queue.select",
       "apps/mobile/lib/game/useDraftRoom.ts:48 -> drafts.select",
       "apps/mobile/lib/game/useDraftRoom.ts:50 -> draft_queue.select",

@@ -28,6 +28,7 @@ import {
   DRAFT_TIME_NOT_SAVED,
   NEW_TIME_NOT_SAVED,
   confirmRosterRefusal,
+  type FixOwner,
   draftTimeRefusal,
   etTimeLabel,
   fixableBlockers,
@@ -94,7 +95,11 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
   }, [phase, refresh, reread]);
 
   // The commissioner's fixes.
-  const [fixError, setFixError] = useState<string | null>(null);
+  // A fix's refusal, with the sub-card that caused it (DraftBlockersCard shows it under that sub-card's controls).
+  const [fixFailure, setFixFailure] = useState<{ message: string; owner: FixOwner } | null>(null);
+  const fixError = fixFailure?.message ?? null;
+  const setFixError = (message: string | null, owner: FixOwner) => setFixFailure(message === null ? null : { message, owner });
+  const clearFixError = () => setFixFailure(null);
   const [busy, setBusy] = useState(false);
 
   const setPlayoffTeams = async (teams: number) => {
@@ -103,14 +108,14 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
     setBusy(false);
     const outcome = playoffTeamsSaveOutcome(res);
     if (outcome.kind !== 'saved') {
-      setFixError(outcome.line);
+      setFixError(outcome.line, 'playoff_teams_exceeds_members');
       if (outcome.kind === 'locked') {
         reread();
         await refresh();
       }
       return;
     }
-    setFixError(null);
+    clearFixError();
     reread();
     await refresh();
   };
@@ -120,7 +125,7 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
     const { data: res, error } = await seamInvoke('draft-control', { body: { league_id: leagueId, action: 'confirm_roster', choice } });
     setBusy(false);
     // U-24: each refusal its own line (the audit's Rule 8 table); null when it saved.
-    setFixError(confirmRosterRefusal(await readFunctionRefusal(res, error)));
+    setFixError(confirmRosterRefusal(await readFunctionRefusal(res, error)), 'roster_reconfirm_required');
     reread();
     await refresh();
   };
@@ -144,7 +149,7 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
   // Home's no-time card, its own sheet): the sheet holds it, "Set draft time" saves it.
   const [pickingTime, setPickingTime] = useState(false);
   const openPicker = () => {
-    setFixError(null);
+    clearFixError();
     setPickingTime(true);
   };
   const closePicker = () => setPickingTime(false);
@@ -153,17 +158,17 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
     setPickingTime(false);
     const value = draftDateForSave(false, date);
     if (!value.ok) {
-      setFixError(value.error);
+      setFixError(value.error, 'draft_time');
       return;
     }
     setBusy(true);
     const res = await seamUpdateLeague(leagueId, { draft_date: value.value });
     setBusy(false);
     if (res.error || !updatedOneRow(res)) {
-      setFixError(draftTimeRefusal(res.error) ?? (opts.firstTime ? DRAFT_TIME_NOT_SAVED : NEW_TIME_NOT_SAVED));
+      setFixError(draftTimeRefusal(res.error) ?? (opts.firstTime ? DRAFT_TIME_NOT_SAVED : NEW_TIME_NOT_SAVED), 'draft_time');
       return;
     }
-    setFixError(null);
+    clearFixError();
     reread();
     await refresh();
   };
@@ -180,7 +185,7 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
     roomLabel: ds.startsAt ? etTimeLabel(roomOpensAtMs(ds.startsAt)) : null,
     postponedLabel: postponedAt !== null ? etTimeLabel(postponedAt) : null,
     fixes: {
-      busy, fixError, setPlayoffTeams, reconfirm, shareInvite, shareShown,
+      busy, fixError, fixErrorOwner: fixFailure?.owner ?? null, setPlayoffTeams, reconfirm, shareInvite, shareShown,
       pickingTime, openPicker, closePicker, saveDraftTime,
     },
   };

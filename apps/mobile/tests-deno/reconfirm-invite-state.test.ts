@@ -15,6 +15,7 @@ import {
   INVITE_WAITING_LINE,
   INVITE_WAITING_TITLE_NO_NAME,
   RECONFIRM_NOT_SAVED,
+  errorPlacement,
   fixableBlockers,
   inviteWaitingTitle,
   moveForwardInsteadLabel,
@@ -130,13 +131,14 @@ Deno.test('every button in the card does something: each onPress is a real handl
   assert(CARD.includes("const statusOf = (c: 'move_forward' | 'invite') => (busy && tapped === c ? 'loading' : 'idle');"));
 });
 
-Deno.test('a refused save still shows at the card\'s bottom from the invite state', () => {
-  // The error line is the card's last child, outside every sub-card, so it does not depend on the choice.
-  const err = CARD.indexOf('{error ? (');
-  const subCards = CARD.indexOf('{blockers.map((b, i) => (');
-  assert(err > subCards);
+Deno.test('a refused save still shows from the invite state: inside the reconfirm sub-card, whatever its choice', () => {
+  // The line is placed by the blocker's code, not by its choice, so 'pending' and 'invite' both keep it.
+  for (const choice of ['pending', 'invite']) {
+    assertEquals(errorPlacement(RECONFIRM_NOT_SAVED, 'roster_reconfirm_required', [{ code: 'roster_reconfirm_required', choice } as { code: string }]), { subCard: 0, foot: false }, choice);
+  }
   assert(CARD.includes('accessibilityLiveRegion="polite"'));
-  assert(!CARD.slice(err).includes('reconfirmView'), 'the error line is not gated on the reconfirm view');
+  assert(!CARD.includes('reconfirmView(b, memberCount);\n  const errorLine'), 'the error line is not gated on the reconfirm view');
+  assert(!/const errorLine[\s\S]{0,200}reconfirmView/.test(CARD), 'the error line is not gated on the reconfirm view');
 });
 
 // ── the fixture and the seam ──
@@ -202,4 +204,57 @@ Deno.test('showMoveForward is the one gate for both Move forward buttons, and re
   assert(/showMoveForward\(view\.members\) \? \(\s*<Button label=\{moveForwardLabel\(view\.members\)\}/.test(CARD));
   // No member-count comparison sits in the card: the rule lives in autoStart.ts only.
   assert(!/members\s*[<>]=?\s*\d/.test(CARD));
+});
+
+// ── a fix's refusal sits inside the sub-card that caused it (PRODUCT_RULES, auth screens, R5) ──
+// Giorgio's phone, build 12 (League A, 2 of 4, playoffs 3): "Move forward with 2" printed its refusal at the very
+// bottom of the card, under "Pick a new draft time", three blocks from the button.
+
+const HOOK = SOURCES['lib/game/useDraftAutoStart.ts'];
+const BLOCKERS = [{ code: 'roster_reconfirm_required' }, { code: 'playoff_teams_exceeds_members' }];
+
+Deno.test('a refusal goes into its owner\'s sub-card, by the owner\'s position in the card', () => {
+  assertEquals(errorPlacement('x', 'roster_reconfirm_required', BLOCKERS), { subCard: 0, foot: false });
+  assertEquals(errorPlacement('x', 'playoff_teams_exceeds_members', BLOCKERS), { subCard: 1, foot: false });
+});
+
+Deno.test('the foot only when the owning sub-card is gone, or the owner is the foot itself; nothing without an error', () => {
+  // The blocker cleared on a re-read: the refusal is not lost.
+  assertEquals(errorPlacement('x', 'roster_reconfirm_required', [{ code: 'playoff_teams_exceeds_members' }]), { subCard: -1, foot: true });
+  assertEquals(errorPlacement('x', 'roster_reconfirm_required', []), { subCard: -1, foot: true });
+  // The new-draft-time refusal belongs to the foot (the button sits there).
+  assertEquals(errorPlacement('x', 'draft_time', BLOCKERS), { subCard: -1, foot: true });
+  assertEquals(errorPlacement('x', null, BLOCKERS), { subCard: -1, foot: true });
+  assertEquals(errorPlacement(null, 'roster_reconfirm_required', BLOCKERS), { subCard: -1, foot: false });
+  assertEquals(errorPlacement('', 'roster_reconfirm_required', BLOCKERS), { subCard: -1, foot: false });
+});
+
+Deno.test('the card renders the refusal once: inside its sub-card under the controls, or at the foot, never both', () => {
+  assert(CARD.includes('const placement = errorPlacement(error, errorOwner, blockers);'));
+  // Inside the sub-card, after the controls (fixFor), inside the Card.
+  assert(/\{fixFor\(b\)\}\s*\{placement\.subCard === i \? errorLine : null\}\s*<\/Card>/.test(CARD));
+  // At the foot only on the fallback, after the sub-cards and the Pick-a-new-time block.
+  assertEquals(CARD.split('errorLine : null').length - 1, 2, 'sub-card and foot, nothing else');
+  assert(CARD.indexOf('{placement.foot ? errorLine : null}') > CARD.indexOf('{blockers.map((b, i) => ('));
+  assert(CARD.indexOf('{placement.foot ? errorLine : null}') > CARD.indexOf('label={PICK_NEW_TIME}'));
+  // The live region stays on the one line element.
+  assertEquals(CARD.split('accessibilityLiveRegion="polite"').length - 1, 1);
+  assert(!CARD.includes('{error ? ('), 'no second, unconditional error render');
+});
+
+Deno.test('AutoStartBlockers passes the owner, so Home\'s card and the lobby\'s agree', () => {
+  assert(SOURCES['components/game/AutoStartBlockers.tsx'].includes('errorOwner={f.fixErrorOwner}'));
+  assert(HOOK.includes("fixErrorOwner: fixFailure?.owner ?? null"));
+});
+
+Deno.test('every refusal the hook records names the sub-card of the control that caused it', () => {
+  const calls = [...HOOK.matchAll(/setFixError\(([\s\S]*?), '([a-z_]+)'\);/g)].map((m) => ({ src: m[1], owner: m[2] }));
+  assertEquals(calls.length, 4);
+  const by = (needle: string) => calls.find((c) => c.src.includes(needle))?.owner;
+  assertEquals(by('outcome.line'), 'playoff_teams_exceeds_members'); // the stepper
+  assertEquals(by('confirmRosterRefusal'), 'roster_reconfirm_required'); // Move forward / Invite someone new
+  assertEquals(by('value.error'), 'draft_time'); // the new-time sheet
+  assertEquals(by('draftTimeRefusal'), 'draft_time');
+  // A setter that takes no owner cannot be called by mistake.
+  assert(HOOK.includes('const setFixError = (message: string | null, owner: FixOwner) =>'));
 });

@@ -295,6 +295,29 @@ export function moveForwardInsteadLabel(members: number): string {
 }
 
 /**
+ * Which part of the blockers card a fix's refusal belongs to: the blocker code whose sub-card holds the control that
+ * was pressed, or 'draft_time' (the Pick a new draft time button sits at the card's foot). PRODUCT_RULES, auth
+ * screens, R5: an error sits where its cause is. Giorgio's phone, build 12: "Move forward with 2" printed its
+ * refusal at the very bottom of the card, under "Pick a new draft time", three blocks from the button.
+ */
+export type FixOwner = 'roster_reconfirm_required' | 'playoff_teams_exceeds_members' | 'draft_time';
+
+/**
+ * Where a fix's refusal renders: INSIDE the sub-card of its owner (the index into `blockers`), or at the card's
+ * foot. The foot is the fallback only when the owning sub-card is gone, e.g. the blocker cleared on a re-read, so
+ * the refusal is never lost; 'draft_time' is the foot by design.
+ */
+export function errorPlacement(
+  error: string | null | undefined,
+  owner: string | null | undefined,
+  blockers: readonly { code: string }[],
+): { subCard: number; foot: boolean } {
+  if (!error) return { subCard: -1, foot: false };
+  const i = owner ? blockers.findIndex((b) => b.code === owner) : -1;
+  return { subCard: i, foot: i === -1 };
+}
+
+/**
  * Whether "Move forward with N" (pending) and "Move forward with N instead" (waiting) are offered. ONE rule for
  * both buttons. Below 4 members they cannot work: confirm_league_roster refuses playoff teams > members, the
  * playoff stepper is only emitted from 4, and a draft cannot start below MIN_DRAFT_MEMBERS (phone pass step 23).

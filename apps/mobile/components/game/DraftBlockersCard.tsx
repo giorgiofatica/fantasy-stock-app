@@ -18,6 +18,7 @@ import {
   PICK_NEW_TIME_READY,
   blockerTitle,
   blockersCardCopy,
+  errorPlacement,
   moveForwardLabel,
   playoffFixLine,
   reconfirmView,
@@ -49,13 +50,15 @@ export interface DraftBlockersCardProps {
   onShareInvite: (() => void) | null;
   onPickNewTime: () => void;
   busy?: boolean;
-  /** A fix that didn't save (shown at the bottom). */
+  /** A fix that didn't save. Shown inside the sub-card of `errorOwner`, else at the foot. */
   error?: string | null;
+  /** The blocker code whose sub-card holds the control that caused `error` (FixOwner). */
+  errorOwner?: string | null;
 }
 
 export function DraftBlockersCard({
   phase, deadlineLabel, blockers, memberCount, playoffTeams, onSetPlayoffTeams, onReconfirm,
-  inviteCode, onShareInvite, onPickNewTime, busy = false, error,
+  inviteCode, onShareInvite, onPickNewTime, busy = false, error, errorOwner,
 }: DraftBlockersCardProps) {
   const { colors } = useTheme();
   const copy = blockersCardCopy(phase, deadlineLabel);
@@ -133,6 +136,13 @@ export function DraftBlockersCard({
     const view = reconfirmView(b, memberCount);
     return view.mode === 'inviting' ? view.title : blockerTitle(b);
   };
+  // A refusal sits under the controls of the sub-card that caused it; the foot only when that sub-card is gone.
+  const placement = errorPlacement(error, errorOwner, blockers);
+  const errorLine = error ? (
+    <Text variant="callout" color={colors.danger} accessibilityLiveRegion="polite">
+      {error}
+    </Text>
+  ) : null;
   const blocked = blockers.length > 0;
 
   return (
@@ -146,6 +156,7 @@ export function DraftBlockersCard({
         <Card key={`${b.code}-${i}`} style={styles.blocker}>
           <Text variant="callout" style={styles.bold}>{subCardTitle(b)}</Text>
           {fixFor(b)}
+          {placement.subCard === i ? errorLine : null}
         </Card>
       ))}
       {phase === 'postponed' ? (
@@ -154,11 +165,7 @@ export function DraftBlockersCard({
           <Text variant="caption" style={styles.center}>{blocked ? PICK_NEW_TIME_NOTE : PICK_NEW_TIME_READY}</Text>
         </View>
       ) : null}
-      {error ? (
-        <Text variant="callout" color={colors.danger} accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
+      {placement.foot ? errorLine : null}
     </View>
   );
 }
