@@ -276,6 +276,41 @@ export function moveForwardLabel(members: number): string {
 }
 export const INVITE_SOMEONE_NEW = 'Invite someone new';
 
+/**
+ * The reconfirm blocker's sub-card has two states, keyed on the server's `choice` (draft-control rules.ts
+ * StartBlocker): 'pending' (the commissioner hasn't chosen: the two buttons) and 'invite' (they chose "Invite
+ * someone new": the blocker stays until a human joins, migration 20261107000005, so the card must say so).
+ * Board #call-leave ReconfirmCard mode 'inviting' (PR #122), strings verbatim (its straight apostrophe).
+ * Anything else, or no `choice` (an older draft-control), is 'choose': never a card that hides the choice.
+ */
+export function inviteWaitingTitle(name: string): string {
+  return `Invite someone to take ${name}'s place`;
+}
+/** Two or more left, or none named: the same pattern without a single name. NEW copy. */
+export const INVITE_WAITING_TITLE_NO_NAME = 'Invite someone to take their place';
+export const INVITE_WAITING_LINE = 'Share the code. When someone joins, the draft is ready to go.';
+/** The way back from the waiting state (board: "Move forward with {teams} instead"). */
+export function moveForwardInsteadLabel(members: number): string {
+  return `Move forward with ${members} instead`;
+}
+
+export type ReconfirmView =
+  | { mode: 'choose'; members: number }
+  | { mode: 'inviting'; members: number; title: string; line: string; moveForward: string };
+
+export function reconfirmView(b: Blocker, memberCount: number): ReconfirmView {
+  const members = typeof b.members === 'number' ? b.members : memberCount;
+  if (b.choice !== 'invite') return { mode: 'choose', members };
+  const names = departedNames(b);
+  return {
+    mode: 'inviting',
+    members,
+    title: names.length === 1 ? inviteWaitingTitle(names[0]) : INVITE_WAITING_TITLE_NO_NAME,
+    line: INVITE_WAITING_LINE,
+    moveForward: moveForwardInsteadLabel(members),
+  };
+}
+
 export interface BlockersCardCopy {
   tag: string;
   title: string;

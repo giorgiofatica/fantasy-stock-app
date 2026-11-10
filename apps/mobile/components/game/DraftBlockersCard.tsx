@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { radius, space, typeFontFamily } from '@/constants/tokens';
@@ -19,6 +20,7 @@ import {
   blockersCardCopy,
   moveForwardLabel,
   playoffFixLine,
+  reconfirmView,
   type Blocker,
 } from '@/lib/game/autoStart';
 import { playoffStepperBounds, stepPlayoffTeams } from '@/lib/game/draftLobby';
@@ -59,13 +61,44 @@ export function DraftBlockersCard({
   const { min, max } = playoffStepperBounds(memberCount);
   const current = playoffTeams ?? 0;
 
+  // Which reconfirm button was tapped, so ITS button shows the spinner while the choice saves (the other
+  // just dims). `busy` is one flag for every fix; this is the card's own memory of which one it was.
+  const [tapped, setTapped] = useState<'move_forward' | 'invite' | null>(null);
+  useEffect(() => {
+    if (!busy) setTapped(null);
+  }, [busy]);
+  const choose = (c: 'move_forward' | 'invite') => {
+    setTapped(c);
+    onReconfirm(c);
+  };
+  const statusOf = (c: 'move_forward' | 'invite') => (busy && tapped === c ? 'loading' : 'idle');
+
+  // The code over its Share: the invite sub-card and the not-enough-members one are the same row.
+  const inviteRow = () =>
+    inviteCode ? (
+      <View style={styles.invite}>
+        <Text variant="caption" tone="secondary" maxFontSizeMultiplier={codeLabelMaxScale('headline')}>Invite code</Text>
+        <InviteCodeText variant="headline" selectable code={inviteCode} />
+        {onShareInvite ? <Button label="Share invite code" variant="secondary" size="sm" onPress={onShareInvite} /> : null}
+      </View>
+    ) : null;
+
   const fixFor = (b: Blocker) => {
     if (b.code === 'roster_reconfirm_required') {
-      const members = typeof b.members === 'number' ? b.members : memberCount;
+      const view = reconfirmView(b, memberCount);
+      if (view.mode === 'inviting') {
+        return (
+          <>
+            <Text variant="caption" subOf="callout">{view.line}</Text>
+            {inviteRow()}
+            <Button label={view.moveForward} variant="ghost" size="sm" onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
+          </>
+        );
+      }
       return (
         <View style={styles.actions}>
-          <Button label={moveForwardLabel(members)} size="sm" onPress={() => onReconfirm('move_forward')} disabled={busy} />
-          <Button label={INVITE_SOMEONE_NEW} variant="secondary" size="sm" onPress={() => onReconfirm('invite')} disabled={busy} />
+          <Button label={moveForwardLabel(view.members)} size="sm" onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
+          <Button label={INVITE_SOMEONE_NEW} variant="secondary" size="sm" onPress={() => choose('invite')} disabled={busy} status={statusOf('invite')} />
         </View>
       );
     }
@@ -86,18 +119,15 @@ export function DraftBlockersCard({
         </>
       );
     }
-    if (b.code === 'not_enough_members' && inviteCode) {
-      return (
-        <View style={styles.invite}>
-          <Text variant="caption" tone="secondary" maxFontSizeMultiplier={codeLabelMaxScale('headline')}>Invite code</Text>
-          <InviteCodeText variant="headline" selectable code={inviteCode} />
-          {onShareInvite ? <Button label="Share invite code" variant="secondary" size="sm" onPress={onShareInvite} /> : null}
-        </View>
-      );
-    }
+    if (b.code === 'not_enough_members') return inviteRow();
     return null;
   };
 
+  const subCardTitle = (b: Blocker) => {
+    if (b.code !== 'roster_reconfirm_required') return blockerTitle(b);
+    const view = reconfirmView(b, memberCount);
+    return view.mode === 'inviting' ? view.title : blockerTitle(b);
+  };
   const blocked = blockers.length > 0;
 
   return (
@@ -109,7 +139,7 @@ export function DraftBlockersCard({
       </View>
       {blockers.map((b, i) => (
         <Card key={`${b.code}-${i}`} style={styles.blocker}>
-          <Text variant="callout" style={styles.bold}>{blockerTitle(b)}</Text>
+          <Text variant="callout" style={styles.bold}>{subCardTitle(b)}</Text>
           {fixFor(b)}
         </Card>
       ))}

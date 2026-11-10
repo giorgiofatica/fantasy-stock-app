@@ -3,7 +3,9 @@
  * `status` response for every start_state, relative to `now`, shaped like the
  * real one (feat/draft-auto-start draft-control/index.ts). Pure, so the rules
  * tests see them. Picked with EXPO_PUBLIC_DRAFT_START_FIXTURE=<state>, or
- * <state>:member for a member's view (dev builds with the seam on only).
+ * <state>:member for a member's view, <state>:invite once the commissioner chose "Invite someone
+ * new" (the reconfirm blocker's choice 'invite'); flags combine, e.g. at_risk:member:invite (dev
+ * builds with the seam on only).
  * Sample: the board's Serie A Traders (Sofia F. left; 8 playoff teams, 7 in).
  */
 import type { StartState } from './autoStart';
@@ -14,15 +16,15 @@ const iso = (ms: number) => new Date(ms).toISOString();
 
 export const DRAFT_START_FIXTURE_STATES: readonly StartState[] = ['no_date', 'scheduled', 'at_risk', 'room_open', 'due', 'postponed', 'started'];
 
-/** "at_risk" / "postponed:member" → the state and the viewer; null if unknown. */
-export function parseDraftStartFixture(raw: string | null | undefined): { state: StartState; member: boolean } | null {
+/** "at_risk" / "postponed:member" / "at_risk:invite" → the state, the viewer and the reconfirm choice; null if unknown. */
+export function parseDraftStartFixture(raw: string | null | undefined): { state: StartState; member: boolean; invite: boolean } | null {
   if (!raw) return null;
-  const [state, who] = raw.split(':');
+  const [state, ...flags] = raw.split(':');
   if (!(DRAFT_START_FIXTURE_STATES as readonly string[]).includes(state)) return null;
-  return { state: state as StartState, member: who === 'member' };
+  return { state: state as StartState, member: flags.includes('member'), invite: flags.includes('invite') };
 }
 
-const SOFIA_LEFT = { code: 'roster_reconfirm_required', departed: [{ name: 'Sofia F.' }], membersBefore: 8, members: 7, choice: 'pending' };
+const sofiaLeft = (choice: 'pending' | 'invite') => ({ code: 'roster_reconfirm_required', departed: [{ name: 'Sofia F.' }], membersBefore: 8, members: 7, choice });
 const PLAYOFF_8_OF_7 = { code: 'playoff_teams_exceeds_members', playoffTeams: 8, members: 7 };
 
 /** The 'scheduled' fixture's draft time ("2d 06h 40m" from now). Shared with Home's
@@ -52,7 +54,8 @@ export function fixtureOrderSet(state: StartState): boolean {
   return state === 'room_open' || state === 'due' || state === 'started';
 }
 
-export function draftStartStatusFixture(state: StartState, member: boolean, nowMs: number): Record<string, unknown> {
+export function draftStartStatusFixture(state: StartState, member: boolean, nowMs: number, invite = false): Record<string, unknown> {
+  const SOFIA_LEFT = sofiaLeft(invite ? 'invite' : 'pending');
   // server_now: the DB clock the status was judged at (feat/draft-auto-start 3f0eb8d).
   const base = { ok: true, is_commissioner: !member, bots_allowed: false, bots_needed: 0, member_count: 7, min_members: 4, postponed: null, server_now: iso(nowMs) };
   const notReached = (t: number) => ({ code: 'draft_date_not_reached', draftDate: iso(t) });

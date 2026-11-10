@@ -231,7 +231,7 @@ export function invokeFixtureFor(
     if (body.action === 'start') return { data: { ok: true }, error: null };
     if (body.action === 'confirm_roster') return { data: { ok: true, members: 7, playoff_teams: body.playoff_teams ?? 6 }, error: null };
     const picked = parseDraftStartFixture(draftStartFixture);
-    if (picked) return { data: draftStartStatusFixture(picked.state, picked.member, Date.now()), error: null };
+    if (picked) return { data: draftStartStatusFixture(picked.state, picked.member, Date.now(), picked.invite), error: null };
     return { data: { ok: true, can_start: true, blockers: [], is_commissioner: true, member_count: 6, min_members: 4 }, error: null };
   }
   return null;
