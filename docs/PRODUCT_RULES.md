@@ -459,6 +459,27 @@ building anything, and don't reopen a rule without him.
   - At T−1h the draft room opens and the order is set.
   - Two pushes to everyone: when the room opens (with your draft position), and when
     the draft starts.
+- **The draft room is a real, familiar room** (2026-11-10; plan
+  `docs/plans/2026-11-10-pre-draft-room.md`):
+  - It opens an hour early and it is the room you draft in: "When the draft room opens,
+    there should be something I click on." "the draft room is just something you can enter
+    an hour before, but then that's actually going to be where you're drafting."
+  - Familiar from the fantasy apps: "A user needs to be able to open it and be like, oh, this
+    is just like ESPN or Yahoo or Sleeper … I know how to queue. I know how to draft. I know
+    how to see the order I'm in". Structure from them, the look stays ours (2026-10-12).
+  - Phone and laptop: "phone first, then laptop. The phone and the laptop should be the exact
+    like kind of same layout. It's just the laptop is like an expanded version … The phone
+    needs to just be more condensed."
+  - His picks: "A, a button into the room"; "A, the ESPN way" (rows show Queue, and Draft
+    only when it is your pick); "A, it tells you, you tap" (at the start the app never
+    replaces the screen you are on).
+  - **The order reveal:** the first time you open the room, "some sort of little animation
+    … that kind of reveals what their draft pick is". Chosen: the board seats itself (the
+    avatars shuffle and settle, your number appears alone, then the board comes in). Nothing
+    overlaps the number: "the draft grid and stuff kind of disappears for a second for that
+    big visual to pop up." And "A, keep it a surprise": your position shows nowhere, the
+    room-open notification included, until you have entered the room once. This replaces the
+    2026-10-06 line that the room-open push carries your draft position.
 - **When a draft can't start** (2026-10-06):
   - The commissioner is warned BEFORE the room opens, with time to fix it.
   - The real gate is room-open time (T−1h). If the league still isn't ready then, the
