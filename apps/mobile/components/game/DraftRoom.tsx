@@ -544,7 +544,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
 
       {/* Never seeded from a failed read (draftQueueRead.ts): the save replaces the whole list. */}
       {room.queue.status === 'ready' ? (
-        <QueueEditor leagueId={leagueId} initial={room.queue.queue} onSaved={room.refresh} />
+        <QueueEditor leagueId={leagueId} initial={room.queue.queue} onSaved={room.refresh} drafted={owned} />
       ) : null}
       {room.queue.status === 'error' ? (
         <Card style={styles.card}>

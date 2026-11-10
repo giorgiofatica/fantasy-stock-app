@@ -535,6 +535,26 @@ Deno.test('queue first, in order; a queued stock that became illegal is skipped,
   assertNeverIllegal(r, st, m, 'u', 'queue');
 });
 
+// Decision 19 (draft room plan, 2026-11-10): a drafted stock leaves every queue at once. The server prunes it
+// (20261129000000, trg_drafts_prune_queues, proven in supabase/tests/draft_pick_prunes_queues.pglite.test.ts); this
+// is the auto-pick's own guard if a queue still held it (a read from before the prune): another manager drafted
+// DNUT, it heads B's queue AND is the largest company, and B's auto-pick takes it by neither route.
+Deno.test('decision 19: a stock another manager drafted is never auto-picked, from the queue or as best available', async () => {
+  const stocks = [stock('DNUT', 100, { marketCap: 99_999 }), stock('NEXT', 100, { marketCap: 1 })];
+  const m = new FakeMarket(stocks, [slot('s1', 10, 500)], ['DNUT', 'NEXT']);
+  // 'x' (manager A) drafted DNUT; 'u' (manager B) is on the clock.
+  const st = stateWith({}, fillerPicks([]).map((p, i) => i === 1 ? { ...p, user_id: 'x', symbol: 'DNUT' } : p));
+  const r = await chooseAutoPick(st, m, 7);
+  assert(r.kind === 'pick', JSON.stringify(r));
+  assertEquals([r.gated.symbol, r.source], ['NEXT', 'auto_queue']);
+  assert(!m.priceCalls.includes('DNUT'), 'never even priced');
+  assertNeverIllegal(r, st, m, 'u', 'decision-19');
+  // With nothing else queued, best available still skips it.
+  const best = await chooseAutoPick(st, new FakeMarket(stocks, [slot('s1', 10, 500)], ['DNUT']), 7);
+  assert(best.kind === 'pick', JSON.stringify(best));
+  assertEquals([best.gated.symbol, best.source], ['NEXT', 'auto_best']);
+});
+
 Deno.test('budget_cap near exhaustion: an already-short roster still drafts what it can afford (never stuck), then stalls only on the hard budget', async () => {
   // $12 left for FOUR open turns, from a three-stock market. No set of stocks can
   // complete this roster: it is short before the pick. Never-worsen (2026-10-13)
