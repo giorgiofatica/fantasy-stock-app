@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { forwardRef, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
+import { forwardRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
-import { fieldRevealOffset, footerSecondaryShown, keyboardUpAfter, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { contentFits, footerSecondaryShown, keyboardUpAfter, rememberRest, restTarget, revealOffset, settleOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
+import { FieldBlockContext, RevealTailContext, type RevealTail } from '@/components/shell/FieldBlockContext';
 import { FooterFade } from '@/components/shell/FooterFade';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
+import { useMotion } from '@/components/sp/motion';
 
 // Phase 3b-1 — the frame every auth / first-run screen shares: the theme's
 // `bg`, safe areas, a scrolling body, and an optional footer that rides
@@ -19,8 +21,9 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 // Fields above the keyboard (auth-fields-above-keyboard, 2026-11-06): the footer is docked OUTSIDE the ScrollView, so with the
 // keyboard up the scroll view's window is only what sits above that footer, and a form taller than the window hid its second
 // field (Create account showed Email, then the button: Password was out of sight and the form read as email-only). A field
-// that takes focus is now scrolled to the top of that window (authFieldReveal.ts), so the next field and its rules sit under it.
-// The scaffold hears focus because it bubbles up from the TextInput to the ScrollView; no screen or Field prop is involved.
+// that takes focus is now scrolled INTO that window, by the minimum it takes (authFieldReveal.ts: the field with its error and rules just
+// clears the footer, and a field already in view does not move the page). The scaffold hears focus because it bubbles up from the TextInput
+// to the ScrollView; a Field also names its whole view through FieldBlockContext, so the rules and the error count.
 
 export interface AuthScaffoldProps {
   children: ReactNode;
@@ -43,7 +46,9 @@ interface RevealScroll {
 export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { fontScale } = useWindowDimensions();
+  const { reduced } = useMotion();
+  const reducedRef = useRef(reduced);
+  reducedRef.current = reduced;
 
   // The scaffold's own handle on the ScrollView, beside the caller's (delete-account scrolls it to the end).
   const scrollRef = useRef<ScrollView | null>(null);
@@ -58,14 +63,27 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
   const [keyboardUp, setKeyboardUp] = useState(false);
   const inField = useRef(false);
   const viewportHeight = useRef(0);
+  const contentHeightRef = useRef(0);
+  // Scrolling (and the bounce) only while the content is taller than the window (authFieldReveal.ts contentFits).
+  const [scrollable, setScrollable] = useState(false);
   // The footer's fade (FooterFade): where the scroll window is in its content, so the fade shows only while content runs under the footer.
   const scrollY = useSharedValue(0);
   const windowHeight = useSharedValue(0);
   const contentHeight = useSharedValue(0);
-  const fontScaleRef = useRef(fontScale);
-  fontScaleRef.current = fontScale;
+  // Where the scroll view is now (the onScroll below), and the focused Field's whole view (FieldBlockContext).
+  const offset = useRef(0);
+  // The offset the page had before a field took focus, and whether a blur is waiting for the keyboard to finish closing: the page goes back to
+  // that offset once it has (authFieldReveal.ts rememberRest / restTarget).
+  const restOffset = useRef<number | null>(null);
+  const returning = useRef(false);
+  const focusedBlock = useRef<View | null>(null);
+  const announceBlock = useCallback((block: View | null) => {
+    focusedBlock.current = block;
+  }, []);
+  // The form's message under the fields (FormMessage), when there is one: the reveal counts it, so it clears the docked button like the rules do.
+  const tailView = useRef<View | null>(null);
 
-  /** Scroll the focused field to the top of the window (its label just under the edge; the input always stays in). */
+  /** Bring the focused field into the window by the minimum it takes: its error and rules too where they fit, the box always. */
   const revealFocused = useCallback(() => {
     const scroll = scrollRef.current as unknown as RevealScroll | null;
     const inner = scroll?.getInnerViewRef?.();
@@ -73,30 +91,103 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
     if (!scroll || !inner || !input) return;
     input.measureLayout(
       inner as never,
-      (_x, y, _w, h) =>
-        scroll.scrollTo({
-          y: fieldRevealOffset({ inputTop: y, inputHeight: h, viewportHeight: viewportHeight.current, fontScale: fontScaleRef.current }),
-          animated: true,
-        }),
+      (_x, inputTop, _w, inputHeight) => {
+        const place = (blockTop: number, blockBottom: number) => {
+          const y = revealOffset({
+            current: offset.current,
+            blockTop,
+            blockBottom,
+            inputTop,
+            inputBottom: inputTop + inputHeight,
+            viewportHeight: viewportHeight.current,
+            contentHeight: contentHeight.value,
+          });
+          // Already in the window: the page does not move at all.
+          if (Math.abs(y - offset.current) >= 0.5) scroll.scrollTo({ y, animated: true });
+        };
+        // The message below the fields extends the block's bottom: label .. rules .. message must clear the footer, or, where that cannot fit, the
+        // rules and the message give way before the label, and the label before the box.
+        const withTail = (top: number, bottom: number) => {
+          const tail = tailView.current;
+          if (!tail) return place(top, bottom);
+          tail.measureLayout(inner as never, (_tx, tailTop, _tw, tailHeight) => place(top, Math.max(bottom, tailTop + tailHeight)), () => place(top, bottom));
+        };
+        const block = focusedBlock.current;
+        // A focused input with no Field around it is its own block (just the box).
+        if (!block) return withTail(inputTop, inputTop + inputHeight);
+        block.measureLayout(inner as never, (_bx, blockTop, _bw, blockHeight) => withTail(blockTop, blockTop + blockHeight), () => withTail(inputTop, inputTop + inputHeight));
+      },
       () => {},
     );
+  }, [contentHeight]);
+
+  /** The window or the content changed: scroll only if there is something to scroll, and put the offset back where it can be (a fitting page rests at 0;
+   * after a blur, once the keyboard has closed, the page returns to where it was before the field took focus). */
+  const settle = useCallback(() => {
+    setScrollable(!contentFits(contentHeightRef.current, viewportHeight.current));
+    const scroll = scrollRef.current as unknown as RevealScroll | null;
+    let y = settleOffset(offset.current, contentHeightRef.current, viewportHeight.current);
+    if (returning.current && !inField.current && restOffset.current !== null) {
+      const back = restTarget(restOffset.current, contentHeightRef.current, viewportHeight.current);
+      if (Math.abs(back - offset.current) >= 0.5) y = back;
+    }
+    if (y !== null) {
+      offset.current = y;
+      // Back to rest animates, except under Reduce Motion (R2 of docs/plans/2026-11-09-auth-screen-layout.md).
+      scroll?.scrollTo({ y, animated: !reducedRef.current });
+    }
   }, []);
 
   const step = useCallback(
     (event: RevealEvent) => {
       const s = stepReveal(inField.current, event);
+      if (event === 'focus') {
+        restOffset.current = rememberRest(restOffset.current, inField.current, returning.current, offset.current);
+        returning.current = false;
+      } else if (event === 'blur') {
+        returning.current = true;
+      }
       inField.current = s.focused;
       if (s.reveal) revealFocused();
     },
     [revealFocused],
   );
 
+  const tail = useMemo<RevealTail>(
+    () => ({
+      register: (view) => {
+        tailView.current = view;
+      },
+      // A form message has just appeared (or changed). The rest the page remembered no longer describes what is on screen. With a field focused,
+      // the minimum scroll now includes the message; with none, the page goes to it (it is under the fields, below the fold at large text).
+      appeared: () => {
+        restOffset.current = null;
+        returning.current = false;
+        setTimeout(() => {
+          if (inField.current) revealFocused();
+          else (scrollRef.current as ScrollView | null)?.scrollToEnd({ animated: !reducedRef.current });
+        }, 0);
+      },
+    }),
+    [revealFocused],
+  );
+
   // A focus can land BEFORE the keyboard has shrunk the window (the content cannot scroll yet), so scroll again once the keyboard has
   // resized the scroll view (onLayout) and when it has settled (its events). Only while a field is focused.
   useEffect(() => {
-    const subs = [Keyboard.addListener('keyboardDidShow', () => step('keyboard')), Keyboard.addListener('keyboardDidChangeFrame', () => step('keyboard'))];
+    const subs = [
+      Keyboard.addListener('keyboardDidShow', () => step('keyboard')),
+      Keyboard.addListener('keyboardDidChangeFrame', () => step('keyboard')),
+      // The keyboard has finished closing (and the footer's second line is back): the last chance to put the page where it was, then the return is over.
+      Keyboard.addListener('keyboardDidHide', () => {
+        settle();
+        returning.current = false;
+        // A form message is showing: the footer's second line is back and the window shorter, so keep the message in view.
+        if (tailView.current) (scrollRef.current as ScrollView | null)?.scrollToEnd({ animated: !reducedRef.current });
+      }),
+    ];
     return () => subs.forEach((x) => x.remove());
-  }, [step]);
+  }, [step, settle]);
 
   // The footer's secondary line goes while the keyboard is up. WILL events (iOS) so it is gone before the keyboard has finished
   // rising; Android has only the DID pair. Its going (and its return) resizes the scroll view, so onLayout re-scrolls to the field.
@@ -132,21 +223,35 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           onLayout={(e) => {
             viewportHeight.current = e.nativeEvent.layout.height;
             windowHeight.value = e.nativeEvent.layout.height;
+            settle();
             step('layout');
+          }}
+          // A drag is the person taking the page: whatever rest was remembered is theirs to change, so nothing pulls it back.
+          onScrollBeginDrag={() => {
+            returning.current = false;
+            restOffset.current = null;
           }}
           onScroll={(e) => {
             scrollY.value = e.nativeEvent.contentOffset.y;
+            offset.current = e.nativeEvent.contentOffset.y;
           }}
           onContentSizeChange={(_w, h) => {
             contentHeight.value = h;
+            contentHeightRef.current = h;
+            settle();
           }}
+          scrollEnabled={scrollable}
+          alwaysBounceVertical={false}
+          bounces={scrollable}
           scrollEventThrottle={16}
           style={styles.fill}
           contentContainerStyle={[styles.body, centerBody && styles.bodyCentered, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          {children}
+          <FieldBlockContext.Provider value={announceBlock}>
+            <RevealTailContext.Provider value={tail}>{children}</RevealTailContext.Provider>
+          </FieldBlockContext.Provider>
         </ScrollView>
         {footer ? <FooterFade scrollY={scrollY} viewportHeight={windowHeight} contentHeight={contentHeight} color={colors.bg} /> : null}
       </View>

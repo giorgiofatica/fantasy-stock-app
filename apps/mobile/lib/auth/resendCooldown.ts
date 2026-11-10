@@ -43,5 +43,7 @@ export function createResendCooldown(now: () => number = Date.now, windowMs: num
 export const confirmationCooldown = createResendCooldown();
 export const resetCooldown = createResendCooldown();
 
-/** The error a too-early "Send again" shows: GoTrue's own code, so the shared mapper words it. */
-export const RESEND_TOO_SOON = { message: '', code: 'over_email_send_rate_limit' } as const;
+/** The error a too-early "Send again" shows: GoTrue's own code AND its minimum-interval message (what the server itself would answer
+ * inside the interval), so the shared mapper words it as the one-minute line. The message matters: without it the code alone reads as the
+ * project's hourly email cap (lib/authErrors.ts classifyAuthError). */
+export const RESEND_TOO_SOON = { message: 'For security purposes, you can only request this after 60 seconds.', code: 'over_email_send_rate_limit' } as const;

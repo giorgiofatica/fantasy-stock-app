@@ -195,3 +195,41 @@ Deno.test('every secure Field passes the bare prop, so no screen rolls its own t
   assertMatch(create, /textContentType="newPassword"/);
   assertMatch(create, /autoComplete="new-password"/);
 });
+
+// ---- the shown state keeps the no-suggest props (build 13, Giorgio's recording of 1.3.0 (12)) -----------------------------------
+// With the eye open the QuickType bar offered his saved email addresses over the password: once secureTextEntry is off, iOS treats the box
+// as ordinary text (suggests, autocorrects, learns the word). A secure host pins autoCorrect / spellCheck / autoCapitalize in BOTH states.
+
+import { secureHostInputProps } from '../lib/passwordReveal.ts';
+
+Deno.test('a secure host pins autoCorrect, spellCheck and autoCapitalize off (the same object whether hidden or shown)', () => {
+  assertEquals(secureHostInputProps(true), { autoCorrect: false, spellCheck: false, autoCapitalize: 'none' });
+  // The toggle's state is not an input to it: shown and hidden read the same pins.
+  assertEquals(secureHostInputProps(true), secureHostInputProps(true));
+});
+
+Deno.test('a field its caller did not mark secure is left exactly as its caller wrote it', () => {
+  assertEquals(secureHostInputProps(false), {});
+  assertEquals(secureHostInputProps(undefined), {});
+});
+
+Deno.test('Field spreads the pins AFTER the caller\'s props, on the one TextInput, so a shown password cannot lose them', () => {
+  const field = SOURCES['components/shell/Field.tsx'];
+  const input = field.slice(field.indexOf('<TextInput'), field.indexOf('/>', field.indexOf('<TextInput')));
+  const spread = input.indexOf('{...input}');
+  const pins = input.indexOf('{...secureHostInputProps(secureTextEntry)}');
+  assert(spread > -1 && pins > spread, 'the pins come after the caller spread, so the caller cannot switch them back on');
+  // Keyed on the CALLER's secureTextEntry (a constant per field), never on `reveal.secureTextEntry` (the toggle).
+  assert(!input.includes('secureHostInputProps(reveal.'));
+  assertEquals((field.match(/<TextInput\s/g) ?? []).length, 1, 'one TextInput for both states: only props change on a toggle (#343)');
+  assert(field.includes('secureTextEntry={reveal.secureTextEntry}'), 'the toggle still flips only secureTextEntry');
+  assert(field.includes("from '@/lib/passwordReveal'"));
+});
+
+Deno.test('every password field keeps its textContentType: Field never sets or overrides it, so a toggle cannot change it', () => {
+  const field = SOURCES['components/shell/Field.tsx'];
+  assert(!field.includes('textContentType='), 'Field passes the caller\'s textContentType through the spread, untouched');
+  assert(!field.includes('autoComplete='), 'and the caller\'s autoComplete');
+  assertMatch(SOURCES['app/create-account.tsx'], /textContentType="newPassword"/);
+  assertMatch(SOURCES['app/login.tsx'], /textContentType="password"/);
+});

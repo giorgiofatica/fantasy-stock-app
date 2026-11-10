@@ -222,7 +222,7 @@ Deno.test('capture knobs are read in ONE __DEV__-gated file (source)', () => {
 
 Deno.test('Forgot password shows the shared auth copy, never the server message (source)', () => {
   const s = src('app/forgot-password.tsx');
-  assert(s.includes('setError(getAuthErrorMessage(resetError));'));
+  assert(s.includes('setError(fromAuthError(resetError));'), 'the shared mapper, through the form-error router');
   assert(!s.includes('setError(resetError.message)'));
 });
 

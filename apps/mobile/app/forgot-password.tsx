@@ -10,7 +10,8 @@ import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { AuthScaffold } from '@/components/shell/AuthScaffold';
 import { Field } from '@/components/shell/Field';
-import { getAuthErrorMessage } from '@/lib/authErrors';
+import { FormMessage } from '@/components/shell/FormMessage';
+import { fromAuthError, localError, viewOf, type FormErrorState } from '@/lib/auth/formError';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { supabase } from '@/lib/supabase';
 import { buildRecoveryRedirect } from '@/lib/recoveryLink';
@@ -31,26 +32,29 @@ import { FIXTURE_NETWORK_MS, SHELL_FIXTURE } from '@/lib/shell/devFixture';
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<ButtonStatus>('idle');
-  const [error, setError] = useState<string | null>(null);
+  // Where an error shows is lib/auth/formError.ts's call (R5): a bad address on Email, anything else (a rate limit, the network, a refusal)
+  // as the form's own message with no red border.
+  const [error, setError] = useState<FormErrorState | null>(null);
+  const errorView = viewOf(error);
   const [sent, setSent] = useState(false);
 
   async function handleResetPassword() {
     if (status === 'loading') return;
     if (!email) {
-      setError('Please enter your email address');
+      setError(localError('email', 'Please enter your email address'));
       return;
     }
 
     // Basic email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Please enter a valid email address');
+      setError(localError('email', 'Please enter a valid email address'));
       return;
     }
 
     // The floor (lib/auth/resendCooldown.ts): a repeat inside GoTrue's interval would fail AND delete the
     // verifier the first, still-valid reset email needs. "Send again" re-enters here, so it is covered too.
     if (resetCooldown.remainingMs(email) > 0) {
-      setError(getAuthErrorMessage(RESEND_TOO_SOON));
+      setError(fromAuthError(RESEND_TOO_SOON));
       return;
     }
 
@@ -75,7 +79,7 @@ export default function ForgotPasswordScreen() {
     if (!pkceCryptoReady()) {
       // No WebCrypto: auth-js would fall back to Math.random + the "plain" method. Refuse instead.
       setStatus('idle');
-      setError('Could not start a secure password reset on this device. Please try again.');
+      setError(localError('form', 'Could not start a secure password reset on this device. Please try again.'));
       return;
     }
     try {
@@ -100,14 +104,14 @@ export default function ForgotPasswordScreen() {
       );
       if (res.tooSoon) {
         setStatus('idle');
-        setError(getAuthErrorMessage(RESEND_TOO_SOON));
+        setError(fromAuthError(RESEND_TOO_SOON));
         return;
       }
       resetError = res.r.error;
     } catch {
       // (The floor was already held inside the critical section: see above.)
       setStatus('idle');
-      setError('Could not start a secure password reset on this device. Please try again.');
+      setError(localError('form', 'Could not start a secure password reset on this device. Please try again.'));
       return;
     }
 
@@ -115,7 +119,7 @@ export default function ForgotPasswordScreen() {
 
     if (resetError) {
       // The shared mapper (lib/authErrors.ts), never the server's own words (W4 Onboarding).
-      setError(getAuthErrorMessage(resetError));
+      setError(fromAuthError(resetError));
       return;
     }
 
@@ -167,8 +171,10 @@ export default function ForgotPasswordScreen() {
         returnKeyType="send"
         onSubmitEditing={handleResetPassword}
         autoFocus
-        error={error}
+        error={errorView.emailError}
+        invalid={errorView.emailInvalid}
       />
+      {errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}
       <Button label="Send reset link" status={status} onPress={handleResetPassword} />
     </AuthScaffold>
   );

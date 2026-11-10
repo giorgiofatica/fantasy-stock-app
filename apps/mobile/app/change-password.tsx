@@ -4,7 +4,7 @@ import { brand } from '@/constants/brand';
 import { PASSWORD_RULE_SENTENCE } from '@/constants/passwordRules';
 import { AuthScaffold } from '@/components/shell/AuthScaffold';
 import { NewPasswordForm } from '@/components/shell/NewPasswordForm';
-import { getAuthErrorMessage } from '@/lib/authErrors';
+import { fromAuthError } from '@/lib/auth/formError';
 import { supabase } from '@/lib/supabase';
 
 // Phase 3b-1 — Profile › Change password (spec row 13): its own screen, not
@@ -17,7 +17,7 @@ export default function ChangePasswordScreen() {
       <NewPasswordForm
         submit={async (password) => {
           const { error } = await supabase.auth.updateUser({ password });
-          return error ? getAuthErrorMessage(error, PASSWORD_RULE_SENTENCE, brand.name) : null;
+          return error ? fromAuthError(error, PASSWORD_RULE_SENTENCE, brand.name) : null;
         }}
         onDone={back}
         onCancel={back}

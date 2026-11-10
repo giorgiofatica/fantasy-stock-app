@@ -9,6 +9,8 @@ import { Text } from '@/components/sp/Text';
 import { useMotion } from '@/components/sp/motion';
 import { useLargeText } from '@/components/sp/useLargeText';
 import { Field } from '@/components/shell/Field';
+import { FormMessage } from '@/components/shell/FormMessage';
+import { viewOf, type FormErrorState } from '@/lib/auth/formError';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 
 // Phase 3b-1 — "Set a new password" (board "Change password"), shared by
@@ -20,8 +22,9 @@ import { ScreenTitle } from '@/components/shell/ScreenTitle';
 // goes loading → ✓ done (held `quick`) before `onDone` runs.
 
 export interface NewPasswordFormProps {
-  /** Performs the update; resolves to a user-facing error, or null on success. */
-  submit: (password: string) => Promise<string | null>;
+  /** Performs the update; resolves to an error that knows where it belongs (lib/auth/formError.ts: a weak or reused password on New password, a
+   * rate limit, the network or anything unmapped as the form's own message with no red border), or null on success. */
+  submit: (password: string) => Promise<FormErrorState | null>;
   onDone: () => void;
   onCancel: () => void;
 }
@@ -37,6 +40,8 @@ export function NewPasswordForm({ submit, onDone, onCancel }: NewPasswordFormPro
   const [status, setStatus] = useState<ButtonStatus>('idle');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<FormErrorState | null>(null);
+  const formMessage = viewOf(formError).formMessage;
   const confirmRef = useRef<TextInput>(null);
 
   const rules = PASSWORD_REQUIREMENTS.map((r) => ({ label: r.label, ok: r.test(password) }));
@@ -45,6 +50,7 @@ export function NewPasswordForm({ submit, onDone, onCancel }: NewPasswordFormPro
     if (status !== 'idle') return;
     setPasswordError(null);
     setConfirmError(null);
+    setFormError(null);
     if (!password) {
       setPasswordError('Please enter a new password.');
       return;
@@ -62,7 +68,9 @@ export function NewPasswordForm({ submit, onDone, onCancel }: NewPasswordFormPro
     const error = await submit(password);
     if (error) {
       setStatus('idle');
-      setPasswordError(error);
+      // On the password it is about, or (a rate limit, the network) as the form's message: never a red border for something else.
+      if (error.target === 'password') setPasswordError(error.message);
+      else setFormError(error);
       return;
     }
     setStatus('done');
@@ -84,6 +92,7 @@ export function NewPasswordForm({ submit, onDone, onCancel }: NewPasswordFormPro
           onChangeText={(v) => {
             setPassword(v);
             if (passwordError) setPasswordError(null);
+            if (formError) setFormError(null);
           }}
           secureTextEntry
           autoComplete="new-password"
@@ -110,6 +119,7 @@ export function NewPasswordForm({ submit, onDone, onCancel }: NewPasswordFormPro
           error={confirmError}
         />
       </View>
+      {formMessage ? <FormMessage>{formMessage}</FormMessage> : null}
       <Button label="Update password" status={status} onPress={handleUpdate} disabled={!password || !confirm} />
       <Pressable onPress={onCancel} accessibilityRole="button" style={styles.cancel} hitSlop={8}>
         <Text variant="body" tone="secondary">

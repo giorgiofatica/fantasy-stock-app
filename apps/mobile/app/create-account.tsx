@@ -16,12 +16,15 @@ import { BrandLockup } from '@/components/shell/BrandBars';
 import { ConfirmEmailSent } from '@/components/shell/ConfirmEmailSent';
 import { usePendingInvite } from '@/lib/invite/usePendingInvite';
 import { Field } from '@/components/shell/Field';
+import { FormMessage } from '@/components/shell/FormMessage';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { SocialSignIn } from '@/components/shell/SocialSignIn';
-import { getAuthErrorMessage, isSignupsPausedError } from '@/lib/authErrors';
+import { isSignupsPausedError } from '@/lib/authErrors';
+import { fromAuthError, missingFields, viewOf, weakPasswordLocal, type FormErrorState } from '@/lib/auth/formError';
+import { PREFILL_EMAIL, PREFILL_PASSWORD } from '@/lib/auth/signupCapture';
 import { useSession } from '@/lib/SessionProvider';
 import { clearSignInIntent, markSignInIntent } from '@/lib/shell/signInTransition';
-import { CAPTURE } from '@/lib/shell/captureDev';
+import { CAPTURE, SIGNUP_CAPTURE } from '@/lib/shell/captureDev';
 
 // Phase 3b-1 — Create account (spec rows 2–3; board "Create account" and
 // "Create account · sign-ups paused"). Split out of the old combined
@@ -50,10 +53,11 @@ import { CAPTURE } from '@/lib/shell/captureDev';
 export default function CreateAccountScreen() {
   const { colors } = useTheme();
   const { signUp } = useSession();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(SIGNUP_CAPTURE.prefill ? PREFILL_EMAIL : '');
+  const [password, setPassword] = useState(SIGNUP_CAPTURE.prefill ? PREFILL_PASSWORD : '');
   const [status, setStatus] = useState<ButtonStatus>('idle');
-  const [formError, setFormError] = useState<string | null>(null);
+  // One error at a time, and WHERE it shows is decided by lib/auth/formError.ts: on its own field, or as the form's message above the button.
+  const [formError, setFormError] = useState<FormErrorState | null>(null);
   const [paused, setPaused] = useState(false);
   const invite = usePendingInvite(); // the league named on "Check your email" when a link brought the person here
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -64,6 +68,7 @@ export default function CreateAccountScreen() {
   const creating = useRef(false);
 
   const passwordRules = PASSWORD_REQUIREMENTS.map((r) => ({ label: r.label, ok: r.test(password) }));
+  const errorView = viewOf(formError);
 
   /** The signups-paused refusal: the panel replaces the primary, the keyboard drops and the panel
    * scrolls into view (a jump under Reduce Motion). */
@@ -86,19 +91,20 @@ export default function CreateAccountScreen() {
   async function handleCreate() {
     if (status !== 'idle' || creating.current) return;
     if (!email || !password) {
-      setFormError('Please enter email and password');
+      setFormError(missingFields(email, password));
       return;
     }
     const { failing } = checkPassword(password);
     if (failing.length > 0) {
-      setFormError(`Your password needs: ${failing.map((r) => r.label.toLowerCase()).join(', ')}.`);
+      setFormError(weakPasswordLocal(`Your password needs: ${failing.map((r) => r.label.toLowerCase()).join(', ')}.`));
       return;
     }
     setFormError(null);
     setStatus('loading');
     markSignInIntent();
     creating.current = true;
-    const result = await signUp(email.trim(), password);
+    // DEV captures only (lib/auth/signupCapture.ts): a mocked refusal instead of a server call.
+    const result = SIGNUP_CAPTURE.error ? { error: SIGNUP_CAPTURE.error, needsConfirmation: false } : await signUp(email.trim(), password);
     creating.current = false;
 
     if (result.error) {
@@ -108,7 +114,7 @@ export default function CreateAccountScreen() {
         showPaused();
         return;
       }
-      setFormError(getAuthErrorMessage(result.error, PASSWORD_RULE_SENTENCE, brand.name));
+      setFormError(fromAuthError(result.error, PASSWORD_RULE_SENTENCE, brand.name));
       return;
     }
     if (result.needsConfirmation) {
@@ -175,7 +181,8 @@ export default function CreateAccountScreen() {
           textContentType="emailAddress"
           returnKeyType="next"
           onSubmitEditing={() => passwordRef.current?.focus()}
-          invalid={!!formError && !email}
+          error={errorView.emailError}
+          invalid={errorView.emailInvalid}
         />
         <Field
           ref={passwordRef}
@@ -190,10 +197,15 @@ export default function CreateAccountScreen() {
           textContentType="newPassword"
           returnKeyType="go"
           onSubmitEditing={handleCreate}
-          error={formError}
+          error={errorView.passwordError}
+          invalid={errorView.passwordInvalid}
           rules={passwordRules}
         />
       </View>
+      {/* The form's own message (a rate limit, the network, a missing field), under the fields and in the scroll body: docked in the footer it
+          would take most of the screen at the largest text size. No field wears it. FormMessage caps it at 1.6x and tells the scaffold, which scrolls
+          the minimum to keep it in view (a focused field's reveal counts it). */}
+      {errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}
       {paused ? (
         <WarnPanel text={`${brand.name} is not open for new signups yet — check back soon. Existing accounts can still sign in.`} />
       ) : null}
