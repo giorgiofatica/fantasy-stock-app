@@ -141,9 +141,34 @@ switch (18). Note the time and what you had just tapped if it happens.
   with 4" or "Move forward with 4 instead" at any point:** either one answers the question for good.
   1. As yourself: Create league, **size 6, playoff teams 4**, draft time **a week from now** on a
      quarter hour (a real time, not "later"). Copy its invite code.
-  2. As T1, T2, T3 and T4 in turn: sign in › tap the league name at the top left › Join with code ›
-     League C's code › sign out. T4 is asked for a username the first time; any will do. Members
-     reads 5 of 6.
+  2. Join T1, T2, T3 and T4 in one go. In the Supabase SQL editor, paste this with **LEAGUECODE
+     replaced by League C's invite code in both places**, and run it (the four addresses are the
+     throwaways' real ones):
+     ```sql
+     drop table if exists step22b_joins;
+     create temp table step22b_joins as
+       select u.email, u.id::text as uid,
+              public.join_league_by_code(upper(btrim('LEAGUECODE')), u.id::text) as result
+         from auth.users u
+        where lower(u.email) in ('you+t1@gmail.com', 'you+t2@gmail.com',
+                                 'you+t3@gmail.com', 'you+t4@gmail.com')
+        order by lower(u.email);
+     select coalesce(u.email, m.user_id) as member, p.username, m.role, j.result
+       from public.league_members m
+       join public.leagues l on l.id = m.league_id
+       left join auth.users u on u.id::text = m.user_id
+       left join public.user_profiles p on p.id::text = m.user_id
+       left join step22b_joins j on j.uid = m.user_id
+      where l.invite_code = upper(btrim('LEAGUECODE'))
+      order by m.joined_at;
+     ```
+     Right: 5 rows. Yours first (commissioner), then T1 to T4, each a member with a result that
+     starts {"ok": true. T4 has no username yet, which is fine. **Run it only here, before T1
+     leaves. Never run it after part 3:** it would put T1 back in and end the test early. (Signing
+     in as each account and using Join with code does the same thing, if you prefer.) Verified on
+     the full migration chain (2026-11-10): the same `join_league_by_code` the app's join-league
+     function calls, minus the rate limit; a second run returns `already_member` and changes
+     nothing; a leave afterwards still raises the question.
   3. As T1: League C › League settings › Leave league › Leave. Sign out.
   4. As yourself, open League C on the League tab. Right, before you tap anything: a warning card
      titled "The draft can't start yet", and inside it one section, "{T1's name} left the league",
