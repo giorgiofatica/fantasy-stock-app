@@ -492,6 +492,15 @@ building anything, and don't reopen a rule without him.
     big visual to pop up." And "A, keep it a surprise": your position shows nowhere, the
     room-open notification included, until you have entered the room once. This replaces the
     2026-10-06 line that the room-open push carries your draft position.
+  - **In the room:** on your pick you draft straight from your queue ("I should be able to
+    draft right from there"); a stock anyone drafts "disappears" from every queue; Latest
+    picks show "the … actual name" beside the ticker.
+  - **After the draft:** "right after you're done, it shows your draft recap. And then later,
+    there should be some way in the app to kind of go back and see like the draft as a whole
+    … like a little draft recap room", with "little superlatives … Just kind of a little fun
+    interactive thing." A Draft recap row on the League tab opens Awards, Board and Teams;
+    "include all the awards" (Big spender, Bargain hunter, Quickest draw, Down to the wire,
+    On autopilot, All in, Spread out, First off the board, Steal of the draft).
 - **When a draft can't start** (2026-10-06):
   - The commissioner is warned BEFORE the room opens, with time to fix it.
   - The real gate is room-open time (T−1h). If the league still isn't ready then, the

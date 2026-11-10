@@ -45,7 +45,13 @@ All 2026-11-10, verbatim.
   then someone else in the draft takes it, it disappears." "in the latest picks little
   section, it just says the ticker name. It would be good if it also included the … actual
   name." "at the end of the draft … ESPN, I know, will have like a little draft recap pop-up
-  thing. That's also something we should add in." And on the queue card: "I don't like this
+  thing. That's also something we should add in." On what the recap is: "right after you're
+  done, it shows your draft recap. And then later, there should be some way in the app to
+  kind of go back and see like the draft as a whole … like a little draft recap room … have
+  like kind of almost little superlatives … the person that picked the most expensive
+  drafts, or the person that picked the most budget friendly ones, or who made the quickest
+  picks … Just kind of a little fun interactive thing." Then: "structure is right, include
+  all the awards". And on the queue card: "I don't like this
   format of like header and then this text sub header that explains things … It just makes
   it cluttered. You use way too many words, and it's such like a red flag for vibe coding."
 - His picks from the mockups: "A, a button into the room" · "A, the ESPN way" · "A, it
@@ -88,7 +94,11 @@ being like a carbon copy of Sleeper" (2026-10-12). Familiar structure, Game Nigh
 | 19 | A taken stock leaves your queue | The moment any manager drafts a stock (you included), it disappears from every queue that held it, on the server and on screen, with no "Save queue" step and no "Not saved yet". Build 12 kept the drafted stock in the queue, then showed it removed but unsaved. | Giorgio 11-10 |
 | 20 | Latest picks say what was picked | Each line carries the ticker AND the company name ("I don't know what TOK is"). Planner addition for the board: who picked it, as ESPN's pick list shows. | Giorgio 11-10; manager name = Planner |
 | 21 | No heading-plus-explainer blocks | The queue's paragraph ("If you step away, we'll auto-pick from your queue…") goes. The room explains nothing in running text under a heading; the one-time tip already teaches auto-pick. See the app-wide rule in PRODUCT_RULES. | Giorgio 11-10 |
-| 22 | Draft recap | When the draft ends there is a recap. Today's ending shows only your own roster and the Week 1 button; what it adds = Giorgio's pick (your team only, or every manager's team). | Giorgio 11-10; content pending |
+| 22 | Right after your last pick | Your own recap, as today (your roster with prices and the Week 1 button), now with company names, plus one link: "See the whole draft". | Giorgio 11-10 |
+| 23 | The draft recap room | A place you can go back to at any time: a **Draft recap** row on the League tab (and the link in 22). Three tabs: **Awards** (the superlatives and a few draft stats), **Board** (the finished board, every pick in order with who made it), **Teams** (each manager's team, one at a time). "there should be some way in the app to kind of go back and see like the draft as a whole … who made what picks". Read-only, leaguemates only. | Giorgio 11-10 ("structure is right") |
+| 24 | The awards | "include all the awards": **Big spender** (priciest picks on average), **Bargain hunter** (cheapest on average), **Quickest draw** (fastest picks), **Down to the wire** (used the most of the clock), **On autopilot** (most auto-picks), **All in** (most picks from one sector), **Spread out** (most different sectors), **First off the board** (the first pick and who made it), **Steal of the draft** (the pick that has gained the most since draft day; it updates through the season). Award names and their one-line reasons are NEW copy, approved on the board. | Giorgio 11-10 |
+| 25 | How awards are worked out | From what the draft already records: `drafts.entry_price`, `recorded_at` (a pick's time is its `recorded_at` minus the turn's start, the previous pick's `recorded_at` or the draft start), `pick_source`, `pick_number`, the stock's category. Rules: auto-picks do not count toward the two speed awards; a manager with no manual pick cannot win them; ties share the award; an award with no eligible winner is not shown (never an empty card); an Open team never wins one; "Steal of the draft" uses the same gain the Portfolio shows, per share since the draft price. | Planner |
+| 26 | Tone | Light and friendly. The two that single someone out ("Down to the wire", "On autopilot") are worded as a wink, not a telling-off; the Design Lead shows the wording and Giorgio approves it. | Planner; copy on the board |
 
 ## Open questions
 
@@ -171,7 +181,11 @@ shows where each phone tab lands so the two read as one room.
 - On your pick a queued stock is drafted from the Queue tab in one tap; a stock drafted by
   anyone is gone from every queue at once with nothing left to save (two-account test);
   Latest picks show ticker and company name; no heading-plus-paragraph block in the room;
-  the draft ends on the recap.
+  the draft ends on your recap with "See the whole draft".
+- League › Draft recap opens the room at any time after the draft: Awards, Board, Teams.
+  Each award names the right manager from a fixture draft with known prices and times
+  (Deno table test incl. ties, an all-auto manager, an Open team); an award with no winner
+  is absent; "Steal of the draft" changes when prices do.
 - First entry plays the reveal once, with no element overlapping the number; a second
   entry does not; Reduce Motion shows the end state; entering a live draft skips it; before
   the first entry neither the push nor any card shows the manager's position.
@@ -186,7 +200,11 @@ W1 board: references captured, then the phone room (waiting, others picking, you
 the live card, and the laptop layout, as "Your call" sections with the NEW copy listed.
 W2 read paths before the start, plus the stale order read (Opus; `supabase-reviewer` if a
 migration is needed). W3 the phone room: route, states, tabs, row actions, cards, push
-destinations (after Giorgio's board sign-off). W4 gate, recordings, the phone check.
+destinations (after Giorgio's board sign-off). W4 gate, recordings, the phone check. W5 the recap room: one read RPC returning the
+board, teams and computed awards for a league's draft (members only, SECURITY DEFINER with
+the usual grants; Opus + `supabase-reviewer`), the League row, the three tabs, the ending's
+link. W5 can ship after the room itself; "Steal of the draft" may follow in the next build
+if it would hold the rest.
 
 ## Models
 
