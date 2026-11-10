@@ -21,6 +21,7 @@ import {
   moveForwardLabel,
   playoffFixLine,
   reconfirmView,
+  showMoveForward,
   type Blocker,
 } from '@/lib/game/autoStart';
 import { playoffStepperBounds, stepPlayoffTeams } from '@/lib/game/draftLobby';
@@ -91,13 +92,17 @@ export function DraftBlockersCard({
           <>
             <Text variant="caption" subOf="callout">{view.line}</Text>
             {inviteRow()}
-            <Button label={view.moveForward} variant="ghost" size="sm" onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
+            {showMoveForward(view.members) ? (
+              <Button label={view.moveForward} variant="ghost" size="sm" onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
+            ) : null}
           </>
         );
       }
       return (
         <View style={styles.actions}>
-          <Button label={moveForwardLabel(view.members)} size="sm" onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
+          {showMoveForward(view.members) ? (
+            <Button label={moveForwardLabel(view.members)} size="sm" onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
+          ) : null}
           <Button label={INVITE_SOMEONE_NEW} variant="secondary" size="sm" onPress={() => choose('invite')} disabled={busy} status={statusOf('invite')} />
         </View>
       );

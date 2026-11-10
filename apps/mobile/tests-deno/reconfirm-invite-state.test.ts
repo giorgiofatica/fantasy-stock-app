@@ -20,6 +20,7 @@ import {
   moveForwardInsteadLabel,
   moveForwardLabel,
   reconfirmView,
+  showMoveForward,
 } from '../lib/game/autoStart.ts';
 import { draftStartStatusFixture, parseDraftStartFixture } from '../lib/game/autoStartFixture.ts';
 import { invokeFixtureFor } from '../lib/game/seamFixtures.ts';
@@ -189,4 +190,16 @@ Deno.test('once known, the lobby follows the phase: shown for every phase but po
 Deno.test('the League tab draws the lobby through lobbyShowsOrder, never a default-to-shown', () => {
   assert(LEAGUE.includes("{!data.loading && lobbyShowsOrder(view, ds.status === 'error') ? ("));
   assert(!LEAGUE.includes('view?.order ?? true'));
+});
+
+// ── "Move forward" below 4 members: one gate, ruling pending ──
+
+Deno.test('showMoveForward is the one gate for both Move forward buttons, and returns true until the ruling', () => {
+  for (const members of [0, 1, 2, 3, 4, 5, 8, 12]) assertEquals(showMoveForward(members), true, `${members}`);
+  assertEquals(CARD.split('showMoveForward(view.members)').length - 1, 2, 'one gate per button, none hand-rolled');
+  // Each gate wraps its own button: the pending "Move forward with N" and the waiting "... instead".
+  assert(/showMoveForward\(view\.members\) \? \(\s*<Button label=\{view\.moveForward\}/.test(CARD));
+  assert(/showMoveForward\(view\.members\) \? \(\s*<Button label=\{moveForwardLabel\(view\.members\)\}/.test(CARD));
+  // No member-count comparison sits in the card: the rule lives in autoStart.ts only.
+  assert(!/members\s*[<>]=?\s*\d/.test(CARD));
 });

@@ -294,6 +294,18 @@ export function moveForwardInsteadLabel(members: number): string {
   return `Move forward with ${members} instead`;
 }
 
+/**
+ * Whether "Move forward with N" (pending) and "Move forward with N instead" (waiting) are offered. ONE rule for
+ * both buttons. Below 4 members they cannot work: confirm_league_roster refuses playoff teams > members, the
+ * playoff stepper is only emitted from 4, and a draft cannot start below MIN_DRAFT_MEMBERS (phone pass step 23).
+ * The Design Lead and Giorgio have not ruled (the lean: offer only the invite path below 4), so until they do
+ * this returns true and nothing changes; the ruling is a one-line change here plus tests.
+ */
+export function showMoveForward(members: number): boolean {
+  void members;
+  return true;
+}
+
 export type ReconfirmView =
   | { mode: 'choose'; members: number }
   | { mode: 'inviting'; members: number; title: string; line: string; moveForward: string };
