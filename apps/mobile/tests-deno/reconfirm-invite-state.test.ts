@@ -101,10 +101,10 @@ Deno.test('the waiting state shows the line, the code row and "Move forward with
   };
   const line = at('{view.line}');
   const code = at('{inviteRow()}');
-  const back = at('label={view.moveForward}');
+  const back = at('<TextAction label={view.moveForward}');
   assert(line < code && code < back, 'line, then the code row, then the way back');
   // The way back is the move_forward choice, and it is a real handler.
-  assert(CARD.includes("label={view.moveForward} variant=\"ghost\" size=\"sm\" onPress={() => choose('move_forward')}"));
+  assert(CARD.includes("<TextAction label={view.moveForward} onPress={() => choose('move_forward')}"));
 });
 
 Deno.test('the waiting sub-card\'s title is the approved one; the other blockers keep theirs', () => {
@@ -125,8 +125,10 @@ Deno.test('the invite row is shared: one label over one code, Share only when it
 
 Deno.test('every button in the card does something: each onPress is a real handler and each fix button reports saving', () => {
   const buttons = [...CARD.matchAll(/<Button\b[\s\S]*?\/>/g)];
-  assertEquals(buttons.length, 5, 'Share, Move forward instead, Move forward, Invite someone new, Pick a new draft time');
+  assertEquals(buttons.length, 4, 'Share, Move forward, Invite someone new, Pick a new draft time');
   for (const m of buttons) assert(/onPress=\{/.test(m[0]), `a Button with no onPress: ${m[0]}`);
+  // The text action is the fifth control: a Pressable with a real handler, and it too reports saving.
+  assert(/<TextAction label=\{view\.moveForward\} onPress=\{\(\) => choose\('move_forward'\)\} disabled=\{busy\} status=\{statusOf\('move_forward'\)\} \/>/.test(CARD));
   // The tapped reconfirm button shows the spinner while the choice saves.
   assertEquals(CARD.split("status={statusOf('move_forward')}").length - 1, 2);
   assertEquals(CARD.split("status={statusOf('invite')}").length - 1, 1);
@@ -202,7 +204,7 @@ Deno.test('showMoveForward is the one gate for both Move forward buttons, and re
   for (const members of [0, 1, 2, 3, 4, 5, 8, 12]) assertEquals(showMoveForward(members), true, `${members}`);
   assertEquals(CARD.split('showMoveForward(view.members)').length - 1, 2, 'one gate per button, none hand-rolled');
   // Each gate wraps its own button: the pending "Move forward with N" and the waiting "... instead".
-  assert(/showMoveForward\(view\.members\) \? \(\s*<Button label=\{view\.moveForward\}/.test(CARD));
+  assert(/showMoveForward\(view\.members\) \? \(\s*<TextAction label=\{view\.moveForward\}/.test(CARD));
   assert(/showMoveForward\(view\.members\) \? \(\s*<Button label=\{moveForwardLabel\(view\.members\)\}/.test(CARD));
   // No member-count comparison sits in the card: the rule lives in autoStart.ts only.
   assert(!/members\s*[<>]=?\s*\d/.test(CARD));
@@ -359,4 +361,44 @@ Deno.test('the flag is dev-seam only: gated by SEAM_ON, handed to the fixture la
   }
   // Never in the render path: the card and the hook know nothing of it.
   assert(!CARD.includes('REFUSAL') && !HOOK.includes('CAPTURE_'));
+});
+
+// ── "Move forward with N instead" is the board's accent text action, not a ghost Button (DL gate on #356, AX5) ──
+
+const ACTION = CARD.slice(CARD.indexOf('function TextAction'), CARD.indexOf('export function DraftBlockersCard'));
+const style = (name: string) => {
+  const a = CARD.indexOf(`  ${name}: {`);
+  assert(a !== -1, name);
+  return CARD.slice(a, CARD.indexOf('\n  },', a));
+};
+
+Deno.test('the way back is a text action: accent, semibold, a Pressable button, capped like a button label', () => {
+  assert(ACTION.length > 100, 'TextAction exists');
+  assert(!CARD.includes('variant="ghost"'), 'no ghost Button left in the card');
+  assert(ACTION.includes('<Pressable'));
+  assert(ACTION.includes('accessibilityRole="button"'));
+  assert(/<Text variant="callout" color=\{colors\.accent\}/.test(ACTION), 'the LABEL is accent (not just the spinner)');
+  assert(ACTION.includes('style={styles.semibold}'));
+  assert(style('semibold').includes('typeFontFamily.semiBold'));
+  assert(ACTION.includes('maxFontSizeMultiplier={BUTTON_LABEL_MAX_SCALE}'));
+});
+
+Deno.test('the text action keeps a 44pt target, the label at its top, flush under what precedes it (no overlap with Share)', () => {
+  const st = style('textAction');
+  assert(st.includes('minHeight: 44'));
+  assert(st.includes("alignItems: 'flex-start'"), 'the label sits at the top of the target');
+  assert(st.includes('paddingTop: 9'));
+  // The card gap above (space[3]) is cancelled exactly, so the target starts at the previous sibling's edge, and the card's
+  // bottom padding below is taken by the target instead of adding to it.
+  assert(st.includes('marginTop: -space[3]'));
+  assert(st.includes('marginBottom: -space[3]'));
+  assert(style('blocker').includes('gap: space[3]'), 'the cancelled gap is the sub-card gap');
+});
+
+Deno.test('the text action reports a saving choice (spinner, no second press) and dims when another fix is busy', () => {
+  assert(ACTION.includes("const loading = status === 'loading';"));
+  assert(ACTION.includes('disabled={disabled || loading}'));
+  assert(ACTION.includes('{loading ? <ActivityIndicator size="small" color={colors.accent} /> : null}'));
+  assert(ACTION.includes("busy: loading"));
+  assert(ACTION.includes('disabled && !loading ? styles.dim : null'));
 });

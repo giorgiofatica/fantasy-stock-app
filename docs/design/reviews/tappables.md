@@ -4,9 +4,9 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **245** tappables in **90** files.
-- **96** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
-- **50** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
+- **246** tappables in **90** files.
+- **97** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **51** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
 Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state setter that opens a sheet or modal), `state` (a state setter in place), `share sheet`, `alert`, `url`, `fn` (a function, named), `prop` (forwarded to the caller).
@@ -79,11 +79,12 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
 | `components/SymbolSearchField.tsx:193` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
 | `components/SymbolSearchField.tsx:247` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
-| `components/game/DraftBlockersCard.tsx:86` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
-| `components/game/DraftBlockersCard.tsx:99` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:107` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:109` | Button | onPress | `inline: () => choose('invite')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:164` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
+| `components/game/DraftBlockersCard.tsx:72` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled \|\| loading` |
+| `components/game/DraftBlockersCard.tsx:111` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
+| `components/game/DraftBlockersCard.tsx:124` | TextAction | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:132` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:134` | Button | onPress | `inline: () => choose('invite')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:189` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
 | `components/game/DraftClockChip.tsx:57` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/DraftComplete.tsx:53` | Button | onPress | `onRetryFinish` | prop onRetryFinish (the caller's) | `finishing` |
 | `components/game/DraftComplete.tsx:84` | Button | onPress | `onSeeMatchup` | prop onSeeMatchup (the caller's) |  |

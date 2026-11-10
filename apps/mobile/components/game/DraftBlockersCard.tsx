@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { radius, space, typeFontFamily } from '@/constants/tokens';
-import { Button } from '@/components/sp/Button';
+import { BUTTON_LABEL_MAX_SCALE, Button, type ButtonStatus } from '@/components/sp/Button';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
 import { keepTime } from '@/lib/game/keepDots';
@@ -56,6 +56,31 @@ export interface DraftBlockersCardProps {
   errorOwner?: string | null;
 }
 
+/**
+ * The board's accent text action ("Move forward with N instead", board #call-leave ReconfirmCard 'inviting'):
+ * semibold accent text, not a Button. A 44pt target (the craft floor) with the text at its TOP: the card's gap
+ * above is cancelled by `marginTop`, so the target starts flush under what precedes it and the label's ink sits
+ * ~13pt under the Share button (a centred label in a 44pt target sits 25pt under it, Design Lead gate on #356).
+ * The target and the Share button's never overlap. A saving choice shows the same spinner a Button's `loading`
+ * shows, and the label keeps its place.
+ */
+function TextAction({ label, onPress, disabled, status }: { label: string; onPress: () => void; disabled: boolean; status: ButtonStatus }) {
+  const { colors } = useTheme();
+  const loading = status === 'loading';
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled && !loading, busy: loading }}
+      style={[styles.textAction, disabled && !loading ? styles.dim : null]}
+    >
+      {loading ? <ActivityIndicator size="small" color={colors.accent} /> : null}
+      <Text variant="callout" color={colors.accent} maxFontSizeMultiplier={BUTTON_LABEL_MAX_SCALE} style={styles.semibold}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export function DraftBlockersCard({
   phase, deadlineLabel, blockers, memberCount, playoffTeams, onSetPlayoffTeams, onReconfirm,
   inviteCode, onShareInvite, onPickNewTime, busy = false, error, errorOwner,
@@ -96,7 +121,7 @@ export function DraftBlockersCard({
             <Text variant="caption" subOf="callout">{view.line}</Text>
             {inviteRow()}
             {showMoveForward(view.members) ? (
-              <Button label={view.moveForward} variant="ghost" size="sm" onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
+              <TextAction label={view.moveForward} onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
             ) : null}
           </>
         );
@@ -195,6 +220,24 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: typeFontFamily.bold,
+  },
+  semibold: {
+    fontFamily: typeFontFamily.semiBold,
+  },
+  // 44pt target, label at its top; the negative margins cancel the card's gap above and its padding below.
+  textAction: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    gap: space[2],
+    minHeight: 44,
+    paddingTop: 9,
+    marginTop: -space[3],
+    marginBottom: -space[3],
+  },
+  dim: {
+    opacity: 0.5,
   },
   center: {
     textAlign: 'center',
