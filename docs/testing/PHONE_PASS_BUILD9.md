@@ -123,15 +123,13 @@ switch (18). Note the time and what you had just tapped if it happens.
      new draft time** is bright and can be tapped, with no tap from you first. Wrong: either box is
      still there, or the button is still faded. Don't pick a draft time yet; a later step sets it.
 - [ ] **Step 22a. Make a fifth account, T4.** (Page id 46.) The re-run of step 22 needs five people
-  in one league, and you have four accounts.
-  1. Supabase SQL editor, first:
-     `INSERT INTO public.signup_allowlist (email, note) VALUES (lower('you+t4@gmail.com'), 'build-9 phone pass T4');`
-     The account can't be created until this row exists.
-  2. Supabase dashboard › Authentication › Users › Add user › Create new user. That email, a
-     password you choose, and tick **Auto Confirm User**. Don't use the app's Create account for
-     this one: that is what hit the email limit with T3.
-  Right: T4 is in the Users list. This one needs no build, so it can be done while build 14 is
-  still building.
+  in one league, and you have four accounts. Supabase dashboard › Authentication › Users › Add user
+  › Create new user. Email `you+t4@gmail.com`, a password you choose, and tick **Auto Confirm
+  User**. Don't use the app's Create account for this one: that is what hit the email limit with
+  T3. Right: T4 is in the Users list. This one needs no build, so it can be done while build 14 is
+  still building. (The allowlist row for T4 already exists. It turned out not to be needed for an
+  account made in the dashboard; it is harmless. Observed 2026-11-10: a dashboard Add user is NOT
+  stopped by the Before User Created hook, see step 35.)
 - [ ] **Step 24c. Install build 14.** (Page id 43.) The build with today's fixes is **1.3.0 (14)**
   (from `6ca0e0c4`, fingerprint `8cd5f9f8`). Build 13 was made earlier in the day (from `67a937ae`)
   and is missing the queue fix, so skip it. Run the submit command the Orchestrator gave you for
@@ -237,7 +235,9 @@ the dashboard work first.
 
 - [ ] **Step 35. Launch prep** (STATUS §4 item 2): Supabase Auth Site URL (still localhost) and
   redirect URLs, the email templates rebranded (old logo today), the Apple and Google providers,
-  manual linking OFF, the Before-User-Created hook test, custom SMTP; Apple web sign-in (Services
+  manual linking OFF, the Before-User-Created hook test (test BOTH paths: an app sign-up without
+  an allowlist row must be refused; a dashboard Add user was observed on 2026-11-10 NOT to be gated),
+  custom SMTP; Apple web sign-in (Services
   ID + the .p8 secret, which expires within 6 months, so calendar it); the store/TestFlight URL in
   `universal-links.config.json` and #279 merged.
 - [ ] **Step 36. Sign-in and invite links (19–28)**, in the walkthrough's order.
