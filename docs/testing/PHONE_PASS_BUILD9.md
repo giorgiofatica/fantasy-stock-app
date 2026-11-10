@@ -95,7 +95,9 @@ switch (18). Note the time and what you had just tapped if it happens.
   Move forward. Right: it saves, the notice goes, and stays gone after a force-quit.
 - [ ] **Step 22. Invite someone new (12).** T1 rejoins with the code and leaves again. Tap Invite
   someone new. Right: it saves; the notice stays until T1 joins again with the code, then goes by
-  itself.
+  itself. **On build 13:** this can't be re-run in League A. A four-team league that loses a
+  manager is below four, and now shows one card with no buttons. Leave this step marked Failed
+  until its re-run is added here.
 - [ ] **Step 23. League B, and the playoff-teams stepper (13).** The stepper only appears once four
   managers are in (draft-control computes the playoff blocker only above the 4-member floor), so
   it is checked in a new league, not League A. As yourself: Create league, **size 6, playoff teams
@@ -118,6 +120,41 @@ switch (18). Note the time and what you had just tapped if it happens.
   time** is enabled straight away, with no tap from you first. On build 12 the card while only
   three are in may still look like the old one; that part is fixed in build 13. What matters here
   is the state once four are in.
+- [ ] **Step 24c. Install build 13.** (Page id 43.) Build 13 carries the fixes for step 22, Create
+  account and the queue. Run the build commands waiting in the Orchestrator's chat, paste the
+  output there so it can confirm the build's commit, then install build 13 from TestFlight. Right:
+  TestFlight shows build 13 installed. **Do this before step 25:** once T1 is deleted, League A has
+  three managers and can never draft, and step 24e needs that draft.
+- [ ] **Step 24d. League A: one card when a manager leaves.** (Page id 45.) On build 13, at your
+  usual text size. Do this before 24e, which sets League A's draft time: a manager can only leave
+  while the draft is unset or more than an hour away.
+  1. As T1: League A › League settings › Leave league › Leave. Sign out.
+  2. As yourself: open League A. Right: one card that says T1's name "left the league", then
+     "Fewer than 4 teams have joined.", the invite code and Share invite code. No Move forward, no
+     Invite someone new, nothing larger than the card's title, no name split across two lines. If
+     League A shows Postponed, the note under Pick a new draft time fits on screen.
+  3. As T1: join League A again with League A's code. Sign out.
+  4. As yourself: the "left the league" part is gone with no tap from you, and nothing stops you
+     picking a draft time.
+  This is not the re-run of step 22; leave 22 marked Failed.
+- [ ] **Step 24e. A drafted stock leaves every queue.** (Page id 44.) On build 13, in League A with
+  four managers. Pick one stock for this, called X here: a mid-size company, not a household giant,
+  so the automatic picks don't take it first.
+  1. As yourself: set League A's draft time to about **1 hour 15 minutes from now**, on a quarter
+     hour (the Pick a new draft time card, or League settings; it must be at least an hour away).
+  2. Sign out, sign in as T2. League A › Your queue: add X, Save queue. Sign out.
+  3. Sign in as yourself. League A › Your queue: add X, Save queue. Stay signed in.
+  4. In the Supabase SQL editor, with X replaced by the ticker in capitals, in both places:
+     `SELECT (SELECT count(*) FROM draft_queue q WHERE q.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND q.symbol = 'X') AS queued_x, (SELECT count(*) FROM drafts d WHERE d.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND upper(d.symbol) = 'X') AS drafted_x;`
+     Right: **queued_x 2, drafted_x 0**.
+  5. At the draft time, be in the room and watch Your queue. If it's your pick and X is still
+     there, draft X. Right: the moment X is drafted, by you or by anyone else (the server may pick it
+     for T2 first, and that counts), X disappears from your queue and the count drops by one, with no
+     "Save queue" and no "Not saved yet".
+  6. Run the same query again, any time after X is drafted. Right: **queued_x 0, drafted_x 1**. T2
+     never touched the queue again, so only the server can have removed T2's copy.
+  7. You can leave the room; the server picks for everyone who is away. Let League A's draft finish
+     before step 25.
 - [ ] **Step 25. Delete T1 (30).** On T1: Profile › Delete account. Wrong
   password first. Right: "That password isn't right. Try again." and the field clears. Right
   password → Delete my account → "Are you sure?" → Delete. Right: signed out, sign-in shows
