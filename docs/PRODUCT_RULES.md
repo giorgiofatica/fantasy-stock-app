@@ -281,6 +281,18 @@ building anything, and don't reopen a rule without him.
   user's in." The market's own times too: "yes, market times should be local too". Display
   only: the market, the trading window, weeks and scoring keep running on Eastern Time.
 
+- **No heading-plus-explainer pattern** (2026-11-10, said twice in one day). On Create
+  league's Season step: "I really don't like this style of mainline like managers and then
+  this like smaller subtitle that explains it. I think one that is very just red flag of like
+  AI built, vibe coded. Secondly, I think it makes it far too cluttered." On the draft room's
+  queue card: "I don't like this format of like header and then this text sub header that
+  explains things … It just makes it cluttered. You use way too many words". So: a label is
+  not followed by a grey sentence explaining it. The screen should make the thing clear by
+  its layout and controls; where a fact is truly needed it is one short line, a value, or a
+  one-time tip, "the right kind of balance between providing the user with the right
+  information they need … but then also not clutter the UI." The Design Lead sweeps existing
+  screens for it; new screens are gated on it.
+
 ## Scoring and standings
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is

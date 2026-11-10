@@ -38,6 +38,16 @@ All 2026-11-10, verbatim.
   laptop should be the exact like kind of same layout. It's just the laptop is like an
   expanded version that has a bit more space and things are separated. The phone needs to
   just be more condensed."
+- From drafting League B on build 1.3.0 (12): "there is no way to like add something to your
+  queue and then just press draft directly from the queue. I have to then go back up to the
+  search bar and type it all in again … I'm queuing them not just because if I step away,
+  but that way … I can like jot down what I want to draft." "if you have something queued and
+  then someone else in the draft takes it, it disappears." "in the latest picks little
+  section, it just says the ticker name. It would be good if it also included the … actual
+  name." "at the end of the draft … ESPN, I know, will have like a little draft recap pop-up
+  thing. That's also something we should add in." And on the queue card: "I don't like this
+  format of like header and then this text sub header that explains things … It just makes
+  it cluttered. You use way too many words, and it's such like a red flag for vibe coding."
 - His picks from the mockups: "A, a button into the room" · "A, the ESPN way" · "A, it
   tells you, you tap".
 - The reveal: "when someone first opens up the draft room … whenever they first open it up,
@@ -74,6 +84,11 @@ being like a carbon copy of Sleeper" (2026-10-12). Familiar structure, Game Nigh
 | 15 | Nothing overlaps | During the shuffle and the number the board's grid is NOT drawn: an empty stage, no card or box behind the number, no lines crossing it. The grid appears only after the number has gone. | Giorgio |
 | 16 | Reveal ground rules | Once per draft per manager, on the first entry; three to four seconds; a tap skips to the end state; skipped entirely when the draft is live or within 30 seconds of starting, and when the order was not random; with Reduce Motion the end state shows with no animation; one short haptic as your column lights. In a league wider than the screen it ends centred on your column. "Seen" is remembered on the device per league and draft; a reinstall may replay it, which is harmless. | Planner |
 | 17 | Keep it a surprise | Until you have entered the room once, your position is shown nowhere else: the room-open push no longer states it, and Home's and League's cards and the lobby do not show the order. After your first entry they do. Someone who never enters before the draft simply sees their position, with no animation. This CHANGES the 2026-10-06 rule that the room-open push carries your draft position. Proposed push line (NEW copy, his to approve on the board): "The draft room is open. Come see where you pick." | Giorgio (A) |
+| 18 | Draft from your queue | On your pick, every row in your Queue shows **Draft**, the same control the Stocks rows show (decision 7). You never retype a stock you already queued. "ESPN has this in their draft … when it becomes my turn, the little queue button turns into a draft." | Giorgio 11-10 (build 12 draft) |
+| 19 | A taken stock leaves your queue | The moment any manager drafts a stock (you included), it disappears from every queue that held it, on the server and on screen, with no "Save queue" step and no "Not saved yet". Build 12 kept the drafted stock in the queue, then showed it removed but unsaved. | Giorgio 11-10 |
+| 20 | Latest picks say what was picked | Each line carries the ticker AND the company name ("I don't know what TOK is"). Planner addition for the board: who picked it, as ESPN's pick list shows. | Giorgio 11-10; manager name = Planner |
+| 21 | No heading-plus-explainer blocks | The queue's paragraph ("If you step away, we'll auto-pick from your queue…") goes. The room explains nothing in running text under a heading; the one-time tip already teaches auto-pick. See the app-wide rule in PRODUCT_RULES. | Giorgio 11-10 |
+| 22 | Draft recap | When the draft ends there is a recap. Today's ending shows only your own roster and the Week 1 button; what it adds = Giorgio's pick (your team only, or every manager's team). | Giorgio 11-10; content pending |
 
 ## Open questions
 
@@ -153,6 +168,10 @@ shows where each phone tab lands so the two read as one room.
 - At T the room goes live in place; outside the room the card goes live and the app does
   not navigate by itself.
 - A postponed league has no room.
+- On your pick a queued stock is drafted from the Queue tab in one tap; a stock drafted by
+  anyone is gone from every queue at once with nothing left to save (two-account test);
+  Latest picks show ticker and company name; no heading-plus-paragraph block in the room;
+  the draft ends on the recap.
 - First entry plays the reveal once, with no element overlapping the number; a second
   entry does not; Reduce Motion shows the end state; entering a live draft skips it; before
   the first entry neither the push nor any card shows the manager's position.
