@@ -24,6 +24,7 @@ import {
   playoffFixLine,
   reconfirmView,
   showMoveForward,
+  SUB_CARD_LINE_MAX_SCALE,
   type Blocker,
 } from '@/lib/game/autoStart';
 import { playoffStepperBounds, stepPlayoffTeams } from '@/lib/game/draftLobby';
@@ -119,7 +120,7 @@ export function DraftBlockersCard({
       if (view.mode === 'inviting') {
         return (
           <>
-            <Text variant="caption" subOf="callout">{view.line}</Text>
+            <Text variant="caption" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}>{view.line}</Text>
             {inviteRow()}
             {showMoveForward(view.members) ? (
               <TextAction label={view.moveForward} onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
@@ -148,8 +149,9 @@ export function DraftBlockersCard({
             canIncrement={current < Math.min(max, members)}
             disabled={busy}
             emphasis="warn"
+            labelMaxScale={SUB_CARD_LINE_MAX_SCALE}
           />
-          <Text variant="caption">{playoffFixLine(members)}</Text>
+          <Text variant="caption" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}>{playoffFixLine(members)}</Text>
         </>
       );
     }
@@ -165,7 +167,7 @@ export function DraftBlockersCard({
   // A refusal sits under the controls of the sub-card that caused it; the foot only when that sub-card is gone.
   const placement = errorPlacement(error, errorOwner, blockers);
   const errorLine = error ? (
-    <Text variant="callout" color={colors.danger} accessibilityLiveRegion="polite">
+    <Text variant="callout" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE} color={colors.danger} accessibilityLiveRegion="polite">
       {error}
     </Text>
   ) : null;
@@ -180,7 +182,7 @@ export function DraftBlockersCard({
       </View>
       {blockers.map((b, i) => (
         <Card key={`${b.code}-${i}`} style={styles.blocker}>
-          <Text variant="callout" style={styles.bold}>{subCardTitle(b)}</Text>
+          <Text variant="callout" subOf="headline" style={styles.bold}>{subCardTitle(b)}</Text>
           {fixFor(b)}
           {placement.subCard === i ? errorLine : null}
         </Card>

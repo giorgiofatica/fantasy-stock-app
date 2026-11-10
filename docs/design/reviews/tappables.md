@@ -79,12 +79,12 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
 | `components/SymbolSearchField.tsx:193` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
 | `components/SymbolSearchField.tsx:247` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
-| `components/game/DraftBlockersCard.tsx:73` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled \|\| loading` |
-| `components/game/DraftBlockersCard.tsx:112` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
-| `components/game/DraftBlockersCard.tsx:125` | TextAction | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:133` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:135` | Button | onPress | `inline: () => choose('invite')` | fn choose | `busy` |
-| `components/game/DraftBlockersCard.tsx:190` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
+| `components/game/DraftBlockersCard.tsx:74` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled \|\| loading` |
+| `components/game/DraftBlockersCard.tsx:113` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
+| `components/game/DraftBlockersCard.tsx:126` | TextAction | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:134` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:136` | Button | onPress | `inline: () => choose('invite')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:192` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
 | `components/game/DraftClockChip.tsx:57` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/DraftComplete.tsx:53` | Button | onPress | `onRetryFinish` | prop onRetryFinish (the caller's) | `finishing` |
 | `components/game/DraftComplete.tsx:84` | Button | onPress | `onSeeMatchup` | prop onSeeMatchup (the caller's) |  |
@@ -130,8 +130,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/SetupRows.tsx:215` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
 | `components/game/SetupScaffold.tsx:52` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
 | `components/game/StandingsTable.tsx:73` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
-| `components/game/Stepper.tsx:67` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
-| `components/game/Stepper.tsx:75` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
+| `components/game/Stepper.tsx:69` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
+| `components/game/Stepper.tsx:77` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
 | `components/home/DraftingCard.tsx:85` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/PhaseMessageCard.tsx:33` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
 | `components/home/PreDraftCard.tsx:208` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |

@@ -321,6 +321,16 @@ export function readSettled(readKey: number, target: number): boolean {
 export const SETTLE_CAP_MS = 15_000;
 
 /**
+ * The blockers card's text order at every size (Design Lead gate on #356, AX5: the sub-cards' text outgrew the card's own title,
+ * "Sofia F. left the league" in 40pt under a 27pt "The draft can't start yet"): outer title >= sub-card title >= lines.
+ * The outer title is a `headline` (capped 1.6). The sub-card title is a `callout` `subOf="headline"`, so it takes the LOWER of its own
+ * cap (none) and the title's, 1.6, which is the cap on the card's title: it is smaller at every size because it is 13pt under a 17pt
+ * title at the same ceiling. The lines under it ("Share the code. When someone joins...", "Up to 7, one per team."), the playoff
+ * stepper's label and a fix's refusal cap at this, so none of them can outrank the sub-card's own title.
+ */
+export const SUB_CARD_LINE_MAX_SCALE = 1.6;
+
+/**
  * Which part of the blockers card a fix's refusal belongs to: the blocker code whose sub-card holds the control that
  * was pressed, or 'draft_time' (the Pick a new draft time button sits at the card's foot). PRODUCT_RULES, auth
  * screens, R5: an error sits where its cause is. Giorgio's phone, build 12: "Move forward with 2" printed its

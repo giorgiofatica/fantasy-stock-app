@@ -445,3 +445,83 @@ Deno.test("the card applies it to the roster blocker's title in both states, and
   assertEquals(body.split('keepDepartedNames(').length - 1, 1, 'one gate for both states');
   assert(!CARD.includes('{blockerTitle(b)}'));
 });
+
+// ── the blockers card's text order at AX5 (DL gate on #356) ──
+// "Sofia F. left the league" drew in 40pt under a 27pt "The draft can't start yet": the sub-card's callout title was uncapped, and
+// its lines and refusal likewise. Order at every size: outer title >= sub-card title >= lines; the refusal caps at 1.6x.
+
+import { SUB_CARD_LINE_MAX_SCALE } from '../lib/game/autoStart.ts';
+import { subLineCap } from '../components/sp/logic/cappedType.ts';
+import { type } from '../constants/tokens/type.ts';
+
+const STEPPER = SOURCES['components/game/Stepper.tsx'];
+const SIZES = [0.8, 1, 1.1, 1.2, 23 / 17, 1.6, 2, 2.27, 2.5, 3, 53 / 17, 3.5];
+
+/** The effective size of a variant under an explicit cap (or its own), at a system scale: what iOS draws. */
+const drawn = (variant: keyof typeof type, cap: number | undefined, scale: number) =>
+  type[variant].fontSize * (cap === undefined ? scale : Math.min(scale, cap));
+
+/** The Text element opening tag in CARD that contains `needle`. */
+const tagOf = (needle: string) => {
+  const at = CARD.indexOf(needle);
+  assert(at !== -1, needle);
+  const start = CARD.lastIndexOf('<Text', at);
+  return CARD.slice(start, CARD.indexOf('>', at) + 1);
+};
+
+Deno.test('the cap is 1.6, the title\'s own ceiling', () => {
+  assertEquals(SUB_CARD_LINE_MAX_SCALE, 1.6);
+  assertEquals(SUB_CARD_LINE_MAX_SCALE, type.headline.maxScale);
+});
+
+Deno.test('the sub-card title is a callout under the card title: it takes the LOWER of the two caps (subOf headline)', () => {
+  const sub = tagOf('{subCardTitle(b)}');
+  assert(sub.includes('variant="callout"') && sub.includes('subOf="headline"'), sub);
+  const outer = tagOf('{keepTime(copy.title)}');
+  assert(outer.includes('variant="headline"'), outer);
+  // The Text primitive's own rule: no cap of its own, so it takes the title's.
+  assertEquals(subLineCap(type.callout.maxScale, type.headline.maxScale), 1.6);
+});
+
+Deno.test('the lines, the stepper label and the refusal carry the 1.6 cap; no sub-line is left "subOf callout" (uncapped)', () => {
+  for (const needle of ['{view.line}', '{playoffFixLine(members)}']) {
+    const t = tagOf(needle);
+    assert(t.includes('variant="caption"') && t.includes('maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}'), t);
+  }
+  const refusal = tagOf('accessibilityLiveRegion="polite"');
+  assert(refusal.includes('maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}') && refusal.includes('color={colors.danger}'), refusal);
+  assert(CARD.includes('labelMaxScale={SUB_CARD_LINE_MAX_SCALE}'));
+  assert(!CARD.includes('subOf="callout"'));
+});
+
+Deno.test('the order holds at every size, AX5 included: outer title >= sub-card title >= lines; the refusal never outranks the title', () => {
+  const titleCap = subLineCap(type.callout.maxScale, type.headline.maxScale);
+  for (const s of SIZES) {
+    const outer = drawn('headline', type.headline.maxScale, s);
+    const subTitle = drawn('callout', titleCap, s);
+    const line = drawn('caption', SUB_CARD_LINE_MAX_SCALE, s);
+    const refusal = drawn('callout', SUB_CARD_LINE_MAX_SCALE, s);
+    const label = drawn('callout', SUB_CARD_LINE_MAX_SCALE, s);
+    assert(outer >= subTitle - 1e-9, `${s}x: outer ${outer} < sub-card title ${subTitle}`);
+    assert(subTitle >= line - 1e-9, `${s}x: sub-card title ${subTitle} < line ${line}`);
+    assert(subTitle >= refusal - 1e-9 && subTitle >= label - 1e-9, `${s}x: refusal/label outrank the title`);
+  }
+  // AX5 (53/17): the numbers the README quotes.
+  const ax5 = 53 / 17;
+  assertEquals(drawn('headline', 1.6, ax5).toFixed(1), '27.2');
+  assertEquals(drawn('callout', 1.6, ax5).toFixed(1), '20.8');
+  assertEquals(drawn('caption', 1.6, ax5).toFixed(1), '19.2');
+});
+
+Deno.test('the cap is what stops the inversion: uncapped, the sub-card title is bigger than the card title at AX5', () => {
+  const ax5 = 53 / 17;
+  assert(drawn('callout', undefined, ax5) > drawn('headline', 1.6, ax5), 'the old, uncapped sub-card title outgrew the card title');
+});
+
+Deno.test('the stepper label takes the cap only when asked: other callers scale as before', () => {
+  assert(STEPPER.includes('labelMaxScale?: number;'));
+  assert(STEPPER.includes('<Text variant="callout" maxFontSizeMultiplier={labelMaxScale} style={styles.label}>'));
+  for (const f of ['app/create-league.tsx', 'components/game/RenewalChangeSheet.tsx', 'app/league-settings.tsx']) {
+    if (SOURCES[f]?.includes('<Stepper')) assert(!SOURCES[f].includes('labelMaxScale'), `${f} is unchanged`);
+  }
+});
