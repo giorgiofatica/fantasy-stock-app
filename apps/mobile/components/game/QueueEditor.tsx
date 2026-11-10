@@ -14,27 +14,43 @@ import { QueueRow } from '@/components/game/QueueRow';
 import { useQueueQuotes } from '@/lib/game/useQueueQuotes';
 import { useQueueMarketLine } from '@/lib/game/useQueueMarketLine';
 import { savedQueueFrom } from '@/lib/game/draftQueueRead';
-import { normalizeQueue, moveItem, removeItem, addSymbol, queueRefusalLine, QUEUE_MAX } from '@/lib/game/draftQueue';
+import { moveItem, removeItem, addSymbol, queueRefusalLine, queueBaseline, rebaseQueue, QUEUE_MAX } from '@/lib/game/draftQueue';
 
 export interface QueueEditorProps {
   leagueId: string;
   initial: string[];
   /** The list the server stored (set_draft_queue's `symbols`). */
   onSaved: (saved: string[]) => void;
+  /** Stocks already drafted in the league (the live room; upper case). They leave the list at once, with no
+   * Save step (decision 19). The lobby drafts nothing, so it passes none. */
+  drafted?: ReadonlySet<string>;
 }
 
 /** One Set for the life of the module: useSymbolSearch takes `ownedSymbols` as an effect dependency, so a fresh
  * `new Set()` per render cancelled the 300 ms debounce on every parent re-render and the search never fired
  * (the spinner for ever; W8 tap-through). The queue marks nothing as owned. */
 const NO_OWNED_SYMBOLS: Set<string> = new Set();
+/** The same for `drafted`: one empty Set, so the lobby's editor never sees a "new" drafted set per render. */
+const NOTHING_DRAFTED: ReadonlySet<string> = new Set();
 
 /** The draft queue (3c): the stocks auto-pick takes first. Move, remove and add, then
  * save. The save is the server's set_draft_queue, and the server's refusal decides. */
-export function QueueEditor({ leagueId, initial, onSaved }: QueueEditorProps) {
-  const [queue, setQueue] = useState<string[]>(() => normalizeQueue(initial));
+export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAFTED }: QueueEditorProps) {
+  // The saved list: what the server stored, minus anything drafted (decision 19, lib/game/draftQueue.ts).
+  const baseline = queueBaseline(initial, drafted);
+  const baselineKey = baseline.join(',');
+  const draftedKey = [...drafted].sort().join(',');
+  const [queue, setQueue] = useState<string[]>(() => baseline);
+  // A change the SERVER made (a pick pruned the queue, a re-read, a save landing) moves the list with it, in this
+  // render: never a local difference that asks to be saved.
+  const [seen, setSeen] = useState({ baseline, draftedKey });
+  if (seen.baseline.join(',') !== baselineKey || seen.draftedKey !== draftedKey) {
+    setSeen({ baseline, draftedKey });
+    setQueue((q) => rebaseQueue(q, seen.baseline, baseline, drafted));
+  }
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
-  const dirty = queue.join(',') !== normalizeQueue(initial).join(',');
+  const dirty = queue.join(',') !== baselineKey;
   // The company and the draft search's price for every queued stock, read when the card opens (and for a stock added later).
   const { names, prices } = useQueueQuotes(queue);
   const closedLine = useQueueMarketLine();

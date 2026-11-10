@@ -21,6 +21,29 @@ export function normalizeQueue(symbols: string[]): string[] {
   return out;
 }
 
+/**
+ * Decision 19 (draft room plan, Giorgio 2026-11-10): "A drafted stock leaves every queue at once, server and
+ * screen, with no Save step." Build 12: after he drafted DNUT it stayed in "Your queue · 1 of 50", then showed
+ * "0 of 50 / Save queue / Not saved yet." The editor kept its own list from mount and compared it with the
+ * server's, so a removal the SERVER made (20261129000000 prunes the pick from every queue) read as an unsaved
+ * local edit.
+ *
+ * The editor's "saved" list is `queueBaseline`: what the server stored, minus anything drafted in the league
+ * (so a queue read that failed or has not landed yet never makes a drafted stock look saved). When the baseline
+ * or the drafted set changes, `rebaseQueue` carries the player's list over: no unsaved edits -> the new
+ * baseline; unsaved edits -> kept, minus drafted stocks and minus what the server dropped. Either way a change
+ * the server made never creates a difference to save.
+ */
+export function queueBaseline(saved: string[], drafted: ReadonlySet<string>): string[] {
+  return normalizeQueue(saved).filter((s) => !drafted.has(s));
+}
+
+export function rebaseQueue(local: string[], prevBase: string[], nextBase: string[], drafted: ReadonlySet<string>): string[] {
+  if (local.length === prevBase.length && local.every((s, i) => s === prevBase[i])) return nextBase.slice();
+  const dropped = new Set(prevBase.filter((s) => !nextBase.includes(s)));
+  return local.filter((s) => !drafted.has(s) && !dropped.has(s));
+}
+
 /** Move the item at `index` by `dir` (-1 up, +1 down). A move past either end is a no-op. */
 export function moveItem(list: string[], index: number, dir: 1 | -1): string[] {
   const to = index + dir;

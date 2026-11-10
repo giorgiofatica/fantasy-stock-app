@@ -105,8 +105,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/LeaveLeagueSheets.tsx:120` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
 | `components/game/LeaveLeagueSheets.tsx:126` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
 | `components/game/LeaveLeagueSheets.tsx:140` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
-| `components/game/QueueEditor.tsx:80` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
-| `components/game/QueueEditor.tsx:86` | Button | onPress | `inline: () => void save()` | fn save | `saving` |
+| `components/game/QueueEditor.tsx:96` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
+| `components/game/QueueEditor.tsx:102` | Button | onPress | `inline: () => void save()` | fn save | `saving` |
 | `components/game/QueueRow.tsx:64` | Pressable | onPress | `inline: () => onMove(-1)` | fn onMove |  |
 | `components/game/QueueRow.tsx:69` | Pressable | onPress | `inline: () => onMove(1)` | fn onMove |  |
 | `components/game/QueueRow.tsx:73` | Pressable | onPress | `onRemove` | prop onRemove (the caller's) |  |
