@@ -202,7 +202,7 @@ export function DraftBlockersCard({
       {phase === 'postponed' ? (
         <View style={styles.actions}>
           <Button label={PICK_NEW_TIME} onPress={onPickNewTime} disabled={blocked || busy} />
-          <Text variant="caption" style={styles.center}>{blocked ? PICK_NEW_TIME_NOTE : PICK_NEW_TIME_READY}</Text>
+          <Text variant="caption" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE} style={styles.center}>{blocked ? PICK_NEW_TIME_NOTE : PICK_NEW_TIME_READY}</Text>
         </View>
       ) : null}
       {placement.foot ? errorLine : null}

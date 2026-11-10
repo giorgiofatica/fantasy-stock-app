@@ -684,3 +684,38 @@ Deno.test('the seam serves it through draft-control status when the flag is in E
   assertEquals(fixableBlockers(res.data.blockers).length, 2);
   assert(SOURCES['lib/game/seamFixtures.ts'].includes('picked.invite, picked.below4)'));
 });
+
+// ── the note under "Pick a new draft time" is capped (DL gate on #358, AX5) ──
+// "Fix these first. The new time needs at least an hour's notice." was an uncapped caption: 37pt at AX5, bigger than the card's own
+// title (27.2) and the button, and in below4-AX5-dark it ran off the screen. It takes the card-line cap, so at every size:
+// card title >= button label >= the note.
+
+const BUTTON_SRC = SOURCES['components/sp/Button.tsx'];
+
+Deno.test('the note under Pick a new draft time carries the card-line cap (both strings: blocked and ready)', () => {
+  const t = tagOf('{blocked ? PICK_NEW_TIME_NOTE : PICK_NEW_TIME_READY}');
+  assert(t.includes('variant="caption"') && t.includes('maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}'), t);
+  assert(!t.includes('subOf="callout"'), 'not an uncapped sub-line');
+  // One element for both strings: the ready line cannot be left uncapped.
+  assertEquals(CARD.split('PICK_NEW_TIME_READY}').length - 1, 1);
+});
+
+Deno.test('the order holds at every size, AX5 included: card title >= button label >= the note', () => {
+  // The button label's cap is the headline's (Button.tsx), the same as the card title's.
+  assert(BUTTON_SRC.includes('export const BUTTON_LABEL_MAX_SCALE = type.headline.maxScale ?? 1.6;'));
+  for (const s of SIZES) {
+    const cardTitle = drawn('headline', type.headline.maxScale, s);
+    const buttonLabel = drawn('headline', type.headline.maxScale, s); // md button: variant headline, BUTTON_LABEL_MAX_SCALE
+    const note = drawn('caption', SUB_CARD_LINE_MAX_SCALE, s);
+    assert(cardTitle >= buttonLabel - 1e-9, s + 'x: card title < button label');
+    assert(buttonLabel >= note - 1e-9, s + 'x: button label ' + buttonLabel + ' < note ' + note);
+  }
+  assertEquals(drawn('caption', SUB_CARD_LINE_MAX_SCALE, 53 / 17).toFixed(1), '19.2', 'the AX5 size the README quotes');
+});
+
+Deno.test('uncapped, the note outgrows both at AX5 (the bug this fixes)', () => {
+  const ax5 = 53 / 17;
+  const uncapped = drawn('caption', undefined, ax5);
+  assertEquals(uncapped.toFixed(1), '37.4');
+  assert(uncapped > drawn('headline', type.headline.maxScale, ax5), 'bigger than the card title');
+});
