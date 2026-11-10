@@ -1,6 +1,6 @@
 # Times in the player's own time zone
 
-Status: Draft (Giorgio's ruling 2026-11-10; one scope line awaits his yes)
+Status: Approved (Giorgio, 2026-11-10)
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 ## Goal
@@ -19,6 +19,7 @@ runs on Eastern Time; only what people read changes.
 - "for like the US users, it should be whatever time zone you're in, right? It's good that it
   tells me the time zone underneath, but the standard should be whatever the time zone the
   user's in."
+- Asked whether the market's own times go local too: "yes, market times should be local too".
 
 ## Decisions
 
@@ -26,7 +27,7 @@ runs on Eastern Time; only what people read changes.
 |---|---|---|---|
 | 1 | Which zone | The phone's current time zone, read when the screen draws (a traveller sees the zone they are in). No setting. | Giorgio 11-10 |
 | 2 | Is the zone still named | Always. Every time keeps its label ("11:30 AM PT"): "It's good that it tells me the time zone underneath". Leaguemates in different zones each see their own time; the label keeps a shared screenshot or message unambiguous. | Giorgio 11-10 |
-| 3 | Which times | **All of them** (awaiting Giorgio's yes, see Open questions): draft time and the wheel that sets it, room-open and deadline times, "wasn't ready at…", countdown targets, renewal and leave deadlines, AND the market's own times ("Market opens 9:30 AM ET" reads "6:30 AM PT" in Pacific). Robinhood shows market hours in local time, and one rule is simpler to trust than two. | Planner rec |
+| 3 | Which times | **All of them:** draft time and the wheel that sets it, room-open and deadline times, "wasn't ready at…", countdown targets, renewal and leave deadlines, AND the market's own times ("Market opens 9:30 AM ET" reads "6:30 AM PT" in Pacific). Robinhood shows market hours in local time, and one rule is simpler to trust than two. | Giorgio 11-10 |
 | 4 | The label's form | US zones use the short generic names the app already uses for Eastern: ET, CT, MT, PT, AKT, HT (never EST/EDT, which changes twice a year). Anywhere else: the offset, "GMT+1". | Planner |
 | 5 | What does NOT change | Every rule and calculation: market hours, the trading window, the week window, claims at the open, scoring. They stay on `America/New_York`. Draft times stay on quarter hours and at least an hour out; both hold in any zone. | Planner |
 | 6 | Notifications | A push names a time in the RECIPIENT's zone. The phone tells the server its zone; with none on file the push says ET, as today. | Planner |
@@ -34,9 +35,7 @@ runs on Eastern Time; only what people read changes.
 
 ## Open questions
 
-1. **Decision 3's last clause, for Giorgio:** market times in local time too, or only the
-   league's times (draft, deadlines) with the market staying "9:30 AM ET"? Planner
-   recommends all local. Not blocking the draft-time work, which is local either way.
+None. (Market times: answered yes, 2026-11-10.)
 
 ## Scope
 
@@ -106,7 +105,7 @@ revoked; re-assert the grants and check `proacl`/policies after the push
 
 - Phone set to Pacific: the wheel, its summary line, Home, the lobby, the postponed card
   and the market-closed notes all read Pacific times ending "PT"; set to Eastern they read
-  as today. No "ET" appears on a Pacific phone unless Open question 1 says the market stays.
+  as today. No "ET" appears anywhere on a Pacific phone.
 - A draft set on a Pacific phone for 11:30 AM PT reads 2:30 PM ET on an Eastern phone, and
   starts at that instant.
 - A push to a Pacific phone names a PT time; with no zone stored it names ET.
