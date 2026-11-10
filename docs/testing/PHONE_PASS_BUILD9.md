@@ -95,7 +95,7 @@ switch (18). Note the time and what you had just tapped if it happens.
   Move forward. Right: it saves, the notice goes, and stays gone after a force-quit.
 - [ ] **Step 22. Invite someone new (12).** T1 rejoins with the code and leaves again. Tap Invite
   someone new. Right: it saves; the notice stays until T1 joins again with the code, then goes by
-  itself. **Failed on build 12.** Its re-run on build 13 is step 22b, further down. This step clears
+  itself. **Failed on build 12.** Its re-run on build 14 is step 22b, further down. This step clears
   by itself when 22b passes; don't re-mark it here.
 - [ ] **Step 23. League B, and the playoff-teams stepper (13).** The stepper only appears once four
   managers are in (draft-control computes the playoff blocker only above the 4-member floor), so
@@ -130,14 +130,15 @@ switch (18). Note the time and what you had just tapped if it happens.
   2. Supabase dashboard › Authentication › Users › Add user › Create new user. That email, a
      password you choose, and tick **Auto Confirm User**. Don't use the app's Create account for
      this one: that is what hit the email limit with T3.
-  Right: T4 is in the Users list. This one needs no build, so it can be done while build 13 is
+  Right: T4 is in the Users list. This one needs no build, so it can be done while build 14 is
   still building.
-- [ ] **Step 24c. Install build 13.** (Page id 43.) Build 13 carries the fixes for step 22, Create
-  account and the queue. Run the build commands waiting in the Orchestrator's chat, paste the
-  output there so it can confirm the build's commit, then install build 13 from TestFlight. Right:
-  TestFlight shows build 13 installed. **Do this before step 25:** once T1 is deleted, League A has
-  three managers and can never draft, and step 24e needs that draft.
-- [ ] **Step 22b. Invite someone new, on build 13.** (Page id 47.) On build 13, at your usual
+- [ ] **Step 24c. Install build 14.** (Page id 43.) The build with today's fixes is **1.3.0 (14)**
+  (from `6ca0e0c4`, fingerprint `8cd5f9f8`). Build 13 was made earlier in the day (from `67a937ae`)
+  and is missing the queue fix, so skip it. Run the submit command the Orchestrator gave you for
+  build 14, then install it from TestFlight. Right: TestFlight shows 1.3.0 (14) installed. **Do this
+  before step 25:** once T1 is deleted, League A has three managers and can never draft, and a later
+  step needs that draft.
+- [ ] **Step 22b. Invite someone new, on build 14.** (Page id 47.) On build 14, at your usual
   text size. This uses a new league, League C, and doesn't touch League A. **Don't tap "Move forward
   with 4" or "Move forward with 4 instead" at any point:** either one answers the question for good.
   1. As yourself: Create league, **size 6, playoff teams 4**, draft time **a week from now** on a
@@ -164,7 +165,7 @@ switch (18). Note the time and what you had just tapped if it happens.
   buttons (what build 12 did), the spinner never ends, or an error line appears. Wrong, at part 6:
   the two buttons are back. Wrong, at part 8: any "left the league" or "Invite someone to take …"
   section is still there.
-- [ ] **Step 24d. League A: one card when a manager leaves.** (Page id 45.) On build 13, at your
+- [ ] **Step 24d. League A: one card when a manager leaves.** (Page id 45.) On build 14, at your
   usual text size. Do this before 24e, which sets League A's draft time: a manager can only leave
   while the draft is unset or more than an hour away.
   1. As T1: League A › League settings › Leave league › Leave. Sign out.
@@ -176,7 +177,7 @@ switch (18). Note the time and what you had just tapped if it happens.
   4. As yourself: the "left the league" part is gone with no tap from you, and nothing stops you
      picking a draft time.
   This is not the re-run of step 22; leave 22 marked Failed.
-- [ ] **Step 24e. A drafted stock leaves every queue.** (Page id 44.) On build 13, in League A with
+- [ ] **Step 24e. A drafted stock leaves every queue.** (Page id 44.) On build 14, in League A with
   four managers. Pick one stock for this, called X here: a mid-size company, not a household giant,
   so the automatic picks don't take it first.
   1. As yourself: set League A's draft time to about **1 hour 15 minutes from now**, on a quarter
