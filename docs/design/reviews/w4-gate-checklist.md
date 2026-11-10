@@ -198,6 +198,21 @@ with the reason beside it**. A silent no-op is a P1.
 ### Onboarding, invite, join
 - **States:** each step; refusals (rule 8); the invite and the join preview (names nobody).
 - **Check:** Yahoo's warmth in copy and avatars only; one primary per step; both themes.
+- **Auth forms with the keyboard up** (Giorgio, 2026-11-09 and 2026-11-10; PRODUCT_RULES, Onboarding, "Sign-in and sign-up
+  screens behave like a short native form"): capture each field focused at L and AX5. A focused field scrolls the
+  minimum so it and its error or rules line clear the docked button; no gap between the last
+  field and the button; nothing moves when the field already fits; at L, Email is still in view
+  with Password focused. A form that fits neither scrolls nor bounces (try a drag at L). At AX5
+  the docked footer shows only its main button while the keyboard is up, and the rules are
+  capped at 1.3x. Superseded (do NOT pass it): "focused field to the top of the window" (#345).
+  When the stack can't fit, the box wins (Giorgio, 2026-11-10): the message and rules give way,
+  then the label, never the box. A form-level message (a refusal from the server, e.g. the
+  email rate limit) sits in the scroll body under the fields, capped at 1.6x, in danger red, and
+  is part of the focused field's reveal; never docked, never a WarnPanel; the fields themselves
+  are not turned red unless they are wrong. A next step that is not a failure (Sign in's
+  unconfirmed email) is a note in primary text, with the approved "Didn't receive it? Send
+  again" as question (secondary) + action (accent). Nothing revealed may land inside the 10pt
+  footer fade: the bottom breathing is the fade's height + 4.
 
 ## 7. Decided with Giorgio (2026-10-12), so a gate checks, never asks
 
