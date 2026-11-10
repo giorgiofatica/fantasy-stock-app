@@ -5,7 +5,7 @@
  * returns the fixture and makes NO real call. A call with no fixture is real.
  */
 import { supabase } from '../supabase';
-import { SEAM_ON, captureFailsOnce } from './devSeam';
+import { CAPTURE_CONFIRM_REFUSAL, SEAM_ON, captureFailsOnce } from './devSeam';
 import { fixtureFor, invokeFixtureFor } from './seamFixtures';
 import { seamTableRows, seamWeekClosed, type SeamTableName } from './seamTables';
 import { markFixtureRenewed } from '../shell/devFixture';
@@ -52,7 +52,7 @@ export async function seamInvoke(fn: string, opts: { body: Record<string, unknow
       const t = takeoverFixtureFor(opts.body, TAKEOVER_FIXTURE);
       if (t) return t as { data: unknown; error: null };
     }
-    const f = invokeFixtureFor(fn, opts.body, process.env.EXPO_PUBLIC_DRAFT_START_FIXTURE, process.env.EXPO_PUBLIC_LEAVE_FIXTURE);
+    const f = invokeFixtureFor(fn, opts.body, process.env.EXPO_PUBLIC_DRAFT_START_FIXTURE, process.env.EXPO_PUBLIC_LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL);
     if (f) return seatify(f, DELETED_SEAT);
   }
   return supabase.functions.invoke(fn, opts);

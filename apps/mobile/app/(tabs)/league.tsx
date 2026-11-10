@@ -40,6 +40,7 @@ import {
   START_RETRYING,
   countdownCopy,
   deadlineCopy,
+  lobbyShowsOrder,
   memberPostponedCopy,
   noDateCopy,
 } from '@/lib/game/autoStart';
@@ -505,7 +506,7 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
           <DraftCountdownCard tag={NO_DATE_TITLE} lines={[]} notes={[noDateCopy(ds.isCommissioner, commissionerName)]} />
         ) : null}
 
-        {!data.loading && (view?.order ?? true) ? (
+        {!data.loading && lobbyShowsOrder(view, ds.status === 'error') ? (
           <DraftLobby
             data={data}
             myUserId={user?.id ?? ''}

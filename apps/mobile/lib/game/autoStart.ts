@@ -276,6 +276,88 @@ export function moveForwardLabel(members: number): string {
 }
 export const INVITE_SOMEONE_NEW = 'Invite someone new';
 
+/**
+ * The reconfirm blocker's sub-card has two states, keyed on the server's `choice` (draft-control rules.ts
+ * StartBlocker): 'pending' (the commissioner hasn't chosen: the two buttons) and 'invite' (they chose "Invite
+ * someone new": the blocker stays until a human joins, migration 20261107000005, so the card must say so).
+ * Board #call-leave ReconfirmCard mode 'inviting' (PR #122), strings verbatim (its straight apostrophe).
+ * Anything else, or no `choice` (an older draft-control), is 'choose': never a card that hides the choice.
+ */
+export function inviteWaitingTitle(name: string): string {
+  return `Invite someone to take ${name}'s place`;
+}
+/** Two or more left, or none named: the same pattern without a single name. NEW copy. */
+export const INVITE_WAITING_TITLE_NO_NAME = 'Invite someone to take their place';
+export const INVITE_WAITING_LINE = 'Share the code. When someone joins, the draft is ready to go.';
+/** The way back from the waiting state (board: "Move forward with {teams} instead"). */
+export function moveForwardInsteadLabel(members: number): string {
+  return `Move forward with ${members} instead`;
+}
+
+/**
+ * A saved fix keeps the card busy (the tapped button's spinner) until the status re-read that follows it has LANDED,
+ * success or failure: `readKey` is the refresh key of the read behind the current status, `target` the key the save
+ * asked for. The card used to go idle the moment the save returned and show the old blocker for the length of the
+ * re-read, which is exactly Giorgio's "nothing happened" (phone pass 1.3.0 (12)). A failed re-read ends it too, via
+ * the "didn't load" path, and SETTLE_CAP_MS ends it if a read never answers: the card is never stuck busy.
+ */
+export function readSettled(readKey: number, target: number): boolean {
+  return readKey >= target;
+}
+export const SETTLE_CAP_MS = 15_000;
+
+/**
+ * Which part of the blockers card a fix's refusal belongs to: the blocker code whose sub-card holds the control that
+ * was pressed, or 'draft_time' (the Pick a new draft time button sits at the card's foot). PRODUCT_RULES, auth
+ * screens, R5: an error sits where its cause is. Giorgio's phone, build 12: "Move forward with 2" printed its
+ * refusal at the very bottom of the card, under "Pick a new draft time", three blocks from the button.
+ */
+export type FixOwner = 'roster_reconfirm_required' | 'playoff_teams_exceeds_members' | 'draft_time';
+
+/**
+ * Where a fix's refusal renders: INSIDE the sub-card of its owner (the index into `blockers`), or at the card's
+ * foot. The foot is the fallback only when the owning sub-card is gone, e.g. the blocker cleared on a re-read, so
+ * the refusal is never lost; 'draft_time' is the foot by design.
+ */
+export function errorPlacement(
+  error: string | null | undefined,
+  owner: string | null | undefined,
+  blockers: readonly { code: string }[],
+): { subCard: number; foot: boolean } {
+  if (!error) return { subCard: -1, foot: false };
+  const i = owner ? blockers.findIndex((b) => b.code === owner) : -1;
+  return { subCard: i, foot: i === -1 };
+}
+
+/**
+ * Whether "Move forward with N" (pending) and "Move forward with N instead" (waiting) are offered. ONE rule for
+ * both buttons. Below 4 members they cannot work: confirm_league_roster refuses playoff teams > members, the
+ * playoff stepper is only emitted from 4, and a draft cannot start below MIN_DRAFT_MEMBERS (phone pass step 23).
+ * The Design Lead and Giorgio have not ruled (the lean: offer only the invite path below 4), so until they do
+ * this returns true and nothing changes; the ruling is a one-line change here plus tests.
+ */
+export function showMoveForward(members: number): boolean {
+  void members;
+  return true;
+}
+
+export type ReconfirmView =
+  | { mode: 'choose'; members: number }
+  | { mode: 'inviting'; members: number; title: string; line: string; moveForward: string };
+
+export function reconfirmView(b: Blocker, memberCount: number): ReconfirmView {
+  const members = typeof b.members === 'number' ? b.members : memberCount;
+  if (b.choice !== 'invite') return { mode: 'choose', members };
+  const names = departedNames(b);
+  return {
+    mode: 'inviting',
+    members,
+    title: names.length === 1 ? inviteWaitingTitle(names[0]) : INVITE_WAITING_TITLE_NO_NAME,
+    line: INVITE_WAITING_LINE,
+    moveForward: moveForwardInsteadLabel(members),
+  };
+}
+
 export interface BlockersCardCopy {
   tag: string;
   title: string;
@@ -469,6 +551,18 @@ export function lobbyView(phase: LobbyPhase, isCommissioner: boolean, fixableCou
     case 'postponed':
       return isCommissioner ? { ...none, blockers: 'postponed', order: false } : { ...none, memberPostponed: true, order: false };
   }
+}
+
+/**
+ * Whether the League tab paints the draft lobby's order card ("Draft order · waiting", or the order itself).
+ * It follows the phase (lobbyView.order: false when postponed). While the status read has not answered there
+ * is NO phase, and the card must not be guessed: it used to default to shown, so a postponed league painted
+ * "Draft order · waiting" for about a second before the Postponed card replaced it (phone pass 1.3.0 (12),
+ * 2026-11-10). Unknown paints nothing. A failed read is the exception: the "didn't load" card has its own
+ * Try again, and the lobby under it is the last honest thing on the page.
+ */
+export function lobbyShowsOrder(view: Pick<LobbyView, 'order'> | null, statusFailed: boolean): boolean {
+  return view ? view.order : statusFailed;
 }
 
 // ── Home's pre-draft card, from the same view ────────────────────────────

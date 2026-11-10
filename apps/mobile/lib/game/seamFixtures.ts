@@ -6,7 +6,7 @@
  */
 import { STRESS_SEATS, draftRoomClock, draftRoomClockRead, type DraftRoomVariant } from './seamRoom';
 import { SEAM_ME, seamLivePrices, seamPreviousRanks } from './seamTables';
-import { draftStartStatusFixture, fixtureOrderSet, fixtureStartsAtMs, parseDraftStartFixture } from './autoStartFixture';
+import { confirmRosterRefusalFixture, draftStartStatusFixture, fixtureOrderSet, fixtureStartsAtMs, parseDraftStartFixture } from './autoStartFixture';
 import { fixtureRoster } from './renewalFixture';
 
 const SUCCESSOR = 'fixture-season-2';
@@ -212,6 +212,8 @@ export function invokeFixtureFor(
   /** EXPO_PUBLIC_LEAVE_FIXTURE: a leave-league outcome ("left", "hidden", "transferred") or a refusal
    * reason, with an optional window ("locked_in:season"). Unset: leave → left, transfer → transferred. */
   leaveFixture?: string | null,
+  /** EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL: confirm_roster is refused with this reason (autoStartFixture). Unset: it saves. */
+  confirmRefusal?: string | null,
 ): { data: unknown; error: null } | null {
   if (fn === 'leave-league') return { data: leaveLeagueFixture(body, leaveFixture), error: null };
   if (fn === 'symbols-search') return { data: Array.isArray(body.symbols) ? symbolsBatchFixture(body) : symbolsSearchFixture(body), error: null };
@@ -229,9 +231,10 @@ export function invokeFixtureFor(
   }
   if (fn === 'draft-control') {
     if (body.action === 'start') return { data: { ok: true }, error: null };
+    if (body.action === 'confirm_roster' && confirmRefusal) return { data: confirmRosterRefusalFixture(confirmRefusal), error: null };
     if (body.action === 'confirm_roster') return { data: { ok: true, members: 7, playoff_teams: body.playoff_teams ?? 6 }, error: null };
     const picked = parseDraftStartFixture(draftStartFixture);
-    if (picked) return { data: draftStartStatusFixture(picked.state, picked.member, Date.now()), error: null };
+    if (picked) return { data: draftStartStatusFixture(picked.state, picked.member, Date.now(), picked.invite), error: null };
     return { data: { ok: true, can_start: true, blockers: [], is_commissioner: true, member_count: 6, min_members: 4 }, error: null };
   }
   return null;

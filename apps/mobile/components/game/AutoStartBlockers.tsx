@@ -30,6 +30,7 @@ export function AutoStartBlockers({ auto, phase, playoffTeams, inviteCode }: Aut
         onPickNewTime={f.openPicker}
         busy={f.busy}
         error={f.fixError}
+        errorOwner={f.fixErrorOwner}
       />
       <DraftDateSheet
         visible={f.pickingTime}

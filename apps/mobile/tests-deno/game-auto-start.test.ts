@@ -467,5 +467,6 @@ Deno.test('confirm_roster: a missing count is never printed; no answer or an unk
 
 Deno.test('the reconfirm shows the per-reason line (source guard)', () => {
   const hook = SOURCES['lib/game/useDraftAutoStart.ts'];
-  assertEquals(hook.includes('setFixError(confirmRosterRefusal(await readFunctionRefusal(res, error)));'), true);
+  assertEquals(hook.includes('const refusal = confirmRosterRefusal(await readFunctionRefusal(res, error));'), true);
+  assertEquals(hook.includes("setFixError(refusal, 'roster_reconfirm_required');"), true);
 });

@@ -28,12 +28,15 @@ import {
   DRAFT_TIME_NOT_SAVED,
   NEW_TIME_NOT_SAVED,
   confirmRosterRefusal,
+  type FixOwner,
   draftTimeRefusal,
   etTimeLabel,
   fixableBlockers,
   lobbyPhase,
   lobbyView,
   nextBoundaryMs,
+  readSettled,
+  SETTLE_CAP_MS,
   postponedAtMs,
   roomOpensAtMs,
   startKickOutcome,
@@ -45,7 +48,14 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
   const { activeLeague, refresh } = useLeagueContext();
   const [statusKey, setStatusKey] = useState(0);
   const ds = useDraftStatus(leagueId, true, statusKey);
-  const reread = useCallback(() => setStatusKey((k) => k + 1), []);
+  // The key counter lives in a ref so a re-read can say WHICH read it asked for (the state's updater cannot return it).
+  const keyRef = useRef(0);
+  const rereadKey = useCallback(() => {
+    keyRef.current += 1;
+    setStatusKey(keyRef.current);
+    return keyRef.current;
+  }, []);
+  const reread = useCallback(() => void rereadKey(), [rereadKey]);
 
   // The phase: the server's start_state on the server's clock. A re-read keeps
   // the last known phase while it loads, so cards never blink out.
@@ -94,35 +104,69 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
   }, [phase, refresh, reread]);
 
   // The commissioner's fixes.
-  const [fixError, setFixError] = useState<string | null>(null);
+  // A fix's refusal, with the sub-card that caused it (DraftBlockersCard shows it under that sub-card's controls).
+  const [fixFailure, setFixFailure] = useState<{ message: string; owner: FixOwner } | null>(null);
+  const fixError = fixFailure?.message ?? null;
+  const setFixError = (message: string | null, owner: FixOwner) => setFixFailure(message === null ? null : { message, owner });
+  const clearFixError = () => setFixFailure(null);
   const [busy, setBusy] = useState(false);
+
+  // A saved fix holds `busy` (and the tapped button's spinner) until the status re-read behind it has landed
+  // (readSettled), so the card never looks idle with the old blocker on it. Success or failure of the re-read both
+  // end it, and SETTLE_CAP_MS ends it if a read never answers: never stuck busy.
+  const [settleAt, setSettleAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (settleAt === null) return;
+    if (readSettled(ds.readKey, settleAt)) {
+      setSettleAt(null);
+      setBusy(false);
+      return;
+    }
+    const t = setTimeout(() => {
+      setSettleAt(null);
+      setBusy(false);
+    }, SETTLE_CAP_MS);
+    return () => clearTimeout(t);
+  }, [settleAt, ds.readKey]);
+  const settleAfterSave = async () => {
+    const target = rereadKey();
+    try {
+      await refresh();
+    } finally {
+      setSettleAt(target);
+    }
+  };
 
   const setPlayoffTeams = async (teams: number) => {
     setBusy(true);
     const res = await seamUpdateLeague(leagueId, { playoff_teams: teams });
-    setBusy(false);
     const outcome = playoffTeamsSaveOutcome(res);
     if (outcome.kind !== 'saved') {
-      setFixError(outcome.line);
-      if (outcome.kind === 'locked') {
-        reread();
-        await refresh();
-      }
+      setFixError(outcome.line, 'playoff_teams_exceeds_members');
+      // 'locked': the room opened under us, the card is about to change, so it holds busy for the re-read too.
+      // Any other refusal changed nothing: nothing to wait for.
+      if (outcome.kind === 'locked') await settleAfterSave();
+      else setBusy(false);
       return;
     }
-    setFixError(null);
-    reread();
-    await refresh();
+    clearFixError();
+    await settleAfterSave();
   };
 
   const reconfirm = async (choice: 'move_forward' | 'invite') => {
     setBusy(true);
     const { data: res, error } = await seamInvoke('draft-control', { body: { league_id: leagueId, action: 'confirm_roster', choice } });
-    setBusy(false);
     // U-24: each refusal its own line (the audit's Rule 8 table); null when it saved.
-    setFixError(confirmRosterRefusal(await readFunctionRefusal(res, error)));
-    reread();
-    await refresh();
+    const refusal = confirmRosterRefusal(await readFunctionRefusal(res, error));
+    setFixError(refusal, 'roster_reconfirm_required');
+    if (refusal !== null) {
+      // Refused: nothing changed, so nothing to wait for.
+      setBusy(false);
+      reread();
+      await refresh();
+      return;
+    }
+    await settleAfterSave();
   };
 
   // The blockers card's Share follows the one ruled condition (inviteShareShown): shown before the
@@ -144,7 +188,7 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
   // Home's no-time card, its own sheet): the sheet holds it, "Set draft time" saves it.
   const [pickingTime, setPickingTime] = useState(false);
   const openPicker = () => {
-    setFixError(null);
+    clearFixError();
     setPickingTime(true);
   };
   const closePicker = () => setPickingTime(false);
@@ -153,17 +197,17 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
     setPickingTime(false);
     const value = draftDateForSave(false, date);
     if (!value.ok) {
-      setFixError(value.error);
+      setFixError(value.error, 'draft_time');
       return;
     }
     setBusy(true);
     const res = await seamUpdateLeague(leagueId, { draft_date: value.value });
     setBusy(false);
     if (res.error || !updatedOneRow(res)) {
-      setFixError(draftTimeRefusal(res.error) ?? (opts.firstTime ? DRAFT_TIME_NOT_SAVED : NEW_TIME_NOT_SAVED));
+      setFixError(draftTimeRefusal(res.error) ?? (opts.firstTime ? DRAFT_TIME_NOT_SAVED : NEW_TIME_NOT_SAVED), 'draft_time');
       return;
     }
-    setFixError(null);
+    clearFixError();
     reread();
     await refresh();
   };
@@ -180,7 +224,7 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
     roomLabel: ds.startsAt ? etTimeLabel(roomOpensAtMs(ds.startsAt)) : null,
     postponedLabel: postponedAt !== null ? etTimeLabel(postponedAt) : null,
     fixes: {
-      busy, fixError, setPlayoffTeams, reconfirm, shareInvite, shareShown,
+      busy, fixError, fixErrorOwner: fixFailure?.owner ?? null, setPlayoffTeams, reconfirm, shareInvite, shareShown,
       pickingTime, openPicker, closePicker, saveDraftTime,
     },
   };

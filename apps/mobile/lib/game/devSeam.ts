@@ -34,6 +34,10 @@ export const captureFailsOnce: (key: string) => boolean = createFailOnce(SEAM_ON
 /** Capture only: record-trade's refusal for the review's refusal captures (EXPO_PUBLIC_CAPTURE_REFUSAL,
  * e.g. trade_conflict, market_closed). Unset: the seam's submit succeeds (and never writes). */
 export const CAPTURE_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_REFUSAL || null : null;
+/** Capture only: draft-control's confirm_roster is refused with this reason (EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL, e.g.
+ * playoff_teams_exceeds_members), for the blockers card's refusal capture. Seeded in the seam's response only; unset
+ * (or the seam off): the reconfirm saves, and production never reads it. */
+export const CAPTURE_CONFIRM_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL || null : null;
 /** Capture only: your draft happened today (Thu 6 PM ET, after the close) — Portfolio's one-point
  * Season line (EXPO_PUBLIC_CAPTURE_DRAFT_TODAY=1). */
 export const CAPTURE_DRAFT_TODAY: boolean = SEAM_ON && process.env.EXPO_PUBLIC_CAPTURE_DRAFT_TODAY === '1';

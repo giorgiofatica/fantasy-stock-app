@@ -4,9 +4,9 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **244** tappables in **90** files.
+- **245** tappables in **90** files.
 - **96** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
-- **49** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
+- **50** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
 Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state setter that opens a sheet or modal), `state` (a state setter in place), `share sheet`, `alert`, `url`, `fn` (a function, named), `prop` (forwarded to the caller).
@@ -16,14 +16,14 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | Where | Element | Prop | Handler | Destination | Disabled when |
 |---|---|---|---|---|---|
 | `app/(tabs)/index.tsx:276` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
-| `app/(tabs)/league.tsx:199` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
-| `app/(tabs)/league.tsx:217` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
-| `app/(tabs)/league.tsx:222` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:232` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:275` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/league.tsx:461` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:530` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:541` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:200` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
+| `app/(tabs)/league.tsx:218` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
+| `app/(tabs)/league.tsx:223` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:233` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:276` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:462` | Button | onPress | `auto.reread` | prop auto.reread |  |
+| `app/(tabs)/league.tsx:531` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:542` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
 | `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/(tabs)/matchup.tsx:293` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
@@ -79,10 +79,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
 | `components/SymbolSearchField.tsx:193` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
 | `components/SymbolSearchField.tsx:247` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
-| `components/game/DraftBlockersCard.tsx:67` | Button | onPress | `inline: () => onReconfirm('move_forward')` | fn onReconfirm | `busy` |
-| `components/game/DraftBlockersCard.tsx:68` | Button | onPress | `inline: () => onReconfirm('invite')` | fn onReconfirm | `busy` |
-| `components/game/DraftBlockersCard.tsx:94` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
-| `components/game/DraftBlockersCard.tsx:118` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
+| `components/game/DraftBlockersCard.tsx:86` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
+| `components/game/DraftBlockersCard.tsx:99` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:107` | Button | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:109` | Button | onPress | `inline: () => choose('invite')` | fn choose | `busy` |
+| `components/game/DraftBlockersCard.tsx:164` | Button | onPress | `onPickNewTime` | prop onPickNewTime (the caller's) | `blocked \|\| busy` |
 | `components/game/DraftClockChip.tsx:57` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/DraftComplete.tsx:53` | Button | onPress | `onRetryFinish` | prop onRetryFinish (the caller's) | `finishing` |
 | `components/game/DraftComplete.tsx:84` | Button | onPress | `onSeeMatchup` | prop onSeeMatchup (the caller's) |  |
