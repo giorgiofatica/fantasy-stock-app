@@ -22,6 +22,8 @@ import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { SocialSignIn } from '@/components/shell/SocialSignIn';
 import { isEmailNotConfirmedError } from '@/lib/authErrors';
 import { fromAuthError, missingFields, viewOf, type FormErrorState } from '@/lib/auth/formError';
+import { PREFILL_EMAIL, PREFILL_PASSWORD } from '@/lib/auth/signupCapture';
+import { SIGNUP_CAPTURE } from '@/lib/shell/captureDev';
 import { useSession } from '@/lib/SessionProvider';
 import { setConfirmFailedNotice } from '@/lib/auth/confirmFailedNotice';
 import { setDeletedNotice } from '@/lib/account/deletedNotice';
@@ -49,8 +51,8 @@ import { useFixtureInitialRoute } from '@/lib/shell/fixtureRoute';
 export default function SignInScreen() {
   const { colors } = useTheme();
   const { signIn, signUp } = useSession();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(SIGNUP_CAPTURE.prefill ? PREFILL_EMAIL : '');
+  const [password, setPassword] = useState(SIGNUP_CAPTURE.prefill ? PREFILL_PASSWORD : '');
   const [status, setStatus] = useState<ButtonStatus>('idle');
   // One error at a time; WHERE it shows is lib/auth/formError.ts's call (R5): a wrong password on Password, an email problem on Email, the rest
   // (a rate limit, the network, an unconfirmed address) as the form's own message with no red border.
@@ -76,7 +78,8 @@ export default function SignInScreen() {
     setError(null);
     setStatus('loading');
     markSignInIntent();
-    const { error: authError } = await signIn(email.trim(), password);
+    // DEV captures only (lib/auth/signupCapture.ts): a mocked refusal instead of a server call.
+    const { error: authError } = SIGNUP_CAPTURE.error ? { error: SIGNUP_CAPTURE.error } : await signIn(email.trim(), password);
     if (authError) {
       clearSignInIntent();
       setStatus('idle');
@@ -170,7 +173,7 @@ export default function SignInScreen() {
           error={errorView.passwordError}
           invalid={errorView.passwordInvalid}
         />
-        {errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}
+        {errorView.formMessage ? <FormMessage tone={errorView.formTone}>{errorView.formMessage}</FormMessage> : null}
         {unconfirmed ? (
           <Pressable onPress={handleResend} accessibilityRole="link" style={styles.resend}>
             <Text variant="body" color={colors.accent} style={styles.bold}>

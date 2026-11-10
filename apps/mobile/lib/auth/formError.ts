@@ -8,10 +8,14 @@
 //   - "enter your email and password" is the form's message too, with only the EMPTY field(s) marked.
 // The words are lib/authErrors.ts's; this file only decides the home and the borders.
 
-import { getAuthError, type AuthErrorTarget } from '../authErrors';
+import { classifyAuthError, getAuthError, type AuthErrorTarget } from '../authErrors';
+
+/** How the form's message reads: a failure (danger red) or a next step (the primary text colour: "Please verify your email", not a mistake). */
+export type FormTone = 'error' | 'note';
 
 export interface FormErrorState {
   target: AuthErrorTarget;
+  tone: FormTone;
   message: string;
   /** Marks a box red without a message of its own (an empty required field under the form's message). */
   emailInvalid: boolean;
@@ -25,24 +29,28 @@ export interface FormErrorView {
   passwordInvalid: boolean;
   /** The form-level message, or null. */
   formMessage: string | null;
+  /** How it reads (a failure, or a next step). */
+  formTone: FormTone;
 }
 
-export const NO_FORM_ERROR_VIEW: FormErrorView = { emailError: null, emailInvalid: false, passwordError: null, passwordInvalid: false, formMessage: null };
+export const NO_FORM_ERROR_VIEW: FormErrorView = { emailError: null, emailInvalid: false, passwordError: null, passwordInvalid: false, formMessage: null, formTone: 'error' };
 
 /** A server (or transport) error from signUp, routed to where it belongs. */
 export function fromAuthError(error: unknown, weakPasswordMessage?: string, productName?: string): FormErrorState {
   const { message, target } = getAuthError(error, weakPasswordMessage, productName);
-  return { target, message, emailInvalid: false, passwordInvalid: false };
+  // An unconfirmed address is a next step (verify, or send the link again), not a failure: it reads in the primary text colour, no red anywhere.
+  const tone: FormTone = classifyAuthError(error) === 'email_not_confirmed' ? 'note' : 'error';
+  return { target, tone, message, emailInvalid: false, passwordInvalid: false };
 }
 
 /** A message of the screen's own (not from the server): on the named field, or the form's. */
 export function localError(target: AuthErrorTarget, message: string): FormErrorState {
-  return { target, message, emailInvalid: false, passwordInvalid: false };
+  return { target, tone: 'error', message, emailInvalid: false, passwordInvalid: false };
 }
 
 /** Submit with a field empty: the form's message, and only the empty field(s) red. */
 export function missingFields(email: string, password: string): FormErrorState {
-  return { target: 'form', message: 'Please enter email and password', emailInvalid: !email, passwordInvalid: !password };
+  return { target: 'form', tone: 'error', message: 'Please enter email and password', emailInvalid: !email, passwordInvalid: !password };
 }
 
 /** The local password-rule check failed: about the password, so on the Password field. */
@@ -59,5 +67,6 @@ export function viewOf(state: FormErrorState | null): FormErrorView {
     passwordError: state.target === 'password' ? state.message : null,
     passwordInvalid: state.target === 'password' || state.passwordInvalid,
     formMessage: state.target === 'form' ? state.message : null,
+    formTone: state.tone,
   };
 }

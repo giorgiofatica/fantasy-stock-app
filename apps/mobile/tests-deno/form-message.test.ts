@@ -24,7 +24,7 @@ Deno.test('the cap is the card-line cap, 1.6x, from the one constant', () => {
 Deno.test('every auth screen draws its form message through FormMessage (no uncapped FieldError for a form-level line)', () => {
   for (const f of ['app/create-account.tsx', 'app/login.tsx', 'app/forgot-password.tsx', 'components/shell/NewPasswordForm.tsx']) {
     const s = SOURCES[f];
-    assert(s.includes('<FormMessage>'), f);
+    assert(/<FormMessage[ >]/.test(s), f);
     assert(!/FieldError>\{(errorView\.)?formMessage/.test(s), `${f} still draws its form message with FieldError`);
   }
 });

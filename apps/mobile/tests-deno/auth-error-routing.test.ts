@@ -40,7 +40,7 @@ Deno.test('getAuthError returns the message the old mapper returned (the words d
 
 Deno.test('Sign in: a wrong password still marks Password (red box + its message), and the form has no message', () => {
   const v = viewOf(fromAuthError({ code: 'invalid_credentials', message: 'Invalid login credentials' }, RULE, 'Stockpile'));
-  assertEquals(v, { emailError: null, emailInvalid: false, passwordError: 'Invalid email or password. Please try again.', passwordInvalid: true, formMessage: null });
+  assertEquals(v, { emailError: null, emailInvalid: false, passwordError: 'Invalid email or password. Please try again.', passwordInvalid: true, formMessage: null, formTone: 'error' });
 });
 
 Deno.test('Sign in: an unconfirmed address, a rate limit and the network are the form\'s message, with no red field', () => {
@@ -73,7 +73,7 @@ Deno.test('Sign in routes every error through the state and draws each in its ow
   assert(login.includes('setError(fromAuthError(resendError, PASSWORD_RULE_SENTENCE, brand.name))'));
   assert(login.includes('error={errorView.passwordError}') && login.includes('invalid={errorView.passwordInvalid}'));
   assert(login.includes('error={errorView.emailError}') && login.includes('invalid={errorView.emailInvalid}'));
-  assert(login.includes('{errorView.formMessage ? <FormMessage>{errorView.formMessage}</FormMessage> : null}'));
+  assert(login.includes('{errorView.formMessage ? <FormMessage tone={errorView.formTone}>{errorView.formMessage}</FormMessage> : null}'));
   assert(!login.includes('error={error}'), 'the whole error never goes to the Password field again');
   assert(!/getAuthErrorMessage\(/.test(login));
 });
@@ -118,4 +118,45 @@ Deno.test('Delete account keeps its own routing: a wrong password on the field, 
 Deno.test('no screen sends a whole error to a password field any more: the only getAuthErrorMessage callers are the single-line surfaces', () => {
   const callers = Object.entries(SOURCES).filter(([f, t]) => /^(app|components)\//.test(f) && /getAuthErrorMessage\(/.test(t)).map(([f]) => f).sort();
   assertEquals(callers, ['components/shell/ConfirmEmailSent.tsx', 'components/shell/SocialSignIn.tsx']);
+});
+
+// ---- Design Lead ruling 2026-11-09: "email not confirmed" is a NOTE (a next step), not a failure ------------------------------------
+
+import { NO_FORM_ERROR_VIEW, missingFields } from '../lib/auth/formError.ts';
+import { PREFILL_EMAIL, parseSignupCapture } from '../lib/auth/signupCapture.ts';
+
+Deno.test('an unconfirmed address reads as a note (primary text, not danger red); every other form message is an error', () => {
+  assertEquals(viewOf(fromAuthError({ code: 'email_not_confirmed', message: 'Email not confirmed' })).formTone, 'note');
+  assertEquals(viewOf(fromAuthError({ message: 'Email not confirmed' })).formTone, 'note');
+  for (const e of [{ code: 'over_request_rate_limit' }, { code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' }, { message: 'Network request failed' }, { message: 'boom' }]) {
+    assertEquals(viewOf(fromAuthError(e)).formTone, 'error', JSON.stringify(e));
+  }
+  assertEquals(viewOf(localError('form', 'x')).formTone, 'error');
+  assertEquals(viewOf(missingFields('', '')).formTone, 'error');
+  assertEquals(NO_FORM_ERROR_VIEW.formTone, 'error');
+});
+
+Deno.test('the unconfirmed note is the form\'s message with NO red field, and its words are the existing mapper line', () => {
+  const v = viewOf(fromAuthError({ code: 'email_not_confirmed' }));
+  assertEquals(v.formMessage, 'Please verify your email before signing in.');
+  assertEquals([v.emailError, v.passwordError, v.emailInvalid, v.passwordInvalid], [null, null, false, false]);
+});
+
+Deno.test('Sign in draws the note through FormMessage with its tone, then "Send again" as an accent text button (the W2 copy)', () => {
+  assert(login.includes('<FormMessage tone={errorView.formTone}>{errorView.formMessage}</FormMessage>'));
+  const body = login.slice(login.indexOf('<FormMessage tone='));
+  const resend = body.slice(body.indexOf('{unconfirmed ? ('), body.indexOf('Forgot password?'));
+  assert(resend.includes('{COPY.resend}'));
+  assert(resend.includes('color={colors.accent}'), 'an accent text button, not red');
+  assertEquals(SOURCES['constants/confirmEmailCopy.ts'].includes(`resend: "Didn't receive it? Send again"`), true, 'the approved W2 wording');
+  const msg = SOURCES['components/shell/FormMessage.tsx'];
+  assert(msg.includes("color={tone === 'note' ? colors.text : colors.danger}"));
+});
+
+Deno.test('capture knob: not_confirmed is a Sign in error kind; Sign in takes the knob and its dummy prefill', () => {
+  assertEquals(parseSignupCapture(true, { error: 'not_confirmed' }).error?.code, 'email_not_confirmed');
+  assertEquals(parseSignupCapture(false, { error: 'not_confirmed' }).error, null);
+  assert(login.includes('SIGNUP_CAPTURE.error ? { error: SIGNUP_CAPTURE.error } : await signIn(email.trim(), password)'));
+  assert(login.includes('useState(SIGNUP_CAPTURE.prefill ? PREFILL_EMAIL :'));
+  assert(PREFILL_EMAIL.endsWith('.test'));
 });

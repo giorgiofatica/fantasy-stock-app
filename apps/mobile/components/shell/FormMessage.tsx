@@ -7,6 +7,7 @@ import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { CARD_LINE_MAX_SCALE } from '@/lib/game/draftClockCard';
 import { RevealTailContext } from './FieldBlockContext';
+import type { FormTone } from '@/lib/auth/formError';
 
 // The form's own message on an auth screen (R5 of docs/plans/2026-11-09-auth-screen-layout.md): a rate limit, the network, an unconfirmed address.
 // It sits in the scroll body under the fields (Design Lead ruling 2026-11-09), is capped at 1.6x so at the largest text size it cannot push the
@@ -16,7 +17,7 @@ import { RevealTailContext } from './FieldBlockContext';
 
 export const FORM_MESSAGE_MAX_SCALE = CARD_LINE_MAX_SCALE;
 
-export type FormMessageTone = 'error' | 'note';
+export type FormMessageTone = FormTone;
 
 export function FormMessage({ children, tone = 'error' }: { children: ReactNode; tone?: FormMessageTone }) {
   const { colors } = useTheme();

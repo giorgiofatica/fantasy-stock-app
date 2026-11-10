@@ -60,10 +60,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/league-settings.tsx:513` | SlotBuilder | onChange | `inline: (next) => { setSlots(next); setSlotsError(null); }` | state setSlots | `isLocked` |
 | `app/league-settings.tsx:552` | SettingRow | onPress | `inline: commissionerRow.pressable ? () => { setLeaveError(null); set` | sheet setTransferOpen(true) |  |
 | `app/league-settings.tsx:596` | Button | onPress | `inline: () => void Share.share({ message: inviteShareMessage(code) }` | share sheet |  |
-| `app/login.tsx:175` | Pressable | onPress | `handleResend` | fn handleResend |  |
-| `app/login.tsx:182` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
-| `app/login.tsx:191` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
-| `app/login.tsx:192` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
+| `app/login.tsx:178` | Pressable | onPress | `handleResend` | fn handleResend |  |
+| `app/login.tsx:185` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
+| `app/login.tsx:194` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
+| `app/login.tsx:195` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
 | `app/pick-username.tsx:15` | UsernamePickerExit | onPress | `signOut` | fn signOut (from a hook or import) |  |
 | `app/reset-password.tsx:125` | EmptyState | onAction | `inline: () => router.replace('/')` | route replace('/') |  |
 | `app/reset-password.tsx:139` | Pressable | onPress | `handleCancel` | route replace('/') |  |

@@ -30,14 +30,14 @@ Deno.test('every non-field error is the form\'s: request cap, network, generic, 
 
 Deno.test('a weak password stays on the Password field (red box + its message), and the form has no message', () => {
   const v = viewOf(fromAuthError({ code: 'weak_password', message: 'x' }, RULE, 'Stockpile'));
-  assertEquals(v, { emailError: null, emailInvalid: false, passwordError: RULE, passwordInvalid: true, formMessage: null });
+  assertEquals(v, { emailError: null, emailInvalid: false, passwordError: RULE, passwordInvalid: true, formMessage: null, formTone: 'error' });
   const local = viewOf(weakPasswordLocal('Your password needs: a number.'));
   assertEquals([local.passwordError, local.passwordInvalid, local.formMessage], ['Your password needs: a number.', true, null]);
 });
 
 Deno.test('an invalid email (and an address already taken) stays on the Email field', () => {
   const v = viewOf(fromAuthError({ code: 'email_address_invalid', message: 'x' }, RULE, 'Stockpile'));
-  assertEquals(v, { emailError: 'Please enter a valid email address.', emailInvalid: true, passwordError: null, passwordInvalid: false, formMessage: null });
+  assertEquals(v, { emailError: 'Please enter a valid email address.', emailInvalid: true, passwordError: null, passwordInvalid: false, formMessage: null, formTone: 'error' });
   const taken = viewOf(fromAuthError({ code: 'user_already_exists', message: 'x' }, RULE, 'Stockpile'));
   assertEquals([taken.emailError, taken.emailInvalid, taken.passwordInvalid], ['An account with this email already exists.', true, false]);
 });

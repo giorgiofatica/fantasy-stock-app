@@ -6,9 +6,9 @@
 //                                     state can be shot without hammering production (the email cap is project-wide).
 //   EXPO_PUBLIC_SIGNUP_PREFILL=1      the form opens with dummy values (no credential is ever typed on a simulator)
 //
-// kinds: email_rate | request_rate | network | weak | invalid_email | generic
+// kinds: email_rate | request_rate | network | weak | invalid_email | generic | not_confirmed (Sign in too: the knobs apply to both screens)
 
-export type SignupErrorKind = 'email_rate' | 'request_rate' | 'network' | 'weak' | 'invalid_email' | 'generic';
+export type SignupErrorKind = 'email_rate' | 'request_rate' | 'network' | 'weak' | 'invalid_email' | 'generic' | 'not_confirmed';
 
 const ERRORS: Record<SignupErrorKind, { code?: string; message: string }> = {
   email_rate: { code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' },
@@ -17,6 +17,8 @@ const ERRORS: Record<SignupErrorKind, { code?: string; message: string }> = {
   weak: { code: 'weak_password', message: 'Password should be at least 8 characters.' },
   invalid_email: { code: 'email_address_invalid', message: 'Unable to validate email address: invalid format' },
   generic: { message: 'boom' },
+  // Sign in only: an account whose email was never confirmed.
+  not_confirmed: { code: 'email_not_confirmed', message: 'Email not confirmed' },
 };
 
 /** Dummy values only. Never a real address or a real password. */
