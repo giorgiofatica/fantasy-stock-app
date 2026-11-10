@@ -113,13 +113,16 @@ switch (18). Note the time and what you had just tapped if it happens.
   league, and the server picks for anyone who doesn't (the throwaways). If it shows Postponed
   instead, mark this failed with what the card says. (The phone can't add bots; that's web-only
   and the web is paused.)
-- [ ] **Step 24b. League A: back to four needs no tap.** (Page id 42; numbered 24b so no tick
-  moves.) The server change for "four are in, so it's ready" is live (20261128000000). In League A
-  (two managers): T1 and T2 each join again with League A's code. Back as yourself, open League A.
-  Right: no "left the league" question and no Move forward or Invite buttons; **Pick a new draft
-  time** is enabled straight away, with no tap from you first. On build 12 the card while only
-  three are in may still look like the old one; that part is fixed in build 13. What matters here
-  is the state once four are in.
+- [ ] **Step 24b. League A: back to four needs no tap.** (Page id 42.) League A has two managers
+  right now and shows "left the league" with Move forward with 2 / Invite someone new. **Don't tap
+  either button.** The check is that the card clears by itself once four are in.
+  1. Profile › Sign out. Sign in as T1.
+  2. Tap the league name at the top left › Join with code › League A's code. Sign out.
+  3. Sign in as T2 and join the same way. Sign out.
+  4. Sign in as yourself and open League A. Right: Members reads 4 of 4 joined; the "left the
+     league" box and its two buttons are gone; "Fewer than 4 teams have joined" is gone; **Pick a
+     new draft time** is bright and can be tapped, with no tap from you first. Wrong: either box is
+     still there, or the button is still faded. Don't pick a draft time yet; a later step sets it.
 - [ ] **Step 24c. Install build 13.** (Page id 43.) Build 13 carries the fixes for step 22, Create
   account and the queue. Run the build commands waiting in the Orchestrator's chat, paste the
   output there so it can confirm the build's commit, then install build 13 from TestFlight. Right:
