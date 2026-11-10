@@ -27,6 +27,16 @@ export function parseDraftStartFixture(raw: string | null | undefined): { state:
 const sofiaLeft = (choice: 'pending' | 'invite') => ({ code: 'roster_reconfirm_required', departed: [{ name: 'Sofia F.' }], membersBefore: 8, members: 7, choice });
 const PLAYOFF_8_OF_7 = { code: 'playoff_teams_exceeds_members', playoffTeams: 8, members: 7 };
 
+/**
+ * A draft-control confirm_roster refusal for the capture seam (EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL=<reason>, dev
+ * seam only): the sample league's own numbers (8 playoff teams, 7 in), so "Move forward with 7" is refused the way
+ * the server refuses it, and the card's refusal line can be captured in its sub-card. Seeded in the response,
+ * never in the render.
+ */
+export function confirmRosterRefusalFixture(reason: string): { ok: false; reason: string; playoff_teams: number; members: number } {
+  return { ok: false, reason, playoff_teams: 8, members: 7 };
+}
+
 /** The 'scheduled' fixture's draft time ("2d 06h 40m" from now). Shared with Home's
  * pre-draft fixture, whose order line is this minus an hour (finalize = draft − 1h), so the
  * two fixtures never name two different draft days (W4 gate, 2026-10-13). */

@@ -317,3 +317,46 @@ Deno.test('busy ends when the re-read lands, or at the cap: the card is never st
   // The wait is for the key this save asked for, which only rereadKey hands out.
   assert(HOOK.includes('const target = rereadKey();'));
 });
+
+// ── the capture seam's confirm_roster refusal: dev only, inert without its flag ──
+// EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL=<reason> seeds a refusal in the seam's draft-control response so the card's
+// refusal line can be captured in its sub-card (the seam's confirm_roster otherwise always saves). It is read in
+// devSeam.ts behind SEAM_ON and handed to the fixture layer; no component ever sees it.
+
+import { confirmRosterRefusal } from '../lib/game/autoStart.ts';
+import { confirmRosterRefusalFixture } from '../lib/game/autoStartFixture.ts';
+import { readFunctionRefusal } from '../lib/functionRefusal.ts';
+
+Deno.test('without the flag the seam\'s confirm_roster still saves (inert), whatever else is set', () => {
+  const body = { action: 'confirm_roster', choice: 'move_forward' };
+  for (const flag of [undefined, null, '']) {
+    const res = invokeFixtureFor('draft-control', body, 'at_risk', null, flag) as { data: { ok: boolean } };
+    assertEquals(res.data.ok, true, `${flag}`);
+  }
+  // The flag is read only for confirm_roster: status and start are untouched by it.
+  const status = invokeFixtureFor('draft-control', { action: 'status' }, 'at_risk', null, 'playoff_teams_exceeds_members') as { data: { ok: boolean; blockers: unknown[] } };
+  assertEquals(status.data.ok, true);
+  assertEquals(status.data.blockers.length > 0, true);
+  assertEquals((invokeFixtureFor('draft-control', { action: 'start' }, 'at_risk', null, 'x') as { data: { ok: boolean } }).data.ok, true);
+});
+
+Deno.test('with the flag, confirm_roster is refused with that reason and reads as the real refusal line', async () => {
+  const res = invokeFixtureFor('draft-control', { action: 'confirm_roster', choice: 'move_forward' }, 'at_risk', null, 'playoff_teams_exceeds_members') as { data: unknown; error: null };
+  assertEquals(res.data, confirmRosterRefusalFixture('playoff_teams_exceeds_members'));
+  const read = await readFunctionRefusal(res.data, res.error);
+  assertEquals(confirmRosterRefusal(read), '8 playoff teams, but 7 teams are in. Lower the playoff teams first.');
+  const other = invokeFixtureFor('draft-control', { action: 'confirm_roster', choice: 'invite' }, null, null, 'mystery') as { data: unknown; error: null };
+  assertEquals(confirmRosterRefusal(await readFunctionRefusal(other.data, other.error)), RECONFIRM_NOT_SAVED);
+});
+
+Deno.test('the flag is dev-seam only: gated by SEAM_ON, handed to the fixture layer, and never read by a component', () => {
+  const dev = SOURCES['lib/game/devSeam.ts'];
+  assert(dev.includes('export const CAPTURE_CONFIRM_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL || null : null;'));
+  assert(SOURCES['lib/game/seamCalls.ts'].includes('process.env.EXPO_PUBLIC_LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL)'));
+  for (const [file, src] of Object.entries(SOURCES)) {
+    if (file.startsWith('lib/game/') && ['devSeam.ts', 'seamCalls.ts', 'seamFixtures.ts', 'autoStartFixture.ts'].some((f) => file.endsWith(f))) continue;
+    assert(!src.includes('CAPTURE_CONFIRM_REFUSAL'), `${file} reads the capture flag`);
+  }
+  // Never in the render path: the card and the hook know nothing of it.
+  assert(!CARD.includes('REFUSAL') && !HOOK.includes('CAPTURE_'));
+});
