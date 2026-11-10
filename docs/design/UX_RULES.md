@@ -10,7 +10,8 @@ This file says how a screen must *behave for the person using it*.
 - **Checked by:** the `ux-reviewer` subagent at every UI gate, and by the Design Lead's gate
   report (see [`UI-UX-PROGRAM.md`](UI-UX-PROGRAM.md), "Design review gate").
 - **Source:** the eighteen Laws of UX that apply to this app ([lawsofux.com](https://lawsofux.com/)),
-  collapsed into eleven rules so that one decision is checked once, not six times.
+  collapsed into eleven rules so that one decision is checked once, not six times. Rule 12
+  is Giorgio's own (2026-11-10).
 - **Precedence:** a product rule beats a UX rule. If applying a rule here would change what the
   product does (not how it looks or responds), that is a question for Giorgio, not a finding.
 
@@ -203,6 +204,40 @@ sheet is open.
 **How the gate checks it.** A table of flow → peak → ending exists in the audit document; every
 ending is named and shown on the board. The reviewer confirms nothing interrupts the two
 protected moments.
+
+## 12. No explainer under a heading
+
+*From: Giorgio, 2026-11-10, said three times in one day (`../PRODUCT_RULES.md`, "No
+heading-plus-explainer pattern"). Not a Law of UX; a product rule this file enforces.*
+
+**What we do.** A heading is not followed by a sentence that explains it. The layout and the
+controls make the thing clear. "I feel like a user will be able to understand how things work
+without this repetitive couple lines of text under every single header."
+
+**What it means here.** A line under a heading stays only if it is a fact the player cannot
+see anywhere else on that card and needs right now: a time, a count, a name, or what is
+blocking them and what to do about it. It is one line. These go:
+
+- a sentence saying what the thing is or how it works ("If you step away, we'll auto-pick
+  from your queue when your time runs out. You can come back any time.");
+- a line that repeats the heading, the eyebrow or the button ("POSTPONED" over "The draft is
+  postponed" over "…then pick a new draft time." over a button named Pick a new draft time);
+- a rule the control already enforces ("The new time needs at least an hour's notice." under
+  a picker that cannot offer an earlier time): it appears only as the refusal, in place
+  (rule 8), when the player actually hits it;
+- a setting's label with a grey sentence under it restating the label (Create league's Season
+  step).
+
+How a feature works may be said once, in that feature's empty state, where there is nothing
+else to show. A count belongs beside the heading as a number, not in a sentence. This rule
+removes text; it never asks for new copy, and any replacement wording is new copy for Giorgio.
+
+**How the gate checks it.** On every capture, list each heading (card title, section label,
+setting label, sheet title) with every line of text between it and the first control or row.
+Each such line is named in the report with one of: *fact needed now* (which fact), or
+*explainer* (a finding). More than one line under a heading is a finding whatever the lines
+say. Proposed priority P1 on a screen being built or changed; P2 on a screen the branch did
+not touch (it goes to the sweep list, not into the branch).
 
 ---
 
