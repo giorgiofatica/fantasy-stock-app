@@ -165,17 +165,18 @@
     fig(`${v}${limit ? 'm' : ''}xl`, `${cap} · your size (AX5) · Light`, <Frame t="light" v={v} x={2.4} limit={limit} />, notes.x || AX),
   ];
 
-  function CallSeasonStep() {
+  function CallSeasonStep({ archived }) {
     return (
       <section className="b-sec" id="call-season-step" aria-labelledby="call-season-step-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Create</span>
           <div>
-            <h2 id="call-season-step-h">Your call: the Season step, without the line under every label</h2>
+            <h2 id="call-season-step-h">{archived ? 'Decided: B, the Season step with a season strip' : 'Your call: the Season step, without the line under every label'}</h2>
             <p className="b-job">Your build-12 note: the label with a smaller grey line explaining it reads as AI-built and clutters the step, and the weeks box should be as big as the other two, as "WKS". Both options: three identical steppers, "11 wks", and no line under any label. What changes is where the season's facts go. The facts kept: the playoff teams' range, the playoff shape (3 weeks of playoffs, the top 3 seeds get byes) and the season's length.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
+          {archived ? <li><b>Decided by Giorgio (2026-11-10): B.</b> His words: "B for the season step, the one with a strip". Three identical steppers, "11 wks", no line under any label; the season strip and the bye line; a limit's reason only at the limit. The sweep is not yet decided. Rules: PRODUCT_RULES, "The Season step in Create league".</li> : null}
           <li><b>Today:</b> six small lines on one card (two under labels, four under the steppers), and the weeks box is wider than the others.</li>
           <li><b>A · One line under the card.</b> "Season: 11 weeks + 3 playoff weeks · the top 3 seeds get first-round byes", and it updates as you step. <b>Cost: small.</b> No new words (both halves are lines the step shows today).</li>
           <li><b>B · A season strip.</b> One tile per week, the playoff weeks named WC, SF, F (the chips your season chart already uses), "Wk 1" to "Wk 14" under it; then one line, "The top 3 seeds get first-round byes." You see the season's shape instead of reading it. <b>Cost: medium</b> (one small new piece). No new words.</li>
@@ -199,5 +200,7 @@
     );
   }
 
-  window.KSSeasonStep = () => <CallSeasonStep />;
+  // Decided 2026-11-10 (B); the call lives in the Archive (board.jsx).
+  window.KSSeasonStep = () => null;
+  window.KSSeasonStepArchived = () => <CallSeasonStep archived />;
 })();

@@ -11519,17 +11519,18 @@ window.KS_REFS = {
     fig(`${v}${limit ? 'm' : ''}xl`, `${cap} · your size (AX5) · Light`, <Frame t="light" v={v} x={2.4} limit={limit} />, notes.x || AX),
   ];
 
-  function CallSeasonStep() {
+  function CallSeasonStep({ archived }) {
     return (
       <section className="b-sec" id="call-season-step" aria-labelledby="call-season-step-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Create</span>
           <div>
-            <h2 id="call-season-step-h">Your call: the Season step, without the line under every label</h2>
+            <h2 id="call-season-step-h">{archived ? 'Decided: B, the Season step with a season strip' : 'Your call: the Season step, without the line under every label'}</h2>
             <p className="b-job">Your build-12 note: the label with a smaller grey line explaining it reads as AI-built and clutters the step, and the weeks box should be as big as the other two, as "WKS". Both options: three identical steppers, "11 wks", and no line under any label. What changes is where the season's facts go. The facts kept: the playoff teams' range, the playoff shape (3 weeks of playoffs, the top 3 seeds get byes) and the season's length.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
+          {archived ? <li><b>Decided by Giorgio (2026-11-10): B.</b> His words: "B for the season step, the one with a strip". Three identical steppers, "11 wks", no line under any label; the season strip and the bye line; a limit's reason only at the limit. The sweep is not yet decided. Rules: PRODUCT_RULES, "The Season step in Create league".</li> : null}
           <li><b>Today:</b> six small lines on one card (two under labels, four under the steppers), and the weeks box is wider than the others.</li>
           <li><b>A · One line under the card.</b> "Season: 11 weeks + 3 playoff weeks · the top 3 seeds get first-round byes", and it updates as you step. <b>Cost: small.</b> No new words (both halves are lines the step shows today).</li>
           <li><b>B · A season strip.</b> One tile per week, the playoff weeks named WC, SF, F (the chips your season chart already uses), "Wk 1" to "Wk 14" under it; then one line, "The top 3 seeds get first-round byes." You see the season's shape instead of reading it. <b>Cost: medium</b> (one small new piece). No new words.</li>
@@ -11553,7 +11554,9 @@ window.KS_REFS = {
     );
   }
 
-  window.KSSeasonStep = () => <CallSeasonStep />;
+  // Decided 2026-11-10 (B); the call lives in the Archive (board.jsx).
+  window.KSSeasonStep = () => null;
+  window.KSSeasonStepArchived = () => <CallSeasonStep archived />;
 })();
 
 </script>
@@ -11939,11 +11942,11 @@ window.KS_REFS = {
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
-    ['call-season-step', 'The Season step, without the line under every label'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-season-step', title: 'The Season step in Create league', decision: 'B: three identical steppers ("11 wks"), no line under any label; a season strip (one tile per week, the playoff weeks named WC / SF / F, "Wk 1" to the last week) and the bye line; a limit\'s reason shows only at the limit. The sweep of the other screens is not yet decided.', date: '2026-11-10', rec: 'PRODUCT_RULES (The Season step in Create league)', render: () => window.KSSeasonStepArchived },
     { id: 'call-draft-clock', title: 'The clock while you search', decision: 'A: while it is your pick and the clock card is off the screen, a small clock pinned at the top (the ring, the seconds, "Your pick"). "Your pick" approved with A.', date: '2026-11-06', rec: 'PRODUCT_RULES (The clock while you search)', render: () => window.KSDraftClockArchived },
     { id: 'call-top-bar', title: 'The top bar', decision: 'A and A: the avatar on every tab (Portfolio too), no phase chip in the bar; the bar scrolls away with the page, with a short fade behind the clock once scrolled. No new words.', date: '2026-11-06', rec: 'PRODUCT_RULES (The top bar)', render: () => window.KSTopBarArchived },
     { id: 'call-queue-row', title: 'The queue row', decision: 'A: like the draft room\'s search. The ticker over the company name (cut with "…" when long), the price on the ticker\'s line; the ticker is never cut; "–" when a price is missing. "Prices at Wednesday\'s close." approved (copy, 2026-11-05).', date: '2026-11-05', rec: 'PRODUCT_RULES (The queue row)', render: () => window.KSQueueRowArchived },

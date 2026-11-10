@@ -671,6 +671,29 @@ building anything, and don't reopen a rule without him.
   managers (never more). The bracket is derived (weeks = ceil(log2 P); byes to the top
   seeds). Rounds are named by teams left: Final / Semifinals / Quarterfinals / Round of
   16; a first round with byes is "Wild card".
+- **The Season step in Create league** (2026-11-10, build 12; Giorgio picked B, board
+  #call-season-step). His words: "B for the season step, the one with a strip". The note that
+  started it: "I really don't like this style of mainline like managers and then this like
+  smaller subtitle that explains it. I think one that is very just red flag of like AI built,
+  vibe coded. Secondly, I think it makes it far too cluttered. ... Also, I want the regular
+  season weeks button to be just as big as the managers and playoff teams. We can abbreviate
+  weeks into just WKS to kind of fit this".
+  - Managers, Regular season and Playoff teams are three identical steppers, with no line under
+    any label. The weeks value reads "11 wks" (lowercase: a unit, like "30 seconds"); VoiceOver
+    still says "11 weeks".
+  - Under them, a season strip: one tile per regular-season week, then the playoff weeks, wider
+    and named with the season chart's chips (WC / SF / F, QF / R16 for bigger brackets), "Wk 1"
+    under the first tile and the season's last week ("Wk 14") under the last. Then one line, the
+    bye clause from the playoff line ("The top 3 seeds get first-round byes."; "No byes." when
+    there are none). Both update as you step.
+  - The limits stay on the steppers: − and + grey out at the ends, and the reason shows under
+    that stepper only while it is at the end ("2 to 6, up to your expected managers"; "At
+    least 5 weeks, so every team plays every other team once."). Managers at 4 or 16 has no
+    reason line yet: new words, for Giorgio, when it is built.
+  - Removed: "How many you expect, you included" and "We check this again when the draft
+    starts." (the draft-time blockers card catches a league that came in smaller).
+  - Not yet decided: sweeping the same pattern from the Draft step, the Duration lengths, League
+    settings and the renewal review (the Design Lead recommended it with this call).
 - **Leaving a league** (2026-10-06): "a player cannot leave a league after a draft, they
   are locked in for that season." The window: "you can only leave before a season starts
   (the hour before the draft) or after it is over."
