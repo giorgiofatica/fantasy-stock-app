@@ -273,6 +273,14 @@ building anything, and don't reopen a rule without him.
 - **Product name:** "Stockpile" must go (a live trademark), with Stockade the front-runner,
   but naming is DEFERRED to pre-launch. Keep the bundle id, slug and scheme.
 
+- **Times show in the player's own time zone** (2026-11-10; plan
+  `docs/plans/2026-11-10-local-time-zone.md`): "we need this app to simply show the like time
+  zone or whatever the user's phone is … If I am in Pacific time, I don't want to see Eastern
+  time because that was confusing me at first." The zone is always named: "It's good that it
+  tells me the time zone underneath, but the standard should be whatever the time zone the
+  user's in." The market's own times too: "yes, market times should be local too". Display
+  only: the market, the trading window, weeks and scoring keep running on Eastern Time.
+
 ## Scoring and standings
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
