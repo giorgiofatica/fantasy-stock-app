@@ -281,7 +281,7 @@ building anything, and don't reopen a rule without him.
   user's in." The market's own times too: "yes, market times should be local too". Display
   only: the market, the trading window, weeks and scoring keep running on Eastern Time.
 
-- **No heading-plus-explainer pattern** (2026-11-10, said twice in one day). On Create
+- **No heading-plus-explainer pattern** (2026-11-10, said three times in one day). On Create
   league's Season step: "I really don't like this style of mainline like managers and then
   this like smaller subtitle that explains it. I think one that is very just red flag of like
   AI built, vibe coded. Secondly, I think it makes it far too cluttered." On the draft room's
@@ -292,6 +292,19 @@ building anything, and don't reopen a rule without him.
   one-time tip, "the right kind of balance between providing the user with the right
   information they need … but then also not clutter the UI." The Design Lead sweeps existing
   screens for it; new screens are gated on it.
+  The third time, on League's postponed card and "Your queue · 4 of 50" with three lines
+  under it: "This is a recurring theme that I've mentioned … I really don't like the draft is
+  postponed big header and then a lot of text underneath subheader right below. To me, it
+  makes certain things look clunky. It looks like too much is going on … We don't need that.
+  I don't like that. We need to find a way to convey what the things are without having to
+  over-explain … I feel like a user will be able to understand how things work without this
+  repetitive couple lines of text under every single header." Because it kept coming back,
+  the rule is now checked, not only stated: it is rule 12 in `docs/design/UX_RULES.md` (the
+  `ux-reviewer` runs it at every gate) and a row in the gate checklist's mechanical checks.
+  The test (the Planner's wording of his rule, 2026-11-10): a line under a heading stays only
+  if it is a fact the player cannot see anywhere else on that card and needs right now (a
+  time, a count, a name, what is blocking them). A line that says what the thing is, how it
+  works, or repeats the heading or the button, goes.
 
 ## Scoring and standings
 
