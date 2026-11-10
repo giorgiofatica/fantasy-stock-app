@@ -92,7 +92,9 @@ Deno.test('account deletion: each re-created function supersedes exactly its lat
   // join_league_by_code is defined without the schema prefix.
   const joins: string[] = [];
   for (const f of files) if (/create or replace function (public\.)?join_league_by_code\(/.test(await readMigration(f))) joins.push(f);
-  assertEquals(joins.slice(-2), ['20261123000000_join_refuses_once_room_opens.sql', '20261125000008_takeover_codes_not_join_codes.sql']);
+  // 20261128000000 re-creates it again on top of 20261125000008 (its own suite diffs that pair).
+  assertEquals(joins.slice(-3), ['20261123000000_join_refuses_once_room_opens.sql', '20261125000008_takeover_codes_not_join_codes.sql',
+    '20261128000000_reconfirm_clears_at_four.sql']);
 });
 
 Deno.test('account deletion: re-created bodies differ from their source ONLY by the marked change', async () => {
