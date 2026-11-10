@@ -95,9 +95,10 @@ after the room opens.
 
 ## How it works
 
-**The player, on a phone.** Until T−1h: the lobby. At T−1h a push says the room is open
-with your position; Home and League show "Enter the draft room". Inside: the countdown, the
-board with every manager's column and yours marked, and the panel on Stocks. You search,
+**The player, on a phone.** Until T−1h: the lobby. At T−1h a push says the room is open and invites you in, WITHOUT your
+position (decision 17); Home and League show "Enter the draft room". Your first entry plays the order reveal
+(decisions 14–16); after it you are inside: the countdown, the board with every manager's
+column and yours marked, and the panel on Stocks. You search,
 open a stock's card, tap Queue, switch to Queue to reorder, look at Team for your empty
 slots. At T the countdown becomes the clock. While others pick, rows still say Queue; on
 your pick they say Draft and the room says it is your turn as it does today. If you are
