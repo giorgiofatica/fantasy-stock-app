@@ -111,6 +111,13 @@ switch (18). Note the time and what you had just tapped if it happens.
   league, and the server picks for anyone who doesn't (the throwaways). If it shows Postponed
   instead, mark this failed with what the card says. (The phone can't add bots; that's web-only
   and the web is paused.)
+- [ ] **Step 24b. League A: back to four needs no tap.** (Page id 42; numbered 24b so no tick
+  moves.) The server change for "four are in, so it's ready" is live (20261128000000). In League A
+  (two managers): T1 and T2 each join again with League A's code. Back as yourself, open League A.
+  Right: no "left the league" question and no Move forward or Invite buttons; **Pick a new draft
+  time** is enabled straight away, with no tap from you first. On build 12 the card while only
+  three are in may still look like the old one; that part is fixed in build 13. What matters here
+  is the state once four are in.
 - [ ] **Step 25. Delete T1 (30).** On T1: Profile › Delete account. Wrong
   password first. Right: "That password isn't right. Try again." and the field clears. Right
   password → Delete my account → "Are you sure?" → Delete. Right: signed out, sign-in shows
