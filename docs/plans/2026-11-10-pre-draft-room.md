@@ -1,6 +1,6 @@
 # The draft room: familiar, open an hour early, phone then laptop
 
-Status: Draft (decisions and the order reveal settled with Giorgio 2026-11-10; awaiting his "approved")
+Status: Approved (Giorgio, 2026-11-10)
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 ## Goal
