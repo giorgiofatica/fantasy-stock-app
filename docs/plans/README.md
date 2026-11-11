@@ -11,6 +11,34 @@ The **Orchestrator** then builds it from the plan. This folder holds those plans
 | **Planner** | "Planner" (Fable 5.1, Opus for security-heavy plans) | Talks it through with Giorgio; reads the code and docs; asks for mockups; writes the plan here; hands it to the Orchestrator | Write app code, start workers, push, open PRs, touch prod |
 | **Orchestrator** | "Orchestrator" | Turns an approved plan into workers; verifies, opens PRs, walks Giorgio through releases | Make product decisions; change an approved plan's rules without Giorgio |
 | **Design Lead** | "Design Lead" | Draws the "Your call" mockups and design specs on the board | — |
+| **Researcher** | "Researcher" (Sonnet; Opus for legal, policy, App Store review, security or money-rules reading) | Takes research tasks from Giorgio (and from the Planner or Orchestrator when a plan needs facts); writes one findings file per task in [`../research/`](../research/); reports `RESEARCH READY` to the Planner and the Orchestrator | Decide product or write to `PRODUCT_RULES.md`; write app code, migrations or functions; start workers; push, open PRs, merge; touch prod; paste repo code, keys, user data or Giorgio's details into outside services |
+| **Recorder** | "Recorder" (Sonnet) | Keeps the written record current: the single writer of [`../STATUS.md`](../STATUS.md), [`../PROGRESS.md`](../PROGRESS.md), the docs index and folder READMEs, plan Status lines, and the phone-pass checklist mirror | Decide anything; record "live" without evidence; change a ruling in `PRODUCT_RULES.md`; edit `CLAUDE.md`, `.claude/`, generated files, applied migrations or `history/`; write app code; push, open PRs, merge; touch prod |
+
+Researcher and Recorder were added on 2026-11-10 at Giorgio's request: "I will give it tasks
+to research on certain ideas … and then I want it to kind of organize its findings and then
+like report back to you and the orchestrator", and "a documentarian or some sort of recorder
+agent that … works to record our progress and update any readmes or any documentation that
+kind of shows what we've been doing and where we're at." Their standing briefs are
+[`../research/README.md`](../research/README.md) and the Recorder section of
+[`../README.md`](../README.md).
+
+### Rules every role chat follows
+
+- **Branch, commit, hand back the SHA.** A role chat works on a topic branch, commits there,
+  never pushes, and reports the branch and SHA to the Orchestrator, who pushes and opens the
+  PR. Giorgio merges.
+- **Go home before reporting.** After committing on a topic branch (`plan/<topic>`,
+  `research/<topic>`, `docs/record-<date>`), switch the worktree back to its `claude/<name>`
+  home branch. The app's auto-archive closes a chat when the PR whose head is the chat's
+  checked-out branch closes; that archived the Planner and the Design Lead on 2026-10-22. A
+  chat sitting on its home branch is never bound to a merged PR.
+- **The boundaries are rules, not locks.** These are full sessions with a shell and the web,
+  so nothing here is enforced by missing tools. `.claude/settings.json` asks before every
+  push, merge, `db push`, deploy and secret change; the rest is the role keeping to its lane.
+- **Models.** Sonnet for specified work (the Recorder; the Researcher by default). Opus for
+  security, auth, RLS, partial-state design, Design Lead gates, and Researcher tasks where a
+  misread costs a ruling (legal, policy, App Store review, security, money rules). Fable only
+  as the Planner, per `CLAUDE.md`.
 
 ## The flow
 
