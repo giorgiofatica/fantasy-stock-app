@@ -322,6 +322,24 @@ building anything, and don't reopen a rule without him.
   if it is a fact the player cannot see anywhere else on that card and needs right now (a
   time, a count, a name, what is blocking them). A line that says what the thing is, how it
   works, or repeats the heading or the button, goes.
+  **Optional context for a choice we defined** (2026-11-10, on the Design Lead's sweep
+  board for this rule): "so for the sweep of the app to remove the unneccessary sub headers
+  and fluff. i like what the design lead presented but there are little tweaks i want to
+  make to it. for example, on pt 4 create league screens, the different league types need to
+  be explained or else the user wont know what they are selected. i dont want this to be
+  shows in text below, but a little information i on the end of each bar with a pop up
+  explaining would be great. it could even be a two part pop up, one explaining it with a
+  concise word explanation and another with a visual. there should be a small x in the
+  corner for the user to close out of and this should be a thing for all options. so for
+  instances where a selection is key to process and has been defined by us and isnt obvious,
+  then we need to give the user optional context". So: the sweep's direction is approved,
+  with this change. Where a selection is key to the flow, was defined by us, and is not
+  obvious, every option in it carries a small info "i" at the end of its row; tapping it
+  opens a popup that explains the option, with a small x in the corner to close. No
+  explaining text goes under the options. The popup may have two parts, words and a visual;
+  the Design Lead shows him the form on the board, and the words in it are new copy for him.
+  It is rule 13 in `docs/design/UX_RULES.md` and a row in the gate checklist, so the gate
+  checks both directions: no explainer under a heading, and no unexplained choice of ours.
 
 ## Scoring and standings
 
