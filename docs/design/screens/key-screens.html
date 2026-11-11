@@ -12110,7 +12110,7 @@ window.KS_REFS = {
       <section className="b-sec" id="rule12-copy-call" aria-labelledby="rule12-copy-call-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Rule 12</span>
-          <div><h2 id="rule12-copy-call-h">Your call: should the i popups name what decides the winner?</h2></div>
+          <div><h2 id="rule12-copy-call-h">Decided: A, the i popups name what decides the winner</h2></div>
         </header>
         <ul className="b-inv__notes">
           <li><b>Why you're being asked:</b> two of your rules pull opposite ways here. "Generic scoring copy": rules, marketing and onboarding say "best performance wins", never "biggest dollar gain", because capital varies by stake mode. "Dollars decide": the UI shows the metric that decides the winner. The popup lines you approved today name it for Matchup ("the bigger dollar gain wins").</li>
@@ -12118,8 +12118,8 @@ window.KS_REFS = {
           <li><b>4A · as you approved them.</b> A popup is a definition, so it says what decides the winner. The generic rule gets a written exception for definitions. Duration stays "the biggest gain" (it doesn't say dollars or percent).</li>
           <li><b>4A+ · the same, and Duration says "dollar" too</b> <NEW />, now that dollars decide Duration as well.</li>
           <li><b>4B · the generic rule wins.</b> Both say "best performance" <NEW />, and neither says what decides.</li>
-          <li><b>Recommended: 4A+</b> (the Planner advises A). A definition that won't say what decides the winner doesn't define anything, and the popup is the one place a player asks exactly that. Adding "dollar" to Duration makes the two lines match.</li>
-          <li><b>Answer with:</b> 4A, 4A+ or 4B.</li>
+          <li><b>Recommended then: 4A+</b> (the Planner advised A). A definition that won't say what decides the winner doesn't define anything, and the popup is the one place a player asks exactly that. Adding "dollar" to Duration makes the two lines match.</li>
+          <li><b>Decided 2026-11-11: A</b> (asked by the Planner, his answer "A"). The approved lines stand as written, and "Generic scoring copy" now has a written exception for definition popups (PR #386); rules pages, marketing and onboarding keep "best performance wins". The Duration line stays "The biggest gain at the end wins." (4A+ was not taken up). The 4A+ and 4B frames are kept as the record.</li>
         </ul>
         <Grid>{[
           fig('c-a-m', '4A · Matchup (as approved)', <PopFrame t="light" k="matchup" page={1} />),
@@ -13217,11 +13217,17 @@ window.KS_REFS = {
   }
 
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
+  // Each entry: [id, title, () => the component to mount]. The board mounts ONE view at a time
+  // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
+  // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
+  // back to mounting the whole calls block.
   const OPEN = [
-    ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)'],
-    ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)'],
-    ['call-leave-below-four', 'The Leave sheet in a league of four'],
+    ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)', () => window.KSRule12Sweep],
+    ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)', () => window.KSRule12Info],
+    ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
   ];
+  // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
+  const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
@@ -13261,8 +13267,23 @@ window.KS_REFS = {
     { id: 'call-tier-trades', title: 'Which tier a traded stock fills', decision: 'A: replace in the same tier ("Fills your $100–$200 slot").', date: '2026-10-06', rec: 'PR #114' },
     { id: 'run-it-back', title: 'Run it back', decision: 'Opt-in: every Season 1 player answers; the commissioner reconciles; always a new draft.', date: '2026-10-04', rec: 'commit 4538f60f' },
   ];
-  function Archive() {
+  function ArchItem({ a, calls, startOpen }) {
+    const [open, setOpen] = useState(!!startOpen);
+    const C = open ? (a.render ? a.render() : calls[a.id]) : null;
+    return (
+      <details className="b-arch" id={`arch-${a.id}`} open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+        <summary>
+          <span className="b-arch__t">{a.title}</span>
+          <span className="b-arch__d">{a.decision}</span>
+          <span className="b-arch__m">Decided {a.date} · {a.rec}</span>
+        </summary>
+        {open ? <div className="b-arch__body">{C ? <C /> : <p className="b-job">Section not found.</p>}</div> : null}
+      </details>
+    );
+  }
+  function Archive({ only }) {
     const calls = window.KSArchivedCalls || {};
+    const list = only ? ARCHIVE.filter((a) => a.id === only) : ARCHIVE;
     return (
       <section className="b-sec b-archive" id="archive" aria-labelledby="archive-h">
         <header className="b-sec__head">
@@ -13273,25 +13294,25 @@ window.KS_REFS = {
           </div>
         </header>
         <div className="b-archive__list">
-          {ARCHIVE.map((a) => {
-            const C = a.render ? a.render() : calls[a.id];
-            return (
-              <details key={a.id} className="b-arch" id={`arch-${a.id}`}>
-                <summary>
-                  <span className="b-arch__t">{a.title}</span>
-                  <span className="b-arch__d">{a.decision}</span>
-                  <span className="b-arch__m">Decided {a.date} · {a.rec}</span>
-                </summary>
-                <div className="b-arch__body">{C ? <C /> : <p className="b-job">Section not found.</p>}</div>
-              </details>
-            );
-          })}
+          {list.map((a) => <ArchItem key={a.id} a={a} calls={calls} startOpen={!!only} />)}
         </div>
       </section>
     );
   }
 
+  function useHashView() {
+    const read = () => { try { return decodeURIComponent(window.location.hash.slice(1)); } catch (e) { return ''; } };
+    const [v, setV] = useState(read);
+    useEffect(() => {
+      const on = () => setV(read());
+      window.addEventListener('hashchange', on);
+      return () => window.removeEventListener('hashchange', on);
+    }, []);
+    return v;
+  }
+
   function Board() {
+    const view = useHashView();
     const [theme, setThemeState] = useState(() => document.documentElement.dataset.ksTheme || 'light');
     const setTheme = (t) => {
       setThemeState(t);
@@ -13305,175 +13326,202 @@ window.KS_REFS = {
     const [sheet, sheetN, setSheet] = useMoment(false);
     const L = K.MATCHUP.live, F = K.MATCHUP.final;
 
+    const target = ALIAS[view] || view;
+    const openHit = OPEN.find(([id]) => id === target);
+    const archHit = ARCHIVE.find((a) => a.id === target || `arch-${a.id}` === target);
+    // After the view mounts: a sub-section or an approved-screens anchor scrolls into place;
+    // anything else starts at the top.
+    useEffect(() => {
+      const el = view && document.getElementById(view);
+      if (el && (ALIAS[view] || (!openHit && !archHit && view !== 'archive'))) el.scrollIntoView();
+      else window.scrollTo(0, 0);
+    }, [view]);
+    const back = <nav className="b-open__more" style={{ padding: '12px 0' }}><a href="#">‹ Every call</a> · <a href="#approved">Approved screens</a> · <a href="#archive">Archive</a></nav>;
+    const heroEl = (
+          <header className="b-hero">
+            <div className="b-brand">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1" fill="var(--c-text-2)" /><rect x="9.75" y="9" width="4.5" height="12" rx="1" fill="var(--c-text-2)" /><rect x="16.5" y="4" width="4.5" height="17" rx="1" fill="var(--c-you)" /></svg>
+              <span>Stockpile</span>
+              <span className="b-brand__meta">Design board · updated 12 Oct 2026</span>
+            </div>
+            <h1>Your calls, then the app.</h1>
+            <p className="b-lead">
+              The board in three parts. <b>Waiting on you</b> comes first: only the calls you
+              haven't made yet, newest first. Then the <b>approved screens</b>, the reference the app
+              is built from. Every call you've already made is in the <b>Archive</b> at the end,
+              closed, with what you decided, when, and where it was recorded.
+            </p>
+            <dl className="b-canon">
+              <div><dt>League</dt><dd>{K.LEAGUE.name} · 6 managers</dd></div>
+              <div><dt>Moment</dt><dd>Week 6 of 14 · Thu 1:37 PM ET</dd></div>
+              <div><dt>You</dt><dd>Roberto B. vs Gianluigi B.</dd></div>
+              <div><dt>Stakes</dt><dd>$2,000 per slot · 6 slots</dd></div>
+            </dl>
+            <div className="b-open" aria-label="Waiting on you">
+              <span className="b-open__lbl">Waiting on you ({OPEN.length})</span>
+              {OPEN.length ? (
+                <nav className="b-toc" aria-label="Open calls">
+                  {OPEN.map(([id, t]) => <a key={id} href={`#${id}`}>{t}</a>)}
+                </nav>
+              ) : <p className="b-open__more" style={{ color: 'var(--c-text)' }}>Nothing right now. Game Night is approved: <a href="#game-night">see it under Approved screens</a>.</p>}
+              <p className="b-open__more"><a href="#approved">Approved screens</a> · <a href="#archive">Archive ({ARCHIVE.length} decided)</a></p>
+            </div>
+          </header>
+    );
+    const callsEl = (
+      <>
+          {window.KSRule12Sweep ? <window.KSRule12Sweep /> : null}
+          {window.KSRule12Info ? <window.KSRule12Info /> : null}
+          {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
+          {window.KSBelowFour ? <window.KSBelowFour /> : null}
+          {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
+          {window.KSDraftClock ? <window.KSDraftClock /> : null}
+          {window.KSTopBar ? <window.KSTopBar /> : null}
+          {window.KSQueueRow ? <window.KSQueueRow /> : null}
+          {window.KSHomeChart ? <window.KSHomeChart /> : null}
+          {window.KSDirections ? <window.KSDirections /> : null}
+          {window.KSAccountDeletion ? <window.KSAccountDeletion /> : null}
+          {window.KSOnboarding ? <window.KSOnboarding /> : null}
+      </>
+    );
+    const approvedEl = (
+      <>
+          <header className="b-part" id="approved">
+            <span className="b-part__eyebrow">Reference</span>
+            <h2>Approved screens</h2>
+            <p>What the app is built from. First Game Night, the new look (approved 2026-10-12, both themes); then the five key screens and every other screen, which show the STRUCTURE on the 1.2.0 skin until each is rebuilt in Game Night.</p>
+          </header>
+
+          {window.KSGameNight ? <window.KSGameNight /> : null}
+
+          <ThemesSection />
+
+          <Section
+            id="home" n="1" name="Home" job="How is my team doing in this league, and how is this week going?"
+            phones={<Fit key={homeN}><S.HomeScreen run={homeRun} /></Fit>}
+            notes={<Notes
+              shows={[
+                <><b>One league at a time</b> (your call, v1.1). The league pill picks it; switching swaps everything on Home. No cross-league totals.</>,
+                <>Your team in this league: value {$(K.HOME.value)} as the big number, then <b>season gain</b> {$s(K.HOME.gain)} (the scored weeks plus this week live), today {$s(K.HOME.today)}, and rank and record (2nd of 6, {K.HOME.record}).</>,
+                <><b>The Home hero</b> (your call: Concept A). Team value is the big number; the line under it is the season gain, the same words as the Standings column. It is not value − $12,000: the value also moves between the draft and Week 1's open and over every Friday close → Monday open, when no matchup is scoring. Portfolio keeps its own gain, value − cost, labelled "since the draft".</>,
+                <>This week's matchup comes first: the live scoreboard card, with the lead in the metric that decides the matchup.</>,
+                <>The season chart ("Season gain, week by week") plots the same season gain against $0, with week ticks and each week's result (W/L) underneath. It ends at the hero's season gain, and this week's rise equals this week's matchup score. <b>Past weeks are one point each</b> (that week's scored result, at Friday's close) joined by straight lines; only this week has day-by-day points. Time stays to scale: every week is five trading days wide. Scrubbing a past week reads that week's own result ("Week 3 · {$s(K.ROBERTO_WEEKS[2].gain)}"); this week reads the day and the running total.</>,
+                <>Top of the standings with your row tinted and your name bold. The avatar opens Profile.</>,
+                <><b>Other leagues</b> (your call: Concept B, pill only): there is no list on Home. The league pill shows "+2" (two more leagues) on every tab and opens the league sheet with every league grouped by phase.</>,
+              ]}
+              motion={<>
+                <li><Play label="Open Home" playing={homeRun} onPlay={() => setHome(true)} /> The week card rises in (slow, 380ms); the season line draws on (feature, 700ms).</li>
+                <li>Switching league in the pill: the sheet closes (spring.snappy) and Home crossfades to the new league (quick, 160ms). Numbers roll only where the value changed.</li>
+              </>}
+              reduced="the line and cards appear in place; digits swap without rolling."
+              ask={null}
+            />}
+          />
+
+          <Section
+            id="matchup" n="2" name="Matchup" job="Am I winning this week, by how much, and why?"
+            phones={<>
+              <Fit caption={final ? 'Final (played from Live)' : 'Live · Thu 1:37 PM ET'}><S.MatchupScreen final={final} /></Fit>
+              <Fit caption="Final · Fri close"><S.MatchupScreen final /></Fit>
+            </>}
+            notes={<Notes
+              shows={[
+                <>A broadcast scoreboard: both managers, both scores in the condensed 62% cut, and the tug bar. Live: {$s(L.you.gain)} vs {$s(L.opp.gain)}.</>,
+                <><b>Dollars decide</b> (your call, v1.2): the scores and the lead are in dollars ({$(L.you.gain - L.opp.gain)} lead), with the tiebreak beside it, small ({pct(L.you.pct)} vs {pct(L.opp.pct)}). Every score on every screen comes from one helper, so if you change what decides, it changes everywhere at once.</>,
+                <>A chyron names what just moved the game. The race chart replaces the Mon–Fri bars and is the same chart as the landing's /03.</>,
+                <>Both lineups, each stock's dollar contribution this week. They add up to the score exactly.</>,
+                <>Final: the winner banner, the new record, and next week's opponent.</>,
+              ]}
+              motion={<>
+                <li><Play label={final ? 'Back to Live' : 'Final whistle'} playing={final} onPlay={() => setFinal(!final)} /> Scores roll to the close, the chip flips Live → Final, the tug settles, and the winner banner rises (slow, 380ms).</li>
+                <li>Lead change (live): the chyron slides in (base), the tug crosses centre with the lively spring, one light haptic.</li>
+              </>}
+              reduced="scores swap, the tug jumps to its split, the banner and chyron fade in place."
+              ask={null}
+            />}
+          />
+
+          <Section
+            id="league" n="3" name="League standings" job="Where do I stand, and what changed this week?"
+            phones={<Fit><S.LeagueScreen after={after} /></Fit>}
+            notes={<Notes
+              shows={[
+                <><b>One order, also the playoff seeding</b> (your call): win percentage, then head-to-head, then <b>season gain</b> (the sum of your weekly matchup gains). Paolo M. and Roberto B. are both 5–1 and haven't played each other, so season gain decides: Roberto's {$s(K.STANDINGS_FINAL[0].pf)} beats Paolo's {$s(K.STANDINGS_FINAL[1].pf)}. A bye is no result: it counts as neither a win nor a loss and is left out of win percentage. Records read W–L, with –T only when there are ties.</>,
+                <>▲/▼ show the move since last week. Your row is tinted and your name bold wherever you land.</>,
+                <>Week 6 results underneath: every matchup, both scores.</>,
+              ]}
+              motion={<>
+                <li><Play label="Replay Friday's re-sort" playing={false} onPlay={() => { setAfter(false); setTimeout(() => setAfter(true), 700); }} /> Rows slide to their new ranks (FLIP, slow 380ms, settle), then the ▲/▼ badges pop.</li>
+              </>}
+              reduced="rows jump to their new order; the badges appear without scaling."
+              ask={null}
+            />}
+          />
+
+          <Section
+            id="draft" n="4" name="Draft room" job="Whose pick is it, what's left, and how does the snake run?"
+            phones={<>
+              <Fit caption={landed ? 'After the pick' : 'On the clock · Round 2, pick 11'}><S.DraftScreen landed={landed} /></Fit>
+              <Fit caption="Create league · Draft step (also in League settings)"><S.DraftSettingsScreen /></Fit>
+            </>}
+            notes={<Notes
+              shows={[
+                <>The on-the-clock ring counts down; the card says what the snake means for you right now ("Then Paolo M. picks twice").</>,
+                <>The snake board: a track runs through every pick in order, with chevrons in the gaps and a half-loop at every row end, so the reversal reads without the labels. Your picks are outlined in team blue.</>,
+                <>Search with your queue; Draft is one tap. Your roster fills slot by slot at $2,000 each.</>,
+                <><b>When the clock runs out</b> (your call): the server auto-picks a good stock, never a random one: the manager's queue first, then the best available: the largest market cap that fits the league's rules (price brackets, category slots, budget). An auto-pick never breaks them.</>,
+                <><b>Pick clock</b> (your call, v1.1): 60 seconds by default; the commissioner sets 30–90s when creating the league or in League settings before the draft. The draft room shows the league's clock.</>,
+              ]}
+              motion={<>
+                <li><Play label={landed ? 'Reset' : 'Make the pick'} playing={landed} onPlay={() => setLanded(!landed)} /> AAPL lands in pick 11, the blue track extends to 12, the ring hands over to Paolo M., and the roster slot fills.</li>
+                <li>The clock ring pulses its outline at 1.2s; the last 10 seconds turn the ring to loss red.</li>
+              </>}
+              reduced="the ticker appears in place; the track extends without drawing; no pulse."
+              ask={null}
+            />}
+          />
+
+          <Section
+            id="portfolio" n="5" name="Portfolio and stock sheet" job="What do I own, how is it doing, and how do I act on one stock?"
+            phones={<>
+              <Fit caption={sheet ? 'NVDA tapped' : 'Portfolio · live'}><S.PortfolioScreen sheet={sheet} /></Fit>
+              <Fit caption="Stock sheet · Sell pre-selected"><S.PortfolioScreen sheet /></Fit>
+              <Fit caption="After selling TSLA · the slot holds the proceeds"><S.PortfolioScreen variant="cash" /></Fit>
+              <Fit caption="Buying with the proceeds"><S.PortfolioScreen variant="buy" /></Fit>
+            </>}
+            notes={<Notes
+              shows={[
+                <>Value {$(K.PORTFOLIO_LIVE.value)}; gain since the draft {$s(K.PORTFOLIO_LIVE.gain)} against a $12,000.00 basis; today {$s(K.PORTFOLIO_LIVE.today)}.</>,
+                <>Six holdings, each with value and today's move. Trade history includes the draft picks.</>,
+                <>Any ticker row opens the stock sheet: price and today's change, a chart of daily closes (1W by default; 1W, 1M, 3M, 1Y, no 1D, because the price history is daily only: Giorgio's ruling), your position, who in the league owns it, and <b>Sell pre-selected</b> because you hold it.</>,
+                <><b>Trading</b> (your call, v1.2): buy and sell freely, whole positions only, but a slot you sell out of can only reinvest what the sale brought in ({$(K.SALE.proceeds)} from TSLA), never a fresh $2,000. The freed slot shows as a Cash row ready to invest; cash earns nothing but counts in value, so the portfolio value doesn't change on the sale. The buy sheet says "You have {$(K.SALE.proceeds)} from selling TSLA to invest" and lets you pick which freed slot pays.</>,
+              ]}
+              motion={<>
+                <li><Play label={sheet ? 'Close sheet' : 'Tap NVDA'} playing={sheet} onPlay={() => setSheet(!sheet)} /> The sheet springs up (spring.snappy, no overshoot) while the scrim fades in (base).</li>
+              </>}
+              reduced="the sheet fades in place."
+              ask={null}
+            />}
+          />
+
+          {window.KSInventoryBoard ? <window.KSInventoryBoard /> : null}
+
+          <Ledger />
+      </>
+    );
+    let body;
+    if (!view) body = heroEl;
+    else if (openHit) {
+      const C = openHit[2] ? openHit[2]() : null;
+      body = <>{back}{C ? <C /> : callsEl}</>;
+    } else if (view === 'archive') body = <>{back}<Archive key="all" /></>;
+    else if (archHit) body = <>{back}<Archive key={`only-${archHit.id}`} only={archHit.id} /></>;
+    else body = <>{back}{approvedEl}</>;
+
     return (
       <main className="b-page">
         <ThemeBar theme={theme} setTheme={setTheme} />
-        <header className="b-hero">
-          <div className="b-brand">
-            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="4.5" height="8" rx="1" fill="var(--c-text-2)" /><rect x="9.75" y="9" width="4.5" height="12" rx="1" fill="var(--c-text-2)" /><rect x="16.5" y="4" width="4.5" height="17" rx="1" fill="var(--c-you)" /></svg>
-            <span>Stockpile</span>
-            <span className="b-brand__meta">Design board · updated 12 Oct 2026</span>
-          </div>
-          <h1>Your calls, then the app.</h1>
-          <p className="b-lead">
-            The board in three parts. <b>Waiting on you</b> comes first: only the calls you
-            haven't made yet, newest first. Then the <b>approved screens</b>, the reference the app
-            is built from. Every call you've already made is in the <b>Archive</b> at the end,
-            closed, with what you decided, when, and where it was recorded.
-          </p>
-          <dl className="b-canon">
-            <div><dt>League</dt><dd>{K.LEAGUE.name} · 6 managers</dd></div>
-            <div><dt>Moment</dt><dd>Week 6 of 14 · Thu 1:37 PM ET</dd></div>
-            <div><dt>You</dt><dd>Roberto B. vs Gianluigi B.</dd></div>
-            <div><dt>Stakes</dt><dd>$2,000 per slot · 6 slots</dd></div>
-          </dl>
-          <div className="b-open" aria-label="Waiting on you">
-            <span className="b-open__lbl">Waiting on you ({OPEN.length})</span>
-            {OPEN.length ? (
-              <nav className="b-toc" aria-label="Open calls">
-                {OPEN.map(([id, t]) => <a key={id} href={`#${id}`}>{t}</a>)}
-              </nav>
-            ) : <p className="b-open__more" style={{ color: 'var(--c-text)' }}>Nothing right now. Game Night is approved: <a href="#game-night">see it under Approved screens</a>.</p>}
-            <p className="b-open__more"><a href="#approved">Approved screens</a> · <a href="#archive">Archive ({ARCHIVE.length} decided)</a></p>
-          </div>
-        </header>
-
-        {window.KSRule12Sweep ? <window.KSRule12Sweep /> : null}
-        {window.KSRule12Info ? <window.KSRule12Info /> : null}
-        {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
-        {window.KSBelowFour ? <window.KSBelowFour /> : null}
-        {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
-        {window.KSDraftClock ? <window.KSDraftClock /> : null}
-        {window.KSTopBar ? <window.KSTopBar /> : null}
-        {window.KSQueueRow ? <window.KSQueueRow /> : null}
-        {window.KSHomeChart ? <window.KSHomeChart /> : null}
-        {window.KSDirections ? <window.KSDirections /> : null}
-        {window.KSAccountDeletion ? <window.KSAccountDeletion /> : null}
-        {window.KSOnboarding ? <window.KSOnboarding /> : null}
-
-        <header className="b-part" id="approved">
-          <span className="b-part__eyebrow">Reference</span>
-          <h2>Approved screens</h2>
-          <p>What the app is built from. First Game Night, the new look (approved 2026-10-12, both themes); then the five key screens and every other screen, which show the STRUCTURE on the 1.2.0 skin until each is rebuilt in Game Night.</p>
-        </header>
-
-        {window.KSGameNight ? <window.KSGameNight /> : null}
-
-        <ThemesSection />
-
-        <Section
-          id="home" n="1" name="Home" job="How is my team doing in this league, and how is this week going?"
-          phones={<Fit key={homeN}><S.HomeScreen run={homeRun} /></Fit>}
-          notes={<Notes
-            shows={[
-              <><b>One league at a time</b> (your call, v1.1). The league pill picks it; switching swaps everything on Home. No cross-league totals.</>,
-              <>Your team in this league: value {$(K.HOME.value)} as the big number, then <b>season gain</b> {$s(K.HOME.gain)} (the scored weeks plus this week live), today {$s(K.HOME.today)}, and rank and record (2nd of 6, {K.HOME.record}).</>,
-              <><b>The Home hero</b> (your call: Concept A). Team value is the big number; the line under it is the season gain, the same words as the Standings column. It is not value − $12,000: the value also moves between the draft and Week 1's open and over every Friday close → Monday open, when no matchup is scoring. Portfolio keeps its own gain, value − cost, labelled "since the draft".</>,
-              <>This week's matchup comes first: the live scoreboard card, with the lead in the metric that decides the matchup.</>,
-              <>The season chart ("Season gain, week by week") plots the same season gain against $0, with week ticks and each week's result (W/L) underneath. It ends at the hero's season gain, and this week's rise equals this week's matchup score. <b>Past weeks are one point each</b> (that week's scored result, at Friday's close) joined by straight lines; only this week has day-by-day points. Time stays to scale: every week is five trading days wide. Scrubbing a past week reads that week's own result ("Week 3 · {$s(K.ROBERTO_WEEKS[2].gain)}"); this week reads the day and the running total.</>,
-              <>Top of the standings with your row tinted and your name bold. The avatar opens Profile.</>,
-              <><b>Other leagues</b> (your call: Concept B, pill only): there is no list on Home. The league pill shows "+2" (two more leagues) on every tab and opens the league sheet with every league grouped by phase.</>,
-            ]}
-            motion={<>
-              <li><Play label="Open Home" playing={homeRun} onPlay={() => setHome(true)} /> The week card rises in (slow, 380ms); the season line draws on (feature, 700ms).</li>
-              <li>Switching league in the pill: the sheet closes (spring.snappy) and Home crossfades to the new league (quick, 160ms). Numbers roll only where the value changed.</li>
-            </>}
-            reduced="the line and cards appear in place; digits swap without rolling."
-            ask={null}
-          />}
-        />
-
-        <Section
-          id="matchup" n="2" name="Matchup" job="Am I winning this week, by how much, and why?"
-          phones={<>
-            <Fit caption={final ? 'Final (played from Live)' : 'Live · Thu 1:37 PM ET'}><S.MatchupScreen final={final} /></Fit>
-            <Fit caption="Final · Fri close"><S.MatchupScreen final /></Fit>
-          </>}
-          notes={<Notes
-            shows={[
-              <>A broadcast scoreboard: both managers, both scores in the condensed 62% cut, and the tug bar. Live: {$s(L.you.gain)} vs {$s(L.opp.gain)}.</>,
-              <><b>Dollars decide</b> (your call, v1.2): the scores and the lead are in dollars ({$(L.you.gain - L.opp.gain)} lead), with the tiebreak beside it, small ({pct(L.you.pct)} vs {pct(L.opp.pct)}). Every score on every screen comes from one helper, so if you change what decides, it changes everywhere at once.</>,
-              <>A chyron names what just moved the game. The race chart replaces the Mon–Fri bars and is the same chart as the landing's /03.</>,
-              <>Both lineups, each stock's dollar contribution this week. They add up to the score exactly.</>,
-              <>Final: the winner banner, the new record, and next week's opponent.</>,
-            ]}
-            motion={<>
-              <li><Play label={final ? 'Back to Live' : 'Final whistle'} playing={final} onPlay={() => setFinal(!final)} /> Scores roll to the close, the chip flips Live → Final, the tug settles, and the winner banner rises (slow, 380ms).</li>
-              <li>Lead change (live): the chyron slides in (base), the tug crosses centre with the lively spring, one light haptic.</li>
-            </>}
-            reduced="scores swap, the tug jumps to its split, the banner and chyron fade in place."
-            ask={null}
-          />}
-        />
-
-        <Section
-          id="league" n="3" name="League standings" job="Where do I stand, and what changed this week?"
-          phones={<Fit><S.LeagueScreen after={after} /></Fit>}
-          notes={<Notes
-            shows={[
-              <><b>One order, also the playoff seeding</b> (your call): win percentage, then head-to-head, then <b>season gain</b> (the sum of your weekly matchup gains). Paolo M. and Roberto B. are both 5–1 and haven't played each other, so season gain decides: Roberto's {$s(K.STANDINGS_FINAL[0].pf)} beats Paolo's {$s(K.STANDINGS_FINAL[1].pf)}. A bye is no result: it counts as neither a win nor a loss and is left out of win percentage. Records read W–L, with –T only when there are ties.</>,
-              <>▲/▼ show the move since last week. Your row is tinted and your name bold wherever you land.</>,
-              <>Week 6 results underneath: every matchup, both scores.</>,
-            ]}
-            motion={<>
-              <li><Play label="Replay Friday's re-sort" playing={false} onPlay={() => { setAfter(false); setTimeout(() => setAfter(true), 700); }} /> Rows slide to their new ranks (FLIP, slow 380ms, settle), then the ▲/▼ badges pop.</li>
-            </>}
-            reduced="rows jump to their new order; the badges appear without scaling."
-            ask={null}
-          />}
-        />
-
-        <Section
-          id="draft" n="4" name="Draft room" job="Whose pick is it, what's left, and how does the snake run?"
-          phones={<>
-            <Fit caption={landed ? 'After the pick' : 'On the clock · Round 2, pick 11'}><S.DraftScreen landed={landed} /></Fit>
-            <Fit caption="Create league · Draft step (also in League settings)"><S.DraftSettingsScreen /></Fit>
-          </>}
-          notes={<Notes
-            shows={[
-              <>The on-the-clock ring counts down; the card says what the snake means for you right now ("Then Paolo M. picks twice").</>,
-              <>The snake board: a track runs through every pick in order, with chevrons in the gaps and a half-loop at every row end, so the reversal reads without the labels. Your picks are outlined in team blue.</>,
-              <>Search with your queue; Draft is one tap. Your roster fills slot by slot at $2,000 each.</>,
-              <><b>When the clock runs out</b> (your call): the server auto-picks a good stock, never a random one: the manager's queue first, then the best available: the largest market cap that fits the league's rules (price brackets, category slots, budget). An auto-pick never breaks them.</>,
-              <><b>Pick clock</b> (your call, v1.1): 60 seconds by default; the commissioner sets 30–90s when creating the league or in League settings before the draft. The draft room shows the league's clock.</>,
-            ]}
-            motion={<>
-              <li><Play label={landed ? 'Reset' : 'Make the pick'} playing={landed} onPlay={() => setLanded(!landed)} /> AAPL lands in pick 11, the blue track extends to 12, the ring hands over to Paolo M., and the roster slot fills.</li>
-              <li>The clock ring pulses its outline at 1.2s; the last 10 seconds turn the ring to loss red.</li>
-            </>}
-            reduced="the ticker appears in place; the track extends without drawing; no pulse."
-            ask={null}
-          />}
-        />
-
-        <Section
-          id="portfolio" n="5" name="Portfolio and stock sheet" job="What do I own, how is it doing, and how do I act on one stock?"
-          phones={<>
-            <Fit caption={sheet ? 'NVDA tapped' : 'Portfolio · live'}><S.PortfolioScreen sheet={sheet} /></Fit>
-            <Fit caption="Stock sheet · Sell pre-selected"><S.PortfolioScreen sheet /></Fit>
-            <Fit caption="After selling TSLA · the slot holds the proceeds"><S.PortfolioScreen variant="cash" /></Fit>
-            <Fit caption="Buying with the proceeds"><S.PortfolioScreen variant="buy" /></Fit>
-          </>}
-          notes={<Notes
-            shows={[
-              <>Value {$(K.PORTFOLIO_LIVE.value)}; gain since the draft {$s(K.PORTFOLIO_LIVE.gain)} against a $12,000.00 basis; today {$s(K.PORTFOLIO_LIVE.today)}.</>,
-              <>Six holdings, each with value and today's move. Trade history includes the draft picks.</>,
-              <>Any ticker row opens the stock sheet: price and today's change, a chart of daily closes (1W by default; 1W, 1M, 3M, 1Y, no 1D, because the price history is daily only: Giorgio's ruling), your position, who in the league owns it, and <b>Sell pre-selected</b> because you hold it.</>,
-              <><b>Trading</b> (your call, v1.2): buy and sell freely, whole positions only, but a slot you sell out of can only reinvest what the sale brought in ({$(K.SALE.proceeds)} from TSLA), never a fresh $2,000. The freed slot shows as a Cash row ready to invest; cash earns nothing but counts in value, so the portfolio value doesn't change on the sale. The buy sheet says "You have {$(K.SALE.proceeds)} from selling TSLA to invest" and lets you pick which freed slot pays.</>,
-            ]}
-            motion={<>
-              <li><Play label={sheet ? 'Close sheet' : 'Tap NVDA'} playing={sheet} onPlay={() => setSheet(!sheet)} /> The sheet springs up (spring.snappy, no overshoot) while the scrim fades in (base).</li>
-            </>}
-            reduced="the sheet fades in place."
-            ask={null}
-          />}
-        />
-
-        {window.KSInventoryBoard ? <window.KSInventoryBoard /> : null}
-
-        <Ledger />
-
-        <Archive />
+        {body}
       </main>
     );
   }
