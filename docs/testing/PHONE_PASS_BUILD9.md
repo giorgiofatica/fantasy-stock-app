@@ -1,5 +1,9 @@
 # Phone pass, 1.3.0 (9): the one list, in order
 
+**Mirror of the phone-pass page, version 21 (2026-11-10).** Giorgio ticks the page, not this
+file. Kept here with placeholders: throwaway emails as `you+t1@gmail.com`, `{T1's name}` for the
+gamertag, no invite codes.
+
 Build 9 (TestFlight, from `514991dd`) contains everything on `main`. Nothing here waits for
 another build. Numbers in parentheses are `WALKTHROUGH_1.3.md`'s items; the rest are build-8/9
 fixes that never reached a phone.
@@ -207,9 +211,11 @@ switch (18). Note the time and what you had just tapped if it happens.
      hour (the Pick a new draft time card, or League settings; it must be at least an hour away).
   2. Sign out, sign in as T2. League A › Your queue: add X, Save queue. Sign out.
   3. Sign in as yourself. League A › Your queue: add X, Save queue. Stay signed in.
-  4. In the Supabase SQL editor, with X replaced by the ticker in capitals, in both places:
+  4. On your laptop, in the Supabase SQL editor, run this with X replaced by the ticker in
+     capitals, in both places:
      `SELECT (SELECT count(*) FROM draft_queue q WHERE q.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND q.symbol = 'X') AS queued_x, (SELECT count(*) FROM drafts d WHERE d.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND upper(d.symbol) = 'X') AS drafted_x;`
-     Right: **queued_x 2, drafted_x 0**.
+     Right: **queued_x 2, drafted_x 0**. (A 2 here also shows the query is looking at the right
+     league.)
   5. At the draft time, be in the room and watch Your queue. If it's your pick and X is still
      there, draft X. Right: the moment X is drafted, by you or by anyone else (the server may pick it
      for T2 first, and that counts), X disappears from your queue and the count drops by one, with no
