@@ -2,22 +2,22 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "ed94ec57e758cc7e7f95ff4b80dde0d927524ed4",
-    "commitShort": "ed94ec57",
+    "commit": "2a7c603ecc2438be493ebc39fc0812a3c3bed50d",
+    "commitShort": "2a7c603e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/draft-room-reads",
+    "branch": "fix/retire-service-role-key-helpers",
     "dirty": false,
     "dirtyPaths": [],
-    "timestamp": "2026-11-10T20:49:15Z",
-    "sourceHash": "sha256:f91c0f4eeaf2c1bf486470963cba47b1bc435613f606d514a57e06c3fbfd4ba7",
+    "timestamp": "2026-11-11T03:38:44Z",
+    "sourceHash": "sha256:64664643340a592e69a0f58e784d8c8c1d69c1ed8449f10f875c84e69afee324",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 92.5,
-    "ageDays": 3.9,
+    "ageHours": 99.3,
+    "ageDays": 4.1,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966",
@@ -24197,7 +24197,8 @@
       "20261126000000_get_home_league_result.sql",
       "20261127000000_deleted_seat_label_open_team.sql",
       "20261128000000_reconfirm_clears_at_four.sql",
-      "20261129000000_draft_pick_prunes_queues.sql"
+      "20261129000000_draft_pick_prunes_queues.sql",
+      "20261130000000_retire_service_role_key_helpers.sql"
     ],
     "config": [
       "delete-account=true",
