@@ -2,8 +2,9 @@
 
 Status: **Orchestrator's Opus pass done (2026-11-10): Step 0 SQL revised and run on PGlite; test 3 widened; two
 scope notes added. Ready for Giorgio.**
-Written by the Planner on 2026-11-10, from two read-only halves. Nothing was connected and
-nothing was run against prod.
+Written by the Planner on 2026-11-10, from two read-only halves. Nothing was connected.
+The only thing run against prod is the Step 0 catalog query (Giorgio, SQL editor,
+2026-11-10); its result is recorded under Step 0.
 
 Giorgio's ruling (2026-11-10, `docs/PRODUCT_RULES.md`, "Lock everything down"): asked
 whether a Claude Data dashboard may read counts from the production database, never names,
@@ -172,6 +173,39 @@ Checked by the Orchestrator on PGlite (whole migration chain, a stand-in role wi
 `role "supabase_read_only_user" does not exist`, and a planted open definer function is listed.
 Step 0 narrows the question; it does not replace step 1, because it says nothing about the
 connector's own behaviour.
+
+**Step 0 result (prod, run by Giorgio in the SQL editor, 2026-11-10).** 17 rows, names and
+true/false only.
+
+| What | Result | Reading |
+|---|---|---|
+| superuser | false | Passes |
+| bypasses RLS | true | As the read assumed |
+| member of | `pg_read_all_data`, `pg_monitor`, `pg_read_all_settings`, `pg_read_all_stats`, `pg_stat_scan_tables` | None of `authenticated`, `service_role`, `postgres` or a `supabase_*admin` role, so our function grants do not reach it |
+| can execute `vault._crypto_aead_det_decrypt` | false | The one decrypt function found. No `pgsodium` decrypt row came back |
+| can execute `net.http_get`, `http_post`, `http_delete`, `http_collect_response` | true (all four) | Sending out is open IF the role can write. Tests 3 and 11 decide |
+| definer it can execute | no rows | No `SECURITY DEFINER` function in any non-system schema is callable by it |
+| can select `auth.users`, `vault.secrets`, `vault.decrypted_secrets`, `net.http_request_queue`, `net._http_response` | true (all five) | Expected from `pg_read_all_data` |
+
+What this settles, and what it does not:
+- **Settled on prod:** the role is not a superuser, is in none of our app roles, cannot call
+  Vault's decrypt function, and has no definer function to borrow rights from.
+- **Vault plain text: now unlikely on prod, still unproven.** The grant is absent, so reading
+  `vault.decrypted_secrets` should fail with a permission error on the function. That is an
+  inference from a grant, not an observed read. Test 2 is still the proof.
+- **Confirmed, and not covered by the Vault result:** `net.http_request_queue` is readable.
+  Item 2 above stands: a queued cron request carries its real `apikey` header there until it
+  is sent, so a live key can be read in plain text from that table whatever Vault does. The
+  window is short and the key is `cron_apikey`, not the service-role key, but no test in
+  step 1 removes it. Only "no column from `net`" (step 3, condition 4) stands in the way,
+  and that is a habit, not a lock.
+- **Confirmed:** `auth.users` is readable past RLS.
+- **New, small:** `pg_monitor` lets the role read other sessions' live query text
+  (`pg_stat_activity`) and statement statistics. Our cron commands name the Vault secret, not
+  its value, so no key is expected there. Not checked on prod.
+- **Not checked by this query:** whether the role holds `INSERT` on `net.http_request_queue`
+  (the `net.http_*` functions are not definer, per the empty definer list, so they would
+  need it), and anything about the connector's own behaviour.
 
 **Step 1. Test on a non-prod Supabase project. Required whatever happens next.**
 The Researcher's ten tests (its file, "Hands-on tests"), plus one from this read:
