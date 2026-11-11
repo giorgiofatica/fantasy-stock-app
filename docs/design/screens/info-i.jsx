@@ -322,7 +322,7 @@
    * scrolled: drawn scrolled to the end.
    */
   const TOP = 150; // the card's fixed top edge at Large, in points
-  function Popup({ k, x = 1, form = 'B', page = 1, scrolled = false }) {
+  function Popup({ k, x = 1, form = 'B', page = 1, scrolled = false, nav = 'button' }) {
     const p = POPS[k];
     const ax = x > 1;
     const head = (
@@ -343,11 +343,27 @@
     }, [scrolled, ax, page]);
     const vis = <div style={{ borderRadius: 14, background: 'var(--c-inset)', padding: 14 }}><p.Vis x={x} /></div>;
     const btn = (label) => <span className="dr-btn dr-btn--line" style={{ width: '100%', minHeight: 44, boxSizing: 'border-box', fontSize: z(15, x, ROW) }}>{label}</span>;
-    const dots = <span aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>{[1, 2].map((d) => <span key={d} style={{ width: 7, height: 7, borderRadius: 9, background: d === page ? 'var(--c-text)' : 'var(--c-border-strong)' }} />)}</span>;
+    // nav (Giorgio's question, 2026-11-11): 'button' = the full-width button, as drawn first; 'dots' = no
+    // button, swipe or tap the dots (the dots row is the 44pt page control); 'link' = a small text link on
+    // the dots' row.
+    const big = nav === 'dots';
+    const dot = (d) => <span key={d} style={{ width: big ? 8 : 7, height: big ? 8 : 7, borderRadius: 9, background: d === page ? 'var(--c-text)' : 'var(--c-border-strong)' }} />;
+    const dotRow = <span style={{ display: 'flex', gap: big ? 8 : 6 }}>{[1, 2].map(dot)}</span>;
+    const dots = nav === 'dots'
+      ? <span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 44, marginBottom: -10 }}>{dotRow}</span>
+      : <span aria-hidden="true" style={{ display: 'flex', justifyContent: 'center' }}>{dotRow}</span>;
+    const link = (label) => (
+      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, marginBottom: -10 }}>
+        <span style={{ fontSize: z(15, x, ROW), fontWeight: 700, color: 'var(--c-accent)' }}>{label}</span>
+        <span aria-hidden="true">{dotRow}</span>
+      </span>
+    );
     const col = { display: 'flex', flexDirection: 'column', gap: 14 };
-    const p1 = <div style={col}>{head}{line}{btn('See an example')}</div>;
-    const p2 = <div style={col}>{head}{vis}{btn('Back')}</div>;
-    const body = form === 'A' ? <>{head}{line}{vis}</> : <>{page === 1 ? p1 : p2}{dots}</>;
+    const foot1 = nav === 'button' ? <>{btn('See an example')}{dots}</> : nav === 'link' ? link('See an example ›') : dots;
+    const foot2 = nav === 'button' ? <>{btn('Back')}{dots}</> : nav === 'link' ? link('‹ Back') : dots;
+    const p1 = <div style={col}>{head}{line}{foot1}</div>;
+    const p2 = <div style={col}>{head}{vis}{foot2}</div>;
+    const body = form === 'A' ? <>{head}{line}{vis}</> : <>{page === 1 ? p1 : p2}</>;
     return (
       <>
         <div style={{ position: 'absolute', inset: 0, background: 'var(--c-scrim, rgba(0,0,0,.4))' }} />
@@ -362,11 +378,11 @@
       </>
     );
   }
-  function PopFrame({ t, k, x = 1, form, page, scrolled }) {
+  function PopFrame({ t, k, x = 1, form, page, scrolled, nav }) {
     const B = BEHIND[POPS[k].behind];
     return (
       <Th t={t}>
-        <Device noTabs label={`${POPS[k].title}: the i's popup, ${x > 1 ? 'AX5' : 'Large'}, ${t}`} overlay={<Popup k={k} x={x} form={form} page={page} scrolled={scrolled} />}>
+        <Device noTabs label={`${POPS[k].title}: the i's popup, ${x > 1 ? 'AX5' : 'Large'}, ${t}`} overlay={<Popup k={k} x={x} form={form} page={page} scrolled={scrolled} nav={nav} />}>
           <B x={x > 1 ? 2.4 : 1} />
         </Device>
       </Th>
@@ -426,6 +442,21 @@
           fig('st-l', 'Create league › Stakes · Large · Light', <StepFrame t="light" B={StakesStep} label="Stakes step with the i" />, 'The three stake modes and the non-draftable switch.'),
           fig('dr-l', 'Create league › Draft · Large · Light', <StepFrame t="light" B={DraftStep} label="Draft step with the i" />, 'One i for the Draft order control (it covers Random and Manual). Pick clock and Rounds get none.'),
           fig('se-l', 'Create league › Season · Large · Light', <StepFrame t="light" B={SeasonStep} label="Season step with the i" />, 'Only the i is new here. The rest of your Season pick (B) is on its own board and not redrawn.'),
+        ]}</Grid>
+
+        <h3 className="b-sub">Your question: the big button, or just the dots?</h3>
+        <ul className="b-inv__notes">
+          <li><b>Your words (2026-11-11):</b> "is it better to have this button or simply have the two dots at the bottom and have it be swipable where the user dictates where they go. not sure if im a fan of the big button".</li>
+          <li><b>Recommended: just the dots.</b> The words and the picture are what the popup is for, and a full-width button outweighs both (rule 6, one thing stands out). Two dots under a card is the iOS page control people already swipe (rule 1, familiar first: the App Store's Today cards, onboarding pages). The dots row is the 44pt tap target, so tapping it also turns the page (rule 3), and VoiceOver reads it as "Page 1 of 2", where a swipe up or down turns the page. So the picture is never reachable by swipe alone.</li>
+          <li><b>The risk, said plainly:</b> with no words on page 1 pointing to page 2, a player who doesn't notice the dots never sees the picture. The small link is the middle ground if you want that said out loud without the big button.</li>
+        </ul>
+        <Grid>{[
+          fig('nv-b1', 'As drawn · page 1', <PopFrame t="light" k="matchup" page={1} nav="button" />, 'The full-width button.'),
+          fig('nv-d1', 'Recommended · just the dots · page 1', <PopFrame t="light" k="matchup" page={1} nav="dots" />, 'Swipe, or tap the dots. Nothing else under the words.'),
+          fig('nv-l1', 'Middle ground · a small link · page 1', <PopFrame t="light" k="matchup" page={1} nav="link" />, '"See an example ›" in text, on the dots\' row.'),
+          fig('nv-b2', 'As drawn · page 2', <PopFrame t="light" k="matchup" page={2} nav="button" />),
+          fig('nv-d2', 'Recommended · just the dots · page 2', <PopFrame t="light" k="matchup" page={2} nav="dots" />, 'Swipe back, or tap the dots.'),
+          fig('nv-l2', 'Middle ground · a small link · page 2', <PopFrame t="light" k="matchup" page={2} nav="link" />, '"‹ Back" in text.'),
         ]}</Grid>
 
         <h3 className="b-sub">The popup: two pages (B, your pick)</h3>
