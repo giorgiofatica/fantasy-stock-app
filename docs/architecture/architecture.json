@@ -2,46 +2,62 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "495a4dcc3a2cf33a4ecdb9e5aee94b0313e339f7",
-    "commitShort": "495a4dcc",
+    "commit": "be3a27c7f1f8b6c4c851f02c863b77e9c7e1b5c4",
+    "commitShort": "be3a27c7",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/autopick-instant",
+    "branch": "fix/autopick-lease-outage",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/game/DraftRoom.tsx"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/lib/game/autoPickAsk.ts"
+        "path": "supabase/functions/_shared/auto-pick.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/useDraftRoom.ts"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/tests-deno/auto-pick-ask.test.ts"
+        "path": "supabase/functions/_shared/draft-start-policy.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/game-draft-room.test.ts"
+        "path": "supabase/functions/_shared/draft-start.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/_shared/draft-write.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/_shared/draft-write.ts"
       },
       {
         "code": "??",
-        "path": "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql"
+        "path": "supabase/functions/_shared/turn-lease.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/_shared/turn-lease.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/draft-autopick-sweep/index.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/validate-and-record-pick/index.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql"
       }
     ],
-    "timestamp": "2026-11-11T17:53:50Z",
-    "sourceHash": "sha256:b12a9a8670b64c1632f6cfd6e6f09a0ce3bdddb72742d5f6774fe444c348685f",
+    "timestamp": "2026-11-11T18:18:52Z",
+    "sourceHash": "sha256:76a987d90de5a83622a9fa542ad349609af3140cf87d5cf7081497df8fc215d3",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 113.6,
+    "ageHours": 114,
     "ageDays": 4.7,
     "staleAfterDays": 14,
     "stale": false,
@@ -102,7 +118,7 @@
         "definedIn": [
           "supabase/migrations/20261106000000_schedule_draft_autopick_sweep.sql:61",
           "supabase/migrations/20261111000002_draft_autopick_sweep_auto_start.sql:39",
-          "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql:77"
+          "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql:93"
         ]
       },
       "drift": [
@@ -122,7 +138,7 @@
       "kind": "cron-job",
       "source": {
         "path": "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql",
-        "line": 77
+        "line": 93
       }
     },
     {
@@ -606,7 +622,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 254
+        "lines": 295
       },
       "db": null,
       "declared": null,
@@ -619,7 +635,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/draft-autopick-sweep/index.ts",
-        "line": 93
+        "line": 113
       }
     },
     {
@@ -1316,7 +1332,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 398
+        "lines": 399
       },
       "db": null,
       "declared": null,
@@ -3233,6 +3249,68 @@
       "source": {
         "path": "supabase/migrations/20261116000000_scrape_hardening.sql",
         "line": 69
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql:83"
+        ],
+        "latestDefinition": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.claim_draft_turn_lease",
+      "label": "claim_draft_turn_lease()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql",
+        "line": 83
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql:121"
+        ],
+        "latestDefinition": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.claim_outage_escalation",
+      "label": "claim_outage_escalation()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql",
+        "line": 121
       }
     },
     {
@@ -8454,6 +8532,28 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "touchedBy": [
+          "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql"
+        ],
+        "rlsEnabled": true
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": false,
+      "id": "tbl.draft_turn_leases",
+      "label": "draft_turn_leases",
+      "sublabel": "not in snapshot",
+      "kind": "table",
+      "source": {
+        "path": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql",
+        "line": 65
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "rlsEnabled": true,
         "rlsForced": false,
@@ -8461,7 +8561,8 @@
       },
       "declared": {
         "touchedBy": [
-          "supabase/migrations/20261101000003_draft_price_outages.sql"
+          "supabase/migrations/20261101000003_draft_price_outages.sql",
+          "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql"
         ],
         "rlsEnabled": true
       },
@@ -11020,7 +11121,7 @@
       "protocol": "pg-net-http",
       "payload": "net.http_post · apikey from vault cron_apikey",
       "callSites": [
-        "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql:77"
+        "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql:93"
       ]
     },
     {
@@ -11205,7 +11306,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('draft_watch_due')",
       "callSites": [
-        "supabase/functions/draft-autopick-sweep/index.ts:135"
+        "supabase/functions/draft-autopick-sweep/index.ts:155"
       ]
     },
     {
@@ -11217,7 +11318,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('due_draft_starts')",
       "callSites": [
-        "supabase/functions/draft-autopick-sweep/index.ts:117"
+        "supabase/functions/draft-autopick-sweep/index.ts:137"
       ]
     },
     {
@@ -11229,7 +11330,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('overdue_draft_turns')",
       "callSites": [
-        "supabase/functions/draft-autopick-sweep/index.ts:158"
+        "supabase/functions/draft-autopick-sweep/index.ts:178"
       ]
     },
     {
@@ -13086,7 +13187,7 @@
         "is_draftable, last_price"
       ],
       "callSites": [
-        "supabase/functions/validate-and-record-pick/index.ts:340"
+        "supabase/functions/validate-and-record-pick/index.ts:341"
       ]
     },
     {
@@ -14145,6 +14246,19 @@
       "callSites": [
         "supabase/migrations/20261007000000_username_write_path.sql:193",
         "supabase/migrations/20261116000000_scrape_hardening.sql:105"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claim_draft_turn_lease->tbl.draft_turn_leases#insert",
+      "from": "pg.claim_draft_turn_lease",
+      "to": "tbl.draft_turn_leases",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT draft_turn_leases (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql:86"
       ]
     },
     {
@@ -22237,7 +22351,7 @@
           "edge": "e.fn.validate-and-record-pick->tbl.drafts#insert",
           "detail": "Legality (turn, uniqueness, draftable universe, slot category/price bracket, stake budget) decided by the shared pure module; a 23505 on pick_number is a lost race and the client refetches.",
           "files": [
-            "supabase/functions/validate-and-record-pick/index.ts:320"
+            "supabase/functions/validate-and-record-pick/index.ts:321"
           ]
         },
         {
@@ -22383,6 +22497,26 @@
       "live": "10 seconds",
       "severity": "high",
       "note": "The live cron schedule differs from the latest migration that scheduled this job."
+    },
+    {
+      "node": "pg.claim_draft_turn_lease",
+      "label": "claim_draft_turn_lease()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.claim_outage_escalation",
+      "label": "claim_outage_escalation()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
     },
     {
       "node": "pg.prune_drafted_symbol_from_queues",
@@ -23045,6 +23179,24 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg.claim_draft_turn_lease",
+      "label": "claim_draft_turn_lease()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql:83",
+      "outbound": [
+        "tbl.draft_turn_leases"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
+      "node": "pg.claim_outage_escalation",
+      "label": "claim_outage_escalation()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql:121",
+      "outbound": [],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.draft_auto_start_work_due",
       "label": "draft_auto_start_work_due()",
       "kind": "pg-function",
@@ -23543,6 +23695,18 @@
       "resolve": "Re-capture the snapshot, or confirm the migration was applied."
     },
     {
+      "scope": "pg.claim_draft_turn_lease",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.claim_outage_escalation",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -23550,6 +23714,12 @@
     },
     {
       "scope": "tbl.notification_log",
+      "claim": "table exists in prod",
+      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot."
+    },
+    {
+      "scope": "tbl.draft_turn_leases",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
       "resolve": "Re-capture the snapshot."
@@ -23611,13 +23781,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 312,
-    "edges": 765,
+    "nodes": 315,
+    "edges": 766,
     "flows": 7,
-    "drift": 35,
-    "driftHigh": 2,
-    "deadCode": 63,
-    "unverified": 12
+    "drift": 37,
+    "driftHigh": 4,
+    "deadCode": 65,
+    "unverified": 15
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -23742,19 +23912,21 @@
       "supabase/functions/_shared/draft-start.ts:248 -> postpone_league_draft",
       "supabase/functions/_shared/draft-start.ts:334 -> start_league_draft",
       "supabase/functions/_shared/draft-start.ts:427 -> record_draft_watch",
-      "supabase/functions/_shared/draft-write.ts:192 -> get_draft_clock",
-      "supabase/functions/_shared/draft-write.ts:259 -> finalize_league_draft",
-      "supabase/functions/_shared/draft-write.ts:286 -> draft_feasibility_pool",
-      "supabase/functions/_shared/draft-write.ts:498 -> note_draft_bounded",
-      "supabase/functions/_shared/draft-write.ts:772 -> auto_pick_search_candidates",
-      "supabase/functions/_shared/draft-write.ts:815 -> record_live_prices",
+      "supabase/functions/_shared/draft-write.ts:195 -> get_draft_clock",
+      "supabase/functions/_shared/draft-write.ts:262 -> finalize_league_draft",
+      "supabase/functions/_shared/draft-write.ts:289 -> draft_feasibility_pool",
+      "supabase/functions/_shared/draft-write.ts:459 -> claim_outage_escalation",
+      "supabase/functions/_shared/draft-write.ts:578 -> note_draft_bounded",
+      "supabase/functions/_shared/draft-write.ts:852 -> auto_pick_search_candidates",
+      "supabase/functions/_shared/draft-write.ts:895 -> record_live_prices",
       "supabase/functions/_shared/market-guard.ts:48 -> check_and_bump_rate_limit",
+      "supabase/functions/_shared/turn-lease.ts:54 -> claim_draft_turn_lease",
       "supabase/functions/delete-account/index.ts:47 -> check_and_bump_rate_limit",
       "supabase/functions/delete-account/index.ts:50 -> check_and_bump_rate_limit",
       "supabase/functions/delete-account/index.ts:89 -> check_and_bump_rate_limit",
-      "supabase/functions/draft-autopick-sweep/index.ts:117 -> due_draft_starts",
-      "supabase/functions/draft-autopick-sweep/index.ts:135 -> draft_watch_due",
-      "supabase/functions/draft-autopick-sweep/index.ts:158 -> overdue_draft_turns",
+      "supabase/functions/draft-autopick-sweep/index.ts:137 -> due_draft_starts",
+      "supabase/functions/draft-autopick-sweep/index.ts:155 -> draft_watch_due",
+      "supabase/functions/draft-autopick-sweep/index.ts:178 -> overdue_draft_turns",
       "supabase/functions/draft-control/index.ts:120 -> check_and_bump_rate_limit",
       "supabase/functions/draft-control/index.ts:123 -> check_and_bump_rate_limit",
       "supabase/functions/draft-control/index.ts:330 -> confirm_league_roster",
@@ -23931,28 +24103,30 @@
       "supabase/functions/_shared/draft-start.ts:204 -> league_roster_reconfirm.select",
       "supabase/functions/_shared/draft-start.ts:207 -> draft_postponements.select",
       "supabase/functions/_shared/draft-start.ts:211 -> league_renewal_responses.select",
-      "supabase/functions/_shared/draft-write.ts:121 -> leagues.select",
-      "supabase/functions/_shared/draft-write.ts:126 -> league_members.select",
-      "supabase/functions/_shared/draft-write.ts:132 -> league_draft_order.select",
-      "supabase/functions/_shared/draft-write.ts:147 -> drafts.select",
-      "supabase/functions/_shared/draft-write.ts:156 -> trades.select",
-      "supabase/functions/_shared/draft-write.ts:209 -> league_draft_slots.select",
-      "supabase/functions/_shared/draft-write.ts:346 -> draft_stalls.insert",
-      "supabase/functions/_shared/draft-write.ts:360 -> draft_stalls.update",
-      "supabase/functions/_shared/draft-write.ts:398 -> draft_turn_outages.insert",
-      "supabase/functions/_shared/draft-write.ts:412 -> draft_turn_outages.update",
-      "supabase/functions/_shared/draft-write.ts:430 -> draft_stalls.insert",
-      "supabase/functions/_shared/draft-write.ts:444 -> draft_turn_outages.update",
-      "supabase/functions/_shared/draft-write.ts:463 -> draft_stalls.select",
-      "supabase/functions/_shared/draft-write.ts:530 -> drafts.insert",
-      "supabase/functions/_shared/draft-write.ts:553 -> draft_stalls.delete",
-      "supabase/functions/_shared/draft-write.ts:556 -> draft_turn_outages.delete",
-      "supabase/functions/_shared/draft-write.ts:753 -> draft_queue.select",
-      "supabase/functions/_shared/draft-write.ts:763 -> symbols.select",
-      "supabase/functions/_shared/draft-write.ts:792 -> auto_pick_price_failures.select",
-      "supabase/functions/_shared/draft-write.ts:801 -> auto_pick_price_failures.upsert",
-      "supabase/functions/_shared/draft-write.ts:806 -> auto_pick_price_failures.delete",
-      "supabase/functions/_shared/draft-write.ts:829 -> symbols.select",
+      "supabase/functions/_shared/draft-write.ts:124 -> leagues.select",
+      "supabase/functions/_shared/draft-write.ts:129 -> league_members.select",
+      "supabase/functions/_shared/draft-write.ts:135 -> league_draft_order.select",
+      "supabase/functions/_shared/draft-write.ts:150 -> drafts.select",
+      "supabase/functions/_shared/draft-write.ts:159 -> trades.select",
+      "supabase/functions/_shared/draft-write.ts:212 -> league_draft_slots.select",
+      "supabase/functions/_shared/draft-write.ts:349 -> draft_stalls.insert",
+      "supabase/functions/_shared/draft-write.ts:363 -> draft_stalls.update",
+      "supabase/functions/_shared/draft-write.ts:412 -> draft_turn_outages.insert",
+      "supabase/functions/_shared/draft-write.ts:426 -> draft_turn_outages.update",
+      "supabase/functions/_shared/draft-write.ts:445 -> draft_stalls.insert",
+      "supabase/functions/_shared/draft-write.ts:480 -> draft_turn_outages.update",
+      "supabase/functions/_shared/draft-write.ts:493 -> draft_turn_outages.update",
+      "supabase/functions/_shared/draft-write.ts:516 -> draft_turn_outages.select",
+      "supabase/functions/_shared/draft-write.ts:543 -> draft_stalls.select",
+      "supabase/functions/_shared/draft-write.ts:610 -> drafts.insert",
+      "supabase/functions/_shared/draft-write.ts:633 -> draft_stalls.delete",
+      "supabase/functions/_shared/draft-write.ts:636 -> draft_turn_outages.delete",
+      "supabase/functions/_shared/draft-write.ts:833 -> draft_queue.select",
+      "supabase/functions/_shared/draft-write.ts:843 -> symbols.select",
+      "supabase/functions/_shared/draft-write.ts:872 -> auto_pick_price_failures.select",
+      "supabase/functions/_shared/draft-write.ts:881 -> auto_pick_price_failures.upsert",
+      "supabase/functions/_shared/draft-write.ts:886 -> auto_pick_price_failures.delete",
+      "supabase/functions/_shared/draft-write.ts:909 -> symbols.select",
       "supabase/functions/_shared/job-status-io.ts:149 -> cron_job_status.select",
       "supabase/functions/_shared/job-status-io.ts:198 -> cron_job_status.update",
       "supabase/functions/_shared/job-status-io.ts:99 -> cron_job_status.upsert",
@@ -23961,6 +24135,7 @@
       "supabase/functions/_shared/push.ts:49 -> user_profiles.select",
       "supabase/functions/_shared/push.ts:54 -> push_tokens.select",
       "supabase/functions/_shared/push.ts:60 -> user_profiles.select",
+      "supabase/functions/_shared/turn-lease.ts:78 -> draft_turn_leases.delete",
       "supabase/functions/delete-account/index.ts:71 -> rate_limit_counters.select",
       "supabase/functions/draft-control/index.ts:172 -> leagues.select",
       "supabase/functions/draft-control/index.ts:180 -> league_members.select",
@@ -24048,7 +24223,7 @@
       "supabase/functions/symbols-search/index.ts:180 -> symbols.select",
       "supabase/functions/symbols-search/index.ts:191 -> symbols.select",
       "supabase/functions/symbols-search/index.ts:202 -> symbols.select",
-      "supabase/functions/validate-and-record-pick/index.ts:340 -> symbols.select",
+      "supabase/functions/validate-and-record-pick/index.ts:341 -> symbols.select",
       "supabase/functions/validate-and-record-pick/index.ts:6 -> drafts.insert"
     ],
     "wrappers": [
@@ -24243,7 +24418,8 @@
       "20261128000000_reconfirm_clears_at_four.sql",
       "20261129000000_draft_pick_prunes_queues.sql",
       "20261130000000_retire_service_role_key_helpers.sql",
-      "20261201000000_autopick_sweep_fast_cadence.sql"
+      "20261201000000_autopick_sweep_fast_cadence.sql",
+      "20261202000000_draft_turn_lease_and_escalation_claim.sql"
     ],
     "config": [
       "delete-account=true",

@@ -4,7 +4,7 @@
  * policy: ./draft-start-policy.ts).
  *
  * Callers:
- *   * draft-autopick-sweep (the 10 s cron):
+ *   * draft-autopick-sweep (the cron, every 2 s since 20261201000000):
  *       - WATCH pass: watchLeague for every league public.draft_watch_due()
  *         lists — records the verdict (the commissioner's early warning) and,
  *         in the gate window, postpones a blocked league or clears the gate;

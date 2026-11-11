@@ -47,6 +47,7 @@ import { buildFinalizeArgs, planSeason, readFinalizeResult } from './schedule.ts
 import type { BotSymbolCandidate } from './bot-pick.ts';
 import type { GatedPick } from './pick-gate.ts';
 import { getTargetToken, sendExpoPush } from './push.ts';
+import { withTurnLease } from './turn-lease.ts';
 import { draftOutageMessage, draftTurnMessage } from './push-copy.ts';
 import {
   demandVector,
@@ -63,7 +64,9 @@ import {
   chooseAutoPick,
   type DraftClock,
   OUTAGE_ESCALATE_MS,
+  OUTAGE_RETRY_MS,
   outageEscalation,
+  outageRetryVerdict,
   parseDraftClockRow,
   PRICE_COOLDOWN_MS,
   type PickSource,
@@ -385,12 +388,23 @@ async function pushOutageToCommissioner(admin: Admin, ctx: DraftContext, pickNum
   return true;
 }
 
+/** How long one caller's claim on the outage push holds before another may
+ * take it over (a claimer that died between claim and send). The SQL clamps it
+ * to [5 s, 600 s]. */
+export const OUTAGE_PUSH_CLAIM_TTL_S = 60;
+
 /**
  * A turn stopped only by vendor outages (2026-10-05). The first outage on a turn
  * starts its clock; once it has lasted OUTAGE_ESCALATE_MS the turn is escalated
  * ONCE: a draft_stalls row with reason 'vendor_outage' (members see "Paused") and
  * one commissioner push. Until then, and after, it keeps retrying. Recovery
  * (the turn is filled) clears both rows in insertGatedPick.
+ *
+ * ONE SENDER (supabase review P1 on #384): overlapping attempts on one turn (a
+ * client ask and a sweep, or a sweep whose lease expired) can all read
+ * escalated_at IS NULL here. public.claim_outage_escalation (20261202000000)
+ * lets exactly one through; the claim is time-bounded, so a claimer that dies
+ * before sending is retried after OUTAGE_PUSH_CLAIM_TTL_S.
  */
 export async function noteOutage(admin: Admin, ctx: DraftContext, pickNumber: number, pickerId: string): Promise<void> {
   const leagueId = String(ctx.league.id);
@@ -424,9 +438,10 @@ export async function noteOutage(admin: Admin, ctx: DraftContext, pickNumber: nu
   }
   if (outageEscalation(Date.parse(firstSeen), Date.now(), escalatedAt != null, OUTAGE_ESCALATE_MS) !== 'escalate') return;
 
-  // At-least-once push: the row (PK dedupes it) is written first, the push is sent,
-  // and ONLY a sent push marks the escalation done. A failed push is retried on the
-  // next tick, because escalated_at is still null (review finding 3).
+  // At-least-once push: the row (PK dedupes it) is written first, the push is
+  // CLAIMED, sent, and ONLY a sent push marks the escalation done. A push that was
+  // not sent releases its claim, so it is retried on the next attempt, because
+  // escalated_at is still null (review finding 3).
   const st = await admin.from('draft_stalls').insert({
     league_id: leagueId,
     pick_number: pickNumber,
@@ -438,12 +453,77 @@ export async function noteOutage(admin: Admin, ctx: DraftContext, pickNumber: nu
     console.error('[outage] escalation record failed', leagueId, pickNumber, JSON.stringify(st.error));
     return;
   }
-  const sent = await pushOutageToCommissioner(admin, ctx, pickNumber);
-  if (!sent) return;
-  const { error: markErr } = await admin
-    .from('draft_turn_outages').update({ escalated_at: nowIso }).eq('league_id', leagueId).eq('pick_number', pickNumber);
-  if (markErr) console.error('[outage] escalation mark failed', leagueId, pickNumber, JSON.stringify(markErr));
+  const claim = crypto.randomUUID();
+  // Destructure-and-check: .rpc() resolves to { error } on a Postgres error. No
+  // claim, no push: a duplicate is the bug this guards, a skipped one is retried.
+  const { data: won, error: claimErr } = await admin.rpc('claim_outage_escalation', {
+    p_league_id: leagueId,
+    p_pick_number: pickNumber,
+    p_claim: claim,
+    p_ttl_seconds: OUTAGE_PUSH_CLAIM_TTL_S,
+  });
+  if (claimErr) {
+    console.error('[outage] escalation claim failed', leagueId, pickNumber, JSON.stringify(claimErr));
+    return;
+  }
+  if (won !== true) return; // another attempt is sending it, or it was sent
+  let sent = false;
+  try {
+    sent = await pushOutageToCommissioner(admin, ctx, pickNumber);
+  } catch (e) {
+    console.error('[outage] push threw', leagueId, pickNumber, String(e));
+  }
+  if (!sent) {
+    // Release ONLY our own claim, so the next attempt can retry the push now
+    // rather than after the claim's TTL.
+    const { error: relErr } = await admin
+      .from('draft_turn_outages')
+      .update({ escalation_claim: null, escalation_claimed_at: null })
+      .eq('league_id', leagueId)
+      .eq('pick_number', pickNumber)
+      .eq('escalation_claim', claim);
+    if (relErr) console.error('[outage] claim release failed (expires on its TTL)', leagueId, pickNumber, JSON.stringify(relErr));
+    return;
+  }
+  // The push WAS sent. A failed mark leaves our claim in place, so it expires and
+  // the push is sent again (once per OUTAGE_PUSH_CLAIM_TTL_S while marks keep
+  // failing): try the mark twice before accepting that (supabase review P2).
+  const mark = () =>
+    admin
+      .from('draft_turn_outages')
+      .update({ escalated_at: new Date().toISOString() })
+      .eq('league_id', leagueId)
+      .eq('pick_number', pickNumber)
+      .is('escalated_at', null);
+  let { error: markErr } = await mark();
+  if (markErr) ({ error: markErr } = await mark());
+  if (markErr) console.error('[outage] escalation mark FAILED after a sent push; it may be re-sent when the claim expires', leagueId, pickNumber, JSON.stringify(markErr));
   console.error('[outage] escalated', leagueId, pickNumber);
+}
+
+/** The outage retry window (security review P2 on #384). A turn whose last
+ * outage attempt ended less than OUTAGE_RETRY_MS ago answers price_unavailable
+ * WITHOUT a search, so no caller (a looping client auto_pick or bot_pick, the
+ * sweep, the deleted-seat pass) can spend Alpaca calls faster than the cron's own
+ * outage pace. Read-only: it never refreshes last_seen_at. Read errors fail
+ * CLOSED, like recentStall. */
+export async function recentOutage(
+  admin: Admin,
+  leagueId: string,
+  pickNumber: number,
+): Promise<{ wait: boolean; error: boolean }> {
+  const { data, error } = await admin
+    .from('draft_turn_outages')
+    .select('last_seen_at')
+    .eq('league_id', leagueId)
+    .eq('pick_number', pickNumber)
+    .maybeSingle();
+  if (error) {
+    console.error('[outage] retry-window read failed', leagueId, pickNumber, JSON.stringify(error));
+    return { wait: false, error: true };
+  }
+  const lastSeen = data?.last_seen_at ? Date.parse(String(data.last_seen_at)) : null;
+  return { wait: outageRetryVerdict(lastSeen, Date.now(), OUTAGE_RETRY_MS) === 'wait', error: false };
 }
 
 /** Stall retry cooldown (review finding: a looping bot_pick must not re-run the
@@ -482,7 +562,7 @@ export async function recentStall(
 /**
  * A search that ended on a BOUND (the live-call / screen / walk / wall-clock
  * limit), not an outage and not a proof that nothing is legal (review H1,
- * 2026-10-13). Without a record such a turn retried every 10 s tick forever,
+ * 2026-10-13). Without a record such a turn retried on every sweep tick forever,
  * invisible. Now every bounded call bumps draft_stalls reason 'search_bounded'
  * ATOMICALLY (public.note_draft_bounded, 20261122000002; review L2): attempts =
  * consecutive bounded searches, last_seen_at = now. That row is the OPERATOR's
@@ -724,7 +804,7 @@ export type AutoPickResult =
   }
   | {
     ok: false;
-    reason: 'pick_conflict' | 'price_unavailable' | 'draft_complete' | 'stalled' | 'unhandled' | string;
+    reason: 'pick_conflict' | 'pick_in_progress' | 'price_unavailable' | 'draft_complete' | 'stalled' | 'unhandled' | string;
   };
 
 const SYMBOL_COLUMNS = 'symbol, last_price, is_draftable, market_cap';
@@ -882,6 +962,43 @@ export function supabaseAutoPickPorts(admin: Admin, leagueId: string, deps: Auto
 }
 
 /**
+ * autoPickTurn for the CLIENT paths (validate-and-record-pick action 'auto_pick'
+ * and 'bot_pick'; security + supabase review P1 on this branch). The outage
+ * window (recentOutage) only sees attempts that have ENDED, so during a slow
+ * outage a modified client firing parallel or back-to-back asks still got a full
+ * ~21-request search each, and a client ask overlapping a sweep paid twice.
+ * These calls now take the SAME per-turn lease as draft-autopick-sweep (same
+ * (league_id, pick_number) key), so sweeps and clients exclude each other: one
+ * attempt per turn at a time, whoever asks.
+ *
+ * Held -> 'pick_in_progress' (another attempt is working this turn right now).
+ * Not 'price_unavailable': on a healthy turn the holder is mid-pick, and the room
+ * would caption a vendor outage that is not happening. The shipped client reads
+ * any unknown reason as "stop and re-read" (autoPickAsk.ts nextAskStep), which is
+ * right: the holder records the pick, or the sweep retries it.
+ *
+ * Under the lease the turn is re-read (get_draft_clock): `ctx` was loaded before
+ * the claim, and if a pick landed while another holder worked the turn it is
+ * stale; that answers 'pick_conflict' (the client re-reads) without a search.
+ * The lease fails OPEN on a claim error, as in the sweep (turn-lease.ts).
+ */
+export async function autoPickTurnLeased(
+  admin: Admin,
+  deps: AutoPickDeps,
+  ctx: DraftContext,
+  pickNumber: number,
+): Promise<AutoPickResult> {
+  const leagueId = String(ctx.league.id);
+  const leased = await withTurnLease(admin, leagueId, pickNumber, async (): Promise<AutoPickResult> => {
+    const clock = await fetchDraftClock(admin, leagueId);
+    if (!clock) return { ok: false, reason: 'unhandled' };
+    if (clock.picksMade !== ctx.picks.length || pickNumber !== ctx.picks.length + 1) return { ok: false, reason: 'pick_conflict' };
+    return autoPickTurn(admin, deps, ctx, pickNumber);
+  });
+  return leased.kind === 'held' ? { ok: false, reason: 'pick_in_progress' } : leased.value;
+}
+
+/**
  * Choose (chooseAutoPick: queue, then best available, every candidate through
  * the one gate) and write, for whoever's turn it is. Bots and humans alike:
  * 'bot' / auto_queue / auto_best. Nothing legal -> 'stalled' (recorded, turn
@@ -900,6 +1017,10 @@ export async function autoPickTurn(
     if (cool.error) return { ok: false, reason: 'unhandled' };
     if (cool.verdict === 'stalled') return { ok: false, reason: 'stalled' };
     if (cool.verdict === 'retry') return { ok: false, reason: 'price_unavailable' };
+    // A vendor outage attempt ended moments ago: answer it without Alpaca.
+    const outage = await recentOutage(admin, String(ctx.league.id), turn.pickNumber);
+    if (outage.error) return { ok: false, reason: 'unhandled' };
+    if (outage.wait) return { ok: false, reason: 'price_unavailable' };
   }
   let choice;
   try {

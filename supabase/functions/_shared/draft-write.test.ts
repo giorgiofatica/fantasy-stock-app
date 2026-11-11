@@ -10,17 +10,19 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
   autoPickTurn,
+  autoPickTurnLeased,
   commitGatedPick,
   type DraftContext,
   nextTurnAfter,
   notifyNextPicker,
   noteOutage,
+  OUTAGE_PUSH_CLAIM_TTL_S,
   recordStall,
   STALL_COOLDOWN_MS,
   supabaseAutoPickPorts,
   type TurnPushPorts,
 } from './draft-write.ts';
-import { type AutoPickPorts, BOUNDED_STALL_AFTER, boundedReportsStalled, OUTAGE_ESCALATE_MS } from './auto-pick.ts';
+import { type AutoPickPorts, BOUNDED_STALL_AFTER, boundedReportsStalled, OUTAGE_ESCALATE_MS, OUTAGE_RETRY_MS, outageRetryVerdict } from './auto-pick.ts';
 import type { GatedPick } from './pick-gate.ts';
 import type { PushMessage } from './push.ts';
 import { DRAFT_OUTAGE_PUSH, draftOutageMessage, draftTurnMessage } from './push-copy.ts';
@@ -686,35 +688,97 @@ Deno.test('a nothing_legal stall writes and refreshes its draft_stalls row, and 
   });
 });
 
+// ---------------------------------------------------------------------------
+// The outage push claim and the outage retry window (#384 reviews, 2026-11-11)
+// ---------------------------------------------------------------------------
+
+/** stallsAdmin plus a KEPT draft_turn_outages table and an emulation of
+ * public.claim_outage_escalation (20261202000000; the PGlite suite proves the
+ * SQL): the claim wins only while escalated_at is null and no claim younger than
+ * p_ttl_seconds exists. `clock.now` drives the claim TTL; `failRpc` /
+ * `failRead` make the claim RPC / the outage read resolve an error. */
+// deno-lint-ignore no-explicit-any
+function outagesAdmin(seed: Record<string, any> = {}, opts: { failRpc?: boolean; failRead?: boolean } = {}): any {
+  const base = stallsAdmin();
+  // deno-lint-ignore no-explicit-any
+  const outages = new Map<string, any>(Object.entries(seed));
+  const writes: string[] = [];
+  const clock = { now: Date.now() };
+  const from = (table: string) => {
+    if (table !== 'draft_turn_outages') return base.from(table);
+    let op = 'select';
+    let selected = false;
+    // deno-lint-ignore no-explicit-any
+    let payload: any = null;
+    const eqs: Record<string, unknown> = {};
+    const isNull: string[] = [];
+    // deno-lint-ignore no-explicit-any
+    const b: any = {
+      select: () => { selected = true; return b; },
+      insert(r: unknown) { op = 'insert'; payload = r; return b; },
+      update(r: unknown) { op = 'update'; payload = r; return b; },
+      delete() { op = 'delete'; return b; },
+      eq(k: string, v: unknown) { eqs[k] = v; return b; },
+      is(k: string, v: unknown) { if (v === null) isNull.push(k); return b; },
+      maybeSingle: () => b,
+      then(res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) {
+        const k = `${eqs.league_id ?? payload?.league_id}:${eqs.pick_number ?? payload?.pick_number}`;
+        const row = outages.get(k);
+        // deno-lint-ignore no-explicit-any
+        let out: any = { data: null, error: null };
+        if (op === 'insert') {
+          writes.push('insert');
+          if (row) out = { data: null, error: { code: '23505' } };
+          else outages.set(k, { escalated_at: null, escalation_claim: null, escalation_claimed_at: null, ...payload });
+        } else if (op === 'update') {
+          writes.push(`update:${Object.keys(payload).sort().join(',')}`);
+          const match = row && Object.entries(eqs).every(([c, v]) => c === 'league_id' || c === 'pick_number' || row[c] === v) &&
+            isNull.every((c) => row[c] == null);
+          if (match) outages.set(k, { ...row, ...payload });
+          out = { data: selected ? (match ? outages.get(k) : null) : null, error: null };
+        } else if (op === 'select') {
+          out = opts.failRead ? { data: null, error: { code: '57014' } } : { data: row ?? null, error: null };
+        }
+        return Promise.resolve(out).then(res, rej);
+      },
+    };
+    return b;
+  };
+  const rpc = async (name: string, a: Record<string, unknown>) => {
+    if (name !== 'claim_outage_escalation') return base.rpc(name, a);
+    await Promise.resolve(); // a real round trip: concurrent callers interleave
+    if (opts.failRpc) return { data: null, error: { code: '42883' } };
+    const k = `${a.p_league_id}:${a.p_pick_number}`;
+    const row = outages.get(k);
+    const ttlMs = Number(a.p_ttl_seconds) * 1000;
+    const claimFree = !row?.escalation_claimed_at || Date.parse(row.escalation_claimed_at) <= clock.now - ttlMs;
+    if (!row || row.escalated_at != null || !claimFree) return { data: false, error: null };
+    outages.set(k, { ...row, escalation_claim: a.p_claim, escalation_claimed_at: new Date(clock.now).toISOString() });
+    return { data: true, error: null };
+  };
+  return { ...base, outages, writes, clock, from, rpc };
+}
+
+// deno-lint-ignore no-explicit-any
+const oldOutage = (): Record<string, any> => {
+  const old = new Date(Date.now() - OUTAGE_ESCALATE_MS - 1000).toISOString();
+  return { 'L1:2': { league_id: 'L1', pick_number: 2, first_seen_at: old, last_seen_at: old, escalated_at: null, escalation_claim: null, escalation_claimed_at: null } };
+};
+
+const quietErr = async <T>(fn: () => Promise<T>): Promise<T> => {
+  const e = console.error;
+  console.error = () => {};
+  try { return await fn(); } finally { console.error = e; }
+};
+
 // The vendor_outage push stays EXACTLY as shipped, once per turn after
 // OUTAGE_ESCALATE_MS. Mutation: any change to its strings -> red.
 Deno.test('the vendor_outage push is unchanged: the shipped words, once, after the outage lasted OUTAGE_ESCALATE_MS', async () => {
   const ctx = boundedCtx();
-  const old = new Date(Date.now() - OUTAGE_ESCALATE_MS - 1000).toISOString();
-  // deno-lint-ignore no-explicit-any
-  const outages = new Map<string, any>([['L1:2', { first_seen_at: old, escalated_at: null }]]);
-  const base = stallsAdmin();
-  const admin = {
-    ...base,
-    from: (table: string) => {
-      if (table !== 'draft_turn_outages') return base.from(table);
-      // deno-lint-ignore no-explicit-any
-      const b: any = {
-        insert: () => ({ then: (r: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { code: '23505' } }).then(r) }),
-        update: (patch: Record<string, unknown>) => {
-          const row = outages.get('L1:2');
-          if ('escalated_at' in patch) outages.set('L1:2', { ...row, ...patch });
-          // deno-lint-ignore no-explicit-any
-          const chain: any = { eq: () => chain, select: () => chain, maybeSingle: () => chain, then: (r: (v: unknown) => unknown) => Promise.resolve({ data: outages.get('L1:2'), error: null }).then(r) };
-          return chain;
-        },
-      };
-      return b;
-    },
-  };
+  const admin = outagesAdmin(oldOutage());
   await withExpo(() => true, async (sent) => {
-    await noteOutage(admin, ctx, 2, 'B');
-    await noteOutage(admin, ctx, 2, 'B'); // escalated: not again
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B')); // escalated: not again
     assertEquals(sent.n, 1);
     assertEquals(sent.bodies[0], {
       to: 'tok-commish',
@@ -724,8 +788,257 @@ Deno.test('the vendor_outage push is unchanged: the shipped words, once, after t
       data: { type: 'draft_outage', league_id: 'L1', pick_number: 2 },
     });
   });
+  assert(admin.outages.get('L1:2').escalated_at, 'a sent push marks the escalation done');
+  assertEquals(admin.stalls.get('L1:2')?.reason, 'vendor_outage', 'members see Paused');
   assertEquals(draftOutageMessage('L1', 14).body, 'Live prices are unavailable for pick 14. The turn stays open and retries.');
   assertEquals(DRAFT_OUTAGE_PUSH.title, 'Auto-pick is waiting on prices');
+});
+
+// Mutation: noteOutage pushing without claim_outage_escalation (or ignoring its
+// answer) -> every overlapping attempt pushes -> red.
+Deno.test('ONE push: overlapping outage attempts on the same turn (client ask + sweeps) send the commissioner push exactly once', async () => {
+  const ctx = boundedCtx();
+  const admin = outagesAdmin(oldOutage());
+  await withExpo(() => true, async (sent) => {
+    await quietErr(() => Promise.all(Array.from({ length: 6 }, () => noteOutage(admin, ctx, 2, 'B'))));
+    assertEquals(sent.n, 1);
+    // Later attempts after it was sent: still once.
+    await quietErr(() => Promise.all([noteOutage(admin, ctx, 2, 'B'), noteOutage(admin, ctx, 2, 'B')]));
+    assertEquals(sent.n, 1);
+  });
+});
+
+// Mutation: a failed push leaving its claim (or marking escalated_at) -> the
+// next attempt does not retry it -> red.
+Deno.test('AT-LEAST-ONCE kept: a push that was not sent releases its claim, so the next attempt retries it', async () => {
+  const ctx = boundedCtx();
+  const admin = outagesAdmin(oldOutage());
+  let accept = false;
+  await withExpo(() => accept, async (sent) => {
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 1);
+    const row = admin.outages.get('L1:2');
+    assertEquals([row.escalated_at, row.escalation_claim, row.escalation_claimed_at], [null, null, null], 'released, not done');
+    accept = true;
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 2);
+    assert(admin.outages.get('L1:2').escalated_at);
+  });
+});
+
+// Mutation: a claim that never expires -> a dead claimer blocks the push forever -> red.
+Deno.test('a claimer that died between claim and send blocks the push only until the claim TTL', async () => {
+  const ctx = boundedCtx();
+  const seed = oldOutage();
+  // A claim left by a dead claimer, 1 s ago.
+  seed['L1:2'] = { ...seed['L1:2'], escalation_claim: 'dead', escalation_claimed_at: new Date(Date.now() - 1000).toISOString() };
+  const admin = outagesAdmin(seed);
+  await withExpo(() => true, async (sent) => {
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 0, 'the live claim holds');
+    admin.clock.now = Date.now() + OUTAGE_PUSH_CLAIM_TTL_S * 1000;
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 1, 'the dead claim expired: retried');
+  });
+});
+
+Deno.test('no claim, no push: a claim RPC error sends nothing (a duplicate is the bug, a skipped push is retried)', async () => {
+  const ctx = boundedCtx();
+  const admin = outagesAdmin(oldOutage(), { failRpc: true });
+  await withExpo(() => true, async (sent) => {
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 0);
+  });
+  assertEquals(admin.stalls.get('L1:2')?.reason, 'vendor_outage', 'the Paused row is still written');
+  assertEquals(admin.outages.get('L1:2').escalated_at, null);
+});
+
+Deno.test('an outage younger than OUTAGE_ESCALATE_MS never claims or pushes', async () => {
+  const ctx = boundedCtx();
+  const admin = outagesAdmin();
+  await withExpo(() => true, async (sent) => {
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B')); // first outage: the clock starts
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 0);
+  });
+  assertEquals(admin.outages.get('L1:2').escalation_claim, null);
+});
+
+/** marketPorts with a counter on every port that costs Alpaca or a search. */
+function countingPorts() {
+  const p = marketPorts();
+  const n = { search: 0, screen: 0, live: 0 };
+  return {
+    n,
+    ports: {
+      ...p,
+      searchCandidates: (...a: Parameters<AutoPickPorts['searchCandidates']>) => (n.search++, p.searchCandidates(...a)),
+      screenPrices: (...a: Parameters<AutoPickPorts['screenPrices']>) => (n.screen++, p.screenPrices(...a)),
+      livePrice: (...a: Parameters<AutoPickPorts['livePrice']>) => (n.live++, p.livePrice(...a)),
+    } as AutoPickPorts,
+  };
+}
+
+// Mutation: the recentOutage check removed from autoPickTurn -> the looping call
+// searches and prices -> red.
+Deno.test('OUTAGE WINDOW: a turn whose last outage attempt ended < OUTAGE_RETRY_MS ago answers price_unavailable with NO search, NO Alpaca call and NO write', async () => {
+  const ctx = ctxWith(['A', 'B', 'C'], 3, 1); // pick 2 is B's
+  const recent = new Date(Date.now() - 2_000).toISOString();
+  const admin = outagesAdmin({ 'L1:2': { league_id: 'L1', pick_number: 2, first_seen_at: recent, last_seen_at: recent, escalated_at: null } });
+  const c = countingPorts();
+  // A modified client looping auto_pick / bot_pick: 60 calls.
+  for (let i = 0; i < 60; i++) {
+    assertEquals(await autoPickTurn(admin, { alpacaKey: 'k', alpacaSecret: 's', ports: c.ports }, ctx, 2), { ok: false, reason: 'price_unavailable' });
+  }
+  assertEquals(c.n, { search: 0, screen: 0, live: 0 });
+  assertEquals(admin.writes, [], 'the window is never refreshed by a waiting call (or a looping client would hold it open forever)');
+});
+
+Deno.test('OUTAGE WINDOW: once the last outage attempt is OUTAGE_RETRY_MS old the turn is searched again (and picks on a recovered vendor)', async () => {
+  const ctx = ctxWith(['A', 'B', 'C'], 3, 1);
+  const aged = new Date(Date.now() - OUTAGE_RETRY_MS - 1).toISOString();
+  const admin = outagesAdmin({ 'L1:2': { league_id: 'L1', pick_number: 2, first_seen_at: aged, last_seen_at: aged, escalated_at: null } });
+  const c = countingPorts();
+  const push = fakePush({ tokens: TOKENS });
+  const res = await autoPickTurn(admin, { alpacaKey: 'k', alpacaSecret: 's', ports: c.ports, turnPush: push.ports }, ctx, 2);
+  assert(res.ok, JSON.stringify(res));
+  assert(c.n.search > 0);
+});
+
+Deno.test('OUTAGE WINDOW: an unreadable outage row fails CLOSED (unhandled, no search), like recentStall', async () => {
+  const ctx = ctxWith(['A', 'B', 'C'], 3, 1);
+  const admin = outagesAdmin({}, { failRead: true });
+  const c = countingPorts();
+  assertEquals(await quietErr(() => autoPickTurn(admin, { alpacaKey: 'k', alpacaSecret: 's', ports: c.ports }, ctx, 2)), { ok: false, reason: 'unhandled' });
+  assertEquals(c.n, { search: 0, screen: 0, live: 0 });
+});
+
+/** fakeAdmin plus the lease RPC (claim_draft_turn_lease: `held` decides the
+ * answer, or an error) and get_draft_clock reporting `picksMade`. */
+// deno-lint-ignore no-explicit-any
+function leasedAdmin(o: { claim: 'won' | 'held' | 'error'; picksMade: number }): any {
+  const base = fakeAdmin();
+  const rpcs: string[] = [];
+  const released: string[] = [];
+  return {
+    ...base,
+    rpcs,
+    released,
+    from: (table: string) => {
+      if (table !== 'draft_turn_leases') return base.from(table);
+      const eqs: Record<string, unknown> = {};
+      // deno-lint-ignore no-explicit-any
+      const b: any = {
+        delete: () => b,
+        eq: (k: string, v: unknown) => ((eqs[k] = v), b),
+        then: (r: (v: unknown) => unknown) => (released.push(String(eqs.holder)), Promise.resolve({ data: null, error: null }).then(r)),
+      };
+      return b;
+    },
+    rpc: (name: string, args: Record<string, unknown>) => {
+      rpcs.push(name);
+      if (name === 'claim_draft_turn_lease') {
+        if (o.claim === 'error') return Promise.resolve({ data: null, error: { code: '42883' } });
+        return Promise.resolve({ data: o.claim === 'won', error: null });
+      }
+      if (name === 'get_draft_clock') {
+        return Promise.resolve({ data: [{ server_now: new Date().toISOString(), picks_made: o.picksMade, draft_status: 'in_progress', clock_running: true, pick_seconds: 60 }], error: null });
+      }
+      return base.rpc(name, args);
+    },
+  };
+}
+
+// Mutation: validate-and-record-pick calling autoPickTurn directly, or
+// autoPickTurnLeased running the search on a held lease -> red.
+Deno.test('CLIENT LEASE: a client auto_pick/bot_pick on a turn another attempt holds answers pick_in_progress with NO search and NO Alpaca call', async () => {
+  const ctx = ctxWith(['A', 'B', 'C'], 3, 1); // pick 2 is B's
+  const admin = leasedAdmin({ claim: 'held', picksMade: 1 });
+  const c = countingPorts();
+  // A modified client firing parallel asks while a slow attempt holds the turn.
+  const out = await Promise.all(Array.from({ length: 20 }, () => autoPickTurnLeased(admin, { alpacaKey: 'k', alpacaSecret: 's', ports: c.ports }, ctx, 2)));
+  assert(out.every((r) => !r.ok && r.reason === 'pick_in_progress'), JSON.stringify(out[0]));
+  assertEquals(c.n, { search: 0, screen: 0, live: 0 });
+  assertEquals(admin.released, [], 'a held claim releases nothing');
+});
+
+Deno.test('CLIENT LEASE: a won lease picks, and releases with the holder it claimed under', async () => {
+  const ctx = ctxWith(['A', 'B', 'C'], 3, 1);
+  const admin = leasedAdmin({ claim: 'won', picksMade: 1 });
+  const c = countingPorts();
+  const push = fakePush({ tokens: TOKENS });
+  const res = await autoPickTurnLeased(admin, { alpacaKey: 'k', alpacaSecret: 's', ports: c.ports, turnPush: push.ports }, ctx, 2);
+  assert(res.ok, JSON.stringify(res));
+  assertEquals(admin.rpcs.slice(0, 2), ['claim_draft_turn_lease', 'get_draft_clock'], 'claim first, then the re-read');
+  assertEquals(admin.released.length, 1);
+});
+
+// Mutation: the re-read under the lease removed -> a stale ctx searches -> red.
+Deno.test('CLIENT LEASE: a pick that landed while another holder worked the turn answers pick_conflict without a search (stale ctx)', async () => {
+  const ctx = ctxWith(['A', 'B', 'C'], 3, 1); // ctx was read with 1 pick made
+  const admin = leasedAdmin({ claim: 'won', picksMade: 2 }); // ...but pick 2 has landed since
+  const c = countingPorts();
+  assertEquals(await autoPickTurnLeased(admin, { alpacaKey: 'k', alpacaSecret: 's', ports: c.ports }, ctx, 2), { ok: false, reason: 'pick_conflict' });
+  assertEquals(c.n, { search: 0, screen: 0, live: 0 });
+  assertEquals(admin.released.length, 1, 'still released');
+});
+
+Deno.test('CLIENT LEASE: FAIL OPEN on a claim error (the turn is still worked; correctness is the unique index)', async () => {
+  const ctx = ctxWith(['A', 'B', 'C'], 3, 1);
+  const admin = leasedAdmin({ claim: 'error', picksMade: 1 });
+  const c = countingPorts();
+  const push = fakePush({ tokens: TOKENS });
+  const res = await quietErr(() => autoPickTurnLeased(admin, { alpacaKey: 'k', alpacaSecret: 's', ports: c.ports, turnPush: push.ports }, ctx, 2));
+  assert(res.ok, JSON.stringify(res));
+  assertEquals(admin.released, []);
+});
+
+Deno.test('CLIENT LEASE: validate-and-record-pick reaches the auto-pick ONLY through autoPickTurnLeased (both actions)', async () => {
+  const src = await Deno.readTextFile(new URL('../validate-and-record-pick/index.ts', import.meta.url));
+  const code = src.split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+  assertEquals((code.match(/\bautoPickTurn\s*\(/g) ?? []).length, 0, 'no unleased autoPickTurn call');
+  assertEquals((code.match(/\bautoPickTurnLeased\s*\(/g) ?? []).length, 2, 'auto_pick and bot_pick');
+});
+
+// Mutation: the mark not retried -> one failed write re-sends the push every claim TTL -> red.
+Deno.test('a sent push whose escalated_at mark fails once is marked by the retry (no re-send when the claim expires)', async () => {
+  const ctx = boundedCtx();
+  const admin = outagesAdmin(oldOutage());
+  const inner = admin.from;
+  let failNext = true;
+  admin.from = (table: string) => {
+    const b = inner(table);
+    if (table !== 'draft_turn_outages') return b;
+    const update = b.update;
+    b.update = (patch: Record<string, unknown>) => {
+      if ('escalated_at' in patch && failNext) {
+        failNext = false;
+        // deno-lint-ignore no-explicit-any
+        const chain: any = { eq: () => chain, is: () => chain, then: (r: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { code: '08006' } }).then(r) };
+        return chain;
+      }
+      return update(patch);
+    };
+    return b;
+  };
+  await withExpo(() => true, async (sent) => {
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 1);
+    assert(admin.outages.get('L1:2').escalated_at, 'the retry marked it');
+    admin.clock.now = Date.now() + OUTAGE_PUSH_CLAIM_TTL_S * 1000;
+    await quietErr(() => noteOutage(admin, ctx, 2, 'B'));
+    assertEquals(sent.n, 1, 'not re-sent after the claim TTL');
+  });
+});
+
+Deno.test('outageRetryVerdict: wait strictly inside the window; search on none, unreadable, or aged', () => {
+  const now = 1_000_000;
+  assertEquals(outageRetryVerdict(null, now), 'search');
+  assertEquals(outageRetryVerdict(NaN, now), 'search');
+  assertEquals(outageRetryVerdict(now - 1, now), 'wait');
+  assertEquals(outageRetryVerdict(now - OUTAGE_RETRY_MS + 1, now), 'wait');
+  assertEquals(outageRetryVerdict(now - OUTAGE_RETRY_MS, now), 'search');
+  assertEquals(outageRetryVerdict(now + 500, now), 'wait', 'a row a little in the future (clock skew) still waits');
 });
 
 Deno.test('boundedReportsStalled: from BOUNDED_STALL_AFTER consecutive bounded searches', () => {
