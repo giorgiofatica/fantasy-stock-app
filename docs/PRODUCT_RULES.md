@@ -329,6 +329,21 @@ building anything, and don't reopen a rule without him.
   not sure if im a fan of the big button", then "just the dots". The player swipes between
   the two pages; the two dots under the card show the page and are themselves the page
   control (tap to turn, "Page 1 of 2" to VoiceOver). No "See an example" and no "Back".
+- **The "i" popup lines, approved as written** (2026-11-11: "the popup lines are approved"):
+  - Matchup: "Each week you play one team, and the bigger dollar gain wins. The best records
+    make the playoffs."
+  - Duration: "One race for the whole league. The biggest gain at the end wins."
+  - Equal stakes: "Every pick is the same dollar amount, so a cheap stock counts as much as an
+    expensive one."
+  - Price tiers: "One share per pick. Each slot takes stocks in its own price range."
+  - Budget cap: "One share per pick. Your shares together can't cost more than the cap."
+  - Draft order: "Random shuffles it an hour before the draft; Manual lets you set it. Either
+    way, it reverses each round."
+  - Playoff teams: "The top teams in the standings play a bracket. When it doesn't fill
+    evenly, the top seeds skip the first round."
+  - Non-draftable stocks: "Off: stocks at $1 or more, on a major US exchange, from companies
+    worth $250 million or more. On: every US stock, penny stocks too."
+  Which options get an "i" is as drawn on the board (Rounds has none unless he says so).
 
 ## Scoring and standings
 

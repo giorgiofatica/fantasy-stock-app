@@ -11782,7 +11782,7 @@ window.KS_REFS = {
         </header>
         <ul className="b-inv__notes">
           <li><b>The i</b> sits at the end of the row, in grey, with a 44pt target. Tapping it opens the popup and never selects the row; tapping the name still selects. VoiceOver reads it as "About Matchup", button. Nothing shows under the row.</li>
-          <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line <NEW />, and a small picture <NEW />. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description <NEW /> (the "VoiceOver:" lines below), so it isn't silent.</li>
+          <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line (approved), and a small picture. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description <NEW /> (the "VoiceOver:" lines below), so it isn't silent.</li>
           <li><b>Two pages (B), your pick (2026-11-11):</b> "i like version B with the see an example and the second potential slide". Page 1 is the name and the line. Page 2 is the name and the picture. <b>No button: "just the dots"</b> (your pick, same day). A swipe turns the page; the two dots show which page you're on and are the page control themselves (a 44pt row: tap to turn; VoiceOver: "Page 1 of 2", swipe up or down to turn). The card's top edge stays put on both pages, so the name and the × never move when the page turns; the card grows or shrinks below them. The × closes from either page. The popup always opens on page 1.</li>
           <li><b>At your size (AX5)</b> the card fills the screen and each page scrolls inside, and the × stays pinned in its corner while the page scrolls under it. The line grows the whole way, since it's the part you read. The title stops at 1.6× and the picture's labels at 1.4×, so the picture keeps its shape. The build gate checks the real thing.</li>
           <li><b>Pictures use example numbers</b> (prices, gains, names from the board's fixture league). They show how a mode works, not anyone's real results; the words never quote a number that could go stale, except the draftable filter's own $1 and $250 million.</li>
@@ -11844,7 +11844,7 @@ window.KS_REFS = {
         <ul className="b-inv__notes">{GETS.map(([a, w, b]) => <li key={a}><b style={{ color: 'var(--c-gain, #2e7d32)' }}>i</b> · <b>{a}</b> ({w}) — {b}</li>)}</ul>
         <h3 className="b-sub">Which don't, and why</h3>
         <ul className="b-inv__notes">{NOT.map(([a, b]) => <li key={a}><b>{a}</b> — {b}</li>)}</ul>
-        <h3 className="b-sub">New words, to approve as written</h3>
+        <h3 className="b-sub">The words, approved as written (your call, 2026-11-11: "the popup lines are approved")</h3>
         <ul className="b-inv__notes">
           {keys.map((k) => <li key={k}><b>{POPS[k].title}:</b> "{POPS[k].line}"</li>)}
           <li><b>Spoken only (VoiceOver):</b> "About {'{option}'}" on each i, "Close" on the ×, and the picture descriptions under each Light page 2 above.</li>
