@@ -81,17 +81,25 @@
       </>
     );
   }
-  const LeagueStep = ({ x = 1, pressed, reassure }) => (
+  const LeagueStep = ({ x = 1, pressed, reassure, typeMode }) => (
     <Step n={1} title="League" x={x}>
       <div style={{ display: 'grid', gap: 6 }}>
         <span style={{ fontSize: z(15, x, ROW), fontWeight: 700 }}>League name</span>
         <Field v="Serie A Traders" />
         {reassure ? <span style={{ fontSize: z(13, x, ROW), lineHeight: 1.35, ...grey }}>Don’t worry. You will be able to change this later.</span> : null}
       </div>
-      <div style={{ display: 'grid', gap: 8 }}>
-        <Tag x={x}>League type</Tag>
-        <ChoiceCard x={x} opts={[['Matchup', true], ['Duration', false]]} pressed={pressed} />
-      </div>
+      {typeMode === 'none' ? null : typeMode === 'fixed' ? (
+        <div className="dr-a-card" style={{ padding: '0 16px', display: 'flex', alignItems: 'center', gap: 12, minHeight: 56 }}>
+          <span style={{ flex: 1, minWidth: 0, fontSize: z(15, x, ROW), fontWeight: 700 }}>League type</span>
+          <span style={{ fontSize: z(16, x, ROW), fontWeight: 700 }}>Matchup</span>
+          <InfoI x={x} on={pressed === 'Matchup'} />
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          <Tag x={x}>League type</Tag>
+          <ChoiceCard x={x} opts={typeMode === 'one' ? [['Matchup', true]] : [['Matchup', true], ['Duration', false]]} pressed={pressed} />
+        </div>
+      )}
     </Step>
   );
   const StakesStep = ({ x = 1, pressed }) => (
@@ -362,7 +370,8 @@
   POPS.dDollar = { ...POPS.duration, line: 'One race for the whole league. The biggest dollar gain at the end wins.' };
   POPS.dGeneric = { ...POPS.duration, line: 'One race for the whole league. The best performance at the end wins.' };
   const APPROVED = ['matchup', 'duration', 'equal', 'tiers', 'cap', 'order', 'playoffs', 'draftable'];
-  const BEHIND = { league: LeagueStep, stakes: StakesStep, draft: DraftStep, season: SeasonStep, draftR: () => <DraftStep roundsI /> };
+  POPS.matchupFixed = { ...POPS.matchup, behind: 'leagueFixed' };
+  const BEHIND = { leagueFixed: (p) => <LeagueStep {...p} typeMode="fixed" pressed="Matchup" />, league: LeagueStep, stakes: StakesStep, draft: DraftStep, season: SeasonStep, draftR: () => <DraftStep roundsI /> };
 
   /** The × : a 44pt target, a 16pt glyph on a sunken disc, top right of the card. */
   const Close = ({ x = 1, float }) => (
@@ -488,6 +497,7 @@
           <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line (approved), and a small picture. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description <NEW /> (the "VoiceOver:" lines below), so it isn't silent.</li>
           <li><b>Two pages (B), your pick (2026-11-11):</b> "i like version B with the see an example and the second potential slide". Page 1 is the name and the line. Page 2 is the name and the picture. <b>No button: "just the dots"</b> (your pick, same day). A swipe turns the page; the two dots show which page you're on and are the page control themselves (a 44pt row: tap to turn; VoiceOver: "Page 1 of 2", swipe up or down to turn). The card's top edge stays put on both pages, so the name and the × never move when the page turns; the card grows or shrinks below them. The × closes from either page. The popup always opens on page 1.</li>
           <li><b>At your size (AX5)</b> the card fills the screen and each page scrolls inside, and the × stays pinned in its corner while the page scrolls under it. The line grows the whole way, since it's the part you read. The title stops at 1.6× and the picture's labels at 1.4×, so the picture keeps its shape. The build gate checks the real thing.</li>
+          <li><b>Duration's i is on hold.</b> Duration is hidden in Create league until it is built (your "A", 2026-11-11), so its popup has no row to sit on. Its approved line and picture stay on record for when Duration comes back; the Duration frames below show it as approved.</li>
           <li><b>Pictures use example numbers</b> (prices, gains, names from the board's fixture league). They show how a mode works, not anyone's real results; the words never quote a number that could go stale, except the draftable filter's own $1 and $250 million.</li>
         </ul>
 
@@ -631,6 +641,38 @@
       </section>
     );
   }
+
+  const TypeOne = (p) => <LeagueStep {...p} typeMode="one" />;
+  const TypeFixed = (p) => <LeagueStep {...p} typeMode="fixed" />;
+  const TypeNone = (p) => <LeagueStep {...p} typeMode="none" />;
+  function CallTypeStep() {
+    return (
+      <section className="b-sec" id="call-type-step" aria-labelledby="call-type-step-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Create</span>
+          <div><h2 id="call-type-step-h">Your call: the League type, now that only Matchup is offered</h2></div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>Why you're being asked:</b> you hid Duration until it is built ("A", 2026-11-11). Create league › League still asks "League type" with one answer, and a choice of one isn't a choice. This changes an approved screen, so it's yours.</li>
+          <li><b>What you're looking at:</b> Create league › League (step 1 of 4) three ways. Only the League type part changes. No new words in any of them.</li>
+          <li><b>A · keep the card, with Matchup alone.</b> Nothing moves when Duration comes back. But a single selected radio with nothing else to pick reads like something failed to load.</li>
+          <li><b>B · a fixed line: "League type · Matchup", with its i.</b> It says what kind of league this is, and the i still explains Matchup. Nothing to pick. When Duration comes back, the line turns back into the card.</li>
+          <li><b>C · drop it.</b> The step is just the name. The cleanest, but nothing in Create league says it's a Matchup league or what that means: a new commissioner first meets "Matchup" inside the league.</li>
+          <li><b>Recommended: B.</b> It keeps the one thing the step still has to say, and the i you asked for, without asking a question with one answer.</li>
+          <li><b>Answer with:</b> A, B or C.</li>
+        </ul>
+        <Grid>{[
+          fig('ts-a', 'A · the card, Matchup alone', <StepFrame t="light" B={TypeOne} label="League step, the card with Matchup alone" />, 'One radio, already selected.'),
+          fig('ts-b', 'B · a fixed line (recommended)', <StepFrame t="light" B={TypeFixed} label="League step, League type as a fixed line" />, '"League type · Matchup" and the i. Nothing to pick.'),
+          fig('ts-c', 'C · drop it', <StepFrame t="light" B={TypeNone} label="League step, name only" />, 'The name, then Next.'),
+          fig('ts-b-pop', 'B · tapping its i', <PopFrame t="light" k="matchupFixed" page={1} />, 'The approved Matchup popup, unchanged.'),
+          fig('ts-b-d', 'B · Dark', <StepFrame t="dark" B={TypeFixed} label="League step, League type as a fixed line, dark" />),
+          fig('ts-b-x', 'B · your size (AX5)', <StepFrame t="light" B={TypeFixed} x={2.4} label="League step, League type as a fixed line, AX5" />, 'The label and "Matchup" stop at 1.3×; the i keeps its 44pt target.'),
+        ]}</Grid>
+      </section>
+    );
+  }
+  window.KSTypeStep = () => <CallTypeStep />;
 
   window.KSInfoKit = { ChoiceCard, InfoI };
   window.KSRule12Info = () => <><Section /><Questions /><CopyCall /></>;
