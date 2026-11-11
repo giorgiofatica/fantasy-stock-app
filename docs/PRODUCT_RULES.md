@@ -252,6 +252,14 @@ building anything, and don't reopen a rule without him.
   and it is looked at again before real players join, when "counts only" must be enforced by
   the database and not left as a habit in how queries are written. This is a tool for him,
   not a player feature, and it does not loosen the rule above.
+  **Trial dropped after the read** (2026-11-10). The security read
+  (`docs/security/2026-11-10-claude-data-connector-security-read.md`) and two catalog checks
+  he ran on production showed that Supabase's connector reads every table, emails and
+  password hashes included, and that nothing in the database itself stops its reader from
+  sending data out. Supabase's own guidance is to use it on non-production data. His ruling:
+  "ok then lets keep it away from prod data and skip it." So: Supabase's connector is never
+  connected to production, trial or not. A page of totals, if he wants one, reads a file a
+  scheduled job writes, with no live connection to the database.
 - **Who can see other players** (2026-10-08, audit #8, option A): "i can only see other names
   and avatars of other users im in a leauge with. we cannot allow a user to see any
   information outside of the name/avatar of another member in their league (email, etc) or
