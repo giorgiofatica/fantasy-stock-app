@@ -474,6 +474,13 @@ building anything, and don't reopen a rule without him.
     the never-stall rules above it always finds one, unless no stock fits at all.
   - If no stock fits, the turn waits and keeps retrying. Nobody is notified (see below).
   - This supersedes the same day's "closest stock" and "cheapest anyway" rulings.
+- **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
+  "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
+  to make the pick. the selection needs to be instant so the draft flow continues". So: when
+  a turn's clock reaches zero the pick is made and shown at once, and the next manager's
+  clock starts. A wait the eye can see after zero is a defect, on every turn, whether or not
+  anyone has the draft room open. The only waits allowed are the ones already ruled above: a
+  price outage (shown as Paused) and a turn with no legal stock.
 - **No notification when the auto-pick is slow or stuck** (2026-10-13). Giorgio: "Drop the
   wrong 'pick manually' notification and don't add a new one. The commissioner can't do
   anything about it anyway." The commissioner still gets the one "waiting on prices"
