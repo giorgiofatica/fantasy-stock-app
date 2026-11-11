@@ -625,6 +625,15 @@ export function lobbyShowsOrder(view: Pick<LobbyView, 'order'> | null, statusFai
   return view ? view.order : statusFailed;
 }
 
+/**
+ * Whether the draft status gives a phase to draw from: the read has answered, or a RE-read is loading over an
+ * answered one (start_state still held), so a refresh keeps the last known phase and no card blinks out. Before the
+ * first answer (a mount, a league switch: Home remounts per league) and after a failed read there is no phase.
+ */
+export function phaseKnown(ds: { status: 'idle' | 'loading' | 'ready' | 'error'; startState: StartState | null }): boolean {
+  return ds.status === 'ready' || (ds.status === 'loading' && ds.startState !== null);
+}
+
 // ── Home's pre-draft card, from the same view ────────────────────────────
 
 export interface HomeView {
@@ -642,6 +651,18 @@ export function homeView(phase: LobbyPhase, isCommissioner: boolean, fixableCoun
   const lv = lobbyView(phase, isCommissioner, fixableCount);
   if (lv.blockers === 'risk') return { blockers: 'risk', countdown: 'scheduled', memberPostponed: false, noDate: false };
   return { blockers: lv.blockers, countdown: lv.countdown, memberPostponed: lv.memberPostponed, noDate: lv.noDate };
+}
+
+/**
+ * Whether Home paints its draft card (the "Draft" / "Draft postponed" card above Members). Home's twin of
+ * lobbyShowsOrder: it follows the view (the commissioner's postponed blockers card REPLACES it), and while the status
+ * read has not answered there is NO view, so the card is not guessed. It used to default to shown, so switching to a
+ * postponed league painted the plain pre-draft card ("Draft · 60-second picks · Build your queue") for about a second
+ * before "Draft postponed" replaced it (phone pass step 24d, 1.3.0 (14), 2026-11-10). Unknown paints nothing. A failed
+ * read is the exception: the card, on the league row's draft time, is the last honest thing Home has.
+ */
+export function homeShowsDraftCard(view: Pick<HomeView, 'blockers'> | null, statusFailed: boolean): boolean {
+  return view ? view.blockers !== 'postponed' : statusFailed;
 }
 
 /** "You pick 4th" (the room-open push's words), from the revealed order. Null
