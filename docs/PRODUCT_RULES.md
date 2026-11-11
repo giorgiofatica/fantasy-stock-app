@@ -343,7 +343,6 @@ building anything, and don't reopen a rule without him.
     evenly, the top seeds skip the first round."
   - Non-draftable stocks: "Off: stocks at $1 or more, on a major US exchange, from companies
     worth $250 million or more. On: every US stock, penny stocks too."
-  Which options get an "i" is as drawn on the board (Rounds has none unless he says so).
 
 ## Scoring and standings
 
