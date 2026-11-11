@@ -2,8 +2,9 @@
 
 Status: **Orchestrator's Opus pass done (2026-11-10): Step 0 SQL revised and run on PGlite; test 3 widened; two
 scope notes added. Ready for Giorgio.**
-Written by the Planner on 2026-11-10, from two read-only halves. Nothing was connected and
-nothing was run against prod.
+Written by the Planner on 2026-11-10, from two read-only halves. Nothing was connected.
+The only thing run against prod is the Step 0 catalog query (Giorgio, SQL editor,
+2026-11-10); its result is recorded under Step 0.
 
 Giorgio's ruling (2026-11-10, `docs/PRODUCT_RULES.md`, "Lock everything down"): asked
 whether a Claude Data dashboard may read counts from the production database, never names,
@@ -112,8 +113,7 @@ in the Supabase SQL editor asks Postgres what `supabase_read_only_user` is allow
 reads only the permission catalog, so it returns role names and true/false, never a row of
 data or a secret. It answers on prod what the documents could not: whether the role bypasses
 RLS, which roles it belongs to, and whether it can run Vault's decrypt function or `pg_net`'s
-send functions. *(The query below is drafted by the Planner and must be checked in the
-Orchestrator's pass before Giorgio runs it.)*
+send functions.
 
 ```sql
 SELECT 'superuser' AS what, r.rolname::text AS name, r.rolsuper::text AS answer
@@ -173,6 +173,98 @@ Checked by the Orchestrator on PGlite (whole migration chain, a stand-in role wi
 `role "supabase_read_only_user" does not exist`, and a planted open definer function is listed.
 Step 0 narrows the question; it does not replace step 1, because it says nothing about the
 connector's own behaviour.
+
+**Step 0 result (prod, run by Giorgio in the SQL editor, 2026-11-10).** 17 rows, names and
+true/false only.
+
+| What | Result | Reading |
+|---|---|---|
+| superuser | false | Passes |
+| bypasses RLS | true | As the read assumed |
+| member of | `pg_read_all_data`, `pg_monitor`, `pg_read_all_settings`, `pg_read_all_stats`, `pg_stat_scan_tables` | None of `authenticated`, `service_role`, `postgres` or a `supabase_*admin` role, so our function grants do not reach it |
+| can execute `vault._crypto_aead_det_decrypt` | false | The one decrypt function found. No `pgsodium` decrypt row came back |
+| can execute `net.http_get`, `http_post`, `http_delete`, `http_collect_response` | true (all four) | Sending out is open IF the role can write. Tests 3 and 11 decide |
+| definer it can execute | no rows | No `SECURITY DEFINER` function in any non-system schema is callable by it |
+| can select `auth.users`, `vault.secrets`, `vault.decrypted_secrets`, `net.http_request_queue`, `net._http_response` | true (all five) | Expected from `pg_read_all_data` |
+
+What this settles, and what it does not:
+- **Settled on prod:** the role is not a superuser, is in none of our app roles, cannot call
+  Vault's decrypt function, and has no definer function to borrow rights from.
+- **Vault plain text: now unlikely on prod, still unproven.** The grant is absent, so reading
+  `vault.decrypted_secrets` should fail with a permission error on the function. That is an
+  inference from a grant, not an observed read. Test 2 is still the proof.
+- **Confirmed, and not covered by the Vault result:** `net.http_request_queue` is readable.
+  Item 2 above stands: a queued cron request carries its real `apikey` header there until it
+  is sent, so a live key can be read in plain text from that table whatever Vault does. The
+  window is short and the key is `cron_apikey`, not the service-role key, but no test in
+  step 1 removes it. Only "no column from `net`" (step 3, condition 4) stands in the way,
+  and that is a habit, not a lock.
+- **Confirmed:** `auth.users` is readable past RLS.
+- **New, small:** `pg_monitor` lets the role read other sessions' live query text
+  (`pg_stat_activity`) and statement statistics. Our cron commands name the Vault secret, not
+  its value, so no key is expected there. Not checked on prod.
+- **Not checked by this query:** whether the role holds `INSERT` on `net.http_request_queue`
+  (the `net.http_*` functions are not definer, per the empty definer list, so they would
+  need it), and anything about the connector's own behaviour. The `INSERT` grant is answered
+  by the second check below.
+
+**Second catalog check (prod, run by Giorgio in the SQL editor, 2026-11-10).** Prompted by
+the membership list. It reads `pg_db_role_setting` (setting NAMES only, split before the
+`=`), one true/false on `app.settings.jwt_secret`, and one grant. 17 rows.
+
+```sql
+SELECT 'stored setting' AS what,
+       coalesce(d.datname, '(every database)') || ' / ' || coalesce(r.rolname, '(every role)') AS scope,
+       split_part(cfg, '=', 1) AS answer
+  FROM pg_db_role_setting s
+  LEFT JOIN pg_database d ON d.oid = s.setdatabase
+  LEFT JOIN pg_roles r ON r.oid = s.setrole
+ CROSS JOIN LATERAL unnest(s.setconfig) AS cfg
+UNION ALL
+SELECT 'jwt secret is a database setting', 'app.settings.jwt_secret',
+       (nullif(current_setting('app.settings.jwt_secret', true), '') IS NOT NULL)::text
+UNION ALL
+SELECT 'can insert', 'net.http_request_queue',
+       has_table_privilege('supabase_read_only_user', 'net.http_request_queue', 'INSERT')::text
+ORDER BY 1, 2, 3;
+```
+
+Why not `pg_settings`: it does not list custom settings (names with a dot). Checked on
+PGlite (PG 16.4) with `app.settings.jwt_secret` set by `ALTER DATABASE` and by `SET`: a
+`pg_settings` search for it returned nothing, so an empty result there would have been a
+false clearance. The query above was run with dummy secrets planted (one containing `=`) and
+returned names only.
+
+| What | Result | Reading |
+|---|---|---|
+| `app.settings.jwt_secret` is a database setting | false | The token-signing secret is not readable through SQL settings |
+| stored settings | `statement_timeout`, `lock_timeout`, `search_path`, `log_statement`, `session_preload_libraries`, `idle_in_transaction_session_timeout` on Supabase's own roles; `app.settings.jwt_exp` on the database | Ordinary. No name with "secret" or "key". `jwt_exp` is a token lifetime, not a secret |
+| stored setting on `supabase_read_only_user` | `default_transaction_read_only` | **The role's read-only mode is a per-role default** (see below) |
+| can insert into `net.http_request_queue` | **true** | **The grant the read hoped was missing is there** |
+
+What the last two rows mean together:
+- `default_transaction_read_only` is a setting any session may change for itself. Checked
+  on PGlite as a non-superuser with that default on: a plain `INSERT` is refused, but
+  `BEGIN; SET TRANSACTION READ WRITE; INSERT ...` succeeds, and so does
+  `BEGIN READ ONLY; SET TRANSACTION READ WRITE; INSERT ...` when the `SET` comes before any
+  query. It is refused only once a query has already run in the transaction
+  ("transaction read-write mode must be set before any query").
+- So on prod, nothing in the role's own grants or settings stops it from queueing an outgoing
+  request: it may call `net.http_get`/`http_post`, it may insert into the queue they write
+  to, and its read-only mode is a default. The only thing left is how the connector sends
+  the SQL (whether it runs a statement first, or refuses multi-statement text), which is
+  undocumented. **Tests 3 and 11 are now the deciding tests, with a specific reason to expect
+  they could fail.**
+- If they fail, a reader that can see `auth.users` and every table can also send what it
+  reads to any address. With player-written text in rows (item 5 above), that is the full
+  prompt-injection path: private data, untrusted text, and a way out.
+- Scope of this claim: the setting's NAME was read, not its value (assumed `on`); the
+  PGlite run shows Postgres's rule, not the connector's behaviour; nothing was sent.
+- This is not a hole in the app today. The role is used only through Supabase's own
+  dashboard and connector by someone signed in to the organisation, who already has full
+  access. It matters from the moment Claude is connected.
+- Limit of the settings check: a secret stored under some other custom name, only in
+  Supabase's config file, would not show.
 
 **Step 1. Test on a non-prod Supabase project. Required whatever happens next.**
 The Researcher's ten tests (its file, "Hands-on tests"), plus one from this read:
@@ -253,6 +345,11 @@ has that ask.
    sign-in) is available.
 
 ## The Planner's advice
+
+*Updated after the second catalog check:* the advice below was written when the prod trial
+looked merely unnecessary. With the insert grant present and read-only being a default, the
+Planner now advises **against** connecting Supabase's connector to prod at all, unless tests
+3 and 11 on non-prod show the connector itself blocks the switch. Still Giorgio's call.
 
 Do step 1 on a non-prod project: it costs nothing, risks nothing, and tells us whether
 Claude Data works with Supabase at all. Treat a prod trial as optional even if every test
