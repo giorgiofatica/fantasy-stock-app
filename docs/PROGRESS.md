@@ -33,7 +33,8 @@ Entries begin with the Recorder's first pass.
 
 **Merged, not confirmed live**
 - **#392 (merged 18:40Z): NOT applied, NOT deployed.** Migration `20261202000000_draft_turn_lease_and_escalation_claim.sql` is on `main` (the next `supabase db push` would apply it), and it changes the `draft-autopick-sweep` and `validate-and-record-pick` edge functions, which are not deployed. Title: one auto-pick attempt per turn (lease), one outage push (claim). The Orchestrator verified it (1075 and 276 tests; 19 of 19 mutants); that is not an effect on prod. Planned after today's League A draft.
-- **#384's client half (merged 18:19Z): in no build.** The ask at the deadline, with retries, reaches phones in build 15. Its effect, and the effect of the 2 s sweep, on actual pick delays is not yet shown by data.
+- **#393 (merged 19:22Z): the migration is NOT applied and the app change is in no build.** `20261203000000_refuse_new_duration_leagues.sql` is on `main` (a `db push` now applies it together with `20261202000000`); the app change (Duration hidden in Create league, the League type card with Matchup alone) reaches phones in build 15. Merged before the Design Lead's visual gate; the gate is pending (the AX5 gate on the League step has not happened; the still is being captured; any fix is a follow-up PR). Open for Giorgio: the next `db push` applies `20261203000000` together with `20261202000000`, and build 14 still offers Duration (it would get a generic "create failed" after `20261203000000`), so push both now, or hold both until build 15.
+- **#384's client half (merged 18:19Z): in no build.** The ask at the deadline, with retries, reaches phones in build 15. Its effect on pick delays is not yet shown by data (the 2 s sweep's effect is: see Found).
 - **#379 (06:17Z):** Home no longer paints the plain draft card before "Draft postponed". Client only, merged, not in a build.
 - Docs: #389 (my correction record), #390 and #391 (the League type board and Giorgio's ruling), #376 App Store requirements (research), #377 UX rule 13, #378 the auto-pick-is-instant rule, #380 Alpaca market-data display rights (research), #381 privacy policy / terms / support (research), #382 free data sources (research), #383 Tiingo licence read (research), #385 five Design Lead board branches, #386 the popup-may-name-the-metric rule, #387 a board follow-up (one view at a time; question 4 shown as decided). #375 (my 2026-11-10 record) merged 06:11Z.
 
@@ -41,27 +42,30 @@ Entries begin with the Recorder's first pass.
 - A choice we defined carries optional context, an "i" popup (UX rule 13, #377; the other half of rule 12).
 - The auto-pick is instant (#378). His words: up to ~20 s after the clock ran out in his build-14 draft.
 - Duration is won by dollars in every stake mode, "dollars, confirmed" (#385). It confirms DR-001; Duration scoring is unbuilt and its plan is the Planner's.
-- Duration is hidden in Create league until it is built (his pick "A", in #385). The app and server change is a chip, not merged.
+- Duration is hidden in Create league until it is built (his pick "A", in #385). Implemented in #393 (merged; migration not applied, app change in no build).
 - A definition popup may name what decides the winner; rules, marketing and onboarding keep "best performance wins" (#386).
 - The League type card stays, with Matchup alone (Giorgio "A", #391, on the Design Lead's board #390; the board call is archived).
 - Board picks recorded in #385: the Season step B, and below four managers B (already built, #358, and live server-side, #359).
 
 **Found**
 - #384's description reports a measurement: League B on build 12, 21 of 21 auto picks landed 8.3–47.8 s after the deadline (median 10.3 s), with three named causes. That is the PR's own account, not an independent check.
+- **Shown by data, from League A's unattended draft (2026-11-11, 1:45 PM ET, build 14, nobody in the app, all 24 picks auto; Giorgio ran the queries, the Planner relayed them, the Orchestrator marked them verified by data):**
+  - `20261129000000` (#363, a drafted stock leaves every queue) works on prod: GE `queued_x` / `drafted_x` went from 2 / 0 before the draft (12:35 PM ET) to 0 / 1 after it, and T2 never touched its queue again, so the server removed the other copy. This is the server half of step 24e. **Not shown:** the on-screen half (GE leaving the queue with no "Save queue" or "Not saved yet"); the Planner will make it its own step at the next draft Giorgio sits in.
+  - The 2 s sweep (`20261201000000`) works in practice: 21 of 24 auto-picks landed 2.1–4.7 s after the deadline (mean 3.5 s), against League B's cluster of about 10 s (8.3–47.8 s, median 10.3 s); total wait 162 s against 277 s.
+  - **Open, cause confirmed by query:** picks 5, 14 and 23 took 28–32 s, and the same three were slow in League B. All fall just after a :x0 mark and were recorded about 40 s past it. Giorgio's `net._http_response` query (via the Planner; pg_net 0.14.0) showed the enrich-symbols response (id 198712) created at 18:50:00.38, then nothing until 13 sweep responses (ids 198713–198725) all created at 18:50:43.62: the ~43 s `enrich_symbols_10min` request holds pg_net's queue, and the Orchestrator concludes every cron post waits behind it every 10 minutes (one window shown directly). **Fix not started:** offered as a chip (enrich answers the cron at once and works in the background; function-only). STATUS §4 item 28.
 - Phone-pass step 24d passed on build 14 (page tick 06:08Z, Giorgio's own recording): one card, no buttons, and it clears with no tap after the rejoin.
-
-- Before the web app is unpaused: it still offers and defaults to Duration (`Leagues.jsx`, `useLeagues.js`, read on `main`), and the server will refuse a new Duration league once `20261203000000` (open PR #393) is live, so the web default must change to Matchup first (STATUS §4 item 17).
+- Before the web app is unpaused: it still offers and defaults to Duration (`Leagues.jsx`, `LeagueSetupWizard.jsx`, `useLeagues.js`, read on `main`), and the server will refuse a new Duration league once `20261203000000` is applied, so the web default must change to Matchup first (STATUS §4 item 17).
 
 **Waiting on Giorgio**
 - The leave-sheet board call (the Leave sheet in a league of four), open in #385.
 - Re-capture `db-snapshot.json` (stale; same ask as 2026-11-10).
 - Delete the Vault entry `service_role_key` (STATUS §4 item 27).
-- The phone pass from step 24e: he paused it until today. Step 24e is now an unattended League A draft with a proof query and a timing query.
+- The phone pass: step 24e's draft has run and its server half is shown by data (above); the tick is his (not on the page as of my read), and he paused the pass until today. The on-screen half is still owed (the app was closed for the whole draft); the Planner will fold it into one step with the build-15 auto-pick re-check.
+- The `db push` timing call: `20261202000000` and `20261203000000` go together, so push both now, or hold both until build 15 is on phones.
 
 **Next**
-- Planned by the Orchestrator after today's League A draft: the `db push` of `20261202000000` and the deploys of `draft-autopick-sweep` and `validate-and-record-pick` (#392), then a verified-by-query note.
-- In open PR #393, not merged: hiding Duration in Create league (app) plus migration `20261203000000`, which refuses a new Duration league on the server.
-- Build 15 is the earliest the Home fix (#379) and the client half of the auto-pick fix reach a phone.
+- Planned by the Orchestrator now that the draft has run: the `db push` of `20261202000000` (applied together with `20261203000000`, subject to Giorgio's timing call above) and the deploys of `draft-autopick-sweep` and `validate-and-record-pick` (#392), then a verified-by-query note.
+- Build 15 is the earliest the Home fix (#379), the client half of the auto-pick fix and the hidden Duration option (#393) reach a phone.
 - The Planner takes Giorgio through the App Store blockers, using the research above; nothing is decided.
 
 ## 2026-11-10
