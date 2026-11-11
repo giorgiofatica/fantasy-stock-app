@@ -26,8 +26,33 @@ export const MAX_PUSHES_PER_RUN = 50;
  * in total, one attempt per tick, before the row settles as 'failed'. */
 export const MAX_PUSH_ATTEMPTS = 3;
 /** A row stuck in 'sending' this long (the function died mid-send) is
- * reclaimable. Must match draft_order_notify_due()'s interval in SQL. */
+ * reclaimable. Must match draft_order_notify_due()'s and
+ * draft_room_notices_due()'s interval in SQL ('10 minutes').
+ *
+ * OVERLAP INVARIANT (2026-11-11, respond-fast): runs can now overlap (the 202
+ * ends the cron's request at once, so next minute's post is dispatched while
+ * this run still works). A LIVE run's claimed row must therefore never look
+ * stale to an overlapping run, or it would be reclaimed and sent twice. So
+ * STALE_SENDING_MS must exceed the longest a live run can hold one claimed
+ * row. Two bounds, and the constant clears both with margin:
+ *   - per row: claim + context/token reads + ONE Expo call capped at
+ *     PUSH_TIMEOUT_MS (4 s) + settle. MAX_ROW_HOLD_ESTIMATE_MS below.
+ *   - absolute: no invocation outlives EDGE_WALL_CLOCK_MAX_MS, whatever its
+ *     DB calls do (supabase-js reads have no timeout of their own).
+ * Tested in run.test.ts ("STALE_SENDING_MS clears the hold bounds"). */
 export const STALE_SENDING_MS = 10 * 60 * 1000;
+
+/** The edge runtime's wall-clock limit for one invocation, response and
+ * waitUntil work together: 400 s on paid plans (150 s on free). The upper
+ * bound of ANY live run, so of any claimed row's hold. */
+export const EDGE_WALL_CLOCK_MAX_MS = 400 * 1000;
+
+/** A generous per-row hold, from the claim's push_attempted_at stamp to the
+ * settle landing: 6 DB round trips (claim, draft_notice_context or the league
+ * lookup, up to 3 token reads, settle) at a pessimistic 5 s each, plus the 4 s
+ * Expo cap = 34 s. Typical is under 1 s. A floor STALE_SENDING_MS must clear,
+ * not a timeout anything enforces. */
+export const MAX_ROW_HOLD_ESTIMATE_MS = 6 * 5_000 + 4_000;
 
 export function ordinal(n: number): string {
   const mod100 = n % 100;

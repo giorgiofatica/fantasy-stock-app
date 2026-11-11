@@ -21,6 +21,7 @@
 //
 // What is still answered synchronously, so it stays visible in
 // net._http_response: 405 (method), 401 (apikey), 500 (missing secrets).
+import { runInBackground as sharedRunInBackground } from '../_shared/respond-fast.ts';
 import { batchSizeFor, type EnrichConfig, type EnrichResult } from './batch.ts';
 
 export interface HandlerDeps {
@@ -59,23 +60,16 @@ const defaultLog = (...args: unknown[]) => console.log(...args);
 const defaultLogError = (...args: unknown[]) => console.error(...args);
 
 /**
- * Run `work` to completion and write exactly one outcome line. NEVER rejects:
- * the promise handed to waitUntil must not become an unhandled rejection, and a
- * synchronous throw from `work` is caught too (this is an async function).
+ * Run `work` to completion and write exactly one outcome line. NEVER rejects.
+ * The body lives in ../_shared/respond-fast.ts (shared with draft-order-notify,
+ * 2026-11-11); this keeps enrich's signature and its 'enrich-symbols' tag.
  */
-export async function runInBackground(
+export function runInBackground(
   work: () => Promise<EnrichResult>,
   log: (...args: unknown[]) => void = defaultLog,
   logError: (...args: unknown[]) => void = defaultLogError,
 ): Promise<void> {
-  const started = Date.now();
-  try {
-    const result = await work();
-    log('enrich-symbols', JSON.stringify({ ...result, duration_ms: Date.now() - started }));
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    logError('enrich-symbols failed', JSON.stringify({ ok: false, error: message, duration_ms: Date.now() - started }));
-  }
+  return sharedRunInBackground('enrich-symbols', work, log, logError);
 }
 
 export function makeEnrichHandler(deps: HandlerDeps): (req: Request) => Promise<Response> {

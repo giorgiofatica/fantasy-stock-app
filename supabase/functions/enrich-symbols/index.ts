@@ -75,34 +75,12 @@
 // the only cost is doubled Finnhub calls, and a 429 is a transient abort that
 // leaves the cursor where it was.
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { backgroundWaitUntil } from '../_shared/respond-fast.ts';
 import { runEnrichBatch } from './batch.ts';
 import { makeEnrichHandler } from './handler.ts';
 
-// Batches handed to the runtime and not yet settled. Only read by the
-// shutdown log below: a run the wall clock kills writes no outcome line of its
-// own, so this is how that case stays visible in the logs.
-let inFlight = 0;
-
-function waitUntil(p: Promise<unknown>): void {
-  inFlight++;
-  const tracked = p.finally(() => {
-    inFlight--;
-  });
-  // EdgeRuntime is the Supabase Edge Runtime global, read off globalThis at
-  // call time (deno check does not see the edge-runtime.d.ts namespace, and the
-  // wiring test installs a spy here). Absent under plain Deno, where the
-  // promise simply runs on (it never rejects — see runInBackground).
-  const edge = (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): unknown } }).EdgeRuntime;
-  edge?.waitUntil(tracked);
-}
-
-addEventListener('beforeunload', (ev) => {
-  if (inFlight === 0) return;
-  // The runtime's d.ts types detail as the reason string; Supabase's docs read
-  // detail.reason. Accept either.
-  const detail = (ev as CustomEvent<unknown>).detail as { reason?: unknown } | string | undefined;
-  const reason = typeof detail === 'string' ? detail : detail?.reason ?? null;
-  console.error('enrich-symbols terminated with a batch in flight', JSON.stringify({ reason, in_flight: inFlight }));
-});
+// waitUntil + the shutdown log ("enrich-symbols terminated with a batch in
+// flight"), shared with draft-order-notify: ../_shared/respond-fast.ts.
+const waitUntil = backgroundWaitUntil('enrich-symbols', 'a batch');
 
 Deno.serve(makeEnrichHandler({ runBatch: runEnrichBatch, waitUntil }));
