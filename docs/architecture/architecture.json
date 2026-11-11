@@ -2,22 +2,47 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "2a7c603ecc2438be493ebc39fc0812a3c3bed50d",
-    "commitShort": "2a7c603e",
+    "commit": "495a4dcc3a2cf33a4ecdb9e5aee94b0313e339f7",
+    "commitShort": "495a4dcc",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/retire-service-role-key-helpers",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-11-11T03:38:44Z",
-    "sourceHash": "sha256:64664643340a592e69a0f58e784d8c8c1d69c1ed8449f10f875c84e69afee324",
+    "branch": "fix/autopick-instant",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/DraftRoom.tsx"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/lib/game/autoPickAsk.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/useDraftRoom.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/tests-deno/auto-pick-ask.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-draft-room.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql"
+      }
+    ],
+    "timestamp": "2026-11-11T17:53:50Z",
+    "sourceHash": "sha256:b12a9a8670b64c1632f6cfd6e6f09a0ce3bdddb72742d5f6774fe444c348685f",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 99.3,
-    "ageDays": 4.1,
+    "ageHours": 113.6,
+    "ageDays": 4.7,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966",
@@ -73,13 +98,22 @@
       },
       "db": null,
       "declared": {
-        "schedule": "10 seconds",
+        "schedule": "2 seconds",
         "definedIn": [
           "supabase/migrations/20261106000000_schedule_draft_autopick_sweep.sql:61",
-          "supabase/migrations/20261111000002_draft_autopick_sweep_auto_start.sql:39"
+          "supabase/migrations/20261111000002_draft_autopick_sweep_auto_start.sql:39",
+          "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql:77"
         ]
       },
-      "drift": [],
+      "drift": [
+        {
+          "field": "schedule",
+          "declared": "2 seconds",
+          "live": "10 seconds",
+          "severity": "high",
+          "note": "The live cron schedule differs from the latest migration that scheduled this job."
+        }
+      ],
       "annotation": null,
       "verified": true,
       "id": "cron.draft_autopick_sweep",
@@ -87,8 +121,8 @@
       "sublabel": "10 seconds",
       "kind": "cron-job",
       "source": {
-        "path": "supabase/migrations/20261111000002_draft_autopick_sweep_auto_start.sql",
-        "line": 39
+        "path": "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql",
+        "line": 77
       }
     },
     {
@@ -10986,7 +11020,7 @@
       "protocol": "pg-net-http",
       "payload": "net.http_post · apikey from vault cron_apikey",
       "callSites": [
-        "supabase/migrations/20261111000002_draft_autopick_sweep_auto_start.sql:39"
+        "supabase/migrations/20261201000000_autopick_sweep_fast_cadence.sql:77"
       ]
     },
     {
@@ -19430,9 +19464,9 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('validate-and-record-pick')",
       "callSites": [
-        "apps/mobile/components/game/DraftRoom.tsx:228",
-        "apps/mobile/components/game/DraftRoom.tsx:252",
-        "apps/mobile/components/game/DraftRoom.tsx:298"
+        "apps/mobile/components/game/DraftRoom.tsx:241",
+        "apps/mobile/components/game/DraftRoom.tsx:269",
+        "apps/mobile/components/game/DraftRoom.tsx:315"
       ],
       "via": [
         "seamInvoke"
@@ -19684,7 +19718,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_draft_clock')",
       "callSites": [
-        "apps/mobile/lib/game/useDraftRoom.ts:46"
+        "apps/mobile/lib/game/useDraftRoom.ts:53"
       ],
       "via": [
         "seamRpc"
@@ -19699,7 +19733,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_draft_order')",
       "callSites": [
-        "apps/mobile/lib/game/useDraftRoom.ts:47"
+        "apps/mobile/lib/game/useDraftRoom.ts:54"
       ],
       "via": [
         "seamRpc"
@@ -19714,7 +19748,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_league_display_names')",
       "callSites": [
-        "apps/mobile/lib/game/useDraftRoom.ts:49"
+        "apps/mobile/lib/game/useDraftRoom.ts:56"
       ],
       "via": [
         "seamRpc"
@@ -19732,7 +19766,7 @@
         "symbol, position"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useDraftRoom.ts:50"
+        "apps/mobile/lib/game/useDraftRoom.ts:57"
       ]
     },
     {
@@ -19747,7 +19781,7 @@
         "pick_number, symbol, pick_source, entry_price"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useDraftRoom.ts:48"
+        "apps/mobile/lib/game/useDraftRoom.ts:55"
       ]
     },
     {
@@ -22341,6 +22375,16 @@
   ],
   "drift": [
     {
+      "node": "cron.draft_autopick_sweep",
+      "label": "draft_autopick_sweep",
+      "groupKey": "schedule",
+      "field": "schedule",
+      "declared": "2 seconds",
+      "live": "10 seconds",
+      "severity": "high",
+      "note": "The live cron schedule differs from the latest migration that scheduled this job."
+    },
+    {
       "node": "pg.prune_drafted_symbol_from_queues",
       "label": "prune_drafted_symbol_from_queues()",
       "groupKey": "existence",
@@ -23570,8 +23614,8 @@
     "nodes": 312,
     "edges": 765,
     "flows": 7,
-    "drift": 34,
-    "driftHigh": 1,
+    "drift": 35,
+    "driftHigh": 2,
     "deadCode": 63,
     "unverified": 12
   },
@@ -23604,9 +23648,9 @@
     "invokes": [
       "apps/mobile/app/join-league.tsx:85 -> preview-league",
       "apps/mobile/app/join-league.tsx:94 -> join-league",
-      "apps/mobile/components/game/DraftRoom.tsx:228 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:252 -> validate-and-record-pick (via seamInvoke)",
-      "apps/mobile/components/game/DraftRoom.tsx:298 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:241 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:269 -> validate-and-record-pick (via seamInvoke)",
+      "apps/mobile/components/game/DraftRoom.tsx:315 -> validate-and-record-pick (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:21 -> delete-account (via seamInvoke)",
       "apps/mobile/lib/account/accountApi.ts:38 -> join-league (via seamInvoke)",
       "apps/mobile/lib/game/useAllMatchups.ts:83 -> quote (via seamInvoke)",
@@ -23658,9 +23702,9 @@
       "apps/mobile/lib/account/accountApi.ts:56 -> create_takeover_invite (via seamRpc)",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:42 -> get_league_display_names",
       "apps/mobile/lib/account/deletedLabelStore.ts:15 -> deleted_manager_label",
-      "apps/mobile/lib/game/useDraftRoom.ts:46 -> get_draft_clock (via seamRpc)",
-      "apps/mobile/lib/game/useDraftRoom.ts:47 -> get_draft_order (via seamRpc)",
-      "apps/mobile/lib/game/useDraftRoom.ts:49 -> get_league_display_names (via seamRpc)",
+      "apps/mobile/lib/game/useDraftRoom.ts:53 -> get_draft_clock (via seamRpc)",
+      "apps/mobile/lib/game/useDraftRoom.ts:54 -> get_draft_order (via seamRpc)",
+      "apps/mobile/lib/game/useDraftRoom.ts:56 -> get_league_display_names (via seamRpc)",
       "apps/mobile/lib/game/useDraftStatus.ts:66 -> get_draft_clock (via seamRpc)",
       "apps/mobile/lib/game/useLeagueHistory.ts:26 -> get_league_history (via seamRpc)",
       "apps/mobile/lib/game/useLeagueStandings.ts:49 -> get_home_league (via seamRpc)",
@@ -23796,8 +23840,8 @@
       "apps/mobile/lib/game/useDraftAutoStart.ts:142 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/lib/game/useDraftAutoStart.ts:204 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/lib/game/useDraftQueue.ts:47 -> draft_queue.select",
-      "apps/mobile/lib/game/useDraftRoom.ts:48 -> drafts.select",
-      "apps/mobile/lib/game/useDraftRoom.ts:50 -> draft_queue.select",
+      "apps/mobile/lib/game/useDraftRoom.ts:55 -> drafts.select",
+      "apps/mobile/lib/game/useDraftRoom.ts:57 -> draft_queue.select",
       "apps/mobile/lib/game/useFinalLineups.ts:42 -> week_snapshots.select",
       "apps/mobile/lib/game/useFinalLineups.ts:52 -> trades.select",
       "apps/mobile/lib/game/useLeaveLeague.ts:33 -> league_members.select",
@@ -24198,7 +24242,8 @@
       "20261127000000_deleted_seat_label_open_team.sql",
       "20261128000000_reconfirm_clears_at_four.sql",
       "20261129000000_draft_pick_prunes_queues.sql",
-      "20261130000000_retire_service_role_key_helpers.sql"
+      "20261130000000_retire_service_role_key_helpers.sql",
+      "20261201000000_autopick_sweep_fast_cadence.sql"
     ],
     "config": [
       "delete-account=true",
