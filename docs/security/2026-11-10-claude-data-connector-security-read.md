@@ -28,7 +28,7 @@ emails or holdings, he said **"yes as a trial, do the security read first"**.
 
 | Half | Who | What was read | What was not |
 |---|---|---|---|
-| The connector | Researcher (Opus), `docs/research/2026-11-10-supabase-connector-read-only-security.md` @ `b4d05153` | Supabase's MCP docs and source, its Management API docs, Postgres docs, Anthropic's docs, published incident write-ups, all read 2026-11-10 | Nothing was tested hands-on. Four facts are undocumented (below) |
+| The connector | Researcher (Opus), `docs/research/2026-11-10-supabase-connector-read-only-security.md` @ `c5c94798` | Supabase's MCP docs and source, its Management API docs, Postgres docs, Anthropic's docs, published incident write-ups, all read 2026-11-10 | Nothing was tested hands-on. Four facts are undocumented (below) |
 | Our database | `security-reviewer` subagent + the Planner | `supabase/migrations/`, `docs/security/`, `docs/STATUS.md`, `docs/migrations/MIGRATION_STATUS.md`, and `docs/architecture/db-snapshot.json` on `main` (captured 2026-11-07) | Prod was not queried. The reviewer's checkout was behind `main`, so the account-deletion, takeover and invite-preview tables were seen only through the snapshot. The snapshot predates `20261128000000` and `20261129000000` |
 
 Every "can" and "cannot" below about our tables is a statement about grants and policies as
@@ -43,9 +43,16 @@ From the Researcher's file (finding numbers are its own):
   older Supabase blog says the opposite). So: `auth.users` (emails, password hashes),
   `auth.identities`, sessions and refresh tokens, `cron.job`, `net._http_response`, the full
   migration history, and every `public` table. Findings 3 to 6.
-- **Vault: undetermined, and it decides the trial.** `vault.decrypted_secrets` decrypts as
-  it is read. Whether this role gets plain text depends on a grant nobody documents.
-  Finding 7.
+- **Vault: probably not readable in plain text, but not settled, and it decides the trial.**
+  `vault.decrypted_secrets` decrypts by calling a function as it is read. Postgres checks a
+  view's tables against the view's owner, but its functions against whoever runs the query
+  (PostgreSQL 17, CREATE VIEW, Notes: "the user of a view must have permissions to call all
+  functions used by the view"). Vault's install script revokes that decrypt function from
+  `PUBLIC` and grants it to nobody, and `pg_read_all_data` covers tables, views and
+  sequences, not functions. So the reader gets plain text only if some grant outside that
+  script gives it `EXECUTE`. Not settled: the script read was version 0.3.0, the installed
+  version is unknown, and Supabase's platform may add grants. Finding 7. Step 0 below checks
+  it on prod without connecting anything.
 - **Writes are stopped by Postgres only.** The connector forwards a flag; it does not block
   SQL itself. Whether a query can switch its own transaction to read-write is undocumented.
   Findings 9 to 11.
@@ -93,12 +100,51 @@ send data out, and their grants are not in the snapshot.
 
 ## The path, in order
 
+**Step 0. A catalog check on prod: no connection, no secret values.** One read-only query
+in the Supabase SQL editor asks Postgres what `supabase_read_only_user` is allowed to do. It
+reads only the permission catalog, so it returns role names and true/false, never a row of
+data or a secret. It answers on prod what the documents could not: whether the role bypasses
+RLS, which roles it belongs to, and whether it can run Vault's decrypt function or `pg_net`'s
+send functions. *(The query below is drafted by the Planner and must be checked in the
+Orchestrator's pass before Giorgio runs it.)*
+
+```sql
+SELECT 'bypasses RLS' AS what, r.rolname AS name, r.rolbypassrls::text AS answer
+  FROM pg_roles r WHERE r.rolname = 'supabase_read_only_user'
+UNION ALL
+SELECT 'member of', m.rolname, 'true'
+  FROM pg_auth_members am
+  JOIN pg_roles m ON m.oid = am.roleid
+  JOIN pg_roles r ON r.oid = am.member
+ WHERE r.rolname = 'supabase_read_only_user'
+UNION ALL
+SELECT 'can execute', p.oid::regprocedure::text,
+       has_function_privilege('supabase_read_only_user', p.oid, 'EXECUTE')::text
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+ WHERE (n.nspname = 'vault' AND p.proname = '_crypto_aead_det_decrypt')
+    OR (n.nspname = 'net' AND p.proname IN ('http_get', 'http_post'))
+UNION ALL
+SELECT 'can select', c.oid::regclass::text,
+       has_table_privilege('supabase_read_only_user', c.oid, 'SELECT')::text
+  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+ WHERE (n.nspname = 'vault' AND c.relname IN ('decrypted_secrets', 'secrets'))
+    OR (n.nspname = 'auth' AND c.relname = 'users')
+    OR (n.nspname = 'net' AND c.relname IN ('http_request_queue', '_http_response'));
+```
+
+How to read it: "can execute `vault._crypto_aead_det_decrypt`" = **false** means that role
+cannot get Vault plain text. **true** means it can, and prod is not connected. "can execute
+`net.http_...`" = true means the reader could send data out if it can write. An error that
+the role does not exist is itself an answer: the connector would be using some other role,
+and step 1 has to find out which. Step 0 narrows the question; it does not replace step 1,
+because it says nothing about the connector's own behaviour.
+
 **Step 1. Test on a non-prod Supabase project. Required whatever happens next.**
 The Researcher's ten tests (its file, "Hands-on tests"), plus one from this read:
 
 | # | Test | Must show |
 |---|---|---|
-| 1 | Which role runs the SQL, and does it bypass RLS | Recorded, either way |
+| 1 | Which role runs the SQL, does it bypass RLS, and which roles is it a member of | Recorded, either way. If it is a member of `authenticated` or `service_role`, the function-grant finding above no longer protects us |
 | 2 | A dummy Vault secret, then read `vault.decrypted_secrets` | **No plain text.** Plain text ends the prod trial |
 | 3 | `INSERT`, then again after `SET TRANSACTION READ WRITE`, then after turning the read-only default off | All three refused |
 | 4 | A `SECURITY DEFINER` function open to everyone that inserts a row, called the same three ways | Refused |
