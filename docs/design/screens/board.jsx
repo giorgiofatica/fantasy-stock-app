@@ -381,6 +381,7 @@
   const OPEN = [
     ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)'],
     ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)'],
+    ['call-leave-below-four', 'The Leave sheet in a league of four'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
@@ -502,6 +503,7 @@
         {window.KSRule12Info ? <window.KSRule12Info /> : null}
         {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
         {window.KSBelowFour ? <window.KSBelowFour /> : null}
+        {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
         {window.KSDraftClock ? <window.KSDraftClock /> : null}
         {window.KSTopBar ? <window.KSTopBar /> : null}
         {window.KSQueueRow ? <window.KSQueueRow /> : null}
