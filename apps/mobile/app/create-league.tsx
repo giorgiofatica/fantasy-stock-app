@@ -112,8 +112,9 @@ interface WizardState {
   pickSeconds: number;
 }
 
-// The League type card keeps its layout with Matchup as the only choice (Design Lead's call
-// whether the section stays at all). Duration's row is DURATION_TYPE_OPTION, unused.
+// The League type card stays, with Matchup as its one option, already selected (PRODUCT_RULES,
+// "The League type card stays, with Matchup alone", 2026-11-11). When Duration comes back it
+// rejoins this card; its row is DURATION_TYPE_OPTION, unused until then.
 const TYPE_OPTIONS: { value: WizardState['type']; label: string; help: string }[] = [
   { value: 'matchup', label: 'Matchup', help: 'Weekly head-to-head battles with playoffs at the end.' },
 ];

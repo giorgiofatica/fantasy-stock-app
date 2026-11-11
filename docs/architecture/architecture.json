@@ -2,8 +2,8 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "2da9d075ce75d9962796a2804f919ff08b8d14df",
-    "commitShort": "2da9d075",
+    "commit": "7483658e3e4ed7973f30335ea2d2a633b85ec5ea",
+    "commitShort": "7483658e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
@@ -11,22 +11,10 @@
       {
         "code": "M",
         "path": "apps/mobile/app/create-league.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/createLeagueSteps.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/create-league-no-duration.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "supabase/migrations/20261203000000_refuse_new_duration_leagues.sql"
       }
     ],
-    "timestamp": "2026-11-11T18:42:48Z",
-    "sourceHash": "sha256:a590f29a2be8f396c5f34809feb2b0bb7ce1e1fde19a3dea6d88916d6ed076e9",
+    "timestamp": "2026-11-11T18:42:52Z",
+    "sourceHash": "sha256:036608ae2c900f3337d600837d4cfe833b529a5d128b4abf5aa66a90124cea42",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -19535,7 +19523,7 @@
       "payload": ".from('league_draft_slots').delete()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:238"
+        "apps/mobile/app/create-league.tsx:239"
       ],
       "via": [
         "seamSaveLeagueSlots"
@@ -19551,7 +19539,7 @@
       "payload": ".from('league_draft_slots').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:238"
+        "apps/mobile/app/create-league.tsx:239"
       ],
       "via": [
         "seamSaveLeagueSlots"
@@ -19567,7 +19555,7 @@
       "payload": ".from('league_members').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:228"
+        "apps/mobile/app/create-league.tsx:229"
       ],
       "via": [
         "seamInsertMember"
@@ -19583,7 +19571,7 @@
       "payload": ".from('leagues').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:201"
+        "apps/mobile/app/create-league.tsx:202"
       ],
       "via": [
         "seamInsertLeague"
@@ -24002,10 +23990,10 @@
       "apps/mobile/app/(tabs)/matchup.tsx:97 -> drafts.select (via useRosterData)",
       "apps/mobile/app/(tabs)/matchup.tsx:97 -> league_draft_slots.select (via useRosterData)",
       "apps/mobile/app/(tabs)/matchup.tsx:97 -> trades.select (via useRosterData)",
-      "apps/mobile/app/create-league.tsx:201 -> leagues.insert (via seamInsertLeague)",
-      "apps/mobile/app/create-league.tsx:228 -> league_members.insert (via seamInsertMember)",
-      "apps/mobile/app/create-league.tsx:238 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
-      "apps/mobile/app/create-league.tsx:238 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
+      "apps/mobile/app/create-league.tsx:202 -> leagues.insert (via seamInsertLeague)",
+      "apps/mobile/app/create-league.tsx:229 -> league_members.insert (via seamInsertMember)",
+      "apps/mobile/app/create-league.tsx:239 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
+      "apps/mobile/app/create-league.tsx:239 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
       "apps/mobile/app/league-settings.tsx:266 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/app/league-settings.tsx:288 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
       "apps/mobile/app/league-settings.tsx:288 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
