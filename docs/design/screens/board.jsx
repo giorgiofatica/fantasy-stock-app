@@ -383,7 +383,6 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-type-step', 'The League type, now that only Matchup is offered', () => window.KSTypeStep],
     ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)', () => window.KSRule12Sweep],
     ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)', () => window.KSRule12Info],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
@@ -393,6 +392,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-type-step', title: 'The League type, now that only Matchup is offered', decision: 'A: the card stays, with Matchup as its one option, already selected, and its i; Duration rejoins it when it comes back. No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (The League type card stays, with Matchup alone)', render: () => window.KSTypeStepArchived },
     { id: 'call-season-step', title: 'The Season step in Create league', decision: 'B: three identical steppers ("11 wks"), no line under any label; a season strip (one tile per week, the playoff weeks named WC / SF / F, "Wk 1" to the last week) and the bye line; a limit\'s reason shows only at the limit. The sweep of the other screens is not yet decided.', date: '2026-11-10', rec: 'PRODUCT_RULES (The Season step in Create league)', render: () => window.KSSeasonStepArchived },
     { id: 'call-below-four', title: 'When a league drops below 4 before its draft', decision: 'B: below 4, one card (who left, "Fewer than 4 teams have joined.", the invite code and Share), no "Move forward"; at 4 or more, unchanged. "Invite someone to take their place" approved.', date: '2026-11-10', rec: 'PRODUCT_RULES (Below 4, there is nothing to move forward with)', render: () => window.KSBelowFourArchived },
     { id: 'call-draft-clock', title: 'The clock while you search', decision: 'A: while it is your pick and the clock card is off the screen, a small clock pinned at the top (the ring, the seconds, "Your pick"). "Your pick" approved with A.', date: '2026-11-06', rec: 'PRODUCT_RULES (The clock while you search)', render: () => window.KSDraftClockArchived },

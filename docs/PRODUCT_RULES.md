@@ -391,6 +391,11 @@ building anything, and don't reopen a rule without him.
   when its scoring is planned, built and verified. The Planner's reading, not his words: the
   server refuses to create a Duration league as well, so the block does not rest on the app
   alone; Duration leagues that already exist are left as they are.
+- **The League type card stays, with Matchup alone** (2026-11-11, "A" on the Design Lead's
+  board, shown A keep the card with Matchup alone, B a fixed line "League type · Matchup",
+  C drop it): Create league › League still shows "League type" as the option card, with
+  Matchup as its one option, already selected, and its "i". When Duration comes back, it
+  rejoins the same card. No new words.
 - **"Season gain"** = regular-season `points_for` only. In the playoffs it stays at the
   final regular-season total.
 - **Ranking** (standings = playoff seeding, one order, computed only in SQL
