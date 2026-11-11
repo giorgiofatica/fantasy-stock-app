@@ -51,7 +51,7 @@
           <span style={{ display: 'grid', gap: 3 }}><span style={{ fontSize: 16, fontWeight: 800 }}>{a}</span>{b && b !== true ? <span className="dr-cap" style={{ fontSize: 13, lineHeight: '18px', ...grey }}>{b}</span> : null}</span>
         </span>
       );
-      case 'switch': return <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 15, fontWeight: 700 }}>{a}</span><span style={{ width: 50, height: 30, borderRadius: 999, background: 'var(--c-track)', flex: 'none', position: 'relative' }}><span style={{ position: 'absolute', left: 2, top: 2, width: 26, height: 26, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)' }} /></span></span>;
+      case 'switch': return <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 15, fontWeight: 700, flex: 1 }}>{a}</span>{b && window.KSInfoKit ? <window.KSInfoKit.InfoI /> : null}<span style={{ width: 50, height: 30, borderRadius: 999, background: 'var(--c-track)', flex: 'none', position: 'relative' }}><span style={{ position: 'absolute', left: 2, top: 2, width: 26, height: 26, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)' }} /></span></span>;
       case 'code': return <span style={{ display: 'grid', gap: 2 }}><span className="dr-cap" style={{ fontSize: 12 }}>Invite code</span><span className="dr-num" style={{ fontSize: 24, fontWeight: 900, letterSpacing: '0.08em' }}>{a}</span></span>;
       case 'bar': return <span style={{ height: 8, borderRadius: 4, background: 'var(--c-track)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: `${a * 100}%`, background: 'var(--c-accent)' }} /></span>;
       case 'avatars': return <span style={{ display: 'flex', gap: 6 }}>{a.map((i) => <Av key={i} init={i} you={i === 'RB'} size={32} />)}</span>;
@@ -60,6 +60,7 @@
       case 'check': return <span style={{ display: 'grid', gap: 4 }}>{a.map((c) => <span key={c} className="dr-cap" style={{ fontSize: 13, display: 'flex', gap: 6, alignItems: 'center' }}><Icon d={ICON.circle || ICON.check} size={14} width={2} />{c}</span>)}</span>;
       case 'wheel': return <span style={{ height: 120, borderRadius: 12, background: 'var(--c-inset)', display: 'grid', placeItems: 'center', fontSize: 18, fontWeight: 700 }}><span style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--c-surface)' }}>{a}</span></span>;
       case 'standing': return <span style={{ display: 'grid' }}>{a.map(([n, nm, wl, g], i) => <span key={nm} style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 40, fontSize: 14 }}><span className="dr-num" style={{ width: 14, fontWeight: 800 }}>{i + 1}</span><Av init={n} you={n === 'RB'} size={24} /><span style={{ flex: 1, fontWeight: n === 'RB' ? 800 : 600 }}>{nm}</span><span className="dr-num" style={{ width: 40 }}>{wl}</span><span className="dr-num" style={{ width: 56, textAlign: 'right', color: 'var(--c-gain, var(--c-text))' }}>{g}</span></span>)}</span>;
+      case 'choices': return window.KSInfoKit ? <window.KSInfoKit.ChoiceCard opts={a} info={!!b} /> : null;
       case 'gap': return <span style={{ height: a || 4 }} />;
       case 'rule': return <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />;
       default: return null;
@@ -171,14 +172,14 @@
         { card: [['label', 'Stake per slot ($)'], ['field', '', '$1,000'], C('grey', 'Each pick simulates this dollar amount (fractional shares).'), ['rule'], ['switch', 'Allow non-draftable stocks (full universe)'], C('grey', 'Off (default): only vetted draftable stocks. On: the entire universe, including penny stocks and micro-caps.')] },
       ] },
       afterS: { head: 'back', right: 'Step 4 of 4', blocks: [
-        { bare: [['h1', 'Stakes'], ['option', 'Equal stakes', true, true], ['option', 'Price tiers'], ['option', 'Budget cap']] },
-        { card: [['label', 'Stake per slot ($)'], ['field', '', '$1,000'], ['rule'], ['switch', 'Allow non-draftable stocks (full universe)']] },
+        { bare: [['h1', 'Stakes'], ['choices', [['Equal stakes', true], ['Price tiers', false], ['Budget cap', false]], true]] },
+        { card: [['label', 'Stake per slot ($)'], ['field', '', '$1,000'], ['rule'], ['switch', 'Allow non-draftable stocks (full universe)', true]] },
       ] },
       lines: [
         ['"How do teams stake their picks?"', 'CUT', 'Restates the step\'s title.'],
-        ['The three options\' paragraphs', 'CUT', 'Choosing an option shows its own fields right under it (a stake per slot; slots with price ranges; a cap), and those fields are what the mode is. If you want a word per option, that is new copy for you; I recommend none.'],
+        ['The three options\' paragraphs', 'MOVED', 'Behind an i at the end of each option (your tweak): tap it for one short line and a picture. Nothing under the row. The switch gets an i too. Drawn in "The i" below.'],
         ['"Each pick simulates this dollar amount (fractional shares)."', 'CUT', 'The field\'s label says it.'],
-        ['"Off (default): only vetted draftable stocks. On: the entire universe…"', 'CUT', 'The switch\'s label says it, "(full universe)" included.'],
+        ['"Off (default): only vetted draftable stocks. On: the entire universe…"', 'MOVED', 'Behind an i on the switch: "draftable" is our filter, and the label can\'t say what it is.'],
         ['Price tiers\' "Required: each slot sets a price range." (and Settings\' "Optional: …")', 'CUT', 'A rule the save enforces: "Price tiers need at least one slot with a price range." shows in place.'],
       ],
     },
@@ -351,13 +352,12 @@
   ];
   const ASK = [
     ['"Don\'t worry. You will be able to change this later." (Create league\'s name field)', 'An explainer by the rule, but it reads like your January copy. Cut, or yours to keep?'],
-    ['The Stakes options with no line', 'Recommended: the name only; the fields under the chosen one show the mode. A one-line description each would be new copy.'],
   ];
   const DONE_ELSEWHERE = [
     ['Create league › Season', 'Decided: B, the strip (its own board). Its lines under Managers, Playoff teams and Regular season go with it.'],
     ['The draft room, Home\'s and League\'s live card, the end of the draft, the recap', 'Drawn to rule 12 on the draft room board (every heading listed there).'],
     ['Appearance: "System follows your phone\'s light or dark setting. Saved on this device."', 'CUT (the options say it).'],
-    ['Create league › League: "Name your league and choose how it\'s played.", the League type paragraphs, the duration options\' "Quick game" / "Standard" / …', 'CUT, as Stakes: the names and the controls.'],
+    ['Create league › League: "Name your league and choose how it\'s played." and the duration options\' "Quick game" / "Standard" / …', 'CUT. The League type paragraphs move behind an i on Matchup and Duration (your example; drawn in "The i" below).'],
     ['Create league › done: "Share the invite code to bring your league in."', 'CUT (the Share button); "Set a draft time before the draft can start." KEEP (what is blocking).'],
     ['Home this week, pre-season: "No leader yet. Scoring starts at Monday\'s open."', '"No leader yet." CUT (0 to 0 says it); the time KEEP.'],
     ['Draft room, paused: "The clock is stopped and nobody is skipped."', 'CUT (the ring stops); the second sentence (who has been told / what lets it continue) KEEP.'],
@@ -382,7 +382,8 @@
         <ul className="b-inv__notes">
           <li><b>A line stays</b> only if it is a fact you need now that the card shows nowhere else: a time, a count, a name, or what is blocking you. One line at most.</li>
           <li><b>A line goes</b> if it says what the thing is or how it works, repeats the heading, the label or the button, or states a rule the control already enforces (that one comes back only as the refusal, in place, when you hit it).</li>
-          <li><b>Recommended: all of it</b>, screen by screen as drawn. Two lines are yours to rule on, at the end.</li>
+          <li><b>Recommended: all of it</b>, screen by screen as drawn. One line is yours to rule on, at the end.</li>
+          <li><b>Your tweak (2026-11-10):</b> where an option is key, ours and not obvious, its definition isn't cut, it moves behind an i at the end of the row, with a popup (a short line and a picture, a × to close). Point 4 is redrawn with it, and "The i" section after the sweep has every popup and the list of which options get one.</li>
         </ul>
         {SWEEP.map((x) => (
           <div key={x.id}>

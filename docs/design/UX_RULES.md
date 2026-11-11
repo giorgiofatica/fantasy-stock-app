@@ -232,6 +232,12 @@ How a feature works may be said once, in that feature's empty state, where there
 else to show. A count belongs beside the heading as a number, not in a sentence. This rule
 removes text; it never asks for new copy, and any replacement wording is new copy for Giorgio.
 
+A definition the player needs in order to choose (what Matchup or Price tiers means) is not
+an explainer to cut silently: it moves behind an "i" at the end of the option's row, which
+opens a popup with one short line and a visual, closed by a × (Giorgio, 2026-11-10,
+PRODUCT_RULES "Optional context behind an i"). Only for an option that is key to the flow,
+defined by us, and not obvious; never for a limit, which stays a refusal in place.
+
 **How the gate checks it.** On every capture, list each heading (card title, section label,
 setting label, sheet title) with every line of text between it and the first control or row.
 Each such line is named in the report with one of: *fact needed now* (which fact), or

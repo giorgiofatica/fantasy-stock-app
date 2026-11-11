@@ -11352,6 +11352,474 @@ window.KS_REFS = {
 
 </script>
 <script type="text/babel" data-presets="react">
+// Stockpile key-screens board — Giorgio's tweak to the rule 12 sweep (2026-11-10): "a little information i on
+// the end of each bar with a pop up explaining … it could even be a two part pop up, one explaining it with a
+// concise word explanation and another with a visual. there should be a small x in the corner … for instances
+// where a selection is key to process and has been defined by us and isnt obvious, then we need to give the
+// user optional context". The i, the popup (A: words and visual together; B: two pages), every popup's words
+// and visual, the AX5 frames, and which options get an i. Review notes sit UNDER the phones, never inside.
+(function () {
+  const { Device, Icon, ICON } = window.KSKit;
+  const { Fit, G, Av, NEW } = window.KSGN;
+
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>{children}</div>;
+  /** Text size: x is the Dynamic Type multiplier (1 = Large, ~3 = AX5 uncapped); cap is where that text stops. */
+  const z = (px, x = 1, cap) => Math.round(px * Math.min(x, cap || x));
+  const ROW = 1.3; // option rows stop at 1.3x, as Holdings and Schedule rows do
+  const TITLE = 1.6; // card and popup titles stop at 1.6x
+  const WORDS = undefined; // the popup's line is reading text: it grows the whole way (AX5 ~3.1x), and the card scrolls
+  const VIS = 1.4; // labels inside a visual stop at 1.4x so the diagram keeps its shape
+  const grey = { color: 'var(--c-text-2)' };
+
+  // ── The i: 44pt target at the end of the row, a 22pt glyph in the secondary text colour. Never selects. ──
+  function InfoI({ x = 1, on }) {
+    return (
+      <span aria-label="About" style={{ width: 44, height: 44, flex: 'none', display: 'grid', placeItems: 'center', marginRight: -10, color: on ? 'var(--c-accent)' : 'var(--c-text-2)', borderRadius: 999, background: on ? 'var(--c-accent-tint)' : 'transparent' }}>
+        <Icon d={ICON.info} size={z(22, x, ROW)} width={2} />
+      </span>
+    );
+  }
+  const Radio = ({ on, x = 1 }) => (
+    <span style={{ width: z(22, x, ROW), height: z(22, x, ROW), borderRadius: 999, flex: 'none', boxShadow: on ? `inset 0 0 0 ${z(7, x, ROW)}px var(--c-accent)` : 'inset 0 0 0 2px var(--c-border-strong)' }} />
+  );
+  /** A card of option rows (the app's SetupCard + ChoiceRow): radio, the name, the i. No line under any name. */
+  function ChoiceCard({ opts, x = 1, info = true, pressed }) {
+    return (
+      <div className="dr-a-card" style={{ padding: '0 16px', display: 'grid' }}>
+        {opts.map(([name, on], i) => (
+          <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 56, borderTop: i ? '1px solid var(--c-border)' : 'none', paddingBlock: x > 1 ? 8 : 0 }}>
+            <Radio on={on} x={x} />
+            <span style={{ flex: 1, minWidth: 0, fontSize: z(16, x, ROW), lineHeight: 1.25, fontWeight: 700 }}>{name}</span>
+            {info ? <InfoI x={x} on={pressed === name} /> : null}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  const Tag = ({ children, x = 1 }) => <span className="dr-tag" style={{ fontSize: z(11, x, ROW), color: 'var(--c-text-2)' }}>{children}</span>;
+  /** A label row that ends in an i (a segmented control's label, a stepper's, a switch's). */
+  function LabelI({ label, value, x = 1, kind, info = true }) {
+    return (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 44 }}>
+        <span style={{ fontSize: z(15, x, ROW), fontWeight: 700, flex: kind === 'switch' ? 1 : 'none', minWidth: 0 }}>{label}</span>
+        {info ? <InfoI x={x} /> : null}
+        {kind === 'stepper' ? (
+          <span style={{ marginLeft: 'auto', display: 'inline-flex', border: '1px solid var(--c-border)', borderRadius: 10, overflow: 'hidden', flex: 'none' }}>
+            <span style={{ width: 40, height: 40, display: 'grid', placeItems: 'center' }}><Icon d="M5 12h14" size={16} width={2.4} /></span>
+            <b className="dr-num" style={{ minWidth: 48, display: 'grid', placeItems: 'center', fontSize: 16, borderInline: '1px solid var(--c-border)' }}>{value}</b>
+            <span style={{ width: 40, height: 40, display: 'grid', placeItems: 'center' }}><Icon d={ICON.plus} size={16} width={2.4} /></span>
+          </span>
+        ) : kind === 'switch' ? (
+          <span style={{ width: 50, height: 30, borderRadius: 999, background: 'var(--c-track)', flex: 'none', position: 'relative', marginLeft: 6 }}><span style={{ position: 'absolute', left: 2, top: 2, width: 26, height: 26, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)' }} /></span>
+        ) : value ? <span className="dr-cap dr-num" style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 600, ...grey }}>{value}</span> : null}
+      </span>
+    );
+  }
+  const Seg = ({ opts, on }) => (
+    <div style={{ display: 'flex', borderRadius: 10, padding: 3, background: 'var(--c-inset)', gap: 3 }}>{opts.map((o) => <span key={o} style={{ flex: 1, textAlign: 'center', padding: '7px 0', borderRadius: 8, fontSize: 14, fontWeight: o === on ? 800 : 600, background: o === on ? 'var(--c-surface)' : 'transparent' }}>{o}</span>)}</div>
+  );
+  const Field = ({ v }) => <span style={{ minHeight: 46, borderRadius: 10, background: 'var(--c-inset)', padding: '0 12px', display: 'flex', alignItems: 'center', fontSize: 15 }}>{v}</span>;
+
+  // ── The steps, as they are after the sweep, with the i. ──
+  function Step({ n, title, x = 1, children }) {
+    return (
+      <>
+        <div style={{ padding: `8px ${G}px 0`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ color: 'var(--c-accent)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, fontSize: z(15, x, ROW) }}><Icon d={ICON.left} size={18} width={2.4} />{n === 1 ? 'Cancel' : 'Back'}</span>
+          <span className="dr-cap dr-num" style={{ fontSize: z(12, x, ROW) }}>{`Step ${n} of 4`}</span>
+        </div>
+        <div style={{ padding: `12px ${G}px 24px`, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 14 }}>
+          <span style={{ fontSize: z(30, x, TITLE), lineHeight: 1.15, fontWeight: 800 }}>{title}</span>
+          {children}
+        </div>
+      </>
+    );
+  }
+  const LeagueStep = ({ x = 1, pressed }) => (
+    <Step n={1} title="League" x={x}>
+      <div style={{ display: 'grid', gap: 6 }}>
+        <span style={{ fontSize: z(15, x, ROW), fontWeight: 700 }}>League name</span>
+        <Field v="Serie A Traders" />
+      </div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        <Tag x={x}>League type</Tag>
+        <ChoiceCard x={x} opts={[['Matchup', true], ['Duration', false]]} pressed={pressed} />
+      </div>
+    </Step>
+  );
+  const StakesStep = ({ x = 1, pressed }) => (
+    <Step n={4} title="Stakes" x={x}>
+      <ChoiceCard x={x} opts={[['Equal stakes', true], ['Price tiers', false], ['Budget cap', false]]} pressed={pressed} />
+      <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 10 }}>
+        <span style={{ fontSize: 15, fontWeight: 700 }}>Stake per slot ($)</span>
+        <Field v="$1,000" />
+        <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />
+        <LabelI x={x} label="Allow non-draftable stocks (full universe)" kind="switch" />
+      </div>
+    </Step>
+  );
+  const DraftStep = () => (
+    <Step n={3} title="Draft">
+      <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 10 }}>
+        <span style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ fontSize: 17, fontWeight: 800 }}>Pick clock</span><span className="dr-num" style={{ fontWeight: 700 }}>60 seconds</span></span>
+        <Seg opts={['30', '45', '60', '75', '90']} on="60" />
+      </div>
+      <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 10 }}>
+        <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 28 }}><span style={{ fontSize: 15, fontWeight: 700 }}>Draft time</span><span style={{ ...grey, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>TBD<Icon d={ICON.right} size={14} width={2.4} /></span></span>
+        <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />
+        <LabelI label="Draft order" />
+        <Seg opts={['Random', 'Manual']} on="Random" />
+        <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />
+        <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 15, fontWeight: 700 }}>Rounds</span>
+          <span style={{ display: 'inline-flex', border: '1px solid var(--c-border)', borderRadius: 10, overflow: 'hidden' }}><span style={{ width: 40, height: 40, display: 'grid', placeItems: 'center' }}><Icon d="M5 12h14" size={16} width={2.4} /></span><b className="dr-num" style={{ minWidth: 48, display: 'grid', placeItems: 'center', fontSize: 16, borderInline: '1px solid var(--c-border)' }}>6</b><span style={{ width: 40, height: 40, display: 'grid', placeItems: 'center' }}><Icon d={ICON.plus} size={16} width={2.4} /></span></span>
+        </span>
+      </div>
+    </Step>
+  );
+  const SeasonStep = () => (
+    <Step n={2} title="Season">
+      <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 10 }}>
+        <LabelI label="Managers" value="8" kind="stepper" info={false} />
+        <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />
+        <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 15, fontWeight: 700 }}>Regular season</span><b className="dr-num" style={{ fontSize: 16 }}>11 weeks</b></span>
+        <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />
+        <LabelI label="Playoff teams" value="6" kind="stepper" />
+      </div>
+    </Step>
+  );
+
+  // ── The visuals. s = the label scale (capped at VIS). ──
+  const L = (px, x) => z(px, x, VIS);
+  const money = { fontVariantNumeric: 'tabular-nums' };
+  function VisMatchup({ x = 1 }) {
+    const row = (init, name, gain, win, you) => (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 34 }}>
+        <Av init={init} you={you} size={L(24, x)} />
+        <span style={{ flex: 1, fontSize: L(14, x), fontWeight: win ? 800 : 600 }}>{name}</span>
+        <span className="dr-num" style={{ ...money, fontSize: L(14, x), fontWeight: 800, color: gain.startsWith('+') ? 'var(--c-gain)' : 'var(--c-loss)' }}>{gain}</span>
+        <span style={{ width: L(22, x), textAlign: 'center', fontSize: L(12, x), fontWeight: 900, color: win ? 'var(--c-gain)' : 'transparent' }}>W</span>
+      </span>
+    );
+    const pair = (a, b) => <span style={{ display: 'grid', fontSize: L(12, x), padding: '4px 8px', borderRadius: 8, background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)', whiteSpace: 'nowrap' }}><span><b className="dr-num">{a[0]}</b> {a[1]}</span><span style={grey}><b className="dr-num">{b[0]}</b> {b[1]}</span></span>;
+    return (
+      <div style={{ display: 'grid', gap: 10 }}>
+        <span className="dr-tag" style={{ fontSize: L(11, x), ...grey }}>Week 3</span>
+        <div style={{ display: 'grid' }}>{row('RB', 'You', '+$24.10', true, true)}{row('MR', 'Marco R.', '−$8.30', false)}</div>
+        <span style={{ height: 1, background: 'var(--c-border)' }} />
+        <span className="dr-tag" style={{ fontSize: L(11, x), ...grey }}>After the regular season</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ display: 'grid', gap: 6, flex: 1, minWidth: 0 }}>
+            {pair([1, 'You'], [4, 'Elena M.'])}
+            {pair([2, 'Luca C.'], [3, 'Marco R.'])}
+          </span>
+          <Icon d={ICON.right} size={L(16, x)} width={2.4} />
+          <span style={{ fontSize: L(12, x), fontWeight: 800, padding: '8px 12px', borderRadius: 8, background: 'var(--c-accent-tint)' }}>Final</span>
+        </div>
+      </div>
+    );
+  }
+  function VisDuration({ x = 1 }) {
+    const W = 300, H = 120;
+    const lines = [
+      { pts: [0, 8, 4, 22, 30, 46, 58, 72, 92], c: 'var(--c-accent)', w: 3, name: 'Marco R.', end: '+$182' },
+      { pts: [0, 12, 18, 14, 34, 40, 38, 52, 66], c: 'var(--c-you-text)', w: 2.5, name: 'You', end: '+$131' },
+      { pts: [0, -6, 6, 10, 4, 18, 26, 22, 30], c: 'var(--c-text-2)', w: 1.5 },
+      { pts: [0, 4, -4, -10, -2, -8, 2, -6, -12], c: 'var(--c-text-2)', w: 1.5 },
+    ];
+    const px = (i) => (i / 8) * (W - 70), py = (v) => H - 20 - ((v + 20) / 115) * (H - 30);
+    return (
+      <div style={{ display: 'grid', gap: 6 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }} aria-hidden="true">
+          <line x1="0" x2={W - 70} y1={py(0)} y2={py(0)} stroke="var(--c-border)" strokeDasharray="3 4" />
+          {lines.map((l, k) => <polyline key={k} points={l.pts.map((v, i) => `${px(i)},${py(v)}`).join(' ')} fill="none" stroke={l.c} strokeWidth={l.w} strokeLinejoin="round" strokeLinecap="round" />)}
+          <line x1={W - 70} x2={W - 70} y1="6" y2={H - 14} stroke="var(--c-text-2)" strokeWidth="1.5" />
+          {lines.filter((l) => l.name).map((l, k) => (
+            <text key={k} x={W - 64} y={py(l.pts[8]) + 4} fontSize={L(12, x)} fontWeight="800" fill={l.c}>{k === 0 ? '1st' : '2nd'}</text>
+          ))}
+        </svg>
+        <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: L(12, x), ...grey }}><span>Start</span><span>End</span></span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: L(13, x) }}><Av init="MR" size={L(22, x)} /><b style={{ flex: 1 }}>Marco R. wins</b><b className="dr-num" style={{ ...money, color: 'var(--c-gain)' }}>+$182.40</b></span>
+      </div>
+    );
+  }
+  const STOCKS = { F: ['F', 11.2], NVDA: ['NVDA', 186.42], MSFT: ['MSFT', 512.18], COST: ['COST', 918.3] };
+  const $ = (n) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  function VisEqual({ x = 1 }) {
+    return (
+      <div style={{ display: 'grid', gap: 10 }}>
+        {['F', 'NVDA', 'COST'].map((k) => {
+          const [t, p] = STOCKS[k];
+          return (
+            <div key={k} style={{ display: 'grid', gap: 4 }}>
+              <span style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: L(13, x), flexWrap: 'wrap' }}><b className="dr-t">{t}</b><span className="dr-num" style={{ ...grey, ...money }}>{$(p)}</span><span className="dr-num" style={{ marginLeft: 'auto', ...grey, ...money }}>{`${(1000 / p).toFixed(2)} shares`}</span></span>
+              <span style={{ height: L(18, x), borderRadius: 6, background: 'var(--c-accent)', color: 'var(--c-primary-fg, #fff)', fontSize: L(11, x), fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8 }} className="dr-num">$1,000</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  function VisTiers({ x = 1 }) {
+    const rows = [['Slot 1', 'Under $50', 'F'], ['Slot 2', '$50 to $300', 'NVDA'], ['Slot 3', '$300 and up', 'COST']];
+    return (
+      <div style={{ display: 'grid', gap: 8 }}>
+        {rows.map(([s, r, k]) => (
+          <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 10px', borderRadius: 10, background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
+            <span style={{ display: 'grid', flex: 1, minWidth: 0 }}><b style={{ fontSize: L(13, x) }}>{s}</b><span className="dr-num" style={{ fontSize: L(12, x), ...grey }}>{r}</span></span>
+            <span style={{ display: 'grid', textAlign: 'right' }}><b className="dr-t" style={{ fontSize: L(13, x) }}>{k}</b><span className="dr-num" style={{ fontSize: L(12, x), ...grey, ...money }}>{`${$(STOCKS[k][1])} · 1 share`}</span></span>
+          </span>
+        ))}
+      </div>
+    );
+  }
+  function VisCap({ x = 1 }) {
+    const ks = ['F', 'NVDA', 'MSFT', 'COST'];
+    const cap = 2500, total = ks.reduce((a, k) => a + STOCKS[k][1], 0);
+    const tone = ['var(--c-text-2)', 'var(--c-accent)', 'var(--c-you-text)', 'var(--c-gain)'];
+    return (
+      <div style={{ display: 'grid', gap: 8 }}>
+        <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: L(13, x) }}><b className="dr-num" style={money}>{$(total)}</b><span className="dr-num" style={{ ...grey, ...money }}>Cap $2,500</span></span>
+        <span style={{ position: 'relative', height: L(22, x), borderRadius: 6, background: 'var(--c-track)', display: 'flex', overflow: 'hidden', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
+          {ks.map((k, i) => <span key={k} style={{ width: `${(STOCKS[k][1] / cap) * 100}%`, background: tone[i], borderRight: '2px solid var(--c-surface)' }} />)}
+        </span>
+        <span style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px' }}>
+          {ks.map((k, i) => <span key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: L(12, x) }}><span style={{ width: 10, height: 10, borderRadius: 3, background: tone[i], flex: 'none' }} /><b className="dr-t">{k}</b><span className="dr-num" style={{ ...grey, ...money, marginLeft: 'auto' }}>{$(STOCKS[k][1])}</span></span>)}
+        </span>
+        <span style={{ fontSize: L(12, x), ...grey }} className="dr-num">{`${$(cap - total)} left under the cap`}</span>
+      </div>
+    );
+  }
+  function VisOrder({ x = 1 }) {
+    const P = [['MR', 'Marco R.'], ['LC', 'Luca C.'], ['RB', 'You'], ['EM', 'Elena M.']];
+    const round = (label, list, dir) => (
+      <div style={{ display: 'grid', gap: 6 }}>
+        <span className="dr-tag" style={{ fontSize: L(11, x), ...grey }}>{label}</span>
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {list.map(([i, n], k) => (
+            <React.Fragment key={i}>
+              {k ? <span style={{ color: 'var(--c-text-2)', display: 'grid' }}><Icon d={dir > 0 ? ICON.right : ICON.left} size={L(14, x)} width={2.4} /></span> : null}
+              <span style={{ display: 'grid', justifyItems: 'center', gap: 2 }}><Av init={i} you={i === 'RB'} size={L(26, x)} /><span className="dr-num" style={{ fontSize: L(11, x), fontWeight: 800 }}>{`Pick ${dir > 0 ? k + 1 : 8 - k}`}</span></span>
+            </React.Fragment>
+          ))}
+        </span>
+      </div>
+    );
+    return (
+      <div style={{ display: 'grid', gap: 12 }}>
+        {round('Round 1', P, 1)}
+        {round('Round 2', P, -1)}
+      </div>
+    );
+  }
+  function VisPlayoffs({ x = 1 }) {
+    const box = (a, b, hi) => (
+      <span style={{ display: 'grid', fontSize: L(12, x), borderRadius: 8, background: hi ? 'var(--c-accent-tint)' : 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)', padding: '4px 8px', minWidth: 0 }}>
+        <span style={{ whiteSpace: 'nowrap' }}>{a}</span>{b ? <span style={{ whiteSpace: 'nowrap', ...grey }}>{b}</span> : null}
+      </span>
+    );
+    const col = (label, items) => <div style={{ display: 'grid', gap: 6, alignContent: 'center' }}><span className="dr-tag" style={{ fontSize: L(10, x), ...grey }}>{label}</span>{items}</div>;
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, alignItems: 'center' }}>
+        {col('Wild card', [<React.Fragment key="1">{box(<b>1 · bye</b>)}{box('4 Elena M.', '5 Sara T.')}{box(<b>2 · bye</b>)}{box('3 Marco R.', '6 Dario N.')}</React.Fragment>])}
+        {col('Semifinals', [<React.Fragment key="2">{box('1 You', '4 or 5')}{box('2 Luca C.', '3 or 6')}</React.Fragment>])}
+        {col('Final', [<React.Fragment key="3">{box(<b>The two</b>, 'winners', true)}</React.Fragment>])}
+      </div>
+    );
+  }
+  function VisDraftable({ x = 1 }) {
+    const chip = (t, muted) => <span className={muted ? '' : 'dr-t'} style={{ fontSize: L(12, x), fontWeight: muted ? 600 : 800, padding: '3px 7px', borderRadius: 6, background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)', whiteSpace: 'nowrap', ...(muted ? grey : null) }}>{t}</span>;
+    return (
+      <div style={{ borderRadius: 14, border: '2px dashed var(--c-border-strong)', padding: 10, display: 'grid', gap: 8 }}>
+        <span className="dr-tag" style={{ fontSize: L(11, x), ...grey }}>On · every US stock</span>
+        <div style={{ borderRadius: 10, background: 'var(--c-accent-tint)', padding: 10, display: 'grid', gap: 8 }}>
+          <span className="dr-tag" style={{ fontSize: L(11, x), color: 'var(--c-text)' }}>Off · draftable stocks only</span>
+          <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{chip('AAPL')}{chip('NVDA')}{chip('COST')}{chip('F')}</span>
+        </div>
+        <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{chip('a $0.40 stock', true)}{chip('a $90 million company', true)}</span>
+      </div>
+    );
+  }
+
+  // ── Every popup: title (the option's name), one line (NEW), the visual, its VoiceOver label (NEW). ──
+  const POPS = {
+    matchup: { title: 'Matchup', line: 'Each week you play one team, and the bigger dollar gain wins. The best records make the playoffs.', Vis: VisMatchup, behind: 'league',
+      vo: 'Example: in week 3 you gain $24.10 and Marco R. loses $8.30, so you win the week. After the regular season, the top 4 play off.' },
+    duration: { title: 'Duration', line: 'One race for the whole league. The biggest gain at the end wins.', Vis: VisDuration, behind: 'league',
+      vo: 'Example: four teams race from start to end. Marco R. finishes first, up $182.40.' },
+    equal: { title: 'Equal stakes', line: 'Every pick is the same dollar amount, so a cheap stock counts as much as an expensive one.', Vis: VisEqual, behind: 'stakes',
+      vo: 'Example: $1,000 buys 89.29 shares of F, 5.36 of NVDA, or 1.09 of COST.' },
+    tiers: { title: 'Price tiers', line: 'One share per pick. Each slot takes stocks in its own price range.', Vis: VisTiers, behind: 'stakes',
+      vo: 'Example: slot 1 takes stocks under $50, like F. Slot 2, $50 to $300, like NVDA. Slot 3, $300 and up, like COST.' },
+    cap: { title: 'Budget cap', line: 'One share per pick. Your shares together can’t cost more than the cap.', Vis: VisCap, behind: 'stakes',
+      vo: 'Example: one share each of F, NVDA, MSFT and COST costs $1,628.10, under a $2,500 cap.' },
+    order: { title: 'Draft order', line: 'Random shuffles it an hour before the draft; Manual lets you set it. Either way, it reverses each round.', Vis: VisOrder, behind: 'draft',
+      vo: 'Example: in round 1 Marco R. picks first and Elena M. fourth. In round 2 it runs back: Elena M. picks fifth and Marco R. eighth.' },
+    playoffs: { title: 'Playoff teams', line: 'The top teams in the standings play a bracket. When it doesn’t fill evenly, the top seeds skip the first round.', Vis: VisPlayoffs, behind: 'season',
+      vo: 'Example with 6 teams: seeds 1 and 2 skip the wild card round, 3 plays 6 and 4 plays 5, then the semifinals and the final.' },
+    draftable: { title: 'Non-draftable stocks', line: 'Off: stocks at $1 or more, on a major US exchange, from companies worth $250 million or more. On: every US stock, penny stocks too.', Vis: VisDraftable, behind: 'stakes',
+      vo: 'Off, only draftable stocks like AAPL, NVDA, COST and F. On, every US stock, including a $0.40 stock or a $90 million company.' },
+  };
+  const BEHIND = { league: LeagueStep, stakes: StakesStep, draft: DraftStep, season: SeasonStep };
+
+  /** The × : a 44pt target, a 16pt glyph on a sunken disc, top right of the card. */
+  const Close = ({ x = 1, float }) => (
+    <span aria-label="Close" style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', flex: 'none', marginTop: -8, marginRight: -10, ...(float ? { position: 'absolute', top: 10, right: 12, marginTop: 0, marginRight: 0, zIndex: 2 } : null) }}>
+      <span style={{ width: z(28, x, ROW), height: z(28, x, ROW), borderRadius: 999, background: 'var(--c-inset)', display: 'grid', placeItems: 'center', boxShadow: float ? '0 1px 6px rgba(0,0,0,.18)' : 'none' }}><Icon d={ICON.close} size={z(14, x, ROW)} width={2.6} /></span>
+    </span>
+  );
+  /**
+   * The popup. form 'A': the line and the visual together. form 'B': page 1 (words) or 2 (visual), with dots.
+   * x > 1: AX5. The card fills the screen between the status bar and the home indicator and scrolls inside;
+   * the × floats, pinned top right. scrolled: drawn scrolled down to the visual.
+   */
+  function Popup({ k, x = 1, form = 'A', page = 1, scrolled = false }) {
+    const p = POPS[k];
+    const ax = x > 1;
+    const words = (
+      <>
+        <span style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <span style={{ flex: 1, fontSize: z(20, x, TITLE), lineHeight: 1.2, fontWeight: 800 }}>{p.title}</span>
+          {ax ? <span style={{ width: 34, flex: 'none' }} /> : <Close x={x} />}
+        </span>
+        <span style={{ fontSize: z(15, x, WORDS), lineHeight: 1.35 }}>{p.line}</span>
+      </>
+    );
+    const visRef = React.useRef(null);
+    const cardRef = React.useRef(null), bodyRef = React.useRef(null);
+    const [shift, setShift] = React.useState(0);
+    const [over, setOver] = React.useState(false);
+    React.useLayoutEffect(() => {
+      if (!ax || !cardRef.current || !bodyRef.current) return;
+      const room = cardRef.current.clientHeight, need = bodyRef.current.scrollHeight;
+      setOver(need > room);
+      if (scrolled) setShift(Math.max(0, need - room));
+    }, [scrolled, ax]);
+    const vis = <div ref={visRef} style={{ borderRadius: 14, background: 'var(--c-inset)', padding: 14 }}><p.Vis x={x} /></div>;
+    const dots = <span style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>{[1, 2].map((d) => <span key={d} style={{ width: 7, height: 7, borderRadius: 9, background: d === page ? 'var(--c-text)' : 'var(--c-border-strong)' }} />)}</span>;
+    const body = form === 'A' ? <>{words}{vis}</> : page === 1 ? <>{words}<span className="dr-btn dr-btn--line" style={{ width: '100%', minHeight: 44, boxSizing: 'border-box', fontSize: 15 }}>See an example</span>{dots}</> : (
+      <><span style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}><span style={{ flex: 1, fontSize: z(20, x, TITLE), fontWeight: 800 }}>{p.title}</span><Close x={x} /></span>{vis}{dots}</>
+    );
+    return (
+      <>
+        <div style={{ position: 'absolute', inset: 0, background: 'var(--c-scrim, rgba(0,0,0,.4))' }} />
+        <div ref={cardRef} role="dialog" aria-label={p.title} className="dr-a-card" style={{
+          position: 'absolute', left: 16, right: 16, ...(ax ? { top: 58, bottom: 30 } : { top: '50%', transform: 'translateY(-50%)' }),
+          borderRadius: 22, boxShadow: '0 12px 40px rgba(0,0,0,.28)', overflow: 'hidden',
+        }}>
+          {ax ? <Close x={x} float /> : null}
+          <div ref={bodyRef} style={{ padding: 20, display: 'grid', gap: 14, ...(ax && scrolled ? { transform: `translateY(-${shift}px)` } : null) }}>{body}</div>
+          {ax && over ? <span style={{ position: 'absolute', right: 4, top: scrolled ? '62%' : 64, width: 4, height: 90, borderRadius: 4, background: 'var(--c-border-strong)' }} /> : null}
+        </div>
+      </>
+    );
+  }
+  function PopFrame({ t, k, x = 1, form, page, scrolled }) {
+    const B = BEHIND[POPS[k].behind];
+    return (
+      <Th t={t}>
+        <Device noTabs label={`${POPS[k].title}: the i's popup, ${x > 1 ? 'AX5' : 'Large'}, ${t}`} overlay={<Popup k={k} x={x} form={form} page={page} scrolled={scrolled} />}>
+          <B x={x > 1 ? 2.4 : 1} />
+        </Device>
+      </Th>
+    );
+  }
+  function StepFrame({ t, B, x = 1, label, pressed }) {
+    return <Th t={t}><Device noTabs label={label}><B x={x} pressed={pressed} /></Device></Th>;
+  }
+
+  const fig = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}><Fit>{node}</Fit><figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const Grid = ({ children }) => <div className="b-concepts b-concepts--three">{children}</div>;
+
+  const GETS = [
+    ['League type: Matchup, Duration', 'Create league › League', 'Your example. Ours, key, and the names alone don\'t say how you win.'],
+    ['Stakes: Equal stakes, Price tiers, Budget cap', 'Create league › Stakes; League settings', 'Ours and not obvious: they change what a pick costs and how many shares you get.'],
+    ['Draft order (one i for Random and Manual)', 'Create league › Draft; League settings; Season 2 review', 'Who sets it and when is ours; the i also shows that the order reverses each round (the "snake" line we cut).'],
+    ['Playoff teams', 'Create league › Season (Matchup only); League settings', 'Byes to the top seeds are ours, and the number alone doesn\'t show them.'],
+    ['Allow non-draftable stocks', 'Create league › Stakes; League settings', '"Draftable" is our filter ($1, $250 million, a major exchange); the label can\'t say it.'],
+  ];
+  const NOT = [
+    ['Duration lengths (1 Week … 1 Year)', 'The names say it.'],
+    ['Pick clock (30 to 90 seconds), Managers, Regular season weeks', 'A number with its unit on the heading\'s line.'],
+    ['Stake per slot, the budget cap presets, a slot\'s price range', 'Dollar amounts.'],
+    ['A slot\'s category (Tech, Energy, …)', 'Plain names; the list shows them.'],
+    ['Draft time, Appearance, Season 2\'s "I\'m in" / "I\'m out"', 'Obvious.'],
+    ['Rounds', 'A close call, yours: it is how many stocks each team drafts. I left it out because the draft room shows "Round 2 of 6"; say if you want one.'],
+    ['Any limit (a stepper\'s max, the hour\'s notice, "Up to 5")', 'Never an i. A limit shows as the reason beside a control that can\'t act, or as the refusal in place, as the sweep and your Season pick (B) have it.'],
+    ['Read-only summaries (Join\'s preview, League settings\' "Type: Matchup")', 'Not a choice, so no i for now.'],
+  ];
+
+  function Section() {
+    const keys = Object.keys(POPS);
+    return (
+      <section className="b-sec" id="rule12-info" aria-labelledby="rule12-info-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Rule 12</span>
+          <div>
+            <h2 id="rule12-info-h">Your call: the i, for a choice we defined</h2>
+            <p className="b-job">Your tweak to the sweep: "a little information i on the end of each bar with a pop up explaining … one explaining it with a concise word explanation and another with a visual … a small x in the corner". Below: the rows with the i, the popup two ways, every popup's words and picture, and the popup at your text size.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>The i</b> sits at the end of the row, in grey, with a 44pt target. Tapping it opens the popup and never selects the row; tapping the name still selects. VoiceOver reads it as "About Matchup", button. Nothing shows under the row.</li>
+          <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line <NEW />, and a small picture <NEW />. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description <NEW /> (the "VoiceOver:" lines below), so it isn't silent.</li>
+          <li><b>A · Words and picture together</b> (recommended): both parts in one look; one tap opens it, one closes it. <b>B · Two pages</b>: the words first, then "See an example" (or a swipe) for the picture. B takes an extra tap to reach the picture, and the picture explains the most.</li>
+          <li><b>At your size (AX5)</b> the card fills the screen and scrolls inside, and the × stays pinned in its corner while the words scroll under it. The line grows the whole way, since it's the part you read. The title stops at 1.6× and the picture's labels at 1.4×, so the picture keeps its shape. The build gate checks the real thing.</li>
+          <li><b>Pictures use example numbers</b> (prices, gains, names from the board's fixture league). They show how a mode works, not anyone's real results; the words never quote a number that could go stale, except the draftable filter's own $1 and $250 million.</li>
+        </ul>
+
+        <h3 className="b-sub">The rows, with the i</h3>
+        <Grid>{[
+          fig('lg-l', 'Create league › League · Large · Light', <StepFrame t="light" B={LeagueStep} label="League step with the i" />, 'Your example: each league type ends in an i. "Don\'t worry. You will be able to change this later." is still yours to rule on (sweep, "Yours to rule on"), so it is left out here.'),
+          fig('lg-d', 'Create league › League · Large · Dark', <StepFrame t="dark" B={LeagueStep} label="League step with the i, dark" />),
+          fig('lg-x', 'Create league › League · your size (AX5) · Light', <StepFrame t="light" B={LeagueStep} x={2.4} label="League step with the i, AX5" />, 'The names stop at 1.3×; the i keeps its 44pt target at the end of the row.'),
+          fig('st-l', 'Create league › Stakes · Large · Light', <StepFrame t="light" B={StakesStep} label="Stakes step with the i" />, 'The three stake modes and the non-draftable switch.'),
+          fig('dr-l', 'Create league › Draft · Large · Light', <StepFrame t="light" B={DraftStep} label="Draft step with the i" />, 'One i for the Draft order control (it covers Random and Manual). Pick clock and Rounds get none.'),
+          fig('se-l', 'Create league › Season · Large · Light', <StepFrame t="light" B={SeasonStep} label="Season step with the i" />, 'Only the i is new here. The rest of your Season pick (B) is on its own board and not redrawn.'),
+        ]}</Grid>
+
+        <h3 className="b-sub">The popup: A (words and picture together) or B (two pages)</h3>
+        <Grid>{[
+          fig('fa', 'A · Matchup · Large · Light', <PopFrame t="light" k="matchup" form="A" />, 'Recommended. The name, the line, the picture, the × in the corner.'),
+          fig('fb1', 'B · page 1 · Large · Light', <PopFrame t="light" k="matchup" form="B" page={1} />, 'The words, then "See an example" (NEW) or a swipe.'),
+          fig('fb2', 'B · page 2 · Large · Light', <PopFrame t="light" k="matchup" form="B" page={2} />, 'The picture, on its own page.'),
+        ]}</Grid>
+
+        <h3 className="b-sub">Every popup (A), Light</h3>
+        <Grid>{keys.map((k) => fig(`p-${k}-l`, `${POPS[k].title} · Large · Light`, <PopFrame t="light" k={k} />, `VoiceOver: "${POPS[k].vo}"${k === 'duration' ? ' Check: no rule says whether a Duration league ranks by dollars or percent; the picture shows dollars, as Matchup does, and the line says only "gain".' : ''}`))}</Grid>
+        <h3 className="b-sub">Every popup (A), Dark</h3>
+        <Grid>{keys.map((k) => fig(`p-${k}-d`, `${POPS[k].title} · Large · Dark`, <PopFrame t="dark" k={k} />))}</Grid>
+
+        <h3 className="b-sub">At your size (AX5): it scrolls inside, the × stays put</h3>
+        <Grid>{[
+          fig('x1', 'Matchup · AX5 · Light · top', <PopFrame t="light" k="matchup" x={3.1} />, 'The card fills the screen. The line grows the whole way, so the picture is below the fold; the bar on the right says there is more.'),
+          fig('x2', 'Matchup · AX5 · Dark · scrolled to the end', <PopFrame t="dark" k="matchup" x={3.1} scrolled />, 'Scrolled to the picture: the × is still in its corner.'),
+          fig('x3', 'Non-draftable stocks · AX5 · Light · top', <PopFrame t="light" k="draftable" x={3.1} />, 'The longest line. It runs past the card, so the card scrolls inside; the bar on the right says so.'),
+          fig('x4', 'Non-draftable stocks · AX5 · Light · scrolled to the end', <PopFrame t="light" k="draftable" x={3.1} scrolled />, 'Scrolled: the × is still in its corner, over the words.'),
+          fig('x5', 'Playoff teams · AX5 · Dark · scrolled to the end', <PopFrame t="dark" k="playoffs" x={3.1} scrolled />, 'The tallest picture, the same behaviour.'),
+        ]}</Grid>
+
+        <h3 className="b-sub">Which options get an i</h3>
+        <ul className="b-inv__notes">{GETS.map(([a, w, b]) => <li key={a}><b style={{ color: 'var(--c-gain, #2e7d32)' }}>i</b> · <b>{a}</b> ({w}) — {b}</li>)}</ul>
+        <h3 className="b-sub">Which don't, and why</h3>
+        <ul className="b-inv__notes">{NOT.map(([a, b]) => <li key={a}><b>{a}</b> — {b}</li>)}</ul>
+        <h3 className="b-sub">New words, to approve as written</h3>
+        <ul className="b-inv__notes">
+          {keys.map((k) => <li key={k}><b>{POPS[k].title}:</b> "{POPS[k].line}"</li>)}
+          <li><b>B only:</b> "See an example".</li>
+          <li><b>Spoken only (VoiceOver):</b> "About {'{option}'}" on each i, "Close" on the ×, and the picture descriptions under each Light popup above.</li>
+        </ul>
+      </section>
+    );
+  }
+
+  window.KSInfoKit = { ChoiceCard, InfoI };
+  window.KSRule12Info = () => <Section />;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
 // Stockpile key-screens board — the UX rule 12 sweep ("No explainer under a heading"; Giorgio, 2026-11-10,
 // said three times in one day; UX_RULES rule 12, merged #365). Every heading on every screen with the lines
 // under it, each KEEP (which fact) or CUT (and where its fact went), worst first. Before = as it ships on
@@ -11405,7 +11873,7 @@ window.KS_REFS = {
           <span style={{ display: 'grid', gap: 3 }}><span style={{ fontSize: 16, fontWeight: 800 }}>{a}</span>{b && b !== true ? <span className="dr-cap" style={{ fontSize: 13, lineHeight: '18px', ...grey }}>{b}</span> : null}</span>
         </span>
       );
-      case 'switch': return <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 15, fontWeight: 700 }}>{a}</span><span style={{ width: 50, height: 30, borderRadius: 999, background: 'var(--c-track)', flex: 'none', position: 'relative' }}><span style={{ position: 'absolute', left: 2, top: 2, width: 26, height: 26, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)' }} /></span></span>;
+      case 'switch': return <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 15, fontWeight: 700, flex: 1 }}>{a}</span>{b && window.KSInfoKit ? <window.KSInfoKit.InfoI /> : null}<span style={{ width: 50, height: 30, borderRadius: 999, background: 'var(--c-track)', flex: 'none', position: 'relative' }}><span style={{ position: 'absolute', left: 2, top: 2, width: 26, height: 26, borderRadius: 999, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.25)' }} /></span></span>;
       case 'code': return <span style={{ display: 'grid', gap: 2 }}><span className="dr-cap" style={{ fontSize: 12 }}>Invite code</span><span className="dr-num" style={{ fontSize: 24, fontWeight: 900, letterSpacing: '0.08em' }}>{a}</span></span>;
       case 'bar': return <span style={{ height: 8, borderRadius: 4, background: 'var(--c-track)', overflow: 'hidden' }}><span style={{ display: 'block', height: '100%', width: `${a * 100}%`, background: 'var(--c-accent)' }} /></span>;
       case 'avatars': return <span style={{ display: 'flex', gap: 6 }}>{a.map((i) => <Av key={i} init={i} you={i === 'RB'} size={32} />)}</span>;
@@ -11414,6 +11882,7 @@ window.KS_REFS = {
       case 'check': return <span style={{ display: 'grid', gap: 4 }}>{a.map((c) => <span key={c} className="dr-cap" style={{ fontSize: 13, display: 'flex', gap: 6, alignItems: 'center' }}><Icon d={ICON.circle || ICON.check} size={14} width={2} />{c}</span>)}</span>;
       case 'wheel': return <span style={{ height: 120, borderRadius: 12, background: 'var(--c-inset)', display: 'grid', placeItems: 'center', fontSize: 18, fontWeight: 700 }}><span style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--c-surface)' }}>{a}</span></span>;
       case 'standing': return <span style={{ display: 'grid' }}>{a.map(([n, nm, wl, g], i) => <span key={nm} style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 40, fontSize: 14 }}><span className="dr-num" style={{ width: 14, fontWeight: 800 }}>{i + 1}</span><Av init={n} you={n === 'RB'} size={24} /><span style={{ flex: 1, fontWeight: n === 'RB' ? 800 : 600 }}>{nm}</span><span className="dr-num" style={{ width: 40 }}>{wl}</span><span className="dr-num" style={{ width: 56, textAlign: 'right', color: 'var(--c-gain, var(--c-text))' }}>{g}</span></span>)}</span>;
+      case 'choices': return window.KSInfoKit ? <window.KSInfoKit.ChoiceCard opts={a} info={!!b} /> : null;
       case 'gap': return <span style={{ height: a || 4 }} />;
       case 'rule': return <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />;
       default: return null;
@@ -11525,14 +11994,14 @@ window.KS_REFS = {
         { card: [['label', 'Stake per slot ($)'], ['field', '', '$1,000'], C('grey', 'Each pick simulates this dollar amount (fractional shares).'), ['rule'], ['switch', 'Allow non-draftable stocks (full universe)'], C('grey', 'Off (default): only vetted draftable stocks. On: the entire universe, including penny stocks and micro-caps.')] },
       ] },
       afterS: { head: 'back', right: 'Step 4 of 4', blocks: [
-        { bare: [['h1', 'Stakes'], ['option', 'Equal stakes', true, true], ['option', 'Price tiers'], ['option', 'Budget cap']] },
-        { card: [['label', 'Stake per slot ($)'], ['field', '', '$1,000'], ['rule'], ['switch', 'Allow non-draftable stocks (full universe)']] },
+        { bare: [['h1', 'Stakes'], ['choices', [['Equal stakes', true], ['Price tiers', false], ['Budget cap', false]], true]] },
+        { card: [['label', 'Stake per slot ($)'], ['field', '', '$1,000'], ['rule'], ['switch', 'Allow non-draftable stocks (full universe)', true]] },
       ] },
       lines: [
         ['"How do teams stake their picks?"', 'CUT', 'Restates the step\'s title.'],
-        ['The three options\' paragraphs', 'CUT', 'Choosing an option shows its own fields right under it (a stake per slot; slots with price ranges; a cap), and those fields are what the mode is. If you want a word per option, that is new copy for you; I recommend none.'],
+        ['The three options\' paragraphs', 'MOVED', 'Behind an i at the end of each option (your tweak): tap it for one short line and a picture. Nothing under the row. The switch gets an i too. Drawn in "The i" below.'],
         ['"Each pick simulates this dollar amount (fractional shares)."', 'CUT', 'The field\'s label says it.'],
-        ['"Off (default): only vetted draftable stocks. On: the entire universe…"', 'CUT', 'The switch\'s label says it, "(full universe)" included.'],
+        ['"Off (default): only vetted draftable stocks. On: the entire universe…"', 'MOVED', 'Behind an i on the switch: "draftable" is our filter, and the label can\'t say what it is.'],
         ['Price tiers\' "Required: each slot sets a price range." (and Settings\' "Optional: …")', 'CUT', 'A rule the save enforces: "Price tiers need at least one slot with a price range." shows in place.'],
       ],
     },
@@ -11705,13 +12174,12 @@ window.KS_REFS = {
   ];
   const ASK = [
     ['"Don\'t worry. You will be able to change this later." (Create league\'s name field)', 'An explainer by the rule, but it reads like your January copy. Cut, or yours to keep?'],
-    ['The Stakes options with no line', 'Recommended: the name only; the fields under the chosen one show the mode. A one-line description each would be new copy.'],
   ];
   const DONE_ELSEWHERE = [
     ['Create league › Season', 'Decided: B, the strip (its own board). Its lines under Managers, Playoff teams and Regular season go with it.'],
     ['The draft room, Home\'s and League\'s live card, the end of the draft, the recap', 'Drawn to rule 12 on the draft room board (every heading listed there).'],
     ['Appearance: "System follows your phone\'s light or dark setting. Saved on this device."', 'CUT (the options say it).'],
-    ['Create league › League: "Name your league and choose how it\'s played.", the League type paragraphs, the duration options\' "Quick game" / "Standard" / …', 'CUT, as Stakes: the names and the controls.'],
+    ['Create league › League: "Name your league and choose how it\'s played." and the duration options\' "Quick game" / "Standard" / …', 'CUT. The League type paragraphs move behind an i on Matchup and Duration (your example; drawn in "The i" below).'],
     ['Create league › done: "Share the invite code to bring your league in."', 'CUT (the Share button); "Set a draft time before the draft can start." KEEP (what is blocking).'],
     ['Home this week, pre-season: "No leader yet. Scoring starts at Monday\'s open."', '"No leader yet." CUT (0 to 0 says it); the time KEEP.'],
     ['Draft room, paused: "The clock is stopped and nobody is skipped."', 'CUT (the ring stops); the second sentence (who has been told / what lets it continue) KEEP.'],
@@ -11736,7 +12204,8 @@ window.KS_REFS = {
         <ul className="b-inv__notes">
           <li><b>A line stays</b> only if it is a fact you need now that the card shows nowhere else: a time, a count, a name, or what is blocking you. One line at most.</li>
           <li><b>A line goes</b> if it says what the thing is or how it works, repeats the heading, the label or the button, or states a rule the control already enforces (that one comes back only as the refusal, in place, when you hit it).</li>
-          <li><b>Recommended: all of it</b>, screen by screen as drawn. Two lines are yours to rule on, at the end.</li>
+          <li><b>Recommended: all of it</b>, screen by screen as drawn. One line is yours to rule on, at the end.</li>
+          <li><b>Your tweak (2026-11-10):</b> where an option is key, ours and not obvious, its definition isn't cut, it moves behind an i at the end of the row, with a popup (a short line and a picture, a × to close). Point 4 is redrawn with it, and "The i" section after the sweep has every popup and the list of which options get one.</li>
         </ul>
         {SWEEP.map((x) => (
           <div key={x.id}>
@@ -12148,6 +12617,7 @@ window.KS_REFS = {
   // ── Waiting on you: ONLY the open calls, newest first (Giorgio, 2026-10-12). ──
   const OPEN = [
     ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)'],
+    ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)'],
   ];
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
@@ -12264,6 +12734,7 @@ window.KS_REFS = {
         </header>
 
         {window.KSRule12Sweep ? <window.KSRule12Sweep /> : null}
+        {window.KSRule12Info ? <window.KSRule12Info /> : null}
         {window.KSDraftClock ? <window.KSDraftClock /> : null}
         {window.KSTopBar ? <window.KSTopBar /> : null}
         {window.KSQueueRow ? <window.KSQueueRow /> : null}

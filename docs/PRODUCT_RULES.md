@@ -305,6 +305,20 @@ building anything, and don't reopen a rule without him.
   if it is a fact the player cannot see anywhere else on that card and needs right now (a
   time, a count, a name, what is blocking them). A line that says what the thing is, how it
   works, or repeats the heading or the button, goes.
+- **Optional context behind an "i", for a choice we defined** (2026-11-10, on the rule 12
+  sweep board, which he approved in direction): "on pt 4 create league screens, the
+  different league types need to be explained or else the user wont know what they are
+  selected. i dont want this to be shows in text below, but a little information i on the
+  end of each bar with a pop up explaining would be great. it could even be a two part pop
+  up, one explaining it with a concise word explanation and another with a visual. there
+  should be a small x in the corner for the user to close out of and this should be a thing
+  for all options. so for instances where a selection is key to process and has been defined
+  by us and isnt obvious, then we need to give the user optional context". So: an option
+  that is key to the flow, defined by us and not obvious gets an "i" at the end of its row;
+  it opens a popup with a short line and a visual, closed by a small × in the corner. Nothing
+  shows under the row. The "i" is for what an option IS; a control that can't act still
+  shows its reason beside it (rule 12's limits stay refusals in place). Which options get
+  one, the popup's form and its words are on the Design Lead's sweep board for his approval.
 
 ## Scoring and standings
 
