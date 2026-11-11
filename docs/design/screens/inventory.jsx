@@ -2073,19 +2073,20 @@
     );
   }
   /** The leave sheet. mode: 'pre' (before the draft) | 'A' soft leave | 'B' forfeit. */
-  function LeaveSheet({ mode = 'A' }) {
+  function LeaveSheet({ mode = 'A', items: given, top: givenTop }) {
     const pre = mode === 'pre';
     const name = pre ? K.SERIE_A.name : K.LEAGUE.name;
-    const items = pre
+    // items / top: a board call can redraw the bullets (leave-below-four.jsx); unset, the approved ones.
+    const items = given ? given : pre
       ? ['Roberto B. chooses whether to go ahead with one fewer team or invite someone new.', `You can rejoin with the invite code until ${K.SERIE_A.revealAt}.`]
       : mode === 'A'
         ? ['Your team plays out the season on autopilot: it keeps its stocks, makes no trades and still plays its matchups.', 'You can still see the league, but you can’t rejoin this season.']
         : ['Your team forfeits every matchup left this season.', 'Your stocks are sold at the market price and go back to the pool.', 'You can’t rejoin this season.'];
     return (
       <Device tab="league" label={`Leave sheet, ${mode}`} overlay={
-        <Sheet top={pre ? 470 : mode === 'A' ? 430 : 420}>
+        <Sheet top={givenTop != null ? givenTop : pre ? 470 : mode === 'A' ? 430 : 420}>
           <span className="ks-title">Leave {name}?</span>
-          <Bullets items={items} />
+          {items.length ? <Bullets items={items} /> : null}
           <DangerBtn>Leave league</DangerBtn>
           <StayBtn />
         </Sheet>
