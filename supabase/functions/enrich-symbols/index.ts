@@ -49,278 +49,60 @@
 // check against SB_SECRET_KEY_CRON in-code (snapshot-week-start pattern,
 // fail-closed).
 //
-// Effect-verify (per CLAUDE.md, counts not statuses): the response reports
-// batch/profiled/priced/draftable/price_errors/price_status counts and
-// unmatched_industries; the scheduled job's real check is data movement —
+// RESPONSE vs OUTCOME (2026-11-11, docs/STATUS.md §4 item 28): the handler
+// answers 202 {accepted:true, batch_limit} at once and runs the batch in the
+// background (EdgeRuntime.waitUntil), because pg_net holds every later cron
+// post behind a slow request. The 202 is not a success claim. The run's
+// counts (batch/profiled/priced/draftable/price_errors/price_status,
+// unmatched_industries, duration_ms) are ONE log line at the end of the
+// background work: `enrich-symbols {...}`, or `enrich-symbols failed {...}` on
+// a throw, or `enrich-symbols terminated with a batch in flight` if the
+// runtime shuts the worker down first. See ./handler.ts and ./batch.ts.
+//
+// Effect-verify (per CLAUDE.md, counts not statuses): the scheduled job's real
+// check is data movement —
+//   SELECT max(enriched_at), count(*) FILTER (WHERE enriched_at IS NOT NULL) FROM symbols;
 //   SELECT count(*) FILTER (WHERE active AND last_price IS NULL),
 //          count(*) FILTER (WHERE is_draftable)
 //   FROM symbols;
-// trending down/up over the hours after deploy, plus BAC/F specifically.
+// max(enriched_at) advancing ~50 rows per run; the unpriced count trending down.
+//
+// OVERLAP: none in practice, and harmless if it happened. pg_cron fires every
+// 10 minutes whether or not the previous run finished (it did before this
+// change too: net.http_post never waited), and the edge wall clock (150 s
+// free / 400 s paid) ends any run well inside 10 minutes. Two overlapping
+// runs would select the same stalest rows and write the same values to them;
+// the only cost is doubled Finnhub calls, and a 429 is a transient abort that
+// leaves the cursor where it was.
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { computeIsDraftable } from '../_shared/symbol-eligibility.ts';
-import {
-  computePriceStatus,
-  fetchPricesBisecting,
-  mergeBatchSelection,
-  partitionForAlpaca,
-  priorityCapFor,
-  type BatchFetchResult,
-} from './price-batch.ts';
+import { runEnrichBatch } from './batch.ts';
+import { makeEnrichHandler } from './handler.ts';
 
-const DEFAULT_BATCH = 50;
-const MAX_BATCH = 80; // 80 * 1100ms = 88s Finnhub time — headroom under the 150s edge wall clock
-const FINNHUB_SPACING_MS = 1100; // stay under 60 calls/min
-const PRICE_ERROR_SYMBOLS_LOGGED = 20; // cap the rejected-symbols list in the response/log
+// Batches handed to the runtime and not yet settled. Only read by the
+// shutdown log below: a run the wall clock kills writes no outcome line of its
+// own, so this is how that case stays visible in the logs.
+let inFlight = 0;
 
-function constantTimeEqual(a: string, b: string): boolean {
-  const aBytes = new TextEncoder().encode(a);
-  const bBytes = new TextEncoder().encode(b);
-  if (aBytes.length !== bBytes.length) return false;
-  let result = 0;
-  for (let i = 0; i < aBytes.length; i++) result |= aBytes[i] ^ bBytes[i];
-  return result === 0;
+function waitUntil(p: Promise<unknown>): void {
+  inFlight++;
+  const tracked = p.finally(() => {
+    inFlight--;
+  });
+  // EdgeRuntime is the Supabase Edge Runtime global, read off globalThis at
+  // call time (deno check does not see the edge-runtime.d.ts namespace, and the
+  // wiring test installs a spy here). Absent under plain Deno, where the
+  // promise simply runs on (it never rejects — see runInBackground).
+  const edge = (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): unknown } }).EdgeRuntime;
+  edge?.waitUntil(tracked);
 }
 
-function isAuthorized(req: Request): boolean {
-  const expected = Deno.env.get('SB_SECRET_KEY_CRON');
-  if (!expected || expected.length === 0) {
-    console.error('SB_SECRET_KEY_CRON not configured — rejecting all requests');
-    return false; // fail closed
-  }
-  return constantTimeEqual(req.headers.get('apikey') ?? '', expected);
-}
-
-const json = (b: unknown, s = 200) =>
-  new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json' } });
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-interface ProfileResult {
-  status: 'ok' | 'empty' | 'transient';
-  industry?: string | null;
-  marketCap?: number | null; // dollars
-}
-
-async function fetchProfile(symbol: string, token: string): Promise<ProfileResult> {
-  try {
-    const res = await fetch(
-      `https://finnhub.io/api/v1/stock/profile2?symbol=${encodeURIComponent(symbol)}&token=${token}`,
-    );
-    if (res.status === 429 || res.status >= 500) return { status: 'transient' };
-    if (!res.ok) return { status: 'empty' }; // 4xx: no profile for this symbol
-    const body = await res.json().catch(() => null);
-    if (!body || Object.keys(body).length === 0) return { status: 'empty' };
-    const industry = typeof body.finnhubIndustry === 'string' && body.finnhubIndustry.trim()
-      ? body.finnhubIndustry.trim()
-      : null;
-    // profile2 marketCapitalization is in MILLIONS of USD.
-    const capM = Number(body.marketCapitalization);
-    const marketCap = Number.isFinite(capM) && capM > 0 ? capM * 1_000_000 : null;
-    return { status: 'ok', industry, marketCap };
-  } catch {
-    return { status: 'transient' };
-  }
-}
-
-/** One Alpaca snapshots request for one chunk of symbols. Logs a truncated
- * 400 body (Alpaca's own error message names the offending symbol) so a
- * genuine format gap in ALPACA_TICKER_RE is diagnosable from logs alone. */
-function makeAlpacaFetcher(key: string, secret: string): (symbols: string[]) => Promise<BatchFetchResult> {
-  return async (symbols: string[]): Promise<BatchFetchResult> => {
-    const url = `https://data.alpaca.markets/v2/stocks/snapshots?symbols=${
-      symbols.map(encodeURIComponent).join(',')
-    }&feed=iex`;
-    try {
-      const res = await fetch(url, {
-        headers: { 'APCA-API-KEY-ID': key, 'APCA-API-SECRET-KEY': secret, 'Accept': 'application/json' },
-      });
-      if (!res.ok) {
-        const bodyText = await res.text().catch(() => '');
-        console.error('alpaca snapshots failed', res.status, bodyText.slice(0, 300), 'chunk_size', symbols.length);
-        return { ok: false, status: res.status };
-      }
-      const body = await res.json().catch(() => ({}));
-      const prices = new Map<string, number>();
-      for (const sym of symbols) {
-        const snap = body?.[sym];
-        const p = Number(snap?.latestTrade?.p) || Number(snap?.dailyBar?.c) || Number(snap?.prevDailyBar?.c);
-        if (Number.isFinite(p) && p > 0) prices.set(sym, p);
-      }
-      return { ok: true, prices };
-    } catch (e) {
-      console.error('alpaca snapshots error', e, 'chunk_size', symbols.length);
-      return { ok: false, status: 0 };
-    }
-  };
-}
-
-Deno.serve(async (req) => {
-  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
-  if (!isAuthorized(req)) return json({ error: 'unauthorized' }, 401);
-
-  const FINNHUB = Deno.env.get('FINNHUB_API_KEY') ?? '';
-  const ALPACA_KEY = Deno.env.get('ALPACA_API_KEY') ?? '';
-  const ALPACA_SECRET = Deno.env.get('ALPACA_API_SECRET') ?? '';
-  if (!FINNHUB || !ALPACA_KEY || !ALPACA_SECRET) {
-    return json({ error: 'server_config_error' }, 500);
-  }
-
-  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SB_SECRET_KEY_INTERNAL')!);
-
-  const body = await req.json().catch(() => ({}));
-  const batchSize = Math.min(Math.max(Number(body?.limit) || DEFAULT_BATCH, 1), MAX_BATCH);
-
-  // price_unsupported is filtered on (priority query below) but not selected:
-  // the per-row loop recomputes it fresh from partitionForAlpaca every pass
-  // rather than reading back a stale value (see the comment at its write).
-  const selectCols = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap';
-
-  // Priority tier: unpriced AND not permanently-unsupported, stalest-first,
-  // capped at half the batch (starvation guard — see price-batch.ts).
-  const priorityCap = priorityCapFor(batchSize);
-  const { data: priorityRows, error: prioErr } = await admin
-    .from('symbols')
-    .select(selectCols)
-    .eq('active', true)
-    .is('last_price', null)
-    .eq('price_unsupported', false)
-    .order('enriched_at', { ascending: true, nullsFirst: true })
-    .limit(priorityCap);
-  if (prioErr) return json({ error: 'select_failed' }, 500);
-
-  // Normal stalest-first pool, excluding whatever the priority query already
-  // picked so the merge below never has to dedupe past a LIMIT boundary.
-  const prioritySymbols = (priorityRows ?? []).map((r) => String(r.symbol));
-  let stalestQuery = admin
-    .from('symbols')
-    .select(selectCols)
-    .eq('active', true)
-    .order('enriched_at', { ascending: true, nullsFirst: true })
-    .limit(batchSize);
-  if (prioritySymbols.length > 0) {
-    stalestQuery = stalestQuery.not('symbol', 'in', `(${prioritySymbols.join(',')})`);
-  }
-  const { data: stalestRows, error: staleErr } = await stalestQuery;
-  if (staleErr) return json({ error: 'select_failed' }, 500);
-
-  const batch = mergeBatchSelection(priorityRows ?? [], stalestRows ?? [], batchSize);
-  if (batch.length === 0) return json({ ok: true, batch: 0 });
-
-  // Known rule keys, to report unmatched vendor labels for curation.
-  const { data: ruleRows } = await admin.from('category_rules').select('gics_industry');
-  const knownIndustries = new Set((ruleRows ?? []).map((r) => String(r.gics_industry)));
-
-  // Price fetch for the whole batch, up front (ETFs included — Alpaca still
-  // prices them). Format-unsupported symbols never reach Alpaca at all.
-  const { eligible: alpacaEligible, unsupported: formatUnsupported } = partitionForAlpaca(
-    batch.map((r) => String(r.symbol)),
-  );
-  const bisectResult = await fetchPricesBisecting(alpacaEligible, makeAlpacaFetcher(ALPACA_KEY, ALPACA_SECRET));
-  const priceErrorSet = new Set(bisectResult.failed);
-  const formatUnsupportedSet = new Set(formatUnsupported);
-
-  let profiled = 0;
-  let priced = 0;
-  let skippedEtf = 0;
-  let draftable = 0;
-  let transientAbort = false;
-  const unmatched = new Set<string>();
-
-  for (const row of batch) {
-    const symbol = String(row.symbol);
-    let industry: string | null = row.gics_industry ?? null;
-    let marketCap: number | null = row.market_cap == null ? null : Number(row.market_cap);
-
-    if (row.is_etf === true) {
-      skippedEtf++; // funds have no profile2 data; category layer handles them
-    } else {
-      const prof = await fetchProfile(symbol, FINNHUB);
-      if (prof.status === 'transient') {
-        // Abort WITHOUT advancing this symbol's cursor — next run retries.
-        transientAbort = true;
-        break;
-      }
-      if (prof.status === 'ok') {
-        industry = prof.industry ?? null;
-        marketCap = prof.marketCap ?? null;
-        profiled++;
-        if (industry && !knownIndustries.has(industry)) unmatched.add(industry);
-      }
-      // 'empty' still advances the cursor (permanent miss — see header).
-      await sleep(FINNHUB_SPACING_MS);
-    }
-
-    // Price outcome for this symbol, in priority order:
-    //   1. format-unsupported (never sent to Alpaca) -> permanent, no error
-    //   2. priced by Alpaca this run -> new last_price
-    //   3. request-level failure (bisected 400 / cap-truncated) -> price_error,
-    //      last_price left untouched so the row stays in the priority tier
-    //   4. request succeeded but Alpaca had no data -> benign miss, keep old price
-    // Case 3 (price_error) and case 4 (benign no-data) both leave `newPrice`
-    // undefined and so fall through to the same "keep old price" branch
-    // below — they differ only in the AGGREGATE price_errors/price_error_symbols
-    // reporting at the end of this handler, built directly from priceErrorSet.
-    const isFormatUnsupported = formatUnsupportedSet.has(symbol);
-    const newPrice = bisectResult.prices.get(symbol);
-
-    const lastPrice = newPrice ?? (row.last_price == null ? null : Number(row.last_price));
-    if (newPrice !== undefined) priced++;
-    // partitionForAlpaca classifies every symbol in the batch on every pass,
-    // so this is simply that verdict — no reason to preserve a stale prior
-    // value (format never changes; a price_error is a fetch failure, not a
-    // format verdict, and does not affect this flag).
-    const priceUnsupported = isFormatUnsupported;
-
-    const is_draftable = computeIsDraftable({
-      active: row.active,
-      exchange: row.exchange ?? null,
-      is_etf: row.is_etf ?? null,
-      last_price: lastPrice,
-      market_cap: marketCap,
-    });
-    if (is_draftable) draftable++;
-
-    const { error: upErr } = await admin
-      .from('symbols')
-      .update({
-        gics_industry: industry,
-        market_cap: marketCap,
-        last_price: lastPrice,
-        price_unsupported: priceUnsupported,
-        is_draftable,
-        enriched_at: new Date().toISOString(),
-      })
-      .eq('symbol', symbol);
-    if (upErr) {
-      console.error('update failed', symbol, upErr.message);
-      // continue: one bad row must not starve the rest of the batch
-    }
-  }
-
-  const priceErrorSymbols = [...priceErrorSet].slice(0, PRICE_ERROR_SYMBOLS_LOGGED);
-  const priceStatus = computePriceStatus(alpacaEligible.length, priced, priceErrorSet.size);
-
-  const result = {
-    ok: true,
-    batch: batch.length,
-    profiled,
-    priced,
-    skipped_etf: skippedEtf,
-    draftable_in_batch: draftable,
-    transient_abort: transientAbort,
-    unmatched_industries: [...unmatched],
-    // Honest price-fetch reporting (found 2026-09-25: this used to report
-    // ok:true, priced:0 on a whole-batch Alpaca 400 — see header). `ok`
-    // above means "the run completed"; price_status is the separately-
-    // scoped verdict for pricing specifically.
-    price_status: priceStatus,
-    price_errors: priceErrorSet.size,
-    price_error_symbols: priceErrorSymbols,
-    price_unsupported_in_batch: formatUnsupportedSet.size,
-    alpaca_requests: bisectResult.requestCount,
-    alpaca_request_cap_hit: bisectResult.capHit,
-  };
-  console.log('enrich-symbols', JSON.stringify(result));
-  return json(result);
+addEventListener('beforeunload', (ev) => {
+  if (inFlight === 0) return;
+  // The runtime's d.ts types detail as the reason string; Supabase's docs read
+  // detail.reason. Accept either.
+  const detail = (ev as CustomEvent<unknown>).detail as { reason?: unknown } | string | undefined;
+  const reason = typeof detail === 'string' ? detail : detail?.reason ?? null;
+  console.error('enrich-symbols terminated with a batch in flight', JSON.stringify({ reason, in_flight: inFlight }));
 });
+
+Deno.serve(makeEnrichHandler({ runBatch: runEnrichBatch, waitUntil }));

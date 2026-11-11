@@ -96,7 +96,8 @@ export function fetchPricesBisecting(
 export type PriceStatus = 'complete' | 'partial' | 'failed' | 'none_attempted';
 
 /**
- * `ok` in the response means "the run completed" — it must NOT also carry
+ * `ok` in the run's outcome (the `enrich-symbols {...}` log line since
+ * 2026-11-11; it was the HTTP response before) means "the run completed" — it must NOT also carry
  * price-outcome meaning (CLAUDE.md's verdict-scope lesson: a run with
  * priced:20, price_errors:30 reporting ok:true is honest about the RUN,
  * dishonest if a caller reads ok as "pricing succeeded"). price_status is

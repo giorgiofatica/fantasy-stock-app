@@ -2,27 +2,43 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "7483658e3e4ed7973f30335ea2d2a633b85ec5ea",
-    "commitShort": "7483658e",
+    "commit": "acd93afa9106f285a84f7dcef08a1df9d34755aa",
+    "commitShort": "acd93afa",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
+    "branch": "fix/enrich-respond-fast",
     "dirty": true,
     "dirtyPaths": [
       {
+        "code": "??",
+        "path": "supabase/functions/enrich-symbols/batch.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/enrich-symbols/handler.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/enrich-symbols/handler.ts"
+      },
+      {
         "code": "M",
-        "path": "apps/mobile/app/create-league.tsx"
+        "path": "supabase/functions/enrich-symbols/index.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/enrich-symbols/price-batch.ts"
       }
     ],
-    "timestamp": "2026-11-11T18:42:52Z",
-    "sourceHash": "sha256:036608ae2c900f3337d600837d4cfe833b529a5d128b4abf5aa66a90124cea42",
+    "timestamp": "2026-11-11T21:02:33Z",
+    "sourceHash": "sha256:2d509208fe533dd16d448fce8240c2ed350fbfc15d860ae6c45c2927821d5552",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 114.4,
-    "ageDays": 4.8,
+    "ageHours": 116.7,
+    "ageDays": 4.9,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966",
@@ -673,22 +689,18 @@
       "facts": {
         "verifyJwt": false,
         "verifyJwtSource": "supabase/config.toml:132",
-        "authGuard": "apikey header, constant-time, fail-closed",
+        "authGuard": null,
         "localModules": [
+          "batch.ts",
+          "handler.ts",
           "price-batch.ts"
         ],
         "tests": [
+          "handler.test.ts",
           "price-batch.test.ts"
         ],
-        "envVars": [
-          "ALPACA_API_KEY",
-          "ALPACA_API_SECRET",
-          "FINNHUB_API_KEY",
-          "SB_SECRET_KEY_CRON",
-          "SB_SECRET_KEY_INTERNAL",
-          "SUPABASE_URL"
-        ],
-        "lines": 327
+        "envVars": [],
+        "lines": 109
       },
       "db": null,
       "declared": null,
@@ -697,11 +709,11 @@
       "verified": true,
       "id": "fn.enrich-symbols",
       "label": "enrich-symbols",
-      "sublabel": "verify_jwt=false · apikey guard",
+      "sublabel": "verify_jwt=false",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/enrich-symbols/index.ts",
-        "line": 158
+        "line": 108
       }
     },
     {
@@ -1372,6 +1384,25 @@
     {
       "layer": "module",
       "facts": {
+        "hasTests": false
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.enrich-symbols/batch",
+      "label": "batch.ts",
+      "sublabel": "enrich-symbols",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/enrich-symbols/batch.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
         "hasTests": true
       },
       "db": null,
@@ -1379,12 +1410,12 @@
       "drift": [],
       "annotation": null,
       "verified": true,
-      "id": "mod.enrich-symbols/price-batch",
-      "label": "price-batch.ts",
+      "id": "mod.enrich-symbols/handler",
+      "label": "handler.ts",
       "sublabel": "enrich-symbols",
       "kind": "edge-module",
       "source": {
-        "path": "supabase/functions/enrich-symbols/price-batch.ts",
+        "path": "supabase/functions/enrich-symbols/handler.ts",
         "line": 1
       }
     },
@@ -11552,17 +11583,29 @@
       "protocol": "vendor-https",
       "payload": "https://finnhub.io/api/v1/stock/profile2",
       "callSites": [
-        "supabase/functions/enrich-symbols/index.ts:108"
+        "supabase/functions/enrich-symbols/batch.ts:44"
       ]
     },
     {
       "annotation": null,
       "verified": true,
-      "id": "e.fn.enrich-symbols->mod.enrich-symbols/price-batch",
+      "id": "e.fn.enrich-symbols->mod.enrich-symbols/batch",
       "from": "fn.enrich-symbols",
-      "to": "mod.enrich-symbols/price-batch",
+      "to": "mod.enrich-symbols/batch",
       "protocol": "esm-import",
-      "payload": "import from './price-batch.ts'",
+      "payload": "import from './batch.ts'",
+      "callSites": [
+        "supabase/functions/enrich-symbols/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.enrich-symbols->mod.enrich-symbols/handler",
+      "from": "fn.enrich-symbols",
+      "to": "mod.enrich-symbols/handler",
+      "protocol": "esm-import",
+      "payload": "import from './handler.ts'",
       "callSites": [
         "supabase/functions/enrich-symbols/index.ts"
       ]
@@ -11579,7 +11622,7 @@
         "gics_industry"
       ],
       "callSites": [
-        "supabase/functions/enrich-symbols/index.ts:211"
+        "supabase/functions/enrich-symbols/batch.ts:153"
       ]
     },
     {
@@ -11592,8 +11635,8 @@
       "payload": ".from('symbols').select()",
       "columns": [],
       "callSites": [
-        "supabase/functions/enrich-symbols/index.ts:183",
-        "supabase/functions/enrich-symbols/index.ts:196"
+        "supabase/functions/enrich-symbols/batch.ts:125",
+        "supabase/functions/enrich-symbols/batch.ts:138"
       ]
     },
     {
@@ -11606,7 +11649,7 @@
       "payload": ".from('symbols').update()",
       "columns": [],
       "callSites": [
-        "supabase/functions/enrich-symbols/index.ts:285"
+        "supabase/functions/enrich-symbols/batch.ts:227"
       ]
     },
     {
@@ -23805,8 +23848,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 316,
-    "edges": 767,
+    "nodes": 317,
+    "edges": 768,
     "flows": 7,
     "drift": 38,
     "driftHigh": 5,
@@ -23819,7 +23862,7 @@
       "draft-autopick-sweep[]",
       "draft-control[rules.ts]",
       "draft-order-notify[plan.ts]",
-      "enrich-symbols[price-batch.ts]",
+      "enrich-symbols[batch.ts,handler.ts,price-batch.ts]",
       "heal-account-deletions[run.ts]",
       "historical-bars[paginate.ts]",
       "invite-preview[lookup.ts,respond.ts]",
@@ -24171,10 +24214,10 @@
       "supabase/functions/draft-order-notify/index.ts:156 -> league_notifications.update",
       "supabase/functions/draft-order-notify/index.ts:177 -> league_notifications.update",
       "supabase/functions/draft-order-notify/index.ts:84 -> league_notifications.select",
-      "supabase/functions/enrich-symbols/index.ts:183 -> symbols.select",
-      "supabase/functions/enrich-symbols/index.ts:196 -> symbols.select",
-      "supabase/functions/enrich-symbols/index.ts:211 -> category_rules.select",
-      "supabase/functions/enrich-symbols/index.ts:285 -> symbols.update",
+      "supabase/functions/enrich-symbols/batch.ts:125 -> symbols.select",
+      "supabase/functions/enrich-symbols/batch.ts:138 -> symbols.select",
+      "supabase/functions/enrich-symbols/batch.ts:153 -> category_rules.select",
+      "supabase/functions/enrich-symbols/batch.ts:227 -> symbols.update",
       "supabase/functions/leave-league/index.ts:118 -> league_notifications.update",
       "supabase/functions/leave-league/index.ts:94 -> league_notifications.update",
       "supabase/functions/preview-league/index.ts:100 -> league_members.select",

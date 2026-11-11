@@ -108,7 +108,9 @@ confirm a fast answer (a 401, a quick 200); it can never confirm the outcome of 
 
 **0.1 — The cron key pair works, proven by effect.** `enrich_symbols_10min` authenticates with
 the same pair as `refresh-symbols` (vault `cron_apikey` → `SB_SECRET_KEY_CRON`). Its HTTP
-responses time out (see above), so check the data it writes instead:
+responses time out (see above); since `fix/enrich-respond-fast` (2026-11-11) it answers
+`202 {"accepted":true}` at once and does the batch in the background, so the response says
+nothing about the batch either. Check the data it writes instead:
 ```sql
 SELECT max(enriched_at) AS latest,
        count(*) FILTER (WHERE enriched_at > now() - interval '1 hour') AS last_hour,
