@@ -345,6 +345,13 @@ building anything, and don't reopen a rule without him.
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
   only the tiebreak. The UI shows the metric that decides the winner, via one shared helper.
+- **Duration is hidden in Create league until it is built** (2026-11-11). Create league
+  offered Duration while nothing on the server scores or ends a Duration league, so one
+  created today would never have a winner. Shown two ways, A hide it (Create league offers
+  only Matchup) and B show it greyed out as coming soon, he picked "A". Duration comes back
+  when its scoring is planned, built and verified. The Planner's reading, not his words: the
+  server refuses to create a Duration league as well, so the block does not rest on the app
+  alone; Duration leagues that already exist are left as they are.
 - **"Season gain"** = regular-season `points_for` only. In the playoffs it stays at the
   final regular-season total.
 - **Ranking** (standings = playoff seeding, one order, computed only in SQL
