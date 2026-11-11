@@ -2,63 +2,27 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "be3a27c7f1f8b6c4c851f02c863b77e9c7e1b5c4",
-    "commitShort": "be3a27c7",
+    "commit": "7483658e3e4ed7973f30335ea2d2a633b85ec5ea",
+    "commitShort": "7483658e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/autopick-lease-outage",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/_shared/auto-pick.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/draft-start-policy.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/draft-start.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/draft-write.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/draft-write.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/functions/_shared/turn-lease.test.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/functions/_shared/turn-lease.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/draft-autopick-sweep/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/validate-and-record-pick/index.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql"
+        "path": "apps/mobile/app/create-league.tsx"
       }
     ],
-    "timestamp": "2026-11-11T18:18:52Z",
-    "sourceHash": "sha256:76a987d90de5a83622a9fa542ad349609af3140cf87d5cf7081497df8fc215d3",
+    "timestamp": "2026-11-11T18:42:52Z",
+    "sourceHash": "sha256:036608ae2c900f3337d600837d4cfe833b529a5d128b4abf5aa66a90124cea42",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-07T00:19:06Z",
-    "ageHours": 114,
-    "ageDays": 4.7,
+    "ageHours": 114.4,
+    "ageDays": 4.8,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:ee5d8b171fcbb56c5d9692419d5a93c05b45506dee33b4b383a419f564ea9966",
@@ -6702,6 +6666,37 @@
       "source": {
         "path": "supabase/migrations/20261115000006_record_trade_season_guard.sql",
         "line": 24
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261203000000_refuse_new_duration_leagues.sql:51"
+        ],
+        "latestDefinition": "supabase/migrations/20261203000000_refuse_new_duration_leagues.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.refuse_new_duration_leagues",
+      "label": "refuse_new_duration_leagues()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261203000000_refuse_new_duration_leagues.sql",
+        "line": 51
       }
     },
     {
@@ -19246,6 +19241,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.tbl.leagues->pg.refuse_new_duration_leagues",
+      "from": "tbl.leagues",
+      "to": "pg.refuse_new_duration_leagues",
+      "protocol": "pg-trigger",
+      "payload": "trigger on leagues",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261203000000_refuse_new_duration_leagues.sql:73"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.tbl.matchups->pg.is_member#rls",
       "from": "tbl.matchups",
       "to": "pg.is_member",
@@ -19515,7 +19523,7 @@
       "payload": ".from('league_draft_slots').delete()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:234"
+        "apps/mobile/app/create-league.tsx:239"
       ],
       "via": [
         "seamSaveLeagueSlots"
@@ -19531,7 +19539,7 @@
       "payload": ".from('league_draft_slots').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:234"
+        "apps/mobile/app/create-league.tsx:239"
       ],
       "via": [
         "seamSaveLeagueSlots"
@@ -19547,7 +19555,7 @@
       "payload": ".from('league_members').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:224"
+        "apps/mobile/app/create-league.tsx:229"
       ],
       "via": [
         "seamInsertMember"
@@ -19563,7 +19571,7 @@
       "payload": ".from('leagues').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/create-league.tsx:200"
+        "apps/mobile/app/create-league.tsx:202"
       ],
       "via": [
         "seamInsertLeague"
@@ -22529,6 +22537,16 @@
       "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
     },
     {
+      "node": "pg.refuse_new_duration_leagues",
+      "label": "refuse_new_duration_leagues()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -23707,6 +23725,12 @@
       "resolve": "Re-capture the snapshot, or confirm the migration was applied."
     },
     {
+      "scope": "pg.refuse_new_duration_leagues",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -23781,13 +23805,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 315,
-    "edges": 766,
+    "nodes": 316,
+    "edges": 767,
     "flows": 7,
-    "drift": 37,
-    "driftHigh": 4,
+    "drift": 38,
+    "driftHigh": 5,
     "deadCode": 65,
-    "unverified": 15
+    "unverified": 16
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -23966,10 +23990,10 @@
       "apps/mobile/app/(tabs)/matchup.tsx:97 -> drafts.select (via useRosterData)",
       "apps/mobile/app/(tabs)/matchup.tsx:97 -> league_draft_slots.select (via useRosterData)",
       "apps/mobile/app/(tabs)/matchup.tsx:97 -> trades.select (via useRosterData)",
-      "apps/mobile/app/create-league.tsx:200 -> leagues.insert (via seamInsertLeague)",
-      "apps/mobile/app/create-league.tsx:224 -> league_members.insert (via seamInsertMember)",
-      "apps/mobile/app/create-league.tsx:234 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
-      "apps/mobile/app/create-league.tsx:234 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
+      "apps/mobile/app/create-league.tsx:202 -> leagues.insert (via seamInsertLeague)",
+      "apps/mobile/app/create-league.tsx:229 -> league_members.insert (via seamInsertMember)",
+      "apps/mobile/app/create-league.tsx:239 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
+      "apps/mobile/app/create-league.tsx:239 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
       "apps/mobile/app/league-settings.tsx:266 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/app/league-settings.tsx:288 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
       "apps/mobile/app/league-settings.tsx:288 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
@@ -24419,7 +24443,8 @@
       "20261129000000_draft_pick_prunes_queues.sql",
       "20261130000000_retire_service_role_key_helpers.sql",
       "20261201000000_autopick_sweep_fast_cadence.sql",
-      "20261202000000_draft_turn_lease_and_escalation_claim.sql"
+      "20261202000000_draft_turn_lease_and_escalation_claim.sql",
+      "20261203000000_refuse_new_duration_leagues.sql"
     ],
     "config": [
       "delete-account=true",

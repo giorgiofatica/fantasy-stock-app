@@ -55,28 +55,28 @@ declare
   out      text := E'\n';
 begin
   -- ---- fixtures (as the editor's own role; bypasses RLS) --------------------
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__LM_TEST_NEW__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__LM_TEST_NEW__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started', 'matchup', 2)
   returning id into l_new;
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__LM_TEST_RET__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__LM_TEST_RET__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started', 'matchup', 2)
   returning id into l_ret;
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__LM_TEST_UP__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__LM_TEST_UP__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started', 'matchup', 2)
   returning id into l_up;
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__LM_TEST_MEM__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__LM_TEST_MEM__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started', 'matchup', 2)
   returning id into l_mem;
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__LM_TEST_OTHER__', b_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__LM_TEST_OTHER__', b_uid, 'LMT-' || gen_random_uuid(), 4, 'not_started', 'matchup', 2)
   returning id into l_other;
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__LM_TEST_LIVE__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'in_progress')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__LM_TEST_LIVE__', a_uid, 'LMT-' || gen_random_uuid(), 4, 'in_progress', 'matchup', 2)
   returning id into l_live;
 
   insert into public.league_members (league_id, user_id, role) values

@@ -156,9 +156,27 @@ begin
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, playoff_teams, league_type)
   values ('__LEAVE_DONE__', c_uid, 'LV-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 4, 'matchup')
   returning id into l_done;
+  -- 20261203000000 refuses every NEW Duration league; this fixture stands for one that
+  -- PREDATES it (existing Duration leagues are left as they are), so the trigger is off for
+  -- this one insert. Skipped where 20261203000000 is not applied yet.
+  --   * The block rolls back at its final RAISE, so the disable never persists. NEVER move
+  --     this insert into a begin/exception sub-block: a caught error there would skip the
+  --     enable below and the trigger would stay off when the block commits.
+  --   * ALTER TABLE takes SHARE ROW EXCLUSIVE on leagues until the block ends, so writers to
+  --     leagues wait behind this test for its (sub-second) run. lock_timeout makes it fail
+  --     fast instead of queueing behind a long transaction; just re-run it.
+  perform set_config('lock_timeout', '3s', true);
+  if exists (select 1 from pg_trigger where tgname = 'trg_leagues_refuse_new_duration'
+                and tgrelid = 'public.leagues'::regclass) then
+    alter table public.leagues disable trigger trg_leagues_refuse_new_duration;
+  end if;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, playoff_teams, league_type)
   values ('__LEAVE_DUR__', c_uid, 'LV-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 4, 'duration')
   returning id into l_dur;
+  if exists (select 1 from pg_trigger where tgname = 'trg_leagues_refuse_new_duration'
+                and tgrelid = 'public.leagues'::regclass) then
+    alter table public.leagues enable trigger trg_leagues_refuse_new_duration;
+  end if;
   insert into public.league_members (league_id, user_id, role)
   select l, u, case when u = c_uid then 'commissioner' else 'member' end
     from unnest(array[l_far, l_soon, l_rd, l_live, l_done, l_dur]) l,

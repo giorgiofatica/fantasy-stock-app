@@ -26,7 +26,7 @@
  */
 import { assert, assertEquals, assertMatch, assertNotEquals, assertRejects } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
-import { applyFrom, loadChain, migrationFiles, readMigration } from './full_chain.ts';
+import { applyFrom, loadChain, migrationFiles, readMigration, asExistingDuration } from './full_chain.ts';
 
 // deno-lint-ignore no-explicit-any
 type Row = any;
@@ -207,8 +207,8 @@ Deno.test({
   async fn() {
     const seed = async (db: PGlite) => {
       await db.query(`insert into auth.users (id, raw_user_meta_data) values ($1, '{"username":"tom_t"}')`, [A]);
-      await db.query(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
-                      values ($1, 'T', $2, 'TCODE1', 4, 'duration')`, [LMID, A]);
+      await asExistingDuration(db, () => db.query(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
+                      values ($1, 'T', $2, 'TCODE1', 4, 'duration')`, [LMID, A]));
       await db.query(`insert into trades (league_id, user_id, symbol, action, quantity, price, total_value)
                       values ($1, $2, 'AAPL', 'buy', 1, 100, 100)`, [LMID, A]);
       await db.query(`delete from auth.users where id = $1`, [A]);
@@ -924,8 +924,8 @@ Deno.test({
     await loadChain(db, { untilBefore: '20261125000000' });
     const q = async (s: string, p: unknown[] = []) => (await db.query<Row>(s, p)).rows;
     await q(`insert into auth.users (id, raw_user_meta_data) values ($1, '{"username":"old_comm"}'), ($2, '{"username":"old_joiner"}')`, [B, C]);
-    await q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
-             values ($1, 'Old', $2, 'OLDLEAGUE1', 8, 'duration')`, [LPRE, B]);
+    await asExistingDuration(db, () => q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
+             values ($1, 'Old', $2, 'OLDLEAGUE1', 8, 'duration')`, [LPRE, B]));
     await q(`insert into league_members (league_id, user_id, role) values ($1, $2, 'commissioner')`, [LPRE, B]);
     await q(`insert into league_invites (league_id, inviter_id, invited_identifier, code, status)
              values ($1, $2, 'friend@example.com', 'OLDINVITE1', 'pending')`, [LPRE, B]);
@@ -962,8 +962,8 @@ Deno.test({
       finally { await db.exec('reset role'); }
     };
     const mk = async (id: string, clocked: boolean, deleted: boolean, status: 'in_progress' | 'completed') => {
-      await q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
-               values ($1::uuid, 'L', $2, upper(substr(md5($1::text), 1, 10)), 8, 'duration')`, [id, B]);
+      await asExistingDuration(db, () => q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
+               values ($1::uuid, 'L', $2, upper(substr(md5($1::text), 1, 10)), 8, 'duration')`, [id, B]));
       for (const [u, role] of [[B, 'commissioner'], [C, 'member'], [D, 'member'], [A, 'member']]) {
         await q(`insert into league_members (league_id, user_id, role) values ($1, $2, $3)`, [id, u, role]);
       }
@@ -1158,8 +1158,8 @@ Deno.test({
       // x joined a pre-draft league after its scrub; removing that seat fails this pass.
       const LX = '10000000-0000-4000-8000-0000000000ff';
       await q(`insert into auth.users (id) values ($1)`, [U(16)]);
-      await q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
-               values ($1, 'Late', $2, 'LATEX12345', 8, 'duration')`, [LX, U(16)]);
+      await asExistingDuration(db, () => q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
+               values ($1, 'Late', $2, 'LATEX12345', 8, 'duration')`, [LX, U(16)]));
       await q(`insert into league_members (league_id, user_id, role) values ($1, $2, 'commissioner'), ($1, $3, 'member')`, [LX, U(16), x]);
       await q(`create function pg_temp.seat_boom() returns trigger language plpgsql as $$
                begin if old.user_id = '${x}' then raise exception 'seat delete failed'; end if; return old; end $$`);

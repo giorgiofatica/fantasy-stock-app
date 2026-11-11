@@ -225,16 +225,16 @@ begin
 
   -- ---- fixture (as the editor's own role: auth.uid() IS NULL, exempt) -------
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_OPEN__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_OPEN__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_open;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_DONE__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_DONE__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_done;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_PROG__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_PROG__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_prog;
   insert into public.league_members (league_id, user_id, role)
   values (l_prog, c_uid, 'commissioner'), (l_prog, m_uid, 'member');
@@ -250,36 +250,36 @@ begin
   -- The later-guard fixtures. draft_date 50 minutes out = the room is open (an hour before), yet the league has only 2
   -- members, under the order-finalizing floor of 4, so the draft-order triggers leave it alone.
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_XFER__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_XFER__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_xfer;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_X1__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_X1__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_x1;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_H__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_H__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_h;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_LEGACY__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_LEGACY__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_legacy;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_RECONFIRM__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_RECONFIRM__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_rc;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_START__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_START__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_start;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_ROOM__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '50 minutes')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_ROOM__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '50 minutes', 'matchup', 2)
   returning id into l_room;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks,
-                              draft_status, draft_date)
-  values ('__FREEZE_POSTPONED__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '50 minutes')
+                              draft_status, draft_date, league_type, playoff_teams)
+  values ('__FREEZE_POSTPONED__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', now() + interval '50 minutes', 'matchup', 2)
   returning id into l_post;
   insert into public.league_members (league_id, user_id, role)
   select l, u, case when u = c_uid then 'commissioner' else 'member' end
@@ -510,16 +510,16 @@ begin
 
   -- ---- I: a user session creates leagues in not_started only -------------------
   begin
-    insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks, draft_status)
-    values ('__FREEZE_INSERT_BAD__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'in_progress');
+    insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks, draft_status, league_type, playoff_teams)
+    values ('__FREEZE_INSERT_BAD__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'in_progress', 'matchup', 2);
     out := out || E'I1 INSERT an in_progress league -> allowed  FAIL\n';
   exception when others then
     out := out || format(E'I1 INSERT an in_progress league -> %s  %s\n', sqlstate,
       case when sqlstate = '42501' and sqlerrm like 'draft_status_server_only:%' then 'PASS' else 'FAIL (' || sqlerrm || ')' end);
   end;
   begin
-    insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks, draft_status)
-    values ('__FREEZE_INSERT_OK__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started');
+    insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks, draft_status, league_type, playoff_teams)
+    values ('__FREEZE_INSERT_OK__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started', 'matchup', 2);
     get diagnostics n = row_count;
     out := out || format(E'I2 INSERT a not_started league rows=%s  %s\n', n, case when n = 1 then 'PASS' else 'FAIL' end);
   exception when others then
@@ -574,9 +574,9 @@ begin
     out := out || format(E'H6 draft_date of a postponed league -> %s %s  FAIL\n', sqlstate, sqlerrm);
   end;
   begin
-    insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks, draft_status, draft_date)
+    insert into public.leagues (name, commissioner_id, invite_code, num_participants, num_rounds, num_weeks, draft_status, draft_date, league_type, playoff_teams)
     values ('__FREEZE_INSERT_TIME__', c_uid, 'FRZ-' || gen_random_uuid(), 8, 6, 11, 'not_started',
-            date_trunc('hour', now()) + interval '10 hours 7 minutes');
+            date_trunc('hour', now()) + interval '10 hours 7 minutes', 'matchup', 2);
     out := out || E'H7 INSERT with an off-grid draft_date -> allowed  FAIL\n';
   exception when others then
     out := out || format(E'H7 INSERT with an off-grid draft_date -> %s  %s\n', sqlstate,

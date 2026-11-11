@@ -24,7 +24,7 @@
  */
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
-import { loadChain } from './full_chain.ts';
+import { loadChain, asExistingDuration } from './full_chain.ts';
 
 // deno-lint-ignore no-explicit-any
 type Row = any;
@@ -69,11 +69,11 @@ Deno.test({
 
     /** A not_started league as the owner (auth.uid() NULL): four members, the draft `minutes` from now. */
     async function league(minutes: number, mode: 'random' | 'manual' = 'random'): Promise<string> {
-      const [l] = await q(
+      const [l] = await asExistingDuration(db, () => q(
         `insert into leagues (name, commissioner_id, invite_code, num_participants, league_type, draft_order_mode, draft_date)
          values ('Room reads', $1, $2, 8, 'duration', $3, now() + make_interval(mins => $4)) returning id`,
         [COMMISH, crypto.randomUUID().slice(0, 8).toUpperCase(), mode, minutes],
-      );
+      ));
       for (const u of MEMBERS) {
         await q(`insert into league_members (league_id, user_id, role) values ($1, $2, $3)`, [l.id, u, u === COMMISH ? 'commissioner' : 'member']);
       }

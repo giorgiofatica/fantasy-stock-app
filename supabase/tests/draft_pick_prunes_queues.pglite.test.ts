@@ -19,7 +19,7 @@
  */
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
-import { applyFrom, loadChain } from './full_chain.ts';
+import { applyFrom, loadChain, asExistingDuration } from './full_chain.ts';
 
 // deno-lint-ignore no-explicit-any
 type Row = any;
@@ -63,8 +63,8 @@ Deno.test({
     await q(`insert into symbols (symbol, name) values ('DNUT','Krispy Kreme'),('AAPL','Apple'),('MSFT','Microsoft'),
              ('NVDA','Nvidia'),('BAC','Bank of America')`);
     async function league(name: string): Promise<string> {
-      const [l] = await q(`insert into leagues (name, commissioner_id, invite_code, num_participants, league_type)
-                           values ($1, $2, $3, 8, 'duration') returning id`, [name, A, crypto.randomUUID().slice(0, 8).toUpperCase()]);
+      const [l] = await asExistingDuration(db, () => q(`insert into leagues (name, commissioner_id, invite_code, num_participants, league_type)
+                           values ($1, $2, $3, 8, 'duration') returning id`, [name, A, crypto.randomUUID().slice(0, 8).toUpperCase()]));
       for (const u of PEOPLE) {
         await q(`insert into league_members (league_id, user_id, role) values ($1, $2, $3)`, [l.id, u, u === A ? 'commissioner' : 'member']);
       }

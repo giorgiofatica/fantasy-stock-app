@@ -26,8 +26,8 @@ declare
   out   text := E'\n';
 begin
   -- fixture, as the editor's own role (bypasses RLS)
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__F10_TEST__', c_uid, 'F10T-' || gen_random_uuid(), 4, 'in_progress')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__F10_TEST__', c_uid, 'F10T-' || gen_random_uuid(), 4, 'in_progress', 'matchup', 2)
   returning id into l;
   insert into public.league_members (league_id, user_id, role)
   values (l, c_uid, 'commissioner'), (l, m_uid, 'member');

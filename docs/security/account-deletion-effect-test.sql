@@ -176,8 +176,26 @@ begin
   insert into public.trades (league_id, user_id, symbol, action, quantity, price, total_value)
   values (lm, a_uid, 'AAPL', 'sell', 1, 110, 110);
 
+  -- 20261203000000 refuses every NEW Duration league; this fixture stands for one that
+  -- PREDATES it (existing Duration leagues are left as they are), so the trigger is off for
+  -- this one insert. Skipped where 20261203000000 is not applied yet.
+  --   * The block rolls back at its final RAISE, so the disable never persists. NEVER move
+  --     this insert into a begin/exception sub-block: a caught error there would skip the
+  --     enable below and the trigger would stay off when the block commits.
+  --   * ALTER TABLE takes SHARE ROW EXCLUSIVE on leagues until the block ends, so writers to
+  --     leagues wait behind this test for its (sub-second) run. lock_timeout makes it fail
+  --     fast instead of queueing behind a long transaction; just re-run it.
+  perform set_config('lock_timeout', '3s', true);
+  if exists (select 1 from pg_trigger where tgname = 'trg_leagues_refuse_new_duration'
+                and tgrelid = 'public.leagues'::regclass) then
+    alter table public.leagues disable trigger trg_leagues_refuse_new_duration;
+  end if;
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, league_type)
   values ('__ACCTDEL_LP__', b_uid::text, 'AP' || upper(substr(sfx, 1, 8)), 4, 'duration') returning id into lp;
+  if exists (select 1 from pg_trigger where tgname = 'trg_leagues_refuse_new_duration'
+                and tgrelid = 'public.leagues'::regclass) then
+    alter table public.leagues enable trigger trg_leagues_refuse_new_duration;
+  end if;
   insert into public.league_members (league_id, user_id, role) values
     (lp, b_uid::text, 'commissioner'), (lp, a_uid::text, 'member');
 

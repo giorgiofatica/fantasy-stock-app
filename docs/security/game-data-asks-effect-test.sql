@@ -105,8 +105,8 @@ begin
   -- ==========================================================================
   -- SECTION #9: draft recap read (no migration — confirms existing RLS)
   -- ==========================================================================
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__GDA_TEST__', c_uid, 'GDAT-' || gen_random_uuid(), 4, 'in_progress')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__GDA_TEST__', c_uid, 'GDAT-' || gen_random_uuid(), 4, 'in_progress', 'matchup', 2)
   returning id into l;
   insert into public.league_members (league_id, user_id, role)
   values (l, c_uid, 'commissioner'), (l, m_uid, 'member');

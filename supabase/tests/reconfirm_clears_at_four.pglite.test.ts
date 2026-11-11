@@ -16,7 +16,7 @@
  */
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
-import { applyFrom, loadChain, migrationFiles, readMigration } from './full_chain.ts';
+import { applyFrom, asExistingDuration, loadChain, migrationFiles, readMigration } from './full_chain.ts';
 import { computeStartBlockers, toRosterReconfirm } from '../functions/draft-control/rules.ts';
 
 // deno-lint-ignore no-explicit-any
@@ -123,8 +123,10 @@ async function harness(db: PGlite) {
     n += 1;
     const id = `10000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
     const code = `CODE${String(n).padStart(4, '0')}`;
-    await q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type, num_weeks, playoff_teams)
+    // A Duration league here is one that predates 20261203000000 (new ones are refused).
+    const insert = () => q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type, num_weeks, playoff_teams)
              values ($1, $2, $3, $4, $5, $6, 4, $7)`, [id, `League ${n}`, C, code, size, type, p]);
+    await (type === 'duration' ? asExistingDuration(db, insert) : insert());
     // Founders joined an hour ago, so no leave's left_at can tie their joined_at (PGlite's clock is coarse).
     await q(`insert into league_members (league_id, user_id, role, joined_at) values ($1, $2, 'commissioner', now() - interval '1 hour')`, [id, C]);
     for (const u of others) {

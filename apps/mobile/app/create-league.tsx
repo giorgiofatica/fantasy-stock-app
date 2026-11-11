@@ -39,7 +39,6 @@ import {
   DRAFT_DATE_LATER,
   CREATE_STEPS,
   CREATE_STEP_COPY,
-  DURATION_OPTIONS,
   MANAGER_SIZES,
   type CreateStep,
   byeExpectedCopy,
@@ -94,14 +93,16 @@ import { codeLabelMaxScale } from '@/lib/game/codeLabel';
 
 interface WizardState {
   name: string;
-  type: 'matchup' | 'duration';
+  // Matchup only: Duration is hidden until it is built (PRODUCT_RULES, "Duration is hidden
+  // in Create league until it is built", 2026-11-11), and the server refuses one
+  // (20261203000000_refuse_new_duration_leagues). Its copy stays in createLeagueSteps.ts.
+  type: 'matchup';
   size: number;
   stakeMode: StakeMode;
   notionalPerSlot: string;
   budgetCap: string;
   allowUndraftable: boolean;
   slots: SlotDraft[];
-  durationDays: number;
   numWeeks: number;
   playoffTeams: number;
   numRounds: number;
@@ -111,9 +112,11 @@ interface WizardState {
   pickSeconds: number;
 }
 
+// The League type card stays, with Matchup as its one option, already selected (PRODUCT_RULES,
+// "The League type card stays, with Matchup alone", 2026-11-11). When Duration comes back it
+// rejoins this card; its row is DURATION_TYPE_OPTION, unused until then.
 const TYPE_OPTIONS: { value: WizardState['type']; label: string; help: string }[] = [
   { value: 'matchup', label: 'Matchup', help: 'Weekly head-to-head battles with playoffs at the end.' },
-  { value: 'duration', label: 'Duration', help: 'Best portfolio gains at the end wins it all.' },
 ];
 
 export default function CreateLeagueWizard() {
@@ -148,7 +151,6 @@ export default function CreateLeagueWizard() {
     budgetCap: String(DEFAULT_BUDGET_CAP),
     allowUndraftable: false,
     slots: [],
-    durationDays: 30,
     numWeeks: 11,
     playoffTeams: 4,
     numRounds: 6,
@@ -191,7 +193,7 @@ export default function CreateLeagueWizard() {
 
     setCreating(true);
     try {
-      const effectiveWeeks = state.type === 'matchup' ? Math.max(state.numWeeks, minWeeks) : null;
+      const effectiveWeeks = Math.max(state.numWeeks, minWeeks);
 
       // stake_mode is authoritative. budget_mode is deprecated and no longer
       // written (DB default applies); salary_cap_limit is retired — drop
@@ -209,10 +211,13 @@ export default function CreateLeagueWizard() {
           ...(state.stakeMode === 'budget_cap'
             ? { budget_amount: parseInt(state.budgetCap) || DEFAULT_BUDGET_CAP }
             : {}),
-          league_type: state.type,
-          duration_days: state.type === 'duration' ? state.durationDays : 30,
+          // Always 'matchup' (the server refuses 'duration', and an omitted type, since the
+          // column defaults to 'duration'). duration_days is NOT NULL with a CHECK, so it
+          // carries the column's default value, which a Matchup league never reads.
+          league_type: 'matchup',
+          duration_days: 30,
           num_weeks: effectiveWeeks,
-          playoff_teams: state.type === 'matchup' ? playoffTeams : null,
+          playoff_teams: playoffTeams,
           draft_status: 'not_started',
           draft_order_mode: state.draftOrder,
           pick_seconds: state.pickSeconds,
@@ -326,7 +331,7 @@ export default function CreateLeagueWizard() {
 
   // ── Step 2 · Season (board: "Create league · Season") ─────────────────
   const renderSeason = () => {
-    const bye = state.type === 'matchup' ? byeNoticeCopy(state.size, shownWeeks) : null;
+    const bye = byeNoticeCopy(state.size, shownWeeks);
     return (
       <>
         <SetupCard style={styles.cardStack}>
@@ -338,48 +343,31 @@ export default function CreateLeagueWizard() {
             canDecrement={state.size > MANAGER_SIZES[0]}
             canIncrement={state.size < MANAGER_SIZES[MANAGER_SIZES.length - 1]}
           />
-          {state.type === 'matchup' ? (
-            <>
-              <Stepper
-                label="Regular season"
-                value={shownWeeks}
-                unit="weeks"
-                onStep={(d) => patch({ numWeeks: stepWeeks(state.numWeeks, state.size, d) })}
-                canDecrement={shownWeeks > minWeeks}
-                canIncrement
-              />
-              <Text variant="caption" tone="secondary">{roundRobinCaption(minWeeks)}</Text>
-              {bye ? <WarnNote title={bye} line={byeExpectedCopy(state.size)} /> : null}
-              <View style={styles.tight}>
-                <Stepper
-                  label="Playoff teams"
-                  sub={playoffTeamsSub(state.size)}
-                  value={playoffTeams}
-                  onStep={(d) => patch({ playoffTeams: stepWithin(playoffTeams, d, 2, state.size) })}
-                  canDecrement={playoffTeams > 2}
-                  canIncrement={playoffTeams < state.size}
-                />
-                <Text variant="caption" style={styles.tabular}>{keepHyphens(playoffLine(playoffTeams) ?? '')}</Text>
-                <Text variant="caption" tone="secondary" style={styles.tabular}>
-                  {seasonCheckCaption(shownWeeks, playoffTeams)}
-                </Text>
-              </View>
-            </>
-          ) : null}
-        </SetupCard>
-        {state.type === 'duration' ? (
-          <View style={styles.section}>
-            <RowKey>How long will your league run?</RowKey>
-            <SetupCard>
-              {DURATION_OPTIONS.map((d, i) => (
-                <View key={d.value}>
-                  {i > 0 ? <RowDivider /> : null}
-                  <ChoiceRow title={d.label} help={d.desc} selected={state.durationDays === d.value} onPress={() => patch({ durationDays: d.value })} />
-                </View>
-              ))}
-            </SetupCard>
+          <Stepper
+            label="Regular season"
+            value={shownWeeks}
+            unit="weeks"
+            onStep={(d) => patch({ numWeeks: stepWeeks(state.numWeeks, state.size, d) })}
+            canDecrement={shownWeeks > minWeeks}
+            canIncrement
+          />
+          <Text variant="caption" tone="secondary">{roundRobinCaption(minWeeks)}</Text>
+          {bye ? <WarnNote title={bye} line={byeExpectedCopy(state.size)} /> : null}
+          <View style={styles.tight}>
+            <Stepper
+              label="Playoff teams"
+              sub={playoffTeamsSub(state.size)}
+              value={playoffTeams}
+              onStep={(d) => patch({ playoffTeams: stepWithin(playoffTeams, d, 2, state.size) })}
+              canDecrement={playoffTeams > 2}
+              canIncrement={playoffTeams < state.size}
+            />
+            <Text variant="caption" style={styles.tabular}>{keepHyphens(playoffLine(playoffTeams) ?? '')}</Text>
+            <Text variant="caption" tone="secondary" style={styles.tabular}>
+              {seasonCheckCaption(shownWeeks, playoffTeams)}
+            </Text>
           </View>
-        ) : null}
+        </SetupCard>
       </>
     );
   };
@@ -543,7 +531,7 @@ export default function CreateLeagueWizard() {
         <SetupCard>
           <SettingRow label="Name" value={state.name} />
           <RowDivider />
-          <SettingRow label="Type" value={state.type === 'matchup' ? 'Matchup' : 'Duration'} />
+          <SettingRow label="Type" value="Matchup" />
           <RowDivider />
           <SettingRow label="Teams" value={String(state.size)} />
           <RowDivider />

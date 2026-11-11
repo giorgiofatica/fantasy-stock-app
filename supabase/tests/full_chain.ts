@@ -137,3 +137,24 @@ export async function applyFrom(db: PGlite, from: string): Promise<string[]> {
   }
   return applied;
 }
+
+/**
+ * 20261203000000 refuses every NEW Duration league (PRODUCT_RULES, "Duration is hidden in
+ * Create league until it is built"). A fixture that needs a Duration league, to drive a
+ * branch the leagues that already exist still take, seeds it as one that PREDATES the
+ * refusal: the trigger is off for that insert only, and back on before anything else runs.
+ * A no-op before the chain reaches 20261203000000. Runs as the table owner (no `set role`).
+ */
+const DURATION_TRIGGER = (on: boolean) => `do $$ begin
+  if exists (select 1 from pg_trigger where tgname = 'trg_leagues_refuse_new_duration'
+                and tgrelid = 'public.leagues'::regclass) then
+    alter table public.leagues ${on ? 'enable' : 'disable'} trigger trg_leagues_refuse_new_duration;
+  end if; end $$;`;
+export async function asExistingDuration<T>(db: PGlite, insert: () => Promise<T>): Promise<T> {
+  await db.exec(DURATION_TRIGGER(false));
+  try {
+    return await insert();
+  } finally {
+    await db.exec(DURATION_TRIGGER(true));
+  }
+}

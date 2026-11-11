@@ -131,7 +131,20 @@ export function byeExpectedCopy(managers: number): string {
   return `Based on the ${managers} you expect. This updates as people join.`;
 }
 
-/** A Duration league's lengths: DB CHECK leagues_duration_days_check in (7,30,90,180,365). */
+/** UNUSED until Duration is built: PRODUCT_RULES, "Duration is hidden in Create league until
+ * it is built" (2026-11-11, Giorgio picked "A"), and 20261203000000 refuses a new Duration
+ * league on the server. Kept for when it comes back: Create league's old Duration row, and
+ * the approved "i" popup line (PRODUCT_RULES, "The 'i' popup lines, approved as written"),
+ * which had not been built into the app yet. */
+export const DURATION_TYPE_OPTION = {
+  value: 'duration',
+  label: 'Duration',
+  help: 'Best portfolio gains at the end wins it all.',
+  infoLine: 'One race for the whole league. The biggest gain at the end wins.',
+} as const;
+
+/** A Duration league's lengths: DB CHECK leagues_duration_days_check in (7,30,90,180,365).
+ * UNUSED until Duration is built (DURATION_TYPE_OPTION above says why). */
 export const DURATION_OPTIONS: readonly { value: number; label: string; desc: string }[] = [
   { value: 7, label: '1 Week', desc: 'Quick game' },
   { value: 30, label: '1 Month', desc: 'Standard' },
