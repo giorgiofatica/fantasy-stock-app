@@ -106,6 +106,12 @@ building anything, and don't reopen a rule without him.
   error goes to him as a decision.
 - **Generic scoring copy:** rules, marketing and onboarding say "best performance wins",
   never "best return" or "biggest dollar gain", because capital varies by stake mode.
+  - **Exception: a definition popup names what decides the winner** (2026-11-11). The "i"
+    popup for a league type is a definition, so it may say the metric. Shown the Matchup
+    popup two ways, A "the bigger dollar gain wins" (the line he had approved the day before)
+    and B "the best performance wins", he picked "A". Rules pages, marketing and onboarding
+    keep the generic wording. The Duration popup line, "The biggest gain at the end wins.",
+    names no metric and stands as approved.
 - **Nothing tappable does nothing** (2026-10-12): "make sure that there's no clickable
   actions or links or anything that's clickable in the app that then doesn't do anything.
   Like if there's any buttons or links or anything that should bring a pop-up or a redirect
