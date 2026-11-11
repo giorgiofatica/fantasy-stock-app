@@ -357,6 +357,10 @@
     vo: 'Example: after 6 rounds, your team has 6 stocks, one from each round.' };
   POPS.durUsd = { ...POPS.duration, Vis: (p) => <VisFinal {...p} by="usd" /> };
   POPS.durPct = { ...POPS.duration, Vis: (p) => <VisFinal {...p} by="pct" /> };
+  // Question 4 frames only: the generic-copy versions are NEW and not approved.
+  POPS.mGeneric = { ...POPS.matchup, line: 'Each week you play one team, and the best performance wins. The best records make the playoffs.' };
+  POPS.dDollar = { ...POPS.duration, line: 'One race for the whole league. The biggest dollar gain at the end wins.' };
+  POPS.dGeneric = { ...POPS.duration, line: 'One race for the whole league. The best performance at the end wins.' };
   const BEHIND = { league: LeagueStep, stakes: StakesStep, draft: DraftStep, season: SeasonStep, draftR: () => <DraftStep roundsI /> };
 
   /** The × : a 44pt target, a 16pt glyph on a sunken disc, top right of the card. */
@@ -599,6 +603,34 @@
     );
   }
 
+  function CopyCall() {
+    return (
+      <section className="b-sec" id="rule12-copy-call" aria-labelledby="rule12-copy-call-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Rule 12</span>
+          <div><h2 id="rule12-copy-call-h">Your call: should the i popups name what decides the winner?</h2></div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>Why you're being asked:</b> two of your rules pull opposite ways here. "Generic scoring copy": rules, marketing and onboarding say "best performance wins", never "biggest dollar gain", because capital varies by stake mode. "Dollars decide": the UI shows the metric that decides the winner. The popup lines you approved today name it for Matchup ("the bigger dollar gain wins").</li>
+          <li><b>What you're looking at:</b> page 1 of two popups, Matchup on top and Duration below, three ways. Only the line changes.</li>
+          <li><b>4A · as you approved them.</b> A popup is a definition, so it says what decides the winner. The generic rule gets a written exception for definitions. Duration stays "the biggest gain" (it doesn't say dollars or percent).</li>
+          <li><b>4A+ · the same, and Duration says "dollar" too</b> <NEW />, now that dollars decide Duration as well.</li>
+          <li><b>4B · the generic rule wins.</b> Both say "best performance" <NEW />, and neither says what decides.</li>
+          <li><b>Recommended: 4A+</b> (the Planner advises A). A definition that won't say what decides the winner doesn't define anything, and the popup is the one place a player asks exactly that. Adding "dollar" to Duration makes the two lines match.</li>
+          <li><b>Answer with:</b> 4A, 4A+ or 4B.</li>
+        </ul>
+        <Grid>{[
+          fig('c-a-m', '4A · Matchup (as approved)', <PopFrame t="light" k="matchup" page={1} />),
+          fig('c-ap-m', '4A+ · Matchup (as approved)', <PopFrame t="light" k="matchup" page={1} />),
+          fig('c-b-m', '4B · Matchup, generic', <PopFrame t="light" k="mGeneric" page={1} />, 'NEW: "the best performance wins".'),
+          fig('c-a-d', '4A · Duration (as approved)', <PopFrame t="light" k="duration" page={1} />, '"The biggest gain": names neither dollars nor percent.'),
+          fig('c-ap-d', '4A+ · Duration says dollar', <PopFrame t="light" k="dDollar" page={1} />, 'NEW: "The biggest dollar gain at the end wins."'),
+          fig('c-b-d', '4B · Duration, generic', <PopFrame t="light" k="dGeneric" page={1} />, 'NEW: "The best performance at the end wins."'),
+        ]}</Grid>
+      </section>
+    );
+  }
+
   window.KSInfoKit = { ChoiceCard, InfoI };
-  window.KSRule12Info = () => <><Section /><Questions /></>;
+  window.KSRule12Info = () => <><Section /><Questions /><CopyCall /></>;
 })();

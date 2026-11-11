@@ -233,12 +233,7 @@ else to show. A count belongs beside the heading as a number, not in a sentence.
 removes text; it never asks for new copy, and any replacement wording is new copy for Giorgio.
 
 A definition the player needs in order to choose (what Matchup or Price tiers means) is not
-an explainer to cut silently: it moves behind an "i" at the end of the option's row, which
-opens a popup in two pages, the short line then the visual, turned by a swipe or the two dots
-under the card (no button), closed by a × from either page (Giorgio, 2026-11-10 and
-2026-11-11, PRODUCT_RULES "Optional context behind an i", "The i popup has two pages" and
-"No button in the i popup"). Only for an option that is key to the flow,
-defined by us, and not obvious; never for a limit, which stays a refusal in place.
+an explainer to cut silently: it moves behind an "i" (rule 13).
 
 **How the gate checks it.** On every capture, list each heading (card title, section label,
 setting label, sheet title) with every line of text between it and the first control or row.
@@ -271,8 +266,13 @@ explaining would be great."
 When it applies, it applies to every option in that selection ("this should be a thing for
 all options"), not only the ones we judge to be hard. The popup holds a concise explanation
 in words, and may have a second part with a visual ("it could even be a two part pop up").
-Whether a popup has one part or two, and what the visual is, the Design Lead shows Giorgio
-on a board; the words in it are new copy for him. Nothing is added under the option's label:
+**The popup's form** (Giorgio, 2026-11-11; PRODUCT_RULES "The 'i' popup has two pages" and
+"No button in the 'i' popup: just the dots"): two pages, the option's name and its short line,
+then the name and the visual. No button: a swipe turns the page, and the two dots under the
+card are the page control (a 44pt row; tap to turn; VoiceOver "Page 1 of 2"). The × in the
+corner closes it from either page; it always opens on page 1. Its words are approved per
+popup (PRODUCT_RULES "The 'i' popup lines, approved as written"); any new popup's words are
+new copy for him. Nothing is added under the option's label:
 rule 12 still holds on the same screen. A limit keeps its reason at the limit (rule 8); the
 "i" explains what an option is, not why a control refused.
 
