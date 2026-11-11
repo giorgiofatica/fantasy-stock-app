@@ -11,6 +11,7 @@ import { seamRpc, seamTable } from './seamCalls';
 import { indexPicks, type DraftPickRow } from './draftBoard';
 import type { ClockState } from './draftRoom';
 import { clockState } from './draftRoom';
+import { autoPickDueAt } from './autoPickAsk';
 import { nextQueueRead, type QueueRead } from './draftQueueRead';
 
 export interface RoomState {
@@ -19,6 +20,10 @@ export interface RoomState {
   picks: Map<number, { symbol: string; source: string; price: number | null }>;
   pickCount: number;
   clock: ClockState;
+  /** The turn's deadline on the DEVICE clock (ms), from the server's deadline and
+   * server_now (autoPickAsk.autoPickDueAt); null when no clock runs. The auto-pick
+   * ask fires on it: the server reading's clock kind only changes on a re-read. */
+  autoPickDueAt: number | null;
   pickSeconds: number;
   names: Record<string, { name: string; isBot: boolean }>;
   /** My queue, read on its own: a failed queue read never fails the room, and
@@ -31,7 +36,7 @@ export interface RoomState {
 export function useDraftRoom(leagueId: string | null): RoomState {
   const [state, setState] = useState<Omit<RoomState, 'refresh'>>({
     status: 'loading', order: [], picks: new Map(), pickCount: 0,
-    clock: { kind: 'idle', secondsLeft: null }, pickSeconds: 60, names: {}, queue: { status: 'loading' }, draftStatus: null,
+    clock: { kind: 'idle', secondsLeft: null }, autoPickDueAt: null, pickSeconds: 60, names: {}, queue: { status: 'loading' }, draftStatus: null,
   });
   const [tick, setTick] = useState(0);
 
@@ -42,6 +47,8 @@ export function useDraftRoom(leagueId: string | null): RoomState {
     let cancelled = false;
     (async () => {
       try {
+        // Sent-at, before the reads: the server's clock is read after it (autoPickDueAt).
+        const sentAtMs = Date.now();
         const [clockRes, orderRes, picksRes, namesRes, queueRes] = await Promise.all([
           seamRpc('get_draft_clock', { p_league_id: leagueId }),
           seamRpc('get_draft_order', { p_league_id: leagueId }),
@@ -64,8 +71,11 @@ export function useDraftRoom(leagueId: string | null): RoomState {
         const clock = clockRow
           ? clockState({ running: clockRow.clock_running === true, deadlineAt: clockRow.deadline_at ?? null, serverNow: clockRow.server_now })
           : { kind: 'idle' as const, secondsLeft: null };
+        const dueAt = clockRow
+          ? autoPickDueAt({ running: clockRow.clock_running === true, deadlineAt: clockRow.deadline_at ?? null, serverNow: clockRow.server_now ?? null, sentAtMs })
+          : null;
         setState((s) => ({
-          status: 'ready', order, picks, pickCount: picks.size, clock, pickSeconds, names,
+          status: 'ready', order, picks, pickCount: picks.size, clock, autoPickDueAt: dueAt, pickSeconds, names,
           // A resolved query error is NOT an empty queue (set_draft_queue replaces the whole list).
           queue: nextQueueRead(s.queue, queueRes),
           draftStatus: clockRow ? String(clockRow.draft_status) : null,

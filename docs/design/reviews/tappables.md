@@ -93,11 +93,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftDateSheet.tsx:94` | Pressable | onPress | `inline: () => run({ type: 'set_later' })` | fn run |  |
 | `components/game/DraftDateSheet.tsx:108` | Pressable | onPress | `inline: () => run({ type: 'dismiss' })` | fn run |  |
 | `components/game/DraftDateSheet.tsx:114` | Pressable | onPress | `inline: () => setAndroidPicking(true)` | state setAndroidPicking |  |
-| `components/game/DraftRoom.tsx:371` | DraftClockChip | onPress | `showTheClock` | fn showTheClock |  |
-| `components/game/DraftRoom.tsx:381` | Button | onPress | `room.refresh` | prop room.refresh |  |
-| `components/game/DraftRoom.tsx:486` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
-| `components/game/DraftRoom.tsx:496` | Button | onPress | `draft` | fn draft | `pending` |
-| `components/game/DraftRoom.tsx:552` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/DraftRoom.tsx:388` | DraftClockChip | onPress | `showTheClock` | fn showTheClock |  |
+| `components/game/DraftRoom.tsx:398` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/DraftRoom.tsx:503` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
+| `components/game/DraftRoom.tsx:513` | Button | onPress | `draft` | fn draft | `pending` |
+| `components/game/DraftRoom.tsx:569` | Button | onPress | `room.refresh` | prop room.refresh |  |
 | `components/game/LeagueRenewal.tsx:47` | Button | onPress | `inline: () => setRetry((n) => n + 1)` | state setRetry |  |
 | `components/game/LeaveLeagueSheets.tsx:29` | Pressable | onPress | `inline: view.enabled ? onPress : undefined` | fn onPress (conditional) | `!view.enabled` |
 | `components/game/LeaveLeagueSheets.tsx:67` | Button | onPress | `onLeave` | prop onLeave (the caller's) | `busy` |

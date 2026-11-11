@@ -42,7 +42,8 @@ import { FINALIZE_GRACE_MS, finalizeHealOutcome, myRosterPicks, shouldHandOffToF
 import { useWeekOne } from '@/lib/game/useWeekOne';
 import type { MarketCalendarSession } from '@/lib/time/marketWeek';
 import { picksUntilTurn } from '@/lib/home/draftTurn';
-import { readFunctionRefusal } from '@/lib/functionRefusal';
+import { readFunctionRefusal, type FunctionRefusal } from '@/lib/functionRefusal';
+import { type AskState, NO_ASK, askAnswered, askForTurn, askSent, askWaitMs, nextAskStep } from '@/lib/game/autoPickAsk';
 import { ownPickClockQuiet, setForegroundQuiet } from '@/lib/foregroundQuiet';
 import { useIsFocused } from '@react-navigation/native';
 import { turnState } from '@/lib/game/draftRefusals';
@@ -97,7 +98,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
   const quiet = ownPickClockQuiet(isMyTurn, room.clock.kind, roomOnScreen);
 
   // The clock ticks between reads (liveClock): the reading counted down from when it
-  // arrived. Display only: the auto-pick backstop below still keys on the server's reading.
+  // arrived. Display only: the auto-pick ask below keys on the deadline itself (room.autoPickDueAt).
   const [readAt, setReadAt] = useState(() => Date.now());
   const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => {
@@ -212,32 +213,48 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
   // UX rule 10: how far away your next pick is (the snake, from Home's draftTurn).
   const picksAway = m > 0 && myUserId ? picksUntilTurn(room.order, room.pickCount, rounds, myUserId) : -1;
 
-  // The auto-pick backstop (D3): past the deadline, the server is asked once, with
-  // 0–3 s of jitter, to make the overdue pick. The server's deadline check and
-  // idempotence decide; the room only shows what the server recorded.
-  const autoAsked = useRef<number | null>(null);
+  // The auto-pick ask (lib/game/autoPickAsk; Giorgio, 2026-11-10, "The auto-pick is instant").
+  // It fires at the LIVE deadline (the server's deadline on this device's clock), never on the
+  // server reading's clock kind (that only changes on a re-read, which only follows a pick) and
+  // never with jitter. not_overdue, no answer, or a 5xx asks again; a pick, a turn change, a stall,
+  // a price outage or the bound stops it. The ask state changes only when an ask is SENT or
+  // ANSWERED, so a re-render that clears the timer never loses it. The server's deadline check
+  // and the (league_id, pick_number) index decide; the room only shows what the server recorded,
+  // and the sweep cron covers a room nobody has open.
+  const autoAsk = useRef<AskState>(NO_ASK);
+  const [askTick, setAskTick] = useState(0);
   const [stalledAt, setStalledAt] = useState<number | null>(null);
   const [waitingForPrices, setWaitingForPrices] = useState<number | null>(null);
-  const { refresh, clock } = room;
+  const { refresh } = room;
+  const askOpen = room.status === 'ready' && m > 0 && !draftDone;
+  const dueAt = room.autoPickDueAt;
   useEffect(() => {
-    if (clock.kind !== 'auto_picking' || m === 0) return;
-    if (autoAsked.current === onClockPick) return;
-    autoAsked.current = onClockPick;
-    const jitter = Math.floor(Math.random() * 3000);
+    if (!askOpen) return;
+    const ask = askForTurn(autoAsk.current, onClockPick);
+    autoAsk.current = ask;
+    const wait = askWaitMs(ask, dueAt, Date.now());
+    if (wait === null) return;
+    const pick = onClockPick;
     const t = setTimeout(() => {
-      void seamInvoke('validate-and-record-pick', { body: { league_id: leagueId, action: 'auto_pick', pick_number: onClockPick } })
-        .then(async ({ data, error }) => {
+      if (autoAsk.current !== ask) return; // answered or moved on since: the re-render re-plans
+      autoAsk.current = askSent(ask, Date.now());
+      void seamInvoke('validate-and-record-pick', { body: { league_id: leagueId, action: 'auto_pick', pick_number: pick } })
+        // readFunctionRefusal: the reason survives a non-2xx too (error.context's body).
+        .then(({ data, error }) => readFunctionRefusal(data, error))
+        .catch((): FunctionRefusal => ({ transport: true }))
+        .then((r) => {
+          const step = nextAskStep(r);
+          autoAsk.current = askAnswered(autoAsk.current, pick, step, Date.now());
           // A stalled turn (auto-pick found no legal stock) is shown as waiting, never as a pick.
-          // readFunctionRefusal: the reason survives a non-2xx too (error.context's body).
-          const r = await readFunctionRefusal(data, error);
-          if (!r.transport && (r.reason === 'stalled' || r.body.reason === 'stalled')) setStalledAt(onClockPick);
+          if (step.kind === 'stalled') setStalledAt(pick);
           // The audit's Rule 8 table: auto-pick is waiting for prices (shown in the clock card).
-          setWaitingForPrices(!r.transport && (r.reason === 'price_unavailable' || r.body.reason === 'price_unavailable') ? onClockPick : null);
-        })
-        .finally(() => refresh());
-    }, jitter);
+          setWaitingForPrices((cur) => (step.kind === 'waiting_for_prices' ? pick : cur === pick ? null : cur));
+          if (step.kind === 'retry') setAskTick((n) => n + 1);
+          else refresh();
+        });
+    }, wait);
     return () => clearTimeout(t);
-  }, [clock.kind, onClockPick, m, leagueId, refresh]);
+  }, [askOpen, onClockPick, dueAt, askTick, leagueId, refresh]);
 
   // The draft's ending (U-10). The last pick's realtime insert reaches the room
   // before the server's finalize (in that pick's own request) flips draft_status,

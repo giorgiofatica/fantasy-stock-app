@@ -452,8 +452,10 @@ Deno.test('a stopped or auto-picking clock doesn\'t tick', () => {
   assertEquals(liveClock({ kind: 'auto_picking', secondsLeft: 0 }, 5000), { kind: 'auto_picking', secondsLeft: 0 });
 });
 
-Deno.test('the room shows the live clock but its auto-pick backstop still keys on the server reading (source guard)', () => {
+Deno.test('the room shows the live clock, and its auto-pick asks on the live deadline, not the server reading (source guard)', () => {
   const room = SOURCES['components/game/DraftRoom.tsx'];
   assertEquals(room.includes('const shownClock = liveClock(room.clock, nowMs - readAt);'), true);
-  assertEquals(room.includes("if (clock.kind !== 'auto_picking' || m === 0) return;"), true); // clock = room.clock (the reading)
+  // Build 12: keyed on room.clock (the reading), the ask never fired and every pick waited for the sweep.
+  assertEquals(room.includes("if (clock.kind !== 'auto_picking' || m === 0) return;"), false);
+  assertEquals(room.includes('askWaitMs(ask, dueAt, Date.now())'), true); // tests-deno/auto-pick-ask.test.ts
 });
