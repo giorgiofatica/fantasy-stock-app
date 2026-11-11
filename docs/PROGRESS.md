@@ -23,6 +23,42 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-11
+
+(Times are UTC; the evening of 2026-11-10 in Giorgio's time zone runs into this date.)
+
+**Shipped**
+- Nothing new to prod or phones. Newest EAS iOS build is still 1.3.0 (14) from `6ca0e0c4`.
+
+**Merged, not confirmed live**
+- **#384, the auto-pick fix (merged 18:19Z): NOT applied, not in a build.** Migration `20261201000000_autopick_sweep_fast_cadence.sql` is on `main` and moves `draft_autopick_sweep` from 10 s to 2 s; the next `supabase db push` would apply it. The client half (ask at the deadline, with retries) reaches phones in build 15. Per the Orchestrator the prod sweep is still 10 s; the effect is unverified until the Orchestrator's verified-by-query note and a later draft's data.
+- **#379 (06:17Z):** Home no longer paints the plain draft card before "Draft postponed". Client only, merged, not in a build.
+- Docs: #376 App Store requirements (research), #377 UX rule 13, #378 the auto-pick-is-instant rule, #380 Alpaca market-data display rights (research), #381 privacy policy / terms / support (research), #382 free data sources (research), #383 Tiingo licence read (research), #385 five Design Lead board branches, #386 the popup-may-name-the-metric rule, #387 a board follow-up (one view at a time; question 4 shown as decided). #375 (my 2026-11-10 record) merged 06:11Z.
+
+**Decided** (Giorgio's words are in `PRODUCT_RULES.md`; this only points)
+- A choice we defined carries optional context, an "i" popup (UX rule 13, #377; the other half of rule 12).
+- The auto-pick is instant (#378). His words: up to ~20 s after the clock ran out in his build-14 draft.
+- Duration is won by dollars in every stake mode, "dollars, confirmed" (#385). It confirms DR-001; Duration scoring is unbuilt and its plan is the Planner's.
+- Duration is hidden in Create league until it is built (his pick "A", in #385). The app and server change is a chip, not merged.
+- A definition popup may name what decides the winner; rules, marketing and onboarding keep "best performance wins" (#386).
+- Board picks recorded in #385: the Season step B, and below four managers B (already built, #358, and live server-side, #359).
+
+**Found**
+- #384's description reports a measurement: League B on build 12, 21 of 21 auto picks landed 8.3–47.8 s after the deadline (median 10.3 s), with three named causes. That is the PR's own account, not an independent check.
+- Phone-pass step 24d passed on build 14 (page tick 06:08Z, Giorgio's own recording): one card, no buttons, and it clears with no tap after the rejoin.
+
+**Waiting on Giorgio**
+- The `db push` for `20261201000000` (steps in #384's description), after which the Orchestrator verifies by query.
+- The leave-sheet board call (the Leave sheet in a league of four), open in #385.
+- Re-capture `db-snapshot.json` (stale; same ask as 2026-11-10).
+- Delete the Vault entry `service_role_key` (STATUS §4 item 27).
+- The phone pass from step 24e: he paused it until today. Step 24e is now an unattended League A draft with a proof query and a timing query.
+
+**Next**
+- In progress, not on `main`: migration `20261202000000` (an auto-pick in-flight lease, branch `fix/autopick-lease-outage`) and `20261203000000` (refuse new Duration leagues); chips "Hide Duration until it's built" and "Auto-pick in-flight lease".
+- Build 15 is the earliest the Home fix (#379) and the client half of the auto-pick fix reach a phone.
+- The Planner takes Giorgio through the App Store blockers, using the research above; nothing is decided.
+
 ## 2026-11-10
 
 **Shipped**

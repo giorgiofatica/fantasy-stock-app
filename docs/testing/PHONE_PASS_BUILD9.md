@@ -1,6 +1,6 @@
 # Phone pass, 1.3.0 (9): the one list, in order
 
-**Mirror of the phone-pass page, version 21 (2026-11-10).** Giorgio ticks the page, not this
+**Mirror of the phone-pass page, version 23 (2026-11-11).** Giorgio ticks the page, not this
 file. Kept here with placeholders: throwaway emails as `you+t1@gmail.com`, `{T1's name}` for the
 gamertag, no invite codes.
 
@@ -204,26 +204,49 @@ switch (18). Note the time and what you had just tapped if it happens.
   4. As yourself: the "left the league" part is gone with no tap from you, and nothing stops you
      picking a draft time.
   This is not the re-run of step 22; leave 22 marked Failed.
-- [ ] **Step 24e. A drafted stock leaves every queue.** (Page id 44.) On build 14, in League A with
-  four managers. Pick one stock for this, called X here: a mid-size company, not a household giant,
-  so the automatic picks don't take it first.
-  1. As yourself: set League A's draft time to about **1 hour 15 minutes from now**, on a quarter
-     hour (the Pick a new draft time card, or League settings; it must be at least an hour away).
-  2. Sign out, sign in as T2. League A › Your queue: add X, Save queue. Sign out.
-  3. Sign in as yourself. League A › Your queue: add X, Save queue. Stay signed in.
-  4. On your laptop, in the Supabase SQL editor, run this with X replaced by the ticker in
-     capitals, in both places:
-     `SELECT (SELECT count(*) FROM draft_queue q WHERE q.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND q.symbol = 'X') AS queued_x, (SELECT count(*) FROM drafts d WHERE d.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND upper(d.symbol) = 'X') AS drafted_x;`
-     Right: **queued_x 2, drafted_x 0**. (A 2 here also shows the query is looking at the right
-     league.)
-  5. At the draft time, be in the room and watch Your queue. If it's your pick and X is still
-     there, draft X. Right: the moment X is drafted, by you or by anyone else (the server may pick it
-     for T2 first, and that counts), X disappears from your queue and the count drops by one, with no
-     "Save queue" and no "Not saved yet".
-  6. Run the same query again, any time after X is drafted. Right: **queued_x 0, drafted_x 1**. T2
-     never touched the queue again, so only the server can have removed T2's copy.
-  7. You can leave the room; the server picks for everyone who is away. Let League A's draft finish
-     before step 25.
+- [ ] **Step 24e. League A: a drafted stock leaves every queue.** (Page id 44.) **Everything here is
+  in League A.** Nothing touches League B or League C. On build 14. You do a few
+  minutes now, the draft runs by itself, and you do a few minutes after it.
+  **NOW, on your phone (about 5 minutes)**
+  1. Sign out. Sign in as T2. Open League A › League tab › Your queue. Add **GE**. Tap Save queue.
+     Sign out.
+  2. Sign in as yourself. Open League A › League tab › Your queue. Right: GE is in your list and SG
+     is above it. Change nothing.
+  3. Tap Pick a new draft time. Choose the first quarter-hour that is at least **1 hour 10
+     minutes** from now. Note the time.
+
+  **NOW, on your laptop**
+  4. Supabase SQL editor, run the proof query:
+     ```sql
+     SELECT (SELECT count(*) FROM draft_queue q WHERE q.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND q.symbol = 'GE') AS queued_x,
+            (SELECT count(*) FROM drafts d WHERE d.league_id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d' AND upper(d.symbol) = 'GE') AS drafted_x;
+     ```
+     Right: **queued_x 2, drafted_x 0**.
+  5. Close the app on your phone.
+
+  **THE DRAFT (nothing to do)**
+  It starts by itself at the time you chose and takes about 30 minutes. You do not need to be in
+  the app. *Optional:* at the draft time, open League A's draft room for five minutes and watch Your
+  queue. GE should disappear by itself within the first four picks, with no "Save queue" and no
+  "Not saved yet". If it is your pick, pick anything except GE. Tell the Planner whether you did
+  this.
+
+  **AFTER, on your laptop (any time from 35 minutes after the draft time, the next day is fine)**
+  6. Run the proof query from 4 again. Right: **queued_x 0, drafted_x 1**.
+  7. Run the timing query (pinned to League A by id):
+     ```sql
+     WITH lg AS (SELECT id, name, pick_seconds, draft_started_at FROM leagues WHERE id = 'e1ac3484-e017-4e0c-a8a6-0337d0c0311d'),
+          p AS (SELECT d.pick_number, d.pick_source, d.recorded_at,
+                       lag(d.recorded_at) OVER (ORDER BY d.pick_number) AS prev_at
+                  FROM drafts d JOIN lg ON d.league_id = lg.id)
+     SELECT lg.name, p.pick_number, p.pick_source,
+            round(extract(epoch FROM p.recorded_at - (coalesce(p.prev_at, lg.draft_started_at)
+                  + make_interval(secs => lg.pick_seconds)))::numeric, 1) AS seconds_after_deadline
+       FROM p, lg ORDER BY p.pick_number;
+     ```
+  8. Paste the results of 6 and 7 to the Planner.
+
+  **Pass:** 2 and 0 before the draft, 0 and 1 after it. Step 25 comes after this.
 - [ ] **Step 25. Delete T1 (30).** On T1: Profile › Delete account. Wrong
   password first. Right: "That password isn't right. Try again." and the field clears. Right
   password → Delete my account → "Are you sure?" → Delete. Right: signed out, sign-in shows
