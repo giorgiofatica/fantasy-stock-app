@@ -28,10 +28,11 @@ Entries begin with the Recorder's first pass.
 (Times are UTC; the evening of 2026-11-10 in Giorgio's time zone runs into this date.)
 
 **Shipped**
-- Nothing new to prod or phones. Newest EAS iOS build is still 1.3.0 (14) from `6ca0e0c4`.
+- **The server half of the auto-pick fix is LIVE.** Migration `20261201000000_autopick_sweep_fast_cadence` (#384) was applied by Giorgio's `db push` from the deploy checkout at `447e97c9` (~18:3xZ). Verified by query by the Orchestrator: applied 1 and the only version after `20261130000000`; `draft_autopick_sweep` exactly 1 row with schedule `2 seconds` and the expected command; latest runs 0 failed of 14. **Not yet shown by data:** actual pick delays; the next unattended clocked draft measures them. (The 18:25Z record, #388, was written before the push and said "NOT applied"; this entry supersedes it.)
+- Nothing new on phones. Newest EAS iOS build is still 1.3.0 (14) from `6ca0e0c4`.
 
 **Merged, not confirmed live**
-- **#384, the auto-pick fix (merged 18:19Z): NOT applied, not in a build.** Migration `20261201000000_autopick_sweep_fast_cadence.sql` is on `main` and moves `draft_autopick_sweep` from 10 s to 2 s; the next `supabase db push` would apply it. The client half (ask at the deadline, with retries) reaches phones in build 15. Per the Orchestrator the prod sweep is still 10 s; the effect is unverified until the Orchestrator's verified-by-query note and a later draft's data.
+- **#384's client half (merged 18:19Z): in no build.** The ask at the deadline, with retries, reaches phones in build 15. Its effect, and the effect of the 2 s sweep, on actual pick delays is not yet shown by data.
 - **#379 (06:17Z):** Home no longer paints the plain draft card before "Draft postponed". Client only, merged, not in a build.
 - Docs: #376 App Store requirements (research), #377 UX rule 13, #378 the auto-pick-is-instant rule, #380 Alpaca market-data display rights (research), #381 privacy policy / terms / support (research), #382 free data sources (research), #383 Tiingo licence read (research), #385 five Design Lead board branches, #386 the popup-may-name-the-metric rule, #387 a board follow-up (one view at a time; question 4 shown as decided). #375 (my 2026-11-10 record) merged 06:11Z.
 
@@ -48,7 +49,6 @@ Entries begin with the Recorder's first pass.
 - Phone-pass step 24d passed on build 14 (page tick 06:08Z, Giorgio's own recording): one card, no buttons, and it clears with no tap after the rejoin.
 
 **Waiting on Giorgio**
-- The `db push` for `20261201000000` (steps in #384's description), after which the Orchestrator verifies by query.
 - The leave-sheet board call (the Leave sheet in a league of four), open in #385.
 - Re-capture `db-snapshot.json` (stale; same ask as 2026-11-10).
 - Delete the Vault entry `service_role_key` (STATUS §4 item 27).
