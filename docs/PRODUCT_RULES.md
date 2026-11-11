@@ -352,6 +352,11 @@ building anything, and don't reopen a rule without him.
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
   only the tiebreak. The UI shows the metric that decides the winner, via one shared helper.
+- **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
+  DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
+  biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
+  is not built yet (the server sets only the start and end); its tiebreak and standings are
+  for the plan.
 - **"Season gain"** = regular-season `points_for` only. In the playoffs it stays at the
   final regular-season total.
 - **Ranking** (standings = playoff seeding, one order, computed only in SQL
