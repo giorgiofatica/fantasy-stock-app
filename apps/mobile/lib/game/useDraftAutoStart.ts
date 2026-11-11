@@ -35,6 +35,7 @@ import {
   lobbyPhase,
   lobbyView,
   nextBoundaryMs,
+  phaseKnown,
   readSettled,
   SETTLE_CAP_MS,
   postponedAtMs,
@@ -61,8 +62,7 @@ export function useDraftAutoStart(leagueId: string, opts: { kick: boolean }) {
   // the last known phase while it loads, so cards never blink out.
   const [phoneNow, setPhoneNow] = useState(() => Date.now());
   const serverNow = phoneNow + ds.serverOffsetMs;
-  const known = ds.status === 'ready' || (ds.status === 'loading' && ds.startState !== null);
-  const phase = known ? lobbyPhase(ds, serverNow) : null;
+  const phase = phaseKnown(ds) ? lobbyPhase(ds, serverNow) : null;
   const fixable = fixableBlockers(ds.blockers);
   const view = phase ? lobbyView(phase, ds.isCommissioner, fixable.length) : null;
 

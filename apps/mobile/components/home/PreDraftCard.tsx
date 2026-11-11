@@ -24,6 +24,7 @@ import {
   NO_DATE_TITLE,
   countdownCopy,
   etWhenLabel,
+  homeShowsDraftCard,
   homeView,
   memberPostponedCopy,
   noDateCopy,
@@ -245,7 +246,8 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
         />
       ) : null}
 
-      {view?.blockers === 'postponed' ? null : (
+      {/* Unknown status paints no draft card (never the plain one first); postponed (commissioner) is the blockers card. */}
+      {homeShowsDraftCard(view, ds.status === 'error') ? (
       <Card style={styles.card}>
         <View style={styles.header}>
           <Text variant="tag" style={{ color: colors.liveText }}>
@@ -261,7 +263,7 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
         </View>
         {blocks.map((b) => <View key={b}>{renderBlock(b)}</View>)}
       </Card>
-      )}
+      ) : null}
 
       <Card style={styles.card}>
         <View style={styles.sectionHeader}>

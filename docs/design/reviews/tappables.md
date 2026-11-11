@@ -134,10 +134,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/Stepper.tsx:77` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
 | `components/home/DraftingCard.tsx:85` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/PhaseMessageCard.tsx:33` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
-| `components/home/PreDraftCard.tsx:215` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |
-| `components/home/PreDraftCard.tsx:216` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/home/PreDraftCard.tsx:223` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/home/PreDraftCard.tsx:297` | Button | onPress | `onShare` | share sheet |  |
+| `components/home/PreDraftCard.tsx:216` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |
+| `components/home/PreDraftCard.tsx:217` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/home/PreDraftCard.tsx:224` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/home/PreDraftCard.tsx:299` | Button | onPress | `onShare` | share sheet |  |
 | `components/home/RenewalCountsCard.tsx:22` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/RunItBackCard.tsx:39` | Button | onPress | `inline: () => void runItBack()` | fn runItBack | `busy` |
 | `components/home/SeasonCompleteCard.tsx:248` | ListRow | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |

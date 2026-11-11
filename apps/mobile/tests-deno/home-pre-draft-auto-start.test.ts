@@ -47,6 +47,6 @@ Deno.test("members' postponed copy is Home's (no \"and on your Home\")", () => {
 
 Deno.test('commissioner: postponed REPLACES the draft card; at risk sits ON TOP of it', () => {
   const blockersAt = homeSrc.indexOf('<AutoStartBlockers');
-  const replaceAt = homeSrc.indexOf("{view?.blockers === 'postponed' ? null : (");
+  const replaceAt = homeSrc.indexOf("{homeShowsDraftCard(view, ds.status === 'error') ? (");
   assertEquals(blockersAt > 0 && replaceAt > blockersAt, true);
 });
