@@ -10,8 +10,8 @@ This file says how a screen must *behave for the person using it*.
 - **Checked by:** the `ux-reviewer` subagent at every UI gate, and by the Design Lead's gate
   report (see [`UI-UX-PROGRAM.md`](UI-UX-PROGRAM.md), "Design review gate").
 - **Source:** the eighteen Laws of UX that apply to this app ([lawsofux.com](https://lawsofux.com/)),
-  collapsed into eleven rules so that one decision is checked once, not six times. Rule 12
-  is Giorgio's own (2026-11-10).
+  collapsed into eleven rules so that one decision is checked once, not six times. Rules 12
+  and 13 are Giorgio's own (2026-11-10).
 - **Precedence:** a product rule beats a UX rule. If applying a rule here would change what the
   product does (not how it looks or responds), that is a question for Giorgio, not a finding.
 
@@ -238,6 +238,48 @@ Each such line is named in the report with one of: *fact needed now* (which fact
 *explainer* (a finding). More than one line under a heading is a finding whatever the lines
 say. Proposed priority P1 on a screen being built or changed; P2 on a screen the branch did
 not touch (it goes to the sweep list, not into the branch).
+
+## 13. A choice we defined carries optional context
+
+*From: Giorgio, 2026-11-10, on the rule-12 sweep board (`../PRODUCT_RULES.md`, "Optional
+context for a choice we defined"). Not a Law of UX; a product rule this file enforces. It is
+the other half of rule 12: that rule removes explaining text, this one says where a player
+can still ask.*
+
+**What we do.** Where a selection is key to the flow, was defined by us, and is not obvious,
+each option has a small info "i" at the end of its row. Tapping it opens a popup that
+explains that option, with a small x in the corner to close it. "i dont want this to be
+shows in text below, but a little information i on the end of each bar with a pop up
+explaining would be great."
+
+**What it means here.** A selection gets the "i" only when all three hold:
+
+- it is **key to the flow**: the player cannot go on without choosing, or the choice changes
+  how the league plays;
+- it was **defined by us**: the option is a term or a mode of this app, not something the
+  player already knows (his example: the league types on Create league);
+- it is **not obvious** from the option's name and the screen around it.
+
+When it applies, it applies to every option in that selection ("this should be a thing for
+all options"), not only the ones we judge to be hard. The popup holds a concise explanation
+in words, and may have a second part with a visual ("it could even be a two part pop up").
+Whether a popup has one part or two, and what the visual is, the Design Lead shows Giorgio
+on a board; the words in it are new copy for him. Nothing is added under the option's label:
+rule 12 still holds on the same screen. A limit keeps its reason at the limit (rule 8); the
+"i" explains what an option is, not why a control refused.
+
+The Planner's reading, not his words: the "i" is its own target (rule 3) and opening it does
+not select the option; and an "i" on a choice that fails the three-part test (a count, a
+date, a name) is clutter of the kind rule 12 removes.
+
+**How the gate checks it.** On every capture, list each selection (option rows, a segmented
+control, a picker of named modes) and answer the three parts for it. For each selection that
+passes: every option has an "i"; the "i" opens a popup with an x that closes it; the popup
+was captured open, at Large and at the largest text size; no explaining text sits under the
+options. Findings: a selection that passes the test with no "i", or with an "i" on only some
+options; a popup with no x; explaining text under an option that has an "i"; an "i" on a
+choice that fails the test. Proposed priority P1 on a screen being built or changed; P2 on a
+screen the branch did not touch (it goes to the sweep list, not into the branch).
 
 ---
 
