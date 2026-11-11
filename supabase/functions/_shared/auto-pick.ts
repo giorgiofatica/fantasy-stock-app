@@ -457,6 +457,24 @@ export function outageEscalation(
   if (alreadyEscalated) return 'done';
   return nowMs - firstSeenMs >= thresholdMs ? 'escalate' : 'wait';
 }
+/** A turn whose last outage attempt ended less than this long ago is not
+ * searched again: every caller answers price_unavailable without calling Alpaca
+ * (security review P2 on #384: a modified client looping auto_pick or bot_pick
+ * through an outage cost ~21 Alpaca requests per call). The SAME window as the
+ * draft_autopick_sweep cron's outage throttle ('10 seconds', 20261201000000);
+ * supabase/tests/draft_turn_lease.pglite.test.ts pins the two equal. */
+export const OUTAGE_RETRY_MS = 10_000;
+
+/** What a turn's draft_turn_outages row means for THIS call. PURE.
+ *  'search': no row, an unreadable time, or the last outage attempt is at least
+ *            OUTAGE_RETRY_MS old: run the search.
+ *  'wait'  : an outage attempt ended inside the window: price_unavailable, no
+ *            Alpaca call, and NO write (a looping caller must not keep the
+ *            window open, or the turn would never be retried). */
+export function outageRetryVerdict(lastSeenMs: number | null, nowMs: number, windowMs: number = OUTAGE_RETRY_MS): 'search' | 'wait' {
+  if (lastSeenMs == null || !Number.isFinite(lastSeenMs)) return 'search';
+  return nowMs - lastSeenMs < windowMs ? 'wait' : 'search';
+}
 /** Rows per search page (the RPC's maximum). */
 export const BEST_PAGE = 100;
 /** The live-price SCREEN (2026-10-13): Alpaca snapshot requests per auto-pick,

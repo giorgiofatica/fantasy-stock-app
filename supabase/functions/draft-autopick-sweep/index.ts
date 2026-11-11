@@ -37,6 +37,23 @@
 // writes nothing. Chained timeouts cannot burst: each recorded pick is the
 // next turn's clock anchor, so the next turn is simply not overdue yet.
 //
+// ONE ATTEMPT PER TURN (supabase review P1 on #384, ../_shared/turn-lease.ts): the
+// cron posts every 2 s while a turn is overdue, and a slow attempt (a vendor
+// outage that times out, up to WALL_BUDGET_MS) outlives many ticks. Each row is
+// worked under a per-turn lease on (league_id, pick_number), claimed BEFORE the
+// turn is read: an overlapping sweep gets 'lease_held' and spends nothing. Client
+// auto_pick / bot_pick asks take the SAME lease (draft-write.ts
+// autoPickTurnLeased), so a sweep and a client never work one turn at once. The
+// lease is time-bounded (a dead holder's turn is taken over after
+// TURN_LEASE_TTL_MS) and fails OPEN on a claim error (reported as lease_error),
+// because correctness is still the unique index's. Under the lease the turn is
+// re-read, and acted on only if it is still the leased pick_number.
+//
+// OUTAGE PACE: autoPickTurn answers price_unavailable without calling Alpaca
+// while the turn's last outage attempt is under OUTAGE_RETRY_MS old (the same
+// 10 s the cron's outage throttle uses), so the outage retry pace holds even
+// for a sweep the cron posted for another league.
+//
 // DELETED SEATS (account deletion, 2026-10-21): in an UNCLOCKED draft a deleted seat would
 // stall the draft forever (auto-pick never fires without a clock). A third pass takes every
 // turn public.unclocked_deleted_seat_turns() lists (an unclocked live draft with a deleted
@@ -61,18 +78,20 @@ import { decideAutoPickGate } from '../_shared/auto-pick.ts';
 import { decideDeletedSeatPick, listUnclockedDeletedSeatTurns, seatReader, selectSeatTurns } from '../_shared/deleted-seat.ts';
 import { autoPickTurn, fetchDraftClock, finalizeDraft, isDraftFull, loadDraftContext } from '../_shared/draft-write.ts';
 import { startDraftIfDue, watchLeague } from '../_shared/draft-start.ts';
+import { withTurnLease } from '../_shared/turn-lease.ts';
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json' } });
 
-// Bounds per invocation. The cron re-fires every tick, so anything past these
-// is picked up next tick rather than risking the edge wall-clock limit.
+// Bounds per invocation. The cron re-fires every tick (every 2 s,
+// 20261201000000), so anything past these is picked up next tick rather than
+// risking the edge wall-clock limit.
 const MAX_LEAGUES_PER_RUN = 20;
 const CONCURRENCY = 4;
 // Starts and watches first, but capped, so a burst of drafts all set for noon
-// cannot starve overdue turns; the rest go on the next tick (10 s later).
+// cannot starve overdue turns; the rest go on the next tick (2 s later).
 const MAX_STARTS_PER_RUN = 10;
-// Deleted-seat leagues per run (the cron re-fires every tick, so the rest wait ten seconds).
+// Deleted-seat leagues per run (the cron re-fires every tick, so the rest wait one tick, 2 s).
 const MAX_DELETED_SEAT_PER_RUN = 10;
 const MAX_WATCHES_PER_RUN = 10;
 
@@ -88,6 +107,7 @@ interface LeagueOutcome {
   pick_number: number;
   outcome: string;
   pick_source?: string;
+  lease_error?: true; // the lease claim failed and the turn was worked unleased (fail open)
 }
 
 Deno.serve(async (req: Request) => {
@@ -176,56 +196,77 @@ Deno.serve(async (req: Request) => {
   async function sweepOne(row: { league_id: string; pick_number: number; viaDeletedSeat?: boolean }) {
     const base = { league_id: String(row.league_id), pick_number: Number(row.pick_number) };
     try {
-      const loaded = await loadDraftContext(admin, base.league_id);
-      if (!loaded.ok) return errors.push({ ...base, outcome: loaded.reason });
-      const ctx = loaded.ctx;
-      if (ctx.league.draft_status !== 'in_progress') return results.push({ ...base, outcome: 'not_in_progress' });
-
-      if (isDraftFull(ctx)) {
-        // The deleted-seat pass is only about PICKING for a deleted seat. A draft with every pick made has
-        // no picker (W2: its listed pick_number is one past the last pick), so there is nothing to do here;
-        // finalizing is the overdue pass's job and is not widened to unclocked drafts by this pass.
-        if (row.viaDeletedSeat) return results.push({ ...base, outcome: 'no_turn' });
-        const finalizeError = await finalizeDraft(admin, ctx.league, ctx.order);
-        return finalizeError === null
-          ? results.push({ ...base, outcome: 'finalize_healed' })
-          : errors.push({ ...base, outcome: `finalize_failed:${finalizeError}` });
-      }
-
-      const clock = await fetchDraftClock(admin, base.league_id);
-      if (!clock) return errors.push({ ...base, outcome: 'clock_read_failed' });
-      if (row.viaDeletedSeat) {
-        // The list only says "a deleted seat is somewhere in this unclocked draft". Whether it
-        // is THIS turn's picker, and whether the gate then agrees, is decided here, in JS.
-        // Act only on what the list asserted: if the draft moved on since (a pick landed), this row
-        // is stale and the NEXT tick's list names the new turn.
-        if (base.pick_number !== ctx.picks.length + 1) return results.push({ ...base, outcome: 'stale_pick_number' });
-        const d = await decideDeletedSeatPick(ctx, clock, seatReader(admin, base.league_id));
-        if (d.kind !== 'go') {
-          return (d.why === 'seat_read_failed' ? errors : results).push({ ...base, outcome: d.why });
-        }
-      } else {
-        const gate = decideAutoPickGate(clock.picksMade + 1, clock);
-        if (gate.kind !== 'go') return results.push({ ...base, outcome: gate.kind });
-      }
-
-      const res = await autoPickTurn(
-        admin,
-        { alpacaKey: ALPACA_KEY, alpacaSecret: ALPACA_SECRET },
-        ctx,
-        clock.picksMade + 1,
-      );
-      if (res.ok) {
-        const out = { ...base, pick_number: Number(res.pick?.pick_number ?? base.pick_number), outcome: 'picked', pick_source: res.pickSource };
-        return res.statusError ? errors.push({ ...out, outcome: `picked_finalize_failed:${res.statusError}` }) : results.push(out);
-      }
-      // pick_conflict = someone else recorded it first: a success for the draft.
-      if (res.reason === 'pick_conflict') return results.push({ ...base, outcome: 'pick_conflict' });
-      return errors.push({ ...base, outcome: res.reason });
+      // The lease BEFORE the read: whoever holds it reads the turn fresh, so a
+      // sweep that waited out another's attempt never works a stale context.
+      const leased = await withTurnLease(admin, base.league_id, base.pick_number, () => workTurn(row, base));
+      if (leased.kind === 'held') return results.push({ ...base, outcome: 'lease_held' });
+      const out = leased.value;
+      if (!leased.leased) out.entry.lease_error = true;
+      return (out.failed ? errors : results).push(out.entry);
     } catch (e) {
       console.error('sweep: league failed', base.league_id, String(e));
       return errors.push({ ...base, outcome: 'unhandled' });
     }
+  }
+
+  // One turn's work, run only under its lease. Returns the entry instead of
+  // pushing it, so the lease outcome can be attached first.
+  async function workTurn(
+    row: { league_id: string; pick_number: number; viaDeletedSeat?: boolean },
+    base: { league_id: string; pick_number: number },
+  ): Promise<{ entry: LeagueOutcome; failed: boolean }> {
+    const ok = (entry: LeagueOutcome) => ({ entry, failed: false });
+    const fail = (entry: LeagueOutcome) => ({ entry, failed: true });
+    const loaded = await loadDraftContext(admin, base.league_id);
+    if (!loaded.ok) return fail({ ...base, outcome: loaded.reason });
+    const ctx = loaded.ctx;
+    if (ctx.league.draft_status !== 'in_progress') return ok({ ...base, outcome: 'not_in_progress' });
+
+    if (isDraftFull(ctx)) {
+      // The deleted-seat pass is only about PICKING for a deleted seat. A draft with every pick made has
+      // no picker (W2: its listed pick_number is one past the last pick), so there is nothing to do here;
+      // finalizing is the overdue pass's job and is not widened to unclocked drafts by this pass.
+      if (row.viaDeletedSeat) return ok({ ...base, outcome: 'no_turn' });
+      const finalizeError = await finalizeDraft(admin, ctx.league, ctx.order);
+      return finalizeError === null
+        ? ok({ ...base, outcome: 'finalize_healed' })
+        : fail({ ...base, outcome: `finalize_failed:${finalizeError}` });
+    }
+
+    const clock = await fetchDraftClock(admin, base.league_id);
+    if (!clock) return fail({ ...base, outcome: 'clock_read_failed' });
+    // Act only on the LEASED turn. If a pick landed since the row was listed, the
+    // current turn is another pick_number (one this sweep holds no lease on), and
+    // it is not overdue yet anyway (the landed pick is its clock anchor); the
+    // next tick lists it. Both passes: the deleted-seat list asserts a turn too.
+    if (base.pick_number !== ctx.picks.length + 1 || base.pick_number !== clock.picksMade + 1) {
+      return ok({ ...base, outcome: 'stale_pick_number' });
+    }
+    if (row.viaDeletedSeat) {
+      // The list only says "a deleted seat is somewhere in this unclocked draft". Whether it
+      // is THIS turn's picker, and whether the gate then agrees, is decided here, in JS.
+      const d = await decideDeletedSeatPick(ctx, clock, seatReader(admin, base.league_id));
+      if (d.kind !== 'go') {
+        return d.why === 'seat_read_failed' ? fail({ ...base, outcome: d.why }) : ok({ ...base, outcome: d.why });
+      }
+    } else {
+      const gate = decideAutoPickGate(base.pick_number, clock);
+      if (gate.kind !== 'go') return ok({ ...base, outcome: gate.kind });
+    }
+
+    const res = await autoPickTurn(
+      admin,
+      { alpacaKey: ALPACA_KEY, alpacaSecret: ALPACA_SECRET },
+      ctx,
+      base.pick_number,
+    );
+    if (res.ok) {
+      const out = { ...base, pick_number: Number(res.pick?.pick_number ?? base.pick_number), outcome: 'picked', pick_source: res.pickSource };
+      return res.statusError ? fail({ ...out, outcome: `picked_finalize_failed:${res.statusError}` }) : ok(out);
+    }
+    // pick_conflict = someone else recorded it first: a success for the draft.
+    if (res.reason === 'pick_conflict') return ok({ ...base, outcome: 'pick_conflict' });
+    return fail({ ...base, outcome: res.reason });
   }
 
   // Bounded parallelism: leagues are independent; one slow Alpaca chain must

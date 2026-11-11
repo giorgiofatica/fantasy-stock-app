@@ -80,7 +80,7 @@ import { fetchFillPrice } from '../_shared/alpaca-price.ts';
 import { fetchEligibleCategoryIds } from '../_shared/category-eligibility.ts';
 import { decideAutoPickGate, decideManualPickClock } from '../_shared/auto-pick.ts';
 import {
-  autoPickTurn,
+  autoPickTurnLeased,
   fetchDraftClock,
   commitGatedPick,
   finalizeDraft,
@@ -257,11 +257,12 @@ Deno.serve(async (req: Request) => {
       if (gate.kind !== 'go') return json({ ok: false, reason: gate.kind }); // 200: game-flow refusal
 
       if (!ALPACA_KEY || !ALPACA_SECRET) return json({ ok: false, reason: 'server_config_error' }, 500);
-      const result = await autoPickTurn(admin, { alpacaKey: ALPACA_KEY, alpacaSecret: ALPACA_SECRET }, ctx, requestedPickNumber);
+      // Leased (draft-write.ts autoPickTurnLeased): one attempt per turn, shared with the sweep.
+      const result = await autoPickTurnLeased(admin, { alpacaKey: ALPACA_KEY, alpacaSecret: ALPACA_SECRET }, ctx, requestedPickNumber);
       if (!result.ok) {
         return result.reason === 'unhandled'
           ? json({ ok: false, reason: 'unhandled' }, 500)
-          : json({ ok: false, reason: result.reason }); // pick_conflict / price_unavailable: 200, client refetches
+          : json({ ok: false, reason: result.reason }); // pick_conflict / pick_in_progress / price_unavailable: 200, client refetches
       }
       return json({
         ok: true,
@@ -287,7 +288,7 @@ Deno.serve(async (req: Request) => {
 
       if (!ALPACA_KEY || !ALPACA_SECRET) return json({ ok: false, reason: 'server_config_error' }, 500);
 
-      const result = await autoPickTurn(admin, { alpacaKey: ALPACA_KEY, alpacaSecret: ALPACA_SECRET }, ctx, turn.pickNumber);
+      const result = await autoPickTurnLeased(admin, { alpacaKey: ALPACA_KEY, alpacaSecret: ALPACA_SECRET }, ctx, turn.pickNumber);
       if (!result.ok) {
         return result.reason === 'unhandled'
           ? json({ ok: false, reason: 'unhandled' }, 500)

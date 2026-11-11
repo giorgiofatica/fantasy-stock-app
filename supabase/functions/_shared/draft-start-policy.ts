@@ -24,7 +24,7 @@
 
 /** The room opens (the order is set, #67) this long before draft_date. */
 export const ROOM_OPEN_LEAD_SECONDS = 60 * 60;
-/** The gate decides this long before the room opens, so the 10 s sweep acts
+/** The gate decides this long before the room opens, so the sweep (every 2 s) acts
  * before #67 finalizes the order at T-1h. */
 export const GATE_LEAD_SECONDS = 30;
 /** The commissioner's reminder, if still blocked. */
