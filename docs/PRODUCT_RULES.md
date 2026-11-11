@@ -340,6 +340,34 @@ building anything, and don't reopen a rule without him.
   the Design Lead shows him the form on the board, and the words in it are new copy for him.
   It is rule 13 in `docs/design/UX_RULES.md` and a row in the gate checklist, so the gate
   checks both directions: no explainer under a heading, and no unexplained choice of ours.
+- **The "i" popup has two pages** (2026-11-11, picking B on the "i" board): "i like version
+  B with the see an example and the second potential slide". Page 1 is the option's name, the
+  short line; page 2 is the name and the visual. The × in the corner closes it from either
+  page. The popup's words are still on the board for his approval.
+- **No button in the "i" popup: just the dots** (2026-11-11, asked of the board's three ways:
+  big button, just the dots, a small link): "is it better to have this button or simply have
+  the two dots at the bottom and have it be swipable where the user dictates where they go.
+  not sure if im a fan of the big button", then "just the dots". The player swipes between
+  the two pages; the two dots under the card show the page and are themselves the page
+  control (tap to turn, "Page 1 of 2" to VoiceOver). No "See an example" and no "Back".
+- **The "i" popup lines, approved as written** (2026-11-11: "the popup lines are approved"):
+  - Matchup: "Each week you play one team, and the bigger dollar gain wins. The best records
+    make the playoffs."
+  - Duration: "One race for the whole league. The biggest gain at the end wins."
+  - Equal stakes: "Every pick is the same dollar amount, so a cheap stock counts as much as an
+    expensive one."
+  - Price tiers: "One share per pick. Each slot takes stocks in its own price range."
+  - Budget cap: "One share per pick. Your shares together can't cost more than the cap."
+  - Draft order: "Random shuffles it an hour before the draft; Manual lets you set it. Either
+    way, it reverses each round."
+  - Playoff teams: "The top teams in the standings play a bracket. When it doesn't fill
+    evenly, the top seeds skip the first round."
+  - Non-draftable stocks: "Off: stocks at $1 or more, on a major US exchange, from companies
+    worth $250 million or more. On: every US stock, penny stocks too."
+- **Rounds gets no "i"** (2026-11-11, "1a" on the Design Lead's three questions): the Rounds
+  stepper on Create league › Draft stays a label and a number, with nothing behind it.
+- **Cut the league-name line** (2026-11-11, "3b cut"): "Don't worry. You will be able to
+  change this later." under Create league's League name field goes. Nothing replaces it.
 
 ## Scoring and standings
 
