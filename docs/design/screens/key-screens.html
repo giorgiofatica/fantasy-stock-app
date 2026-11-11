@@ -11668,23 +11668,24 @@ window.KS_REFS = {
     </span>
   );
   /**
-   * The popup. form 'A': the line and the visual together. form 'B': page 1 (words) or 2 (visual), with dots.
-   * x > 1: AX5. The card fills the screen between the status bar and the home indicator and scrolls inside;
-   * the × floats, pinned top right. scrolled: drawn scrolled down to the visual.
+   * The popup. form 'A': the line and the visual together (not picked; kept as the record of the call).
+   * form 'B' (Giorgio's pick, 2026-11-11): page 1 = the name, the line, "See an example"; page 2 = the name,
+   * the picture, "Back". At Large the card's top edge is fixed (TOP), so the name and the × never move when the
+   * page turns; the card hugs each page and grows or shrinks below them. x > 1: AX5. The card fills the
+   * screen between the status bar and the home indicator and scrolls inside; the × floats, pinned top right.
+   * scrolled: drawn scrolled to the end.
    */
-  function Popup({ k, x = 1, form = 'A', page = 1, scrolled = false }) {
+  const TOP = 150; // the card's fixed top edge at Large, in points
+  function Popup({ k, x = 1, form = 'B', page = 1, scrolled = false }) {
     const p = POPS[k];
     const ax = x > 1;
-    const words = (
-      <>
-        <span style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-          <span style={{ flex: 1, fontSize: z(20, x, TITLE), lineHeight: 1.2, fontWeight: 800 }}>{p.title}</span>
-          {ax ? <span style={{ width: 34, flex: 'none' }} /> : <Close x={x} />}
-        </span>
-        <span style={{ fontSize: z(15, x, WORDS), lineHeight: 1.35 }}>{p.line}</span>
-      </>
+    const head = (
+      <span style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <span style={{ flex: 1, fontSize: z(20, x, TITLE), lineHeight: 1.2, fontWeight: 800 }}>{p.title}</span>
+        {ax ? <span style={{ width: 34, flex: 'none' }} /> : <Close x={x} />}
+      </span>
     );
-    const visRef = React.useRef(null);
+    const line = <span style={{ fontSize: z(15, x, WORDS), lineHeight: 1.35 }}>{p.line}</span>;
     const cardRef = React.useRef(null), bodyRef = React.useRef(null);
     const [shift, setShift] = React.useState(0);
     const [over, setOver] = React.useState(false);
@@ -11693,17 +11694,19 @@ window.KS_REFS = {
       const room = cardRef.current.clientHeight, need = bodyRef.current.scrollHeight;
       setOver(need > room);
       if (scrolled) setShift(Math.max(0, need - room));
-    }, [scrolled, ax]);
-    const vis = <div ref={visRef} style={{ borderRadius: 14, background: 'var(--c-inset)', padding: 14 }}><p.Vis x={x} /></div>;
-    const dots = <span style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>{[1, 2].map((d) => <span key={d} style={{ width: 7, height: 7, borderRadius: 9, background: d === page ? 'var(--c-text)' : 'var(--c-border-strong)' }} />)}</span>;
-    const body = form === 'A' ? <>{words}{vis}</> : page === 1 ? <>{words}<span className="dr-btn dr-btn--line" style={{ width: '100%', minHeight: 44, boxSizing: 'border-box', fontSize: 15 }}>See an example</span>{dots}</> : (
-      <><span style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}><span style={{ flex: 1, fontSize: z(20, x, TITLE), fontWeight: 800 }}>{p.title}</span><Close x={x} /></span>{vis}{dots}</>
-    );
+    }, [scrolled, ax, page]);
+    const vis = <div style={{ borderRadius: 14, background: 'var(--c-inset)', padding: 14 }}><p.Vis x={x} /></div>;
+    const btn = (label) => <span className="dr-btn dr-btn--line" style={{ width: '100%', minHeight: 44, boxSizing: 'border-box', fontSize: z(15, x, ROW) }}>{label}</span>;
+    const dots = <span aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>{[1, 2].map((d) => <span key={d} style={{ width: 7, height: 7, borderRadius: 9, background: d === page ? 'var(--c-text)' : 'var(--c-border-strong)' }} />)}</span>;
+    const col = { display: 'flex', flexDirection: 'column', gap: 14 };
+    const p1 = <div style={col}>{head}{line}{btn('See an example')}</div>;
+    const p2 = <div style={col}>{head}{vis}{btn('Back')}</div>;
+    const body = form === 'A' ? <>{head}{line}{vis}</> : <>{page === 1 ? p1 : p2}{dots}</>;
     return (
       <>
         <div style={{ position: 'absolute', inset: 0, background: 'var(--c-scrim, rgba(0,0,0,.4))' }} />
         <div ref={cardRef} role="dialog" aria-label={p.title} className="dr-a-card" style={{
-          position: 'absolute', left: 16, right: 16, ...(ax ? { top: 58, bottom: 30 } : { top: '50%', transform: 'translateY(-50%)' }),
+          position: 'absolute', left: 16, right: 16, ...(ax ? { top: 58, bottom: 30 } : { top: TOP }),
           borderRadius: 22, boxShadow: '0 12px 40px rgba(0,0,0,.28)', overflow: 'hidden',
         }}>
           {ax ? <Close x={x} float /> : null}
@@ -11757,15 +11760,15 @@ window.KS_REFS = {
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Rule 12</span>
           <div>
-            <h2 id="rule12-info-h">Your call: the i, for a choice we defined</h2>
+            <h2 id="rule12-info-h">The i, for a choice we defined: two pages (B, your pick)</h2>
             <p className="b-job">Your tweak to the sweep: "a little information i on the end of each bar with a pop up explaining … one explaining it with a concise word explanation and another with a visual … a small x in the corner". Below: the rows with the i, the popup two ways, every popup's words and picture, and the popup at your text size.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
           <li><b>The i</b> sits at the end of the row, in grey, with a 44pt target. Tapping it opens the popup and never selects the row; tapping the name still selects. VoiceOver reads it as "About Matchup", button. Nothing shows under the row.</li>
           <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line <NEW />, and a small picture <NEW />. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description <NEW /> (the "VoiceOver:" lines below), so it isn't silent.</li>
-          <li><b>A · Words and picture together</b> (recommended): both parts in one look; one tap opens it, one closes it. <b>B · Two pages</b>: the words first, then "See an example" (or a swipe) for the picture. B takes an extra tap to reach the picture, and the picture explains the most.</li>
-          <li><b>At your size (AX5)</b> the card fills the screen and scrolls inside, and the × stays pinned in its corner while the words scroll under it. The line grows the whole way, since it's the part you read. The title stops at 1.6× and the picture's labels at 1.4×, so the picture keeps its shape. The build gate checks the real thing.</li>
+          <li><b>Two pages (B), your pick (2026-11-11):</b> "i like version B with the see an example and the second potential slide". Page 1 is the name, the line and "See an example". Page 2 is the name, the picture and "Back" <NEW />. A swipe also turns the page; the dots show which page you're on. The card's top edge stays put on both pages, so the name and the × never move when the page turns; the card grows or shrinks below them. The × closes from either page. The popup always opens on page 1.</li>
+          <li><b>At your size (AX5)</b> the card fills the screen and each page scrolls inside, and the × stays pinned in its corner while the page scrolls under it. The line grows the whole way, since it's the part you read. The title stops at 1.6× and the picture's labels at 1.4×, so the picture keeps its shape. The build gate checks the real thing.</li>
           <li><b>Pictures use example numbers</b> (prices, gains, names from the board's fixture league). They show how a mode works, not anyone's real results; the words never quote a number that could go stale, except the draftable filter's own $1 and $250 million.</li>
         </ul>
 
@@ -11779,25 +11782,31 @@ window.KS_REFS = {
           fig('se-l', 'Create league › Season · Large · Light', <StepFrame t="light" B={SeasonStep} label="Season step with the i" />, 'Only the i is new here. The rest of your Season pick (B) is on its own board and not redrawn.'),
         ]}</Grid>
 
-        <h3 className="b-sub">The popup: A (words and picture together) or B (two pages)</h3>
+        <h3 className="b-sub">The popup: two pages (B, your pick)</h3>
         <Grid>{[
-          fig('fa', 'A · Matchup · Large · Light', <PopFrame t="light" k="matchup" form="A" />, 'Recommended. The name, the line, the picture, the × in the corner.'),
-          fig('fb1', 'B · page 1 · Large · Light', <PopFrame t="light" k="matchup" form="B" page={1} />, 'The words, then "See an example" (NEW) or a swipe.'),
-          fig('fb2', 'B · page 2 · Large · Light', <PopFrame t="light" k="matchup" form="B" page={2} />, 'The picture, on its own page.'),
+          fig('fb1', 'Page 1 · Matchup · Large · Light', <PopFrame t="light" k="matchup" page={1} />, 'The name, the line, "See an example". The × in the corner.'),
+          fig('fb2', 'Page 2 · Matchup · Large · Light', <PopFrame t="light" k="matchup" page={2} />, 'The picture, then "Back" (NEW). The top edge, the name and the × are where page 1 had them; the card grows downward.'),
+          fig('fa', 'Not picked · A · Matchup · Large · Light', <PopFrame t="light" k="matchup" form="A" />, 'Words and picture on one page. Kept as the record of the call.'),
         ]}</Grid>
 
-        <h3 className="b-sub">Every popup (A), Light</h3>
-        <Grid>{keys.map((k) => fig(`p-${k}-l`, `${POPS[k].title} · Large · Light`, <PopFrame t="light" k={k} />, `VoiceOver: "${POPS[k].vo}"${k === 'duration' ? ' Check: no rule says whether a Duration league ranks by dollars or percent; the picture shows dollars, as Matchup does, and the line says only "gain".' : ''}`))}</Grid>
-        <h3 className="b-sub">Every popup (A), Dark</h3>
-        <Grid>{keys.map((k) => fig(`p-${k}-d`, `${POPS[k].title} · Large · Dark`, <PopFrame t="dark" k={k} />))}</Grid>
+        <h3 className="b-sub">Every popup, both pages, Light</h3>
+        <Grid>{keys.flatMap((k) => [
+          fig(`p-${k}-l1`, `${POPS[k].title} · page 1 · Large · Light`, <PopFrame t="light" k={k} page={1} />),
+          fig(`p-${k}-l2`, `${POPS[k].title} · page 2 · Large · Light`, <PopFrame t="light" k={k} page={2} />, `VoiceOver: "${POPS[k].vo}"${k === 'duration' ? ' Check: no rule says whether a Duration league ranks by dollars or percent; the picture shows dollars, as Matchup does, and the line says only "gain".' : ''}`),
+        ])}</Grid>
+        <h3 className="b-sub">Every popup, both pages, Dark</h3>
+        <Grid>{keys.flatMap((k) => [
+          fig(`p-${k}-d1`, `${POPS[k].title} · page 1 · Large · Dark`, <PopFrame t="dark" k={k} page={1} />),
+          fig(`p-${k}-d2`, `${POPS[k].title} · page 2 · Large · Dark`, <PopFrame t="dark" k={k} page={2} />),
+        ])}</Grid>
 
-        <h3 className="b-sub">At your size (AX5): it scrolls inside, the × stays put</h3>
+        <h3 className="b-sub">At your size (AX5): each page scrolls inside, the × stays put</h3>
         <Grid>{[
-          fig('x1', 'Matchup · AX5 · Light · top', <PopFrame t="light" k="matchup" x={3.1} />, 'The card fills the screen. The line grows the whole way, so the picture is below the fold; the bar on the right says there is more.'),
-          fig('x2', 'Matchup · AX5 · Dark · scrolled to the end', <PopFrame t="dark" k="matchup" x={3.1} scrolled />, 'Scrolled to the picture: the × is still in its corner.'),
-          fig('x3', 'Non-draftable stocks · AX5 · Light · top', <PopFrame t="light" k="draftable" x={3.1} />, 'The longest line. It runs past the card, so the card scrolls inside; the bar on the right says so.'),
-          fig('x4', 'Non-draftable stocks · AX5 · Light · scrolled to the end', <PopFrame t="light" k="draftable" x={3.1} scrolled />, 'Scrolled: the × is still in its corner, over the words.'),
-          fig('x5', 'Playoff teams · AX5 · Dark · scrolled to the end', <PopFrame t="dark" k="playoffs" x={3.1} scrolled />, 'The tallest picture, the same behaviour.'),
+          fig('x1', 'Matchup · page 1 · AX5 · Light', <PopFrame t="light" k="matchup" x={3.1} page={1} />, 'The card fills the screen; the line grows the whole way.'),
+          fig('x2', 'Matchup · page 2 · AX5 · Dark · top', <PopFrame t="dark" k="matchup" x={3.1} page={2} />, 'The picture\'s labels stop at 1.4×, so it keeps its shape.'),
+          fig('x3', 'Non-draftable stocks · page 1 · AX5 · Light · top', <PopFrame t="light" k="draftable" x={3.1} page={1} />, 'The longest line. It runs past the card, so the page scrolls; the bar on the right says so.'),
+          fig('x4', 'Non-draftable stocks · page 1 · AX5 · Light · scrolled to the end', <PopFrame t="light" k="draftable" x={3.1} page={1} scrolled />, 'Scrolled to "See an example": the × is still in its corner.'),
+          fig('x5', 'Playoff teams · page 2 · AX5 · Dark', <PopFrame t="dark" k="playoffs" x={3.1} page={2} />, 'The tallest picture still fits without scrolling, because its labels stop at 1.4×.'),
         ]}</Grid>
 
         <h3 className="b-sub">Which options get an i</h3>
@@ -11807,8 +11816,8 @@ window.KS_REFS = {
         <h3 className="b-sub">New words, to approve as written</h3>
         <ul className="b-inv__notes">
           {keys.map((k) => <li key={k}><b>{POPS[k].title}:</b> "{POPS[k].line}"</li>)}
-          <li><b>B only:</b> "See an example".</li>
-          <li><b>Spoken only (VoiceOver):</b> "About {'{option}'}" on each i, "Close" on the ×, and the picture descriptions under each Light popup above.</li>
+          <li><b>Page 2's button:</b> "Back" <NEW />. ("See an example" is yours, from your pick of B.)</li>
+          <li><b>Spoken only (VoiceOver):</b> "About {'{option}'}" on each i, "Close" on the ×, and the picture descriptions under each Light page 2 above.</li>
         </ul>
       </section>
     );

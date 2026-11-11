@@ -319,6 +319,11 @@ building anything, and don't reopen a rule without him.
   shows under the row. The "i" is for what an option IS; a control that can't act still
   shows its reason beside it (rule 12's limits stay refusals in place). Which options get
   one, the popup's form and its words are on the Design Lead's sweep board for his approval.
+- **The "i" popup has two pages** (2026-11-11, picking B on the "i" board): "i like version
+  B with the see an example and the second potential slide". Page 1 is the option's name, the
+  short line and "See an example"; page 2 is the name and the visual, with a way back to page
+  1. The × in the corner closes it from either page. The popup's words are still on the board
+  for his approval.
 
 ## Scoring and standings
 
