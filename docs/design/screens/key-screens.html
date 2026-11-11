@@ -12889,7 +12889,7 @@ window.KS_REFS = {
 // (b) "Needs you before 6:30 PM ET" / "Fix these before 6:30 PM ET, …" name no day, so with the draft six days
 //     away they read as today. Plan #355 rules the zone, not the day (Planner, 2026-11-11). A: name the day when
 //     it isn't today. B: always name it, today included. Shown for today, tomorrow and Tue Nov 17.
-// At-risk state, 5 of 6 after one left; Large / Dark / AX5 (approximate). Times keep their no-break spaces
+// At-risk state, 4 of 6 after one left; Large / Dark / AX5 (approximate). Times keep their no-break spaces
 // (keepTime), as the app draws them.
 (function () {
   const { Device } = window.KSKit;
@@ -12931,12 +12931,12 @@ window.KS_REFS = {
           <b className="dr-num" style={{ ...fs(22, x, 1.6), letterSpacing: '0.12em', color: 'var(--c-text)' }}>LGC26X</b>
         </div>
         <Btn x={x} kind="line">Share invite code</Btn>
-        <Btn x={x} kind="line">Move forward with 5 instead</Btn>
+        <Btn x={x} kind="line">Move forward with 4 instead</Btn>
       </Sub>
     ) : (
       <Sub>
         <Title x={x}>{TITLE[who]}</Title>
-        <Btn x={x}>Move forward with 5</Btn>
+        <Btn x={x}>Move forward with 4</Btn>
         <Btn x={x} kind="line">Invite someone new</Btn>
       </Sub>
     );
@@ -12956,7 +12956,7 @@ window.KS_REFS = {
   const WHEN = { today: 'the draft is today', tomorrow: 'the draft is tomorrow', tue: 'the draft is Tue Nov 17' };
   function Frame({ t, who, x = 1, mode, day, dayMode }) {
     const what = dayMode ? `${WHEN[day]}, day ${dayMode === 'none' ? 'as build 14 ships it' : `option ${dayMode}`}` : (mode === 'inviting' ? 'after Invite someone new' : WHO[who]);
-    const label = `League tab, draft lobby, commissioner, 5 of 6 managers after one left, ${what}, ${x > 1 ? 'your size (AX5, approximate)' : 'Large'}, ${t}`;
+    const label = `League tab, draft lobby, commissioner, 4 of 6 managers after one left, ${what}, ${x > 1 ? 'your size (AX5, approximate)' : 'Large'}, ${t}`;
     return (
       <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>
         <Device tab="league" label={label}>
@@ -12998,7 +12998,7 @@ window.KS_REFS = {
         <h3 className="b-sub" id="call-deleted-leaver-a">Question (a): who left, when it was a deleted account</h3>
         <ul className="b-inv__notes">
           <li><b>Why you're being asked:</b> before the draft, deleting an account counts as leaving, so the card has a line saying who left. Its name is the deleted account's label, so it reads "Open team left the league". Before the draft there are no teams, and the account's name has to stay hidden, so the line needs words without a name.</li>
-          <li><b>What you're looking at:</b> League C › the draft lobby, as commissioner, 5 of 6 managers. Only the bold line in the white card changes. "Move forward with 5" and "Invite someone new" stay as approved.</li>
+          <li><b>What you're looking at:</b> League C › the draft lobby, as commissioner, 4 of 6 managers. Only the bold line in the white card changes. "Move forward with 4" and "Invite someone new" stay as approved.</li>
           <li><b>A · "A manager left the league".</b> It's the same as any other manager leaving, which is your rule for deleting before the draft. The push you get already says it in nearly the same words: "A manager left League C. Confirm your roster before the draft." Same pattern as the approved "3 managers left the league".</li>
           <li><b>B · "A manager deleted their account".</b> It says why the seat is empty. But it tells you something a leave doesn't, and the push would still say "left".</li>
           <li><b>Recommended: A.</b> Deleting before the draft already works like leaving, so the card says the same thing as the push and as any other leave.</li>
