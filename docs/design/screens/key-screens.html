@@ -11862,6 +11862,7 @@ window.KS_REFS = {
   POPS.mGeneric = { ...POPS.matchup, line: 'Each week you play one team, and the best performance wins. The best records make the playoffs.' };
   POPS.dDollar = { ...POPS.duration, line: 'One race for the whole league. The biggest dollar gain at the end wins.' };
   POPS.dGeneric = { ...POPS.duration, line: 'One race for the whole league. The best performance at the end wins.' };
+  const APPROVED = ['matchup', 'duration', 'equal', 'tiers', 'cap', 'order', 'playoffs', 'draftable'];
   const BEHIND = { league: LeagueStep, stakes: StakesStep, draft: DraftStep, season: SeasonStep, draftR: () => <DraftStep roundsI /> };
 
   /** The × : a 44pt target, a 16pt glyph on a sunken disc, top right of the card. */
@@ -11973,7 +11974,7 @@ window.KS_REFS = {
   ];
 
   function Section() {
-    const keys = Object.keys(POPS);
+    const keys = APPROVED; // the eight approved popups only; the question-only entries (rounds, durUsd, …) stay out
     return (
       <section className="b-sec" id="rule12-info" aria-labelledby="rule12-info-h">
         <header className="b-sec__head">
