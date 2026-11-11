@@ -321,9 +321,14 @@ building anything, and don't reopen a rule without him.
   one, the popup's form and its words are on the Design Lead's sweep board for his approval.
 - **The "i" popup has two pages** (2026-11-11, picking B on the "i" board): "i like version
   B with the see an example and the second potential slide". Page 1 is the option's name, the
-  short line and "See an example"; page 2 is the name and the visual, with a way back to page
-  1. The × in the corner closes it from either page. The popup's words are still on the board
-  for his approval.
+  short line; page 2 is the name and the visual. The × in the corner closes it from either
+  page. The popup's words are still on the board for his approval.
+- **No button in the "i" popup: just the dots** (2026-11-11, asked of the board's three ways:
+  big button, just the dots, a small link): "is it better to have this button or simply have
+  the two dots at the bottom and have it be swipable where the user dictates where they go.
+  not sure if im a fan of the big button", then "just the dots". The player swipes between
+  the two pages; the two dots under the card show the page and are themselves the page
+  control (tap to turn, "Page 1 of 2" to VoiceOver). No "See an example" and no "Back".
 
 ## Scoring and standings
 

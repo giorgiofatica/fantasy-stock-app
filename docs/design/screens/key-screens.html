@@ -11669,14 +11669,14 @@ window.KS_REFS = {
   );
   /**
    * The popup. form 'A': the line and the visual together (not picked; kept as the record of the call).
-   * form 'B' (Giorgio's pick, 2026-11-11): page 1 = the name, the line, "See an example"; page 2 = the name,
-   * the picture, "Back". At Large the card's top edge is fixed (TOP), so the name and the × never move when the
+   * form 'B' (Giorgio's pick, 2026-11-11): page 1 = the name and the line; page 2 = the name and the picture.
+   * nav 'dots' (his pick, same day): no button, a swipe or the dots turn the page. At Large the card's top edge is fixed (TOP), so the name and the × never move when the
    * page turns; the card hugs each page and grows or shrinks below them. x > 1: AX5. The card fills the
    * screen between the status bar and the home indicator and scrolls inside; the × floats, pinned top right.
    * scrolled: drawn scrolled to the end.
    */
   const TOP = 150; // the card's fixed top edge at Large, in points
-  function Popup({ k, x = 1, form = 'B', page = 1, scrolled = false, nav = 'button' }) {
+  function Popup({ k, x = 1, form = 'B', page = 1, scrolled = false, nav = 'dots' }) {
     const p = POPS[k];
     const ax = x > 1;
     const head = (
@@ -11783,7 +11783,7 @@ window.KS_REFS = {
         <ul className="b-inv__notes">
           <li><b>The i</b> sits at the end of the row, in grey, with a 44pt target. Tapping it opens the popup and never selects the row; tapping the name still selects. VoiceOver reads it as "About Matchup", button. Nothing shows under the row.</li>
           <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line <NEW />, and a small picture <NEW />. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description <NEW /> (the "VoiceOver:" lines below), so it isn't silent.</li>
-          <li><b>Two pages (B), your pick (2026-11-11):</b> "i like version B with the see an example and the second potential slide". Page 1 is the name, the line and "See an example". Page 2 is the name, the picture and "Back" <NEW />. A swipe also turns the page; the dots show which page you're on. The card's top edge stays put on both pages, so the name and the × never move when the page turns; the card grows or shrinks below them. The × closes from either page. The popup always opens on page 1.</li>
+          <li><b>Two pages (B), your pick (2026-11-11):</b> "i like version B with the see an example and the second potential slide". Page 1 is the name and the line. Page 2 is the name and the picture. <b>No button: "just the dots"</b> (your pick, same day). A swipe turns the page; the two dots show which page you're on and are the page control themselves (a 44pt row: tap to turn; VoiceOver: "Page 1 of 2", swipe up or down to turn). The card's top edge stays put on both pages, so the name and the × never move when the page turns; the card grows or shrinks below them. The × closes from either page. The popup always opens on page 1.</li>
           <li><b>At your size (AX5)</b> the card fills the screen and each page scrolls inside, and the × stays pinned in its corner while the page scrolls under it. The line grows the whole way, since it's the part you read. The title stops at 1.6× and the picture's labels at 1.4×, so the picture keeps its shape. The build gate checks the real thing.</li>
           <li><b>Pictures use example numbers</b> (prices, gains, names from the board's fixture league). They show how a mode works, not anyone's real results; the words never quote a number that could go stale, except the draftable filter's own $1 and $250 million.</li>
         </ul>
@@ -11798,25 +11798,10 @@ window.KS_REFS = {
           fig('se-l', 'Create league › Season · Large · Light', <StepFrame t="light" B={SeasonStep} label="Season step with the i" />, 'Only the i is new here. The rest of your Season pick (B) is on its own board and not redrawn.'),
         ]}</Grid>
 
-        <h3 className="b-sub">Your question: the big button, or just the dots?</h3>
-        <ul className="b-inv__notes">
-          <li><b>Your words (2026-11-11):</b> "is it better to have this button or simply have the two dots at the bottom and have it be swipable where the user dictates where they go. not sure if im a fan of the big button".</li>
-          <li><b>Recommended: just the dots.</b> The words and the picture are what the popup is for, and a full-width button outweighs both (rule 6, one thing stands out). Two dots under a card is the iOS page control people already swipe (rule 1, familiar first: the App Store's Today cards, onboarding pages). The dots row is the 44pt tap target, so tapping it also turns the page (rule 3), and VoiceOver reads it as "Page 1 of 2", where a swipe up or down turns the page. So the picture is never reachable by swipe alone.</li>
-          <li><b>The risk, said plainly:</b> with no words on page 1 pointing to page 2, a player who doesn't notice the dots never sees the picture. The small link is the middle ground if you want that said out loud without the big button.</li>
-        </ul>
-        <Grid>{[
-          fig('nv-b1', 'As drawn · page 1', <PopFrame t="light" k="matchup" page={1} nav="button" />, 'The full-width button.'),
-          fig('nv-d1', 'Recommended · just the dots · page 1', <PopFrame t="light" k="matchup" page={1} nav="dots" />, 'Swipe, or tap the dots. Nothing else under the words.'),
-          fig('nv-l1', 'Middle ground · a small link · page 1', <PopFrame t="light" k="matchup" page={1} nav="link" />, '"See an example ›" in text, on the dots\' row.'),
-          fig('nv-b2', 'As drawn · page 2', <PopFrame t="light" k="matchup" page={2} nav="button" />),
-          fig('nv-d2', 'Recommended · just the dots · page 2', <PopFrame t="light" k="matchup" page={2} nav="dots" />, 'Swipe back, or tap the dots.'),
-          fig('nv-l2', 'Middle ground · a small link · page 2', <PopFrame t="light" k="matchup" page={2} nav="link" />, '"‹ Back" in text.'),
-        ]}</Grid>
-
         <h3 className="b-sub">The popup: two pages (B, your pick)</h3>
         <Grid>{[
-          fig('fb1', 'Page 1 · Matchup · Large · Light', <PopFrame t="light" k="matchup" page={1} />, 'The name, the line, "See an example". The × in the corner.'),
-          fig('fb2', 'Page 2 · Matchup · Large · Light', <PopFrame t="light" k="matchup" page={2} />, 'The picture, then "Back" (NEW). The top edge, the name and the × are where page 1 had them; the card grows downward.'),
+          fig('fb1', 'Page 1 · Matchup · Large · Light', <PopFrame t="light" k="matchup" page={1} />, 'The name and the line. Swipe or tap the dots for the picture. The × in the corner.'),
+          fig('fb2', 'Page 2 · Matchup · Large · Light', <PopFrame t="light" k="matchup" page={2} />, 'The picture. Swipe back or tap the dots. The top edge, the name and the × are where page 1 had them; the card grows downward.'),
           fig('fa', 'Not picked · A · Matchup · Large · Light', <PopFrame t="light" k="matchup" form="A" />, 'Words and picture on one page. Kept as the record of the call.'),
         ]}</Grid>
 
@@ -11836,8 +11821,23 @@ window.KS_REFS = {
           fig('x1', 'Matchup · page 1 · AX5 · Light', <PopFrame t="light" k="matchup" x={3.1} page={1} />, 'The card fills the screen; the line grows the whole way.'),
           fig('x2', 'Matchup · page 2 · AX5 · Dark · top', <PopFrame t="dark" k="matchup" x={3.1} page={2} />, 'The picture\'s labels stop at 1.4×, so it keeps its shape.'),
           fig('x3', 'Non-draftable stocks · page 1 · AX5 · Light · top', <PopFrame t="light" k="draftable" x={3.1} page={1} />, 'The longest line. It runs past the card, so the page scrolls; the bar on the right says so.'),
-          fig('x4', 'Non-draftable stocks · page 1 · AX5 · Light · scrolled to the end', <PopFrame t="light" k="draftable" x={3.1} page={1} scrolled />, 'Scrolled to "See an example": the × is still in its corner.'),
+          fig('x4', 'Non-draftable stocks · page 1 · AX5 · Light · scrolled to the end', <PopFrame t="light" k="draftable" x={3.1} page={1} scrolled />, 'Scrolled to the dots: the × is still in its corner.'),
           fig('x5', 'Playoff teams · page 2 · AX5 · Dark', <PopFrame t="dark" k="playoffs" x={3.1} page={2} />, 'The tallest picture still fits without scrolling, because its labels stop at 1.4×.'),
+        ]}</Grid>
+
+        <h3 className="b-sub">Decided: just the dots, no button (your pick, 2026-11-11)</h3>
+        <ul className="b-inv__notes">
+          <li><b>Your words (2026-11-11):</b> "is it better to have this button or simply have the two dots at the bottom and have it be swipable where the user dictates where they go. not sure if im a fan of the big button".</li>
+          <li><b>Your pick: "just the dots".</b> The words and the picture are what the popup is for, and a full-width button outweighs both (rule 6, one thing stands out). Two dots under a card is the iOS page control people already swipe (rule 1, familiar first: the App Store's Today cards, onboarding pages). The dots row is the 44pt tap target, so tapping it also turns the page (rule 3), and VoiceOver reads it as "Page 1 of 2", where a swipe up or down turns the page. So the picture is never reachable by swipe alone.</li>
+          <li><b>The risk, said plainly:</b> with no words on page 1 pointing to page 2, a player who doesn't notice the dots never sees the picture. The small link is the middle ground if you want that said out loud without the big button.</li>
+        </ul>
+        <Grid>{[
+          fig('nv-b1', 'Not picked · the big button · page 1', <PopFrame t="light" k="matchup" page={1} nav="button" />, 'The full-width button.'),
+          fig('nv-d1', 'Picked · just the dots · page 1', <PopFrame t="light" k="matchup" page={1} nav="dots" />, 'Swipe, or tap the dots. Nothing else under the words.'),
+          fig('nv-l1', 'Not picked · a small link · page 1', <PopFrame t="light" k="matchup" page={1} nav="link" />, '"See an example ›" in text, on the dots\' row.'),
+          fig('nv-b2', 'Not picked · the big button · page 2', <PopFrame t="light" k="matchup" page={2} nav="button" />),
+          fig('nv-d2', 'Picked · just the dots · page 2', <PopFrame t="light" k="matchup" page={2} nav="dots" />, 'Swipe back, or tap the dots.'),
+          fig('nv-l2', 'Not picked · a small link · page 2', <PopFrame t="light" k="matchup" page={2} nav="link" />, '"‹ Back" in text.'),
         ]}</Grid>
 
         <h3 className="b-sub">Which options get an i</h3>
@@ -11847,7 +11847,6 @@ window.KS_REFS = {
         <h3 className="b-sub">New words, to approve as written</h3>
         <ul className="b-inv__notes">
           {keys.map((k) => <li key={k}><b>{POPS[k].title}:</b> "{POPS[k].line}"</li>)}
-          <li><b>Page 2's button:</b> "Back" <NEW />. ("See an example" is yours, from your pick of B.)</li>
           <li><b>Spoken only (VoiceOver):</b> "About {'{option}'}" on each i, "Close" on the ×, and the picture descriptions under each Light page 2 above.</li>
         </ul>
       </section>

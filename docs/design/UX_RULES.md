@@ -234,9 +234,10 @@ removes text; it never asks for new copy, and any replacement wording is new cop
 
 A definition the player needs in order to choose (what Matchup or Price tiers means) is not
 an explainer to cut silently: it moves behind an "i" at the end of the option's row, which
-opens a popup in two pages, the short line then "See an example" for the visual, closed by a
-× from either page (Giorgio, 2026-11-10 and 2026-11-11, PRODUCT_RULES "Optional context
-behind an i" and "The i popup has two pages"). Only for an option that is key to the flow,
+opens a popup in two pages, the short line then the visual, turned by a swipe or the two dots
+under the card (no button), closed by a × from either page (Giorgio, 2026-11-10 and
+2026-11-11, PRODUCT_RULES "Optional context behind an i", "The i popup has two pages" and
+"No button in the i popup"). Only for an option that is key to the flow,
 defined by us, and not obvious; never for a limit, which stays a refusal in place.
 
 **How the gate checks it.** On every capture, list each heading (card title, section label,
