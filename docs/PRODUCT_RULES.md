@@ -340,11 +340,51 @@ building anything, and don't reopen a rule without him.
   the Design Lead shows him the form on the board, and the words in it are new copy for him.
   It is rule 13 in `docs/design/UX_RULES.md` and a row in the gate checklist, so the gate
   checks both directions: no explainer under a heading, and no unexplained choice of ours.
+- **The "i" popup has two pages** (2026-11-11, picking B on the "i" board): "i like version
+  B with the see an example and the second potential slide". Page 1 is the option's name, the
+  short line; page 2 is the name and the visual. The × in the corner closes it from either
+  page. The popup's words are still on the board for his approval.
+- **No button in the "i" popup: just the dots** (2026-11-11, asked of the board's three ways:
+  big button, just the dots, a small link): "is it better to have this button or simply have
+  the two dots at the bottom and have it be swipable where the user dictates where they go.
+  not sure if im a fan of the big button", then "just the dots". The player swipes between
+  the two pages; the two dots under the card show the page and are themselves the page
+  control (tap to turn, "Page 1 of 2" to VoiceOver). No "See an example" and no "Back".
+- **The "i" popup lines, approved as written** (2026-11-11: "the popup lines are approved"):
+  - Matchup: "Each week you play one team, and the bigger dollar gain wins. The best records
+    make the playoffs."
+  - Duration: "One race for the whole league. The biggest gain at the end wins."
+  - Equal stakes: "Every pick is the same dollar amount, so a cheap stock counts as much as an
+    expensive one."
+  - Price tiers: "One share per pick. Each slot takes stocks in its own price range."
+  - Budget cap: "One share per pick. Your shares together can't cost more than the cap."
+  - Draft order: "Random shuffles it an hour before the draft; Manual lets you set it. Either
+    way, it reverses each round."
+  - Playoff teams: "The top teams in the standings play a bracket. When it doesn't fill
+    evenly, the top seeds skip the first round."
+  - Non-draftable stocks: "Off: stocks at $1 or more, on a major US exchange, from companies
+    worth $250 million or more. On: every US stock, penny stocks too."
+- **Rounds gets no "i"** (2026-11-11, "1a" on the Design Lead's three questions): the Rounds
+  stepper on Create league › Draft stays a label and a number, with nothing behind it.
+- **Cut the league-name line** (2026-11-11, "3b cut"): "Don't worry. You will be able to
+  change this later." under Create league's League name field goes. Nothing replaces it.
 
 ## Scoring and standings
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
   only the tiebreak. The UI shows the metric that decides the winner, via one shared helper.
+- **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
+  DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
+  biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
+  is not built yet (the server sets only the start and end); its tiebreak and standings are
+  for the plan.
+- **Duration is hidden in Create league until it is built** (2026-11-11). Create league
+  offered Duration while nothing on the server scores or ends a Duration league, so one
+  created today would never have a winner. Shown two ways, A hide it (Create league offers
+  only Matchup) and B show it greyed out as coming soon, he picked "A". Duration comes back
+  when its scoring is planned, built and verified. The Planner's reading, not his words: the
+  server refuses to create a Duration league as well, so the block does not rest on the app
+  alone; Duration leagues that already exist are left as they are.
 - **"Season gain"** = regular-season `points_for` only. In the playoffs it stays at the
   final regular-season total.
 - **Ranking** (standings = playoff seeding, one order, computed only in SQL
@@ -780,6 +820,29 @@ building anything, and don't reopen a rule without him.
   managers (never more). The bracket is derived (weeks = ceil(log2 P); byes to the top
   seeds). Rounds are named by teams left: Final / Semifinals / Quarterfinals / Round of
   16; a first round with byes is "Wild card".
+- **The Season step in Create league** (2026-11-10, build 12; Giorgio picked B, board
+  #call-season-step). His words: "B for the season step, the one with a strip". The note that
+  started it: "I really don't like this style of mainline like managers and then this like
+  smaller subtitle that explains it. I think one that is very just red flag of like AI built,
+  vibe coded. Secondly, I think it makes it far too cluttered. ... Also, I want the regular
+  season weeks button to be just as big as the managers and playoff teams. We can abbreviate
+  weeks into just WKS to kind of fit this".
+  - Managers, Regular season and Playoff teams are three identical steppers, with no line under
+    any label. The weeks value reads "11 wks" (lowercase: a unit, like "30 seconds"); VoiceOver
+    still says "11 weeks".
+  - Under them, a season strip: one tile per regular-season week, then the playoff weeks, wider
+    and named with the season chart's chips (WC / SF / F, QF / R16 for bigger brackets), "Wk 1"
+    under the first tile and the season's last week ("Wk 14") under the last. Then one line, the
+    bye clause from the playoff line ("The top 3 seeds get first-round byes."; "No byes." when
+    there are none). Both update as you step.
+  - The limits stay on the steppers: − and + grey out at the ends, and the reason shows under
+    that stepper only while it is at the end ("2 to 6, up to your expected managers"; "At
+    least 5 weeks, so every team plays every other team once."). Managers at 4 or 16 has no
+    reason line yet: new words, for Giorgio, when it is built.
+  - Removed: "How many you expect, you included" and "We check this again when the draft
+    starts." (the draft-time blockers card catches a league that came in smaller).
+  - Not yet decided: sweeping the same pattern from the Draft step, the Duration lengths, League
+    settings and the renewal review (the Design Lead recommended it with this call).
 - **Leaving a league** (2026-10-06): "a player cannot leave a league after a draft, they
   are locked in for that season." The window: "you can only leave before a season starts
   (the hour before the draft) or after it is over."
@@ -787,6 +850,19 @@ building anything, and don't reopen a rule without him.
     the league for that player; history is kept.
   - When someone leaves before the draft, the commissioner must reconfirm: "move forward
     with 1 less" or "invite someone new to replace".
+  - **Below 4, there is nothing to move forward with** (2026-11-10, phone pass step 23, build
+    12; Giorgio picked B, board #call-below-four, relayed by the Orchestrator; his word: "B").
+    A league needs 4 managers to draft, so below 4 the commissioner is not offered "Move
+    forward with N" or "Move forward with N instead". The leaver card and "Fewer than 4 teams
+    have joined" become ONE card: who left (the title), then "Fewer than 4 teams have joined.",
+    the invite code and Share invite code. At 4 or more, nothing changes: "Move forward with N"
+    and "Invite someone new", and the inviting state with "Move forward with N instead".
+  - **"Invite someone to take their place"** (approved 2026-11-10, his words: "sentence is
+    fine"): the inviting state's title when two or more left or the leaver isn't named; with
+    one named leaver it is "Invite someone to take {name}'s place".
+  - Open (Planner + Design Lead, 2026-11-10): what happens when joins bring a below-4 league
+    back to 4. Today the row stays "pending" through the joins, so the choose card would come
+    back at 4 naming the people who left (or who just rejoined).
 - **Leave league is ON in 1.3** (2026-10-30, Giorgio, during the 1.3.0 (5) phone pass, relayed by the
   Orchestrator): build 5 shipped with the switch unset, so no one could leave and League settings was
   unreachable in season. Every member gets League settings (and Leave league inside it) in the real builds;

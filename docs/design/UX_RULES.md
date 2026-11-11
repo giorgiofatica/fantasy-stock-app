@@ -232,6 +232,9 @@ How a feature works may be said once, in that feature's empty state, where there
 else to show. A count belongs beside the heading as a number, not in a sentence. This rule
 removes text; it never asks for new copy, and any replacement wording is new copy for Giorgio.
 
+A definition the player needs in order to choose (what Matchup or Price tiers means) is not
+an explainer to cut silently: it moves behind an "i" (rule 13).
+
 **How the gate checks it.** On every capture, list each heading (card title, section label,
 setting label, sheet title) with every line of text between it and the first control or row.
 Each such line is named in the report with one of: *fact needed now* (which fact), or
@@ -263,8 +266,13 @@ explaining would be great."
 When it applies, it applies to every option in that selection ("this should be a thing for
 all options"), not only the ones we judge to be hard. The popup holds a concise explanation
 in words, and may have a second part with a visual ("it could even be a two part pop up").
-Whether a popup has one part or two, and what the visual is, the Design Lead shows Giorgio
-on a board; the words in it are new copy for him. Nothing is added under the option's label:
+**The popup's form** (Giorgio, 2026-11-11; PRODUCT_RULES "The 'i' popup has two pages" and
+"No button in the 'i' popup: just the dots"): two pages, the option's name and its short line,
+then the name and the visual. No button: a swipe turns the page, and the two dots under the
+card are the page control (a 44pt row; tap to turn; VoiceOver "Page 1 of 2"). The × in the
+corner closes it from either page; it always opens on page 1. Its words are approved per
+popup (PRODUCT_RULES "The 'i' popup lines, approved as written"); any new popup's words are
+new copy for him. Nothing is added under the option's label:
 rule 12 still holds on the same screen. A limit keeps its reason at the limit (rule 8); the
 "i" explains what an option is, not why a control refused.
 
