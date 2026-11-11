@@ -243,6 +243,15 @@ building anything, and don't reopen a rule without him.
   keeping the public stock-symbol list readable (option B): the symbols table becomes
   signed-in only, and anything an anonymous caller (or any one signed-in player) could
   bulk-read is audited and locked down, with product-visible changes brought to Giorgio first.
+- **Claude may read counts from production, as a trial, after a security read** (2026-11-10).
+  Asked whether a Claude Data dashboard may read counts from the production database, never
+  names, emails or holdings (the Researcher's report,
+  `docs/research/2026-11-10-claude-whiteboards-sheets-data.md`): "yes as a trial, do the
+  security read first". So: nothing is connected until the security read is done and he has
+  seen it; the trial reads counts and totals only, read-only; connecting it is his own step;
+  and it is looked at again before real players join, when "counts only" must be enforced by
+  the database and not left as a habit in how queries are written. This is a tool for him,
+  not a player feature, and it does not loosen the rule above.
 - **Who can see other players** (2026-10-08, audit #8, option A): "i can only see other names
   and avatars of other users im in a leauge with. we cannot allow a user to see any
   information outside of the name/avatar of another member in their league (email, etc) or
