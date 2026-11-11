@@ -204,7 +204,7 @@ Deno.test({
 const READERS: Record<string, 'caller' | 'service' | 'helper'> = {
   'supabase/functions/symbols-search/index.ts': 'caller',
   'supabase/functions/symbol-name/index.ts': 'caller',
-  'supabase/functions/enrich-symbols/index.ts': 'service',
+  'supabase/functions/enrich-symbols/batch.ts': 'service',
   'supabase/functions/refresh-symbols/index.ts': 'service',
   'supabase/functions/record-trade/index.ts': 'service',
   'supabase/functions/validate-and-record-pick/index.ts': 'service',
