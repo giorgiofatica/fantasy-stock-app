@@ -645,12 +645,12 @@
   const TypeOne = (p) => <LeagueStep {...p} typeMode="one" />;
   const TypeFixed = (p) => <LeagueStep {...p} typeMode="fixed" />;
   const TypeNone = (p) => <LeagueStep {...p} typeMode="none" />;
-  function CallTypeStep() {
+  function CallTypeStep({ archived }) {
     return (
       <section className="b-sec" id="call-type-step" aria-labelledby="call-type-step-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Create</span>
-          <div><h2 id="call-type-step-h">Your call: the League type, now that only Matchup is offered</h2></div>
+          <div><h2 id="call-type-step-h">{archived ? 'Decided: A, the card stays, with Matchup alone' : 'Your call: the League type, now that only Matchup is offered'}</h2></div>
         </header>
         <ul className="b-inv__notes">
           <li><b>Why you're being asked:</b> you hid Duration until it is built ("A", 2026-11-11). Create league › League still asks "League type" with one answer, and a choice of one isn't a choice. This changes an approved screen, so it's yours.</li>
@@ -659,10 +659,10 @@
           <li><b>B · a fixed line: "League type · Matchup", with its i.</b> It says what kind of league this is, and the i still explains Matchup. Nothing to pick. When Duration comes back, the line turns back into the card.</li>
           <li><b>C · drop it.</b> The step is just the name. The cleanest, but nothing in Create league says it's a Matchup league or what that means: a new commissioner first meets "Matchup" inside the league.</li>
           <li><b>Recommended: B.</b> It keeps the one thing the step still has to say, and the i you asked for, without asking a question with one answer.</li>
-          <li><b>Answer with:</b> A, B or C.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-11): "A".</b> The card stays, with Matchup as its one option, already selected, and its i; Duration rejoins it when it comes back. Recorded in PRODUCT_RULES ("The League type card stays, with Matchup alone").</li> : <li><b>Answer with:</b> A, B or C.</li>}
         </ul>
         <Grid>{[
-          fig('ts-a', 'A · the card, Matchup alone', <StepFrame t="light" B={TypeOne} label="League step, the card with Matchup alone" />, 'One radio, already selected.'),
+          fig('ts-a', archived ? 'A · the card, Matchup alone (decided)' : 'A · the card, Matchup alone', <StepFrame t="light" B={TypeOne} label="League step, the card with Matchup alone" />, 'One radio, already selected.'),
           fig('ts-b', 'B · a fixed line (recommended)', <StepFrame t="light" B={TypeFixed} label="League step, League type as a fixed line" />, '"League type · Matchup" and the i. Nothing to pick.'),
           fig('ts-c', 'C · drop it', <StepFrame t="light" B={TypeNone} label="League step, name only" />, 'The name, then Next.'),
           fig('ts-b-pop', 'B · tapping its i', <PopFrame t="light" k="matchupFixed" page={1} />, 'The approved Matchup popup, unchanged.'),
@@ -672,7 +672,8 @@
       </section>
     );
   }
-  window.KSTypeStep = () => <CallTypeStep />;
+  window.KSTypeStep = () => null; // decided 2026-11-11: A; it lives in the Archive
+  window.KSTypeStepArchived = () => <CallTypeStep archived />;
 
   window.KSInfoKit = { ChoiceCard, InfoI };
   window.KSRule12Info = () => <><Section /><Questions /><CopyCall /></>;
