@@ -41,6 +41,8 @@ const BASE = [   // prod (timestamp) order, before the migrations under test
   '20261012000002_freeze_playoff_teams_after_draft_start.sql',
   '20261013000000_draft_order_modes.sql',
   '20261101000001_draft_stalls.sql',
+  // draft_turn_outages: the 2 s sweep's outage throttle (20261201000000) reads it.
+  '20261101000003_draft_price_outages.sql',
   '20261104000000_freeze_league_rules_after_draft_start.sql',
   // #126: league_roster_reconfirm + the REAL start gate + the kind CHECK it set.
   '20261107000000_leave_league_schema.sql',
