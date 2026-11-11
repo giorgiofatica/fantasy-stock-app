@@ -386,6 +386,7 @@
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
     { id: 'call-season-step', title: 'The Season step in Create league', decision: 'B: three identical steppers ("11 wks"), no line under any label; a season strip (one tile per week, the playoff weeks named WC / SF / F, "Wk 1" to the last week) and the bye line; a limit\'s reason shows only at the limit. The sweep of the other screens is not yet decided.', date: '2026-11-10', rec: 'PRODUCT_RULES (The Season step in Create league)', render: () => window.KSSeasonStepArchived },
+    { id: 'call-below-four', title: 'When a league drops below 4 before its draft', decision: 'B: below 4, one card (who left, "Fewer than 4 teams have joined.", the invite code and Share), no "Move forward"; at 4 or more, unchanged. "Invite someone to take their place" approved.', date: '2026-11-10', rec: 'PRODUCT_RULES (Below 4, there is nothing to move forward with)', render: () => window.KSBelowFourArchived },
     { id: 'call-draft-clock', title: 'The clock while you search', decision: 'A: while it is your pick and the clock card is off the screen, a small clock pinned at the top (the ring, the seconds, "Your pick"). "Your pick" approved with A.', date: '2026-11-06', rec: 'PRODUCT_RULES (The clock while you search)', render: () => window.KSDraftClockArchived },
     { id: 'call-top-bar', title: 'The top bar', decision: 'A and A: the avatar on every tab (Portfolio too), no phase chip in the bar; the bar scrolls away with the page, with a short fade behind the clock once scrolled. No new words.', date: '2026-11-06', rec: 'PRODUCT_RULES (The top bar)', render: () => window.KSTopBarArchived },
     { id: 'call-queue-row', title: 'The queue row', decision: 'A: like the draft room\'s search. The ticker over the company name (cut with "…" when long), the price on the ticker\'s line; the ticker is never cut; "–" when a price is missing. "Prices at Wednesday\'s close." approved (copy, 2026-11-05).', date: '2026-11-05', rec: 'PRODUCT_RULES (The queue row)', render: () => window.KSQueueRowArchived },
@@ -500,6 +501,7 @@
         {window.KSRule12Sweep ? <window.KSRule12Sweep /> : null}
         {window.KSRule12Info ? <window.KSRule12Info /> : null}
         {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
+        {window.KSBelowFour ? <window.KSBelowFour /> : null}
         {window.KSDraftClock ? <window.KSDraftClock /> : null}
         {window.KSTopBar ? <window.KSTopBar /> : null}
         {window.KSQueueRow ? <window.KSQueueRow /> : null}
