@@ -1,6 +1,6 @@
 # The draft room: familiar, open an hour early, phone then laptop
 
-Status: Approved (Giorgio, 2026-11-10)
+Status: Building (approved by Giorgio 2026-11-10; amended #364; W2 read paths merged as #362, in 1.3.0 (14); no other workstream recorded as merged)
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 ## Goal

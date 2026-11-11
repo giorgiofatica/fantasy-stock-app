@@ -1,6 +1,6 @@
 # Auth screens: scrolling, focus and layout fixes (build 13)
 
-Status: Building (rules from Giorgio's build-12 recordings, 2026-11-09; R6 copy approved by Giorgio 2026-11-09; PR #352)
+Status: Building (rules from Giorgio's build-12 recordings, 2026-11-09; R6 copy approved by Giorgio 2026-11-09; PR #352). The fixes merged as #354 and are in 1.3.0 (14); not yet checked on the phone.
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 ## Goal
