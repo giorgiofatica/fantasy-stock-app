@@ -11435,11 +11435,12 @@ window.KS_REFS = {
       </>
     );
   }
-  const LeagueStep = ({ x = 1, pressed }) => (
+  const LeagueStep = ({ x = 1, pressed, reassure }) => (
     <Step n={1} title="League" x={x}>
       <div style={{ display: 'grid', gap: 6 }}>
         <span style={{ fontSize: z(15, x, ROW), fontWeight: 700 }}>League name</span>
         <Field v="Serie A Traders" />
+        {reassure ? <span style={{ fontSize: z(13, x, ROW), lineHeight: 1.35, ...grey }}>Don’t worry. You will be able to change this later.</span> : null}
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
         <Tag x={x}>League type</Tag>
@@ -11458,7 +11459,7 @@ window.KS_REFS = {
       </div>
     </Step>
   );
-  const DraftStep = () => (
+  const DraftStep = ({ roundsI }) => (
     <Step n={3} title="Draft">
       <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 10 }}>
         <span style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ fontSize: 17, fontWeight: 800 }}>Pick clock</span><span className="dr-num" style={{ fontWeight: 700 }}>60 seconds</span></span>
@@ -11470,7 +11471,7 @@ window.KS_REFS = {
         <LabelI label="Draft order" />
         <Seg opts={['Random', 'Manual']} on="Random" />
         <span style={{ height: 1, background: 'var(--c-border)', marginInline: -16 }} />
-        <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 15, fontWeight: 700 }}>Rounds</span>
+        <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ display: 'flex', alignItems: 'center', gap: 10 }}><span style={{ fontSize: 15, fontWeight: 700 }}>Rounds</span>{roundsI ? <InfoI /> : null}</span>
           <span style={{ display: 'inline-flex', border: '1px solid var(--c-border)', borderRadius: 10, overflow: 'hidden' }}><span style={{ width: 40, height: 40, display: 'grid', placeItems: 'center' }}><Icon d="M5 12h14" size={16} width={2.4} /></span><b className="dr-num" style={{ minWidth: 48, display: 'grid', placeItems: 'center', fontSize: 16, borderInline: '1px solid var(--c-border)' }}>6</b><span style={{ width: 40, height: 40, display: 'grid', placeItems: 'center' }}><Icon d={ICON.plus} size={16} width={2.4} /></span></span>
         </span>
       </div>
@@ -11539,6 +11540,52 @@ window.KS_REFS = {
         </svg>
         <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: L(12, x), ...grey }}><span>Start</span><span>End</span></span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: L(13, x) }}><Av init="MR" size={L(22, x)} /><b style={{ flex: 1 }}>Marco R. wins</b><b className="dr-num" style={{ ...money, color: 'var(--c-gain)' }}>+$182.40</b></span>
+      </div>
+    );
+  }
+  /** Question 1: what Rounds means. Your team after a 6-round draft: one stock per round. */
+  function VisRounds({ x = 1 }) {
+    const picks = ['NVDA', 'COST', 'F', 'AAPL', 'MSFT', 'KO'];
+    return (
+      <div style={{ display: 'grid', gap: 8 }}>
+        <span className="dr-tag" style={{ fontSize: L(11, x), ...grey }}>6 rounds: your team after the draft</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 }}>
+          {picks.map((t, i) => (
+            <span key={t} style={{ display: 'grid', gap: 2, padding: '6px 8px', borderRadius: 8, background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
+              <span style={{ fontSize: L(11, x), ...grey }}>{`Round ${i + 1}`}</span><b className="dr-t" style={{ fontSize: L(14, x) }}>{t}</b>
+            </span>
+          ))}
+        </div>
+        <span style={{ fontSize: L(13, x), fontWeight: 700 }}>6 rounds = 6 stocks on every team</span>
+      </div>
+    );
+  }
+  /** Question 2: how a Duration league is won. One Budget cap league, ranked by dollars or by percent. */
+  const FINAL = [
+    { init: 'MR', name: 'Marco R.', start: 2480, gain: 186 },
+    { init: 'RB', name: 'You', start: 1240, gain: 136.4, you: true },
+    { init: 'LC', name: 'Luca C.', start: 1900, gain: 95 },
+  ];
+  function VisFinal({ x = 1, by }) {
+    const pct = (r) => (r.gain / r.start) * 100;
+    const rows = [...FINAL].sort((a, b) => (by === 'pct' ? pct(b) - pct(a) : b.gain - a.gain));
+    const w = L(60, x);
+    const col = (on) => ({ ...money, width: w, textAlign: 'right', fontSize: L(13, x), fontWeight: on ? 900 : 500, color: on ? 'var(--c-gain)' : 'var(--c-text-2)' });
+    return (
+      <div style={{ display: 'grid', gap: 6 }}>
+        <span className="dr-tag" style={{ fontSize: L(11, x), ...grey }}>End of the league · a Budget cap league</span>
+        <span style={{ display: 'flex', gap: 6, fontSize: L(11, x), ...grey }}><span style={{ flex: 1 }} /><span style={{ width: w, textAlign: 'right' }}>Spent</span><span style={{ width: w, textAlign: 'right' }}>Gain $</span><span style={{ width: w, textAlign: 'right' }}>Gain %</span></span>
+        {rows.map((r, i) => (
+          <span key={r.name} style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 32 }}>
+            <b className="dr-num" style={{ width: 12, fontSize: L(13, x) }}>{i + 1}</b>
+            <Av init={r.init} you={r.you} size={L(22, x)} />
+            <span style={{ flex: 1, minWidth: 0, fontSize: L(13, x), fontWeight: i === 0 ? 800 : 600, whiteSpace: 'nowrap' }}>{r.name}</span>
+            <span className="dr-num" style={{ ...money, width: w, textAlign: 'right', fontSize: L(12, x), ...grey }}>{`$${r.start.toLocaleString('en-US')}`}</span>
+            <span className="dr-num" style={col(by !== 'pct')}>{`+$${r.gain.toFixed(2)}`}</span>
+            <span className="dr-num" style={col(by === 'pct')}>{`+${pct(r).toFixed(1)}%`}</span>
+          </span>
+        ))}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: L(13, x), marginTop: 4 }}><Av init={rows[0].init} you={rows[0].you} size={L(22, x)} /><b style={{ flex: 1 }}>{rows[0].you ? 'You win' : `${rows[0].name} wins`}</b><span style={grey}>{by === 'pct' ? 'biggest gain in %' : 'biggest gain in $'}</span></span>
       </div>
     );
   }
@@ -11659,7 +11706,12 @@ window.KS_REFS = {
     draftable: { title: 'Non-draftable stocks', line: 'Off: stocks at $1 or more, on a major US exchange, from companies worth $250 million or more. On: every US stock, penny stocks too.', Vis: VisDraftable, behind: 'stakes',
       vo: 'Off, only draftable stocks like AAPL, NVDA, COST and F. On, every US stock, including a $0.40 stock or a $90 million company.' },
   };
-  const BEHIND = { league: LeagueStep, stakes: StakesStep, draft: DraftStep, season: SeasonStep };
+  // Question frames only (not approved words): Rounds' line is NEW; the two Duration entries reuse the approved line.
+  POPS.rounds = { title: 'Rounds', line: 'How many stocks each team drafts: one per round.', Vis: VisRounds, behind: 'draftR',
+    vo: 'Example: after 6 rounds, your team has 6 stocks, one from each round.' };
+  POPS.durUsd = { ...POPS.duration, Vis: (p) => <VisFinal {...p} by="usd" /> };
+  POPS.durPct = { ...POPS.duration, Vis: (p) => <VisFinal {...p} by="pct" /> };
+  const BEHIND = { league: LeagueStep, stakes: StakesStep, draft: DraftStep, season: SeasonStep, draftR: () => <DraftStep roundsI /> };
 
   /** The × : a 44pt target, a 16pt glyph on a sunken disc, top right of the card. */
   const Close = ({ x = 1, float }) => (
@@ -11853,8 +11905,56 @@ window.KS_REFS = {
     );
   }
 
+  const LeagueKeep = (p) => <LeagueStep {...p} reassure />;
+  const Q1 = {
+    q: 'Should Rounds get an i?',
+    look: 'Create league › Draft. “Rounds” is how many stocks each team drafts. 1A: as drawn, no i. 1B: an i after “Rounds”, and the popup it opens (both pages). Its line is NEW, for you to approve if you pick 1B.',
+    answer: '1A (no i) or 1B (an i, with the popup shown).',
+  };
+  const Q2 = {
+    q: 'How is a Duration league won: the biggest dollar gain, or the biggest percent gain?',
+    look: 'Not a design choice: a game rule nobody has set yet (the app has no Duration scoring today). This is the Duration popup’s picture, with the same three players at the end of a Budget cap league, ranked each way. They spent different amounts, so the two rules crown different winners. In an Equal stakes league everyone starts with the same amount, so both rules give the same order. Your approved line (“The biggest gain at the end wins.”) fits either answer.',
+    answer: '2A (dollars) or 2B (percent).',
+  };
+  const Q3 = {
+    q: 'Keep or cut “Don’t worry. You will be able to change this later.”?',
+    look: 'Create league › League, under the League name field. The sweep cut every other line like it; this one was left for you because it reassures rather than explains.',
+    answer: '3A (keep the line) or 3B (cut it).',
+  };
+  function Questions() {
+    const Q = ({ n, d, children }) => (
+      <>
+        <h3 className="b-sub">{`Question ${n} of 3: ${d.q}`}</h3>
+        <ul className="b-inv__notes"><li><b>What you’re looking at:</b> {d.look}</li><li><b>Answer with:</b> {d.answer}</li></ul>
+        <Grid>{children}</Grid>
+      </>
+    );
+    return (
+      <section className="b-sec" id="rule12-questions" aria-labelledby="rule12-questions-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Rule 12</span>
+          <div><h2 id="rule12-questions-h">Your call: three questions left on the sweep and the i</h2></div>
+        </header>
+        <Q n={1} d={Q1}>{[
+          fig('q1a', '1A · no i on Rounds (as drawn)', <StepFrame t="light" B={DraftStep} label="Draft step, Rounds without an i" />, 'Draft order keeps its i; Rounds has none.'),
+          fig('q1b', '1B · an i on Rounds', <StepFrame t="light" B={BEHIND.draftR} label="Draft step, Rounds with an i" />, 'The i sits after “Rounds”, as on Draft order.'),
+          fig('q1b1', '1B · its popup, page 1', <PopFrame t="light" k="rounds" page={1} />, 'NEW line: “How many stocks each team drafts: one per round.”'),
+          fig('q1b2', '1B · its popup, page 2', <PopFrame t="light" k="rounds" page={2} />, 'The picture: 6 rounds, 6 stocks on your team.'),
+        ]}</Q>
+        <Q n={2} d={Q2}>{[
+          fig('q2a', '2A · dollars decide', <PopFrame t="light" k="durUsd" page={2} />, 'Marco R. wins with +$186.00, the most dollars, though only +7.5%. Same as Matchup, where dollars decide.'),
+          fig('q2b', '2B · percent decides', <PopFrame t="light" k="durPct" page={2} />, 'You win with +11.0%, the best return, though only +$136.40.'),
+        ]}</Q>
+        <Q n={3} d={Q3}>{[
+          fig('q3a', '3A · keep the line', <StepFrame t="light" B={LeagueKeep} label="League step with the line" />, 'The grey line under the name field.'),
+          fig('q3b', '3B · cut it', <StepFrame t="light" B={LeagueStep} label="League step without the line" />, 'The name field, then League type.'),
+        ]}</Q>
+      </section>
+    );
+  }
+
   window.KSInfoKit = { ChoiceCard, InfoI };
-  window.KSRule12Info = () => <Section />;
+  window.KSRule12Info = () => <><Section /><Questions /></>;
 })();
 
 </script>
