@@ -1,6 +1,7 @@
 # Security read: a Claude Data dashboard reading counts from production
 
-Status: **Draft for the Orchestrator's Opus pass. Not yet shown to Giorgio.**
+Status: **Orchestrator's Opus pass done (2026-11-10): Step 0 SQL revised and run on PGlite; test 3 widened; two
+scope notes added. Ready for Giorgio.**
 Written by the Planner on 2026-11-10, from two read-only halves. Nothing was connected and
 nothing was run against prod.
 
@@ -94,8 +95,14 @@ executable by `PUBLIC` or `anon`**: 129 functions, 95 of them `SECURITY DEFINER`
 names only `postgres`, `service_role`, `authenticated` or `supabase_auth_admin`. So the
 Researcher's worry (a reader that turns on read-write and calls a definer function left open
 to everyone) has no target in `public` as of that capture. Limits of that claim: it covers
-`public` only, it is four days old, and it says nothing about functions in `net`, `vault`,
-`extensions` or `auth`. `net.http_get` and `net.http_post` in particular would be a way to
+`public` only (and plain functions, not procedures), it is four days old, and it says nothing
+about functions in `net`, `vault`, `extensions` or `auth`. Since the capture, the two functions
+re-created by `20261128000000` and the two touched by `20261129000000` had their grants checked
+on prod by query after each push (2026-11-10), so the claim still holds for those. Step 0 now
+also lists every `SECURITY DEFINER` function in ANY schema the role can execute, which is the
+real answer to the worry. One more limit on the worry itself: a `SECURITY DEFINER` function
+does not lift a read-only transaction (a write inside it still fails), so this matters only if
+test 3 shows the transaction can be switched to read-write. `net.http_get` and `net.http_post` in particular would be a way to
 send data out, and their grants are not in the snapshot.
 
 ## The path, in order
@@ -109,35 +116,63 @@ send functions. *(The query below is drafted by the Planner and must be checked 
 Orchestrator's pass before Giorgio runs it.)*
 
 ```sql
-SELECT 'bypasses RLS' AS what, r.rolname AS name, r.rolbypassrls::text AS answer
+SELECT 'superuser' AS what, r.rolname::text AS name, r.rolsuper::text AS answer
   FROM pg_roles r WHERE r.rolname = 'supabase_read_only_user'
 UNION ALL
-SELECT 'member of', m.rolname, 'true'
-  FROM pg_auth_members am
-  JOIN pg_roles m ON m.oid = am.roleid
-  JOIN pg_roles r ON r.oid = am.member
- WHERE r.rolname = 'supabase_read_only_user'
+SELECT 'bypasses RLS', r.rolname::text, r.rolbypassrls::text
+  FROM pg_roles r WHERE r.rolname = 'supabase_read_only_user'
+UNION ALL
+SELECT 'member of (direct or inherited)', g.rolname::text, 'true'
+  FROM pg_roles g
+ WHERE g.rolname <> 'supabase_read_only_user'
+   AND pg_has_role('supabase_read_only_user', g.oid, 'MEMBER')
 UNION ALL
 SELECT 'can execute', p.oid::regprocedure::text,
        has_function_privilege('supabase_read_only_user', p.oid, 'EXECUTE')::text
   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
- WHERE (n.nspname = 'vault' AND p.proname = '_crypto_aead_det_decrypt')
-    OR (n.nspname = 'net' AND p.proname IN ('http_get', 'http_post'))
+ WHERE (n.nspname IN ('vault', 'pgsodium') AND p.proname ILIKE '%decrypt%')
+    OR (n.nspname = 'net' AND p.proname LIKE 'http\_%')
+UNION ALL
+SELECT 'definer it can execute', p.oid::regprocedure::text, 'true'
+  FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+ WHERE p.prosecdef
+   AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+   AND has_function_privilege('supabase_read_only_user', p.oid, 'EXECUTE')
 UNION ALL
 SELECT 'can select', c.oid::regclass::text,
        has_table_privilege('supabase_read_only_user', c.oid, 'SELECT')::text
   FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
  WHERE (n.nspname = 'vault' AND c.relname IN ('decrypted_secrets', 'secrets'))
     OR (n.nspname = 'auth' AND c.relname = 'users')
-    OR (n.nspname = 'net' AND c.relname IN ('http_request_queue', '_http_response'));
+    OR (n.nspname = 'net' AND c.relname IN ('http_request_queue', '_http_response'))
+ORDER BY 1, 2;
 ```
 
-How to read it: "can execute `vault._crypto_aead_det_decrypt`" = **false** means that role
-cannot get Vault plain text. **true** means it can, and prod is not connected. "can execute
-`net.http_...`" = true means the reader could send data out if it can write. An error that
-the role does not exist is itself an answer: the connector would be using some other role,
-and step 1 has to find out which. Step 0 narrows the question; it does not replace step 1,
-because it says nothing about the connector's own behaviour.
+How to read it (it returns role, function and table names and true/false; never a row of data
+or a secret value):
+- **superuser** must be **false**. True ends it: prod is not connected.
+- **bypasses RLS**: recorded either way (the read assumes true).
+- **member of**: every role it belongs to, directly or through another role. `pg_read_all_data`
+  is expected. `authenticated`, `service_role`, `postgres` or any `supabase_*admin` role ends
+  the function-grant comfort above.
+- **can execute** a `vault`/`pgsodium` function with "decrypt" in its name: **false** for every
+  such row means that role cannot get Vault plain text. **true** on any means it can, and prod
+  is not connected. **No decrypt row at all** means the installed Vault decrypts some other way,
+  and step 0 cannot settle it: test 2 decides.
+- **can execute** `net.http_...`: true means the reader could send data out IF it can write
+  (test 3 and test 11 decide).
+- **definer it can execute**: every `SECURITY DEFINER` function, in any schema, that the role
+  can call. The list should be empty or harmless; anything that writes or decrypts goes to the
+  Orchestrator before step 1.
+- **can select**: `vault.decrypted_secrets` true is expected from `pg_read_all_data`; plain text
+  still needs the decrypt function above.
+- **An error that the role does not exist** is itself an answer: the connector would be using
+  some other role, and step 1 has to find out which.
+Checked by the Orchestrator on PGlite (whole migration chain, a stand-in role with
+`pg_read_all_data` + `BYPASSRLS`): it runs, its columns line up, a missing role gives
+`role "supabase_read_only_user" does not exist`, and a planted open definer function is listed.
+Step 0 narrows the question; it does not replace step 1, because it says nothing about the
+connector's own behaviour.
 
 **Step 1. Test on a non-prod Supabase project. Required whatever happens next.**
 The Researcher's ten tests (its file, "Hands-on tests"), plus one from this read:
@@ -146,7 +181,7 @@ The Researcher's ten tests (its file, "Hands-on tests"), plus one from this read
 |---|---|---|
 | 1 | Which role runs the SQL, does it bypass RLS, and which roles is it a member of | Recorded, either way. If it is a member of `authenticated` or `service_role`, the function-grant finding above no longer protects us |
 | 2 | A dummy Vault secret, then read `vault.decrypted_secrets` | **No plain text.** Plain text ends the prod trial |
-| 3 | `INSERT`, then again after `SET TRANSACTION READ WRITE`, then after turning the read-only default off | All three refused |
+| 3 | `INSERT`; again after `SET TRANSACTION READ WRITE`; after `SET default_transaction_read_only = off` and `SET SESSION CHARACTERISTICS AS TRANSACTION READ WRITE`; and one multi-statement query that starts with `COMMIT;` to try to leave a wrapping read-only transaction | All refused |
 | 4 | A `SECURITY DEFINER` function open to everyone that inserts a row, called the same three ways | Refused |
 | 5 | Another project's id passed to a tool | Refused |
 | 6, 7 | Tool list with `features=database` | Database tools only; no deploy, branching or notebook tools |
