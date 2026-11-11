@@ -112,8 +112,7 @@ in the Supabase SQL editor asks Postgres what `supabase_read_only_user` is allow
 reads only the permission catalog, so it returns role names and true/false, never a row of
 data or a secret. It answers on prod what the documents could not: whether the role bypasses
 RLS, which roles it belongs to, and whether it can run Vault's decrypt function or `pg_net`'s
-send functions. *(The query below is drafted by the Planner and must be checked in the
-Orchestrator's pass before Giorgio runs it.)*
+send functions.
 
 ```sql
 SELECT 'superuser' AS what, r.rolname::text AS name, r.rolsuper::text AS answer
