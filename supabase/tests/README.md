@@ -15,11 +15,12 @@ Most suites hand-declare a minimal `leagues` table. If a replica's column defaul
 
 This happened on 2026-10-06. The leave-league replica defaulted `league_type` to `'matchup'`, but prod's default is `'duration'`. So the effect test's S4 passed in PGlite and failed in prod.
 
-`assertReplicaDefaultMatchesProd(q, 'leagues', 'league_type')` compares the replica's `information_schema` default with the default the latest migration leaves. Four suites call it as a step:
+`assertReplicaDefaultMatchesProd(q, 'leagues', 'league_type')` compares the replica's `information_schema` default with the default the latest migration leaves. Five suites call it as a step:
 - `leave_league`
 - `start_league_playoffs`
 - `flexible_playoffs`
 - `season_result`
+- `draft_pick_clock` (since 20261203000000: its effect test now names `league_type`)
 
 Each of them declares `default 'duration'`, like prod, and passes `league_type` explicitly wherever a matchup path is under test.
 

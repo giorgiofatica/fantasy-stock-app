@@ -112,20 +112,20 @@ begin
     case when n = 0 then 'PASS' else 'FAIL' end);
 
   -- ---- fixture (as the editor's own role) -----------------------------------
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date)
-  values ('__ORDER_RAND__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '30 minutes')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, league_type, playoff_teams)
+  values ('__ORDER_RAND__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '30 minutes', 'matchup', 2)
   returning id into l_rand;
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date)
-  values ('__ORDER_FAR__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, league_type, playoff_teams)
+  values ('__ORDER_FAR__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_far;
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, draft_order_mode)
-  values ('__ORDER_MAN__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 'manual')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, draft_order_mode, league_type, playoff_teams)
+  values ('__ORDER_MAN__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 'manual', 'matchup', 2)
   returning id into l_man;
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, draft_order_mode)
-  values ('__ORDER_MANF__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 'manual')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, draft_order_mode, league_type, playoff_teams)
+  values ('__ORDER_MANF__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 'manual', 'matchup', 2)
   returning id into l_manf;
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date)
-  values ('__ORDER_LIVE__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, draft_date, league_type, playoff_teams)
+  values ('__ORDER_LIVE__', c_uid, 'ORD-' || gen_random_uuid(), 8, 'not_started', now() + interval '5 hours', 'matchup', 2)
   returning id into l_live;
   insert into public.league_members (league_id, user_id, role)
   select l, u, case when u = c_uid then 'commissioner' else 'member' end

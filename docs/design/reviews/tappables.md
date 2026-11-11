@@ -4,7 +4,7 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **246** tappables in **90** files.
+- **245** tappables in **90** files.
 - **97** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **51** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
@@ -33,18 +33,17 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/create-account.tsx:133` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:135` | Button | onPress | `handleCreate` | fn handleCreate |  |
 | `app/create-account.tsx:140` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
-| `app/create-league.tsx:319` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
-| `app/create-league.tsx:377` | ChoiceRow | onPress | `inline: () => patch({ durationDays: d.value })` | fn patch |  |
-| `app/create-league.tsx:398` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
-| `app/create-league.tsx:408` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
-| `app/create-league.tsx:420` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
-| `app/create-league.tsx:473` | ChoiceRow | onPress | `inline: () => patch({ stakeMode: opt.value })` | fn patch |  |
-| `app/create-league.tsx:504` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
-| `app/create-league.tsx:516` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
-| `app/create-league.tsx:533` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
-| `app/create-league.tsx:592` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
-| `app/create-league.tsx:600` | Button | onPress | `inline: () => void share()` | fn share |  |
-| `app/create-league.tsx:622` | Button | onPress | `goNext` | fn goNext | `blocked` |
+| `app/create-league.tsx:323` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
+| `app/create-league.tsx:385` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
+| `app/create-league.tsx:395` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
+| `app/create-league.tsx:407` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
+| `app/create-league.tsx:460` | ChoiceRow | onPress | `inline: () => patch({ stakeMode: opt.value })` | fn patch |  |
+| `app/create-league.tsx:491` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
+| `app/create-league.tsx:503` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
+| `app/create-league.tsx:520` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
+| `app/create-league.tsx:579` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
+| `app/create-league.tsx:587` | Button | onPress | `inline: () => void share()` | fn share |  |
+| `app/create-league.tsx:609` | Button | onPress | `goNext` | fn goNext | `blocked` |
 | `app/forgot-password.tsx:139` | EmptyState | onAction | `backToSignIn` | route replace('/login') |  |
 | `app/forgot-password.tsx:141` | EmptyState | onSecondaryAction | `inline: () => { setSent(false); handleResetPassword(); }` | state setSent |  |
 | `app/forgot-password.tsx:178` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |

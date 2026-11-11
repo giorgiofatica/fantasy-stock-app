@@ -18,7 +18,7 @@
  */
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
-import { loadChain } from './full_chain.ts';
+import { loadChain, asExistingDuration } from './full_chain.ts';
 import { finishAuthStage, finishDeletion } from '../functions/_shared/account-deletion.ts';
 import { makeLedgerDeps } from '../functions/_shared/account-deletion-db.ts';
 import { decideDeletedSeatPick, listUnclockedDeletedSeatTurns, seatReader } from '../functions/_shared/deleted-seat.ts';
@@ -200,8 +200,8 @@ Deno.test({
       await q(`insert into auth.users (id) values ($1) on conflict do nothing`, [U(22)]);
       await deps.openLedger(U(21), false); await scrubOnly(21);
       // after the scrub, the (still valid) session joins a league: live state
-      await q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
-               values ($1, 'L', $2, 'LIVESTATE1', 8, 'duration')`, [L, U(22)]);
+      await asExistingDuration(db, () => q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
+               values ($1, 'L', $2, 'LIVESTATE1', 8, 'duration')`, [L, U(22)]));
       await q(`insert into league_members (league_id, user_id, role) values ($1, $2, 'commissioner'), ($1, $3, 'member')`, [L, U(22), U(21)]);
       await deps.deleteAuthUser(U(21));
       const refused = await finishAuthStage(deps, U(21));
@@ -220,8 +220,8 @@ Deno.test({
     await t.step("a scrub that REALLY fails in W2's SQL: scrub_errors has an entry, the run is FAILED (never success), the ledger says why, and the next pass heals it", async () => {
       const L = LG(71);
       await user(60); await q(`insert into auth.users (id) values ($1) on conflict do nothing`, [U(61)]);
-      await q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
-               values ($1, 'L', $2, 'SCRUBFAIL1', 8, 'duration')`, [L, U(61)]);
+      await asExistingDuration(db, () => q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
+               values ($1, 'L', $2, 'SCRUBFAIL1', 8, 'duration')`, [L, U(61)]));
       await q(`insert into league_members (league_id, user_id, role) values ($1, $2, 'commissioner'), ($1, $3, 'member')`, [L, U(61), U(60)]);
       await deps.openLedger(U(60), false); await age(60);
       // sabotage: the pre-draft leave deletes the member row; make that raise
@@ -349,8 +349,8 @@ Deno.test({
       const mkLeague = async (id: string, clocked: boolean, deleted: boolean) => {
         const [B, C, D, A] = [U(51), U(52), U(53), U(54)];
         for (const u of [B, C, D, A]) await q(`insert into auth.users (id) values ($1) on conflict do nothing`, [u]);
-        await q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
-                 values ($1::uuid, 'L', $2, upper(substr(md5($1::text), 1, 10)), 8, 'duration')`, [id, B]);
+        await asExistingDuration(db, () => q(`insert into leagues (id, name, commissioner_id, invite_code, num_participants, league_type)
+                 values ($1::uuid, 'L', $2, upper(substr(md5($1::text), 1, 10)), 8, 'duration')`, [id, B]));
         for (const [u, role] of [[B, 'commissioner'], [C, 'member'], [D, 'member'], [A, 'member']]) {
           await q(`insert into league_members (league_id, user_id, role) values ($1, $2, $3)`, [id, u, role]);
         }

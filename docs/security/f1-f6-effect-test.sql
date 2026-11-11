@@ -36,14 +36,14 @@ declare
 
 begin
   -- ---- fixture (as the editor's own role; bypasses RLS) ---------------------
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__F1_TEST_NULL__', c_uid, 'F1T-' || gen_random_uuid(), 4, 'in_progress')
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__F1_TEST_NULL__', c_uid, 'F1T-' || gen_random_uuid(), 4, 'in_progress', 'matchup', 2)
   returning id into l_null;
 
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status,
-                              league_start_date, league_end_date)
+                              league_start_date, league_end_date, league_type, playoff_teams)
   values ('__F1_TEST_SET__', c_uid, 'F1T-' || gen_random_uuid(), 4, 'in_progress',
-          now(), now() + interval '30 days')
+          now(), now() + interval '30 days', 'matchup', 2)
   returning id into l_set;
 
   insert into public.league_members (league_id, user_id, role) values

@@ -56,37 +56,37 @@ declare
 
 begin
   -- ---- fixture (as the editor's own role; bypasses RLS) ---------------------
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__JMD_A__', c_uid, code_a, 4, 'not_started') returning id into l_a;
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__JMD_A__', c_uid, code_a, 4, 'not_started', 'matchup', 2) returning id into l_a;
   insert into public.league_members (league_id, user_id, role) values (l_a, c_uid, 'commissioner');
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__JMD_B__', c_uid, code_b, 4, 'in_progress') returning id into l_b;
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__JMD_B__', c_uid, code_b, 4, 'in_progress', 'matchup', 2) returning id into l_b;
   insert into public.league_members (league_id, user_id, role) values (l_b, c_uid, 'commissioner');
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__JMD_C__', c_uid, code_c, 4, 'completed') returning id into l_c;
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__JMD_C__', c_uid, code_c, 4, 'completed', 'matchup', 2) returning id into l_c;
   insert into public.league_members (league_id, user_id, role) values (l_c, c_uid, 'commissioner');
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__JMD_D__', c_uid, code_d, 4, 'in_progress') returning id into l_d;
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__JMD_D__', c_uid, code_d, 4, 'in_progress', 'matchup', 2) returning id into l_d;
   insert into public.league_members (league_id, user_id, role) values
     (l_d, c_uid, 'commissioner'), (l_d, j_uid, 'member');   -- j_uid already joined before draft started
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__JMD_E__', c_uid, code_e_league, 4, 'in_progress') returning id into l_e;
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__JMD_E__', c_uid, code_e_league, 4, 'in_progress', 'matchup', 2) returning id into l_e;
   insert into public.league_members (league_id, user_id, role) values (l_e, c_uid, 'commissioner');
   insert into public.league_invites (league_id, inviter_id, invited_identifier, code, status)
   values (l_e, c_uid, 'jmd-test@example.invalid', code_e, 'pending') returning id into inv_e;
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status)
-  values ('__JMD_F__', c_uid, code_f, 4, 'not_started') returning id into l_f;
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, league_type, playoff_teams)
+  values ('__JMD_F__', c_uid, code_f, 4, 'not_started', 'matchup', 2) returning id into l_f;
   insert into public.league_members (league_id, user_id, role) values
     (l_f, c_uid, 'commissioner'), (l_f, gen_random_uuid()::text, 'member'),
     (l_f, gen_random_uuid()::text, 'member'), (l_f, gen_random_uuid()::text, 'member');  -- 4/4, full
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, season_status)
-  values ('__JMD_G__', c_uid, code_g, 4, 'not_started', 'completed') returning id into l_g;
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, season_status, league_type, playoff_teams)
+  values ('__JMD_G__', c_uid, code_g, 4, 'not_started', 'completed', 'matchup', 2) returning id into l_g;
   insert into public.league_members (league_id, user_id, role) values (l_g, c_uid, 'commissioner');
 
   -- ---- become service_role (the only role with EXECUTE; matches the

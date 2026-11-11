@@ -127,10 +127,11 @@ begin
           now() - interval '2 days', now() + interval '2 days');
 
   -- ---- league L3: outsider O's own, unrelated league ---------------------
+  -- Matchup since 20261203000000 (it refuses a new Duration league); the type is incidental here.
   insert into public.leagues (name, commissioner_id, invite_code, num_participants, league_type,
-                               draft_status, current_week, season_status)
+                               draft_status, current_week, season_status, playoff_teams)
   values ('__HSDN_L3__', o_uid::text, 'HSDN-L3-' || substr(gen_random_uuid()::text, 1, 8),
-          4, 'duration', 'not_started', 1, 'active')
+          4, 'matchup', 'not_started', 1, 'active', 2)
   returning id into l3_id;
   insert into public.league_members (league_id, user_id, role) values (l3_id, o_uid::text, 'commissioner');
 

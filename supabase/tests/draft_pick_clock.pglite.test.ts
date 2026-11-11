@@ -15,6 +15,7 @@
 import { assert, assertEquals, assertRejects } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
 import { effectiveCategoryIds } from '../functions/_shared/draft-validation.ts';
+import { assertReplicaDefaultMatchesProd } from './replica_defaults.ts';
 
 const ROOT = new URL('../../', import.meta.url);
 const MIGRATION = new URL('supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql', ROOT);
@@ -38,7 +39,11 @@ create table leagues (
   id uuid primary key default gen_random_uuid(), name text, commissioner_id text not null,
   draft_status text default 'not_started', num_rounds int not null default 6,
   invite_code text, num_participants int default 4,
-  league_start_date timestamptz, league_end_date timestamptz);
+  league_start_date timestamptz, league_end_date timestamptz,
+  -- 20261203000000: the effect test now names its fixtures' type (a new Duration league is
+  -- refused in prod); prod's default and nullability, guarded by replica_defaults.ts.
+  league_type text not null default 'duration' check (league_type in ('duration', 'matchup')),
+  playoff_teams int);
 create table league_members (league_id uuid not null references leagues(id) on delete cascade,
   user_id text not null, role text not null default 'member', primary key (league_id, user_id));
 create table drafts (id serial primary key, league_id uuid, user_id text, symbol text,
@@ -106,6 +111,7 @@ Deno.test({
       });
 
     await db.exec(SCHEMA);
+    await assertReplicaDefaultMatchesProd(q, 'leagues', 'league_type');
     // Seeded BEFORE the migration: an in-progress draft the migration must
     // leave unclocked (Q2 hold), and a not-started league that must be clocked.
     const [legacy] = await q(`insert into leagues (name, commissioner_id, draft_status) values ('legacy',$1,'in_progress') returning id`, [C]);

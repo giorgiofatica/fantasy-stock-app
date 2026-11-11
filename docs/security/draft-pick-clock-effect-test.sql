@@ -96,15 +96,15 @@ begin
 
   -- ---- fixture (as the editor's own role; bypasses RLS) ---------------------
   begin
-    insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, pick_seconds)
-    values ('__CLOCK_T1__', c_uid, 'CLK-' || gen_random_uuid(), 4, 'not_started', 20);
+    insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, pick_seconds, league_type, playoff_teams)
+    values ('__CLOCK_T1__', c_uid, 'CLK-' || gen_random_uuid(), 4, 'not_started', 20, 'matchup', 2);
     out := out || E'T1 pick_seconds=20      -> accepted  FAIL\n';
   exception when others then
     out := out || format(E'T1 pick_seconds=20      -> %s  %s\n', sqlstate, case when sqlstate = '23514' then 'PASS' else 'FAIL (' || sqlerrm || ')' end);
   end;
 
-  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, pick_seconds)
-  values ('__CLOCK__', c_uid, 'CLK-' || gen_random_uuid(), 4, 'not_started', 45)
+  insert into public.leagues (name, commissioner_id, invite_code, num_participants, draft_status, pick_seconds, league_type, playoff_teams)
+  values ('__CLOCK__', c_uid, 'CLK-' || gen_random_uuid(), 4, 'not_started', 45, 'matchup', 2)
   returning id into l_id;
   insert into public.league_members (league_id, user_id, role) values
     (l_id, c_uid, 'commissioner'), (l_id, a_uid, 'member');
