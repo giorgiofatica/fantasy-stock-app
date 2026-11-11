@@ -343,6 +343,10 @@ building anything, and don't reopen a rule without him.
     evenly, the top seeds skip the first round."
   - Non-draftable stocks: "Off: stocks at $1 or more, on a major US exchange, from companies
     worth $250 million or more. On: every US stock, penny stocks too."
+- **Rounds gets no "i"** (2026-11-11, "1a" on the Design Lead's three questions): the Rounds
+  stepper on Create league › Draft stays a label and a number, with nothing behind it.
+- **Cut the league-name line** (2026-11-11, "3b cut"): "Don't worry. You will be able to
+  change this later." under Create league's League name field goes. Nothing replaces it.
 
 ## Scoring and standings
 

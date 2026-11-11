@@ -555,17 +555,17 @@
   const Q1 = {
     q: 'Should Rounds get an i?',
     look: 'Create league › Draft. “Rounds” is how many stocks each team drafts. 1A: as drawn, no i. 1B: an i after “Rounds”, and the popup it opens (both pages). Its line is NEW, for you to approve if you pick 1B.',
-    answer: '1A (no i) or 1B (an i, with the popup shown).',
+    answer: 'Decided 2026-11-11: 1A, no i ("1a").',
   };
   const Q2 = {
     q: 'How is a Duration league won: the biggest dollar gain, or the biggest percent gain?',
     look: 'Not a design choice: a game rule nobody has set yet (the app has no Duration scoring today). This is the Duration popup’s picture, with the same three players at the end of a Budget cap league, ranked each way. They spent different amounts, so the two rules crown different winners. In an Equal stakes league everyone starts with the same amount, so both rules give the same order. Your approved line (“The biggest gain at the end wins.”) fits either answer.',
-    answer: '2A (dollars) or 2B (percent).',
+    answer: 'Open. DR-001 (Accepted 2026-08-08, your decision record) already says Duration is "best total dollar return", so 2A unless you say otherwise; asked of the Planner and the Orchestrator.',
   };
   const Q3 = {
     q: 'Keep or cut “Don’t worry. You will be able to change this later.”?',
     look: 'Create league › League, under the League name field. The sweep cut every other line like it; this one was left for you because it reassures rather than explains.',
-    answer: '3A (keep the line) or 3B (cut it).',
+    answer: 'Decided 2026-11-11: 3B, cut ("3b cut").',
   };
   function Questions() {
     const Q = ({ n, d, children }) => (
@@ -579,7 +579,7 @@
       <section className="b-sec" id="rule12-questions" aria-labelledby="rule12-questions-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Rule 12</span>
-          <div><h2 id="rule12-questions-h">Your call: three questions left on the sweep and the i</h2></div>
+          <div><h2 id="rule12-questions-h">Three questions left on the sweep and the i: 1A and 3B decided, 2 open</h2></div>
         </header>
         <Q n={1} d={Q1}>{[
           fig('q1a', '1A · no i on Rounds (as drawn)', <StepFrame t="light" B={DraftStep} label="Draft step, Rounds without an i" />, 'Draft order keeps its i; Rounds has none.'),

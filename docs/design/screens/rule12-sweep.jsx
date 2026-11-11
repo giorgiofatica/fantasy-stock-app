@@ -351,7 +351,7 @@
     ['Values', 'counts and times on a heading\'s line: "Members · 5 of 8 joined", "Your roster · 2 of 6", "Through Week 7", the hero\'s gain lines, "Picks 3 to 46".'],
   ];
   const ASK = [
-    ['"Don\'t worry. You will be able to change this later." (Create league\'s name field)', 'An explainer by the rule, but it reads like your January copy. Cut, or yours to keep?'],
+    ['"Don\'t worry. You will be able to change this later." (Create league\'s name field)', 'Decided 2026-11-11: CUT ("3b cut").'],
   ];
   const DONE_ELSEWHERE = [
     ['Create league › Season', 'Decided: B, the strip (its own board). Its lines under Managers, Playoff teams and Regular season go with it.'],
