@@ -32,9 +32,10 @@ Entries begin with the Recorder's first pass.
 - Nothing new on phones. Newest EAS iOS build is still 1.3.0 (14) from `6ca0e0c4`.
 
 **Merged, not confirmed live**
+- **#392 (merged 18:40Z): NOT applied, NOT deployed.** Migration `20261202000000_draft_turn_lease_and_escalation_claim.sql` is on `main` (the next `supabase db push` would apply it), and it changes the `draft-autopick-sweep` and `validate-and-record-pick` edge functions, which are not deployed. Title: one auto-pick attempt per turn (lease), one outage push (claim). The Orchestrator verified it (1075 and 276 tests; 19 of 19 mutants); that is not an effect on prod. Planned after today's League A draft.
 - **#384's client half (merged 18:19Z): in no build.** The ask at the deadline, with retries, reaches phones in build 15. Its effect, and the effect of the 2 s sweep, on actual pick delays is not yet shown by data.
 - **#379 (06:17Z):** Home no longer paints the plain draft card before "Draft postponed". Client only, merged, not in a build.
-- Docs: #376 App Store requirements (research), #377 UX rule 13, #378 the auto-pick-is-instant rule, #380 Alpaca market-data display rights (research), #381 privacy policy / terms / support (research), #382 free data sources (research), #383 Tiingo licence read (research), #385 five Design Lead board branches, #386 the popup-may-name-the-metric rule, #387 a board follow-up (one view at a time; question 4 shown as decided). #375 (my 2026-11-10 record) merged 06:11Z.
+- Docs: #389 (my correction record), #390 and #391 (the League type board and Giorgio's ruling), #376 App Store requirements (research), #377 UX rule 13, #378 the auto-pick-is-instant rule, #380 Alpaca market-data display rights (research), #381 privacy policy / terms / support (research), #382 free data sources (research), #383 Tiingo licence read (research), #385 five Design Lead board branches, #386 the popup-may-name-the-metric rule, #387 a board follow-up (one view at a time; question 4 shown as decided). #375 (my 2026-11-10 record) merged 06:11Z.
 
 **Decided** (Giorgio's words are in `PRODUCT_RULES.md`; this only points)
 - A choice we defined carries optional context, an "i" popup (UX rule 13, #377; the other half of rule 12).
@@ -42,11 +43,14 @@ Entries begin with the Recorder's first pass.
 - Duration is won by dollars in every stake mode, "dollars, confirmed" (#385). It confirms DR-001; Duration scoring is unbuilt and its plan is the Planner's.
 - Duration is hidden in Create league until it is built (his pick "A", in #385). The app and server change is a chip, not merged.
 - A definition popup may name what decides the winner; rules, marketing and onboarding keep "best performance wins" (#386).
+- The League type card stays, with Matchup alone (Giorgio "A", #391, on the Design Lead's board #390; the board call is archived).
 - Board picks recorded in #385: the Season step B, and below four managers B (already built, #358, and live server-side, #359).
 
 **Found**
 - #384's description reports a measurement: League B on build 12, 21 of 21 auto picks landed 8.3–47.8 s after the deadline (median 10.3 s), with three named causes. That is the PR's own account, not an independent check.
 - Phone-pass step 24d passed on build 14 (page tick 06:08Z, Giorgio's own recording): one card, no buttons, and it clears with no tap after the rejoin.
+
+- Before the web app is unpaused: it still offers and defaults to Duration (`Leagues.jsx`, `useLeagues.js`, read on `main`), and the server will refuse a new Duration league once `20261203000000` (open PR #393) is live, so the web default must change to Matchup first (STATUS §4 item 17).
 
 **Waiting on Giorgio**
 - The leave-sheet board call (the Leave sheet in a league of four), open in #385.
@@ -55,7 +59,8 @@ Entries begin with the Recorder's first pass.
 - The phone pass from step 24e: he paused it until today. Step 24e is now an unattended League A draft with a proof query and a timing query.
 
 **Next**
-- In progress, not on `main`: migration `20261202000000` (an auto-pick in-flight lease, branch `fix/autopick-lease-outage`) and `20261203000000` (refuse new Duration leagues); chips "Hide Duration until it's built" and "Auto-pick in-flight lease".
+- Planned by the Orchestrator after today's League A draft: the `db push` of `20261202000000` and the deploys of `draft-autopick-sweep` and `validate-and-record-pick` (#392), then a verified-by-query note.
+- In open PR #393, not merged: hiding Duration in Create league (app) plus migration `20261203000000`, which refuses a new Duration league on the server.
 - Build 15 is the earliest the Home fix (#379) and the client half of the auto-pick fix reach a phone.
 - The Planner takes Giorgio through the App Store blockers, using the research above; nothing is decided.
 
