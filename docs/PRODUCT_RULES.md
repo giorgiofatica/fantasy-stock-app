@@ -129,34 +129,65 @@ building anything, and don't reopen a rule without him.
   it passes, so nothing is sliced. The Design Lead draws it for his sign-off (every tall
   sheet, both themes, the largest text size, and what a form that can save shows in place of
   "Cancel").
+  - **Amended the same day: a top bar, as on ESPN, replaces the floating close** (never
+    signed off). He sent two screenshots of ESPN Fantasy's league manager ("Scoring
+    Settings", "Basic Settings") and said: "i like the idea of having the top left being a
+    back or close button and the top right being the save button. it is greyed out until you
+    make a change and then you click save when it populates". Shown board `#call-sheet-bar`
+    (A "League settings" in the bar with the name in a row, the Design Lead's
+    recommendation; B the league's name in the bar), he answered: "B and no, hitting back or
+    x just closes it". So, on every tall sheet:
+    - **The bar.** Solid, in the card colour, starting at the sheet's top edge (no band
+      above it). Close (×, 44 pt target) at the left; the title centred, bold, one line;
+      on a sheet that can save, "Save" at the right. Rows scroll under the bar; once
+      scrolled, a thin divider shows under it and a short fade in the bar's own colour
+      (solid 6 pt, clear by 24 pt), so a row going under dissolves into the bar and no
+      sliver of cut letters is ever left showing. At the top neither shows.
+    - **Save.** Grey and inert until something changes, then the accent colour ("it is
+      greyed out until you make a change"). Like a stepper at its end, the grey Save has
+      nothing beside it to say why. Tapping it saves; on success the sheet closes and the
+      screen below shows the change; on failure the sheet stays open with the error. There
+      is no pinned "Save changes" button at the bottom any more.
+    - **Closing never asks.** ×, back or a swipe down closes the sheet at once, and unsaved
+      changes are dropped ("no, hitting back or x just closes it"). This is his call and it
+      overrides the Design Lead's discard question: "Discard changes" and "Keep editing"
+      were not approved and do not exist.
+    - **Read-only sheets** (League settings for a member, a manager's team, Trade history,
+      Forgot password) have the same bar with only the × and no Save. Forgot password's ×
+      keeps the VoiceOver label "Back to sign in".
+    - **Large text.** The bar's words stop growing at 1.3x, as iOS's own bars do, so the ×,
+      the title and Save never collide; the rows under the bar grow fully.
 - **League settings opens on the league's own name** (2026-11-12, Giorgio picked **C** on
   board `#call-settings-top`, relayed by the Orchestrator; his word: "C". He had said of the
   floating-close board's first screenful: "i dont love the top of it with League Settings
   and then League name right underneath. seems clunky and not well done." Shown A a smaller
-  title, B the name as a card row (the Design Lead's recommendation) and C; he chose C.) On
-  the floating-close layout, League settings has no "League settings" heading and no "League
-  name" label at the top: the title is the league's name ("Serie A Traders"), in the title's
-  place beside the close button, followed directly by the Draft section. What the drawing
-  left open, settled by the Design Lead so the build doesn't guess:
+  title, B the name as a card row (the Design Lead's recommendation) and C; he chose C.) It
+  was drawn on the floating-close layout; when the top bar replaced that layout he kept it
+  ("B and no, hitting back or x just closes it", board `#call-sheet-bar`), so the league's
+  name is the **bar's** title. League settings has no "League settings" heading and no
+  "League name" label: the bar reads "× · Serie A Traders ✎ · Save", and the first section
+  under it is Draft. What the drawings left open, settled by the Design Lead so the build
+  doesn't guess:
   - **Who can rename.** The commissioner, while the settings are editable (before the
     draft), sees a pencil after the name's last word. A member, and the commissioner once
     the settings lock, see the name with no pencil, and it does nothing when tapped.
-  - **How the rename works: in place, not a second sheet.** Tapping the name or the pencil
-    turns the title into a text field of the same size, with the cursor at the end and the
-    keyboard up; the keyboard's return key ends editing. While editing, the pencil is hidden
-    and an accent underline marks the field. The new name is an unsaved change like any
-    other on the sheet: the one pinned "Save changes" saves it with everything else, and the
-    close button or a swipe down with it changed asks the discard question first. A name
-    problem (blank, or refused by moderation) shows where it shows today, right under the
-    title, in today's words, when Save is tapped.
+  - **How the rename works: in place, in the bar, not a second sheet.** Tapping the name or
+    the pencil turns the bar's title into a text field of the same size, with the cursor at
+    the end and the keyboard up; the keyboard's return key ends editing. While editing, the
+    pencil is hidden, an accent underline marks the field, and a name longer than the bar
+    scrolls inside the field. The new name is a change like any other on the sheet: it turns
+    the bar's Save on, and Save saves it with everything else. × or a swipe down drops it
+    with the rest, without asking. A name problem (blank, or refused by moderation) shows
+    right under the bar, in today's words, when Save is tapped.
   - **VoiceOver.** For the commissioner the title is one button: label "League name", value
     the name ("League name, Serie A Traders, button"); the pencil is decorative and not read.
     While editing, the field is labelled "League name". For a member the name is a header.
     "League name" is today's field label, so there are no new words.
-  - **Long names and large text.** The title wraps at word boundaries beside the close
-    button, never under it (it keeps the close button's lane clear on every line), and is
-    never cut off. The pencil stays attached to the last word, so it is never alone on a
-    line. The title's text-size cap is today's screen-title cap.
+  - **Long names and large text.** The bar holds one line between × and Save, so a name
+    too long for it is shortened with "…" (the pencil stays visible after the "…"); the full
+    name shows while renaming, and VoiceOver reads it whole. The title's text stops growing
+    at the bar's 1.3x cap. (On the floating-close layout the title wrapped instead; the bar
+    replaced that.)
   - **No new words.** C only removes "League settings" and "League name" from the top.
 - **Nothing tappable does nothing** (2026-10-12): "make sure that there's no clickable
   actions or links or anything that's clickable in the app that then doesn't do anything.
@@ -164,9 +195,11 @@ building anything, and don't reopen a rule without him.
   or anything like that, it needs to be active. We can't have buttons that don't do
   anything, links that don't do anything." Every control that looks tappable either does its
   job or is not shown (a control that can't act in the current state is hidden, or disabled
-  with the reason beside it; never a silent no-op; one exception: a stepper at its end greys
+  with the reason beside it; never a silent no-op; two exceptions: a stepper at its end greys
   out its − or + with no reason beside it, per "Steppers at their ends: no line" under the
-  Season step, 2026-11-11). Audited once the UI redesign lands
+  Season step, 2026-11-11; and a sheet's Save in the top bar is grey with nothing beside it
+  until something changes, per the top-bar amendment under "A sheet's top must not be a
+  stuck block that cuts text", 2026-11-12). Audited once the UI redesign lands
   (plan `plans/2026-10-12-visual-language-reset.md`, W8) and checked at every gate after.
 - **1.3 = the visual-language reset** (2026-10-12): "let's do the 1.3." The Game Night
   redesign ships as 1.3 with every screen on the new skin in both themes, after Giorgio's

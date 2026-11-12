@@ -10,7 +10,7 @@
 (function () {
   const { Icon, ICON } = window.KSKit;
   const GN = window.KSGN;
-  const { Fit, NEW } = GN;
+  const { Fit } = GN;
 
   const k = (x, cap) => Math.min(x, cap || x);
   const fs = (px, x, cap, lh = 1.3) => ({ fontSize: Math.round(px * k(x, cap)), lineHeight: `${Math.round(px * lh * k(x, cap))}px` });
@@ -209,17 +209,6 @@
       </div>
     );
   }
-  /** iOS's action sheet for an edited form. Both lines are NEW, still waiting on his OK. */
-  function DiscardSheet() {
-    const item = (txt, style) => <span style={{ display: 'grid', placeItems: 'center', minHeight: 57, fontSize: 20, ...style }}>{txt}</span>;
-    return (
-      <div style={{ position: 'absolute', inset: 0, background: 'oklch(0% 0 0 / 0.4)', zIndex: 8, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 10px 34px', gap: 8 }}>
-        <div style={{ borderRadius: 14, background: 'var(--c-surface)', overflow: 'hidden' }}>{item('Discard changes', { color: 'var(--c-loss)' })}</div>
-        <div style={{ borderRadius: 14, background: 'var(--c-surface)' }}>{item('Keep editing', { color: 'var(--c-accent)', fontWeight: 600 })}</div>
-      </div>
-    );
-  }
-
   const fig = (key, cap, node, note) => (
     <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}><Fit>{node}</Fit><figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
   );
@@ -232,7 +221,7 @@
           <span className="b-sec__n b-sec__n--code">Sheets</span>
           <div>
             <h2 id="call-sheet-bar-h">{archived ? `Decided: ${decided}, the top bar on League settings` : 'Your call: the top bar on League settings'}</h2>
-            <p className="b-job">Your new direction from the ESPN screens: close at the top left, Save at the top right, grey until you change something. This replaces the floating close. Two ways to title the bar, drawn on League settings (Light, Large, then your text size), with the Save states, the discard question, the read-only member, and the other tall sheets.</p>
+            <p className="b-job">Your new direction from the ESPN screens: close at the top left, Save at the top right, grey until you change something. This replaces the floating close. Two ways to title the bar, drawn on League settings (Light, Large, then your text size), with the Save states, the read-only member, and the other tall sheets.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
@@ -242,15 +231,15 @@
           <li><b>The rows.</b> Full-width white cards with the page colour between them, as on ESPN. Headings ("Draft", "Stakes", "League info") sit in the gaps as small capitals.</li>
           <li><b>A · "League settings" in the bar, the league's name in a row.</b> The first card is "League name | Serie A Traders"; tap it and you type in place. This is what the ESPN screens do.</li>
           <li><b>B · The league's name in the bar,</b> with the pencil: your "C" from the last round, already recorded, moved into the bar. Tap the title to rename it in the bar. A long name has to shorten with "…" in the bar, because the bar is one line between × and Save.</li>
-          <li><b>Recommended: A.</b> It's the ESPN pattern you pointed at: the bar says which screen this is, and the name sits with every other setting, where a long name can wrap instead of being cut short. B only works for short names. Picking A replaces your "C" (the name as the title); picking B keeps it.</li>
-          <li><b>Closing with changes.</b> × (or a swipe down) with unsaved changes asks first: "Discard changes" <NEW /> or "Keep editing" <NEW />. With no changes it closes at once.</li>
+          <li><b>{archived ? 'Recommended (not taken): A.' : 'Recommended: A.'}</b> It's the ESPN pattern you pointed at: the bar says which screen this is, and the name sits with every other setting, where a long name can wrap instead of being cut short. B only works for short names. Picking A replaces your "C" (the name as the title); picking B keeps it.</li>
+          <li><b>Closing.</b> × (or a swipe down) closes the sheet at once. You decided there's no question first: unsaved changes are dropped ("no, hitting back or x just closes it").</li>
           <li><b>Read-only sheets</b> (League settings for a member, a manager's team, Trade history, Forgot password): the same bar with × at the left and no Save.</li>
           <li><b>Your text size.</b> The bar's words stop growing at 1.3× (as iOS's own bars do), so × , the title and Save never collide; the rows under it grow fully and stack label over value.</li>
-          <li><b>New words:</b> "Discard changes", "Keep editing" (still waiting on your OK). "Save" is the app's existing word.</li>
+          <li><b>No new words.</b> "Save" is the app's existing word.</li>
           {archived ? <li>{decidedNote}</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
 
-        <h3 className="b-sub">A · "League settings" in the bar, the name in a row{archived ? '' : ' (recommended)'}</h3>
+        <h3 className="b-sub">A · "League settings" in the bar, the name in a row{archived ? ' (recommended, not taken)' : ' (recommended)'}</h3>
         <Grid>{[
           fig('a0', 'A · at the top, nothing changed (Save grey) · Light · Large', <BarSheet t="light" title="League settings" save="off" label="League settings, option A, at the top, Save grey, Light, Large"><Settings x={1} nameRow /></BarSheet>, 'Save is grey until something changes.'),
           fig('a1', 'A · after a change, scrolled (Save on) · Light · Large', <BarSheet t="light" title="League settings" save="on" offset={120} label="League settings, option A, after a change, scrolled, Save active, Light, Large"><Settings x={1} nameRow name="Serie A Legends" /></BarSheet>, 'Save turns on; rows pass under the divider and fade.'),
@@ -261,16 +250,15 @@
           fig('a4', 'A · renaming (Save on) · Light · Large', <BarSheet t="light" title="League settings" save="on" label="League settings, option A, renaming in the row, Light, Large"><Settings x={1} nameRow name="Serie A Legends" editing /></BarSheet>, 'Typing in the row; Save turns on with the first change.'),
         ]}</Grid>
 
-        <h3 className="b-sub">B · the league's name in the bar</h3>
+        <h3 className="b-sub">B · the league's name in the bar{archived ? ' (decided)' : ''}</h3>
         <Grid>{[
           fig('b0', 'B · at the top, nothing changed (Save grey) · Light · Large', <BarSheet t="light" title="Serie A Traders" pencil save="off" label="League settings, option B, at the top, Light, Large"><Settings x={1} /></BarSheet>, 'The name is the bar title, with the pencil.'),
           fig('b1', 'B · a long name · Light · Large', <BarSheet t="light" title="The Saturday Morning Stock Pickers" pencil save="off" label="League settings, option B, a long name shortened in the bar, Light, Large"><Settings x={1} /></BarSheet>, 'A long name is cut short with "…" between × and Save.'),
           fig('b2', 'B · Light · your size (AX5, approximate)', <BarSheet t="light" x={AX5} title="Serie A Traders" pencil save="off" label="League settings, option B, Light, AX5"><Settings x={AX5} /></BarSheet>, 'At your size even "Serie A Traders" is close to the limit.'),
         ]}</Grid>
 
-        <h3 className="b-sub">Closing with changes, and the read-only member</h3>
+        <h3 className="b-sub">The read-only member</h3>
         <Grid>{[
-          fig('d0', 'A · × with unsaved changes · Light · Large', <BarSheet t="light" title="League settings" save="on" overlay={<DiscardSheet />} label="League settings, the discard question, Light"><Settings x={1} nameRow name="Serie A Legends" /></BarSheet>, '"Keep editing" goes back with the change in place.'),
           fig('m0', 'Member · Light · Large', <BarSheet t="light" title="League settings" label="League settings, member, read-only, Light, Large"><Member x={1} /></BarSheet>, 'No Save: a member can’t change anything.'),
           fig('m1', 'Member · scrolled · Dark · your size (AX5, approximate)', <BarSheet t="dark" x={AX5} title="League settings" offset={160} label="League settings, member, scrolled, Dark, AX5"><Member x={AX5} /></BarSheet>, 'The same bar at your size.'),
         ]}</Grid>
@@ -285,5 +273,12 @@
     );
   }
 
-  window.KSSheetBar = () => <CallSheetBar />;
+  window.KSSheetBar = () => null; // decided 2026-11-12: B, and closing never asks; it lives in the Archive
+  window.KSSheetBarArchived = () => (
+    <CallSheetBar
+      archived
+      decided="B"
+      decidedNote={<><b>Decided by Giorgio (2026-11-12): "B and no, hitting back or x just closes it".</b> The league's name is the bar's title with the pencil (his C, kept); Save sits at the bar's right, grey until a change; no pinned Save at the bottom. Closing (×, back, swipe down) never asks: unsaved changes are dropped, and the discard question this board drew was not approved, so it's taken out. Recorded in PRODUCT_RULES (the top-bar amendment under "A sheet's top must not be a stuck block that cuts text", and "League settings opens on the league's own name").</>}
+    />
+  );
 })();
