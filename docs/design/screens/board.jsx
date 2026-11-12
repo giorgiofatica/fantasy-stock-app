@@ -383,13 +383,14 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-sheet-top', 'For your sign-off: the floating close on tall sheets', () => window.KSSheetTop],
+    ['call-sheet-bar', 'The top bar on League settings', () => window.KSSheetBar],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-sheet-top', title: 'The floating close on tall sheets (never signed off)', decision: 'Superseded: Giorgio sent the ESPN league-manager screens instead ("i like the idea of having the top left being a back or close button and the top right being the save button. it is greyed out until you make a change and then you click save when it populates"). The top bar is the open call #call-sheet-bar.', date: '2026-11-12', rec: 'PRODUCT_RULES records it when the bar is decided', render: () => window.KSSheetTop },
     { id: 'call-settings-top', title: 'The top of League settings', decision: 'C: the league\u2019s own name is the title, beside the floating close; no "League settings" heading or "League name" label at the top. The commissioner (before the draft) gets a pencil and renames in place, saved by the one "Save changes"; a member sees the name with no pencil. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (League settings opens on the league\u2019s own name)', render: () => window.KSSettingsTopArchived },
     { id: 'call-leave-below-four', title: 'The Leave sheet in a league of four', decision: 'B: when your leave takes the league below four, the sheet drops "{commissioner} chooses whether to go ahead with one fewer team or invite someone new." and keeps only the rejoin line; with no draft time, the title and the two buttons. Five or more unchanged. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (The Leave sheet when your leave takes the league below four)', render: () => window.KSLeaveBelowFourArchived },
     { id: 'call-waiting-card', title: 'The draft order card while it waits, at 4 or more managers', decision: 'B: no card until the order exists; the countdown, then your queue. The order card appears when the order is set; below 4 the card keeps "N of 4 managers" (it has no bar). No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (No draft order card while it waits, at 4 or more)', render: () => window.KSWaitingCardArchived },
@@ -543,6 +544,7 @@
           {window.KSRule12Info ? <window.KSRule12Info /> : null}
           {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
           {window.KSBelowFour ? <window.KSBelowFour /> : null}
+          {window.KSSheetBar ? <window.KSSheetBar /> : null}
           {window.KSSettingsTop ? <window.KSSettingsTop /> : null}
           {window.KSSheetTop ? <window.KSSheetTop /> : null}
           {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
