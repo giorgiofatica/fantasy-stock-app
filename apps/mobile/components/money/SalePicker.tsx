@@ -110,8 +110,6 @@ export function SalePicker({ sources, chosenId, onChoose, onUse, onClose }: Sale
           </Pressable>
         </View>
 
-        <Text variant="callout" maxFontSizeMultiplier={PICKER_TEXT_MAX_SCALE} tone="secondary">{COPY.pickerCaption}</Text>
-
         <View style={[styles.card, { backgroundColor: colors.inset }]}>
           {rows.map((r) => (
             <SaleRow key={r.tradeId} row={r} onChoose={onChoose} />

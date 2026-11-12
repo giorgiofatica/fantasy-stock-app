@@ -5,6 +5,7 @@
  * Run: `cd apps/mobile && deno test --no-check --sloppy-imports --allow-read --allow-env --unstable-raw-imports tests-deno/`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
+import { COPY } from '../lib/money/moneyCopy.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
 const picker = SOURCES['components/money/SalePicker.tsx'];
@@ -42,7 +43,7 @@ Deno.test('every Text in the picker carries the sheet cap, the same 1.6 as the s
   assertEquals(cap, Number(/const REVIEW_TEXT_MAX_SCALE = ([\d.]+);/.exec(SOURCES['components/money/TradeReviewPanel.tsx'])?.[1]));
   // The title (headline-scale `title` variant) has its own 1.6 token ceiling; the callouts have none, so they pass it.
   const tags = textTags(picker).filter((t) => t.includes('variant="callout"'));
-  assertEquals(tags.length, 3, 'the caption, the label and the amount');
+  assertEquals(tags.length, 2, 'the label and the amount (the caption is cut)');
   for (const t of tags) assert(t.includes('maxFontSizeMultiplier={PICKER_TEXT_MAX_SCALE}'), `uncapped callout: ${t.slice(0, 80)}`);
 });
 
@@ -57,4 +58,14 @@ Deno.test('an option row stacks (label, then amount under it) once its label wou
   assert(picker.indexOf('{r.label}') < picker.indexOf('keepMoney(formatMoney(r.amount))'));
   assert(/rowBodyStacked: \{[^}]*flexDirection: 'column'[^}]*alignItems: 'flex-start'/.test(picker));
   assert(/rowLeadStacked: \{[^}]*flexGrow: 0[^}]*flexShrink: 0/.test(picker), 'stacked, the label never shrinks below its own width');
+});
+
+Deno.test('the caption under the title is cut (Design Lead ruling, no "i" either): the words appear nowhere in mobile source', () => {
+  assert(!('pickerCaption' in COPY) && !('eachSaleStaysInItsSlot' in COPY), 'both COPY entries are gone');
+  assert(!picker.includes('pickerCaption'), 'the picker does not render it');
+  const hits = Object.entries(SOURCES).filter(([f, text]) => !f.startsWith('tests-deno/') && /stays in its own slot/.test(text)).map(([f]) => f);
+  assertEquals(hits, [], 'no mobile source carries the sentence');
+  // The title is now followed straight by the rows.
+  assert(picker.indexOf('{COPY.whichSalePays}') < picker.indexOf('<View style={[styles.card'));
+  assert(!/tone="secondary"/.test(picker), 'no secondary-tone caption line is left in the picker');
 });
