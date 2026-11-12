@@ -23,6 +23,17 @@ export function managersProgressShown(memberCount: number, minMembers: number): 
   return memberCount < minMembers;
 }
 
+/** Which card the lobby draws for the draft order. The order card once the order is set; below the minimum
+ * managers the waiting card (its bar and "3 of 4 managers" are its whole content); and at the minimum or
+ * more with no order yet, NOTHING: the rule-12 sweep cut the card's only line, so it was a bare tag, and the
+ * countdown card above already says when (Giorgio picked B, call-waiting-card). Two facts decide it, never
+ * one: "no order yet" alone would still draw the bare card for a full league, and "4 or more" alone would
+ * hide the order itself. */
+export function draftOrderCard(s: { waiting: boolean | null; hasOrder: boolean; memberCount: number; minMembers: number }): 'order' | 'waiting' | null {
+  if (!s.waiting && s.hasOrder) return 'order';
+  return managersProgressShown(s.memberCount, s.minMembers) ? 'waiting' : null;
+}
+
 /** Odd manager counts that don't divide the weeks evenly get a 1–2 (or 2–3) split. */
 export function byeSplit(managers: number, weeks: number): { lo: number; hi: number } | null {
   if (managers % 2 === 0) return null;
