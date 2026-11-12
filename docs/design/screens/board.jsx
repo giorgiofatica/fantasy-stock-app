@@ -382,7 +382,9 @@
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [];
+  const OPEN = [
+    ['call-sheet-top', 'For your sign-off: the floating close on tall sheets', () => window.KSSheetTop],
+  ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
@@ -540,6 +542,7 @@
           {window.KSRule12Info ? <window.KSRule12Info /> : null}
           {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
           {window.KSBelowFour ? <window.KSBelowFour /> : null}
+          {window.KSSheetTop ? <window.KSSheetTop /> : null}
           {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
           {window.KSDraftClock ? <window.KSDraftClock /> : null}
           {window.KSTopBar ? <window.KSTopBar /> : null}
