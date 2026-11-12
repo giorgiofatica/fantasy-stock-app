@@ -29,6 +29,11 @@ import { saveLeagueSlots, type SlotDraft } from '../categoryData';
 /** The error a read answers with when EXPO_PUBLIC_CAPTURE_FAIL_ONCE names it (its first call only). */
 const FAIL_ONCE_ERROR = { message: 'fixture: this read fails once (EXPO_PUBLIC_CAPTURE_FAIL_ONCE)', details: '', hint: '', code: 'FIXTURE', name: 'PostgrestError' };
 
+/** The queue the seam's set_draft_queue last "stored", read back by the next draft_queue read (seam only). Without it
+ * the fixture read answered the same three stocks after every save, so a queue that saves as you go snapped back to
+ * them on the re-read that follows each save (lib/game/queueAutosave.ts). */
+let seamStoredQueue: string[] | null = null;
+
 export async function seamRpc(name: string, args: Record<string, unknown>) {
   if (SEAM_ON) {
     if (captureFailsOnce(name)) return { data: null, error: FAIL_ONCE_ERROR, count: null, status: 500, statusText: 'fixture' };
@@ -40,6 +45,7 @@ export async function seamRpc(name: string, args: Record<string, unknown>) {
     if (f && name === 'renew_league') markFixtureRenewed();
     // An answer moves the fixture roster's caller, as the real roster would.
     if (f && name === 'respond_to_renewal') markFixtureAnswer(args.p_response);
+    if (f && name === 'set_draft_queue') seamStoredQueue = Array.isArray(args.p_symbols) ? (args.p_symbols as string[]).slice() : [];
     if (f) return seatify(f, DELETED_SEAT);
   }
   return supabase.rpc(name, args);
@@ -74,6 +80,10 @@ export async function seamTable<T>(
 ): Promise<{ data: T[] | null; error: unknown; count?: number | null }> {
   // Week 6 closes in the Home fixtures that score it (EXPO_PUBLIC_HOME_FIXTURE=scored, …).
   if (SEAM_ON && captureFailsOnce(name)) return { data: null, error: FAIL_ONCE_ERROR, count: null };
+  if (SEAM_ON && name === 'draft_queue' && seamStoredQueue) {
+    const stored = seamStoredQueue.map((symbol, i) => ({ symbol, position: i + 1 }));
+    return { data: stored as T[], error: null, count: stored.length };
+  }
   const rows = seamTableRows(SEAM_ON, name, roomVariant, {
     weekClosed: seamWeekClosed(process.env.EXPO_PUBLIC_HOME_FIXTURE),
     bye: process.env.EXPO_PUBLIC_HOME_FIXTURE === 'bye',

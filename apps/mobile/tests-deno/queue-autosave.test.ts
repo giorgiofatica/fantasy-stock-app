@@ -518,3 +518,9 @@ Deno.test('the lobby keys the editor on the league alone (a save landing never r
   assert(league.includes('<QueueEditor key={queue.editorKey} leagueId={leagueId} initial={queue.queue} onSaved={queue.saved} />'));
   assert(SOURCES['lib/game/draftQueueRead.ts'].includes('return state.leagueId ?? \'\';'));
 });
+
+Deno.test('the dev seam reads back the queue its set_draft_queue stored (seam only), so a capture never snaps back', () => {
+  const seam = code(SOURCES['lib/game/seamCalls.ts']);
+  assert(seam.includes("if (f && name === 'set_draft_queue') seamStoredQueue = "));
+  assert(seam.includes("if (SEAM_ON && name === 'draft_queue' && seamStoredQueue) {"));
+});
