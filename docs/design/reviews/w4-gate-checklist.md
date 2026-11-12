@@ -79,6 +79,9 @@ through recording. Anything that can't act in the current state is **hidden**, o
 with the reason beside it**. A silent no-op is a P1. One exception (Giorgio, 2026-11-11,
 "option B"): a stepper at its end greys out its − or + with **no** reason beside it; a reason
 line there is the finding, not its absence (PRODUCT_RULES, "Steppers at their ends: no line").
+A second (Giorgio, 2026-11-12, the top bar): a sheet's Save in the top bar is grey with
+nothing beside it until something changes; and closing a sheet (×, back, swipe down) never
+asks, even with unsaved changes, so a discard question there is the finding.
 
 ## 5. The §9C mechanical checks (measure, never eyeball)
 
