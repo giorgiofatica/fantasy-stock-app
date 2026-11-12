@@ -9,17 +9,27 @@ export const SHEET_BAR_MAX_SCALE = 1.3;
 /** The bar's height, under the sheet's top edge ("~56 pt"). */
 export const SHEET_BAR_HEIGHT = 56;
 
-/** The × and Save sit in side slots of this width, so the title stays centred whether or not the sheet can save. */
-export const SHEET_BAR_SIDE = 80;
+/** The × and Save sit in side slots of this width, so the title stays centred whether or not the sheet can save. It holds Save at the bar's 1.3x cap
+ * (the word is ~53 pt wide there, measured at AX5) between the gutter and the slot's inner edge: at 80 pt it did not fit and the word jumped out of line. */
+export const SHEET_BAR_SIDE = 92;
+export const SHEET_BAR_SAVE_WORD_AT_CAP = 54;
 
 /** The bar's side gutter: the × glyph and Save's last letter both sit this far from the sheet's edge (DL gate: Save was 8.7 pt from the edge, the × 19.7 pt). */
 export const SHEET_BAR_GUTTER = 20;
 
-/** The × is a 24 pt glyph (the `tab` icon role) centred in its 44 pt target. */
+/** The × is a 24 pt glyph (the `tab` icon role) centred in its 44 pt target. Its ink sits 5.7 pt inside that glyph box and "Save"'s last letter has
+ * 0.7 pt of side bearing (both measured on the iPhone 17 stills), so the pads below are the gutter LESS those insets: the INK lands on the gutter. */
 export const SHEET_BAR_CLOSE_GLYPH = 24;
+export const SHEET_BAR_CLOSE_INK_INSET = 5.7;
+export const SHEET_BAR_SAVE_INK_BEARING = 0.7;
+
 
 /** The ×'s hit area (rule 3, 44 pt). */
 export const SHEET_BAR_TARGET = 44;
+
+/** The side slots' padding that puts the × ink and Save's last letter exactly SHEET_BAR_GUTTER from the sheet's edges. */
+export const SHEET_BAR_CLOSE_PAD = SHEET_BAR_GUTTER - (SHEET_BAR_TARGET - SHEET_BAR_CLOSE_GLYPH) / 2 - SHEET_BAR_CLOSE_INK_INSET;
+export const SHEET_BAR_SAVE_PAD = SHEET_BAR_GUTTER - SHEET_BAR_SAVE_INK_BEARING;
 
 /** The divider under a scrolled bar. */
 export const SHEET_EDGE_DIVIDER = 1;

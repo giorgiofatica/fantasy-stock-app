@@ -10,8 +10,8 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
 import {
-  SHEET_BAR_CLOSE_GLYPH,
-  SHEET_BAR_GUTTER,
+  SHEET_BAR_CLOSE_PAD,
+  SHEET_BAR_SAVE_PAD,
   SHEET_BAR_HEIGHT,
   SHEET_BAR_MAX_SCALE,
   SHEET_BAR_SIDE,
@@ -189,6 +189,7 @@ function SaveButton({ save }: { save: SheetSave }) {
       {/* The word stays laid out while saving (hidden), so progress takes its place and the bar never shifts. */}
       <Text
         variant="headline"
+        numberOfLines={1}
         maxFontSizeMultiplier={SHEET_BAR_MAX_SCALE}
         color={inert ? colors.text3 : colors.accent}
         style={[styles.saveWord, saving ? styles.hidden : null]}
@@ -212,14 +213,14 @@ const styles = StyleSheet.create({
   },
   sideLeft: {
     width: SHEET_BAR_SIDE,
-    // The × glyph sits SHEET_BAR_GUTTER from the edge: the gutter less the glyph's inset inside its 44 pt target.
-    paddingLeft: SHEET_BAR_GUTTER - (SHEET_BAR_TARGET - SHEET_BAR_CLOSE_GLYPH) / 2,
+    // The × ink sits SHEET_BAR_GUTTER from the edge: the gutter less the glyph's insets inside its 44 pt target (sheetBarLogic.ts).
+    paddingLeft: SHEET_BAR_CLOSE_PAD,
     alignItems: 'flex-start',
   },
   sideRight: {
     width: SHEET_BAR_SIDE,
     // Save's last letter sits the same gutter from the right edge; its 44 pt target pads inward (see `save`).
-    paddingRight: SHEET_BAR_GUTTER,
+    paddingRight: SHEET_BAR_SAVE_PAD,
     alignItems: 'flex-end',
   },
   center: {

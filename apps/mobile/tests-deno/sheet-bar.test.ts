@@ -13,7 +13,12 @@ import layout from '../app/_layout.tsx' with { type: 'text' };
 import { isPageSheet } from '../lib/shell/screenTopInset.ts';
 import {
   SHEET_BAR_CLOSE_GLYPH,
+  SHEET_BAR_CLOSE_INK_INSET,
+  SHEET_BAR_CLOSE_PAD,
   SHEET_BAR_GUTTER,
+  SHEET_BAR_SAVE_INK_BEARING,
+  SHEET_BAR_SAVE_WORD_AT_CAP,
+  SHEET_BAR_SAVE_PAD,
   SHEET_BAR_HEIGHT,
   SHEET_BAR_MAX_SCALE,
   SHEET_BAR_SIDE,
@@ -236,14 +241,21 @@ Deno.test('the scroll edge: a 1pt border-token divider, and a fade in the bar\'s
 Deno.test('Save and the × sit the same 20 pt gutter from the sheet\'s edges, and Save keeps its 44 pt target by padding inward', () => {
   assertEquals(SHEET_BAR_GUTTER, 20);
   assertEquals(SHEET_BAR_CLOSE_GLYPH, 24);
-  // The × glyph: the gutter less its inset inside the 44 pt target = 10 pt of padding; Save: the full gutter on the right.
-  assert(/paddingLeft: SHEET_BAR_GUTTER - \(SHEET_BAR_TARGET - SHEET_BAR_CLOSE_GLYPH\) \/ 2/.test(bar));
-  assert(/paddingRight: SHEET_BAR_GUTTER/.test(bar));
+  // The pads are the gutter LESS the measured insets, so the INK of the × and of Save's last letter lands on the gutter (measured on the iPhone 17 stills:
+  // the × ink sits 5.7 pt inside its 24 pt glyph box, Save's "e" has 0.7 pt of side bearing).
+  assertEquals(SHEET_BAR_CLOSE_INK_INSET, 5.7);
+  assertEquals(SHEET_BAR_SAVE_INK_BEARING, 0.7);
+  assertEquals(SHEET_BAR_CLOSE_PAD + (SHEET_BAR_TARGET - SHEET_BAR_CLOSE_GLYPH) / 2 + SHEET_BAR_CLOSE_INK_INSET, SHEET_BAR_GUTTER, 'the × ink lands on the gutter');
+  assertEquals(SHEET_BAR_SAVE_PAD + SHEET_BAR_SAVE_INK_BEARING, SHEET_BAR_GUTTER, 'Save\'s last letter lands on the gutter');
+  assert(/paddingLeft: SHEET_BAR_CLOSE_PAD/.test(bar) && /paddingRight: SHEET_BAR_SAVE_PAD/.test(bar));
   // Save is right-aligned in a 44 pt-minimum target that pads on its left (inward), so its last letter lands on the gutter.
   const save = bar.slice(bar.indexOf('  save: {'), bar.indexOf('  saveWord: {'));
   assert(/minWidth: SHEET_BAR_TARGET/.test(save) && /minHeight: SHEET_BAR_TARGET/.test(save));
   assert(/alignItems: 'flex-end'/.test(save) && /paddingLeft:/.test(save) && !/paddingRight/.test(save));
   assert(SHEET_BAR_SIDE >= SHEET_BAR_GUTTER + SHEET_BAR_TARGET, 'a side slot holds the gutter and the target');
+  // Save at the 1.3x cap (AX5) fits between the gutter and the slot's inner edge with room for its inward padding: at 80 pt it did not, and the word jumped out of line.
+  assert(SHEET_BAR_SIDE >= SHEET_BAR_SAVE_PAD + SHEET_BAR_SAVE_WORD_AT_CAP + 12, 'the slot holds the Save word at the cap, plus the gutter and 12 pt of inward padding');
+  assert(tags(bar, 'Text').filter((t) => /color=\{inert/.test(t)).every((t) => /numberOfLines=\{1\}/.test(t)), 'Save stays on one line');
 });
 
 Deno.test('the rename pencil is drawn at the title\'s size (17 pt at Large, never past the title\'s 1.3x), and the whole title is the tap target', () => {
