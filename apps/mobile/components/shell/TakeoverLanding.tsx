@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { space, type } from '@/constants/tokens';
+import { space } from '@/constants/tokens';
 import { Avatar } from '@/components/sp/Avatar';
 import { Button } from '@/components/sp/Button';
 import { Card } from '@/components/sp/Card';
@@ -9,6 +9,8 @@ import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { WARN_TEXT_MAX_SCALE, WarnPanel } from '@/components/sp/WarnPanel';
 import { AuthScaffold } from '@/components/shell/AuthScaffold';
+import { Link } from '@/components/shell/Link';
+import { RefusalScreen } from '@/components/shell/RefusalScreen';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { FIND_LEAGUE, GO_TO_HOME, TAKEOVER_TAP_TITLE, NOT_NOW, OPEN_THE_LEAGUE, TAKE_THE_TEAM, TRY_LATER, takeoverQuestion } from '@/lib/account/deleteCopy';
 import type { RateWait } from '@/lib/account/takeoverReply';
@@ -68,7 +70,13 @@ export function TakeoverLanding({
 }) {
   const { colors } = useTheme();
 
-  if (state.kind === 'taken' || state.kind === 'dead') {
+  // "Already taken" is built like the takeover question (PRODUCT_RULES 2026-11-12, pick A): the person icon, the sentence as the
+  // heading, "Go to Home" docked. The dead link below is not ruled yet and keeps the panel and the link.
+  if (state.kind === 'taken') {
+    return <RefusalScreen icon="person" heading={deadLine(state)} primary={{ label: GO_TO_HOME, onPress: onHome }} />;
+  }
+
+  if (state.kind === 'dead') {
     return (
       <AuthScaffold centerBody>
         <View style={styles.actions}>
@@ -161,17 +169,6 @@ export function TakeoverLanding({
   );
 }
 
-function Link({ label, onPress, muted = false, disabled = false }: { label: string; onPress: () => void; muted?: boolean; disabled?: boolean }) {
-  const { colors } = useTheme();
-  return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="link" style={styles.link}>
-      <Text variant="body" maxFontSizeMultiplier={LINK_MAX_SCALE} color={muted ? colors.text2 : colors.accent} style={styles.bold}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   block: {
     alignItems: 'center',
@@ -190,13 +187,5 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: space[3],
-  },
-  link: {
-    alignSelf: 'center',
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  bold: {
-    fontFamily: type.headline.fontFamily,
   },
 });

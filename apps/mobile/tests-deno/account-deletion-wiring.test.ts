@@ -212,7 +212,7 @@ Deno.test('takeover landing: rate_limited shows the wait line (never the dead-li
   assert(landing.includes('TRY_LATER'));
   assert(landing.includes("w === 'moment' ? JOIN_COPY.rateLimited : TRY_LATER"), 'only the edge limiter\'s exact shape is a moment');
   assert(src('lib/account/accountApi.ts').includes('readTakeoverReply(data, error)'), 'takeover replies are read by body');
-  const dead = landing.slice(landing.indexOf("state.kind === 'taken' || state.kind === 'dead'"), landing.indexOf("state.kind === 'loading'"));
+  const dead = landing.slice(landing.indexOf("state.kind === 'taken'"), landing.indexOf("state.kind === 'loading'"));
   assertFalse(dead.includes('rate_limited'));
   const screen = src('app/takeover.tsx');
   assert(screen.includes('if (r.leagueId) setActiveLeagueId(r.leagueId);'));
