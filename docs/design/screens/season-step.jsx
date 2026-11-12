@@ -267,7 +267,7 @@
       <section className="b-sec" id="call-limit-lines" aria-labelledby="call-limit-lines-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Create</span>
-          <div><h2 id="call-limit-lines-h">Your call: the two limit lines on the Season step, keep them or drop them too</h2></div>
+          <div><h2 id="call-limit-lines-h">{archived ? 'Decided: B, drop the two limit lines too' : 'Your call: the two limit lines on the Season step, keep them or drop them too'}</h2></div>
         </header>
         <ul className="b-inv__notes">
           <li><b>Why you're being asked:</b> you ruled no line under Managers at 4 or 16 ("no one wants to run something as a bunch of tiny little subheaders"). Two lines like it are approved and built: under Playoff teams at its top, and under Regular season at its floor. Same pattern, so the same question.</li>
@@ -276,18 +276,19 @@
           <li><b>B · drop them.</b> The stepper just greys out, as Managers now does. Nothing beside it, and nothing added to the Playoff teams i: its approved line already says the top teams play a bracket, and the greyed + shows where it stops.</li>
           <li><b>Recommended: B.</b> It's what your ruling on Managers says ("if there needs to be an extra explanation … a little information thing … the user would have to click"), and it makes all three steppers behave the same. What you lose: why 5 weeks is the floor (every team plays every other once) and why 6 managers caps Playoff teams. Both are reachable: step Managers up and the caps move with it.</li>
           <li><b>The rule B overrides:</b> "Nothing tappable does nothing" says a control that can't act is "disabled with the reason beside it". B makes the steppers' ends greyed with no reason beside them; it's still never a silent no-op, because the greyed button shows it can't go further.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-11): "option B".</b> Both lines go; a stepper at its end just greys out, with nothing added to the Playoff teams i. It overrides the "disabled with the reason beside it" clause of "Nothing tappable does nothing" for steppers at their ends. Recorded in PRODUCT_RULES (The Season step, "Steppers at their ends: no line").</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <Grid>{[
           fig('ll-a-pt', 'A · Playoff teams at 6 of 6 · Large · Light', <Frame t="light" v="B" mgr={lim(PT_END, true)} />, 'The reason under the stepper while + is greyed.'),
           fig('ll-a-wk', 'A · Regular season at 5 weeks · Large · Light', <Frame t="light" v="B" mgr={lim(WK_END, true)} />, 'The reason under the stepper while − is greyed.'),
-          fig('ll-b-pt', 'B · Playoff teams at 6 of 6 · Large · Light', <Frame t="light" v="B" mgr={lim(PT_END, false)} />, '+ greyed, nothing beside it.'),
+          fig('ll-b-pt', archived ? 'B · Playoff teams at 6 of 6 · Large · Light (decided)' : 'B · Playoff teams at 6 of 6 · Large · Light', <Frame t="light" v="B" mgr={lim(PT_END, false)} />, '+ greyed, nothing beside it.'),
           fig('ll-b-wk', 'B · Regular season at 5 weeks · Large · Light', <Frame t="light" v="B" mgr={lim(WK_END, false)} />, '− greyed, nothing beside it.'),
         ]}</Grid>
       </section>
     );
   }
-  window.KSLimitLines = () => <CallLimitLines />;
+  window.KSLimitLines = () => null; // decided 2026-11-11: B; it lives in the Archive
+  window.KSLimitLinesArchived = () => <CallLimitLines archived />;
 
   // Decided 2026-11-10 (B); the call lives in the Archive (board.jsx).
   window.KSSeasonStep = () => null;
