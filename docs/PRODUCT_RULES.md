@@ -129,6 +129,35 @@ building anything, and don't reopen a rule without him.
   it passes, so nothing is sliced. The Design Lead draws it for his sign-off (every tall
   sheet, both themes, the largest text size, and what a form that can save shows in place of
   "Cancel").
+- **League settings opens on the league's own name** (2026-11-12, Giorgio picked **C** on
+  board `#call-settings-top`, relayed by the Orchestrator; his word: "C". He had said of the
+  floating-close board's first screenful: "i dont love the top of it with League Settings
+  and then League name right underneath. seems clunky and not well done." Shown A a smaller
+  title, B the name as a card row (the Design Lead's recommendation) and C; he chose C.) On
+  the floating-close layout, League settings has no "League settings" heading and no "League
+  name" label at the top: the title is the league's name ("Serie A Traders"), in the title's
+  place beside the close button, followed directly by the Draft section. What the drawing
+  left open, settled by the Design Lead so the build doesn't guess:
+  - **Who can rename.** The commissioner, while the settings are editable (before the
+    draft), sees a pencil after the name's last word. A member, and the commissioner once
+    the settings lock, see the name with no pencil, and it does nothing when tapped.
+  - **How the rename works: in place, not a second sheet.** Tapping the name or the pencil
+    turns the title into a text field of the same size, with the cursor at the end and the
+    keyboard up; the keyboard's return key ends editing. While editing, the pencil is hidden
+    and an accent underline marks the field. The new name is an unsaved change like any
+    other on the sheet: the one pinned "Save changes" saves it with everything else, and the
+    close button or a swipe down with it changed asks the discard question first. A name
+    problem (blank, or refused by moderation) shows where it shows today, right under the
+    title, in today's words, when Save is tapped.
+  - **VoiceOver.** For the commissioner the title is one button: label "League name", value
+    the name ("League name, Serie A Traders, button"); the pencil is decorative and not read.
+    While editing, the field is labelled "League name". For a member the name is a header.
+    "League name" is today's field label, so there are no new words.
+  - **Long names and large text.** The title wraps at word boundaries beside the close
+    button, never under it (it keeps the close button's lane clear on every line), and is
+    never cut off. The pencil stays attached to the last word, so it is never alone on a
+    line. The title's text-size cap is today's screen-title cap.
+  - **No new words.** C only removes "League settings" and "League name" from the top.
 - **Nothing tappable does nothing** (2026-10-12): "make sure that there's no clickable
   actions or links or anything that's clickable in the app that then doesn't do anything.
   Like if there's any buttons or links or anything that should bring a pop-up or a redirect

@@ -126,7 +126,17 @@
   );
   /** A smaller title on the close button's line (A, B): the title's first line and the 30 pt circle share a centre. */
   const SmallTitle = ({ x, children }) => <span style={{ ...fs(22, x, 1.6, 1.2), fontWeight: 800, color: 'var(--c-text)', paddingRight: TARGET + 12, paddingTop: 2 }}>{children}</span>;
-  /** The first screenful of League settings. top: undefined (as #433 drew it), 'A', 'B', 'C'. */
+  /** C, decided (Giorgio, 2026-11-12): the league's own name is the title. The pencil (commissioner, editable)
+   * stays with the last word, so it is never alone on a line; the title keeps the close button's lane clear. */
+  function NameTitle({ x, pencil }) {
+    const t = { ...fs(30, x, 1.5, 1.15), fontWeight: 800, color: 'var(--c-text)' };
+    return (
+      <span style={{ ...t, paddingRight: TARGET + 12 }}>
+        Serie A <span style={{ whiteSpace: 'nowrap' }}>Traders{pencil ? <>{'\u00a0'}<span style={{ display: 'inline-block', verticalAlign: 'baseline', marginLeft: 4 }}><Pencil x={x} /></span></> : null}</span>
+      </span>
+    );
+  }
+  /** The first screenful of League settings. top: 'today' (as build 14 / #433 drew it), 'A', 'B', or C (the default, decided). */
   function SettingsTop({ x, top }) {
     if (top === 'A') {
       return (
@@ -150,14 +160,7 @@
         </>
       );
     }
-    if (top === 'C') {
-      return (
-        <span style={{ display: 'flex', alignItems: 'baseline', gap: 10, paddingRight: TARGET + 12, flexWrap: 'wrap' }}>
-          <span style={{ ...fs(30, x, 1.5, 1.15), fontWeight: 800, color: 'var(--c-text)' }}>Serie A Traders</span>
-          <Pencil x={x} />
-        </span>
-      );
-    }
+    if (top !== 'today') return <NameTitle x={x} pencil />;
     return (
       <>
         <Title x={x}>League settings</Title>
@@ -205,7 +208,7 @@
   function MemberBody({ x }) {
     return (
       <>
-        <Title x={x}>League settings</Title>
+        <NameTitle x={x} />
         <Card>
           <Row x={x} k="Invite code" v="SCUD26" stack />
           <Div />
@@ -328,7 +331,7 @@
           <li><b>The close button.</b> A {CLOSE} pt circle in the sheet's inset colour with an × in the secondary text colour, {EDGE} pt from the top edge and {SIDE} pt from the right (the same {SIDE} pt the content keeps from the edge). Its tap target is {TARGET} pt. It doesn't grow with text size, like iOS's own close buttons. It stays put while everything else scrolls.</li>
           <li><b>What sits behind it.</b> The button is solid, so text passing under it never shows through. Behind it, a fade in the sheet's own colour runs the full width: solid for the first 12 pt, clear by {FADE} pt. It appears only once you've scrolled, so at the top nothing covers the title. It's the same soft edge the sheets already have above a pinned button at the bottom.</li>
           <li><b>No empty band above it.</b> The title's first line sits beside the button, {EDGE} pt below the sheet's edge. The ~70 pt gap above "Cancel" today is a bug that's already being fixed separately.</li>
-          <li><b>The title scrolls away with the content.</b> At the top of every sheet it's the first thing you see ("League settings", "Paolo M.", "Trade history", "Forgot password?"), with room left for the button on its line. At your size it wraps beside the button instead of under it.</li>
+          <li><b>The title scrolls away with the content.</b> At the top of every sheet it's the first thing you see ("Serie A Traders" on League settings, your pick C; "Paolo M."; "Trade history"; "Forgot password?"), with room left for the button on its line. At your size it wraps beside the button instead of under it.</li>
           <li><b>A form that can save: League settings for the commissioner, before the draft.</b> The × replaces "Cancel". "Save changes" stays where it is today, pinned at the bottom. If you've changed something and tap ×, or swipe the sheet down, it doesn't close: iOS's own two-button sheet asks first, "Discard changes" <NEW /> or "Keep editing" <NEW />. With no changes, × closes at once. Today "Cancel" and swipe-down both throw your edits away without asking.</li>
           <li><b>Read-only sheets</b> (League settings for a member, a manager's team, Trade history, Forgot password): × and swipe-down close straight away. Forgot password has nothing saved to lose, so it never asks. VoiceOver still hears "Back to sign in" there, the words its button has today.</li>
           <li><b>VoiceOver.</b> It reads the title first, then the close button, then the content top to bottom, then the pinned button. The two-finger scrub to go back does exactly what × does, including the discard question.</li>
@@ -339,13 +342,13 @@
 
         <h3 className="b-sub">League settings, commissioner (can save): today, then the new top</h3>
         <Grid>{[
-          fig('today', 'Today · scrolled · Light · Large', <PageSheet t="light" today offset={150} footer={save} label="League settings as build 14 ships it, scrolled: an empty band, a pinned Cancel row, the rows cut on a hard line"><CommishBody x={1} /></PageSheet>, 'The empty band, then "Cancel" stuck on a block that cuts "Draft" in half.'),
+          fig('today', 'Today · scrolled · Light · Large', <PageSheet t="light" today offset={150} footer={save} label="League settings as build 14 ships it, scrolled: an empty band, a pinned Cancel row, the rows cut on a hard line"><CommishBody x={1} top="today" /></PageSheet>, 'The empty band, then "Cancel" stuck on a block that cuts "Draft" in half.'),
           fig('lr', 'New · at the top · Light · Large', <PageSheet t="light" footer={save} label="League settings, new top, at the top, Light, Large"><CommishBody x={1} /></PageSheet>, 'The title beside the close button; nothing above them.'),
           fig('ls', 'New · scrolled · Light · Large', <PageSheet t="light" offset={260} footer={save} label="League settings, new top, scrolled, Light, Large"><CommishBody x={1} /></PageSheet>, 'The rows pass under the button and fade out; no line cuts them.'),
         ]}</Grid>
         <Grid>{[
           fig('ds', 'New · scrolled · Dark · Large', <PageSheet t="dark" offset={260} footer={save} label="League settings, new top, scrolled, Dark, Large"><CommishBody x={1} /></PageSheet>, 'Same in Dark: the fade is the dark sheet colour.'),
-          fig('ar', 'New · at the top · Light · your size (AX5, approximate)', <PageSheet t="light" footer={save} label="League settings, new top, at the top, Light, AX5"><CommishBody x={AX5} /></PageSheet>, '"League settings" wraps beside the button, never under it. The button stays the same size.'),
+          fig('ar', 'New · at the top · Light · your size (AX5, approximate)', <PageSheet t="light" footer={save} label="League settings, new top, at the top, Light, AX5"><CommishBody x={AX5} /></PageSheet>, '"Serie A Traders" wraps beside the button, never under it, the pencil with "Traders". The button stays the same size.'),
           fig('as', 'New · scrolled · Dark · your size (AX5, approximate)', <PageSheet t="dark" offset={400} footer={save} label="League settings, new top, scrolled, Dark, AX5"><CommishBody x={AX5} /></PageSheet>, 'Big rows pass under it the same way.'),
         ]}</Grid>
 
@@ -380,13 +383,13 @@
 
   /** Giorgio, 2026-11-12, on #433's frame 01: "i dont love the top of it with League Settings and then League name right
    * underneath. seems clunky and not well done." The floating close stays; only the first screenful changes. */
-  function CallSettingsTop() {
+  function CallSettingsTop({ archived = false }) {
     return (
       <section className="b-sec" id="call-settings-top" aria-labelledby="call-settings-top-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Sheets</span>
           <div>
-            <h2 id="call-settings-top-h">Your call: the top of League settings</h2>
+            <h2 id="call-settings-top-h">{archived ? 'Decided: C, the top of League settings' : 'Your call: the top of League settings'}</h2>
             <p className="b-job">You said the big "League settings" with "League name" right under it looks clunky. Three ways to open the sheet, all on the floating close you picked, all Light at Large, at the top before scrolling. Below them, the recommended one at your text size. Everything under the first card is the same in all three.</p>
           </div>
         </header>
@@ -394,14 +397,14 @@
           <li><b>A · A smaller title.</b> "League settings" drops to the size of a card heading, on the same line as the ×. The name field stays as it is: a label, then a box.</li>
           <li><b>B · A smaller title, and the name in a card like every other setting.</b> "League name" on the left and "Serie A Traders" on the right, in one row. Tap the row and you type in place. It looks like the Draft and League info cards below it, so nothing at the top is stacked twice. The sheet's other typed setting, Stake per slot, becomes the same kind of row, so the whole sheet is cards.</li>
           <li><b>C · The league's name is the title.</b> No "League settings" heading: the sheet opens on "Serie A Traders" with a pencil, and you tap the name to rename it. It reads the most personal, but a renameable title is the one thing on the sheet that works differently from everything else, and a member, who can't rename, would see the same name with no pencil.</li>
-          <li><b>Recommended: B.</b> The clunk is two labels stacked at the top (a title, then a field label, then a box). B keeps one small title and puts the name where every other setting lives. At your size the row stacks: "League name" above "Serie A Traders", like the other rows.</li>
+          <li><b>{archived ? 'Recommended (not taken): B.' : 'Recommended: B.'}</b> The clunk is two labels stacked at the top (a title, then a field label, then a box). B keeps one small title and puts the name where every other setting lives. At your size the row stacks: "League name" above "Serie A Traders", like the other rows.</li>
           <li><b>No new words in any of them.</b> C removes "League settings" and "League name" from the top; A and B keep both.</li>
-          <li><b>Answer with:</b> A, B or C. "Discard changes" and "Keep editing" from the last board still need your OK too.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-12): "C".</b> The league's own name is the title, with a pencil for the commissioner; tap it to rename in place, and the sheet's one "Save changes" saves it. A member sees the name with no pencil. VoiceOver reads the commissioner's title as "League name, Serie A Traders, button". A long name wraps beside the close button, never under it, and the pencil stays with the last word. Recorded in PRODUCT_RULES ("League settings opens on the league's own name").</li> : <li><b>Answer with:</b> A, B or C. "Discard changes" and "Keep editing" from the last board still need your OK too.</li>}
         </ul>
         <div className="b-concepts b-concepts--three">{[
           fig('sa', 'A · smaller title · Light · Large', <PageSheet t="light" footer={save} label="League settings, option A, a smaller title, Light, Large"><CommishBody x={1} top="A" /></PageSheet>, 'The title shares the × line; the field is unchanged.'),
-          fig('sb', 'B · smaller title, name in a card (recommended) · Light · Large', <PageSheet t="light" footer={save} label="League settings, option B, a smaller title and the name in a card, Light, Large"><CommishBody x={1} top="B" /></PageSheet>, 'The name row matches the cards under it.'),
-          fig('sc', 'C · the league\u2019s name as the title · Light · Large', <PageSheet t="light" footer={save} label="League settings, option C, the league's name as an editable title, Light, Large"><CommishBody x={1} top="C" /></PageSheet>, 'Tap the name to rename it.'),
+          fig('sb', archived ? 'B · smaller title, name in a card (not taken) · Light · Large' : 'B · smaller title, name in a card (recommended) · Light · Large', <PageSheet t="light" footer={save} label="League settings, option B, a smaller title and the name in a card, Light, Large"><CommishBody x={1} top="B" /></PageSheet>, 'The name row matches the cards under it.'),
+          fig('sc', archived ? 'C · the league\u2019s name as the title (decided) · Light · Large' : 'C · the league\u2019s name as the title · Light · Large', <PageSheet t="light" footer={save} label="League settings, option C, the league's name as an editable title, Light, Large"><CommishBody x={1} top="C" /></PageSheet>, 'Tap the name to rename it.'),
         ]}</div>
         <h3 className="b-sub">B at your text size</h3>
         <div className="b-concepts b-concepts--three">{[
@@ -412,5 +415,6 @@
   }
 
   window.KSSheetTop = () => <SheetTop />;
-  window.KSSettingsTop = () => <CallSettingsTop />;
+  window.KSSettingsTop = () => null; // decided 2026-11-12: C; it lives in the Archive
+  window.KSSettingsTopArchived = () => <CallSettingsTop archived />;
 })();
