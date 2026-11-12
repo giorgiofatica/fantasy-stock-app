@@ -162,6 +162,29 @@ Deno.test("3: a failed save: \"Your queue couldn't be saved.\", the list exactly
   assertEquals(m.snapshot(), { list: ['MSFT', 'TSLA'], status: 'idle', failure: null });
 });
 
+Deno.test('3/4: Try again twice while the retry is in flight sends ONE call; the newest list still wins', async () => {
+  const { clock, server, m } = setup(['AAPL']);
+  m.edit(['AAPL', 'NVDA']);
+  clock.advance(QUEUE_SAVE_DELAY_MS);
+  server.fail(0);
+  await settle();
+  assertEquals(m.snapshot().failure, FAILED, 'the line and Try again stay up through a retry');
+  m.retry();
+  assertEquals(server.open.length, 1);
+  m.edit(['AAPL', 'NVDA', 'AMD']); // a newer edit while the retry flies
+  m.retry(); // the second tap
+  clock.advance(QUEUE_SAVE_DELAY_MS); // and the newer edit's own timer
+  assertEquals(server.open.length, 1, 'never two calls in flight');
+  // Answer newest-first: whatever is open last is processed first.
+  for (let round = 0; round < 5 && server.open.length; round++) {
+    const open = server.calls.map((c, i) => [c, i] as const).filter(([c]) => !c.done).reverse();
+    for (const [, i] of open) server.ok(i);
+    await settle();
+  }
+  assertEquals(server.stored, ['AAPL', 'NVDA', 'AMD']);
+  assertEquals(m.snapshot(), { list: ['AAPL', 'NVDA', 'AMD'], status: 'idle', failure: null });
+});
+
 Deno.test('3: an edit after a failure keeps the line up and saves again on its own', async () => {
   const { clock, server, m } = setup(['AAPL']);
   m.edit(addSymbol(m.snapshot().list, 'NVDA'));
@@ -495,6 +518,8 @@ Deno.test('1/3: the editor runs on the machine, fails in place (WarnPanel + Try 
   assert(EDITOR.includes('attachQueueAutosave('));
   assert(EDITOR.includes('<WarnPanel text={view.failure} />'));
   assert(EDITOR.includes('<Button label="Try again"'));
+  // While a save is in flight Try again is disabled AND loading (buttonStatusA11y: a loading button is not pressable).
+  assert(EDITOR.includes("disabled={view.status === 'saving'} status={view.status === 'saving' ? 'loading' : 'idle'}"));
   assertEquals(EDITOR.includes('Alert'), false);
   assert(EDITOR.includes('machine.edit('));
   assertEquals(/setQueue\(/.test(EDITOR), false, 'no list of its own beside the machine');
