@@ -12319,13 +12319,13 @@ window.KS_REFS = {
         ['grey', `Prices at Wednesday's close.`],
         ['stocks', [['AAPL', 'Apple', '$198.60'], ['NFLX', 'Netflix', '$702.10'], ['CRM', 'Salesforce', '$312.40'], ['ADBE', 'Adobe', '$512.90']]],
         ['field', 'Add a stock'],
-        C('btnline', 'Save queue'), C('grey', 'Not saved yet.'),
+        ['btnline', 'Save queue'], ['grey', 'Not saved yet.'],
       ] }] },
       lines: [
         ['"Your queue · 4 of 50"', 'KEEP', 'The count, on the heading\'s line.'],
         [`"If you step away, we'll auto-pick…"`, 'CUT', 'Said once in the draft room\'s first-time tip (on main), and by the empty queue\'s one line (NEW, on the draft room board): "Out of time? We pick from the top of this list."'],
         [`"Prices at Wednesday's close."`, 'KEEP', 'A fact needed now and nowhere else on the card: the prices in the rows are not live. Shown only while the market is closed; now the only line.'],
-        ['"Save queue" + "Not saved yet."', 'CUT', 'The queue saves as you change it, as in the room (your decision 19: no "Save queue", no "Not saved yet"). If a save fails, the refusal shows in place.'],
+        ['"Save queue" + "Not saved yet."', 'KEEP', 'Was CUT here, on a wrong premise: your decision 19 takes a drafted stock out of every queue on its own, but your own changes still save only when you press "Save queue", in the lobby and the room (QueueEditor, one save path). They stay until the queue saves as you go, which is its own call below ("Your queue: a Save button, or saves as you go").'],
       ],
     },
     {
@@ -12594,6 +12594,36 @@ window.KS_REFS = {
   }
 
   window.KSRule12Sweep = () => <Sections />;
+
+  // ── The call: does the queue save as you go? (2026-11-12; the sweep's row 2 assumed it did.) ──
+  const QROWS = [['AAPL', 'Apple', '$198.60'], ['NFLX', 'Netflix', '$702.10'], ['CRM', 'Salesforce', '$312.40'], ['ADBE', 'Adobe', '$512.90'], ['NVDA', 'NVIDIA', '$186.42']];
+  const qScreen = (tail) => ({ name: 'League tab, your queue', head: 'pill', tab: 'league', blocks: [{ card: [
+    ['tag', 'Your queue \u00b7 5 of 50'], ['grey', `Prices at Wednesday's close.`], ['stocks', QROWS], ['field', 'Add a stock'], ...tail,
+  ] }] });
+  function CallQueueSave() {
+    return (
+      <section className="b-sec" id="call-queue-save" aria-labelledby="call-queue-save-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Queue</span>
+          <div><h2 id="call-queue-save-h">Your call: your queue, a Save button or saves as you go</h2></div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>Why you're being asked:</b> the sweep board cut "Save queue" and "Not saved yet." on the belief that the queue already saves as you change it. It doesn't. Your decision 19 takes a stock someone drafts out of every queue on its own, but your own adds, removes and reorders still save only when you press "Save queue", before the draft and in the room. Cutting those two lines means changing how the queue works, so it's yours.</li>
+          <li><b>What you're looking at:</b> League tab, your queue before the draft, right after you added NVDA. Only the bottom of the card changes. No new words: B's failure line and "Try again" are already in the app.</li>
+          <li><b>A · keep the button (how it works today).</b> After any change, "Save queue" and "Not saved yet." appear under the list. Nothing is kept until you press it; leave without pressing and the change is gone.</li>
+          <li><b>B · it saves as you go.</b> Every add, remove or reorder saves on its own a moment after you stop, the way Sleeper, ESPN and Yahoo queues work. No button, no "Not saved yet". If a save fails, "Your queue couldn't be saved." shows in place with "Try again", and the list stays as you left it.</li>
+          <li><b>Recommended: B.</b> A queue is a list you tinker with, and a button you can forget is how a change gets lost; it's the same "removed but unsaved" state build 12 showed you. It costs a build: save after each change, show a failure in place, and stay in step when someone drafts a queued stock.</li>
+          <li><b>Answer with:</b> A or B.</li>
+        </ul>
+        <Grid>{[
+          fig('qs-a', 'A · after adding NVDA (today)', <Screen t="light" s={qScreen([['btnline', 'Save queue'], ['grey', 'Not saved yet.']])} after />, 'Saved only when you press "Save queue".'),
+          fig('qs-b', 'B · after adding NVDA (recommended)', <Screen t="light" s={qScreen([])} after />, 'Already saved. Nothing to press.'),
+          fig('qs-b-fail', 'B · if a save fails', <Screen t="light" s={qScreen([['warn', `Your queue couldn't be saved.`], ['btnline', 'Try again']])} after />, 'In place, the app\'s existing line. The list stays as you left it.'),
+        ]}</Grid>
+      </section>
+    );
+  }
+  window.KSQueueSave = () => <CallQueueSave />;
 })();
 
 </script>
@@ -13426,6 +13456,7 @@ window.KS_REFS = {
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-queue-save', 'Your queue: a Save button, or saves as you go', () => window.KSQueueSave],
     ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)', () => window.KSRule12Sweep],
     ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)', () => window.KSRule12Info],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
