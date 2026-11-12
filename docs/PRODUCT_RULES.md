@@ -112,6 +112,23 @@ building anything, and don't reopen a rule without him.
     and B "the best performance wins", he picked "A". Rules pages, marketing and onboarding
     keep the generic wording. The Duration popup line, "The biggest gain at the end wins.",
     names no metric and stands as approved.
+- **A sheet's top must not be a stuck block that cuts text** (2026-11-12, on League settings
+  in build 14, recording 10:56). Giorgio: "the very top of like the pop-up where it says
+  cancel, first off, there's a really weird amount of space between cancel and the very top.
+  And then second, as you scroll, there's like that clear line that cuts off words where
+  cancel is like stuck at the top. And then there's just that weird block at the top … I
+  think we need to kind of reimagine pop-ups like that to where that's not an issue. So
+  maybe you open up something like league, I don't know, an X or a close or a cancel
+  appears, but it doesn't like cut off text … we got to figure out a better UI for that."
+  So: no empty band above the close control; no hard line that slices the content as it
+  scrolls under a pinned header; the way out stays easy to reach. He raised it as the same
+  problem seen on other screens, so it is a rule for every tall sheet, not only League
+  settings. Shown three directions the same day (A nothing pinned, B a floating close, C a
+  slim bar), he picked "b": no bar; a small round close button floats in the sheet's top
+  corner and stays there; the content scrolls the full height under it and fades softly as
+  it passes, so nothing is sliced. The Design Lead draws it for his sign-off (every tall
+  sheet, both themes, the largest text size, and what a form that can save shows in place of
+  "Cancel").
 - **Nothing tappable does nothing** (2026-10-12): "make sure that there's no clickable
   actions or links or anything that's clickable in the app that then doesn't do anything.
   Like if there's any buttons or links or anything that should bring a pop-up or a redirect
