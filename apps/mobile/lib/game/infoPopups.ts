@@ -12,7 +12,7 @@
  *   - the LINES are Giorgio's, approved as written ("the popup lines are approved", 2026-11-11).
  *     Straight apostrophes, as PRODUCT_RULES writes them. Never reword one.
  *   - the VOICEOVER descriptions of each picture are the Design Lead's, drawn on the board and
- *     NOT approved yet (Giorgio's yes is pending; the merge waits on it). Each is ONE constant
+ *     approved as written by Giorgio (the Orchestrator relayed his yes). Each is ONE constant
  *     (VO_*), so a wording change is a one-line edit.
  */
 
@@ -28,7 +28,7 @@ export const LINE_PLAYOFFS = "The top teams in the standings play a bracket. Whe
 export const LINE_DRAFTABLE =
   'Off: stocks at $1 or more, on a major US exchange, from companies worth $250 million or more. On: every US stock, penny stocks too.';
 
-// ── The picture's VoiceOver description: ONE constant per popup. NOT APPROVED (pending Giorgio). ──
+// ── The picture's VoiceOver description: ONE constant per popup. Approved as written by Giorgio. ──
 export const VO_MATCHUP =
   'Example: in week 3 you gain $24.10 and Marco R. loses $8.30, so you win the week. After the regular season, the top 4 play off.';
 export const VO_EQUAL = 'Example: $1,000 buys 89.29 shares of F, 5.36 of NVDA, or 1.09 of COST.';

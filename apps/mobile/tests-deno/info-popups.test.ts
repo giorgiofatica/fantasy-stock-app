@@ -1,6 +1,6 @@
 /**
  * The "i" popups' pure logic: the approved lines (pinned to PRODUCT_RULES.md itself), the
- * VoiceOver descriptions (one constant each, NOT approved yet), which options get an "i", the
+ * VoiceOver descriptions (one constant each, approved as written), which options get an "i", the
  * page control, and the pictures' example numbers.
  *
  *   deno test apps/mobile/tests-deno/info-popups.test.ts --allow-read

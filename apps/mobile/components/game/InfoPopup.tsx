@@ -131,7 +131,7 @@ function PopupCard({ info, startPage, onClose }: { info: InfoKey; startPage: num
     </View>,
     <View key="picture" style={styles.pageStack}>
       {head}
-      {/* One spoken description for the whole picture (not approved yet: infoPopups.ts, VO_*). */}
+      {/* One spoken description for the whole picture (approved as written: infoPopups.ts, VO_*). */}
       <View style={[styles.picture, { backgroundColor: colors.inset }]} accessible accessibilityLabel={copy.voice}>
         <InfoPicture info={info} />
       </View>
