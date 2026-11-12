@@ -4,8 +4,8 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **249** tappables in **91** files.
-- **99** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **247** tappables in **93** files.
+- **97** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **51** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
@@ -203,8 +203,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/GetStarted.tsx:45` | Pressable | onPress | `onSignIn` | prop onSignIn (the caller's) |  |
 | `components/shell/GetStarted.tsx:65` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/HowItWorksSheet.tsx:37` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
-| `components/shell/InviteArrival.tsx:38` | Button | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
-| `components/shell/InviteArrival.tsx:43` | Pressable | onPress | `inline: () => router.push('/login')` | route push('/login') |  |
+| `components/shell/InviteArrival.tsx:41` | Button | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
+| `components/shell/InviteArrival.tsx:46` | Pressable | onPress | `inline: () => router.push('/login')` | route push('/login') |  |
 | `components/shell/InviteArrival.tsx:80` | Pressable | onPress | `invite.retryPreview` | prop invite.retryPreview |  |
 | `components/shell/LeaguePill.tsx:60` | PressableScale | onPress | `openLeagueSheet` | fn openLeagueSheet (from a hook or import) |  |
 | `components/shell/LeagueSheet.tsx:143` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
@@ -212,6 +212,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/LeagueSheet.tsx:207` | Button | onPress | `onCreate` | prop onCreate (the caller's) |  |
 | `components/shell/LeagueSheet.tsx:210` | Button | onPress | `onJoin` | prop onJoin (the caller's) |  |
 | `components/shell/LeagueSheetRow.tsx:35` | PressableScale | onPress | `inline: () => onPick(league.id, league.name, labelRef)` | fn onPick |  |
+| `components/shell/Link.tsx:15` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/shell/NewPasswordForm.tsx:123` | Button | onPress | `handleUpdate` | sheet setConfirmError(null); sheet setConfirmError("Passwords don't match.") | `!password \|\| !confirm` |
 | `components/shell/NewPasswordForm.tsx:124` | Pressable | onPress | `onCancel` | prop onCancel (the caller's) |  |
 | `components/shell/NoLeagueState.tsx:31` | PhasePlaceholder | onAction | `inline: () => router.push('/create-league')` | route push('/create-league') |  |
@@ -229,21 +230,18 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/ProfileView.tsx:125` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/PushPrePrompt.tsx:38` | Button | onPress | `onContinue` | prop onContinue (the caller's) |  |
 | `components/shell/PushPrePrompt.tsx:40` | Pressable | onPress | `onNotNow` | prop onNotNow (the caller's) | `status !== 'idle'` |
+| `components/shell/RefusalScreen.tsx:49` | Button | onPress | `primary.onPress` | prop primary.onPress |  |
+| `components/shell/RefusalScreen.tsx:50` | Link | onPress | `secondary.onPress` | prop secondary.onPress |  |
 | `components/shell/ShellHeader.tsx:56` | Pressable | onPress | `inline: () => router.push(profileHref(profileFromPathname(pathname))` | route push(profileHref(profileFromPathname(pathname))) |  |
 | `components/shell/ShellTabBar.tsx:108` | TabItem | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:109` | TabItem | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:151` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:152` | Pressable | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
 | `components/shell/SocialSignIn.tsx:107` | Button | onPress | `inline: () => run('google')` | fn run | `busy === 'apple'` |
-| `components/shell/TakeoverLanding.tsx:76` | Link | onPress | `onHome` | prop onHome (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:88` | Link | onPress | `onOpen` | prop onOpen (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:102` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:103` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:131` | Link | onPress | `onRetry` | prop onRetry (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:132` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:146` | Button | onPress | `onTake` | prop onTake (the caller's) |  |
-| `components/shell/TakeoverLanding.tsx:147` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) | `taking` |
-| `components/shell/TakeoverLanding.tsx:167` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
+| `components/shell/TakeoverLanding.tsx:93` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:94` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:124` | Button | onPress | `onTake` | prop onTake (the caller's) |  |
+| `components/shell/TakeoverLanding.tsx:125` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) | `taking` |
 | `components/shell/UsernamePicker.tsx:258` | Chip | onPress | `inline: () => onChange(s)` | fn onChange |  |
 | `components/shell/UsernamePicker.tsx:267` | Button | onPress | `onContinue` | sheet setEmailJustConfirmed(false) | `mode === 'suggesting' \|\| (!view.canConti` |
 | `components/shell/UsernamePicker.tsx:268` | Button | onPress | `startEditing` | fn startEditing |  |

@@ -35,7 +35,7 @@ export const AVATAR_RING_GAP = 2;
 
 const DEFAULT_SIZE = 36;
 /** The deleted seat's person glyph, as a share of its disc (the board's 0.58). */
-const DELETED_GLYPH_RATIO = 0.58;
+export const DELETED_GLYPH_RATIO = 0.58;
 
 type Tone = NonNullable<AvatarProps['tone']>;
 const FILL: Record<Tone, (c: ThemeColors) => string> = { you: (c) => c.you, opp: (c) => c.opp, neutral: (c) => c.inset };

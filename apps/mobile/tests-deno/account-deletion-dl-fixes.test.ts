@@ -87,10 +87,10 @@ Deno.test('keepName: applied to the heading, the past-seasons line and the leagu
 // ── 4. The hour's lockout has nothing to retry ──────────────────────────────
 
 Deno.test('lockout: "later" drops Try again and keeps Not now; "moment" and an unreachable league keep Try again', () => {
-  const landing = src('components/shell/TakeoverLanding.tsx');
-  assert(landing.includes("state.kind === 'rate_limited' && state.wait === 'later' ? null : <Link label={ARRIVAL_COPY.tryAgain} onPress={onRetry} />"));
-  const branch = landing.slice(landing.indexOf("state.kind === 'unknown' || state.kind === 'rate_limited'"), landing.indexOf('const found ='));
-  assert(branch.includes('NOT_NOW'), 'Not now stays on every variant');
+  const map = src('lib/account/takeoverRefusal.ts');
+  assert(map.includes("state.wait === 'later'"));
+  const later = map.slice(map.indexOf("state.wait === 'later'"), map.indexOf('case \'unknown\''));
+  assert(later.indexOf("primary: { label: NOT_NOW, action: 'notNow' } }") > 0 && later.indexOf("primary: { label: MONEY_COPY.tryAgain, action: 'retry' }") > later.indexOf(':'), 'the hour is Not now alone; the moment is Try again');
 });
 
 // ── The share payload carries the https link ────────────────────────────────

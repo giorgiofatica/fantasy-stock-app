@@ -493,11 +493,10 @@ Deno.test('capture knobs seed the real stores once (so a dismiss or a keep still
   assert(picker.includes('{firstRun && confirmed ? <EmailConfirmedChip /> : null}'));
 });
 
-Deno.test('arrival: a dead link CENTRES its panel and Sign in (no empty phone); every other state docks the actions', () => {
+Deno.test('arrival: a dead link is a RefusalScreen (no empty phone); every other state docks the actions', () => {
   const screen = code(SOURCES['components/shell/InviteArrival.tsx']);
-  const dead = screen.slice(screen.indexOf('if (!view.title) {'), screen.indexOf('return (', screen.indexOf('if (!view.title) {') + 40));
-  assert(dead.includes('<AuthScaffold centerBody>') && !dead.includes('footer='), 'the dead link has no footer: its content is centred');
-  assert(dead.includes('<View style={styles.actions}>{actions}</View>'));
+  const dead = screen.slice(screen.indexOf('if (!view.title && view.refusal === INVITE_COPY.dead) {'), screen.indexOf('return (', screen.indexOf('if (!view.title && view.refusal === INVITE_COPY.dead) {') + 40));
+  assert(dead.includes('<RefusalScreen icon="unlink"') && dead.includes('primary={{ label: ARRIVAL_COPY.signIn'), 'the dead link: the shared form, Sign in docked');
   // The docked layout is still what every state with a heading uses.
   assert(screen.includes('<AuthScaffold centerBody footer={<View style={styles.actions}>{actions}</View>}>'));
   for (const k of INVITE_FIXTURES) assertEquals(view(k).title === null, k === 'not_found', k);

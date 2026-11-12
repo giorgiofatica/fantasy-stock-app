@@ -209,11 +209,10 @@ Deno.test('takeover landing: only "Take the team" writes; "Not now" and a dead l
 Deno.test('takeover landing: rate_limited shows the wait line (never the dead-link page) and a taken_over opens its league', () => {
   const landing = src('components/shell/TakeoverLanding.tsx');
   assert(landing.includes("state.kind === 'unknown' || state.kind === 'rate_limited'"));
-  assert(landing.includes('TRY_LATER'));
-  assert(landing.includes("w === 'moment' ? JOIN_COPY.rateLimited : TRY_LATER"), 'only the edge limiter\'s exact shape is a moment');
+  const map = src('lib/account/takeoverRefusal.ts');
+  assert(map.includes('TRY_LATER'));
+  assert(map.includes("w === 'moment' ? JOIN_COPY.rateLimited : TRY_LATER"), 'only the edge limiter\'s exact shape is a moment');
   assert(src('lib/account/accountApi.ts').includes('readTakeoverReply(data, error)'), 'takeover replies are read by body');
-  const dead = landing.slice(landing.indexOf("state.kind === 'taken' || state.kind === 'dead'"), landing.indexOf("state.kind === 'loading'"));
-  assertFalse(dead.includes('rate_limited'));
   const screen = src('app/takeover.tsx');
   assert(screen.includes('if (r.leagueId) setActiveLeagueId(r.leagueId);'));
   assert(screen.includes("r.kind === 'unknown' || r.kind === 'rate_limited'"));
@@ -265,9 +264,9 @@ Deno.test('DL copy: the wrong-password line sits in the field\'s error style, th
 });
 
 Deno.test('DL copy: the landing shows "You\'re already in {league}." + "Open the league" for an already-in answer, and a name-less reply just opens', () => {
-  const landing = src('components/shell/TakeoverLanding.tsx');
-  assert(landing.includes("blockMessage('already_member', { name: state.leagueName, max: 0 })"));
-  assert(landing.includes('OPEN_THE_LEAGUE'));
+  const map = src('lib/account/takeoverRefusal.ts');
+  assert(map.includes("blockMessage('already_member', { name: keepName(state.leagueName), max: 0 })"));
+  assert(map.includes('OPEN_THE_LEAGUE'));
   const screen = src('app/takeover.tsx');
   assert(screen.includes('if (v.leagueName) {'));
   assert(screen.includes('if (memberLeagueId.current) setActiveLeagueId(memberLeagueId.current);'));

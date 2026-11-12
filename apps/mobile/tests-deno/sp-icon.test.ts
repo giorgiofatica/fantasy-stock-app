@@ -12,7 +12,7 @@ import {
 const NAMES: IconName[] = [
   'chevronRight', 'chevronLeft', 'chevronDown', 'chevronUp', 'check', 'circle', 'info',
   'close', 'search', 'add', 'remove', 'share', 'trophy', 'lock', 'mail', 'alert', 'star', 'starFilled',
-  'checkCircle', 'pending', 'bell', 'person', 'eye', 'eyeOff',
+  'checkCircle', 'pending', 'bell', 'person', 'unlink', 'league', 'clock', 'offline', 'eye', 'eyeOff',
   'tabHome', 'tabHomeSelected', 'tabMatchup', 'tabMatchupSelected', 'tabLeague', 'tabLeagueSelected', 'tabPortfolio', 'tabPortfolioSelected',
 ];
 
