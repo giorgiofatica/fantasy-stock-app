@@ -734,7 +734,9 @@ Deno.test({
       await q(`update league_notifications set push_status = 'sent' where push_status = 'pending'`);
       // (#67's draft_order_notify_due still sees the due unfinalized league W? no: W is 5 h out.)
       assertEquals(await posts(notify.guard), false, 'all delivered');
-      // A pending kind another function delivers (#94's renewal_*, #126's member_left) never keeps it posting.
+      // As of 20261111000000 (this suite stops there): a pending renewal_* or member_left row does not wake it.
+      // renewal_* was WRONG (draft-order-notify delivers them); 20261204000000 adds them, proved by
+      // renewal_notices_wake_notify_cron.pglite.test.ts. member_left stays out (leave-league delivers it).
       await q(`insert into league_notifications (league_id, user_id, kind) values ($1, $2, 'renewal_invite'), ($1, $2, 'member_left')`, [W, MEMBER]);
       assertEquals(await posts(notify.guard), false, 'not its kinds');
       // Isolation: a broken auto-start list never fails the statement (the overdue half keeps working).

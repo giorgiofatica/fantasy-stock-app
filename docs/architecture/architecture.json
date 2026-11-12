@@ -2,34 +2,26 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "a389a7201232c86bfeed744a8b33cb17a21029aa",
-    "commitShort": "a389a720",
+    "commit": "c1f0a6e48b16f926e4f89dfd80da92f48049de06",
+    "commitShort": "c1f0a6e4",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/draft-order-notify-respond-fast",
+    "branch": "fix/renewal-notice-gate",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "M",
-        "path": "supabase/functions/draft-order-notify/plan.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/draft-order-notify/run.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/draft-order-notify/run.ts"
+        "code": "??",
+        "path": "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql"
       }
     ],
-    "timestamp": "2026-11-12T01:38:01Z",
-    "sourceHash": "sha256:5f984343984b53730d8fb9de5b424bddab10dfc075ddebeb7896042a7342c5b9",
+    "timestamp": "2026-11-12T01:59:51Z",
+    "sourceHash": "sha256:54c68fcf87bd1938d5af85cabe972df88b1aa4899ed149acee0a0ee5f82e05ad",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 3.7,
+    "ageHours": 4.1,
     "ageDays": 0.2,
     "staleAfterDays": 14,
     "stale": false,
@@ -3783,10 +3775,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261111000000_draft_auto_start.sql:796"
+          "supabase/migrations/20261111000000_draft_auto_start.sql:796",
+          "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:48"
         ],
-        "latestDefinition": "supabase/migrations/20261111000000_draft_auto_start.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql",
+        "redefinitions": 2
       },
       "drift": [],
       "annotation": null,
@@ -3796,8 +3789,8 @@
       "sublabel": "service_role",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261111000000_draft_auto_start.sql",
-        "line": 796
+        "path": "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql",
+        "line": 48
       }
     },
     {
@@ -14725,7 +14718,8 @@
       "payload": "SELECT draft_postponements (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261111000000_draft_auto_start.sql:806"
+        "supabase/migrations/20261111000000_draft_auto_start.sql:806",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:58"
       ]
     },
     {
@@ -14739,7 +14733,9 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261111000000_draft_auto_start.sql:801",
-        "supabase/migrations/20261111000000_draft_auto_start.sql:809"
+        "supabase/migrations/20261111000000_draft_auto_start.sql:809",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:53",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:61"
       ]
     },
     {
@@ -14752,7 +14748,8 @@
       "payload": "SELECT league_draft_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261111000000_draft_auto_start.sql:811"
+        "supabase/migrations/20261111000000_draft_auto_start.sql:811",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:63"
       ]
     },
     {
@@ -14766,7 +14763,9 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261111000000_draft_auto_start.sql:815",
-        "supabase/migrations/20261111000000_draft_auto_start.sql:819"
+        "supabase/migrations/20261111000000_draft_auto_start.sql:819",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:67",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:71"
       ]
     },
     {
@@ -14780,7 +14779,9 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261111000000_draft_auto_start.sql:800",
-        "supabase/migrations/20261111000000_draft_auto_start.sql:810"
+        "supabase/migrations/20261111000000_draft_auto_start.sql:810",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:52",
+        "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:62"
       ]
     },
     {
@@ -23241,7 +23242,7 @@
       "node": "pg.draft_room_notices_due",
       "label": "draft_room_notices_due()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261111000000_draft_auto_start.sql:796",
+      "source": "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql:48",
       "outbound": [
         "tbl.draft_postponements",
         "tbl.draft_start_watch",
@@ -24387,7 +24388,8 @@
       "20261130000000_retire_service_role_key_helpers.sql",
       "20261201000000_autopick_sweep_fast_cadence.sql",
       "20261202000000_draft_turn_lease_and_escalation_claim.sql",
-      "20261203000000_refuse_new_duration_leagues.sql"
+      "20261203000000_refuse_new_duration_leagues.sql",
+      "20261204000000_renewal_notices_wake_notify_cron.sql"
     ],
     "config": [
       "delete-account=true",
