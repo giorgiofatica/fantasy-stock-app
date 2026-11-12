@@ -13324,12 +13324,57 @@ window.KS_REFS = {
     <span style={{ display: 'grid', placeItems: 'center', minHeight: 52, borderRadius: 26, ...fs(17, x, 1.6), fontWeight: 700, background: kind === 'primary' ? 'var(--c-accent)' : 'transparent', color: kind === 'primary' ? 'var(--c-on-accent)' : 'var(--c-text)', boxShadow: kind === 'primary' ? 'none' : 'inset 0 0 0 1.5px var(--c-border-strong)' }}>{children}</span>
   );
 
-  /** League settings, the commissioner before the draft (league-settings.tsx, the editable branch). */
-  function CommishBody({ x }) {
+  /** The pencil that marks the league's name as editable in option C (an icon, no words). */
+  const Pencil = ({ x }) => (
+    <svg width={Math.round(18 * k(x, 1.6))} height={Math.round(18 * k(x, 1.6))} viewBox="0 0 24 24" fill="none" stroke="var(--c-text-2)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" /><path d="M13.5 6.5l4 4" /></svg>
+  );
+  /** A smaller title on the close button's line (A, B): the title's first line and the 30 pt circle share a centre. */
+  const SmallTitle = ({ x, children }) => <span style={{ ...fs(22, x, 1.6, 1.2), fontWeight: 800, color: 'var(--c-text)', paddingRight: TARGET + 12, paddingTop: 2 }}>{children}</span>;
+  /** The first screenful of League settings. top: undefined (as #433 drew it), 'A', 'B', 'C'. */
+  function SettingsTop({ x, top }) {
+    if (top === 'A') {
+      return (
+        <>
+          <SmallTitle x={x}>League settings</SmallTitle>
+          <Field x={x} label="League name" value="Serie A Traders" />
+        </>
+      );
+    }
+    if (top === 'B') {
+      const stacked = x >= 2;
+      return (
+        <>
+          <SmallTitle x={x}>League settings</SmallTitle>
+          <Card>
+            <div style={{ display: 'flex', flexDirection: stacked ? 'column' : 'row', justifyContent: 'space-between', alignItems: stacked ? 'flex-start' : 'center', gap: stacked ? 2 : 12, padding: '12px 0', minHeight: 44 }}>
+              <span style={{ ...fs(15, x, 1.3), fontWeight: 600, color: 'var(--c-text)' }}>League name</span>
+              <span style={{ ...fs(15, x, 1.6), color: 'var(--c-text)', textAlign: stacked ? 'left' : 'right' }}>Serie A Traders</span>
+            </div>
+          </Card>
+        </>
+      );
+    }
+    if (top === 'C') {
+      return (
+        <span style={{ display: 'flex', alignItems: 'baseline', gap: 10, paddingRight: TARGET + 12, flexWrap: 'wrap' }}>
+          <span style={{ ...fs(30, x, 1.5, 1.15), fontWeight: 800, color: 'var(--c-text)' }}>Serie A Traders</span>
+          <Pencil x={x} />
+        </span>
+      );
+    }
     return (
       <>
         <Title x={x}>League settings</Title>
         <Field x={x} label="League name" value="Serie A Traders" />
+      </>
+    );
+  }
+
+  /** League settings, the commissioner before the draft (league-settings.tsx, the editable branch). */
+  function CommishBody({ x, top }) {
+    return (
+      <>
+        <SettingsTop x={x} top={top} />
         <Head x={x}>Draft</Head>
         <Card>
           <Row x={x} k="Pick clock" v="60 seconds" />
@@ -13340,7 +13385,14 @@ window.KS_REFS = {
           <Stepper x={x} label="Rounds" value="6" />
         </Card>
         <Head x={x}>Stakes</Head>
-        <Field x={x} label="Stake per slot ($)" value="2,000" />
+        {top === 'B' ? (
+          <Card>
+            <div style={{ display: 'flex', flexDirection: x >= 2 ? 'column' : 'row', justifyContent: 'space-between', alignItems: x >= 2 ? 'flex-start' : 'center', gap: x >= 2 ? 2 : 12, padding: '12px 0', minHeight: 44 }}>
+              <span style={{ ...fs(15, x, 1.3), fontWeight: 600, color: 'var(--c-text)' }}>Stake per slot ($)</span>
+              <span className="dr-num" style={{ ...fs(15, x, 1.6), color: 'var(--c-text)' }}>2,000</span>
+            </div>
+          </Card>
+        ) : <Field x={x} label="Stake per slot ($)" value="2,000" />}
         <Head x={x}>League info</Head>
         <Card>
           <Row x={x} k="Type" v="Matchup" />
@@ -13530,7 +13582,41 @@ window.KS_REFS = {
     );
   }
 
+  /** Giorgio, 2026-11-12, on #433's frame 01: "i dont love the top of it with League Settings and then League name right
+   * underneath. seems clunky and not well done." The floating close stays; only the first screenful changes. */
+  function CallSettingsTop() {
+    return (
+      <section className="b-sec" id="call-settings-top" aria-labelledby="call-settings-top-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Sheets</span>
+          <div>
+            <h2 id="call-settings-top-h">Your call: the top of League settings</h2>
+            <p className="b-job">You said the big "League settings" with "League name" right under it looks clunky. Three ways to open the sheet, all on the floating close you picked, all Light at Large, at the top before scrolling. Below them, the recommended one at your text size. Everything under the first card is the same in all three.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>A · A smaller title.</b> "League settings" drops to the size of a card heading, on the same line as the ×. The name field stays as it is: a label, then a box.</li>
+          <li><b>B · A smaller title, and the name in a card like every other setting.</b> "League name" on the left and "Serie A Traders" on the right, in one row. Tap the row and you type in place. It looks like the Draft and League info cards below it, so nothing at the top is stacked twice. The sheet's other typed setting, Stake per slot, becomes the same kind of row, so the whole sheet is cards.</li>
+          <li><b>C · The league's name is the title.</b> No "League settings" heading: the sheet opens on "Serie A Traders" with a pencil, and you tap the name to rename it. It reads the most personal, but a renameable title is the one thing on the sheet that works differently from everything else, and a member, who can't rename, would see the same name with no pencil.</li>
+          <li><b>Recommended: B.</b> The clunk is two labels stacked at the top (a title, then a field label, then a box). B keeps one small title and puts the name where every other setting lives. At your size the row stacks: "League name" above "Serie A Traders", like the other rows.</li>
+          <li><b>No new words in any of them.</b> C removes "League settings" and "League name" from the top; A and B keep both.</li>
+          <li><b>Answer with:</b> A, B or C. "Discard changes" and "Keep editing" from the last board still need your OK too.</li>
+        </ul>
+        <div className="b-concepts b-concepts--three">{[
+          fig('sa', 'A · smaller title · Light · Large', <PageSheet t="light" footer={save} label="League settings, option A, a smaller title, Light, Large"><CommishBody x={1} top="A" /></PageSheet>, 'The title shares the × line; the field is unchanged.'),
+          fig('sb', 'B · smaller title, name in a card (recommended) · Light · Large', <PageSheet t="light" footer={save} label="League settings, option B, a smaller title and the name in a card, Light, Large"><CommishBody x={1} top="B" /></PageSheet>, 'The name row matches the cards under it.'),
+          fig('sc', 'C · the league\u2019s name as the title · Light · Large', <PageSheet t="light" footer={save} label="League settings, option C, the league's name as an editable title, Light, Large"><CommishBody x={1} top="C" /></PageSheet>, 'Tap the name to rename it.'),
+        ]}</div>
+        <h3 className="b-sub">B at your text size</h3>
+        <div className="b-concepts b-concepts--three">{[
+          fig('sbx', 'B · Light · your size (AX5, approximate)', <PageSheet t="light" footer={save} label="League settings, option B, Light, AX5"><CommishBody x={AX5} top="B" /></PageSheet>, 'The title wraps beside the ×; the name row stacks like the other rows.'),
+        ]}</div>
+      </section>
+    );
+  }
+
   window.KSSheetTop = () => <SheetTop />;
+  window.KSSettingsTop = () => <CallSettingsTop />;
 })();
 
 </script>
@@ -13920,6 +14006,7 @@ window.KS_REFS = {
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-settings-top', 'The top of League settings', () => window.KSSettingsTop],
     ['call-sheet-top', 'For your sign-off: the floating close on tall sheets', () => window.KSSheetTop],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
@@ -14079,6 +14166,7 @@ window.KS_REFS = {
           {window.KSRule12Info ? <window.KSRule12Info /> : null}
           {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
           {window.KSBelowFour ? <window.KSBelowFour /> : null}
+          {window.KSSettingsTop ? <window.KSSettingsTop /> : null}
           {window.KSSheetTop ? <window.KSSheetTop /> : null}
           {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
           {window.KSDraftClock ? <window.KSDraftClock /> : null}

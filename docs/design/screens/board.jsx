@@ -383,6 +383,7 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-settings-top', 'The top of League settings', () => window.KSSettingsTop],
     ['call-sheet-top', 'For your sign-off: the floating close on tall sheets', () => window.KSSheetTop],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
@@ -542,6 +543,7 @@
           {window.KSRule12Info ? <window.KSRule12Info /> : null}
           {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
           {window.KSBelowFour ? <window.KSBelowFour /> : null}
+          {window.KSSettingsTop ? <window.KSSettingsTop /> : null}
           {window.KSSheetTop ? <window.KSSheetTop /> : null}
           {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
           {window.KSDraftClock ? <window.KSDraftClock /> : null}
