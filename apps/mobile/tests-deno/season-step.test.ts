@@ -207,6 +207,13 @@ Deno.test('P2-1: the "i" counts as one label line in the label row, so the row i
   assertEquals(infoSlotFootprint(45, 18), 17);
 });
 
+Deno.test('P2-1 (the real cause): the stacked texts column is 100% wide, so a label beside the "i" shrinks and wraps honestly', () => {
+  // Measured at AX5 on the simulator: without it the label row was 337 pt in a 330 pt card and reserved two label lines for a label drawn on one.
+  assert(stepperSrc.includes("textsStacked: {\n    alignSelf: 'stretch',\n    width: '100%',\n    gap: space[1],\n  },"));
+  // and an empty hidden sub-line wrapper must not add its own gap to a Stepper with no sub-line
+  assert(stepperSrc.includes('{subText ? <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{subText}</View> : null}'));
+});
+
 Deno.test('P2-1: Stepper puts the "i" in a slot with that margin, and the 44 pt button inside is untouched', () => {
   assert(stepperSrc.includes('<View style={styles.infoSlot}>{labelInfo}</View>'));
   assert(stepperSrc.includes('infoSlot: {\n    marginVertical: infoSlotMargin(),\n  },'));

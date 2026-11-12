@@ -108,7 +108,7 @@ export function Stepper({ label, sub, value, unit, unitSpoken, uniformBox = fals
               {/* The "i" keeps its 44 pt target but counts as one label line in the row (stepperInfoSlot.ts), so the row is as tall as the label. */}
               <View style={styles.infoSlot}>{labelInfo}</View>
             </View>
-            <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{subText}</View>
+            {subText ? <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{subText}</View> : null}
           </>
         ) : (
           <>
@@ -137,8 +137,14 @@ const styles = StyleSheet.create({
   dim: {
     opacity: 0.5,
   },
+  // `width: '100%'` is load-bearing. rowStacked is a COLUMN that still carries `row`'s flexWrap, so `alignSelf: 'stretch'` stretched
+  // only to the widest content, not to the container (measured on the iPhone 17 simulator: Managers' text box 224 pt, Playoff teams' 337 pt, in a 330 pt card). A label row wider than the card then never
+  // shrank its label: at AX5, "Playoff teams" (289 pt) + the "i" (44 + 4) in a 330 pt card made a 337 pt row that reserved TWO label
+  // lines (128.7 pt) while the label drew on ONE (64.3 pt), so that row stood one label line taller than the others (the DL's P2-1,
+  // 2026-11-11). At 100% the label shrinks to the width beside the "i" and wraps honestly, like "Regular season" does.
   textsStacked: {
     alignSelf: 'stretch',
+    width: '100%',
     gap: space[1],
   },
   texts: {
