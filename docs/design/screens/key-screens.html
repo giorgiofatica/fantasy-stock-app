@@ -14015,7 +14015,13 @@ window.KS_REFS = {
     );
   }
 
-  window.KSRefusalFamily = () => <RefusalFamily />;
+  window.KSRefusalFamily = () => null; // signed off 2026-11-12; it lives in the Archive
+  window.KSRefusalFamilyArchived = () => (
+    <RefusalFamily
+      archived
+      decidedNote={<><b>Signed off by Giorgio (2026-11-12): "all screens look good".</b> He was shown all seven, with the small grey second lines pointed out against the no-subtext rule, and kept them. The split at the full stop and the 2x cap on the second line went with it. Recorded in PRODUCT_RULES ("Every dead end on a takeover or invite link takes the same form").</>}
+    />
+  );
 })();
 
 </script>
@@ -14404,14 +14410,13 @@ window.KS_REFS = {
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [
-    ['call-refusal-family', 'For your sign-off: the other dead-end screens, in the taken screen\u2019s form', () => window.KSRefusalFamily],
-  ];
+  const OPEN = [];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-refusal-family', title: 'The other dead-end screens, in the taken screen\u2019s form', decision: 'Signed off ("all screens look good"): every dead end on a takeover or invite link is a picture, the sentence as the heading, at most one line under it (a two-sentence refusal split at its full stop; the line capped at 2x), and the way out docked; no yellow panel. Words unchanged.', date: '2026-11-12', rec: 'PRODUCT_RULES (Every dead end on a takeover or invite link takes the same form)', render: () => window.KSRefusalFamilyArchived },
     { id: 'call-sheet-bar', title: 'The top bar on League settings (and every tall sheet)', decision: 'B, "and no, hitting back or x just closes it": a solid bar, \u00d7 at the left, the league\u2019s name with the pencil as the title, Save at the right (grey until a change); no pinned Save at the bottom. Closing never asks; unsaved changes are dropped. Read-only sheets get \u00d7 only. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (A sheet\u2019s top must not be a stuck block that cuts text, the top-bar amendment; League settings opens on the league\u2019s own name)', render: () => window.KSSheetBarArchived },
     { id: 'call-sheet-top', title: 'The floating close on tall sheets (never signed off)', decision: 'Superseded: Giorgio sent the ESPN league-manager screens instead ("i like the idea of having the top left being a back or close button and the top right being the save button. it is greyed out until you make a change and then you click save when it populates"). The top bar is the open call #call-sheet-bar.', date: '2026-11-12', rec: 'PRODUCT_RULES records it when the bar is decided', render: () => window.KSSheetTop },
     { id: 'call-settings-top', title: 'The top of League settings', decision: 'C: the league\u2019s own name is the title, beside the floating close; no "League settings" heading or "League name" label at the top. The commissioner (before the draft) gets a pencil and renames in place, saved by the one "Save changes"; a member sees the name with no pencil. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (League settings opens on the league\u2019s own name)', render: () => window.KSSettingsTopArchived },
