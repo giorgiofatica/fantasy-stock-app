@@ -69,3 +69,14 @@ Deno.test('the caption under the title is cut (Design Lead ruling, no "i" either
   assert(picker.indexOf('{COPY.whichSalePays}') < picker.indexOf('<View style={[styles.card'));
   assert(!/tone="secondary"/.test(picker), 'no secondary-tone caption line is left in the picker');
 });
+
+Deno.test('the header keeps the close x on screen at AX5: the title is a shrinkable flex box, the x is pinned top-right and never shrinks (step 34 gate P1)', () => {
+  const block = (name: string) => new RegExp(`${name}: \\{([^}]*)\\}`).exec(picker)?.[1] ?? '';
+  const titleBox = block('titleBox');
+  assert(/flex: 1\b/.test(titleBox), 'the title box flexes, so a wrapped title shares the row instead of pushing the x off it');
+  assert(/minHeight: 44/.test(titleBox) && /justifyContent: 'center'/.test(titleBox), 'one line still centres on the x, as before');
+  assert(/alignItems: 'flex-start'/.test(block('header')), 'the x sits beside the title\'s first line, not the middle of a wrapped title');
+  assert(/flexShrink: 0/.test(block('close')) && /minWidth: 44/.test(block('close')) && /minHeight: 44/.test(block('close')), 'the x keeps its 44pt target');
+  const header = picker.slice(picker.indexOf('<View style={styles.header}>'), picker.indexOf('accessibilityLabel="Close"'));
+  assert(header.includes('<View style={styles.titleBox}>') && header.indexOf('{COPY.whichSalePays}') > header.indexOf('styles.titleBox'), 'the title is inside the flex box');
+});

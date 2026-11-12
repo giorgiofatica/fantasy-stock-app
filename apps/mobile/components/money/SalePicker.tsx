@@ -41,8 +41,13 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20, paddingBottom: 12 },
   stack: { gap: 12 },
   footer: { paddingHorizontal: 20 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  close: { minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'flex-end' },
+  // The title takes the row's room and may wrap (flex: 1, shrinkable); the close x keeps its 44pt target pinned top-right beside the
+  // title's FIRST line (alignItems flex-start). At AX5 the title wraps to two lines and, as a bare sibling with no flex, pushed the x off
+  // the right edge (phone pass step 34 gate). The title's box is at least the target's height and centres its text, so at one line the
+  // title and the x still share a centre, as before.
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  titleBox: { flex: 1, minHeight: 44, justifyContent: 'center' },
+  close: { minHeight: 44, minWidth: 44, flexShrink: 0, justifyContent: 'center', alignItems: 'flex-end' },
   card: { borderRadius: radius.lg, overflow: 'hidden' },
   row: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   radio: { width: 20, height: 20, borderRadius: 10 },
@@ -104,7 +109,9 @@ export function SalePicker({ sources, chosenId, onChoose, onUse, onClose }: Sale
     >
       <View style={styles.stack}>
         <View style={styles.header}>
-          <Text variant="title">{COPY.whichSalePays}</Text>
+          <View style={styles.titleBox}>
+            <Text variant="title">{COPY.whichSalePays}</Text>
+          </View>
           <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} hitSlop={8} style={styles.close}>
             <Icon name="close" size="body" tone="text2" />
           </Pressable>

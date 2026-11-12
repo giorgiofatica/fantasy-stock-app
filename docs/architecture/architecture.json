@@ -2,38 +2,22 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "1c7013029248a00f2641bc31172fca9b6cc6371e",
-    "commitShort": "1c701302",
+    "commit": "ba7feac66f69ad10491ef88ad0b49bd7ab630d92",
+    "commitShort": "ba7feac6",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/sale-picker-step34",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/design-gallery.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/SetupRows.tsx"
-      },
-      {
-        "code": "M",
         "path": "apps/mobile/components/money/SalePicker.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/money/StockSheetBody.tsx"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/deno.lock"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/salePicker.ts"
+        "path": "apps/mobile/tests-deno/sale-picker-step34.test.ts"
       }
     ],
-    "timestamp": "2026-11-12T18:37:45Z",
+    "timestamp": "2026-11-12T19:10:04Z",
     "sourceHash": "sha256:1843996ece2a050286ff689c92839b8b273c997d838e5a4eca0783ec3fa8b122",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -41,7 +25,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 20.7,
+    "ageHours": 21.2,
     "ageDays": 0.9,
     "staleAfterDays": 14,
     "stale": false,
