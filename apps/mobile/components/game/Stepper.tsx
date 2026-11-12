@@ -7,6 +7,7 @@ import { FULL_WIDTH_FONT_SCALE } from '@/components/sp/Button';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
+import { uniformValueWidth } from '@/lib/game/seasonStep';
 
 // 3c-2 — the board's stepper (inventory.jsx `Stepper`: label + optional sub on
 // the left, a bordered − value + box on the right). The buttons are 44 pt
@@ -20,6 +21,11 @@ export interface StepperProps {
   sub?: string;
   value: number;
   unit?: string;
+  /** What VoiceOver says for `unit` when the screen abbreviates it ("11 wks" on screen, "11 weeks" spoken). Unset: `unit`. */
+  unitSpoken?: string;
+  /** A fixed-width value cell (seasonStep.ts, uniformValueWidth), so steppers side by side are identical boxes whatever their
+   * value (Create league's Season step, B: "6", "11 wks", "4"). Unset: the cell grows with its value, as before. */
+  uniformBox?: boolean;
   onStep: (direction: 1 | -1) => void;
   canDecrement: boolean;
   canIncrement: boolean;
@@ -36,7 +42,7 @@ export interface StepperProps {
   labelInfo?: ReactNode;
 }
 
-export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncrement, disabled = false, emphasis, labelMaxScale, labelInfo }: StepperProps) {
+export function Stepper({ label, sub, value, unit, unitSpoken, uniformBox = false, onStep, canDecrement, canIncrement, disabled = false, emphasis, labelMaxScale, labelInfo }: StepperProps) {
   const { colors } = useTheme();
   // At accessibility sizes the box goes UNDER the label (W4 Onboarding, XL): beside it, the label's
   // column was too narrow and "Managers" broke mid-word ("Manager / s").
@@ -45,12 +51,14 @@ export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncr
   const down = !disabled && canDecrement;
   const up = !disabled && canIncrement;
   const valueText = unit ? `${value} ${unit}` : String(value);
+  const spokenUnit = unitSpoken ?? unit;
+  const valueSpoken = spokenUnit ? `${value} ${spokenUnit}` : String(value);
 
   const adjustable = {
     accessible: true as const,
     accessibilityRole: 'adjustable' as const,
     accessibilityLabel: sub ? `${label}, ${sub}` : label,
-    accessibilityValue: { text: valueText },
+    accessibilityValue: { text: valueSpoken },
     accessibilityState: { disabled },
     accessibilityActions: [{ name: 'increment' }, { name: 'decrement' }],
     onAccessibilityAction: (e: { nativeEvent: { actionName: string } }) => {
@@ -76,7 +84,7 @@ export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncr
       <Pressable onPress={() => down && onStep(-1)} disabled={!down} style={styles.button} hitSlop={2}>
         <Icon name="remove" size="headline" tone={down ? 'text' : 'text3'} />
       </Pressable>
-      <View style={[styles.value, { borderColor: colors.border }]}>
+      <View style={[styles.value, uniformBox && { minWidth: 0, width: uniformValueWidth(fontScale), paddingHorizontal: space[2] }, { borderColor: colors.border }]}>
         <Text variant="headline" style={styles.tabular}>
           {valueText}
         </Text>

@@ -47,12 +47,18 @@ export function playoffPlan(teams: number | null | undefined): PlayoffPlan | nul
 export function playoffLine(teams: number | null | undefined): string | null {
   const p = playoffPlan(teams);
   if (!p) return null;
-  const bye = p.byes === 0
+  return `${p.teams} teams · ${p.weeks} ${p.weeks === 1 ? 'week' : 'weeks'} of playoffs · ${playoffByePhrase(p.byes)}`;
+}
+
+/** The playoff line's bye clause, on its own ("the top 3 seeds get first-round byes"; "no byes").
+ * Create league's Season step shows it as its one line under the strip (PRODUCT_RULES, "The Season
+ * step in Create league"). Mobile only: playoffLine's output is unchanged, so the mirrors hold. */
+export function playoffByePhrase(byes: number): string {
+  return byes === 0
     ? 'no byes'
-    : p.byes === 1
+    : byes === 1
     ? 'the top seed gets a first-round bye'
-    : `the top ${p.byes} seeds get first-round byes`;
-  return `${p.teams} teams · ${p.weeks} ${p.weeks === 1 ? 'week' : 'weeks'} of playoffs · ${bye}`;
+    : `the top ${byes} seeds get first-round byes`;
 }
 
 /**

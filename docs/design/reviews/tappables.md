@@ -33,17 +33,17 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/create-account.tsx:133` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:135` | Button | onPress | `handleCreate` | fn handleCreate |  |
 | `app/create-account.tsx:140` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
-| `app/create-league.tsx:328` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
-| `app/create-league.tsx:394` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
-| `app/create-league.tsx:403` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
-| `app/create-league.tsx:415` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
-| `app/create-league.tsx:460` | ChoiceRow | onPress | `inline: () => patch({ stakeMode: opt.value })` | fn patch |  |
-| `app/create-league.tsx:493` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
-| `app/create-league.tsx:505` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
-| `app/create-league.tsx:519` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
-| `app/create-league.tsx:577` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
-| `app/create-league.tsx:585` | Button | onPress | `inline: () => void share()` | fn share |  |
-| `app/create-league.tsx:607` | Button | onPress | `goNext` | fn goNext | `blocked` |
+| `app/create-league.tsx:325` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
+| `app/create-league.tsx:408` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
+| `app/create-league.tsx:417` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
+| `app/create-league.tsx:429` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
+| `app/create-league.tsx:474` | ChoiceRow | onPress | `inline: () => patch({ stakeMode: opt.value })` | fn patch |  |
+| `app/create-league.tsx:507` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
+| `app/create-league.tsx:519` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
+| `app/create-league.tsx:533` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
+| `app/create-league.tsx:591` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
+| `app/create-league.tsx:599` | Button | onPress | `inline: () => void share()` | fn share |  |
+| `app/create-league.tsx:621` | Button | onPress | `goNext` | fn goNext | `blocked` |
 | `app/forgot-password.tsx:139` | EmptyState | onAction | `backToSignIn` | route replace('/login') |  |
 | `app/forgot-password.tsx:141` | EmptyState | onSecondaryAction | `inline: () => { setSent(false); handleResetPassword(); }` | state setSent |  |
 | `app/forgot-password.tsx:175` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |
@@ -133,8 +133,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/SetupRows.tsx:240` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
 | `components/game/SetupScaffold.tsx:52` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
 | `components/game/StandingsTable.tsx:74` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
-| `components/game/Stepper.tsx:76` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
-| `components/game/Stepper.tsx:84` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
+| `components/game/Stepper.tsx:84` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
+| `components/game/Stepper.tsx:92` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
 | `components/home/DraftingCard.tsx:85` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/PhaseMessageCard.tsx:33` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
 | `components/home/PreDraftCard.tsx:202` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |

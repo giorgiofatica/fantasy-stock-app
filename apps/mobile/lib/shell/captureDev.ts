@@ -14,6 +14,7 @@ export const CAPTURE = parseCaptureKnobs(__DEV__, {
   pushAsk: process.env.EXPO_PUBLIC_PUSH_ASK,
   confirmed: process.env.EXPO_PUBLIC_CONFIRMED,
   invite: process.env.EXPO_PUBLIC_INVITE_FIXTURE,
+  createSeason: process.env.EXPO_PUBLIC_CREATE_SEASON,
 });
 
 // Account deletion (W4): the delete screen's state for a capture (lib/account/deleteCapture.ts), and the Sign in

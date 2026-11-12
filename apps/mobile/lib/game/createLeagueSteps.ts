@@ -12,20 +12,19 @@
  * come before the roster slots (Stakes), so slot capacity is checked against
  * the real values (BUG 2a).
  */
-import { seasonCaption } from './createLeagueSetup';
 import { PRICE_TIERS_NEED_A_SLOT } from './slotBuilderCopy';
 
 export type CreateStep = 'league' | 'season' | 'draft' | 'stakes';
 
 export const CREATE_STEPS: readonly CreateStep[] = ['league', 'season', 'draft', 'stakes'];
 
-/** The steps' titles. UX rule 12 (the sweep, Giorgio 2026-11-10): League, Draft and Stakes carry NO subtitle: it restated the
- * title ("Name your league and choose how it's played.", "A live snake draft…", "How do teams stake their picks?"), and what a
- * choice means now sits behind its "i" (UX rule 13). Season keeps its line until its own build (the Season strip, "B") lands:
- * that step's lines go with it, not with this sweep. */
+/** The steps' titles. UX rule 12 (the sweep, Giorgio 2026-11-10): no step carries a subtitle: it restated the title ("Name
+ * your league and choose how it's played.", "A live snake draft…", "How do teams stake their picks?"), and what a choice means
+ * now sits behind its "i" (UX rule 13). Season's went with its own build, the
+ * Season strip (PRODUCT_RULES, "The Season step in Create league", B). */
 export const CREATE_STEP_COPY: Record<CreateStep, { title: string; subtitle?: string }> = {
   league: { title: 'League' },
-  season: { title: 'Season', subtitle: 'How big the league is and how long it runs.' }, // board
+  season: { title: 'Season' },
   draft: { title: 'Draft' },
   stakes: { title: 'Stakes' },
 };
@@ -112,25 +111,15 @@ export function stepWeeks(numWeeks: number, size: number, direction: 1 | -1): nu
   return Math.max(size - 1, weeksShown(numWeeks, size) + direction);
 }
 
-/** Under the weeks stepper (Design Lead ruling). */
+/** The Regular season stepper's reason, shown under it only while it is at its floor (seasonStep.ts, seasonLimitReasons). */
 export function roundRobinCaption(minWeeks: number): string {
   return `At least ${minWeeks} weeks, so every team plays every other team once.`;
 }
 
-/** "2 to 7, up to your expected managers" (board). */
+/** "2 to 7, up to your expected managers" (board): the Playoff teams stepper's reason, shown under it only while it is at
+ * an end (seasonStep.ts, seasonLimitReasons). */
 export function playoffTeamsSub(size: number): string {
   return `2 to ${size}, up to your expected managers`;
-}
-
-/** "Season: 13 weeks + 2 playoff weeks. We check this again when the draft starts." (board) */
-export function seasonCheckCaption(regularWeeks: number, playoffTeams: number): string {
-  return `${seasonCaption(regularWeeks, playoffTeams)}. We check this again when the draft starts.`;
-}
-
-/** The second line of the bye heads-up in Create league (board): the member
- * count isn't final, so it says the notice is based on the expected size. */
-export function byeExpectedCopy(managers: number): string {
-  return `Based on the ${managers} you expect. This updates as people join.`;
 }
 
 /** UNUSED until Duration is built: PRODUCT_RULES, "Duration is hidden in Create league until

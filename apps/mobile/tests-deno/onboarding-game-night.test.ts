@@ -196,7 +196,7 @@ Deno.test('capture knobs: a release bundle (isDev false) reads nothing, whatever
 
 Deno.test('capture knobs: recognised values only', () => {
   const k = parseCaptureKnobs(true, { card: '3', create: 'tiers', joinAuto: 'find', signupPaused: '1', usernamePrefill: ' roberto ' });
-  assertEquals(k, { onboardingCard: 2, create: 'tiers', joinAuto: 'find', signupPaused: true, usernamePrefill: 'roberto', pushAsk: false, confirmed: null, invite: null });
+  assertEquals(k, { onboardingCard: 2, create: 'tiers', joinAuto: 'find', signupPaused: true, usernamePrefill: 'roberto', pushAsk: false, confirmed: null, invite: null, createSeason: null });
   assertEquals(parseCaptureKnobs(true, { confirmed: 'chip' }).confirmed, 'chip');
   assertEquals(parseCaptureKnobs(true, { confirmed: 'notice' }).confirmed, 'notice');
   assertEquals(parseCaptureKnobs(true, { confirmed: 'x' }).confirmed, null);
@@ -335,7 +335,8 @@ Deno.test('the signups-paused capture knob takes the real refusal path (scrolls 
 Deno.test('"first-round byes" never splits at the hyphen; the copy itself is unchanged', () => {
   assertEquals(keepHyphens('the top 2 seeds get first-round byes'), `the top 2 seeds get first-${WORD_JOINER}round byes`);
   assertEquals(keepHyphens('6 teams · −$38.88'), '6 teams · −$38.88', 'only letter-hyphen-letter');
-  assert(src('app/create-league.tsx').includes("{keepHyphens(playoffLine(playoffTeams) ?? '')}"));
+  // The Season step's one bye line (B, 2026-11-10) is the playoff line's bye clause, kept whole the same way.
+  assert(src('app/create-league.tsx').includes('{keepHyphens(byeLine)}'));
 });
 
 Deno.test('Forgot / Reset password draw their EmptyState icon with sp/Icon', () => {

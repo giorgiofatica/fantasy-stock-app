@@ -12,13 +12,11 @@ import {
   CREATE_STEP_COPY,
   DURATION_OPTIONS,
   MANAGER_SIZES,
-  byeExpectedCopy,
   leagueNameError,
   roundRobinCaption,
   nextStep,
   playoffTeamsSub,
   prevStep,
-  seasonCheckCaption,
   stakesStepError,
   stepCaption,
   stepManagers,
@@ -54,11 +52,11 @@ Deno.test('back walks backward and the first step dismisses (no welcome step)', 
   assertEquals(prevStep('league'), null);
 });
 
-Deno.test('rule 12: League, Draft and Stakes carry no subtitle; Season keeps the board\'s until its own build', () => {
+Deno.test('rule 12: no step carries a subtitle (Season\'s went with the strip, B)', () => {
   assertEquals(CREATE_STEP_COPY.league, { title: 'League' });
   assertEquals(CREATE_STEP_COPY.draft, { title: 'Draft' });
   assertEquals(CREATE_STEP_COPY.stakes, { title: 'Stakes' });
-  assertEquals(CREATE_STEP_COPY.season, { title: 'Season', subtitle: 'How big the league is and how long it runs.' });
+  assertEquals(CREATE_STEP_COPY.season, { title: 'Season' });
 });
 
 Deno.test('every step has a title', () => {
@@ -140,14 +138,6 @@ Deno.test('weeks step from the shown value and hold at the floor', () => {
 
 Deno.test('playoff teams sub-line (board)', () => {
   assertEquals(playoffTeamsSub(7), '2 to 7, up to your expected managers');
-});
-
-Deno.test('season caption gains the board\'s recheck sentence', () => {
-  assertEquals(seasonCheckCaption(13, 6), 'Season: 13 weeks + 3 playoff weeks. We check this again when the draft starts.');
-});
-
-Deno.test('the bye notice second line (board), based on the expected size', () => {
-  assertEquals(byeExpectedCopy(7), 'Based on the 7 you expect. This updates as people join.');
 });
 
 Deno.test('durations are exactly the CHECK values, in order', () => {
