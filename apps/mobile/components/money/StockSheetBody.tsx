@@ -48,7 +48,7 @@ import { myHoldingsFromLedger, stockPosition } from '@/lib/money/portfolioModel'
 import { COPY } from '@/lib/money/moneyCopy';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
 import { fetchPreview, type TradeBody } from '@/lib/money/recordTrade';
-import { buyReviewOneShare, buyReviewPerSlot, buyReviewTier, sellReview, type TradeReview } from '@/lib/money/reviewModel';
+import { buyReviewOneShare, buyReviewPerSlot, buyReviewTier, sellReview, settledReview, type TradeReview } from '@/lib/money/reviewModel';
 import { fillsSlotLine, tierRefusalSentence } from '@/lib/money/tierContract';
 import { categoryNameOf, loadCategoryNames } from '@/lib/money/categoryNames';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -451,9 +451,11 @@ export function StockSheetBody({
       const doneTitle = open.kind === 'sell' ? `Sold ${symbol}` : `Bought ${symbol}`;
       const ownerName = data.facts?.owner?.kind === 'other' ? (data.facts.owner.name ?? undefined) : undefined;
       const presentation = reviewPresentation(trade.state, open.review, { title: doneTitle, symbol, resolve: categoryNameOf, ownerName });
+      // The confirmation shows what the server filled, not the reviewed estimate (one number per sale).
+      const shown = trade.state.kind === 'done' ? settledReview(open.review, trade.state.trade) : open.review;
       return (
         <TradeReviewPanel
-          review={open.review}
+          review={shown}
           presentation={presentation}
           onSubmit={submitNow}
           onRetry={retryReview}
