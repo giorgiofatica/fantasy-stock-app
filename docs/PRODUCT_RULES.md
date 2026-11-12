@@ -123,8 +123,12 @@ building anything, and don't reopen a rule without him.
   So: no empty band above the close control; no hard line that slices the content as it
   scrolls under a pinned header; the way out stays easy to reach. He raised it as the same
   problem seen on other screens, so it is a rule for every tall sheet, not only League
-  settings. The form it takes is his to pick from the Design Lead's board (three directions
-  were sketched for him the same day: nothing pinned, a floating close, a slim bar).
+  settings. Shown three directions the same day (A nothing pinned, B a floating close, C a
+  slim bar), he picked "b": no bar; a small round close button floats in the sheet's top
+  corner and stays there; the content scrolls the full height under it and fades softly as
+  it passes, so nothing is sliced. The Design Lead draws it for his sign-off (every tall
+  sheet, both themes, the largest text size, and what a form that can save shows in place of
+  "Cancel").
 - **Nothing tappable does nothing** (2026-10-12): "make sure that there's no clickable
   actions or links or anything that's clickable in the app that then doesn't do anything.
   Like if there's any buttons or links or anything that should bring a pop-up or a redirect
