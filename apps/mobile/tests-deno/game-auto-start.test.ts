@@ -183,7 +183,7 @@ Deno.test('room open (board AutoLobby open)', () => {
     tag: 'Draft room open · starts in',
     clock: '42:18',
     starting: null,
-    lines: ['The draft starts automatically at Sat, Oct 3 · 7:00 PM ET.'],
+    lines: ['Sat, Oct 3 · 7:00 PM ET'], // the time as a value, like the scheduled card (rule 12, the DL's room-open ruling)
   });
 });
 
@@ -259,22 +259,8 @@ Deno.test('postponed: the time it wasn\'t ready at (room-open time, or T for a s
   assertEquals(postponedAtMs(null), null);
 });
 
-Deno.test('members once postponed, on Home: no "and on your Home" (Design Lead, PR #135)', () => {
-  // Rule 12 (the sweep, row 6): Home drops "You'll see it here, with at least an hour's notice."; the lobby's sentence is not on the board's list.
-  assertEquals(memberPostponedCopy('Roberto B.', 'home'), {
-    tag: 'Draft postponed',
-    title: 'Roberto B. will pick a new time.',
-    line: null,
-  });
-});
-
-Deno.test('members once postponed, in the lobby (board MemberPostponed)', () => {
-  assertEquals(memberPostponedCopy('Roberto B.', 'lobby'), memberPostponedCopy('Roberto B.'));
-  assertEquals(memberPostponedCopy('Roberto B.', 'lobby'), {
-    tag: 'Draft postponed',
-    title: 'Roberto B. will pick a new time.',
-    line: "You'll see it here and on your Home, with at least an hour's notice.",
-  });
+Deno.test('members once postponed: the tag and the title alone, on Home and in the lobby (rule 12, the sweep row 6 and the DL\'s lobby ruling)', () => {
+  assertEquals(memberPostponedCopy('Roberto B.'), { tag: 'Draft postponed', title: 'Roberto B. will pick a new time.' });
   assertEquals(memberPostponedCopy(COMMISSIONER_FALLBACK).title, 'The commissioner will pick a new time.');
 });
 

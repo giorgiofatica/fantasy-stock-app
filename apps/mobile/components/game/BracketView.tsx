@@ -19,8 +19,6 @@ const ROW_TEXT_CAP = 1.3;
 
 export interface BracketViewProps {
   bracket: Bracket;
-  /** The explanatory line under the bracket (new copy, flagged). */
-  caption: string | null;
   myUserId: string;
 }
 
@@ -30,7 +28,7 @@ export interface BracketViewProps {
  * never a card under a second heading. GS-7: once the Final is scored, one row under it,
  * the trophy and "{name} · Champion". Your side is shaded (B: you vs someone), win or
  * lose; bold marks the winner, so the shade alone marks you (board #call-manager-row). */
-export function BracketView({ bracket, caption, myUserId }: BracketViewProps) {
+export function BracketView({ bracket, myUserId }: BracketViewProps) {
   const { colors } = useTheme();
   const rounds = bracketRounds(bracket);
   const champion = bracketChampion(bracket);
@@ -57,7 +55,6 @@ export function BracketView({ bracket, caption, myUserId }: BracketViewProps) {
           <Text variant="callout" maxFontSizeMultiplier={ROW_TEXT_CAP} style={styles.bold}>{championLine(champion.name, GAME_COPY.champion)}</Text>
         </View>
       ) : null}
-      {caption ? <Text variant="caption" maxFontSizeMultiplier={ROW_TEXT_CAP} tone="secondary">{caption}</Text> : null}
     </View>
   );
 }

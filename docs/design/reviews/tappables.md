@@ -16,14 +16,14 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | Where | Element | Prop | Handler | Destination | Disabled when |
 |---|---|---|---|---|---|
 | `app/(tabs)/index.tsx:278` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
-| `app/(tabs)/league.tsx:199` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
-| `app/(tabs)/league.tsx:217` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
-| `app/(tabs)/league.tsx:222` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:232` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:275` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/league.tsx:462` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:530` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:541` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:198` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
+| `app/(tabs)/league.tsx:216` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
+| `app/(tabs)/league.tsx:221` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:231` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:273` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:460` | Button | onPress | `auto.reread` | prop auto.reread |  |
+| `app/(tabs)/league.tsx:528` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:539` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
 | `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/(tabs)/matchup.tsx:293` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
@@ -132,7 +132,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/SetupRows.tsx:181` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:240` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
 | `components/game/SetupScaffold.tsx:52` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
-| `components/game/StandingsTable.tsx:73` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
+| `components/game/StandingsTable.tsx:74` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
 | `components/game/Stepper.tsx:76` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
 | `components/game/Stepper.tsx:84` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
 | `components/home/DraftingCard.tsx:85` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |

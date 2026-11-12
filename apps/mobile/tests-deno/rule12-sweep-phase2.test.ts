@@ -137,3 +137,48 @@ Deno.test('row 7: the order lines have no producer left anywhere (Home\'s "The d
     assertFalse(s.includes('orderSetLine') || s.includes('orderWasSetLine'), `${f} still produces an order line`);
   }
 });
+
+// ── rows 14-15 and the DL's rulings on the unlisted lines ────────────────────────────────────────────────
+
+Deno.test('rows 14-15 and the unlisted (a)(b)(c): every line the DL ruled CUT is gone from the mobile source', () => {
+  const cut: [string, string][] = [
+    ['14', 'Includes your draft picks'],
+    ['14', 'A stock has one owner per league'],
+    ['15', 'Ranked by win percentage, then head-to-head'],
+    ['15', 'in the standings make the playoffs. A tied game goes to the higher seed'],
+    ['15', 'The playoffs decide the top three'],
+    ['a', "You'll see it here and on your Home"],
+    ['b', 'You can set the draft once everyone has replied'],
+    ['c', 'The draft starts automatically at'],
+  ];
+  for (const [row, text] of cut) assertFalse(app.includes(text), `${row}: "${text}" is still in the source`);
+});
+
+Deno.test('rows 14-15 and the unlisted lines: what the DL ruled KEEP stays, word for word', () => {
+  const money = strip(SOURCES['lib/money/moneyCopy.ts']);
+  assert(money.includes('budgetLeftToSpend: (amount: string) => `${amount} of your budget is left to spend.`,'), '$… of your budget is left to spend.');
+  assert(money.includes('alreadyOwned: (owner: string, symbol: string) => `${owner} already owns ${symbol}.`,'), 'the first sentence of the refusal');
+  assert(money.includes('ownerBlocksBuy: (name: string, symbol: string) => `${name} owns ${symbol}.`,'));
+  assert(strip(SOURCES['components/game/ScheduleList.tsx']).includes('Then the playoffs: {playoffLine}.'), 'the Schedule\'s "Then the playoffs: …"');
+  assert(strip(SOURCES['lib/game/autoStart.ts']).includes("isCommissioner ? 'Set a draft time in League settings.'"), '(d) "Set a draft time in League settings."');
+  assert(strip(SOURCES['lib/game/autoStart.ts']).includes('line: `The draft starts at ${etTimeLabel(t)}.`,'), '(e) the at-risk "Draft room opens in" card\'s line');
+  // History keeps its own "After the playoffs" line (GS-8b, a different place); Standings' header does not show it.
+  assert(strip(SOURCES['components/game/HistoryList.tsx']).includes('GAME_COPY.finalStandingsSubtitle'));
+  assert(strip(SOURCES['app/(tabs)/league.tsx']).includes('header={{ title: GAME_COPY.finalStandingsTitle }}'));
+});
+
+Deno.test('(b) the member list\'s MEMBER_DRAFT_LINE is LEFT: it can show while the Change control does not (the commissioner\'s name unknown)', () => {
+  const rn = strip(SOURCES['lib/game/renewal.ts']);
+  assert(rn.includes('change: memberIn && !set && rosterCommissionerName(r.people) !== null,'), 'Change needs the commissioner\'s name');
+  assert(rn.includes('memberLine: memberIn && !set,'), 'the line does not');
+  assert(strip(SOURCES['components/game/RenewalRoster.tsx']).includes('{view.memberLine ? <Text variant="caption" tone="secondary">{MEMBER_DRAFT_LINE}</Text> : null}'));
+  // The commissioner's caption is the names alone.
+  assert(strip(SOURCES['components/game/RenewalRoster.tsx']).includes('<Text variant="caption" tone="secondary">{waitingOnSentence(waiting)}</Text>'));
+});
+
+Deno.test('(a)(c) lobby and room-open cards: the postponed copy is one function with no line, and the room-open card shows the time as a value', () => {
+  const auto = strip(SOURCES['lib/game/autoStart.ts']);
+  assert(auto.includes('export function memberPostponedCopy(commissionerName: string): { tag: string; title: string } {'));
+  assert(auto.includes("lines: [when] };"));
+  assertFalse(strip(SOURCES['app/(tabs)/league.tsx']).includes("memberPostponedCopy(commissionerName, 'lobby')"));
+});

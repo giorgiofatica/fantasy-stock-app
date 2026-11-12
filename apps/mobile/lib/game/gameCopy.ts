@@ -22,7 +22,6 @@ export const COPY_SOURCES = {
   finalStandingsSubtitle: 'board',
   champion: 'board',
   runnerUp: 'board',
-  finalStandingsCaption: 'board',
 } as const;
 
 const MINUS = '−';
@@ -81,6 +80,4 @@ export const COPY = {
   finalStandingsSubtitle: 'After the playoffs',
   champion: 'Champion',
   runnerUp: 'Runner-up',
-  finalStandingsCaption:
-    'The playoffs decide the top three: the champion, the runner-up, then the higher seed of the two semifinal losers. Everyone else keeps their regular-season place. Records and gains are the regular season’s.',
 } as const;

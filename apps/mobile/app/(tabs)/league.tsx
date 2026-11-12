@@ -89,7 +89,6 @@ const SEGMENT_LABEL: Record<'standings' | 'schedule' | 'playoffs' | 'history', s
  * at XL no row on the tab outgrows the figures (the checklist's "The standout stays loudest"). */
 const LEAGUE_ROW_MAX_SCALE = 1.5;
 
-const STANDINGS_CAPTION = 'Ranked by win percentage, then head-to-head, then season gain. This is also the playoff seeding.';
 
 export default function LeagueScreen() {
   const { sheetLeagues, activeLeagueId, activeLeague, refresh, setActiveLeagueId, leagues, loading, loadFailed } = useLeagueContext();
@@ -234,7 +233,6 @@ export default function LeagueScreen() {
                 <BracketView
                   bracket={bracket.bracket}
                   myUserId={user?.id ?? ''}
-                  caption={activeLeague?.playoff_teams ? `The top ${activeLeague.playoff_teams} in the standings make the playoffs. A tied game goes to the higher seed.` : null}
                 />
               ) : (
                 <TilesSkeleton rows={4} />
@@ -243,16 +241,16 @@ export default function LeagueScreen() {
               standings.kind === 'final' ? (
                 <StandingsTable
                   rows={standings.rows}
-                  header={{ title: GAME_COPY.finalStandingsTitle, subtitle: GAME_COPY.finalStandingsSubtitle }}
-                  caption={GAME_COPY.finalStandingsCaption}
+                  header={{ title: GAME_COPY.finalStandingsTitle }}
                   seasonComplete
                   showMove={false}
-                  // "After the playoffs" says what this order is; no "Through Week N" beside it (W4 DL gate).
+                  // The title says what this order is (rule 12, row 15: its "After the playoffs" subtitle and the top-three paragraph are cut);
+                  // no "Through Week N" beside it (W4 DL gate).
                   throughLabel={null}
                   onPinChange={setPinnedRow}
                 />
               ) : standings.kind === 'regular' ? (
-                <StandingsTable rows={standings.rows} caption={STANDINGS_CAPTION} seasonComplete={standings.medals} throughLabel={throughLabel} nothingScored={throughWeek === 0} onPinChange={setPinnedRow} />
+                <StandingsTable rows={standings.rows} seasonComplete={standings.medals} throughLabel={throughLabel} nothingScored={throughWeek === 0} onPinChange={setPinnedRow} />
               ) : (
                 // GS-4: a finished season's order waits for the bracket (never the regular medals first).
                 <TilesSkeleton rows={Math.max(1, rows.length)} />
@@ -497,8 +495,8 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
 
         {view?.memberPostponed ? (
           (() => {
-            const c = memberPostponedCopy(commissionerName, 'lobby');
-            return <DraftCountdownCard tag={c.tag} title={c.title} lines={[]} notes={c.line ? [c.line] : []} />;
+            const c = memberPostponedCopy(commissionerName);
+            return <DraftCountdownCard tag={c.tag} title={c.title} lines={[]} notes={[]} />;
           })()
         ) : null}
 

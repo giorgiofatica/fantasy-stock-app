@@ -40,8 +40,9 @@ Deno.test('the room-opens line is gone (rule 12, the sweep row 5): the card neve
 });
 
 Deno.test("members' postponed copy is Home's (no \"and on your Home\")", () => {
-  assertEquals(homeSrc.includes("memberPostponedCopy(commissionerName, 'home')"), true);
-  assertEquals(homeSrc.includes('memberPostponedCopy(commissionerName)'), false);
+  // One copy now (no surface argument): the lobby's twin of the line is cut too.
+  assertEquals(homeSrc.includes('memberPostponedCopy(commissionerName)'), true);
+  assertEquals(homeSrc.includes("memberPostponedCopy(commissionerName, 'home')"), false);
 });
 
 Deno.test('commissioner: postponed REPLACES the draft card; at risk sits ON TOP of it', () => {

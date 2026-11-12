@@ -319,14 +319,13 @@ export function PortfolioScreen() {
         <Card>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`${COPY.tradeHistory}, ${COPY.includesDraftPicks}`}
+            accessibilityLabel={COPY.tradeHistory}
             onPress={() => router.push('/trade-history')}
             style={({ pressed }) => [styles.linkRow, { opacity: pressed ? 0.7 : 1 }]}
             testID="portfolio-trade-history"
           >
             <View style={styles.linkText}>
               <Text variant="callout" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.bold}>{COPY.tradeHistory}</Text>
-              <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{COPY.includesDraftPicks}</Text>
             </View>
             <Icon name="chevronRight" size="callout" tone="text2" />
           </Pressable>

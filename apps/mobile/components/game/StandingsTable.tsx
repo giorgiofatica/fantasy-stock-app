@@ -22,13 +22,14 @@ import { gainColumnWidth, MOVE_CELL, RANK_CELL, RECORD_PT, ROW_GAP, ROW_PAD, fig
 export interface StandingsTableProps {
   rows: StandingsRow[];
   /** Board copy under the table, verbatim. */
-  caption: string;
+  /** Rule 12 (row 15): no explaining line under a standings list; kept only as an optional prop for a caller that has a fact to say. */
+  caption?: string | null;
   /** Medals (§9A) show ONLY when the season is complete. */
   seasonComplete: boolean;
   /** UX rule 7: your row while it should be pinned at the bottom (else null). */
   onPinChange?: (row: StandingsRow | null) => void;
-  /** Final standings (GS-4): "Final standings" with "After the playoffs" on the right. */
-  header?: { title: string; subtitle: string };
+  /** Final standings (GS-4): "Final standings". Its "After the playoffs" subtitle is cut (rule 12, row 15); the optional subtitle stays for a caller with a fact to say. */
+  header?: { title: string; subtitle?: string };
   /** The ▲/▼ column. Off for final standings: the board's frame has none (GS-4/GS-5). */
   showMove?: boolean;
   /** The column head's "Through Week N", or null while nothing is scored (leagueView). */
@@ -137,7 +138,7 @@ export function StandingsTable({ rows, caption, seasonComplete, onPinChange, hea
       {header ? (
         <View style={styles.header}>
           <Text variant="headline" style={styles.headerTitle} accessibilityRole="header">{header.title}</Text>
-          <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>{header.subtitle}</Text>
+          {header.subtitle ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>{header.subtitle}</Text> : null}
         </View>
       ) : null}
       {/* The board's column head, on the rows' own grid. Decorative for VoiceOver: each row
@@ -163,7 +164,7 @@ export function StandingsTable({ rows, caption, seasonComplete, onPinChange, hea
         ))}
       </View>
       {/* Capped at 1.6× (19.2pt) so the line under the list never outgrows the rows' gains (19.5pt). */}
-      <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6} style={styles.caption}>{caption}</Text>
+      {caption ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6} style={styles.caption}>{caption}</Text> : null}
     </View>
   );
 }

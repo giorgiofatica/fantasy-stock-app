@@ -155,7 +155,7 @@ export function PreDraftCard({ leagueId, inviteCode, draftDate, numParticipants,
   function renderBlock(b: PreDraftBlock): ReactNode {
     switch (b) {
       case 'postponedTitle':
-        return <Text variant="title">{memberPostponedCopy(commissionerName, 'home').title}</Text>;
+        return <Text variant="title">{memberPostponedCopy(commissionerName).title}</Text>;
       case 'noDate':
         // Rule 12 (the sweep, row 6): the commissioner's card is the title and "Set draft time" (the button says it); a member's line names
         // who sets it. GS-11: no draft block while a renewal's replies are pending (the counts card says why).
@@ -231,7 +231,7 @@ export function PreDraftCard({ leagueId, inviteCode, draftDate, numParticipants,
       <Card style={styles.card}>
         <View style={styles.header}>
           <Text variant="tag" style={{ color: colors.liveText }}>
-            {view?.memberPostponed ? memberPostponedCopy(commissionerName, 'home').tag : PRE_DRAFT_TAG}
+            {view?.memberPostponed ? memberPostponedCopy(commissionerName).tag : PRE_DRAFT_TAG}
           </Text>
         </View>
         {blocks.map((b) => <View key={b}>{renderBlock(b)}</View>)}

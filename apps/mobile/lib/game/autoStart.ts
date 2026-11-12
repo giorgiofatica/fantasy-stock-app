@@ -182,12 +182,12 @@ export interface CountdownCopy {
 /** Board AutoLobby: before the room, room open, at 0. */
 export function countdownCopy(phase: 'scheduled' | 'room_open' | 'starting', startsAt: string, serverNowMs: number): CountdownCopy {
   const t = new Date(startsAt).getTime();
-  const auto = `The draft starts automatically at ${etWhenLabel(t)}.`;
   // UX rule 12 (the sweep, row 7): before the room opens the card shows the time as a value, "Sat, Oct 3 · 7:00 PM ET" (the same line as
   // Home); "The draft room opens at 6:00 PM ET, when the order is set." is cut (the push, and the card itself, change when it opens).
   const when = etWhenLabel(t);
   if (phase === 'starting') return { tag: 'Draft starts in', clock: '00:00', starting: 'Starting the draft', lines: [] };
-  if (phase === 'room_open') return { tag: 'Draft room open · starts in', clock: startClock(t - serverNowMs), starting: null, lines: [auto] };
+  // Rule 12 (the DL's ruling on the room-open card): the time as a value, exactly as the scheduled card shows it; "The draft starts automatically at" is cut.
+  if (phase === 'room_open') return { tag: 'Draft room open · starts in', clock: startClock(t - serverNowMs), starting: null, lines: [when] };
   return {
     tag: 'Draft starts in',
     clock: startClock(t - serverNowMs),
@@ -470,14 +470,10 @@ export function deadlineCopy(startsAt: string, serverNowMs: number): { tag: stri
 /** Board MemberPostponed. The line depends on where it shows: the lobby
  * says "here and on your Home"; Home itself drops "and on your Home"
  * (self-referential there; Design Lead, PR #135). */
-export function memberPostponedCopy(commissionerName: string, surface: 'lobby' | 'home' = 'lobby'): { tag: string; title: string; line: string | null } {
-  return {
-    tag: 'Draft postponed',
-    title: `${commissionerName} will pick a new time.`,
-    // UX rule 12 (the sweep, row 6): Home drops "You'll see it here, with at least an hour's notice." (how it works; the time shows when set).
-    // The lobby's sentence is the same kind of line and is not on the board's list: it is left for the gate.
-    line: surface === 'home' ? null : "You'll see it here and on your Home, with at least an hour's notice.",
-  };
+export function memberPostponedCopy(commissionerName: string): { tag: string; title: string } {
+  // UX rule 12 (the sweep, row 6 and the DL's ruling on the lobby's twin): no line under the title, on Home or in the lobby. "You'll see it
+  // here (and on your Home), with at least an hour's notice." said how it works; the time shows when it is set.
+  return { tag: 'Draft postponed', title: `${commissionerName} will pick a new time.` };
 }
 
 /** Who to name when the commissioner's name isn't known (backend's fallback). */

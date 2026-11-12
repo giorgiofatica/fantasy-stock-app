@@ -66,20 +66,18 @@ Deno.test('History: no playoff rows, or a Final the server\'s champion did not w
 
 Deno.test('the board\'s #call-medals copy, verbatim', () => {
   assertEquals(COPY.finalStandingsTitle, 'Final standings');
+  // The subtitle string stays for History's own line (GS-8b); Standings' header no longer shows it (rule 12, row 15).
   assertEquals(COPY.finalStandingsSubtitle, 'After the playoffs');
   assertEquals(COPY.champion, 'Champion');
   assertEquals(COPY.runnerUp, 'Runner-up');
-  assertEquals(
-    COPY.finalStandingsCaption,
-    'The playoffs decide the top three: the champion, the runner-up, then the higher seed of the two semifinal losers. Everyone else keeps their regular-season place. Records and gains are the regular season’s.',
-  );
+  assertEquals('finalStandingsCaption' in COPY, false); // the top-three paragraph is cut (rule 12, row 15)
 });
 
 Deno.test('the three screens read the one order (source guards)', () => {
   const league = SOURCES['app/(tabs)/league.tsx'];
   assert(league.includes('const standings = standingsView({'));
-  assert(league.includes("header={{ title: GAME_COPY.finalStandingsTitle, subtitle: GAME_COPY.finalStandingsSubtitle }}"));
-  assert(league.includes('caption={GAME_COPY.finalStandingsCaption}'));
+  assert(league.includes('header={{ title: GAME_COPY.finalStandingsTitle }}'));
+  assert(!league.includes('finalStandingsCaption'));
   assert(league.includes("segment === 'playoffs' || (completed && segment === 'standings'),"));
   assert(league.includes('playoffs={seasonPlayoffs.status === \'ready\' ? seasonPlayoffs.byLeague : null}'));
   const history = SOURCES['components/game/HistoryList.tsx'];
