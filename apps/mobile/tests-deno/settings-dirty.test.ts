@@ -88,3 +88,53 @@ Deno.test('Save state follows the form through a rename: loaded -> typed -> rety
   name = 'Serie A Traders';
   assertEquals(save(), 'off');
 });
+
+// ── Slots: each of the four fields alone, at any position, and the count ─────────────────────────
+
+const slot = (over: Partial<SettingsForm['slots'][number]> = {}) => ({ slotCount: '2', priceMin: '100', priceMax: '200', categoryId: 'tech', ...over });
+const twoSlots = (): SettingsForm => ({ ...loaded(), slots: [slot(), slot({ slotCount: '1', priceMin: '', priceMax: '', categoryId: '' })] });
+
+Deno.test('dirty: changing ONE slot field alone turns Save on, and putting it back turns it off (each of the four, at each position)', () => {
+  const fields = {
+    slotCount: '3',
+    priceMin: '150',
+    priceMax: '250',
+    categoryId: 'energy',
+  } as const;
+  for (const index of [0, 1]) {
+    for (const [field, changed] of Object.entries(fields)) {
+      const edited = twoSlots();
+      edited.slots[index] = { ...edited.slots[index], [field]: changed };
+      assertEquals(settingsDirty(twoSlots(), edited), true, `slot ${index} ${field}: a change turns Save on`);
+      // Back to the original value: equal to what was loaded again, so Save is grey.
+      edited.slots[index] = { ...edited.slots[index], [field]: twoSlots().slots[index][field as keyof ReturnType<typeof slot>] };
+      assertEquals(settingsDirty(twoSlots(), edited), false, `slot ${index} ${field}: reverted, Save is grey`);
+    }
+  }
+});
+
+Deno.test('dirty: clearing a price bound or the category (an emptied string) is a change, and so is filling an empty one', () => {
+  const base = twoSlots();
+  for (const field of ['priceMin', 'priceMax', 'categoryId'] as const) {
+    const cleared = twoSlots();
+    cleared.slots[0] = { ...cleared.slots[0], [field]: '' };
+    assertEquals(settingsDirty(base, cleared), true, `${field} cleared`);
+    const filled = twoSlots();
+    filled.slots[1] = { ...filled.slots[1], [field]: '9' };
+    assertEquals(settingsDirty(base, filled), true, `${field} filled`);
+  }
+});
+
+Deno.test('dirty: adding a slot or removing one (the count of slots) turns Save on; a form with the same slots in the same order is clean', () => {
+  const base = twoSlots();
+  assertEquals(settingsDirty(base, { ...base, slots: [...base.slots, slot({ slotCount: '4' })] }), true, 'one more slot');
+  assertEquals(settingsDirty(base, { ...base, slots: base.slots.slice(0, 1) }), true, 'one fewer slot');
+  assertEquals(settingsDirty(base, { ...base, slots: [] }), true, 'all removed');
+  assertEquals(settingsDirty({ ...base, slots: [] }, base), true, 'from none to two');
+  assertEquals(settingsDirty(base, { ...base, slots: base.slots.map((s) => ({ ...s })) }), false, 'copies of the same slots');
+});
+
+Deno.test('dirty: swapping two different slots (same set, other order) is a change: order is part of the form', () => {
+  const base = twoSlots();
+  assertEquals(settingsDirty(base, { ...base, slots: [base.slots[1], base.slots[0]] }), true);
+});
