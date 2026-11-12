@@ -118,7 +118,9 @@ building anything, and don't reopen a rule without him.
   or anything like that, it needs to be active. We can't have buttons that don't do
   anything, links that don't do anything." Every control that looks tappable either does its
   job or is not shown (a control that can't act in the current state is hidden, or disabled
-  with the reason beside it; never a silent no-op). Audited once the UI redesign lands
+  with the reason beside it; never a silent no-op; one exception: a stepper at its end greys
+  out its − or + with no reason beside it, per "Steppers at their ends: no line" under the
+  Season step, 2026-11-11). Audited once the UI redesign lands
   (plan `plans/2026-10-12-visual-language-reset.md`, W8) and checked at every gate after.
 - **1.3 = the visual-language reset** (2026-10-12): "let's do the 1.3." The Game Night
   redesign ships as 1.3 with every screen on the new skin in both themes, after Giorgio's
@@ -891,6 +893,22 @@ building anything, and don't reopen a rule without him.
     that stepper only while it is at the end ("2 to 6, up to your expected managers"; "At
     least 5 weeks, so every team plays every other team once."). Managers at 4 or 16 has no
     reason line yet: new words, for Giorgio, when it is built.
+  - **Managers at 4 and 16: no line** (2026-11-11, both options on `#call-managers-limit`
+    rejected): "I don't like this idea of adding in like this smaller subtext to explain things
+    that don't need to be explained. Like, if there needs to be an extra explanation for
+    something, I want it to be in like a little information thing or something that the user
+    would have to click to then see, because adding in those right now, it just adds clutter.
+    Like, no one wants to run something as a bunch of tiny little subheaders." So − greys out
+    at 4 and + at 16, with nothing beside them.
+  - **Steppers at their ends: no line** (2026-11-11, "option B" on `#call-limit-lines`, shown A
+    keep the two limit lines and B drop them, at Playoff teams 6 of 6 and Regular season 5
+    weeks): the two approved limit lines go too, "2 to 6, up to your expected managers" and
+    "At least 5 weeks, so every team plays every other team once." A stepper at its end just
+    greys out its − or +, with nothing beside it, and nothing is added to the Playoff teams
+    "i". This overrides, for steppers at their ends, the "disabled with the reason beside it"
+    clause of "Nothing tappable does nothing": the greyed button shows it can't go further, so
+    it is still never a silent no-op. So the bullet above ("the reason shows under that stepper
+    only while it is at the end") no longer holds.
   - Removed: "How many you expect, you included" and "We check this again when the draft
     starts." (the draft-time blockers card catches a league that came in smaller).
   - Not yet decided: sweeping the same pattern from the Draft step, the Duration lengths, League

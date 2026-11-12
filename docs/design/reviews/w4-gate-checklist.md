@@ -76,7 +76,9 @@ The full audit (W8) runs once after the whole redesign; each gate still checks i
 a table of every element that looks tappable (rows, chips, pills, chevrons, avatars, the
 league pill, tabs, links, the player card's actions) → what it does, captured in the tap-
 through recording. Anything that can't act in the current state is **hidden**, or **disabled
-with the reason beside it**. A silent no-op is a P1.
+with the reason beside it**. A silent no-op is a P1. One exception (Giorgio, 2026-11-11,
+"option B"): a stepper at its end greys out its − or + with **no** reason beside it; a reason
+line there is the finding, not its absence (PRODUCT_RULES, "Steppers at their ends: no line").
 
 ## 5. The §9C mechanical checks (measure, never eyeball)
 
