@@ -11,7 +11,6 @@ import { ICON_GLYPHS, type IconName } from '@/components/sp/logic/icon';
 import { AuthScaffold } from '@/components/shell/AuthScaffold';
 import { Link } from '@/components/shell/Link';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
-import { WARN_TEXT_MAX_SCALE } from '@/components/sp/WarnPanel';
 
 // A dead end that is built like the takeover QUESTION screen (PRODUCT_RULES, "The 'already taken' screen is built like the
 // takeover question", 2026-11-12), so every refusal of the family can share one frame: a 64pt neutral disc with a drawn icon,
@@ -24,16 +23,19 @@ export const REFUSAL_DISC = 64;
 /** The heading's own ceiling: the takeover question's (1.15 of `display`), so the two screens break the same way at XXXL. */
 export const REFUSAL_TITLE_MAX_SCALE = 1.15;
 
+/** The follow-up line's ceiling (board: "grows to twice its size and stops there"), so it never outranks its heading at AX5. */
+export const REFUSAL_LINE_MAX_SCALE = 2;
+
 export interface RefusalScreenProps {
   /** The drawn icon on the disc (a semantic name, never a glyph). */
   icon: IconName;
   /** The sentence the screen says, as the heading. */
   heading: string;
-  /** An optional one-line follow-up under the heading. */
+  /** An optional one-line follow-up under the heading (body, text2, capped at 2x). */
   line?: string;
   /** The docked full-width pill. */
   primary: { label: string; onPress: () => void };
-  /** An optional muted "Not now" under the pill. */
+  /** An optional muted "Not now" under the pill (a 44pt target). */
   secondary?: { label: string; onPress: () => void };
 }
 
@@ -50,12 +52,13 @@ export function RefusalScreen({ icon, heading, line, primary, secondary }: Refus
       }
     >
       <View style={styles.block}>
-        <View testID="refusal-disc" style={[styles.disc, { backgroundColor: colors.inset }]}>
+        {/* A picture only: hidden from VoiceOver (the heading says what the screen is). */}
+        <View testID="refusal-disc" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.disc, { backgroundColor: colors.inset }]}>
           <Ionicons name={ICON_GLYPHS[icon] as React.ComponentProps<typeof Ionicons>['name']} size={Math.round(REFUSAL_DISC * DELETED_GLYPH_RATIO)} color={colors.text2} />
         </View>
         <ScreenTitle style={styles.title} maxFontSizeMultiplier={REFUSAL_TITLE_MAX_SCALE}>{heading}</ScreenTitle>
         {line ? (
-          <Text variant="body" tone="secondary" maxFontSizeMultiplier={WARN_TEXT_MAX_SCALE} style={styles.title}>{line}</Text>
+          <Text variant="body" tone="secondary" maxFontSizeMultiplier={REFUSAL_LINE_MAX_SCALE} style={[styles.title, styles.line]}>{line}</Text>
         ) : null}
       </View>
     </AuthScaffold>
@@ -76,6 +79,10 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
+  },
+  // The board draws the line 6pt under the heading's own spacing (a 16pt gap pulled in by 6): here the block's 12 less 2.
+  line: {
+    marginTop: -space[1],
   },
   actions: {
     gap: space[3],

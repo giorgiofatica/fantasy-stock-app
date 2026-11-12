@@ -11,6 +11,8 @@ export type IconName =
   | 'bell'
   // The deleted manager's default avatar (account deletion W4): a person glyph on a neutral disc.
   | 'person'
+  // The dead-end screens (RefusalScreen): a broken link, the league's trophy (outline: `trophy` is the filled one and `tabLeague*` the tab bar's), a wait, no connection.
+  | 'unlink' | 'league' | 'clock' | 'offline'
   // A password field's show / hide toggle (components/shell/PasswordReveal.tsx): the action it takes.
   | 'eye' | 'eyeOff'
   // The tab bar's four tabs: outline when idle, filled when selected (TabIcon).
@@ -48,6 +50,10 @@ export const ICON_GLYPHS: Record<IconName, string> = {
   // The notifications ask (W4): the bell on its disc.
   bell: 'notifications-outline',
   person: 'person-outline',
+  unlink: 'unlink-outline',
+  league: 'trophy-outline',
+  clock: 'time-outline',
+  offline: 'cloud-offline-outline',
   // The password toggle: an open eye while the password is hidden ("Show password"), the struck-through
   // eye while it is shown ("Hide password").
   eye: 'eye-outline',

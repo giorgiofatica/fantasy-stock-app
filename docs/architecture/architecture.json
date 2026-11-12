@@ -2,26 +2,70 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "3251b6b52c71b9cea78a1d360e2c59b0a1c433e3",
-    "commitShort": "3251b6b5",
+    "commit": "afcd21f0125a1e6bd2fc1bb70a266367ecd24513",
+    "commitShort": "afcd21f0",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/sheet-top-inset",
+    "branch": "feat/takeover-taken-screen",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
+        "path": "apps/mobile/components/shell/InviteArrival.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/shell/RefusalScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/shell/TakeoverLanding.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/icon.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/lib/account/takeoverRefusal.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/lib/refusalSplit.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/account-deletion-dl-fixes.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/account-deletion-wiring.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/onboarding-w4.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/refusal-screen.test.ts"
+      },
+      {
+        "code": "M",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sp-icon.test.ts"
       }
     ],
-    "timestamp": "2026-11-12T19:55:50Z",
-    "sourceHash": "sha256:e59e4901c8e5df64137a7fd27147ea5f1d570e1db398d9885f47f0ef39b5b94f",
+    "timestamp": "2026-11-12T20:42:07Z",
+    "sourceHash": "sha256:1bbf821667d1d762e6c034ddbae00798012c1baacb05d64a5c0974533ea9d715",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 22,
+    "ageHours": 22.8,
     "ageDays": 0.9,
     "staleAfterDays": 14,
     "stale": false,
@@ -21766,9 +21810,9 @@
         "code"
       ],
       "callSites": [
-        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:224",
-        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:245",
-        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:246"
+        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:223",
+        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:244",
+        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:245"
       ]
     },
     {
@@ -21781,7 +21825,7 @@
       "payload": ".from('league_invites').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:249"
+        "apps/mobile/tests-deno/account-deletion-wiring.test.ts:248"
       ]
     },
     {
@@ -24002,10 +24046,10 @@
       "apps/mobile/lib/useLeagues.ts:53 -> leagues.select",
       "apps/mobile/lib/usePortfolio.ts:116 -> drafts.select",
       "apps/mobile/lib/usePortfolio.ts:128 -> trades.select",
-      "apps/mobile/tests-deno/account-deletion-wiring.test.ts:224 -> league_invites.select",
+      "apps/mobile/tests-deno/account-deletion-wiring.test.ts:223 -> league_invites.select",
+      "apps/mobile/tests-deno/account-deletion-wiring.test.ts:244 -> league_invites.select",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:245 -> league_invites.select",
-      "apps/mobile/tests-deno/account-deletion-wiring.test.ts:246 -> league_invites.select",
-      "apps/mobile/tests-deno/account-deletion-wiring.test.ts:249 -> league_invites.insert",
+      "apps/mobile/tests-deno/account-deletion-wiring.test.ts:248 -> league_invites.insert",
       "apps/mobile/tests-deno/leaguemate-team-view.test.ts:193 -> week_snapshots.select",
       "apps/web/src/Header.jsx:110 -> league_members.select",
       "apps/web/src/Header.jsx:118 -> leagues.select",

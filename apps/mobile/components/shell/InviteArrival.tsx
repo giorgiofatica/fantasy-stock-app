@@ -11,8 +11,11 @@ import { FittedTitle } from '@/components/shell/FittedTitle';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { WARN_TEXT_MAX_SCALE, WarnPanel } from '@/components/sp/WarnPanel';
 import { AuthScaffold } from '@/components/shell/AuthScaffold';
+import { RefusalScreen } from '@/components/shell/RefusalScreen';
 import { SocialSignIn } from '@/components/shell/SocialSignIn';
 import { ARRIVAL_COPY, arrivalView } from '@/lib/invite/arrivalView';
+import { INVITE_COPY } from '@/lib/invite/inviteCopy';
+import { splitRefusal } from '@/lib/refusalSplit';
 import type { PendingInvite } from '@/lib/invite/usePendingInvite';
 
 // Onboarding W4 — the signed-out arrival from an invite link (plan 2026-10-14, board frame 1;
@@ -23,7 +26,7 @@ import type { PendingInvite } from '@/lib/invite/usePendingInvite';
 // unavailable, the heading is the generic "You're invited to a league" and the buttons are all there
 // (lib/invite/arrivalView.ts). A link that cannot be used (full, not taking players, a dead link) is
 // the shared WarnPanel in the buttons' place, then "Sign in" for someone who already has an account
-// (a dead link has no invite block, so its panel and link are centred rather than docked).
+// (a dead link has no invite block: it is a RefusalScreen instead, the form every dead end shares).
 // Signing in is the navigation: W3's auto-join takes over at 'ready'.
 
 const DISC = 64;
@@ -48,15 +51,12 @@ export function InviteArrival({ invite }: { invite: PendingInvite }) {
     </>
   );
 
-  // A dead link has no invite block above the actions, so docking them leaves an empty phone: the
-  // panel and "Sign in" are CENTRED instead (the decided board, frame "a dead link"). Every other state
-  // keeps the invite centred and the actions docked.
-  if (!view.title) {
-    return (
-      <AuthScaffold centerBody>
-        <View style={styles.actions}>{actions}</View>
-      </AuthScaffold>
-    );
+  // A dead link takes the dead-end form every takeover and invite link shares (PRODUCT_RULES, "Every dead end on a takeover or invite
+  // link takes the same form"): the broken-link icon, the sentence split into heading and line, "Sign in" docked for someone who
+  // already has an account. "Full" and "not taking players" are about the league, not the link: they keep their panel above Sign in.
+  if (!view.title && view.refusal === INVITE_COPY.dead) {
+    const words = splitRefusal(INVITE_COPY.dead);
+    return <RefusalScreen icon="unlink" heading={words.heading} line={words.line} primary={{ label: ARRIVAL_COPY.signIn, onPress: () => router.push('/login') }} />;
   }
 
   return (
