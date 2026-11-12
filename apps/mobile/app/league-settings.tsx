@@ -25,7 +25,7 @@ import {
 import { seamSaveLeagueSlots, seamUpdateLeague } from '@/lib/game/seamCalls';
 import { settingsSaveOutcome } from '@/lib/game/settingsSave';
 import {
-  COMMISSIONER_ROW, COMMISSIONER_YOU, commissionerRowView, leaveLeagueEnabled, leaveRowView, leaveSheetCopy, leaveWindow, transferCandidates, type LeaveWindow,
+  COMMISSIONER_ROW, COMMISSIONER_YOU, commissionerRowView, knownMemberCount, leaveLeagueEnabled, leaveRowView, leaveSheetCopy, leaveWindow, transferCandidates, type LeaveWindow,
   transferUnknownLine,
 } from '@/lib/game/leaveLeague';
 import { useLeaveLeague } from '@/lib/game/useLeaveLeague';
@@ -191,7 +191,7 @@ export default function LeagueSettingsScreen() {
       />
       <LeaveLeagueSheet
         visible={leaveOpen}
-        copy={leaveSheetCopy(membershipWindow, { leagueName: league.name, commissionerName, seasonNumber: homeSummaryByLeague.get(league.id)?.season_number ?? null, draftDate: league.draft_date })}
+        copy={leaveSheetCopy(membershipWindow, { leagueName: league.name, commissionerName, seasonNumber: homeSummaryByLeague.get(league.id)?.season_number ?? null, draftDate: league.draft_date, memberCount: knownMemberCount(leaving.memberIds) })}
         busy={leaving.busy}
         error={leaveError}
         onLeave={() => void onLeave()}

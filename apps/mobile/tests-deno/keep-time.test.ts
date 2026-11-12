@@ -120,7 +120,7 @@ Deno.test('every clock time the app draws in wrapping text never splits at any w
     'Blockers (risk) line': blockersCardCopy('risk', etTimeLabel(Date.parse(DRAFT))).line ?? '',
     'Draft picker line': pickerLine(Date.parse(DRAFT), SUNDAY - 3 * 86400000).value,
     'League settings Leave row': leaveRowView('before_draft', false, DRAFT).sub ?? '',
-    'Leave sheet bullet': leaveSheetCopy('before_draft', { leagueName: 'Stock Scudetto', commissionerName: 'Giorgio F.', seasonNumber: 1, draftDate: DRAFT })?.bullets[1] ?? '',
+    'Leave sheet bullet': leaveSheetCopy('before_draft', { leagueName: 'Stock Scudetto', commissionerName: 'Giorgio F.', seasonNumber: 1, draftDate: DRAFT, memberCount: 5 })?.bullets[1] ?? '',
     'Trading opens (review / refusal)': COPY.tradingOpens(marketOpensLabel(T) ?? ''),
     "Market's closed (review / stock sheet / player card)": COPY.marketClosedOpens(marketOpensLabel(T) ?? ''),
     'Trade history detail': `${marketOpensLabel('2026-10-09T14:30:00Z')} · 10 sh @ $12.34`,

@@ -119,15 +119,39 @@ export interface LeaveSheetCopy {
   bullets: string[];
 }
 
-/** The leave sheet (board LeaveSheet "pre", LeaveFinished). Null while locked. */
+/** The managers in the league now, you included, for the leave sheet. `memberIds` is the current-members read
+ * (useLeaveLeague: hidden rows are left out), which is empty while it loads or when it failed. You are always in
+ * your own league, so an empty list is UNKNOWN (null), never a count of zero. */
+export function knownMemberCount(memberIds: readonly string[]): number | null {
+  return memberIds.length > 0 ? memberIds.length : null;
+}
+
+/** With four or fewer in it, your leave takes the league below four, and below four the commissioner gets no
+ * choice to go ahead with one fewer team (PRODUCT_RULES: "The Leave sheet when your leave takes the league below
+ * four", 2026-11-12). Only a KNOWN count of five or more keeps the line: an unknown count drops it, since leaving
+ * out a true sentence is safe and showing a false choice is the bug. */
+export function commissionerChoosesOnLeave(memberCount: number | null | undefined): boolean {
+  return typeof memberCount === 'number' && Number.isFinite(memberCount) && memberCount >= 5;
+}
+
+/** The leave sheet (board LeaveSheet "pre", LeaveFinished). Null while locked. `bullets` may be empty (below four,
+ * no draft time): the sheet then renders no list at all. */
 export function leaveSheetCopy(
   window: LeaveWindow,
-  l: { leagueName: string; commissionerName: string; seasonNumber: number | null | undefined; draftDate: string | null | undefined },
+  l: {
+    leagueName: string;
+    commissionerName: string;
+    seasonNumber: number | null | undefined;
+    draftDate: string | null | undefined;
+    /** Active managers in the league now, you included; null/undefined = not loaded or unknown. */
+    memberCount?: number | null;
+  },
 ): LeaveSheetCopy | null {
   const title = `Leave ${l.leagueName}?`;
   if (window === 'before_draft') {
     const at = orderSetAtMs(l.draftDate);
-    const bullets = [`${l.commissionerName} chooses whether to go ahead with one fewer team or invite someone new.`];
+    const bullets: string[] = [];
+    if (commissionerChoosesOnLeave(l.memberCount)) bullets.push(`${l.commissionerName} chooses whether to go ahead with one fewer team or invite someone new.`);
     if (at !== null) bullets.push(`You can rejoin with the invite code until ${orderAtLabel(at)}.`);
     return { title, bullets };
   }
