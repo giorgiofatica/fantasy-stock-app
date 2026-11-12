@@ -23,6 +23,28 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-12
+
+(Times are UTC; 02:00Z is the evening of 2026-11-11 in Giorgio's time zone.)
+
+**Shipped**
+- **`draft-order-notify` (#408, merged 01:47Z) is deployed, byte-verified.** Giorgio deployed it ~02:00Z from the deploy checkout at `c1f0a6e4`; the upload list was 9 files; the Orchestrator downloaded it and compared it with `main`, 9/9 identical; a no-credential POST returns its own `401 {"error":"Unauthorized"}`. It now answers the cron `202 {"accepted":true}` at once and delivers under `EdgeRuntime.waitUntil`; every Expo push is capped at 4 s; a row is pushed at most 3 times (`MAX_PUSH_ATTEMPTS`) even if every settle fails; a settle lands only on the run's own claim (`settle_lost` otherwise); runs can overlap and are proven not to double-send, by tests; enrich and draft-order-notify share `_shared/respond-fast.ts`. It is the first of the pg_net audit follow-ups (STATUS §4 item 28).
+- **Not shown:** the `202` on a real run, and notices still moving from pending to sent. Both wait for the next draft event. `enrich-symbols` was not redeployed: `main` differs from prod there by a refactor-only change, and a redeploy is optional.
+
+**Merged, not confirmed live**
+- Docs and design: #406 (the Design Lead's step-25 board archive), #407 (my record), #409 (the Design Lead's board: the sweep's "Fix these before …" row is KEPT, superseded by step 25 (b)). The two step-25 rulings (the pre-draft card's "A manager left the league", a deadline that names its day) remain build items for 1.3.x, not built.
+
+**Found**
+- `draft_room_notices_due()` does not count the renewal kinds, so "Run it back" pushes wait for a draft event. Open, not started (chip `task_295e0288`, branch `fix/renewal-notice-gate`); it needs a migration and **must be live before phone-pass step 30**.
+- The `draft-order-notify` row in STATUS §2 said "Not scheduled yet (cron deferred)"; the 2026-11-11T21:55Z db-snapshot shows `draft_order_notify` scheduled `* * * * *` and active. The row is corrected.
+
+**Waiting on Giorgio**
+- The phone pass from step 26 (no new page tick since step 25's).
+
+**Next**
+- The next draft event shows whether the 202 and the pending→sent movement work on a real run.
+- The renewal-kinds fix (above) before step 30; the build-15 re-check; the other three pg_net audit follow-ups (`refresh-symbols`, the sweep during an outage, the weekly jobs), not started.
+
 ## 2026-11-11
 
 (Times are UTC; the evening of 2026-11-10 in Giorgio's time zone runs into this date.)
