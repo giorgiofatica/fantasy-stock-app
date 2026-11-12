@@ -12984,13 +12984,13 @@ window.KS_REFS = {
   const days = (m, cap, notes = {}) => ['today', 'tomorrow', 'tue'].map((d) =>
     fig(`b${m}${d}`, `${cap} · ${{ today: 'draft today', tomorrow: 'draft tomorrow', tue: 'draft Tue Nov 17 (your case)' }[d]} · AX5`, <Frame t="light" who="named" x={2.4} day={d} dayMode={m} />, notes[d]));
 
-  function CallStep25() {
+  function CallStep25({ archived }) {
     return (
       <section className="b-sec" id="call-deleted-leaver" aria-labelledby="call-deleted-leaver-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Draft</span>
           <div>
-            <h2 id="call-deleted-leaver-h">Your calls: two lines on the "draft can't start yet" card</h2>
+            <h2 id="call-deleted-leaver-h">{archived ? 'Decided: (a) A, "A manager left the league"; (b) B, the day always named' : 'Your calls: two lines on the "draft can\'t start yet" card'}</h2>
             <p className="b-job">Your phone pass, step 25: you deleted T1, a member of League C, which hasn't drafted (its draft is Tue Nov 17). As commissioner you got the "draft can't start yet" card, and two of its lines read wrong. Two questions, one answer each.</p>
           </div>
         </header>
@@ -13021,7 +13021,7 @@ window.KS_REFS = {
           <li><b>B · always name the day, today included.</b> "before 6:30 PM ET today", "… tomorrow", "… on Tue, Nov 17". Nothing is left to infer, but every card is a word longer, and the top line is the one that wraps at your size.</li>
           <li><b>Recommended: A.</b> It fixes the case that misled you and leaves the most common one, the day of the draft, as short as it is now.</li>
           <li><b>Either way:</b> the day words are the app's own ("tomorrow", "Tue, Nov 17"), they follow your phone's date once the local-time plan lands, and a time never splits across lines ("6:30 PM ET" stays together).</li>
-          <li><b>Answer with:</b> (a) A or B, and (b) A or B. All the new words are marked <b>NEW</b>.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-11): (a) A, (b) B</b> ("A, manager left the league. include today when day of"). (b) went against the recommended A: the deadline names its day today too, "before 6:30 PM ET today". Recorded in PRODUCT_RULES ("A deleted account that leaves before the draft is 'A manager'"; "A draft deadline always names its day") and plan #355.</li> : <li><b>Answer with:</b> (a) A or B, and (b) A or B. All the new words are marked <b>NEW</b>.</li>}
         </ul>
         <h3 className="b-sub">(b) Today, as build 14 ships it</h3>
         <Grid>{days('none', 'Today', { tue: 'Your step-25 screen: six days away, and it reads as tonight.' })}</Grid>
@@ -13034,7 +13034,8 @@ window.KS_REFS = {
     );
   }
 
-  window.KSDeletedLeaver = () => <CallStep25 />;
+  window.KSDeletedLeaver = () => null; // decided 2026-11-11: (a) A, (b) B; it lives in the Archive
+  window.KSDeletedLeaverArchived = () => <CallStep25 archived />;
 })();
 
 </script>
@@ -13424,7 +13425,6 @@ window.KS_REFS = {
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-deleted-leaver', 'Two lines on the "draft can\u2019t start yet" card: who left, and the deadline\u2019s day', () => window.KSDeletedLeaver],
     ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)', () => window.KSRule12Sweep],
     ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)', () => window.KSRule12Info],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
@@ -13434,6 +13434,7 @@ window.KS_REFS = {
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-deleted-leaver', title: 'Two lines on the "draft can\u2019t start yet" card: who left, and the deadline\u2019s day', decision: '(a) A: a deleted account that leaves before the draft reads "A manager left the league". (b) B, over the recommended A: the deadline always names its day, today included ("before 6:30 PM ET today / tomorrow / on Tue, Nov 17"), in the tag and the line.', date: '2026-11-11', rec: 'PRODUCT_RULES (A deleted account that leaves before the draft is "A manager"; A draft deadline always names its day), plan #355', render: () => window.KSDeletedLeaverArchived },
     { id: 'call-type-step', title: 'The League type, now that only Matchup is offered', decision: 'A: the card stays, with Matchup as its one option, already selected, and its i; Duration rejoins it when it comes back. No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (The League type card stays, with Matchup alone)', render: () => window.KSTypeStepArchived },
     { id: 'call-season-step', title: 'The Season step in Create league', decision: 'B: three identical steppers ("11 wks"), no line under any label; a season strip (one tile per week, the playoff weeks named WC / SF / F, "Wk 1" to the last week) and the bye line; a limit\'s reason shows only at the limit. The sweep of the other screens is not yet decided.', date: '2026-11-10', rec: 'PRODUCT_RULES (The Season step in Create league)', render: () => window.KSSeasonStepArchived },
     { id: 'call-below-four', title: 'When a league drops below 4 before its draft', decision: 'B: below 4, one card (who left, "Fewer than 4 teams have joined.", the invite code and Share), no "Move forward"; at 4 or more, unchanged. "Invite someone to take their place" approved.', date: '2026-11-10', rec: 'PRODUCT_RULES (Below 4, there is nothing to move forward with)', render: () => window.KSBelowFourArchived },

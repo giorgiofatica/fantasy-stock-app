@@ -102,13 +102,13 @@
   const days = (m, cap, notes = {}) => ['today', 'tomorrow', 'tue'].map((d) =>
     fig(`b${m}${d}`, `${cap} · ${{ today: 'draft today', tomorrow: 'draft tomorrow', tue: 'draft Tue Nov 17 (your case)' }[d]} · AX5`, <Frame t="light" who="named" x={2.4} day={d} dayMode={m} />, notes[d]));
 
-  function CallStep25() {
+  function CallStep25({ archived }) {
     return (
       <section className="b-sec" id="call-deleted-leaver" aria-labelledby="call-deleted-leaver-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Draft</span>
           <div>
-            <h2 id="call-deleted-leaver-h">Your calls: two lines on the "draft can't start yet" card</h2>
+            <h2 id="call-deleted-leaver-h">{archived ? 'Decided: (a) A, "A manager left the league"; (b) B, the day always named' : 'Your calls: two lines on the "draft can\'t start yet" card'}</h2>
             <p className="b-job">Your phone pass, step 25: you deleted T1, a member of League C, which hasn't drafted (its draft is Tue Nov 17). As commissioner you got the "draft can't start yet" card, and two of its lines read wrong. Two questions, one answer each.</p>
           </div>
         </header>
@@ -139,7 +139,7 @@
           <li><b>B · always name the day, today included.</b> "before 6:30 PM ET today", "… tomorrow", "… on Tue, Nov 17". Nothing is left to infer, but every card is a word longer, and the top line is the one that wraps at your size.</li>
           <li><b>Recommended: A.</b> It fixes the case that misled you and leaves the most common one, the day of the draft, as short as it is now.</li>
           <li><b>Either way:</b> the day words are the app's own ("tomorrow", "Tue, Nov 17"), they follow your phone's date once the local-time plan lands, and a time never splits across lines ("6:30 PM ET" stays together).</li>
-          <li><b>Answer with:</b> (a) A or B, and (b) A or B. All the new words are marked <b>NEW</b>.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-11): (a) A, (b) B</b> ("A, manager left the league. include today when day of"). (b) went against the recommended A: the deadline names its day today too, "before 6:30 PM ET today". Recorded in PRODUCT_RULES ("A deleted account that leaves before the draft is 'A manager'"; "A draft deadline always names its day") and plan #355.</li> : <li><b>Answer with:</b> (a) A or B, and (b) A or B. All the new words are marked <b>NEW</b>.</li>}
         </ul>
         <h3 className="b-sub">(b) Today, as build 14 ships it</h3>
         <Grid>{days('none', 'Today', { tue: 'Your step-25 screen: six days away, and it reads as tonight.' })}</Grid>
@@ -152,5 +152,6 @@
     );
   }
 
-  window.KSDeletedLeaver = () => <CallStep25 />;
+  window.KSDeletedLeaver = () => null; // decided 2026-11-11: (a) A, (b) B; it lives in the Archive
+  window.KSDeletedLeaverArchived = () => <CallStep25 archived />;
 })();
