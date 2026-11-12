@@ -12412,15 +12412,16 @@ window.KS_REFS = {
       ],
     },
     {
-      id: 'at-risk', n: 8, name: 'League tab, the draft can\'t start yet (commissioner)', why: 'The eyebrow already holds the time; the sentence repeats it and explains what happens next.',
+      id: 'at-risk', n: 8, name: 'League tab, the draft can\'t start yet (commissioner)', why: 'The eyebrow already holds the time; the code and the stepper say the rest. The "Fix these before …" line stays: step 25 (b), 2026-11-11, has it name its day.',
       s: { head: 'pill', tab: 'league', blocks: [{ card: [
-        ['tag', 'Needs you before 6:00 PM ET', LIVE], ['title', `The draft can't start yet`],
+        C('tag', 'Needs you before 6:00 PM ET', LIVE), A('tag', 'Needs you before 6:00\u00a0PM\u00a0ET on\u00a0Sat,\u00a0Oct\u00a03', LIVE), ['title', `The draft can't start yet`],
         C('grey', `Fix these before 6:00 PM ET, when the draft room opens. If they're still open then, the draft is postponed.`),
+        A('grey', `Fix these before 6:00\u00a0PM\u00a0ET on\u00a0Sat,\u00a0Oct\u00a03, when the draft room opens. If they're still open then, the draft is postponed.`),
         ['gap', 2], ['label', `Invite someone to take Giulia V.'s place`], C('grey', 'Share the code. When someone joins, the draft is ready to go.'), ['code', 'K7Q2MX'], ['btnline', 'Share invite code'],
         ['rule'], ['label', '6 playoff teams, but 5 teams are in'], ['stepper', 'Playoff teams', '6'], C('grey', 'Up to 5, one per team.'),
       ] }] },
       lines: [
-        ['"Fix these before 6:00 PM ET… the draft is postponed."', 'CUT', 'The time is in the eyebrow; what happens at 6:00 PM shows then.'],
+        ['"Fix these before 6:00 PM ET… the draft is postponed."', 'KEEP', 'Was CUT here; superseded 2026-11-11 by step 25 (b), the later and specific ruling: the line stays, and it and the eyebrow name the day ("before 6:30 PM ET today / tomorrow / on Tue, Nov 17"). PRODUCT_RULES, "A draft deadline always names its day"; plan #355.'],
         ['"Share the code. When someone joins, the draft is ready to go."', 'CUT', 'The code and "Share invite code" say it.'],
         ['"Up to 5, one per team."', 'CUT', 'The stepper stops at 5.'],
         ['"Invite someone to take Giulia V.\'s place"', 'KEEP', 'Your words (approved 2026-11-10).'],
