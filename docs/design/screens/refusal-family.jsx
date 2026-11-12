@@ -101,5 +101,11 @@
     );
   }
 
-  window.KSRefusalFamily = () => <RefusalFamily />;
+  window.KSRefusalFamily = () => null; // signed off 2026-11-12; it lives in the Archive
+  window.KSRefusalFamilyArchived = () => (
+    <RefusalFamily
+      archived
+      decidedNote={<><b>Signed off by Giorgio (2026-11-12): "all screens look good".</b> He was shown all seven, with the small grey second lines pointed out against the no-subtext rule, and kept them. The split at the full stop and the 2x cap on the second line went with it. Recorded in PRODUCT_RULES ("Every dead end on a takeover or invite link takes the same form").</>}
+    />
+  );
 })();

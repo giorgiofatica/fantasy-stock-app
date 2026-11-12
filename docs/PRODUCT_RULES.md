@@ -956,6 +956,31 @@ building anything, and don't reopen a rule without him.
     heading)" in the line above for this screen. The other dead takeover links, "already in
     this league" and the invite arrival's dead link use the same panel-and-link pattern; they
     are not ruled here and go to him on a board before they change.
+  - **Every dead end on a takeover or invite link takes the same form** (2026-11-12, board
+    `#call-refusal-family`, PR #444; Giorgio's words: "all screens look good"). Shown all seven
+    in the "already taken" screen's form, Light and Dark, Large and his text size, with the
+    small grey second lines pointed out to him against the no-subtext rule, he kept them. One
+    layout: a picture in a grey disc, the sentence as the screen heading, at most one line
+    under it, the way out as the docked primary button, and "Not now" in grey under it where
+    the screen has one today. No yellow panel, no text link. The words do not change:
+    - a dead takeover link: the broken-link picture, "This invite link doesn't work
+      anymore." with "Ask for a new one." under it, and "Go to Home";
+    - already in the league: the trophy, "You're already in {league}.", and "Open the league"
+      (when the reply names no league, the app still just opens Home, as today);
+    - too many tries, a short wait: the clock, "Too many tries." with "Wait a moment, then try
+      again.", "Try again", and "Not now";
+    - too many tries, an hour: the clock, "Too many tries." with "Try again later.", and "Not
+      now" as the docked button (there is no Try again: it would fail);
+    - no connection: the crossed-out signal, "Couldn't reach the league." with "Check your
+      connection, then try again.", "Try again", and "Not now";
+    - the invite arrival's dead link (signed out): the broken-link picture, the dead-link pair,
+      and "Sign in".
+    Two calls of the Design Lead's that he signed off with it: a refusal written as two
+    sentences is split at the full stop, the first as the heading and the second (what to do)
+    as the line under it, with no word changed; and that line stops growing at 2x its size,
+    so at the largest text size it never outgrows the heading. Not covered: the invite's
+    "full" and "not taking players" lines, which keep their place above Sign in, and Join's
+    lines inside the Join sheet.
   - **A scheme takeover link still waits for a tap; the shared https link does not**
     (2026-11-12, same step). Giorgio's words: "dont love that i open the invite link and then
     it makes me "find the league" to be able to join. the invite link is for a specific
