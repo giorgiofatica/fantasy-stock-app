@@ -123,13 +123,14 @@ const EDITOR = code(SOURCES['components/game/QueueEditor.tsx']);
 const ROOM = code(SOURCES['components/game/DraftRoom.tsx']);
 const LEAGUE = code(SOURCES['app/(tabs)/league.tsx']);
 
-Deno.test('QueueEditor: dirty is against the baseline (saved minus drafted), seeded from it, re-based in render', () => {
+Deno.test('QueueEditor: the machine is seeded from the baseline (saved minus drafted) and re-based in render', () => {
+  // Saves as you go (2026-11-11): there is no "dirty" any more; the machine's re-base rule is in
+  // lib/game/queueAutosave.ts and tested in queue-autosave.test.ts (decision 19 there, both orders).
   assert(EDITOR.includes('const baseline = queueBaseline(initial, drafted);'));
-  assert(EDITOR.includes('const dirty = queue.join(\',\') !== baselineKey;'));
   assert(!EDITOR.includes('normalizeQueue(initial)'), 'no comparison with the raw initial list');
-  assert(EDITOR.includes('useState<string[]>(() => baseline)'));
-  assert(EDITOR.includes('if (seen.baseline.join(\',\') !== baselineKey || seen.draftedKey !== draftedKey) {'));
-  assert(EDITOR.includes('setQueue((q) => rebaseQueue(q, seen.baseline, baseline, drafted));'));
+  assert(EDITOR.includes('attachQueueAutosave(leagueId, baseline, drafted, handlers)'));
+  assert(EDITOR.includes('if (seen.current.baselineKey !== baselineKey || seen.current.draftedKey !== draftedKey) {'));
+  assert(EDITOR.includes('if (machine.rebase(baseline, drafted)) notify.current = true;'));
   assert(EDITOR.includes('drafted = NOTHING_DRAFTED'), 'a stable default: the lobby never re-bases per render');
 });
 

@@ -215,8 +215,10 @@ Deno.test('useDraftQueue: editorKey is the generation, saved adopts the stored l
   assertEquals(/editorKey:\s*version/.test(src), false);
 });
 
-Deno.test('QueueEditor hands onSaved the stored list from set_draft_queue', () => {
-  assertEquals(code(editorSrc).includes('onSaved(savedQueueFrom(res, queue));'), true);
+Deno.test('QueueEditor hands onSaved the stored list from set_draft_queue (via the autosave machine)', () => {
+  // The machine reads the answer with readSaveResult -> savedQueueFrom and calls onStored with it (queue-autosave.test.ts).
+  assertEquals(code(editorSrc).includes('onStored: onSaved,'), true);
+  assertEquals(code(editorSrc).includes("send: (symbols) => seamRpc('set_draft_queue', { p_league_id: leagueId, p_symbols: symbols }),"), true);
 });
 
 // ── The league switch: LeagueLobby is not keyed by league, so the hook instance survives the pill ──

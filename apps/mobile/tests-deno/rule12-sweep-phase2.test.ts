@@ -98,9 +98,10 @@ Deno.test('acceptance 5: "Out of time? We pick from the top of this list." is no
   assert(SOURCES['lib/shell/firstTimeTipPolicy.ts'].includes("Out of time? We pick for you: your queue first, then the best stock that fits your league's rules."));
 });
 
-Deno.test('the queue keeps "Save queue" until a decision is made about autosave (the board says it autosaves; the code does not)', () => {
+Deno.test('the queue lost "Save queue" with its autosave (decided 2026-11-11, "B saves as you go"), not by the sweep', () => {
   const q = strip(SOURCES['components/game/QueueEditor.tsx']);
-  assert(q.includes('label="Save queue"'), 'not removed: there is no autosave, so the button is the only write');
+  assertFalse(q.includes('label="Save queue"'));
+  assert(q.includes('attachQueueAutosave('), 'removed only because the queue now saves as you go');
   assert(q.includes("seamRpc('set_draft_queue'"));
 });
 

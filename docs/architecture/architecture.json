@@ -2,46 +2,66 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "b183fd31dd0e36bcd950348015b001d059497454",
-    "commitShort": "b183fd31",
+    "commit": "1f944d82d240ebafe3528efc2943ed3c8f158646",
+    "commitShort": "1f944d82",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/rule12-sweep-info",
+    "branch": "feat/queue-autosave",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/game/HistoryList.tsx"
+        "path": "apps/mobile/app/(tabs)/league.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/game/StandingsTable.tsx"
+        "path": "apps/mobile/components/game/QueueEditor.tsx"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/deno.lock"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/gameCopy.ts"
+        "path": "apps/mobile/lib/game/draftQueueRead.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/lib/game/queueAutosave.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/final-standings-screens.test.ts"
+        "path": "apps/mobile/tests-deno/game-draft-queue-save.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/league-game-night.test.ts"
+        "path": "apps/mobile/tests-deno/gn-w4-draft.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/tests-deno/queue-autosave.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/queue-drafted-leaves.test.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/rule12-sweep-phase2.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-12T04:19:24Z",
-    "sourceHash": "sha256:8f7f86d5e7f7f9f4215403f9f7534cd7e15790851f339c60df34c50ed19cc83d",
+    "timestamp": "2026-11-12T05:10:09Z",
+    "sourceHash": "sha256:4c1e542d62686bb3af647a52a2b8e00553facc6ddae0528c7f50054a4f7e89b2",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 6.4,
+    "ageHours": 7.2,
     "ageDays": 0.3,
     "staleAfterDays": 14,
     "stale": false,
@@ -19653,7 +19673,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('set_draft_queue')",
       "callSites": [
-        "apps/mobile/components/game/QueueEditor.tsx:66"
+        "apps/mobile/components/game/QueueEditor.tsx:46"
       ],
       "via": [
         "seamRpc"
@@ -23849,7 +23869,7 @@
     ],
     "rpcs": [
       "apps/mobile/app/(tabs)/league.tsx:146 -> renew_league (via seamRpc)",
-      "apps/mobile/components/game/QueueEditor.tsx:66 -> set_draft_queue (via seamRpc)",
+      "apps/mobile/components/game/QueueEditor.tsx:46 -> set_draft_queue (via seamRpc)",
       "apps/mobile/components/game/RenewalAsk.tsx:95 -> respond_to_renewal (via seamRpc)",
       "apps/mobile/components/game/RenewalReview.tsx:61 -> start_renewed_season (via seamRpc)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> nudge_renewal (via seamRpc, inferred)",
