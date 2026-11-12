@@ -370,6 +370,24 @@ building anything, and don't reopen a rule without him.
     evenly, the top seeds skip the first round."
   - Non-draftable stocks: "Off: stocks at $1 or more, on a major US exchange, from companies
     worth $250 million or more. On: every US stock, penny stocks too."
+- **The pictures' spoken descriptions, approved as written** (2026-11-11: "approved", shown
+  all seven verbatim by the Orchestrator). VoiceOver reads these on each popup's page 2, so
+  the picture is never silent:
+  - Matchup: "Example: in week 3 you gain $24.10 and Marco R. loses $8.30, so you win the
+    week. After the regular season, the top 4 play off."
+  - Equal stakes: "Example: $1,000 buys 89.29 shares of F, 5.36 of NVDA, or 1.09 of COST."
+  - Price tiers: "Example: slot 1 takes stocks under $50, like F. Slot 2, $50 to $300, like
+    NVDA. Slot 3, $300 and up, like COST."
+  - Budget cap: "Example: one share each of F, NVDA, MSFT and COST costs $1,628.10, under a
+    $2,500 cap."
+  - Draft order: "Example: in round 1 Marco R. picks first and Elena M. fourth. In round 2 it
+    runs back: Elena M. picks fifth and Marco R. eighth."
+  - Playoff teams: "Example with 6 teams: seeds 1 and 2 skip the wild card round, 3 plays 6
+    and 4 plays 5, then the semifinals and the final."
+  - Non-draftable stocks: "Off, only draftable stocks like AAPL, NVDA, COST and F. On, every
+    US stock, including a $0.40 stock or a $90 million company."
+  - Duration's is on hold with Duration (not built, no row). "About {option}" on each i,
+    "Close" on the ×, and "Page 1 of 2" are control labels, not copy.
 - **Rounds gets no "i"** (2026-11-11, "1a" on the Design Lead's three questions): the Rounds
   stepper on Create league › Draft stays a label and a number, with nothing behind it.
 - **Cut the league-name line** (2026-11-11, "3b cut"): "Don't worry. You will be able to
@@ -677,6 +695,13 @@ building anything, and don't reopen a rule without him.
   - While the market is closed, one line under the card's intro: "Prices at Wednesday's
     close." (the day changes with the last close). Approved by Giorgio, 2026-11-05: "the copy
     line is fine".
+- **Your queue saves as you go** (2026-11-11, "B saves as you go"; board `#call-queue-save`,
+  shown A keep the button, B saves as you go, and B when a save fails, relayed by the
+  Orchestrator). Every add, remove or reorder saves on its own a moment after you stop, before
+  the draft and in the room. There is no "Save queue" button and no "Not saved yet." If a save
+  fails, "Your queue couldn't be saved." shows in place with "Try again", and the list stays as
+  you left it. No new words. Until this is built, "Save queue" and "Not saved yet." stay (the
+  rule-12 sweep does not cut them on its own).
 - **The clock while you search** (2026-11-06, option A; board `#call-draft-clock`, relayed by
   the Orchestrator; his words: "A for clock"). On your running clock the search scrolls up to
   clear the keyboard, which took the clock card off the screen while you choose.

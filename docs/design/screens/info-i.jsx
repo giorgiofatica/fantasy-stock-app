@@ -494,7 +494,7 @@
         </header>
         <ul className="b-inv__notes">
           <li><b>The i</b> sits at the end of the row, in grey, with a 44pt target. Tapping it opens the popup and never selects the row; tapping the name still selects. VoiceOver reads it as "About Matchup", button. Nothing shows under the row.</li>
-          <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line (approved), and a small picture. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description <NEW /> (the "VoiceOver:" lines below), so it isn't silent.</li>
+          <li><b>The popup</b> is a card over a dimmed screen: the option's name, one short line (approved), and a small picture. A small × in the top-right corner closes it (44pt target, "Close" to VoiceOver); so does a tap on the dimmed screen. The picture has a spoken description (the "VoiceOver:" lines below, approved as written, 2026-11-11), so it isn't silent.</li>
           <li><b>Two pages (B), your pick (2026-11-11):</b> "i like version B with the see an example and the second potential slide". Page 1 is the name and the line. Page 2 is the name and the picture. <b>No button: "just the dots"</b> (your pick, same day). A swipe turns the page; the two dots show which page you're on and are the page control themselves (a 44pt row: tap to turn; VoiceOver: "Page 1 of 2", swipe up or down to turn). The card's top edge stays put on both pages, so the name and the × never move when the page turns; the card grows or shrinks below them. The × closes from either page. The popup always opens on page 1.</li>
           <li><b>At your size (AX5)</b> the card fills the screen and each page scrolls inside, and the × stays pinned in its corner while the page scrolls under it. The line grows the whole way, since it's the part you read. The title stops at 1.6× and the picture's labels at 1.4×, so the picture keeps its shape. The build gate checks the real thing.</li>
           <li><b>Duration's i is on hold.</b> Duration is hidden in Create league until it is built (your "A", 2026-11-11), so its popup has no row to sit on. Its approved line and picture stay on record for when Duration comes back; the Duration frames below show it as approved.</li>
@@ -676,5 +676,6 @@
   window.KSTypeStepArchived = () => <CallTypeStep archived />;
 
   window.KSInfoKit = { ChoiceCard, InfoI };
-  window.KSRule12Info = () => <><Section /><Questions /><CopyCall /></>;
+  window.KSRule12Info = () => null; // decided 2026-11-11 (the spoken descriptions approved last); it lives in the Archive
+  window.KSRule12InfoArchived = () => <><Section /><Questions /><CopyCall /></>;
 })();

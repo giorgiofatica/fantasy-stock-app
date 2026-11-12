@@ -141,7 +141,7 @@
         ['"Your queue · 4 of 50"', 'KEEP', 'The count, on the heading\'s line.'],
         [`"If you step away, we'll auto-pick…"`, 'CUT', 'Said once in the draft room\'s first-time tip (on main), and by the empty queue\'s one line (NEW, on the draft room board): "Out of time? We pick from the top of this list."'],
         [`"Prices at Wednesday's close."`, 'KEEP', 'A fact needed now and nowhere else on the card: the prices in the rows are not live. Shown only while the market is closed; now the only line.'],
-        ['"Save queue" + "Not saved yet."', 'KEEP', 'Was CUT here, on a wrong premise: your decision 19 takes a drafted stock out of every queue on its own, but your own changes still save only when you press "Save queue", in the lobby and the room (QueueEditor, one save path). They stay until the queue saves as you go, which is its own call below ("Your queue: a Save button, or saves as you go").'],
+        ['"Save queue" + "Not saved yet."', 'KEEP', 'Was CUT here, on a wrong premise: your decision 19 takes a drafted stock out of every queue on its own, but your own changes still save only when you press "Save queue", in the lobby and the room (QueueEditor, one save path). You then picked B, saves as you go (2026-11-11, "Your queue: a Save button, or saves as you go"): both lines go with that build, not with the sweep.'],
       ],
     },
     {
@@ -370,20 +370,20 @@
   const Grid = ({ children }) => <div className="b-concepts b-concepts--three">{children}</div>;
   const tone = { CUT: 'var(--c-loss, #c0392b)', KEEP: 'var(--c-gain, #2e7d32)', MOVED: 'var(--c-accent)' };
 
-  function Sections() {
+  function Sections({ archived }) {
     return (
       <section className="b-sec" id="rule12-sweep" aria-labelledby="rule12-sweep-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Rule 12</span>
           <div>
-            <h2 id="rule12-sweep-h">Your call: every heading in the app, without the lines that explain it</h2>
+            <h2 id="rule12-sweep-h">{archived ? 'Decided: every heading in the app, without the lines that explain it' : 'Your call: every heading in the app, without the lines that explain it'}</h2>
             <p className="b-job">Every screen on main, every heading and the lines under it, each kept (and which fact it holds) or cut (and where its fact went). Worst first; your three reports lead. Before is the app today, after is swept. Removing text needs no approval; the one new line is on the draft room board.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
           <li><b>A line stays</b> only if it is a fact you need now that the card shows nowhere else: a time, a count, a name, or what is blocking you. One line at most.</li>
           <li><b>A line goes</b> if it says what the thing is or how it works, repeats the heading, the label or the button, or states a rule the control already enforces (that one comes back only as the refusal, in place, when you hit it).</li>
-          <li><b>Recommended: all of it</b>, screen by screen as drawn. One line is yours to rule on, at the end.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-10): all of it, with his tweak</b> ("i like what the design lead presented but there are little tweaks"): the i for a choice we defined. Rows 1 to 15 as drawn, with two later corrections: row 2 keeps "Save queue" (then B, saves as you go, its own call) and row 8 keeps "Fix these before …" (step 25 (b)). The one line left to rule on: "3b cut" (2026-11-11). Recorded in PRODUCT_RULES (rule 12, "Optional context for a choice we defined").</li> : <li><b>Recommended: all of it</b>, screen by screen as drawn. One line is yours to rule on, at the end.</li>}
           <li><b>Your tweak (2026-11-10):</b> where an option is key, ours and not obvious, its definition isn't cut, it moves behind an i at the end of the row, with a popup (a short line and a picture, a × to close). Point 4 is redrawn with it, and "The i" section after the sweep has every popup and the list of which options get one.</li>
         </ul>
         {SWEEP.map((x) => (
@@ -409,19 +409,20 @@
     );
   }
 
-  window.KSRule12Sweep = () => <Sections />;
+  window.KSRule12Sweep = () => null; // decided 2026-11-10 (all of it, with the i); it lives in the Archive
+  window.KSRule12SweepArchived = () => <Sections archived />;
 
   // ── The call: does the queue save as you go? (2026-11-12; the sweep's row 2 assumed it did.) ──
   const QROWS = [['AAPL', 'Apple', '$198.60'], ['NFLX', 'Netflix', '$702.10'], ['CRM', 'Salesforce', '$312.40'], ['ADBE', 'Adobe', '$512.90'], ['NVDA', 'NVIDIA', '$186.42']];
   const qScreen = (tail) => ({ name: 'League tab, your queue', head: 'pill', tab: 'league', blocks: [{ card: [
     ['tag', 'Your queue \u00b7 5 of 50'], ['grey', `Prices at Wednesday's close.`], ['stocks', QROWS], ['field', 'Add a stock'], ...tail,
   ] }] });
-  function CallQueueSave() {
+  function CallQueueSave({ archived }) {
     return (
       <section className="b-sec" id="call-queue-save" aria-labelledby="call-queue-save-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Queue</span>
-          <div><h2 id="call-queue-save-h">Your call: your queue, a Save button or saves as you go</h2></div>
+          <div><h2 id="call-queue-save-h">{archived ? 'Decided: B, your queue saves as you go' : 'Your call: your queue, a Save button or saves as you go'}</h2></div>
         </header>
         <ul className="b-inv__notes">
           <li><b>Why you're being asked:</b> the sweep board cut "Save queue" and "Not saved yet." on the belief that the queue already saves as you change it. It doesn't. Your decision 19 takes a stock someone drafts out of every queue on its own, but your own adds, removes and reorders still save only when you press "Save queue", before the draft and in the room. Cutting those two lines means changing how the queue works, so it's yours.</li>
@@ -429,15 +430,16 @@
           <li><b>A · keep the button (how it works today).</b> After any change, "Save queue" and "Not saved yet." appear under the list. Nothing is kept until you press it; leave without pressing and the change is gone.</li>
           <li><b>B · it saves as you go.</b> Every add, remove or reorder saves on its own a moment after you stop, the way Sleeper, ESPN and Yahoo queues work. No button, no "Not saved yet". If a save fails, "Your queue couldn't be saved." shows in place with "Try again", and the list stays as you left it.</li>
           <li><b>Recommended: B.</b> A queue is a list you tinker with, and a button you can forget is how a change gets lost; it's the same "removed but unsaved" state build 12 showed you. It costs a build: save after each change, show a failure in place, and stay in step when someone drafts a queued stock.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-11): "B saves as you go".</b> No button, no "Not saved yet."; a failed save shows "Your queue couldn't be saved." in place with "Try again". No new words. Recorded in PRODUCT_RULES ("Your queue saves as you go").</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <Grid>{[
           fig('qs-a', 'A · after adding NVDA (today)', <Screen t="light" s={qScreen([['btnline', 'Save queue'], ['grey', 'Not saved yet.']])} after />, 'Saved only when you press "Save queue".'),
-          fig('qs-b', 'B · after adding NVDA (recommended)', <Screen t="light" s={qScreen([])} after />, 'Already saved. Nothing to press.'),
+          fig('qs-b', archived ? 'B · after adding NVDA (decided)' : 'B · after adding NVDA (recommended)', <Screen t="light" s={qScreen([])} after />, 'Already saved. Nothing to press.'),
           fig('qs-b-fail', 'B · if a save fails', <Screen t="light" s={qScreen([['warn', `Your queue couldn't be saved.`], ['btnline', 'Try again']])} after />, 'In place, the app\'s existing line. The list stays as you left it.'),
         ]}</Grid>
       </section>
     );
   }
-  window.KSQueueSave = () => <CallQueueSave />;
+  window.KSQueueSave = () => null; // decided 2026-11-11: B; it lives in the Archive
+  window.KSQueueSaveArchived = () => <CallQueueSave archived />;
 })();
