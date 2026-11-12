@@ -8,7 +8,7 @@ import type { PreDraftData } from '@/lib/home/usePreDraftData';
 import { countdownLabel, draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { managersProgressCaption } from '@/lib/home/homeCopy';
 import { ordinal } from '@/lib/home/ordinal';
-import { draftOrderCard, mySnakePicks } from '@/lib/game/draftLobby';
+import { draftOrderCard, lobbyDraws, mySnakePicks } from '@/lib/game/draftLobby';
 import { keepDots } from '@/lib/game/keepDots';
 import { MANAGER_ROW_GAP, ManagerRow } from '@/components/sp/gn';
 
@@ -32,6 +32,7 @@ export function DraftLobby({ data, myUserId, draftDate, rounds, now, showCountdo
   const order = data.orderRevealed;
   const seat = order ? order.indexOf(myUserId) + 1 : 0;
   const card = draftOrderCard({ waiting: data.waiting, hasOrder: order !== null, memberCount: data.memberCount, minMembers: data.minMembers });
+  if (!lobbyDraws(showCountdown, card)) return null; // nothing to draw: no empty View holding a gap slot
   const yourPicks = order && seat > 0 ? mySnakePicks(seat, order.length, rounds).slice(0, 3) : [];
   const nameOf = (id: string) => data.members.find((m) => m.userId === id)?.displayName ?? '';
 

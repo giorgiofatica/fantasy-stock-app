@@ -4,7 +4,7 @@
  * left it a bare tag, the countdown above says when); the order card once the order is set.
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { draftOrderCard } from '../lib/game/draftLobby.ts';
+import { draftOrderCard, lobbyDraws } from '../lib/game/draftLobby.ts';
 import lobbySrc from '../components/game/DraftLobby.tsx' with { type: 'text' };
 
 const base = { waiting: false, hasOrder: false, memberCount: 5, minMembers: 4 };
@@ -38,4 +38,12 @@ Deno.test('DraftLobby draws each card only through draftOrderCard', () => {
   assert(lobbySrc.includes("card === 'waiting' ? ("));
   assert(lobbySrc.includes("card === 'order' && order ? ("));
   assert(!lobbySrc.includes('data.waiting || !order'));
+});
+
+Deno.test('hidden order card + no countdown of its own: DraftLobby draws nothing, so no empty View leaves a gap', () => {
+  assertEquals(lobbyDraws(false, null), false);
+  assertEquals(lobbyDraws(false, 'waiting'), true);
+  assertEquals(lobbyDraws(false, 'order'), true);
+  assertEquals(lobbyDraws(true, null), true); // its own countdown card still draws
+  assert(lobbySrc.includes('if (!lobbyDraws(showCountdown, card)) return null;'));
 });
