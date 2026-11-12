@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { space } from '@/constants/tokens';
 import { Button, type ButtonStatus } from '@/components/sp/Button';
 import { EmptyState } from '@/components/sp/EmptyState';
 import { Icon } from '@/components/sp/Icon';
@@ -12,7 +9,6 @@ import { AuthScaffold } from '@/components/shell/AuthScaffold';
 import { Field } from '@/components/shell/Field';
 import { FormMessage } from '@/components/shell/FormMessage';
 import { fromAuthError, localError, viewOf, type FormErrorState } from '@/lib/auth/formError';
-import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { supabase } from '@/lib/supabase';
 import { buildRecoveryRedirect } from '@/lib/recoveryLink';
 import { pkceCryptoReady } from '@/lib/auth/pkceCrypto';
@@ -127,10 +123,13 @@ export default function ForgotPasswordScreen() {
   }
 
   const backToSignIn = () => router.replace('/login');
+  // The shared sheet bar's ×: "Back to sign in" to VoiceOver, and it closes at once (a swipe down does the same).
+  const closeSheet = () => (router.canGoBack() ? router.back() : backToSignIn());
+  const bar = { title: 'Forgot password?', onClose: closeSheet, closeLabel: 'Back to sign in' };
 
   if (sent) {
     return (
-      <AuthScaffold back={{ label: 'Back to sign in', onPress: backToSignIn }}>
+      <AuthScaffold sheet={bar}>
         <EmptyState
           icon={() => <Icon name="mail" size="title" tone="text2" />}
           title="Check your email"
@@ -148,10 +147,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <AuthScaffold back={{ label: 'Back to sign in', onPress: () => (router.canGoBack() ? router.back() : backToSignIn()) }}>
-      <View style={styles.heading}>
-        <ScreenTitle>Forgot password?</ScreenTitle>
-      </View>
+    <AuthScaffold sheet={bar}>
       <Field
         label="Email address"
         value={email}
@@ -176,9 +172,3 @@ export default function ForgotPasswordScreen() {
     </AuthScaffold>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    gap: space[2],
-  },
-});

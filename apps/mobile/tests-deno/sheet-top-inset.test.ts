@@ -2,7 +2,8 @@
  * Build 14 (Giorgio, League settings): a ~70pt empty band above "Cancel". An iOS page sheet
  * (`presentation: 'modal'`) already starts below the status bar, and SetupScaffold cleared the
  * safe-area top inset again inside it (~62pt on iPhone 17). Forgot password (AuthScaffold), a
- * player's portfolio (PlayerPortfolioScreen) and Trade history (ShellHeader) had the same shape.
+ * player's portfolio (PlayerPortfolioScreen) and Trade history (ShellHeader) had the same shape. (2026-11-12: all four now draw
+ * the shared SheetBar, which reads the hook.)
  *
  * Now the root Stack's `screenLayout` learns "page sheet" from each screen's own presentation
  * (components/shell/ScreenPresentation.tsx) and the frames read `useScreenTopInset()`. This file
@@ -111,7 +112,8 @@ Deno.test('full-screen screens keep the inset: create-league and the tabs reach 
   assertEquals(isPageSheet(byName.get('(tabs)')?.presentation, 'ios'), false);
   assert(closure('create-league').includes('components/game/SetupScaffold.tsx'), 'Create league shares SetupScaffold with League settings');
   // The shared frames clear the hook's value, which is the full safe-area top outside a sheet.
-  for (const f of ['components/game/SetupScaffold.tsx', 'components/shell/AuthScaffold.tsx', 'components/shell/ShellHeader.tsx', 'components/money/PlayerPortfolioScreen.tsx']) {
+  // The sheet bar (SheetBar.tsx) is the top of all four sheet routes now; SetupScaffold / AuthScaffold keep the inset for their non-sheet screens (Create league, the auth forms), ShellHeader for the tabs.
+  for (const f of ['components/game/SetupScaffold.tsx', 'components/shell/AuthScaffold.tsx', 'components/shell/ShellHeader.tsx', 'components/shell/SheetBar.tsx']) {
     assert(/useScreenTopInset\(\)/.test(SOURCES[f]), `${f} reads useScreenTopInset()`);
     assert(!readsRawTop(SOURCES[f]), `${f} still clears raw insets.top`);
     assert(/(height|paddingTop): topInset\b/.test(SOURCES[f]), `${f} lays out the hook value at its top`);

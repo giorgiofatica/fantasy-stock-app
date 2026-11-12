@@ -15,15 +15,15 @@
  * a missing league and a failed read all land on the same "didn't load" + Try again.
  */
 import React, { useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { space } from '@/constants/tokens';
-import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { PlayerCard, type PlayerCardOwnership } from '@/components/sp/gn';
-import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
+import { SheetBar } from '@/components/shell/SheetBar';
+import { useSheetScrollEdge } from '@/components/shell/useSheetScrollEdge';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { HoldingRow, ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { PortfolioSkeleton } from '@/components/money/PortfolioSkeleton';
@@ -84,8 +84,8 @@ function HeroLine({ label, money, pct, words, color }: { label: string; money: s
 export function PlayerPortfolioScreen({ userId, username }: { userId: string; username?: string | null }) {
   const { colors } = useTheme();
   const router = useRouter();
-  // None inside its iOS page sheet, which already starts below the status bar.
-  const topInset = useScreenTopInset();
+  // The sheet bar's divider and fade show once the body has scrolled under it.
+  const { edge, onScroll } = useSheetScrollEdge();
   const { market, activeLeague } = useLeagueContext();
   const { user } = useAuth();
   const deletedLabel = useDeletedManagerLabel();
@@ -238,15 +238,15 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.moneyBg }]}>
-      <View style={[styles.header, { paddingTop: topInset + space[3] }]}>
-        <Text variant="title" numberOfLines={2} maxFontSizeMultiplier={1.3} accessibilityRole="header" style={styles.title}>
-          {knownName ? `${knownName}${data.portfolio?.isBot ? ' · Bot' : ''}` : ' '}
-        </Text>
-        <Pressable accessibilityRole="button" accessibilityLabel={COPY.teamClose} onPress={close} hitSlop={4} style={styles.closeBtn} testID="team-view-close">
-          <Icon name="close" size="headline" tone="text2" />
-        </Pressable>
-      </View>
-      <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>{body}</ScrollView>
+      {/* The shared sheet bar (Giorgio, 2026-11-12): the manager's name as its title, the × alone; it replaces the pinned name-and-× header. */}
+      <SheetBar
+        title={knownName ? `${knownName}${data.portfolio?.isBot ? ' · Bot' : ''}` : ' '}
+        onClose={close}
+        closeLabel={COPY.teamClose}
+        closeTestID="team-view-close"
+        edge={edge}
+      />
+      <ScrollView ref={scrollRef} contentContainerStyle={styles.content} onScroll={onScroll} scrollEventThrottle={16}>{body}</ScrollView>
       {card && ownership ? (
         <PlayerCard
           {...card.data}
@@ -265,9 +265,6 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[4], paddingHorizontal: space[6], paddingBottom: space[3] },
-  title: { flex: 1, minWidth: 0, fontWeight: '800' },
-  closeBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: space[6], paddingTop: space[2], paddingBottom: space[9] },
   blocks: { gap: space[7] },
   heroText: { gap: space[1] },

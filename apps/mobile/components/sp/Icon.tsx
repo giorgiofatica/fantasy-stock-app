@@ -21,16 +21,18 @@ export interface IconProps {
   label?: string;
   /** The medallion's disc at standard size (default 72; the glyph stays half of it). */
   discPt?: number;
+  /** An explicit point size (a caller that caps its own scale, e.g. the sheet bar's pencil next to its 1.3x title); replaces the role's size. */
+  pt?: number;
 }
 
-export function Icon({ name, size, tone, discTone = 'text2', label, discPt }: IconProps) {
+export function Icon({ name, size, tone, discTone = 'text2', label, discPt, pt }: IconProps) {
   const { colors } = useTheme();
   const { fontScale } = useWindowDimensions();
   const a11y = iconAccessibility(label);
   const glyph = (
     <Ionicons
       name={ICON_GLYPHS[name] as React.ComponentProps<typeof Ionicons>['name']}
-      size={iconPointSize(size, fontScale)}
+      size={pt ?? iconPointSize(size, fontScale)}
       color={colors[tone ?? 'text']}
       accessible={a11y.accessible}
       accessibilityLabel={a11y.label}

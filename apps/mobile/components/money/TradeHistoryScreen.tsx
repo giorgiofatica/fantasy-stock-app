@@ -13,7 +13,7 @@
  * No new copy.
  */
 import React, { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { space } from '@/constants/tokens';
@@ -21,12 +21,12 @@ import { LoadFailure } from '@/components/money/LoadFailure';
 import { ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { Skeleton } from '@/components/Skeleton';
 import { keepMoney, keepTime } from '@/lib/game/keepDots';
-import { Icon } from '@/components/sp/Icon';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
 import { formatMoney } from '@/components/sp/logic/money';
 import { useTheme } from '@/components/sp/ThemeProvider';
-import { ShellHeader } from '@/components/shell/ShellHeader';
+import { SheetBar } from '@/components/shell/SheetBar';
+import { useSheetScrollEdge } from '@/components/shell/useSheetScrollEdge';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { useSession } from '@/lib/SessionProvider';
 import { formatShares } from '@/lib/money/formatShares';
@@ -99,6 +99,8 @@ function HistorySkeleton() {
 export function TradeHistoryScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  // The sheet bar's divider and fade show once the list has scrolled under it.
+  const { edge, onScroll } = useSheetScrollEdge();
   const { activeLeague } = useLeagueContext();
   const { user } = useSession();
   const ledger = usePortfolioLedger(activeLeague?.id ?? (MONEY_FIXTURE ? FIXTURE_LEAGUE_ID : null));
@@ -123,12 +125,24 @@ export function TradeHistoryScreen() {
   const visible = items.slice(0, revealed);
   const rows: HistoryRow[] = useMemo(() => historyRows(visible, todayEtIso() ?? ''), [visible]);
 
+  const filters = (
+    <View style={styles.header}>
+      <SegmentedControl
+        shape="pill"
+        options={FILTERS.map((f) => ({ label: f.label, value: f.value }))}
+        value={FILTERS[filterIndex].value}
+        onChange={choose}
+      />
+    </View>
+  );
+
   let body: React.ReactNode;
   if (ledger.status === 'loading') {
-    body = <HistorySkeleton />;
+    body = <><View style={styles.gutter}>{filters}</View><HistorySkeleton /></>;
   } else if (ledger.status === 'error' || !ledger.ledger) {
     body = (
       <View style={styles.pad}>
+        {filters}
         <LoadFailure title={COPY.portfolioLoadTitle} message={COPY.loadRetryMessage} onRetry={ledger.refresh} />
       </View>
     );
@@ -136,6 +150,11 @@ export function TradeHistoryScreen() {
     body = (
       <FlatList
         data={rows}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        // The filters ride at the top of the list, so rows scroll under the bar itself (a pinned strip between the bar and the list
+        // would slice the rows at its edge).
+        ListHeaderComponent={filters}
         keyExtractor={(r, i) => (r.kind === 'header' ? `h:${r.key}` : `i:${r.item.id}:${i}`)}
         renderItem={({ item: r }) =>
           r.kind === 'header' ? (
@@ -162,20 +181,9 @@ export function TradeHistoryScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.moneyBg }]}>
-      <ShellHeader title={COPY.tradeHistory} />
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Portfolio" onPress={() => router.back()} hitSlop={4} style={styles.back}>
-          <Icon name="chevronLeft" size="callout" tone="accent" />
-          <Text variant="callout" maxFontSizeMultiplier={HISTORY_TEXT_MAX_SCALE} color={colors.accent} style={styles.bold}>Portfolio</Text>
-        </Pressable>
-        <Text variant="title" accessibilityRole="header">{COPY.tradeHistory}</Text>
-        <SegmentedControl
-          shape="pill"
-          options={FILTERS.map((f) => ({ label: f.label, value: f.value }))}
-          value={FILTERS[filterIndex].value}
-          onChange={choose}
-        />
-      </View>
+      {/* The shared sheet bar (Giorgio, 2026-11-12): "Trade history" as its title, the × alone. The league switcher pill and
+          "‹ Portfolio" are gone from inside the sheet. */}
+      <SheetBar title={COPY.tradeHistory} onClose={() => router.back()} edge={edge} />
       {body}
     </View>
   );
@@ -183,10 +191,10 @@ export function TradeHistoryScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: { paddingHorizontal: space[6], paddingTop: space[2], gap: space[3] },
-  back: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[1], alignSelf: 'flex-start' },
+  header: { paddingTop: space[2], paddingBottom: space[2] },
   list: { paddingHorizontal: space[6], paddingBottom: space[9] },
-  pad: { paddingHorizontal: space[6], paddingTop: space[5] },
+  pad: { paddingHorizontal: space[6], paddingTop: space[2], gap: space[5] },
+  gutter: { paddingHorizontal: space[6] },
   section: { paddingTop: space[6], paddingBottom: space[2], fontWeight: '800' },
   item: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingVertical: space[3] },
   disc: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[1] },
@@ -195,7 +203,6 @@ const styles = StyleSheet.create({
   empty: { paddingTop: space[7], textAlign: 'center' },
   credit: { paddingTop: space[6], textAlign: 'center' },
   money: { fontWeight: '700' },
-  bold: { fontWeight: '700' },
   extraBold: { fontWeight: '800' },
   tabular: { fontVariant: ['tabular-nums'] },
 });

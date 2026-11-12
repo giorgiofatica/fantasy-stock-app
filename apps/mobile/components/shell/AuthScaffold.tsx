@@ -9,6 +9,8 @@ import { contentFits, footerSecondaryShown, keyboardUpAfter, rememberRest, restT
 import { FieldBlockContext, RevealTailContext, type RevealTail } from '@/components/shell/FieldBlockContext';
 import { FooterFade } from '@/components/shell/FooterFade';
 import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
+import { SheetBar, type SheetBarConfig } from '@/components/shell/SheetBar';
+import { useSheetScrollEdge } from '@/components/shell/useSheetScrollEdge';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -34,6 +36,8 @@ export interface AuthScaffoldProps {
    * keyboard is up, so the primary button is all the footer takes from the window the fields scroll in (authFieldReveal.ts). */
   footerSecondary?: ReactNode;
   back?: { label: string; onPress: () => void };
+  /** A page sheet (Forgot password): the shared top bar (components/shell/SheetBar.tsx) replaces the back row. */
+  sheet?: SheetBarConfig;
   /** Centre the body in the space above the footer (the invite arrival); it scrolls when it is taller. */
   centerBody?: boolean;
 }
@@ -44,11 +48,13 @@ interface RevealScroll {
   getInnerViewRef?: () => unknown;
 }
 
-export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref) {
+export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, sheet, centerBody }, ref) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   // None inside an iOS page sheet (Forgot password), which already starts below the status bar.
   const topInset = useScreenTopInset();
+  // A sheet's bar shows its divider and fade once the body has scrolled under it.
+  const sheetEdge = useSheetScrollEdge();
   const { reduced } = useMotion();
   const reducedRef = useRef(reduced);
   reducedRef.current = reduced;
@@ -208,8 +214,8 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.fill, { backgroundColor: colors.bg }]}
     >
-      <View style={{ height: topInset }} />
-      {back ? (
+      {sheet ? <SheetBar {...sheet} edge={sheetEdge.edge} /> : <View style={{ height: topInset }} />}
+      {back && !sheet ? (
         <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={styles.back} hitSlop={8}>
           <Icon name="chevronLeft" size="callout" tone="text2" />
           {/* Capped (2×, 26pt) so the back row never outgrows a screen's heading (Profile's 35pt name). */}
@@ -237,6 +243,7 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
           onScroll={(e) => {
             scrollY.value = e.nativeEvent.contentOffset.y;
             offset.current = e.nativeEvent.contentOffset.y;
+            if (sheet) sheetEdge.onScroll(e);
           }}
           onContentSizeChange={(_w, h) => {
             contentHeight.value = h;

@@ -77,7 +77,8 @@ const TABS_AND_PLACEHOLDER = [
   'components/shell/PhasePlaceholder.tsx',
 ];
 /** Sub-screens with their own back control ("‹ Portfolio"): they keep their own header rules (pill, no avatar). */
-const BACK_BUTTON_SCREENS = ['components/money/StockSearchScreen.tsx', 'components/money/TradeHistoryScreen.tsx'];
+// Trade history left this list (2026-11-12): it is a sheet now and draws the shared SheetBar, not the pill (tests-deno/sheet-bar.test.ts).
+const BACK_BUTTON_SCREENS = ['components/money/StockSearchScreen.tsx'];
 
 Deno.test('every top-level ShellHeader shows the avatar; nothing passes a phase chip', () => {
   for (const p of TABS_AND_PLACEHOLDER) {

@@ -1,0 +1,113 @@
+// The numbers and the decisions behind the sheet bar (components/shell/SheetBar.tsx), pure so tests-deno can pin them
+// (Giorgio, 2026-11-12, "B and no, hitting back or x just closes it"; PRODUCT_RULES, the top-bar amendment under
+// "A sheet's top must not be a stuck block that cuts text").
+
+/** The bar's words (title, Save) stop growing here, as iOS's own bars do, so the ×, the title and Save never collide at the
+ * largest text size. The rows under the bar grow fully. */
+export const SHEET_BAR_MAX_SCALE = 1.3;
+
+/** The bar's height, under the sheet's top edge ("~56 pt"). */
+export const SHEET_BAR_HEIGHT = 56;
+
+/** The × and Save sit in side slots of this width, so the title stays centred whether or not the sheet can save. It holds Save at the bar's 1.3x cap
+ * (the word is ~53 pt wide there, measured at AX5) between the gutter and the slot's inner edge: at 80 pt it did not fit and the word jumped out of line. */
+export const SHEET_BAR_SIDE = 92;
+export const SHEET_BAR_SAVE_WORD_AT_CAP = 54;
+
+/** The bar's side gutter: the × glyph and Save's last letter both sit this far from the sheet's edge (DL gate: Save was 8.7 pt from the edge, the × 19.7 pt). */
+export const SHEET_BAR_GUTTER = 20;
+
+/** The × is a 24 pt glyph (the `tab` icon role) centred in its 44 pt target. Its ink sits 5.7 pt inside that glyph box and "Save"'s last letter has
+ * 0.7 pt of side bearing (both measured on the iPhone 17 stills), so the pads below are the gutter LESS those insets: the INK lands on the gutter. */
+export const SHEET_BAR_CLOSE_GLYPH = 24;
+export const SHEET_BAR_CLOSE_INK_INSET = 5.7;
+export const SHEET_BAR_SAVE_INK_BEARING = 0.7;
+
+
+/** The ×'s hit area (rule 3, 44 pt). */
+export const SHEET_BAR_TARGET = 44;
+
+/** The side slots' padding that puts the × ink and Save's last letter exactly SHEET_BAR_GUTTER from the sheet's edges. */
+export const SHEET_BAR_CLOSE_PAD = SHEET_BAR_GUTTER - (SHEET_BAR_TARGET - SHEET_BAR_CLOSE_GLYPH) / 2 - SHEET_BAR_CLOSE_INK_INSET;
+export const SHEET_BAR_SAVE_PAD = SHEET_BAR_GUTTER - SHEET_BAR_SAVE_INK_BEARING;
+
+/** The divider under a scrolled bar. */
+export const SHEET_EDGE_DIVIDER = 1;
+
+/** The fade under a scrolled bar: the bar's own colour, SOLID for at least one line of the sheet's row text at the current text size,
+ * then clear over the next SHEET_EDGE_FADE_CLEAR pt (Design Lead, gate on 4def77bc: a fixed 6 pt band could not cover a 15-17 pt row line,
+ * so the lower half of a row straddling the divider stayed legible with its top sliced). The solid part is a formula, not a constant:
+ * 16 pt x min(fontScale, 3), so it grows with the text. */
+export const SHEET_EDGE_ROW_TEXT = 16;
+export const SHEET_EDGE_ROW_SCALE_CAP = 3;
+export const SHEET_EDGE_FADE_CLEAR = 20;
+
+const usable = (fontScale: number): number => (Number.isFinite(fontScale) && fontScale > 0 ? fontScale : 1);
+
+/** The fade's solid band, in pt: one row line at the current text size. */
+export function sheetFadeSolid(fontScale: number): number {
+  return SHEET_EDGE_ROW_TEXT * Math.min(usable(fontScale), SHEET_EDGE_ROW_SCALE_CAP);
+}
+
+/** The fade's whole height: the solid band, then SHEET_EDGE_FADE_CLEAR pt of fade to clear. */
+export function sheetFadeHeight(fontScale: number): number {
+  return sheetFadeSolid(fontScale) + SHEET_EDGE_FADE_CLEAR;
+}
+
+/** The divider and the fade show only once the content has scrolled under the bar: at the top (and while pulled down past
+ * it) neither shows. */
+export function sheetEdgeShown(contentOffsetY: number): boolean {
+  return contentOffsetY > 0;
+}
+
+/** The ramp after the solid band, EASED IN (Design Lead, gate re-check: with a linear ramp the lower halves of a line crossing the band's edge
+ * stayed dim but legible at 3x, "a dim half-word is the same complaint softened"). `at` is how far through the ramp's SHEET_EDGE_FADE_CLEAR pt;
+ * `alpha` is the surface colour's opacity there. It stays mostly opaque through the first half, then drops away. */
+export const SHEET_FADE_RAMP: readonly { at: number; alpha: number }[] = [
+  { at: 0, alpha: 1 },
+  { at: 0.5, alpha: 0.85 },
+  { at: 0.8, alpha: 0.4 },
+  { at: 1, alpha: 0 },
+];
+
+/** The surface colour's opacity at each gradient stop: opaque from the top through the solid band's end, then the ramp's. */
+export const SHEET_FADE_ALPHAS: readonly number[] = [1, ...SHEET_FADE_RAMP.map((r) => r.alpha)];
+
+/** Where the fade's gradient stops go (one per SHEET_FADE_ALPHAS entry): the top, the solid band's end, then the ramp's stops. */
+export function sheetFadeLocations(fontScale: number): [number, number, ...number[]] {
+  const solid = sheetFadeSolid(fontScale);
+  const height = sheetFadeHeight(fontScale);
+  return [0, ...SHEET_FADE_RAMP.map((r) => (solid + r.at * SHEET_EDGE_FADE_CLEAR) / height)] as [number, number, ...number[]];
+}
+
+/** What the bar's Save shows. `off`: grey and inert (nothing differs from what was loaded). `on`: the accent, a tap saves.
+ * `saving`: inert, with progress in place of nothing moving. */
+export type SaveState = 'off' | 'on' | 'saving';
+
+/** Save is on only while the form differs from what was loaded and nothing is being saved. `dirty` is derived by comparing
+ * against the loaded values (lib/game/settingsDirty.ts), never a "touched" flag, so changing a value back to its original
+ * turns Save grey again. */
+export function saveState(a: { dirty: boolean; saving: boolean }): SaveState {
+  if (a.saving) return 'saving';
+  return a.dirty ? 'on' : 'off';
+}
+
+/** A grey or a saving Save does nothing when tapped (and VoiceOver reads it as dimmed). */
+export function saveInert(state: SaveState): boolean {
+  return state !== 'on';
+}
+
+/** The title's base size (the `headline` text role) and the size a text field in its place draws at: the field scales by hand (it
+ * is keyed by the text size, components/sp/useInputRemountKey.ts), so its explicit size is capped here at the bar's 1.3x. */
+export const SHEET_BAR_TITLE_SIZE = 17;
+export function sheetBarFieldSize(scaledSize: number | undefined): number {
+  const cap = SHEET_BAR_TITLE_SIZE * SHEET_BAR_MAX_SCALE;
+  if (scaledSize === undefined || !(scaledSize > 0)) return SHEET_BAR_TITLE_SIZE;
+  return Math.min(scaledSize, cap);
+}
+
+/** The rename pencil is drawn at the title's cap height (the title's base size), scaling with the text up to the bar's 1.3x, so it reads as a
+ * pencil beside the title at every size (an icon-role size grew past the capped title). */
+export function sheetBarPencilSize(fontScale: number): number {
+  return SHEET_BAR_TITLE_SIZE * Math.min(Math.max(usable(fontScale), 1), SHEET_BAR_MAX_SCALE);
+}
