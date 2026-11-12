@@ -5,7 +5,7 @@
  * the estimate again fails. The dollars come from the trade row's stored
  * total_value, the same number the slot line reads.
  */
-import { assert, assertEquals, assertNotEquals } from 'jsr:@std/assert';
+import { assert, assertEquals, assertFalse, assertNotEquals } from 'jsr:@std/assert';
 import { SOURCES } from './sourceManifest.generated.ts';
 import { buyReviewOneShare, buyReviewPerSlot, buyReviewTier, sellReview, settledReview } from '../lib/money/reviewModel.ts';
 import { readTradeFill } from '../lib/money/tradeFill.ts';
@@ -13,6 +13,7 @@ import { readRecordTradeOutcome } from '../lib/money/recordTradeOutcome.ts';
 import { initialReview, reviewReducer } from '../lib/money/reviewMachine.ts';
 import { COPY } from '../lib/money/moneyCopy.ts';
 import { formatMoney } from '../components/sp/logic/money.ts';
+import { formatShares } from '../lib/money/formatShares.ts';
 
 // The server's trades row (to_jsonb of record_trade_atomic's row), as record-trade replies it.
 const row = (o: Record<string, unknown>) => ({ id: 't1', league_id: 'L', action: 'sell', ...o });
@@ -71,15 +72,28 @@ Deno.test('sell, budget league: back-to-budget and budget-left-after use the fil
   assertEquals(labels(done), labels(estimate));
 });
 
-Deno.test('buy, per slot: Bought shows the filled shares, price and amount under the same labels', async () => {
+Deno.test('buy, per slot: Bought shows the fill\'s shares and price; Paid from keeps the funding sale\'s amount', async () => {
   const estimate = buyReviewPerSlot({ symbol: 'NVDA', amount: 987.43, price: 141.2, quantity: 6.993, sourceLabel: 'TM slot', leftInSlot: 0 });
   assertEquals(valueOf(estimate, COPY.paidFrom), `TM slot · ${formatMoney(987.43)}`);
 
+  // The buy's own stored total_value ($987.40) differs from the sale that funded it ($987.43).
   const done = await confirmation(estimate, row({ action: 'buy', quantity: 6.9886, price: 141.29, total_value: 987.4 }));
-  assertEquals(valueOf(done, COPY.paidFrom), `TM slot · ${formatMoney(987.4)}`);
+  assertEquals(valueOf(done, COPY.paidFrom), `TM slot · ${formatMoney(987.43)}`); // the source's amount, never total_value
+  assertEquals(valueOf(done, COPY.leftInSlot), formatMoney(0)); // adds up against the sale's amount
   assertEquals(valueOf(done, 'Price'), `${formatMoney(141.29)} · ${COPY.marketPrice}`);
+  assertEquals(valueOf(done, 'Buy'), `${formatShares(6.9886)} NVDA`);
   assertNotEquals(valueOf(done, 'Buy'), valueOf(estimate, 'Buy'));
   assertEquals(labels(done), labels(estimate));
+});
+
+Deno.test('buy, per slot: the settled quantity is a fact (no "≈"); the unsettled review keeps "≈"', async () => {
+  const estimate = buyReviewPerSlot({ symbol: 'NVDA', amount: 987.43, price: 141.2, quantity: 4.21, sourceLabel: 'TM slot', leftInSlot: 0 });
+  assertEquals(valueOf(estimate, 'Buy'), `≈ ${formatShares(4.21)} NVDA`);
+  const done = await confirmation(estimate, row({ action: 'buy', quantity: 4.2105, price: 141.19, total_value: 594.45 }));
+  assertEquals(valueOf(done, 'Buy'), `${formatShares(4.2105)} NVDA`);
+  assertFalse(valueOf(done, 'Buy')!.includes('≈'));
+  // Settling never touches the estimate.
+  assertEquals(valueOf(estimate, 'Buy'), `≈ ${formatShares(4.21)} NVDA`);
 });
 
 Deno.test('buy, one share (budget league): price and budget rows use the fill', async () => {

@@ -121,16 +121,19 @@ export function buyReviewPerSlot(i: {
   quantity: number;
   sourceLabel: string;
   leftInSlot: number;
+  /** True on the confirmation: the quantity is the fill's, a fact, so it carries no "≈". */
+  settled?: boolean;
 }): TradeReview {
-  // The fill's dollars replace the reviewed amount: the sale's proceeds fund the buy, but what the
-  // buy was recorded at is its own stored total_value.
+  // The price and quantity are the fill's. "Paid from" keeps the FUNDING SALE's amount (Design Lead
+  // ruling): the player has seen that sale at that figure, and "left in slot $0.00" only adds up
+  // against it. The buy's own stored total_value is not shown here.
   const settle = (f: TradeFill): TradeReview =>
-    buyReviewPerSlot({ ...i, amount: f.total, price: f.price, quantity: f.quantity });
+    buyReviewPerSlot({ ...i, price: f.price, quantity: f.quantity, settled: true });
   return {
     title: COPY.reviewBuy,
     headline: COPY.buyOutcome(formatMoney(i.amount), i.symbol),
     lines: [
-      { label: 'Buy', value: `≈ ${formatShares(i.quantity)} ${i.symbol}` },
+      { label: 'Buy', value: `${i.settled ? '' : '≈ '}${formatShares(i.quantity)} ${i.symbol}` },
       { label: 'Price', value: `${formatMoney(i.price)} · ${COPY.marketPrice}` },
       { label: COPY.paidFrom, value: `${i.sourceLabel} · ${formatMoney(i.amount)}` },
       { label: COPY.leftInSlot, value: formatMoney(i.leftInSlot), tone: toneOf(i.leftInSlot) },
