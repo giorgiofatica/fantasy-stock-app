@@ -73,9 +73,13 @@ export function queueStateFor(prev: QueueState, leagueId: string | null): QueueS
   return prev.leagueId === leagueId ? prev : queueStateStart(leagueId);
 }
 
-/** The editor's remount key: the league AND the loaded data's generation. */
+/** The editor's remount key: the league alone. It was the league AND the loaded data's generation while the queue
+ * saved on a button; it saves as you go now (lib/game/queueAutosave.ts), so every save lands new data, and a remount
+ * on each one would clear the search you are typing and drop its keyboard. The editor moves its list with the
+ * server's on its own (QueueEditor re-bases on every new baseline), so new data needs no remount. `generation`
+ * still counts the data changes. */
 export function queueEditorKey(state: QueueState): string {
-  return `${state.leagueId ?? ''}:${state.generation}`;
+  return state.leagueId ?? '';
 }
 
 function sameList(a: string[], b: string[]): boolean {

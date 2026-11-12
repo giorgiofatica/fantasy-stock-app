@@ -193,17 +193,19 @@ Deno.test('the stress draft: 16 seats (max_teams) of 20-character names, your tu
 
 // ── Nothing tappable does nothing ────────────────────────────────────────────────
 
-Deno.test('the queue draws no move that can\'t happen, and Save only with something to save', () => {
-  // The row (QueueRow.tsx, Giorgio 2026-11-05) draws the moves; the editor draws Save.
+Deno.test('the queue draws no move that can\'t happen, and Try again only when a save failed', () => {
+  // The row (QueueRow.tsx, Giorgio 2026-11-05) draws the moves; the queue saves as you go (2026-11-11), so the
+  // editor's only button is Try again, beside a failed save's line.
   const q = strip(SOURCES['components/game/QueueEditor.tsx']);
   const row = strip(SOURCES['components/game/QueueRow.tsx']);
   assert(row.includes('{index > 0 ? ('));
   assert(row.includes('{index < count - 1 ? ('));
   assert(!row.includes('disabled={index === 0}'));
   assert(!row.includes('disabled={index === count - 1}'));
-  assert(q.includes('{dirty ? ('));
-  assert(q.includes('<Button label="Save queue" variant="secondary"'));
-  assert(q.includes('Not saved yet.'));
+  assert(q.includes('{view.failure ? ('));
+  assert(q.includes('<Button label="Try again" variant="secondary"'));
+  assert(!q.includes('Save queue'));
+  assert(!q.includes('Not saved yet.'));
 });
 
 Deno.test('Draft complete and the lobby divide rows by space, never by rules', () => {

@@ -1,28 +1,29 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { AppState, View, StyleSheet } from 'react-native';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
 import { Button } from '@/components/sp/Button';
+import { WarnPanel } from '@/components/sp/WarnPanel';
 import { radius, space } from '@/constants/tokens';
 import SymbolSearchField from '@/components/SymbolSearchField';
-import { supabase } from '@/lib/supabase';
 import { seamRpc } from '@/lib/game/seamCalls';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { keepDots } from '@/lib/game/keepDots';
 import { QueueRow } from '@/components/game/QueueRow';
 import { useQueueQuotes } from '@/lib/game/useQueueQuotes';
 import { useQueueMarketLine } from '@/lib/game/useQueueMarketLine';
-import { savedQueueFrom } from '@/lib/game/draftQueueRead';
-import { moveItem, removeItem, addSymbol, queueRefusalLine, queueBaseline, rebaseQueue, QUEUE_MAX } from '@/lib/game/draftQueue';
+import { useCaptureAction } from '@/lib/money/captureScript';
+import { moveItem, removeItem, addSymbol, queueBaseline, QUEUE_MAX } from '@/lib/game/draftQueue';
+import { attachQueueAutosave, type QueueSaveHandlers } from '@/lib/game/queueAutosave';
 
 export interface QueueEditorProps {
   leagueId: string;
   initial: string[];
-  /** The list the server stored (set_draft_queue's `symbols`). */
+  /** Every accepted save: the list the server stored (set_draft_queue's `symbols`). */
   onSaved: (saved: string[]) => void;
-  /** Stocks already drafted in the league (the live room; upper case). They leave the list at once, with no
-   * Save step (decision 19). The lobby drafts nothing, so it passes none. */
+  /** Stocks already drafted in the league (the live room; upper case). They leave the list at once, on their own
+   * (decision 19). The lobby drafts nothing, so it passes none. */
   drafted?: ReadonlySet<string>;
 }
 
@@ -33,44 +34,66 @@ const NO_OWNED_SYMBOLS: Set<string> = new Set();
 /** The same for `drafted`: one empty Set, so the lobby's editor never sees a "new" drafted set per render. */
 const NOTHING_DRAFTED: ReadonlySet<string> = new Set();
 
-/** The draft queue (3c): the stocks auto-pick takes first. Move, remove and add, then
- * save. The save is the server's set_draft_queue, and the server's refusal decides. */
+/** The draft queue (3c): the stocks auto-pick takes first. Move, remove and add; each change saves on its own a
+ * moment after you stop (PRODUCT_RULES "Your queue saves as you go"; lib/game/queueAutosave.ts). The save is the
+ * server's set_draft_queue, and the server's refusal decides. */
 export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAFTED }: QueueEditorProps) {
-  // The saved list: what the server stored, minus anything drafted (decision 19, lib/game/draftQueue.ts).
+  // The server's list: what it stored, minus anything drafted (decision 19, lib/game/draftQueue.ts).
   const baseline = queueBaseline(initial, drafted);
   const baselineKey = baseline.join(',');
   const draftedKey = [...drafted].sort().join(',');
-  const [queue, setQueue] = useState<string[]>(() => baseline);
-  // A change the SERVER made (a pick pruned the queue, a re-read, a save landing) moves the list with it, in this
-  // render: never a local difference that asks to be saved.
-  const [seen, setSeen] = useState({ baseline, draftedKey });
-  if (seen.baseline.join(',') !== baselineKey || seen.draftedKey !== draftedKey) {
-    setSeen({ baseline, draftedKey });
-    setQueue((q) => rebaseQueue(q, seen.baseline, baseline, drafted));
+  const handlers: QueueSaveHandlers = {
+    send: (symbols) => seamRpc('set_draft_queue', { p_league_id: leagueId, p_symbols: symbols }),
+    onStored: onSaved,
+  };
+  // One machine per league (a remount, or the lobby and the room together, never make two writers).
+  const machine = useMemo(() => attachQueueAutosave(leagueId, baseline, drafted, handlers), [leagueId]); // eslint-disable-line react-hooks/exhaustive-deps
+  machine.setHandlers(handlers);
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  // A change the SERVER made (a pick pruned the queue, a re-read, a save landing) moves the list in this render:
+  // never an edit, so it saves nothing and never shows the failure line.
+  const seen = useRef({ baselineKey, draftedKey });
+  const notify = useRef(false);
+  if (seen.current.baselineKey !== baselineKey || seen.current.draftedKey !== draftedKey) {
+    seen.current = { baselineKey, draftedKey };
+    if (machine.rebase(baseline, drafted)) notify.current = true;
   }
+  useEffect(() => {
+    if (!notify.current) return;
+    notify.current = false;
+    machine.notify();
+  });
+  useEffect(() => {
+    const off = machine.subscribe(rerender);
+    return () => {
+      off();
+      machine.flush();
+    };
+  }, [machine]);
+  // The app leaving the foreground saves at once whatever is still waiting.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next !== 'active') machine.flush();
+    });
+    return () => sub.remove();
+  }, [machine]);
+  const view = machine.snapshot();
+  const queue = view.list;
+  const edit = (f: (q: string[]) => string[]) => machine.edit(f(machine.snapshot().list));
   const [search, setSearch] = useState('');
-  const [saving, setSaving] = useState(false);
-  const dirty = queue.join(',') !== baselineKey;
   // The company and the draft search's price for every queued stock, read when the card opens (and for a stock added later).
   const { names, prices } = useQueueQuotes(queue);
   const closedLine = useQueueMarketLine();
 
+  // DEV capture only (EXPO_PUBLIC_CAPTURE_SCRIPT, "queueadd:NVDA@4000"): the same add a search result's tap makes.
+  useCaptureAction('queueadd', (sym) => {
+    if (sym) edit((q) => addSymbol(q, sym));
+  });
+
   const onSelect = (r: ShapedSearchResult) => {
     if (!r.selectable) return;
-    setQueue((q) => addSymbol(q, r.symbol));
+    edit((q) => addSymbol(q, r.symbol));
     setSearch('');
-  };
-
-  const save = async () => {
-    setSaving(true);
-    const { data, error } = await seamRpc('set_draft_queue', { p_league_id: leagueId, p_symbols: queue });
-    setSaving(false);
-    const res = data as { ok?: boolean; reason?: string; symbols?: unknown } | null;
-    if (error || !res || res.ok !== true) {
-      Alert.alert('Not saved', queueRefusalLine(String(res?.reason ?? 'unknown'), res?.symbols));
-      return;
-    }
-    onSaved(savedQueueFrom(res, queue));
   };
 
   return (
@@ -88,20 +111,20 @@ export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAF
             symbol={sym}
             name={names[sym.toUpperCase()]}
             price={prices[sym.toUpperCase()]}
-            onMove={(delta) => setQueue((q) => moveItem(q, i, delta))}
-            onRemove={() => setQueue((q) => removeItem(q, i))}
+            onMove={(delta) => edit((q) => moveItem(q, i, delta))}
+            onRemove={() => edit((q) => removeItem(q, i))}
           />
         ))}
       </View>
       {queue.length < QUEUE_MAX ? (
         <SymbolSearchField value={search} onChangeText={setSearch} onSelect={onSelect} selectedSymbol="" ownedSymbols={NO_OWNED_SYMBOLS} captureAction="typeq" clearOnSelect />
       ) : null}
-      {/* Save appears with something to save, beside the line that says so; it's a secondary
-          pill, so the room's one primary stays Draft (§9C: one accent, small). */}
-      {dirty ? (
-        <View style={styles.save}>
-          <Button label="Save queue" variant="secondary" onPress={() => void save()} disabled={saving} status={saving ? 'loading' : 'idle'} fullWidth />
-          <Text variant="caption" tone="secondary" style={styles.center}>Not saved yet.</Text>
+      {/* Board #call-queue-save, B when a save fails: the app's existing line in place, then Try again. The list
+          above stays exactly as you left it; a secondary pill, so the room's one primary stays Draft. */}
+      {view.failure ? (
+        <View style={styles.failed}>
+          <WarnPanel text={view.failure} />
+          <Button label="Try again" variant="secondary" onPress={() => machine.retry()} disabled={view.status === 'saving'} status={view.status === 'saving' ? 'loading' : 'idle'} fullWidth />
         </View>
       ) : null}
     </Card>
@@ -114,6 +137,5 @@ const styles = StyleSheet.create({
   // The sp Card clips (overflow hidden), which cut the search's dropdown off at the card edge;
   // a search card lets it overflow, above the cards that follow it.
   searchCard: { overflow: 'visible', zIndex: 10 },
-  save: { marginTop: space[2], gap: space[2] },
-  center: { textAlign: 'center' },
+  failed: { marginTop: space[2], gap: space[2] },
 });
