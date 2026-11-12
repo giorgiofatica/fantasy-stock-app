@@ -4,6 +4,12 @@
 // starts", so this is composed from those steps plus the Season 2 review's
 // card-of-rows vocabulary (RibReview). handleSave, the save-outcome rules
 // (lib/game/settingsSave) and the seam writes are unchanged.
+//
+// The top (Giorgio, 2026-11-12, "B and no, hitting back or x just closes it"): the shared sheet bar (components/shell/SheetBar.tsx)
+// with the league's NAME as its title. The commissioner, before the draft, renames it in the bar (a pencil; the name is an in-bar
+// field) and Save sits at the bar's right, grey until the form differs from what was loaded (lib/game/settingsDirty.ts). A member,
+// and the commissioner once the settings lock, get the name as a plain header and the × alone. Closing never asks: × and a swipe
+// down drop unsaved changes at once. A good save just closes the sheet; the League tab shows the change.
 import { Alert, Share, StyleSheet, View } from 'react-native';
 import { useState, useEffect, useMemo } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -34,6 +40,8 @@ import { LeaveLeagueRow, LeaveLeagueSheet, TransferCommissionerSheet } from '@/c
 import { InviteCodeText } from '@/components/game/InviteCodeText';
 import { DEFAULT_PICK_SECONDS, PICK_SECONDS_OPTIONS, pickClockLocked } from '@/lib/game/createLeagueSetup';
 import { leagueNameError, stepWithin } from '@/lib/game/createLeagueSteps';
+import { settingsDirty, type SettingsForm } from '@/lib/game/settingsDirty';
+import { saveState } from '@/components/shell/sheetBarLogic';
 import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
 import { SETTINGS_LOCKED, inviteShareMessage, inviteShareShown } from '@/lib/game/leagueSettingsEntry';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
@@ -74,6 +82,8 @@ export default function LeagueSettingsScreen() {
 
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  // The league's name is edited in the sheet bar (SheetBar's rename), not in a field in the body.
+  const [editingName, setEditingName] = useState(false);
 
   // Find the league
   const league = leagues.find(l => l.id === leagueId);
@@ -100,22 +110,50 @@ export default function LeagueSettingsScreen() {
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
 
+  // What the form held when it was loaded: the bar's Save is on only while the form differs from it (settingsDirty). Null until the
+  // league has arrived, so nothing reads as changed before the form is filled.
+  const [loaded, setLoaded] = useState<SettingsForm | null>(null);
+
   // Initialize form with league data
   useEffect(() => {
     if (league) {
-      setName(league.name);
-      setDraftDateTBD(!league.draft_date);
-      setDraftDate(league.draft_date ? new Date(league.draft_date) : null);
-      setStakeMode((league.stake_mode ?? '') as '' | StakeMode);
-      setNotionalPerSlot(String(league.notional_per_slot ?? DEFAULT_NOTIONAL_PER_SLOT));
-      setBudgetCap(String(league.budget_amount ?? DEFAULT_BUDGET_CAP));
-      setAllowUndraftable(!!league.allow_undraftable);
-      loadLeagueSlots(league.id).then(setSlots);
-      setNumParticipants(league.num_participants);
-      setNumRounds(league.num_rounds);
-      setPickSeconds(league.pick_seconds ?? DEFAULT_PICK_SECONDS);
+      const f = formFromLeague(league, []);
+      setName(f.name);
+      setDraftDateTBD(f.draftDateTBD);
+      setDraftDate(f.draftDateMs != null ? new Date(f.draftDateMs) : null);
+      setStakeMode(f.stakeMode as '' | StakeMode);
+      setNotionalPerSlot(f.notionalPerSlot);
+      setBudgetCap(f.budgetCap);
+      setAllowUndraftable(f.allowUndraftable);
+      setNumParticipants(f.numParticipants);
+      setNumRounds(f.numRounds);
+      setPickSeconds(f.pickSeconds);
+      // Until the slots arrive again, the baseline keeps the slots it had (the form's own slots are still those), so a refresh never flashes Save on.
+      setLoaded((prev) => ({ ...f, slots: prev?.slots ?? [] }));
+      // The slots arrive a moment later: they are part of what was loaded, so the form and its baseline take them together.
+      let stale = false;
+      loadLeagueSlots(league.id).then((rows) => {
+        if (stale) return;
+        setSlots(rows);
+        setLoaded((prev) => (prev ? { ...prev, slots: rows } : prev));
+      });
+      return () => { stale = true; };
     }
   }, [league]);
+
+  const dirty = settingsDirty(loaded, {
+    name,
+    draftDateTBD,
+    draftDateMs: draftDate ? draftDate.getTime() : null,
+    stakeMode,
+    notionalPerSlot,
+    budgetCap,
+    allowUndraftable,
+    numParticipants,
+    numRounds,
+    pickSeconds,
+    slots,
+  });
 
   const handleClose = () => {
     router.dismiss();
@@ -301,9 +339,8 @@ export default function LeagueSettingsScreen() {
 
       await refresh();
 
-      Alert.alert('Success', 'League settings updated', [
-        { text: 'OK', onPress: () => router.dismiss() }
-      ]);
+      // A good save just closes the sheet: the League tab shows the change (no "Success" alert).
+      router.dismiss();
     } catch (error: any) {
       console.error('Failed to update league:', error);
       Alert.alert('Not saved', "Your settings didn't save. Try again.");
@@ -318,7 +355,7 @@ export default function LeagueSettingsScreen() {
   if (league && !isCommissioner && leaveOn) {
     const code = league.invite_code;
     return (
-      <SetupScaffold back={{ label: 'Cancel', onPress: handleClose, modal: true }} title="League settings">
+      <SetupScaffold sheet={{ title: league.name, onClose: handleClose }}>
         <SetupCard>
           <InviteRow code={code} window={membershipWindow} />
           <RowDivider />
@@ -332,7 +369,7 @@ export default function LeagueSettingsScreen() {
 
   if (!league || !isCommissioner) {
     return (
-      <SetupScaffold back={{ label: 'Cancel', onPress: handleClose, modal: true }} title="League settings">
+      <SetupScaffold sheet={{ title: league?.name ?? 'League settings', onClose: handleClose }}>
         <View style={styles.center}>
           {league ? <Icon name="lock" size="title" tone="text2" /> : null}
           <Text variant="body" tone="secondary" style={styles.centerText}>
@@ -352,26 +389,27 @@ export default function LeagueSettingsScreen() {
 
   return (
     <SetupScaffold
-      back={{ label: 'Cancel', onPress: handleClose, modal: true }}
-      title="League settings"
-      footer={!isLocked ? <Button label="Save changes" onPress={handleSave} status={saving ? 'loading' : 'idle'} /> : undefined}
+      sheet={{
+        // The league's name; the commissioner renames it in the bar until the settings lock, and Save sits at its right.
+        title: loaded ? name : league.name,
+        onClose: handleClose,
+        save: !isLocked ? { state: saveState({ dirty, saving }), onPress: handleSave } : undefined,
+        rename: !isLocked
+          ? {
+              editing: editingName,
+              onBegin: () => setEditingName(true),
+              onEnd: () => setEditingName(false),
+              onChangeText: (text) => {
+                setName(text);
+                if (nameError) setNameError(null);
+              },
+            }
+          : undefined,
+        // A name problem (blank, or refused by moderation) shows right under the bar, in today's words.
+        error: nameError,
+      }}
     >
       {isLocked ? <LockNote text={SETTINGS_LOCKED} /> : null}
-
-      {/* sp Field has no disabled look of its own; dim it while locked, as before. */}
-      <View style={isLocked && styles.dim}>
-        <Field
-          label="League name"
-          value={name}
-          onChangeText={(text) => {
-            setName(text);
-            if (nameError) setNameError(null);
-          }}
-          error={nameError}
-          placeholder="League name"
-          editable={!isLocked}
-        />
-      </View>
 
       {/* Draft: the Create league Draft step's controls (board). */}
       <View style={styles.section}>
@@ -575,6 +613,24 @@ export default function LeagueSettingsScreen() {
       />
     </SetupScaffold>
   );
+}
+
+/** What the form holds for a league as loaded: the one place that reads a league row into the form's shape (the init effect and the
+ * dirty baseline both come from it). */
+function formFromLeague(league: NonNullable<ReturnType<typeof useLeagueContext>['leagues'][number]>, slots: SlotDraft[]): SettingsForm {
+  return {
+    name: league.name,
+    draftDateTBD: !league.draft_date,
+    draftDateMs: league.draft_date ? new Date(league.draft_date).getTime() : null,
+    stakeMode: league.stake_mode ?? '',
+    notionalPerSlot: String(league.notional_per_slot ?? DEFAULT_NOTIONAL_PER_SLOT),
+    budgetCap: String(league.budget_amount ?? DEFAULT_BUDGET_CAP),
+    allowUndraftable: !!league.allow_undraftable,
+    numParticipants: league.num_participants,
+    numRounds: league.num_rounds,
+    pickSeconds: league.pick_seconds ?? DEFAULT_PICK_SECONDS,
+    slots,
+  };
 }
 
 /** The invite code and its Share pill: ONE row for the commissioner and the member alike (W4

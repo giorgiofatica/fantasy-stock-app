@@ -10,6 +10,8 @@ import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
 import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
+import { SheetBar, type SheetBarConfig } from '@/components/shell/SheetBar';
+import { useSheetScrollEdge } from '@/components/shell/useSheetScrollEdge';
 
 // 3c-2 — the frame Create league and League settings share (board: "Create
 // league · Season" / "· Draft step"): a back row with the "Step N of 4"
@@ -26,70 +28,98 @@ export const SUBTITLE_MAX_SCALE = 2;
 export const TOP_ROW_MAX_SCALE = 1.6;
 
 export interface SetupScaffoldProps {
-  /** Omitted on a screen with nowhere to go back to (Create league's done screen). */
-  /** `modal`: an iOS modal's text-only "Cancel", no back chevron (G-7; League settings). */
+  /** Omitted on a screen with nowhere to go back to (Create league's done screen), and in a sheet (`sheet`). */
+  /** `modal`: an iOS modal's text-only "Cancel", no back chevron (G-7; Create league's first step). */
   back?: { label: string; onPress: () => void; modal?: boolean };
+  /** A page sheet (League settings): the shared top bar replaces the back row and the big title; no step, no subtitle. */
+  sheet?: SheetBarConfig & {
+    /** A problem with what the bar holds (the league's name), right under the bar, in today's words. */
+    error?: string | null;
+  };
   /** Shows "Step N of M" and the progress bar (Create league only). */
   step?: { number: number; total: number };
-  title: string;
+  /** The step title; unused in a sheet, whose title lives in the bar. */
+  title?: string;
   subtitle?: string;
   children: ReactNode;
   /** Docked under the body; lifted above the keyboard when it opens. */
   footer?: ReactNode;
 }
 
-export function SetupScaffold({ back, step, title, subtitle, children, footer }: SetupScaffoldProps) {
+export function SetupScaffold({ back, sheet, step, title, subtitle, children, footer }: SetupScaffoldProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   // None inside an iOS page sheet (League settings), which already starts below the status bar.
   const topInset = useScreenTopInset();
+  // A sheet's bar shows its divider and fade once the body has scrolled under it.
+  const { edge, onScroll } = useSheetScrollEdge();
   const scrollRef = useRef<ScrollView>(null);
   // DEV captures only (lib/shell/fixtureRoute.ts).
   useFixtureScrollEnd(scrollRef);
 
+  // A sheet's title lives in its bar, so the body starts straight at the rows.
+  const heading = sheet ? null : (
+    <View style={styles.heading}>
+      {step ? (
+        // Decorative: the caption above already says which step this is.
+        <View style={styles.progress} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {Array.from({ length: step.total }, (_, i) => (
+            <View key={i} style={[styles.segment, { backgroundColor: i < step.number ? colors.accent : colors.border }]} />
+          ))}
+        </View>
+      ) : null}
+      <ScreenTitle>{title ?? ''}</ScreenTitle>
+      {subtitle ? (
+        <Text variant="body" tone="secondary" maxFontSizeMultiplier={SUBTITLE_MAX_SCALE}>
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <View style={{ height: topInset }} />
-      <View style={styles.topRow}>
-        {back ? (
-          <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={[styles.back, back.modal ? styles.backModal : null]} hitSlop={8}>
-            {back.modal ? null : <Icon name="chevronLeft" size="callout" tone="text2" />}
-            <Text variant="callout" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE}>
-              {back.label}
+      {sheet ? (
+        <>
+          <SheetBar {...sheet} edge={edge} />
+          {sheet.error ? (
+            <Text variant="callout" color={colors.danger} accessibilityLiveRegion="polite" style={styles.barError}>
+              {sheet.error}
             </Text>
-          </Pressable>
-        ) : (
-          <View style={styles.back} />
-        )}
-        {step ? (
-          <Text variant="caption" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE} style={styles.tabular}>
-            {`Step ${step.number} of ${step.total}`}
-          </Text>
-        ) : null}
-      </View>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <View style={{ height: topInset }} />
+          <View style={styles.topRow}>
+            {back ? (
+              <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={[styles.back, back.modal ? styles.backModal : null]} hitSlop={8}>
+                {back.modal ? null : <Icon name="chevronLeft" size="callout" tone="text2" />}
+                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE}>
+                  {back.label}
+                </Text>
+              </Pressable>
+            ) : (
+              <View style={styles.back} />
+            )}
+            {step ? (
+              <Text variant="caption" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE} style={styles.tabular}>
+                {`Step ${step.number} of ${step.total}`}
+              </Text>
+            ) : null}
+          </View>
+        </>
+      )}
       <ScrollView
         ref={scrollRef}
         style={styles.fill}
         contentContainerStyle={[styles.body, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
+        onScroll={sheet ? onScroll : undefined}
+        scrollEventThrottle={sheet ? 16 : undefined}
       >
-        <View style={styles.heading}>
-          {step ? (
-            // Decorative: the caption above already says which step this is.
-            <View style={styles.progress} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-              {Array.from({ length: step.total }, (_, i) => (
-                <View key={i} style={[styles.segment, { backgroundColor: i < step.number ? colors.accent : colors.border }]} />
-              ))}
-            </View>
-          ) : null}
-          <ScreenTitle>{title}</ScreenTitle>
-          {subtitle ? (
-            <Text variant="body" tone="secondary" maxFontSizeMultiplier={SUBTITLE_MAX_SCALE}>
-              {subtitle}
-            </Text>
-          ) : null}
-        </View>
+        {heading}
         {children}
       </ScrollView>
       {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[5]) }]}>{footer}</View> : null}
@@ -117,6 +147,10 @@ const styles = StyleSheet.create({
   // A text-only Cancel sits on the content gutter (the chevron's glyph inset no longer offsets it).
   backModal: {
     paddingHorizontal: space[6],
+  },
+  barError: {
+    paddingHorizontal: space[6],
+    paddingTop: space[3],
   },
   tabular: {
     fontVariant: ['tabular-nums'],

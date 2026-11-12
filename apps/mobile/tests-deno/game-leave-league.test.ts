@@ -328,10 +328,13 @@ Deno.test('the transfer sheet shows the ruled line under its title (source guard
   assertEquals(v.includes('{TRANSFER_TITLE}</Text>\n          <Text variant="callout" tone="secondary" subOf="title">{TRANSFER_NOTE}</Text>'), true);
 });
 
-Deno.test('League settings is a modal: its Cancel is text only, no back chevron (G-7; source guard)', () => {
+Deno.test('League settings is a sheet: the shared bar replaces the text-only Cancel (2026-11-12; G-7 kept for Create league step 1)', () => {
   const s = SOURCES['app/league-settings.tsx'];
-  assertEquals(s.includes("back={{ label: 'Cancel', onPress: handleClose }}"), false);
-  assertEquals((s.match(/back=\{\{ label: 'Cancel', onPress: handleClose, modal: true \}\}/g) ?? []).length >= 3, true);
+  // The three League settings views all draw the sheet bar; none keeps the old Cancel.
+  assertEquals(s.includes("label: 'Cancel'"), false);
+  assertEquals((s.match(/<SetupScaffold\s+sheet=\{/g) ?? []).length, 3);
+  // Create league's first step keeps its text-only modal Cancel.
+  assertEquals(SOURCES['app/create-league.tsx'].includes("modal: step === 'league'"), true);
   assertEquals(SOURCES['components/game/SetupScaffold.tsx'].includes('{back.modal ? null : <Icon name="chevronLeft" size="callout" tone="text2" />}'), true);
   // Text only, it aligns to the 24 pt content gutter.
   assertEquals(SOURCES['components/game/SetupScaffold.tsx'].includes('style={[styles.back, back.modal ? styles.backModal : null]}'), true);

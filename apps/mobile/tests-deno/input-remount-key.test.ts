@@ -191,6 +191,8 @@ Deno.test('every credential Field in the app is in the tables above: the screens
 /** The hook's binding name in each TextInput host, and what the host must wire. */
 const HOSTS: Record<string, string> = {
   'components/shell/Field.tsx': 'remount',
+  // The league's name as a field in the sheet bar (components/shell/SheetBar.tsx).
+  'components/shell/SheetBar.tsx': 'remount',
   'components/SymbolSearchField.tsx': 'inputRemount',
   'components/money/StockSearchScreen.tsx': 'searchRemount',
 };
@@ -288,6 +290,8 @@ const FONT_HOSTS: Record<string, { name: string; call: RegExp }> = {
   'components/SymbolSearchField.tsx': { name: 'inputRemount', call: /const inputFont = inputRemount\.fontProps\(INPUT_FONT_SIZE\);/ },
   'components/money/StockSearchScreen.tsx': { name: 'searchRemount', call: /const searchFont = searchRemount\.fontProps\(SEARCH_INPUT_FONT_SIZE\);/ },
   'components/shell/Field.tsx': { name: 'remount', call: /const font = inputFontSize \? null : remount\.fontProps\(type\.body\.fontSize\);/ },
+  // The sheet bar's rename field draws the scaled size capped at the bar's 1.3x (sheetBarLogic.ts sheetBarFieldSize).
+  'components/shell/SheetBar.tsx': { name: 'remount', call: /const font = remount\.fontProps\(SHEET_BAR_TITLE_SIZE\);/ },
 };
 
 Deno.test('every TextInput host that remounts also puts the scale in its props: fontSize and allowFontScaling', () => {
@@ -297,7 +301,7 @@ Deno.test('every TextInput host that remounts also puts the scale in its props: 
     assertMatch(src, call, path);
     const tag = openingTags(src, 'TextInput')[0];
     assertMatch(tag, /\ballowFontScaling=\{/, path);
-    assertMatch(tag, /fontSize: (inputFont|searchFont|font)\.fontSize/, path);
+    assertMatch(tag, /fontSize: (inputFont|searchFont|font)\.fontSize|fontSize: sheetBarFieldSize\(font\?\.fontSize\)/, path);
   }
 });
 

@@ -105,7 +105,7 @@ Deno.test('the footer\'s secondary line shows with the keyboard down and goes wh
 
 Deno.test('AuthScaffold docks footerSecondary UNDER the footer and gates it on the keyboard', () => {
   assert(scaffold.includes('footerSecondary?: ReactNode;'));
-  assert(scaffold.includes('function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref)'));
+  assert(scaffold.includes('function AuthScaffold({ children, footer, footerSecondary, back, sheet, centerBody }, ref)'));
   const dock = scaffold.slice(scaffold.indexOf('{footer ? ('), scaffold.indexOf('</KeyboardAvoidingView>'));
   // Primary first, then the secondary only when the keyboard is down; both inside the one docked footer View.
   assert(dock.indexOf('{footer}') !== -1 && dock.indexOf('{footer}') < dock.indexOf('footerSecondaryShown(keyboardUp) ? footerSecondary : null'));
