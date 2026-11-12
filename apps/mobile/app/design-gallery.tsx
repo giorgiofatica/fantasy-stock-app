@@ -110,7 +110,6 @@ export default function DesignGalleryScreen() {
             <SalePicker
               sources={[{ trade_id: 'gallery-sale-v', symbol: 'V', amount: 2194.91 }, { trade_id: 'gallery-sale-nvda', symbol: 'NVDA', amount: 2032.68 }]}
               chosenId={saleChosen}
-              symbol="AMD"
               onChoose={setSaleChosen}
               onUse={() => {}}
               onClose={() => setSaleChosen(null)}
