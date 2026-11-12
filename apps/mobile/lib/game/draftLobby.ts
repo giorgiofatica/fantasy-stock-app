@@ -23,6 +23,25 @@ export function managersProgressShown(memberCount: number, minMembers: number): 
   return memberCount < minMembers;
 }
 
+/** Which card the lobby draws for the draft order. The order card once the order is set; below the minimum
+ * managers the waiting card ("3 of 4 managers" is its whole content); and at the minimum or
+ * more with no order yet, NOTHING: the rule-12 sweep cut the card's only line, so it was a bare tag, and the
+ * countdown card above already says when (Giorgio picked B, call-waiting-card). Two facts decide it, never
+ * one: "no order yet" alone would still draw the bare card for a full league, and "4 or more" alone would
+ * hide the order itself. */
+export function draftOrderCard(s: { waiting: boolean | null; hasOrder: boolean; memberCount: number; minMembers: number }): 'order' | 'waiting' | null {
+  if (!s.waiting && s.hasOrder) return 'order';
+  return managersProgressShown(s.memberCount, s.minMembers) ? 'waiting' : null;
+}
+
+/** Whether DraftLobby renders anything at all. Hidden order card and no countdown card of its own (the League tab
+ * turns that off): the component is EMPTY, and an empty View is still a child of the page's gap container, so it
+ * left a second 16pt gap between the countdown card and the queue ("no gap where it was", Design Lead). It must
+ * return null instead. */
+export function lobbyDraws(showCountdown: boolean, card: 'order' | 'waiting' | null): boolean {
+  return showCountdown || card !== null;
+}
+
 /** Odd manager counts that don't divide the weeks evenly get a 1–2 (or 2–3) split. */
 export function byeSplit(managers: number, weeks: number): { lo: number; hi: number } | null {
   if (managers % 2 === 0) return null;

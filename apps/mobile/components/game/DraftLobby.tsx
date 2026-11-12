@@ -8,7 +8,7 @@ import type { PreDraftData } from '@/lib/home/usePreDraftData';
 import { countdownLabel, draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { managersProgressCaption } from '@/lib/home/homeCopy';
 import { ordinal } from '@/lib/home/ordinal';
-import { managersProgressShown, mySnakePicks } from '@/lib/game/draftLobby';
+import { draftOrderCard, lobbyDraws, mySnakePicks } from '@/lib/game/draftLobby';
 import { keepDots } from '@/lib/game/keepDots';
 import { MANAGER_ROW_GAP, ManagerRow } from '@/components/sp/gn';
 
@@ -31,6 +31,8 @@ export function DraftLobby({ data, myUserId, draftDate, rounds, now, showCountdo
   const when = draftDateTimeLabel(draftDate);
   const order = data.orderRevealed;
   const seat = order ? order.indexOf(myUserId) + 1 : 0;
+  const card = draftOrderCard({ waiting: data.waiting, hasOrder: order !== null, memberCount: data.memberCount, minMembers: data.minMembers });
+  if (!lobbyDraws(showCountdown, card)) return null; // nothing to draw: no empty View holding a gap slot
   const yourPicks = order && seat > 0 ? mySnakePicks(seat, order.length, rounds).slice(0, 3) : [];
   const nameOf = (id: string) => data.members.find((m) => m.userId === id)?.displayName ?? '';
 
@@ -44,12 +46,12 @@ export function DraftLobby({ data, myUserId, draftDate, rounds, now, showCountdo
         </Card>
       ) : null}
 
-      {data.waiting || !order ? (
+      {card === 'waiting' ? (
         <Card style={styles.card}>
           <Text variant="tag" tone="secondary">{keepDots('Draft order · waiting')}</Text>
-          {managersProgressShown(data.memberCount, data.minMembers) ? <Text variant="caption" tone="secondary" subOf="tag">{managersProgressCaption(data.memberCount, data.minMembers)}</Text> : null}
+          <Text variant="caption" tone="secondary" subOf="tag">{managersProgressCaption(data.memberCount, data.minMembers)}</Text>
         </Card>
-      ) : (
+      ) : card === 'order' && order ? (
         // Game Night (W4): the order is Standings' ManagerRow tiles on the page (`surface`, radius
         // 12, 6pt apart, divided by space), your row tinted and ringed, your name bold (shading B,
         // S-10: no "(you)").
@@ -70,7 +72,7 @@ export function DraftLobby({ data, myUserId, draftDate, rounds, now, showCountdo
             ))}
           </View>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
