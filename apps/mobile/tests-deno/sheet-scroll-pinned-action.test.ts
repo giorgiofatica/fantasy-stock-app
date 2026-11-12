@@ -146,7 +146,7 @@ Deno.test('Trade review: submit, Done, the next step and Try again are pinned; t
 
 Deno.test('Sale picker: "Use …" is pinned; the sources scroll', () => {
   const s = src('components/money/SalePicker.tsx');
-  assertInFooterNotScroll(s, ['sale-picker-use', 'COPY.useSaleButton(symbol)']);
+  assertInFooterNotScroll(s, ['sale-picker-use', 'saleButtonLabel(rows)']);
   assert(scrollPart(s).includes('rows.map'), 'the sources scroll');
 });
 

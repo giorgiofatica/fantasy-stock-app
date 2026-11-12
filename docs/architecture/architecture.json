@@ -2,19 +2,27 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "c1dcaaeea88805e94393b4e19266c76358937ab1",
-    "commitShort": "c1dcaaee",
+    "commit": "1c7013029248a00f2641bc31172fca9b6cc6371e",
+    "commitShort": "1c701302",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/leave-sheet-below-four",
+    "branch": "fix/sale-picker-step34",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/league-settings.tsx"
+        "path": "apps/mobile/app/design-gallery.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/game/LeaveLeagueSheets.tsx"
+        "path": "apps/mobile/components/game/SetupRows.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/SalePicker.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/StockSheetBody.tsx"
       },
       {
         "code": "??",
@@ -22,18 +30,10 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/leaveLeague.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-leave-league.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/keep-time.test.ts"
+        "path": "apps/mobile/lib/money/salePicker.ts"
       }
     ],
-    "timestamp": "2026-11-12T17:40:00Z",
+    "timestamp": "2026-11-12T18:37:45Z",
     "sourceHash": "sha256:1843996ece2a050286ff689c92839b8b273c997d838e5a4eca0783ec3fa8b122",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -41,8 +41,8 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 19.7,
-    "ageDays": 0.8,
+    "ageHours": 20.7,
+    "ageDays": 0.9,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:21978bcf035c670291c0755433e1c35e63b1eb9f2349f64048519859d51a996d",

@@ -52,7 +52,7 @@ export function RowKey({ children, maxScale, onTextLayout }: { children: string;
 /** Has this row's label broken inside a word? A row lays out as it always did (label beside its value and control); only
  * once its label breaks mid-word does it stack, so nothing moves at the sizes where every label fits. Reset when the
  * Dynamic Type size changes, so a smaller size lays out beside again. */
-function useLabelBreaks() {
+export function useLabelBreaks() {
   const { fontScale } = useWindowDimensions();
   const [brokeAt, setBrokeAt] = useState<number | null>(null);
   const onTextLayout = useCallback(

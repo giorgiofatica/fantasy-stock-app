@@ -427,7 +427,6 @@ export function StockSheetBody({
       <SalePicker
         sources={picking.sources}
         chosenId={picking.chosen}
-        symbol={symbol}
         onChoose={(id) => setPicking({ ...picking, chosen: id })}
         onUse={() => {
           const id = picking.chosen;
