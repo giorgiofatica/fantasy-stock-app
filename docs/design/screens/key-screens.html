@@ -3656,7 +3656,7 @@
       <Device tab="portfolio" label="Which sale pays for this" overlay={
         <Sheet top={250}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span className="ks-title">Which sale pays for this?</span><span className="ks-muted"><Icon d={ICON.close} size={22} /></span></div>
-          <span className="ks-callout ks-muted">Each sale's cash stays in its own slot. Pick one; the buy uses all of it.</span>
+          {/* Rule 12 (2026-11-12, phone pass step 34): the caption under the title is cut. The rows show each sale's amount, the buy review shows "Paid from", and a buy can't take part of a sale; the options are your own sales, so no "i" (rule 13 test fails). */}
           <Card>
             <ul className="ks-rows">
               {src.map((s, i) => (
