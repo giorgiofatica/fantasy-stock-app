@@ -383,6 +383,7 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-managers-limit', 'The line under Managers at 4 and at 16', () => window.KSManagersLimit],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
