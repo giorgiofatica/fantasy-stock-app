@@ -1,6 +1,6 @@
 # Phone pass, 1.3.0 (9): the one list, in order
 
-**Mirror of the phone-pass page, version 23 (2026-11-11).** Giorgio ticks the page, not this
+**Mirror of the phone-pass page, version 25 (2026-11-12).** Giorgio ticks the page, not this
 file. Kept here with placeholders: throwaway emails as `you+t1@gmail.com`, `{T1's name}` for the
 gamertag, no invite codes.
 
@@ -255,37 +255,79 @@ switch (18). Note the time and what you had just tapped if it happens.
 - [ ] **Step 26. What the league sees (31).** Your account, League B: Standings, Matchup and the
   team view show "Open team" with the plain avatar, never the old name. Keep League B.
 
-## Part C · a second phone (or a friend)
+## Part C · one phone, any time
 
-- [ ] **Step 27. A second real account on a second phone**, allowlisted the same way as step 18.
-- [ ] **Step 28. Find a new manager, for real (32).** Your account, League B › League settings ›
-  Members › the Open team row › Find a new manager › Share, a real tap, to the other phone in
-  Messages. On it, tap the link. Right: the takeover question names the Open team in {league} → Take the
-  team puts that account in League B with that team. Open the same link from T3. Right:
-  "Someone already took this team."
-- [ ] **Step 29. A hand-typed take link waits for a tap (33).** A fresh Find a new manager link's
-  code, typed as `fantasystockapp://take/CODE` into Notes while signed in, tapped. Right: "Take
-  over a team" with Find league / Not now; nothing about the league until Find league; Not now
-  does nothing.
-- [ ] **Step 30. A run-back league.** A finished test league (League B once its season ends, or
-  an older one), run back, with everyone having answered I'm in except the second account, and
-  the draft not yet set.
-- [ ] **Step 31. The nudge (15).** The row of the one who hasn't replied › Nudge again. Right: the
-  other phone buzzes; opening the sheet again says once a day and when you nudged.
+- [ ] **Step 34. The sale picker at AX5 (6)**, *market open*. In a fixed-amount-slot league, sell
+  two stocks, then Buy a stock › Review buy. Right: "Which sale pays for this?" lists them, "Use …"
+  pinned and reachable. Text size back after.
+- [ ] **Step 28. Share a take-over link (as yourself) (32).** As yourself, the commissioner. League B ›
+  League settings › Members › the Open team row › Find a new manager › Share. Right: the share sheet
+  shows "Take over a team in League B" and a link that ends in `/take/` and a 10-character code.
+  Send it to yourself (Notes or Messages) so you can read the code. **Do not tap the link.** Tapping
+  it opens the website, not the app; that part is not built yet and is checked in the last section.
+- [ ] **Step 29. A typed take link waits for a tap (as T4) (33).**
+  1. Sign out. Sign in as T4 (the account you made in the Supabase dashboard). It will ask you to
+     pick a username first; pick one.
+  2. Open Safari. In the address bar type `fantasystockapp://take/CODE`, with CODE replaced by the
+     10-character code from the step before, and go. Allow it to open the app. Right: "Take over a
+     team" with Find league and Not now, and nothing about the league yet.
+  3. Tap Not now. Right: nothing happens to any league; you are back in the app as T4.
+  Order matters: the link belongs to whoever is signed in when it opens, so be signed in as T4
+  before you open it.
+- [ ] **Step 28c. T4 takes the team; T3 is told it is taken (32).** (Page id 50.)
+  1. Still as T4: open the same link again in Safari, then tap Find league. Right: the takeover
+     question names the Open team and League B.
+  2. Tap Take the team. Right: T4 is in League B with that team.
+  3. Sign out. Sign in as T3. Open the same link in Safari. Right: "Someone already took this
+     team." with Go to Home.
+  4. Sign out and sign back in as yourself.
+
+
+## Part D · one phone, at the next draft you sit in
+
+- [ ] **Step 38. The draft lobby at AX5.** Nothing clipped or cut with "…"; the roster header
+  wraps whole.
+- [ ] **Step 40. Draft room: roster header plus the two-line Latest picks together.** Both
+  readable at once; no overlap.
+- [ ] **Step 41. VoiceOver on the pinned "Your pick" clock chip.** It reads the time left and
+  whose turn it is, then nothing odd.
+
+
+## Part E · one phone, once a league has finished its season
+
+- [ ] **Step 39. A renewal card and the champion banner at AX5.** Both whole; amounts and names on
+  their own lines.
+- [ ] **Step 30. A run-back league.** **Don't start this yet.** Run it back needs a league that has
+  finished its season, with you as commissioner and one other account you can sign in as. First the
+  Planner gives you one read-only query to see whether such a league exists. If none does, this
+  section waits until League B's season ends.
+- [ ] **Step 31. The nudge: the server sends it (15).** The row of the one who hasn't replied ›
+  Nudge again. Right: opening the sheet again says once a day and when you nudged. Then one
+  query, which the Planner gives you at this step, shows the notification left "pending". The
+  buzz itself is in the second-phone section.
+- [ ] **Step 31b. The nudge reaches the phone (15).** (Page id 49.) The phone signed in as the
+  account being nudged. On your laptop, one SQL call that the Planner gives you at this step sends
+  the same nudge the button sends, as the commissioner. Right: the phone buzzes with the nudge. The
+  same person can only be nudged once a day, so this is done a day apart from the step before, or
+  on a different manager.
 - [ ] **Step 32. The second account answers I'm in; then the Renewal change sheet at AX5 (7).**
   Change › the sheet's I'm out / I'm in pinned and reachable; tapping your current answer closes
   it with no change. Text size back after.
 - [ ] **Step 33. Schedule the draft (16).** Everyone answered: the review screen. Right: Schedule
   the draft greyed with "Pick a future draft time." until a future time is picked; then it saves,
   Home shows the countdown, everyone is notified.
-- [ ] **Step 34. The sale picker at AX5 (6)**, *market open*. In a fixed-amount-slot league, sell
-  two stocks, then Buy a stock › Review buy. Right: "Which sale pays for this?" lists them, "Use …"
-  pinned and reachable. Text size back after.
 
-**Part C done = the 1.3 phone pass is complete except sign-in links.** Everything below needs
-the dashboard work first.
 
-## Part D · launch prep, then sign-in and invite links
+## Part F · needs a second phone (waits until a friend has the app)
+
+- [ ] **Step 27. A second real account on a second phone**, allowlisted the same way as step 18.
+- [ ] **Step 28b. The shared link opens the app on another phone (32).** (Page id 48.) **Waits for
+  two things:** the website's take-over page (not built yet), and a second phone. Then: share a
+  Find a new manager link to the other phone in Messages and tap it there. Right: it opens the app
+  on the takeover question.
+
+
+## Part G · launch prep, then sign-in and invite links
 
 - [ ] **Step 35. Launch prep** (STATUS §4 item 2): Supabase Auth Site URL (still localhost) and
   redirect URLs, the email templates rebranded (old logo today), the Apple and Google providers,
@@ -297,18 +339,6 @@ the dashboard work first.
 - [ ] **Step 36. Sign-in and invite links (19–28)**, in the walkthrough's order.
 - [ ] **Step 37. Delete an Apple-signed-in test account (29).** A test Apple ID that has signed
   in; after deletion the app is gone from Settings › your name › Sign in with Apple.
-
-## Part E · build 12 spot check at AX5 (the Design Lead's ask; quick, any time after Part B)
-
-- [ ] **Step 38. The draft lobby at AX5.** Nothing clipped or cut with "…"; the roster header
-  wraps whole.
-- [ ] **Step 39. A renewal card and the champion banner at AX5.** Both whole; amounts and names on
-  their own lines.
-- [ ] **Step 40. Draft room: roster header plus the two-line Latest picks together.** Both
-  readable at once; no overlap.
-- [ ] **Step 41. VoiceOver on the pinned "Your pick" clock chip.** It reads the time left and
-  whose turn it is, then nothing odd.
-
 ---
 
 ## Not phone checks (parked, for the record)
