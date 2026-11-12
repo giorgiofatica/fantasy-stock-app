@@ -2,27 +2,35 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "3c66d1001e82841efe4a56d08e5e8e474ba63040",
-    "commitShort": "3c66d100",
+    "commit": "a389a7201232c86bfeed744a8b33cb17a21029aa",
+    "commitShort": "a389a720",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "docs/db-snapshot-2026-11-11",
+    "branch": "fix/draft-order-notify-respond-fast",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "docs/architecture/db-snapshot.json"
+        "path": "supabase/functions/draft-order-notify/plan.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/draft-order-notify/run.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/draft-order-notify/run.ts"
       }
     ],
-    "timestamp": "2026-11-11T21:56:42Z",
-    "sourceHash": "sha256:21d80d76d4ab677c0ee41112f0f3cb0e88679785a31943c58a25335787a42388",
+    "timestamp": "2026-11-12T01:38:01Z",
+    "sourceHash": "sha256:5f984343984b53730d8fb9de5b424bddab10dfc075ddebeb7896042a7342c5b9",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 0,
-    "ageDays": 0,
+    "ageHours": 3.7,
+    "ageDays": 0.2,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:21978bcf035c670291c0755433e1c35e63b1eb9f2349f64048519859d51a996d",
@@ -633,18 +641,19 @@
       "facts": {
         "verifyJwt": false,
         "verifyJwtSource": "supabase/config.toml:167",
-        "authGuard": "in-code guard (isAuthorized)",
+        "authGuard": null,
         "localModules": [
-          "plan.ts"
+          "handler.ts",
+          "plan.ts",
+          "run.ts"
         ],
         "tests": [
-          "plan.test.ts"
+          "handler.test.ts",
+          "plan.test.ts",
+          "run.test.ts"
         ],
-        "envVars": [
-          "SB_SECRET_KEY_INTERNAL",
-          "SUPABASE_URL"
-        ],
-        "lines": 203
+        "envVars": [],
+        "lines": 55
       },
       "db": null,
       "declared": null,
@@ -653,11 +662,11 @@
       "verified": true,
       "id": "fn.draft-order-notify",
       "label": "draft-order-notify",
-      "sublabel": "verify_jwt=false · apikey guard",
+      "sublabel": "verify_jwt=false",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/draft-order-notify/index.ts",
-        "line": 65
+        "line": 51
       }
     },
     {
@@ -676,7 +685,7 @@
           "price-batch.test.ts"
         ],
         "envVars": [],
-        "lines": 109
+        "lines": 87
       },
       "db": null,
       "declared": null,
@@ -689,7 +698,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/enrich-symbols/index.ts",
-        "line": 108
+        "line": 86
       }
     },
     {
@@ -1348,12 +1357,31 @@
       "drift": [],
       "annotation": null,
       "verified": true,
-      "id": "mod.draft-order-notify/plan",
-      "label": "plan.ts",
+      "id": "mod.draft-order-notify/handler",
+      "label": "handler.ts",
       "sublabel": "draft-order-notify",
       "kind": "edge-module",
       "source": {
-        "path": "supabase/functions/draft-order-notify/plan.ts",
+        "path": "supabase/functions/draft-order-notify/handler.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.draft-order-notify/run",
+      "label": "run.ts",
+      "sublabel": "draft-order-notify",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/draft-order-notify/run.ts",
         "line": 1
       }
     },
@@ -11431,11 +11459,23 @@
     {
       "annotation": null,
       "verified": true,
-      "id": "e.fn.draft-order-notify->mod.draft-order-notify/plan",
+      "id": "e.fn.draft-order-notify->mod.draft-order-notify/handler",
       "from": "fn.draft-order-notify",
-      "to": "mod.draft-order-notify/plan",
+      "to": "mod.draft-order-notify/handler",
       "protocol": "esm-import",
-      "payload": "import from './plan.ts'",
+      "payload": "import from './handler.ts'",
+      "callSites": [
+        "supabase/functions/draft-order-notify/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.draft-order-notify->mod.draft-order-notify/run",
+      "from": "fn.draft-order-notify",
+      "to": "mod.draft-order-notify/run",
+      "protocol": "esm-import",
+      "payload": "import from './run.ts'",
       "callSites": [
         "supabase/functions/draft-order-notify/index.ts"
       ]
@@ -11449,7 +11489,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('draft_notice_context')",
       "callSites": [
-        "supabase/functions/draft-order-notify/index.ts:135"
+        "supabase/functions/draft-order-notify/run.ts:150"
       ]
     },
     {
@@ -11461,7 +11501,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('finalize_due_draft_orders')",
       "callSites": [
-        "supabase/functions/draft-order-notify/index.ts:78"
+        "supabase/functions/draft-order-notify/run.ts:92"
       ]
     },
     {
@@ -11473,7 +11513,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('open_due_draft_rooms')",
       "callSites": [
-        "supabase/functions/draft-order-notify/index.ts:74"
+        "supabase/functions/draft-order-notify/run.ts:88"
       ]
     },
     {
@@ -11488,7 +11528,7 @@
         "id, league_id, user_id, kind, created_at, subject_user_id, detail, push_status, push_attempts"
       ],
       "callSites": [
-        "supabase/functions/draft-order-notify/index.ts:84"
+        "supabase/functions/draft-order-notify/run.ts:98"
       ]
     },
     {
@@ -11501,8 +11541,8 @@
       "payload": ".from('league_notifications').update()",
       "columns": [],
       "callSites": [
-        "supabase/functions/draft-order-notify/index.ts:156",
-        "supabase/functions/draft-order-notify/index.ts:177"
+        "supabase/functions/draft-order-notify/run.ts:173",
+        "supabase/functions/draft-order-notify/run.ts:203"
       ]
     },
     {
@@ -11517,7 +11557,7 @@
         "name"
       ],
       "callSites": [
-        "supabase/functions/draft-order-notify/index.ts:104"
+        "supabase/functions/draft-order-notify/run.ts:119"
       ]
     },
     {
@@ -23708,8 +23748,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 315,
-    "edges": 768,
+    "nodes": 316,
+    "edges": 769,
     "flows": 7,
     "drift": 34,
     "driftHigh": 0,
@@ -23721,7 +23761,7 @@
       "delete-account[run.ts]",
       "draft-autopick-sweep[]",
       "draft-control[rules.ts]",
-      "draft-order-notify[plan.ts]",
+      "draft-order-notify[handler.ts,plan.ts,run.ts]",
       "enrich-symbols[batch.ts,handler.ts,price-batch.ts]",
       "heal-account-deletions[run.ts]",
       "historical-bars[paginate.ts]",
@@ -23857,9 +23897,9 @@
       "supabase/functions/draft-control/index.ts:120 -> check_and_bump_rate_limit",
       "supabase/functions/draft-control/index.ts:123 -> check_and_bump_rate_limit",
       "supabase/functions/draft-control/index.ts:330 -> confirm_league_roster",
-      "supabase/functions/draft-order-notify/index.ts:135 -> draft_notice_context",
-      "supabase/functions/draft-order-notify/index.ts:74 -> open_due_draft_rooms",
-      "supabase/functions/draft-order-notify/index.ts:78 -> finalize_due_draft_orders",
+      "supabase/functions/draft-order-notify/run.ts:150 -> draft_notice_context",
+      "supabase/functions/draft-order-notify/run.ts:88 -> open_due_draft_rooms",
+      "supabase/functions/draft-order-notify/run.ts:92 -> finalize_due_draft_orders",
       "supabase/functions/invite-preview/index.ts:39 -> invite_preview_lookup",
       "supabase/functions/join-league/index.ts:129 -> takeover_preview",
       "supabase/functions/join-league/index.ts:150 -> take_over_team",
@@ -24070,10 +24110,10 @@
       "supabase/functions/draft-control/index.ts:201 -> league_renewal_responses.select",
       "supabase/functions/draft-control/index.ts:225 -> draft_postponements.select",
       "supabase/functions/draft-control/index.ts:361 -> league_members.insert",
-      "supabase/functions/draft-order-notify/index.ts:104 -> leagues.select",
-      "supabase/functions/draft-order-notify/index.ts:156 -> league_notifications.update",
-      "supabase/functions/draft-order-notify/index.ts:177 -> league_notifications.update",
-      "supabase/functions/draft-order-notify/index.ts:84 -> league_notifications.select",
+      "supabase/functions/draft-order-notify/run.ts:119 -> leagues.select",
+      "supabase/functions/draft-order-notify/run.ts:173 -> league_notifications.update",
+      "supabase/functions/draft-order-notify/run.ts:203 -> league_notifications.update",
+      "supabase/functions/draft-order-notify/run.ts:98 -> league_notifications.select",
       "supabase/functions/enrich-symbols/batch.ts:125 -> symbols.select",
       "supabase/functions/enrich-symbols/batch.ts:138 -> symbols.select",
       "supabase/functions/enrich-symbols/batch.ts:153 -> category_rules.select",

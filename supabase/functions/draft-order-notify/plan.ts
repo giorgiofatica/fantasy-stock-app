@@ -26,8 +26,33 @@ export const MAX_PUSHES_PER_RUN = 50;
  * in total, one attempt per tick, before the row settles as 'failed'. */
 export const MAX_PUSH_ATTEMPTS = 3;
 /** A row stuck in 'sending' this long (the function died mid-send) is
- * reclaimable. Must match draft_order_notify_due()'s interval in SQL. */
+ * reclaimable. Must match draft_order_notify_due()'s and
+ * draft_room_notices_due()'s interval in SQL ('10 minutes').
+ *
+ * OVERLAP INVARIANT (2026-11-11, respond-fast): runs can now overlap (the 202
+ * ends the cron's request at once, so next minute's post is dispatched while
+ * this run still works). A LIVE run's claimed row must therefore never look
+ * stale to an overlapping run, or it would be reclaimed and sent twice. So
+ * STALE_SENDING_MS must exceed the longest a live run can hold one claimed
+ * row. Two bounds, and the constant clears both with margin:
+ *   - per row: claim + context/token reads + ONE Expo call capped at
+ *     PUSH_TIMEOUT_MS (4 s) + settle. MAX_ROW_HOLD_ESTIMATE_MS below.
+ *   - absolute: no invocation outlives EDGE_WALL_CLOCK_MAX_MS, whatever its
+ *     DB calls do (supabase-js reads have no timeout of their own).
+ * Tested in run.test.ts ("STALE_SENDING_MS clears the hold bounds"). */
 export const STALE_SENDING_MS = 10 * 60 * 1000;
+
+/** The edge runtime's wall-clock limit for one invocation, response and
+ * waitUntil work together: 400 s on paid plans (150 s on free). The upper
+ * bound of ANY live run, so of any claimed row's hold. */
+export const EDGE_WALL_CLOCK_MAX_MS = 400 * 1000;
+
+/** A generous per-row hold, from the claim's push_attempted_at stamp to the
+ * settle landing: 6 DB round trips (claim, draft_notice_context or the league
+ * lookup, up to 3 token reads, settle) at a pessimistic 5 s each, plus the 4 s
+ * Expo cap = 34 s. Typical is under 1 s. A floor STALE_SENDING_MS must clear,
+ * not a timeout anything enforces. */
+export const MAX_ROW_HOLD_ESTIMATE_MS = 6 * 5_000 + 4_000;
 
 export function ordinal(n: number): string {
   const mod100 = n % 100;
@@ -161,9 +186,25 @@ export type DeliveryOutcome =
   | 'superseded' // the event no longer holds (fixed, rescheduled, started): saying it would be wrong
   | 'lookup_failed'
   | 'expo_error'
-  | 'expo_ticket_error';
+  | 'expo_ticket_error'
+  // A stale 'sending' row whose LAST allowed attempt was already claimed (the
+  // run died, or its settle failed, after a send that may have gone out):
+  // settled 'failed' WITHOUT sending, so no row is ever pushed more than
+  // MAX_PUSH_ATTEMPTS times, whatever keeps failing. See reclaimExhausted.
+  | 'attempts_exhausted';
 
 export type PushStatus = 'pending' | 'sent' | 'no_device' | 'skipped' | 'failed';
+
+/**
+ * Is this row a RECLAIM of a 'sending' row that has already used its last
+ * attempt? (2026-11-11: runs can now overlap, and a failed settle leaves a row
+ * 'sending' to be reclaimed after STALE_SENDING_MS. Without this cap a row
+ * whose settle failed every time would be re-sent every 10 minutes forever.)
+ * `row` is the snapshot the run READ, before its own claim.
+ */
+export function reclaimExhausted(row: { push_status: string; push_attempts: number }): boolean {
+  return row.push_status === 'sending' && Number(row.push_attempts) >= MAX_PUSH_ATTEMPTS;
+}
 
 /** Where a claimed row settles. `attempts` INCLUDES the one just made. A
  * transient failure goes back to 'pending' (the next tick retries) until the
@@ -175,6 +216,7 @@ export function nextPushStatus(outcome: DeliveryOutcome, attempts: number): Push
     case 'not_in_order': return 'skipped';
     case 'unknown_kind': return 'skipped';
     case 'superseded': return 'skipped';
+    case 'attempts_exhausted': return 'failed';
     default: return attempts >= MAX_PUSH_ATTEMPTS ? 'failed' : 'pending';
   }
 }
