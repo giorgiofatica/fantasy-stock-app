@@ -382,15 +382,14 @@
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [
-    ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
-  ];
+  const OPEN = [];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
-    { id: 'call-waiting-card', title: 'The draft order card while it waits, at 4 or more managers', decision: 'B: no card until the order exists; the countdown, then your queue. The order card appears when the order is set; below 4 the card keeps the bar and "N of 4 managers". No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (No draft order card while it waits, at 4 or more)', render: () => window.KSWaitingCardArchived },
+    { id: 'call-leave-below-four', title: 'The Leave sheet in a league of four', decision: 'B: when your leave takes the league below four, the sheet drops "{commissioner} chooses whether to go ahead with one fewer team or invite someone new." and keeps only the rejoin line; with no draft time, the title and the two buttons. Five or more unchanged. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (The Leave sheet when your leave takes the league below four)', render: () => window.KSLeaveBelowFourArchived },
+    { id: 'call-waiting-card', title: 'The draft order card while it waits, at 4 or more managers', decision: 'B: no card until the order exists; the countdown, then your queue. The order card appears when the order is set; below 4 the card keeps "N of 4 managers" (it has no bar). No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (No draft order card while it waits, at 4 or more)', render: () => window.KSWaitingCardArchived },
     { id: 'call-limit-lines', title: 'The Season step\u2019s two limit lines: keep them or drop them too', decision: 'B: both go ("2 to 6, up to your expected managers", "At least 5 weeks, so every team plays every other team once."). A stepper at its end just greys out, with nothing beside it and nothing added to the Playoff teams i; this overrides "disabled with the reason beside it" for steppers at their ends.', date: '2026-11-11', rec: 'PRODUCT_RULES (The Season step: Steppers at their ends, no line; Nothing tappable does nothing)', render: () => window.KSLimitLinesArchived },
     { id: 'call-managers-limit', title: 'The line under Managers at 4 and at 16', decision: 'Neither: no line. \u2212 greys out at 4 and + at 16, with nothing beside them ("no one wants to run something as a bunch of tiny little subheaders"; extra explanation belongs behind a tap).', date: '2026-11-11', rec: 'PRODUCT_RULES (The Season step: Managers at 4 and 16, no line)', render: () => window.KSManagersLimitArchived },
     { id: 'call-queue-save', title: 'Your queue: a Save button, or saves as you go', decision: 'B: every add, remove or reorder saves on its own; no "Save queue", no "Not saved yet."; a failed save shows "Your queue couldn\u2019t be saved." in place with "Try again". No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (Your queue saves as you go)', render: () => window.KSQueueSaveArchived },

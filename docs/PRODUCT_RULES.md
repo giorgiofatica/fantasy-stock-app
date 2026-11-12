@@ -878,6 +878,17 @@ building anything, and don't reopen a rule without him.
   league", the same words as the push ("A manager left {league}. Confirm your roster before
   the draft."). Two or more leavers, any of them deleted, read "N managers left the league";
   once inviting, "Invite someone to take their place" (approved 2026-11-10).
+- **The Leave sheet when your leave takes the league below four** (2026-11-12, from the build
+  1.3.0 (14) phone pass, step 24d; Giorgio picked **B** on board `#call-leave-below-four`,
+  relayed by the Orchestrator; his word: "B"; shown today, A and B side by side, with A as the
+  Design Lead's recommendation). Before the draft, when leaving takes the league below four
+  (four down to three, or fewer), the member's Leave sheet drops "{commissioner} chooses
+  whether to go ahead with one fewer team or invite someone new." (false there: below four
+  the commissioner gets no choice, see the rule above) and adds nothing in its place. It
+  keeps only "You can rejoin with the invite code until {time}."; with no draft time yet that
+  line is absent too, so the sheet is the title ("Leave {league}?") and its two buttons. With
+  five or more before the leave, the sheet is unchanged. No new words (A's "The draft waits
+  until 4 teams are in." was not taken).
 - **Playoffs:** the commissioner sets any playoff team count P from 2 up to the number of
   managers (never more). The bracket is derived (weeks = ceil(log2 P); byes to the top
   seeds). Rounds are named by teams left: Final / Semifinals / Quarterfinals / Round of
