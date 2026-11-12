@@ -57,6 +57,11 @@ reads "Today · 11:30 AM PT (the earliest you can pick: an hour from now)". Home
 the postponed card and the countdown read the same instant in local time with the label.
 Two managers in New York and Los Angeles see "2:30 PM ET" and "11:30 AM PT" for the same
 draft. A day label follows the local date ("Today" is the phone's today).
+A deadline always names its day, today included (Giorgio, 2026-11-11, board #403 (b) B): the
+pre-draft card's "Needs you before …" and "Fix these before …, when the draft room opens."
+read "before 6:30 PM ET today", "before 6:30 PM ET tomorrow", "before 6:30 PM ET on Tue, Nov 17"
+(local zone, as above). Call sites: `apps/mobile/lib/game/autoStart.ts` (the two strings) and
+its pin `apps/mobile/tests-deno/game-auto-start.test.ts`.
 
 **Mobile.** A pure `lib/time/localTime.ts`: `formatLocalTime(instant, zone, opts)` and
 `zoneLabel(zone, instant)`, with the zone passed IN (never read inside), so Deno tests run
