@@ -45,8 +45,8 @@
           <li><b>B · Say nothing about the league.</b> The sheet keeps only "{REJOIN}" When the draft has no time yet, that line isn't there either, so the sheet is just "Leave {K.SERIE_A.name}?" and the two buttons. No new words.</li>
           <li><b>Five or more:</b> unchanged in A and B. The commissioner's choice is real there, so the sentence stays.</li>
           <li><b>Rule 12 doesn't settle this one.</b> These are lines on a sheet that confirms something, saying what the tap will do, and the sweep keeps that kind of line. So it's a question of whether the leaver needs to know the draft will wait.</li>
-          <li><b>Recommended: A.</b> Leaving at four is the only leave that holds everyone else up. It's the most important thing the sheet could say, and you'd want people to know it before they go. Pick B if you'd rather the sheet only talk about you.</li>
-          <li><b>New words, to approve as written (A only):</b> "The draft waits until 4 teams are in."</li>
+          <li><b>{archived ? 'Recommended (not taken): A.' : 'Recommended: A.'}</b> Leaving at four is the only leave that holds everyone else up. It's the most important thing the sheet could say, and you'd want people to know it before they go. Pick B if you'd rather the sheet only talk about you.</li>
+          <li><b>{archived ? 'New words in A (not used):' : 'New words, to approve as written (A only):'}</b> "The draft waits until 4 teams are in."</li>
           {archived ? <li>{decidedNote}</li> : null}
         </ul>
         <h3 className="b-sub">Today, in a league of four, as build 14 ships it</h3>
@@ -67,5 +67,12 @@
     );
   }
 
-  window.KSLeaveBelowFour = () => <CallLeaveBelowFour />;
+  window.KSLeaveBelowFour = () => null; // decided 2026-11-12: B; it lives in the Archive
+  window.KSLeaveBelowFourArchived = () => (
+    <CallLeaveBelowFour
+      archived
+      decided="B"
+      decidedNote={<><b>Decided by Giorgio (2026-11-12): "B".</b> He was shown today, A and B side by side, with A as the recommendation. When your leave takes the league below four, the sheet drops the commissioner-choice line and keeps only the rejoin line; with no draft time yet, it's the title and the two buttons. Five or more is unchanged. A's new line was not taken. Recorded in PRODUCT_RULES ("The Leave sheet when your leave takes the league below four").</>}
+    />
+  );
 })();
