@@ -162,8 +162,9 @@ Deno.test('rows 14-15 and the unlisted lines: what the DL ruled KEEP stays, word
   assert(strip(SOURCES['components/game/ScheduleList.tsx']).includes('Then the playoffs: {playoffLine}.'), 'the Schedule\'s "Then the playoffs: …"');
   assert(strip(SOURCES['lib/game/autoStart.ts']).includes("isCommissioner ? 'Set a draft time in League settings.'"), '(d) "Set a draft time in League settings."');
   assert(strip(SOURCES['lib/game/autoStart.ts']).includes('line: `The draft starts at ${etTimeLabel(t)}.`,'), '(e) the at-risk "Draft room opens in" card\'s line');
-  // History keeps its own "After the playoffs" line (GS-8b, a different place); Standings' header does not show it.
-  assert(strip(SOURCES['components/game/HistoryList.tsx']).includes('GAME_COPY.finalStandingsSubtitle'));
+  // "After the playoffs" is cut everywhere (Standings' header and History); "Champion {name}" and "Not finished yet" stay in History.
+  assertFalse(app.includes('After the playoffs'));
+  assert(strip(SOURCES['components/game/HistoryList.tsx']).includes('Not finished yet'));
   assert(strip(SOURCES['app/(tabs)/league.tsx']).includes('header={{ title: GAME_COPY.finalStandingsTitle }}'));
 });
 

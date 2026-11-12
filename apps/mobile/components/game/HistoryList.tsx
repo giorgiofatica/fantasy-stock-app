@@ -5,7 +5,6 @@ import { ManagerRow, MANAGER_ROW_GAP } from '@/components/sp/gn';
 import { space } from '@/constants/tokens';
 import { historySeasons, historyStandings, type HistoryRow, type HistoryPlace, type HistorySeason } from '@/lib/game/history';
 import type { PodiumGameRow } from '@/lib/game/finalStandings';
-import { COPY as GAME_COPY } from '@/lib/game/gameCopy';
 import { useStandingsLayout } from '@/components/game/StandingsTable';
 
 /** League › History (R10): every season of the lineage, its champion, and its frozen
@@ -36,11 +35,10 @@ function SeasonBlock({ season: s, table, myUserId }: { season: HistorySeason; ta
         {/* 1.5× (19.5pt): never above the rows' gains (W4 DL gate). */}
         {s.myRecord ? <Text variant="callout" tone="secondary" maxFontSizeMultiplier={1.5}>{s.myRecord}</Text> : null}
       </View>
-      {/* GS-8b: once the playoffs order the season, say so (Standings' own subtitle), so a
-          silver above a better record doesn't read as a mistake. */}
+      {/* Rule 12 (the DL, row 15's twin): History no longer labels a season the playoffs ordered (GS-8b's line was cut with Standings'); the
+          medals and the "Champion {name}" line say it. */}
       <View style={styles.subHead}>
         {s.champion ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>{`Champion ${s.champion}`}</Text> : <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>Not finished yet</Text>}
-        {table.medals ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>{GAME_COPY.finalStandingsSubtitle}</Text> : null}
       </View>
       <View style={styles.rows}>
         {table.places.map(({ standing: st, place, tag }) => (

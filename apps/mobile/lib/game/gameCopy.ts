@@ -19,7 +19,6 @@ export const COPY_SOURCES = {
   finalTied: 'existing', // the tug's own "Tied"; the game-screens gate (GS-1) asks for it on a finished week
   // GS-4, board #call-medals frame A (Giorgio chose A, 2026-10-10): verbatim.
   finalStandingsTitle: 'board',
-  finalStandingsSubtitle: 'board',
   champion: 'board',
   runnerUp: 'board',
 } as const;
@@ -77,7 +76,6 @@ export const COPY = {
   allMatchupsLoadFailed: "This week's matchups didn't load",
   finalTied: 'Tied',
   finalStandingsTitle: 'Final standings',
-  finalStandingsSubtitle: 'After the playoffs',
   champion: 'Champion',
   runnerUp: 'Runner-up',
 } as const;

@@ -2,22 +2,38 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "9859470298f5d37a023fe9107e79b44a0e58cf47",
-    "commitShort": "98594702",
+    "commit": "b183fd31dd0e36bcd950348015b001d059497454",
+    "commitShort": "b183fd31",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/rule12-sweep-info",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/sp/gn/ManagerRow.tsx"
+        "path": "apps/mobile/components/game/HistoryList.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/StandingsTable.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/gameCopy.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/final-standings-screens.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/league-game-night.test.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/rule12-sweep-phase2.test.ts"
       }
     ],
-    "timestamp": "2026-11-12T04:16:20Z",
+    "timestamp": "2026-11-12T04:19:24Z",
     "sourceHash": "sha256:8f7f86d5e7f7f9f4215403f9f7534cd7e15790851f339c60df34c50ed19cc83d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -25,7 +41,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 6.3,
+    "ageHours": 6.4,
     "ageDays": 0.3,
     "staleAfterDays": 14,
     "stale": false,

@@ -28,8 +28,8 @@ export interface StandingsTableProps {
   seasonComplete: boolean;
   /** UX rule 7: your row while it should be pinned at the bottom (else null). */
   onPinChange?: (row: StandingsRow | null) => void;
-  /** Final standings (GS-4): "Final standings". Its "After the playoffs" subtitle is cut (rule 12, row 15); the optional subtitle stays for a caller with a fact to say. */
-  header?: { title: string; subtitle?: string };
+  /** Final standings (GS-4): "Final standings". Its "After the playoffs" subtitle is cut (rule 12, row 15), and History's twin of it too. */
+  header?: { title: string };
   /** The ▲/▼ column. Off for final standings: the board's frame has none (GS-4/GS-5). */
   showMove?: boolean;
   /** The column head's "Through Week N", or null while nothing is scored (leagueView). */
@@ -138,7 +138,6 @@ export function StandingsTable({ rows, caption, seasonComplete, onPinChange, hea
       {header ? (
         <View style={styles.header}>
           <Text variant="headline" style={styles.headerTitle} accessibilityRole="header">{header.title}</Text>
-          {header.subtitle ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>{header.subtitle}</Text> : null}
         </View>
       ) : null}
       {/* The board's column head, on the rows' own grid. Decorative for VoiceOver: each row

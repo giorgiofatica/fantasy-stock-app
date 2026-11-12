@@ -244,8 +244,8 @@ Deno.test("League's gains never shrink-to-fit (iOS drew a flex-shrinking one at 
   }
   // The line under the list stays under the rows' gains at every size (19.2pt < 19.5pt).
   assert(SOURCES['components/game/StandingsTable.tsx'].includes('<Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6} style={styles.caption}>{caption}</Text>'));
-  // "After the playoffs" over Final standings, as History's own line is (1.6×).
-  assert(SOURCES['components/game/StandingsTable.tsx'].includes('<Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>{header.subtitle}</Text>'));
+  // Final standings' header is its title alone: "After the playoffs" is cut (rule 12, row 15), here and in History.
+  assert(!SOURCES['components/game/StandingsTable.tsx'].includes('header.subtitle'));
 });
 
 Deno.test('Schedule and the bracket: every line of a row stops at the score\'s cap (1.3×), so the score stays loudest', () => {
@@ -353,7 +353,7 @@ Deno.test('P3: the small fixes (bye indent, final head, week-1 ranks, error avat
   assert(bracket.includes('advances: { marginLeft: 24 },'));
   assert(bracket.includes("row: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[1] },"));
   const league = SOURCES['app/(tabs)/league.tsx'];
-  assert(league.includes('throughLabel={null}'), 'final standings: no "Through Week N" beside "After the playoffs"');
+  assert(league.includes('throughLabel={null}'), 'final standings: no "Through Week N" beside the title');
   assert(league.includes('nothingScored={throughWeek === 0}'));
   assert(SOURCES['components/sp/gn/ManagerRow.tsx'].includes('color={rank === 1 && rankLeads ? colors.text : colors.text2}'));
   assert(league.includes('<PhasePlaceholder title="League" icon={() => <Icon name="alert"'));
