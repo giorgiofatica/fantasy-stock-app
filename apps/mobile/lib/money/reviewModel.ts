@@ -11,6 +11,7 @@
 import { formatMoney } from '../../components/sp/logic/money';
 import { formatShares } from './formatShares';
 import { COPY } from './moneyCopy';
+import { readTradeFill, type TradeFill } from './tradeFill';
 
 export interface ReviewLine {
   label: string;
@@ -28,6 +29,21 @@ export interface TradeReview {
   caption: string;
   buttonLabel: string;
   buttonRole: 'sell' | 'buy';
+  /**
+   * The same review rebuilt from what the server filled (the Sold / Bought
+   * confirmation): same labels, the filled numbers. The reviewed numbers are an
+   * estimate; the fill is the fact.
+   */
+  settle?: (fill: TradeFill) => TradeReview;
+}
+
+/**
+ * The review the done panel shows: rebuilt from the server's fill, or the
+ * reviewed estimate when the reply carried no usable fill (never invented).
+ */
+export function settledReview(review: TradeReview, trade: unknown): TradeReview {
+  const fill = readTradeFill(trade);
+  return fill && review.settle ? review.settle(fill) : review;
 }
 
 const cents = (v: number) => Math.round(v * 100) / 100;
@@ -42,8 +58,18 @@ export function sellReview(i: {
   slotNotional?: number;
   /** Budget/tier leagues: the budget before and after the sale. */
   budget?: { before: number; after: number };
+  /** The stored dollars of a fill; absent on the estimate, where it is price times quantity. */
+  proceeds?: number;
 }): TradeReview {
-  const proceeds = cents(i.quantity * i.price);
+  const proceeds = i.proceeds ?? cents(i.quantity * i.price);
+  const settle = (f: TradeFill): TradeReview =>
+    sellReview({
+      ...i,
+      quantity: f.quantity,
+      price: f.price,
+      proceeds: f.total,
+      budget: i.budget ? { before: i.budget.before, after: cents(i.budget.before + f.total) } : undefined,
+    });
   const common: ReviewLine[] = [];
   if (i.budget) {
     common.push({ label: 'Sell', value: `${formatShares(i.quantity)} ${i.symbol} · ${COPY.allYouHold}` });
@@ -58,6 +84,7 @@ export function sellReview(i: {
       caption: COPY.pricesCanMove,
       buttonLabel: COPY.sellButton(i.symbol),
       buttonRole: 'sell',
+      settle,
     };
   }
 
@@ -82,6 +109,7 @@ export function sellReview(i: {
     caption: COPY.pricesCanMove,
     buttonLabel: COPY.sellButton(i.symbol),
     buttonRole: 'sell',
+    settle,
   };
 }
 
@@ -94,6 +122,10 @@ export function buyReviewPerSlot(i: {
   sourceLabel: string;
   leftInSlot: number;
 }): TradeReview {
+  // The fill's dollars replace the reviewed amount: the sale's proceeds fund the buy, but what the
+  // buy was recorded at is its own stored total_value.
+  const settle = (f: TradeFill): TradeReview =>
+    buyReviewPerSlot({ ...i, amount: f.total, price: f.price, quantity: f.quantity });
   return {
     title: COPY.reviewBuy,
     headline: COPY.buyOutcome(formatMoney(i.amount), i.symbol),
@@ -107,6 +139,7 @@ export function buyReviewPerSlot(i: {
     caption: COPY.pricesCanMove,
     buttonLabel: COPY.buyButton(i.symbol),
     buttonRole: 'buy',
+    settle,
   };
 }
 
@@ -119,6 +152,13 @@ export function buyReviewOneShare(i: {
   /** The line iff the server named the slot the buy fills ("Fills your $100–$200 slot"). */
   fills?: string;
 }): TradeReview {
+  // A one-share buy's cost is its fill price; the budget rows move by the stored dollars.
+  const settle = (f: TradeFill): TradeReview =>
+    buyReviewOneShare({
+      ...i,
+      price: f.price,
+      budget: i.budget ? { before: i.budget.before, after: cents(i.budget.before - f.total) } : undefined,
+    });
   const lines: ReviewLine[] = [
     { label: 'Buy', value: `1 ${i.symbol}` },
     { label: 'Price', value: `${formatMoney(i.price)} · ${COPY.marketPrice}` },
@@ -135,6 +175,7 @@ export function buyReviewOneShare(i: {
     caption: COPY.pricesCanMove,
     buttonLabel: COPY.buyButton(i.symbol),
     buttonRole: 'buy',
+    settle,
   };
 }
 
