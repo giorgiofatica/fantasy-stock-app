@@ -107,3 +107,15 @@ Deno.test('the popup: two pages, no button, the dots are the page control, the x
   assert(/isLargeText\(fontScale\)/.test(popup) && /<ScrollView contentContainerStyle=\{styles\.pageContent\}/.test(popup), 'at the large sizes each page scrolls inside the card');
   assert(/accessibilityLabel=\{copy\.voice\}/.test(popup), 'the picture has its spoken description');
 });
+
+Deno.test('the pictures label every group with the SAME tag variant, and the bracket\'s round labels never break inside a word (DL gate, Phase 1 P2)', () => {
+  const vis = strip(SOURCES['components/game/InfoVisuals.tsx']);
+  // The round labels are the tag (uppercase, tracked) like Week 3, Round 1, On/Off ...
+  assert(/<V variant="tag" tone="secondary" numberOfLines=\{1\} adjustsFontSizeToFit minimumFontScale=\{0\.6\}>\{label\}<\/V>/.test(vis), 'round labels: tag, one line, shrink to fit');
+  assertFalse(/<Strong variant="caption" tone="secondary">\{label\}/.test(vis), 'not the caption variant');
+  // Semifinals (the longest word) gets the widest share at Large; the stacked layout (large text) has the whole width.
+  assert(/\), 1\.2\)\}/.test(vis) && /\), 0\.8\)\}/.test(vis), 'Semifinals 1.2, Final 0.8');
+  assert(/const stacked = useLargeText\(\);/.test(vis));
+  // Every other picture's group label is a tag too.
+  assertEquals((vis.match(/<V variant="tag" tone="secondary">/g) ?? []).length >= 4, true);
+});

@@ -208,9 +208,12 @@ function PlayoffsPicture() {
   // At the large text sizes three columns cannot hold their words ("Semifinals" and "4 Elena M." broke inside themselves at
   // AX5): the rounds stack, each a label over its tiles, the way the app's other side-by-side layouts stack (logic/largeText.ts).
   const stacked = useLargeText();
-  const col = (label: string, items: ReactNode) => (
-    <View style={stacked ? styles.bracketColStacked : styles.bracketCol} key={label}>
-      <Strong variant="caption" tone="secondary">{label}</Strong>
+  // The round labels are the same `tag` as every other picture's (Week 3, Round 1, On/Off). A tag is uppercase and tracked, and "SEMIFINALS"
+  // broke inside itself in an equal third at Large, so: Semifinals gets the wider share (Final, one word of five letters, the narrower), and
+  // the label is one line that shrinks to fit rather than ever breaking inside a word (the stacked layout below has the whole width).
+  const col = (label: string, items: ReactNode, weight = 1) => (
+    <View style={stacked ? styles.bracketColStacked : [styles.bracketCol, { flex: weight }]} key={label}>
+      <V variant="tag" tone="secondary" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>{label}</V>
       <View style={stacked ? styles.bracketTilesStacked : styles.bracketTiles}>{items}</View>
     </View>
   );
@@ -229,13 +232,13 @@ function PlayoffsPicture() {
           <Pair a={['1', 'You']} b="4 or 5" />
           <Pair a={['2', 'Luca C.']} b="3 or 6" />
         </>
-      ))}
+      ), 1.2)}
       {col('Final', (
         <Tile tint>
           <Strong variant="caption">The two</Strong>
           <V variant="caption" tone="secondary">winners</V>
         </Tile>
-      ))}
+      ), 0.8)}
     </View>
   );
 }
@@ -306,7 +309,7 @@ const styles = StyleSheet.create({
   orderItem: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   orderPick: { alignItems: 'center', gap: space[1] },
   bracket: { flexDirection: 'row', gap: space[3], alignItems: 'center' },
-  bracketCol: { flex: 1, minWidth: 0, gap: 6, justifyContent: 'center' },
+  bracketCol: { minWidth: 0, gap: 6, justifyContent: 'center' },
   bracketTiles: { gap: 6 },
   bracketStacked: { gap: space[4] },
   bracketColStacked: { gap: 6 },
