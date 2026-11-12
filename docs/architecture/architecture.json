@@ -2,22 +2,13 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "ba7feac66f69ad10491ef88ad0b49bd7ab630d92",
-    "commitShort": "ba7feac6",
+    "commit": "d00325f5fb39ff7d149c0fefffba3f5416484c68",
+    "commitShort": "d00325f5",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/sale-picker-step34",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/SalePicker.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sale-picker-step34.test.ts"
-      }
-    ],
-    "timestamp": "2026-11-12T19:10:04Z",
+    "branch": "rebase/sale-picker",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-12T19:41:07Z",
     "sourceHash": "sha256:1843996ece2a050286ff689c92839b8b273c997d838e5a4eca0783ec3fa8b122",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -25,7 +16,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 21.2,
+    "ageHours": 21.8,
     "ageDays": 0.9,
     "staleAfterDays": 14,
     "stale": false,

@@ -163,23 +163,23 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/PortfolioScreen.tsx:293` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
 | `components/money/PortfolioScreen.tsx:315` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
 | `components/money/PortfolioScreen.tsx:323` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
-| `components/money/SalePicker.tsx:69` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
-| `components/money/SalePicker.tsx:74` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
-| `components/money/SalePicker.tsx:88` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
+| `components/money/SalePicker.tsx:85` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
+| `components/money/SalePicker.tsx:108` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
+| `components/money/SalePicker.tsx:115` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/money/StockChart.tsx:64` | RangePills | onChange | `setRange` | state setRange |  |
 | `components/money/StockSearchScreen.tsx:120` | Pressable | onPress | `inline: () => router.back()` | route back |  |
 | `components/money/StockSearchScreen.tsx:156` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
 | `components/money/StockSearchScreen.tsx:189` | SearchRow | onPress | `inline: () => handleSelect(item)` | fn handleSelect |  |
 | `components/money/StockSearchScreen.tsx:245` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/StockSheetBody.tsx:347` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:461` | TradeReviewPanel | onRetry | `retryReview` | fn retryReview |  |
-| `components/money/StockSheetBody.tsx:483` | Button | onPress | `inline: () => { data.refresh(); void openReview(open.kind); }` | fn data.refresh |  |
-| `components/money/StockSheetBody.tsx:485` | Button | onPress | `inline: () => setOpen(null)` | sheet setOpen(null) |  |
-| `components/money/StockSheetBody.tsx:535` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
-| `components/money/StockSheetBody.tsx:541` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
-| `components/money/StockSheetBody.tsx:571` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:615` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
-| `components/money/StockSheetBody.tsx:644` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/money/StockSheetBody.tsx:460` | TradeReviewPanel | onRetry | `retryReview` | fn retryReview |  |
+| `components/money/StockSheetBody.tsx:482` | Button | onPress | `inline: () => { data.refresh(); void openReview(open.kind); }` | fn data.refresh |  |
+| `components/money/StockSheetBody.tsx:484` | Button | onPress | `inline: () => setOpen(null)` | sheet setOpen(null) |  |
+| `components/money/StockSheetBody.tsx:534` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
+| `components/money/StockSheetBody.tsx:540` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
+| `components/money/StockSheetBody.tsx:570` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
+| `components/money/StockSheetBody.tsx:614` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
+| `components/money/StockSheetBody.tsx:643` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/money/TradeHistoryScreen.tsx:132` | LoadFailure | onRetry | `ledger.refresh` | prop ledger.refresh |  |
 | `components/money/TradeHistoryScreen.tsx:167` | Pressable | onPress | `inline: () => router.back()` | route back |  |
 | `components/money/TradeHistoryScreen.tsx:176` | SegmentedControl | onChange | `choose` | fn choose |  |
