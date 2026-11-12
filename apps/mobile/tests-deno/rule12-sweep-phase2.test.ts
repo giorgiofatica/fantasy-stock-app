@@ -182,3 +182,13 @@ Deno.test('(a)(c) lobby and room-open cards: the postponed copy is one function 
   assert(auto.includes("lines: [when] };"));
   assertFalse(strip(SOURCES['app/(tabs)/league.tsx']).includes("memberPostponedCopy(commissionerName, 'lobby')"));
 });
+
+Deno.test('DL P2 (lobby order row at AX5): the name stops at 1.3x and is kept whole by keepName, never a bare no-break space', () => {
+  const row = strip(SOURCES['components/sp/gn/ManagerRow.tsx']);
+  assert(row.includes('export const ORDER_NAME_CAP = 1.3;'));
+  assert(row.includes('maxFontSizeMultiplier={ORDER_NAME_CAP}'));
+  assert(row.includes('{keepName(name)}</Text>'), 'the name goes through keepName');
+  assertFalse(/replace\(\/ \/g, ['"`]\\u00a0/.test(row), 'no hand-rolled NBSP replace in the row');
+  // The lobby draws its order through this row (not a hand copy), so the fix lives in one place.
+  assert(strip(SOURCES['components/game/DraftLobby.tsx']).includes('<ManagerRow key={id} kind="order"'));
+});

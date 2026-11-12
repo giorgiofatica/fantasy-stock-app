@@ -13,6 +13,7 @@ import { formatMoney } from '@/components/sp/logic/money';
 import { excerptStacks, movement, toneOf, YOU_RING } from '@/components/sp/logic/gameNight';
 import { yourNameStyle, youA11y } from '@/lib/game/managerRow';
 import { MEDAL, MedalDisc, useMedalDiscSize } from '@/components/game/MedalDisc';
+import { keepName } from '@/lib/account/keepName';
 
 // Stockpile — <ManagerRow>, Game Night (§9C; Giorgio, 2026-10-12, on Standings: "the game
 // night one is the best just because of that, like, style and formatting"; and on 1.2.0's
@@ -61,6 +62,9 @@ interface ManagerRowBase {
   rankLeads?: boolean;
 }
 
+/** The draft lobby's order row's name stops here (Holdings, Schedule and queue rows cap at 1.3 too). */
+export const ORDER_NAME_CAP = 1.3;
+
 /** A Standings row (the default) carries the record and the season gain; the draft lobby's
  * ORDER row (`kind: 'order'`, W4 Draft gate: the same row, not a hand copy) is the seat, the
  * avatar and the name, and nothing to rank by yet: no movement, record or gain. */
@@ -84,7 +88,9 @@ export function ManagerRow(props: ManagerRowProps) {
         {isYou ? <View testID="manager-row-you" pointerEvents="none" style={[styles.youOverlay, { backgroundColor: colors.youTint, borderColor: colors.you }]} /> : null}
         <Text variant="score.md" color={colors.text2} style={styles.rank}>{rank}</Text>
         <Avatar name={name} uri={avatarUri} size={32} tone={isYou ? 'you' : 'neutral'} />
-        <Text variant="body" numberOfLines={2} style={[styles.name, yourNameStyle(isYou)]} color={seatInk}>{name}</Text>
+        {/* DL gate (Phase 2, P2): at AX5 the uncapped name broke between "Roberto" and "B.". It stops at 1.3x, as Holdings, Schedule and queue
+            rows do (ORDER_NAME_CAP), and keepName keeps a short name whole: it moves to the next line as one piece, never "Robert / o". */}
+        <Text variant="body" numberOfLines={2} maxFontSizeMultiplier={ORDER_NAME_CAP} style={[styles.name, yourNameStyle(isYou)]} color={seatInk}>{keepName(name)}</Text>
       </View>
     );
   }

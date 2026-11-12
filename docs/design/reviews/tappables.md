@@ -257,7 +257,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/sp/EmptyState.tsx:78` | Button | onPress | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
 | `components/sp/ListRow.tsx:59` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/sp/SegmentedControl.tsx:95` | Pressable | onPress | `inline: () => choose(option.value)` | fn choose |  |
-| `components/sp/gn/ManagerRow.tsx:165` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/sp/gn/ManagerRow.tsx:171` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/sp/gn/PlayerCard.tsx:110` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/sp/gn/PlayerCard.tsx:159` | PressableScale | onPress | `action.onPress` | prop action.onPress | `action.disabled` |
 | `components/sp/gn/RangePills.tsx:46` | Pressable | onPress | `inline: () => { if (selected) return; Haptics.selectionAsync().catch` | fn onChange |  |
