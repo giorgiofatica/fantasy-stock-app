@@ -35,8 +35,8 @@ Deno.test('the name map is exhaustive and matches the spec table', () => {
   // A password field's toggle: the open eye shows, the struck-through eye hides (lib/passwordReveal.ts).
   assertEquals(ICON_GLYPHS.eye, 'eye-outline');
   assertEquals(ICON_GLYPHS.eyeOff, 'eye-off-outline');
-  // The rename pencil after a league's name in the sheet bar (decorative; the title is the button).
-  assertEquals(ICON_GLYPHS.edit, 'pencil-outline');
+  // The rename pencil after a league's name in the sheet bar (decorative; the title is the button). Filled: the outline one read as a slash at the title's size (DL gate, 2026-11-12).
+  assertEquals(ICON_GLYPHS.edit, 'pencil');
 });
 
 Deno.test('outline by default: no glyph is a filled variant (filled is only for a selected state)', () => {

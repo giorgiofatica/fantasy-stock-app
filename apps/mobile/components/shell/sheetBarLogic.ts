@@ -10,7 +10,13 @@ export const SHEET_BAR_MAX_SCALE = 1.3;
 export const SHEET_BAR_HEIGHT = 56;
 
 /** The × and Save sit in side slots of this width, so the title stays centred whether or not the sheet can save. */
-export const SHEET_BAR_SIDE = 72;
+export const SHEET_BAR_SIDE = 80;
+
+/** The bar's side gutter: the × glyph and Save's last letter both sit this far from the sheet's edge (DL gate: Save was 8.7 pt from the edge, the × 19.7 pt). */
+export const SHEET_BAR_GUTTER = 20;
+
+/** The × is a 24 pt glyph (the `tab` icon role) centred in its 44 pt target. */
+export const SHEET_BAR_CLOSE_GLYPH = 24;
 
 /** The ×'s hit area (rule 3, 44 pt). */
 export const SHEET_BAR_TARGET = 44;
@@ -18,9 +24,25 @@ export const SHEET_BAR_TARGET = 44;
 /** The divider under a scrolled bar. */
 export const SHEET_EDGE_DIVIDER = 1;
 
-/** The fade under a scrolled bar: the bar's own colour, solid for SHEET_EDGE_FADE_SOLID pt, clear by SHEET_EDGE_FADE_HEIGHT pt. */
-export const SHEET_EDGE_FADE_HEIGHT = 24;
-export const SHEET_EDGE_FADE_SOLID = 6;
+/** The fade under a scrolled bar: the bar's own colour, SOLID for at least one line of the sheet's row text at the current text size,
+ * then clear over the next SHEET_EDGE_FADE_CLEAR pt (Design Lead, gate on 4def77bc: a fixed 6 pt band could not cover a 15-17 pt row line,
+ * so the lower half of a row straddling the divider stayed legible with its top sliced). The solid part is a formula, not a constant:
+ * 16 pt x min(fontScale, 3), so it grows with the text. */
+export const SHEET_EDGE_ROW_TEXT = 16;
+export const SHEET_EDGE_ROW_SCALE_CAP = 3;
+export const SHEET_EDGE_FADE_CLEAR = 20;
+
+const usable = (fontScale: number): number => (Number.isFinite(fontScale) && fontScale > 0 ? fontScale : 1);
+
+/** The fade's solid band, in pt: one row line at the current text size. */
+export function sheetFadeSolid(fontScale: number): number {
+  return SHEET_EDGE_ROW_TEXT * Math.min(usable(fontScale), SHEET_EDGE_ROW_SCALE_CAP);
+}
+
+/** The fade's whole height: the solid band, then SHEET_EDGE_FADE_CLEAR pt of fade to clear. */
+export function sheetFadeHeight(fontScale: number): number {
+  return sheetFadeSolid(fontScale) + SHEET_EDGE_FADE_CLEAR;
+}
 
 /** The divider and the fade show only once the content has scrolled under the bar: at the top (and while pulled down past
  * it) neither shows. */
@@ -28,9 +50,9 @@ export function sheetEdgeShown(contentOffsetY: number): boolean {
   return contentOffsetY > 0;
 }
 
-/** Where the fade's gradient stops go: solid through the first SHEET_EDGE_FADE_SOLID pt, clear at the bottom edge. */
-export function sheetFadeLocations(): [number, number, number] {
-  return [0, SHEET_EDGE_FADE_SOLID / SHEET_EDGE_FADE_HEIGHT, 1];
+/** Where the fade's gradient stops go: solid through the band, clear at the bottom edge. */
+export function sheetFadeLocations(fontScale: number): [number, number, number] {
+  return [0, sheetFadeSolid(fontScale) / sheetFadeHeight(fontScale), 1];
 }
 
 /** What the bar's Save shows. `off`: grey and inert (nothing differs from what was loaded). `on`: the accent, a tap saves.
@@ -57,4 +79,10 @@ export function sheetBarFieldSize(scaledSize: number | undefined): number {
   const cap = SHEET_BAR_TITLE_SIZE * SHEET_BAR_MAX_SCALE;
   if (scaledSize === undefined || !(scaledSize > 0)) return SHEET_BAR_TITLE_SIZE;
   return Math.min(scaledSize, cap);
+}
+
+/** The rename pencil is drawn at the title's cap height (the title's base size), scaling with the text up to the bar's 1.3x, so it reads as a
+ * pencil beside the title at every size (an icon-role size grew past the capped title). */
+export function sheetBarPencilSize(fontScale: number): number {
+  return SHEET_BAR_TITLE_SIZE * Math.min(Math.max(usable(fontScale), 1), SHEET_BAR_MAX_SCALE);
 }

@@ -39,7 +39,8 @@ export const ICON_GLYPHS: Record<IconName, string> = {
   add: 'add',
   remove: 'remove',
   share: 'share-outline',
-  edit: 'pencil-outline',
+  // The one filled glyph besides the selected tab: at the title's size an outline pencil read as a slash (DL gate, 2026-11-12).
+  edit: 'pencil',
   trophy: 'trophy',
   lock: 'lock-closed-outline',
   mail: 'mail-outline',

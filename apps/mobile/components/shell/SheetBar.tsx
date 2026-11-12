@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { space, typeFontFamily } from '@/constants/tokens';
@@ -10,15 +10,18 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
 import {
+  SHEET_BAR_CLOSE_GLYPH,
+  SHEET_BAR_GUTTER,
   SHEET_BAR_HEIGHT,
   SHEET_BAR_MAX_SCALE,
   SHEET_BAR_SIDE,
   SHEET_BAR_TITLE_SIZE,
   SHEET_BAR_TARGET,
   SHEET_EDGE_DIVIDER,
-  SHEET_EDGE_FADE_HEIGHT,
   saveInert,
   sheetBarFieldSize,
+  sheetBarPencilSize,
+  sheetFadeHeight,
   sheetFadeLocations,
   type SaveState,
 } from '@/components/shell/sheetBarLogic';
@@ -67,6 +70,8 @@ export function SheetBar({ title, onClose, closeLabel = 'Close', closeTestID, sa
   // None inside an iOS page sheet, which already starts below the status bar (components/shell/ScreenPresentation.tsx).
   const topInset = useScreenTopInset();
   const clear = clearOf(colors.surface);
+  // The solid part of the fade covers one row line at the current text size (sheetBarLogic.ts), so no row straddling the divider shows half a line.
+  const { fontScale } = useWindowDimensions();
 
   return (
     <View
@@ -92,8 +97,8 @@ export function SheetBar({ title, onClose, closeLabel = 'Close', closeTestID, sa
           {/* The fade is the bar's surface into the surface at alpha 0, never the `transparent` keyword (black at 0: a grey fade). */}
           <LinearGradient
             colors={[colors.surface, colors.surface, clear]}
-            locations={sheetFadeLocations()}
-            style={styles.fade}
+            locations={sheetFadeLocations(fontScale)}
+            style={[styles.fade, { bottom: -sheetFadeHeight(fontScale), height: sheetFadeHeight(fontScale) }]}
             pointerEvents="none"
             testID="sheet-bar-fade"
           />
@@ -106,6 +111,7 @@ export function SheetBar({ title, onClose, closeLabel = 'Close', closeTestID, sa
 
 function BarTitle({ title, rename }: { title: string; rename?: SheetRename }) {
   const { colors } = useTheme();
+  const { fontScale } = useWindowDimensions();
   if (rename?.editing) {
     return (
       <View style={styles.titleField}>
@@ -126,7 +132,7 @@ function BarTitle({ title, rename }: { title: string; rename?: SheetRename }) {
       >
         <Text variant="headline" numberOfLines={1} maxFontSizeMultiplier={SHEET_BAR_MAX_SCALE} style={styles.title}>{title}</Text>
         {/* Decorative, and it stays visible after a "…" (the title shrinks, the pencil does not). */}
-        <View style={styles.pencil}><Icon name="edit" size="callout" tone="text2" /></View>
+        <View style={styles.pencil}><Icon name="edit" size="callout" pt={sheetBarPencilSize(fontScale)} tone="text2" /></View>
       </Pressable>
     );
   }
@@ -206,12 +212,14 @@ const styles = StyleSheet.create({
   },
   sideLeft: {
     width: SHEET_BAR_SIDE,
-    paddingLeft: space[2],
+    // The × glyph sits SHEET_BAR_GUTTER from the edge: the gutter less the glyph's inset inside its 44 pt target.
+    paddingLeft: SHEET_BAR_GUTTER - (SHEET_BAR_TARGET - SHEET_BAR_CLOSE_GLYPH) / 2,
     alignItems: 'flex-start',
   },
   sideRight: {
     width: SHEET_BAR_SIDE,
-    paddingRight: space[2],
+    // Save's last letter sits the same gutter from the right edge; its 44 pt target pads inward (see `save`).
+    paddingRight: SHEET_BAR_GUTTER,
     alignItems: 'flex-end',
   },
   center: {
@@ -264,9 +272,9 @@ const styles = StyleSheet.create({
   save: {
     minWidth: SHEET_BAR_TARGET,
     minHeight: SHEET_BAR_TARGET,
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'center',
-    paddingHorizontal: space[2],
+    paddingLeft: space[3],
   },
   saveWord: {
     fontWeight: '700',
@@ -277,12 +285,11 @@ const styles = StyleSheet.create({
   spinner: {
     ...StyleSheet.absoluteFillObject,
   },
+  // Hangs below the bar over the content; its height is the text-size formula (set inline from sheetFadeHeight).
   fade: {
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: -SHEET_EDGE_FADE_HEIGHT,
-    height: SHEET_EDGE_FADE_HEIGHT,
   },
   divider: {
     position: 'absolute',

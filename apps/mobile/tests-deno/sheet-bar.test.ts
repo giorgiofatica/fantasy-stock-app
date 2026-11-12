@@ -12,17 +12,23 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import layout from '../app/_layout.tsx' with { type: 'text' };
 import { isPageSheet } from '../lib/shell/screenTopInset.ts';
 import {
+  SHEET_BAR_CLOSE_GLYPH,
+  SHEET_BAR_GUTTER,
   SHEET_BAR_HEIGHT,
   SHEET_BAR_MAX_SCALE,
   SHEET_BAR_SIDE,
   SHEET_BAR_TARGET,
   SHEET_BAR_TITLE_SIZE,
   SHEET_EDGE_DIVIDER,
-  SHEET_EDGE_FADE_HEIGHT,
-  SHEET_EDGE_FADE_SOLID,
+  SHEET_EDGE_FADE_CLEAR,
+  SHEET_EDGE_ROW_SCALE_CAP,
+  SHEET_EDGE_ROW_TEXT,
   sheetBarFieldSize,
+  sheetBarPencilSize,
   sheetEdgeShown,
+  sheetFadeHeight,
   sheetFadeLocations,
+  sheetFadeSolid,
 } from '../components/shell/sheetBarLogic.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
@@ -197,17 +203,60 @@ Deno.test('the scroll edge shows only once scrolled: at the top (and pulled past
   assert(/\{edge \? \(/.test(bar), 'both are drawn only when `edge`');
 });
 
-Deno.test('the scroll edge: a 1pt border-token divider, and a 24pt fade solid for 6pt then clear, in the bar\'s own colour', () => {
+Deno.test('the fade\'s solid band is a FORMULA: one row line at the current text size, 16 pt x min(fontScale, 3), then clear over 20 pt', () => {
+  assertEquals([SHEET_EDGE_ROW_TEXT, SHEET_EDGE_ROW_SCALE_CAP, SHEET_EDGE_FADE_CLEAR], [16, 3, 20]);
+  // The solid band covers a whole row line of the sheet's row text at every size (rows are 15-17 pt at Large and scale with the text).
+  for (const [fontScale, solid] of [[1, 16], [1.235, 16 * 1.235], [1.353, 16 * 1.353], [2.143, 16 * 2.143], [3, 48], [3.571, 48], [4, 48]] as const) {
+    assertEquals(sheetFadeSolid(fontScale), solid, `solid at ${fontScale}x`);
+    assertEquals(sheetFadeHeight(fontScale), solid + 20, `height at ${fontScale}x`);
+    const [from, solidEnd, to] = sheetFadeLocations(fontScale);
+    assertEquals([from, to], [0, 1]);
+    assert(Math.abs(solidEnd * sheetFadeHeight(fontScale) - solid) < 1e-9, `solid stop at ${fontScale}x is the solid band`);
+  }
+  // At Large the band is at least the row text's own size (a 15-17 pt line), where the old 6 pt band left half a line legible.
+  assert(sheetFadeSolid(1) >= 16 && sheetFadeSolid(1) > 6);
+  // A junk scale falls back to 1x, never NaN.
+  assertEquals(sheetFadeSolid(NaN), 16);
+  assertEquals(sheetFadeSolid(0), 16);
+});
+
+Deno.test('the scroll edge: a 1pt border-token divider, and a fade in the bar\'s own colour whose height comes from the text size', () => {
   assertEquals(SHEET_EDGE_DIVIDER, 1);
-  assertEquals(SHEET_EDGE_FADE_HEIGHT, 24);
-  assertEquals(SHEET_EDGE_FADE_SOLID, 6);
-  assertEquals(sheetFadeLocations(), [0, 0.25, 1]);
   assert(/backgroundColor: colors\.border/.test(bar), 'the divider is the border token');
   assert(/colors=\{\[colors\.surface, colors\.surface, clear\]\}/.test(bar), 'surface, surface, then the surface at alpha 0');
   assert(/const clear = clearOf\(colors\.surface\)/.test(bar));
   assert(!/transparent/.test(code(bar)), 'never the `transparent` keyword (black at alpha 0: a grey fade)');
-  assert(/bottom: -SHEET_EDGE_FADE_HEIGHT/.test(bar), 'the fade hangs below the bar, over the content');
+  // The geometry is read from the formula with the live text scale, never a literal.
+  assert(/useWindowDimensions\(\)/.test(bar) && /locations=\{sheetFadeLocations\(fontScale\)\}/.test(bar), 'the stops follow the text size');
+  assert(/bottom: -sheetFadeHeight\(fontScale\), height: sheetFadeHeight\(fontScale\)/.test(bar), 'the fade hangs below the bar at the formula\'s height');
+  assert(!/SHEET_EDGE_FADE_(SOLID|HEIGHT)/.test(code(bar)) && !/SHEET_EDGE_FADE_(SOLID|HEIGHT)/.test(code(SOURCES['components/shell/sheetBarLogic.ts'])), 'no fixed solid / height constant');
   assert(/zIndex: 2/.test(bar), 'the bar sits above the scroll view it fades over');
+});
+
+Deno.test('Save and the × sit the same 20 pt gutter from the sheet\'s edges, and Save keeps its 44 pt target by padding inward', () => {
+  assertEquals(SHEET_BAR_GUTTER, 20);
+  assertEquals(SHEET_BAR_CLOSE_GLYPH, 24);
+  // The × glyph: the gutter less its inset inside the 44 pt target = 10 pt of padding; Save: the full gutter on the right.
+  assert(/paddingLeft: SHEET_BAR_GUTTER - \(SHEET_BAR_TARGET - SHEET_BAR_CLOSE_GLYPH\) \/ 2/.test(bar));
+  assert(/paddingRight: SHEET_BAR_GUTTER/.test(bar));
+  // Save is right-aligned in a 44 pt-minimum target that pads on its left (inward), so its last letter lands on the gutter.
+  const save = bar.slice(bar.indexOf('  save: {'), bar.indexOf('  saveWord: {'));
+  assert(/minWidth: SHEET_BAR_TARGET/.test(save) && /minHeight: SHEET_BAR_TARGET/.test(save));
+  assert(/alignItems: 'flex-end'/.test(save) && /paddingLeft:/.test(save) && !/paddingRight/.test(save));
+  assert(SHEET_BAR_SIDE >= SHEET_BAR_GUTTER + SHEET_BAR_TARGET, 'a side slot holds the gutter and the target');
+});
+
+Deno.test('the rename pencil is drawn at the title\'s size (17 pt at Large, never past the title\'s 1.3x), and the whole title is the tap target', () => {
+  assertEquals(sheetBarPencilSize(1), SHEET_BAR_TITLE_SIZE);
+  assertEquals(sheetBarPencilSize(0.8), SHEET_BAR_TITLE_SIZE, 'never shrinks below the title');
+  assertEquals(sheetBarPencilSize(1.3), SHEET_BAR_TITLE_SIZE * 1.3);
+  assertEquals(sheetBarPencilSize(3.571), SHEET_BAR_TITLE_SIZE * 1.3, 'AX5 stops at the title\'s cap');
+  assertEquals(sheetBarPencilSize(NaN), SHEET_BAR_TITLE_SIZE);
+  assert(/<Icon name="edit" size="callout" pt=\{sheetBarPencilSize\(fontScale\)\} tone="text2" \/>/.test(bar));
+  // The text and the pencil are the children of ONE Pressable (the title button), not two targets.
+  const title = bar.slice(bar.indexOf('if (rename) {'), bar.indexOf('return (\n    <Text variant="headline" numberOfLines={1}'));
+  assertEquals((title.match(/<Pressable\b/g) ?? []).length, 1);
+  assert(title.indexOf('<Text') > title.indexOf('<Pressable') && title.indexOf('name="edit"') > title.indexOf('<Text'));
 });
 
 Deno.test('every sheet hands its scroll view the edge hook (the bar learns it scrolled)', () => {
@@ -229,7 +278,7 @@ Deno.test('Save is inert unless on, VoiceOver reads it dimmed, and progress take
 Deno.test('the title: a header for a read-only sheet; one button "League name" (value: the name) with a decorative pencil for a renamer', () => {
   assert(/accessibilityRole="header"/.test(bar));
   assert(/accessibilityLabel="League name"\s*\n\s*accessibilityValue=\{\{ text: title \}\}/.test(bar));
-  assert(/<Icon name="edit" size="callout" tone="text2" \/>/.test(bar), 'the pencil carries no label (decorative)');
+  assert(/<Icon name="edit" size="callout" pt=\{sheetBarPencilSize\(fontScale\)\} tone="text2" \/>/.test(bar) && !/name="edit"[^>]*label=/.test(bar), 'the pencil carries no label (decorative)');
   // The pencil is outside the shrinking Text, so it stays visible after a "…".
   assert(/styles\.pencil/.test(bar) && /flexShrink: 0/.test(bar));
   // In-bar field: return ends editing, accent underline, labelled "League name".
