@@ -383,6 +383,7 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-deleted-leaver', 'Two lines on the "draft can\u2019t start yet" card: who left, and the deadline\u2019s day', () => window.KSDeletedLeaver],
     ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)', () => window.KSRule12Sweep],
     ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)', () => window.KSRule12Info],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
