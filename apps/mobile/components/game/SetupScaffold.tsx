@@ -113,7 +113,7 @@ export function SetupScaffold({ back, sheet, step, title, subtitle, children, fo
       <ScrollView
         ref={scrollRef}
         style={styles.fill}
-        contentContainerStyle={[styles.body, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}
+        contentContainerStyle={[styles.body, sheet ? styles.bodySheet : null, { paddingBottom: footer ? space[5] : insets.bottom + space[8] }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
         onScroll={sheet ? onScroll : undefined}
@@ -159,6 +159,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[6],
     paddingTop: space[3],
     gap: space[5],
+  },
+  // Under a sheet's bar the rows start a full gutter-and-a-half below it (no heading in between).
+  bodySheet: {
+    paddingTop: space[5],
   },
   heading: {
     gap: space[2],
