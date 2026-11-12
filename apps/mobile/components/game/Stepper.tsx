@@ -8,6 +8,7 @@ import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { uniformValueWidth } from '@/lib/game/seasonStep';
+import { infoSlotMargin } from '@/lib/game/stepperInfoSlot';
 
 // 3c-2 — the board's stepper (inventory.jsx `Stepper`: label + optional sub on
 // the left, a bordered − value + box on the right). The buttons are 44 pt
@@ -104,7 +105,8 @@ export function Stepper({ label, sub, value, unit, unitSpoken, uniformBox = fals
               <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.labelShrink}>
                 {labelText}
               </View>
-              {labelInfo}
+              {/* The "i" keeps its 44 pt target but counts as one label line in the row (stepperInfoSlot.ts), so the row is as tall as the label. */}
+              <View style={styles.infoSlot}>{labelInfo}</View>
             </View>
             <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{subText}</View>
           </>
@@ -156,6 +158,9 @@ const styles = StyleSheet.create({
   },
   labelShrink: {
     flexShrink: 1,
+  },
+  infoSlot: {
+    marginVertical: infoSlotMargin(),
   },
   box: {
     flexDirection: 'row',

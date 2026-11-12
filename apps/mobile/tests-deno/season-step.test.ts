@@ -17,6 +17,7 @@ import {
   uniformValueWidth,
 } from '../lib/game/seasonStep.ts';
 import { NBSP, keepWeek } from '../lib/game/keepDots.ts';
+import { INFO_TARGET, LABEL_MIN_LINE, infoSlotFootprint, infoSlotMargin } from '../lib/game/stepperInfoSlot.ts';
 import { playoffLine } from '../lib/playoffs.ts';
 import { parseCaptureKnobs, parseCreateSeason } from '../lib/shell/captureKnobs.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
@@ -187,4 +188,46 @@ Deno.test('capture knob: EXPO_PUBLIC_CREATE_SEASON seeds a valid Season once, an
   assertEquals(parseCaptureKnobs(false, { createSeason: '16,15,16' }).createSeason, null);
   assertEquals(parseCaptureKnobs(true, { createSeason: '16,15,16' }).createSeason, { size: 16, weeks: 15, playoffTeams: 16 });
   assert(screen.includes('size: CAPTURE.createSeason?.size ?? 8,'));
+});
+
+// ── The DL's two P2s (2026-11-11) ───────────────────────────────────────
+
+const stepperSrc = SOURCES['components/game/Stepper.tsx'];
+const setupRows = SOURCES['components/game/SetupRows.tsx'];
+
+Deno.test('P2-1: the "i" counts as one label line in the label row, so the row is as tall as the label at every size', () => {
+  assertEquals(INFO_TARGET, 44);
+  assertEquals(LABEL_MIN_LINE, 18); // the callout variant's line height at Large; it only grows
+  assertEquals(infoSlotMargin(), -13);
+  assertEquals(infoSlotFootprint(), 18);
+  assert(infoSlotFootprint() <= LABEL_MIN_LINE, 'the slot never makes the row taller than the label');
+  assertEquals(infoSlotMargin(44, 44), 0, 'a label as tall as the target needs no overhang');
+  assertEquals(infoSlotMargin(44, 60), 0, 'never a positive margin');
+  assertEquals(infoSlotMargin(45, 18), -14, 'an odd excess rounds toward more overhang');
+  assertEquals(infoSlotFootprint(45, 18), 17);
+});
+
+Deno.test('P2-1: Stepper puts the "i" in a slot with that margin, and the 44 pt button inside is untouched', () => {
+  assert(stepperSrc.includes('<View style={styles.infoSlot}>{labelInfo}</View>'));
+  assert(stepperSrc.includes('infoSlot: {\n    marginVertical: infoSlotMargin(),\n  },'));
+  const popup = SOURCES['components/game/InfoPopup.tsx'];
+  assert(popup.includes('infoHit: {\n    width: 44,\n    height: 44,'));
+});
+
+Deno.test('P2-2: the Season card draws a 1 pt rule between Managers, Regular season, Playoff teams and the strip', () => {
+  assertEquals(season.match(/<SetupRule \/>/g)?.length, 3);
+  assertFalse(season.includes('<RowDivider'), 'the Season card divides by rules, not space');
+  assert(setupRows.includes('export function SetupRule() {'));
+  assert(setupRows.includes('style={[styles.rule, { backgroundColor: colors.border }]}'));
+  assert(setupRows.includes('rule: {\n    height: 1,\n    marginHorizontal: -space[5],\n  },'));
+  // the rule is full-bleed because it cancels the card's own horizontal padding: the two must stay the same token
+  assert(setupRows.includes('card: {\n    borderRadius: radius.lg,\n    paddingHorizontal: space[5],'));
+});
+
+Deno.test('P2-2: RowDivider stays space (every other card), and no other screen picked up the rule', () => {
+  assert(setupRows.includes('divider: {\n    height: space[2],\n  },'));
+  for (const [path, text] of Object.entries(SOURCES)) {
+    if (path === 'components/game/SetupRows.tsx' || path === 'app/create-league.tsx') continue;
+    assertFalse(text.includes('SetupRule'), path);
+  }
 });

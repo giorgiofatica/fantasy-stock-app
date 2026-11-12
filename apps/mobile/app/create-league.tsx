@@ -78,7 +78,7 @@ import { CAPTURE } from '@/lib/shell/captureDev';
 import { createFixtureStep } from '@/lib/shell/captureKnobs';
 import { keepDots, keepHyphens, keepMoney } from '@/lib/game/keepDots';
 import { pushAskRouteFor } from '@/lib/shell/pushAsk';
-import { ChoiceRow, LabelWithInfo, RowDivider, RowKey, RowWrap, SettingRow, SetupCard, SwitchRow } from '@/components/game/SetupRows';
+import { ChoiceRow, LabelWithInfo, RowDivider, RowKey, RowWrap, SettingRow, SetupCard, SetupRule, SwitchRow } from '@/components/game/SetupRows';
 import { InfoButton, useInfoPopup } from '@/components/game/InfoPopup';
 import { CONTROL_INFO, infoForLeagueType, infoForStakeMode } from '@/lib/game/infoPopups';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
@@ -335,8 +335,8 @@ export default function CreateLeagueWizard() {
 
   // ── Step 2 · Season (PRODUCT_RULES, "The Season step in Create league", B) ─
   // Three identical steppers, no line under any label and none at a limit either: − or + just greys
-  // out at its end (Giorgio, #call-limit-lines B, 2026-11-11). Then the season strip, and one line
-  // outside the card: the playoff line's bye clause.
+  // out at its end (Giorgio, #call-limit-lines B, 2026-11-11), a 1 pt rule between them and the strip
+  // (the approved board draws them), then one line outside the card: the playoff line's bye clause.
   const renderSeason = () => {
     const byeLine = seasonByeLine(playoffTeams);
     return (
@@ -352,7 +352,7 @@ export default function CreateLeagueWizard() {
               canIncrement={state.size < MANAGER_SIZES[MANAGER_SIZES.length - 1]}
             />
           </View>
-          <RowDivider />
+          <SetupRule />
           <View style={styles.block}>
             <Stepper
               label="Regular season"
@@ -365,7 +365,7 @@ export default function CreateLeagueWizard() {
               canIncrement
             />
           </View>
-          <RowDivider />
+          <SetupRule />
           <View style={styles.block}>
             <Stepper
               label="Playoff teams"
@@ -377,7 +377,7 @@ export default function CreateLeagueWizard() {
               canIncrement={playoffTeams < state.size}
             />
           </View>
-          <RowDivider />
+          <SetupRule />
           <View style={styles.block}>
             <SeasonStrip regularWeeks={shownWeeks} playoffTeams={playoffTeams} />
           </View>
