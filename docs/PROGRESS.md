@@ -33,11 +33,15 @@ Entries begin with the Recorder's first pass.
 - **Not shown:** the `202` on a real run, and notices still moving from pending to sent. Both wait for the next draft event. `enrich-symbols` was not redeployed: `main` differs from prod there by a refactor-only change, and a redeploy is optional.
 
 **Merged, not confirmed live**
-- Docs and design: #406 (the Design Lead's step-25 board archive), #407 (my record), #409 (the Design Lead's board: the sweep's "Fix these before …" row is KEPT, superseded by step 25 (b)). The two step-25 rulings (the pre-draft card's "A manager left the league", a deadline that names its day) remain build items for 1.3.x, not built.
+- **Mobile, 2026-11-12, all in no build (build 15), no server step:** #415 (04:26Z; the rule-12 sweep and "i" popups; 85 files; the Design Lead passed it; the Orchestrator verified it independently: 3175 tests, no new tsc or lint errors, 10 of 10 mutants killed), #417 (17:08Z; your queue saves as you go), #419 (17:14Z; the Season step strip B, both limit lines dropped). The newest EAS iOS build is still 1.3.0 (14). Their effect on a phone is not shown until a build carries them.
+- **Ruled, not built:** no draft order card while it waits at 4 or more. `fix/hide-waiting-order-card` failed the Design Lead's gate on a 16 pt gap left where the card was (the Orchestrator's account) and is being fixed; it is not on the remote.
+- Docs and design: #416 (stepper-end and Managers limit-line rules, gate checklist), #418 (the waiting-card board), #414 (the VoiceOver and queue rules), #406 (the Design Lead's step-25 board archive), #407 (my record), #409 (the Design Lead's board: the sweep's "Fix these before …" row is KEPT, superseded by step 25 (b)). The two step-25 rulings (the pre-draft card's "A manager left the league", a deadline that names its day) remain build items for 1.3.x, not built.
 
-**Decided** (Giorgio, 2026-11-12, relayed and verified by the Orchestrator; the Design Lead records both in `PRODUCT_RULES.md`, not on `main` yet)
-- The 7 VoiceOver descriptions are approved as written (his word: "approved").
-- The queue saves as you go, with no Save button (B; his words: "B saves as you go"). The autosave build is not built; it comes after the rule-12 branch merges.
+**Decided** (Giorgio; the words and dates are in `PRODUCT_RULES.md`, now on `main` via #414, #416, #418 and #420; this only points)
+- The 7 VoiceOver descriptions are approved as written ("approved").
+- Your queue saves as you go, with no Save button ("B saves as you go").
+- Steppers at their ends get no line ("option B": the two approved limit lines go), and Managers at 4 and 16 gets no line.
+- No draft order card while it waits, at 4 or more managers ("B"). #420 (merged 17:14:55Z) corrected the rule's text: no progress bar below 4 either; the bar was only in the drawings.
 
 **Found**
 - Giorgio's 202 query soon after the draft-order-notify deploy returned 0 rows. Expected: the cron POSTs only when `draft_room_notices_due()` is true (its command is in the db-snapshot), so with no draft event there was no POST. The effect is still not shown.
