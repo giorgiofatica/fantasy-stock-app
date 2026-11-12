@@ -15,8 +15,8 @@ Deno.test('the settings sent are only the server\'s whitelist; pick_clock_enable
   assertEquals(RENEWAL_SETTINGS_KEYS.includes('pick_clock_enabled' as never), false);
 });
 
-Deno.test('the teams line is in + new, up to 16, and says more can join by code', () => {
-  assertEquals(teamsLine({ in: 4, new: 1 }, 'SCUD26'), { value: '5', sub: "Follows who's in, up to 16. More can join with SCUD26 until the draft." });
+Deno.test('the teams row is in + new, and nothing under it (rule 12, the sweep row 11: "Follows who\'s in, up to 16…" is cut)', () => {
+  assertEquals(teamsLine({ in: 4, new: 1 }), { value: '5' });
 });
 
 Deno.test('the draft can be scheduled only when nobody is pending and a FUTURE date is set', () => {

@@ -33,12 +33,6 @@ export const PICK_SECONDS_OPTIONS: { value: number; label: string }[] = [30, 45,
 
 export const DEFAULT_PICK_SECONDS = 60;
 
-export function pickSecondsCaption(seconds: number): string {
-  return seconds === DEFAULT_PICK_SECONDS
-    ? `Time each manager has to make a pick. ${seconds} seconds is the default.`
-    : `Time each manager has to make a pick. ${seconds} seconds.`;
-}
-
 /** Frozen once the draft starts: trg_leagues_pick_clock refuses a change, so the picker is disabled. */
 export function pickClockLocked(draftStatus: 'not_started' | 'in_progress' | 'completed'): boolean {
   return draftStatus !== 'not_started';

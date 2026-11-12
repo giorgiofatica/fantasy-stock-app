@@ -8,7 +8,7 @@
 import { assertEquals } from 'jsr:@std/assert';
 import {
   COMMISSIONER_ROW, COMMISSIONER_YOU, HAND_OVER, LEAVE_COMMISSIONER_FIRST, LEAVE_LEAGUE, LEAVE_LOCKED_LINE, LEAVE_REFUSAL_REASONS,
-  LEAVE_UNCONFIRMED, LEAVE_UNTIL_NO_TIME, STAY, TRANSFER_NOTE, TRANSFER_TITLE, WHO_TAKES_OVER,
+  LEAVE_UNCONFIRMED, LEAVE_UNTIL_NO_TIME, STAY, TRANSFER_NOTE, TRANSFER_TITLE,
   handOverLabel, leaveOutcome, leaveRecheck, transferUnknownLine, leaveRowView, leaveSheetCopy, leaveWindow, orderAtLabel, orderSetAtMs, transferAllowed, transferCandidates,
 } from '../lib/game/leaveLeague.ts';
 import { leaveLeagueFixture } from '../lib/game/seamFixtures.ts';
@@ -27,7 +27,6 @@ Deno.test('the board\'s copy, verbatim', () => {
   assertEquals(COMMISSIONER_YOU, 'You');
   assertEquals(LEAVE_LOCKED_LINE, 'Teams are locked in from an hour before the draft until the season ends.');
   assertEquals(LEAVE_COMMISSIONER_FIRST, 'Make someone else commissioner first.');
-  assertEquals(WHO_TAKES_OVER, 'Who takes over as commissioner?');
   // The transfer sheet (Design Lead, ruled).
   assertEquals(TRANSFER_TITLE, 'Make someone else commissioner');
   assertEquals(TRANSFER_NOTE, 'The new commissioner takes over right away. You stay in the league.');
@@ -65,7 +64,7 @@ Deno.test('the order time: an hour before the draft, "Sat 6:00 PM ET"', () => {
 // ── The row ──
 
 Deno.test('the row: open says until when (board "Before the lock")', () => {
-  assertEquals(leaveRowView('before_draft', false, DRAFT), { enabled: true, sub: 'You can leave until Sat 6:00 PM ET, when the draft order is set.' });
+  assertEquals(leaveRowView('before_draft', false, DRAFT), { enabled: true, sub: 'You can leave until Sat 6:00 PM ET.' }); // rule 12 (the sweep, row 10): the time stays, ", when the draft order is set" is cut
   assertEquals(leaveRowView('before_draft', false, null), { enabled: true, sub: 'You can leave until an hour before the draft.' }); // ruled
   assertEquals(leaveRowView('after_season', false, DRAFT), { enabled: true, sub: null });
 });

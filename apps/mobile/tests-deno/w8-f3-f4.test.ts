@@ -11,7 +11,7 @@ import {
   PROFILE_BACK_FALLBACK, PROFILE_FROM, profileBackLabel, profileFromParam, profileFromPathname, profileHref,
 } from '../lib/shell/profileBack.ts';
 import {
-  DRAFT_ROW_UNSET, SCHEDULE_FOOTNOTE, SCHEDULE_NEEDS_TIME, canSchedule, scheduleLine, scheduleReason,
+  DRAFT_ROW_UNSET, SCHEDULE_NEEDS_TIME, canSchedule, scheduleReason,
 } from '../lib/game/renewalReview.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
@@ -79,25 +79,21 @@ Deno.test('F4: no time, a past time and a future time: the button and its line',
   // No time: disabled, reason.
   assertEquals(canSchedule({ repliesPending: false, draftDate: null, now: NOW }), false);
   assertEquals(scheduleReason({ draftDate: null, now: NOW }), 'Pick a future draft time.');
-  assertEquals(scheduleLine({ draftDate: null, now: NOW }), SCHEDULE_NEEDS_TIME);
   // A time in the PAST (not left to the picker's minimumDate): disabled, the same reason.
   assertEquals(canSchedule({ repliesPending: false, draftDate: PAST, now: NOW }), false);
   assertEquals(scheduleReason({ draftDate: PAST, now: NOW }), SCHEDULE_NEEDS_TIME);
-  assertEquals(scheduleLine({ draftDate: PAST, now: NOW }), SCHEDULE_NEEDS_TIME);
   assertEquals(canSchedule({ repliesPending: false, draftDate: NOW.toISOString(), now: NOW }), false, 'exactly now is not the future');
   assertEquals(canSchedule({ repliesPending: false, draftDate: 'not-a-date', now: NOW }), false);
-  // A future time: enabled, the footnote returns.
+  // A future time: enabled, and no line at all (rule 12, row 11: the footnote is cut).
   assertEquals(canSchedule({ repliesPending: false, draftDate: FUTURE, now: NOW }), true);
   assertEquals(scheduleReason({ draftDate: FUTURE, now: NOW }), null);
-  assertEquals(scheduleLine({ draftDate: FUTURE, now: NOW }), SCHEDULE_FOOTNOTE);
   // A future time that has PASSED since it was picked flips back.
   assertEquals(canSchedule({ repliesPending: false, draftDate: FUTURE, now: new Date('2026-10-21T00:00:00Z') }), false);
   // Replies pending still blocks.
   assertEquals(canSchedule({ repliesPending: true, draftDate: FUTURE, now: NOW }), false);
 });
 
-Deno.test('F4: the strings (the footnote is unchanged; the unset value is the shipped one)', () => {
-  assertEquals(SCHEDULE_FOOTNOTE, "Everyone who's in gets a notification. Season 1 stays in History.");
+Deno.test('F4: the strings (the unset value is the shipped one)', () => {
   assertEquals(SCHEDULE_NEEDS_TIME, 'Pick a future draft time.');
   assertEquals(DRAFT_ROW_UNSET, 'Pick a draft time');
   // "the shipped string Create league and League settings use"
@@ -111,9 +107,9 @@ Deno.test('F4: the review component (source pins)', () => {
   assert(src.includes(': DRAFT_ROW_UNSET}'), 'the Draft row says Pick a draft time until a time is set');
   assert(!src.includes("'Not set'") || !/label="Draft"[^\n]*'Not set'/.test(src), 'no "Not set" on the Draft row');
   assert(src.includes('canSchedule({ repliesPending, draftDate, now })'), 'the gate takes the clock');
-  assert(src.includes('{scheduleLine({ draftDate, now })}'), 'the line under the button is the reason or the footnote');
+  assert(src.includes('{scheduleReason({ draftDate, now }) ? <Text variant="caption" tone="secondary">{scheduleReason({ draftDate, now })}</Text> : null}'), 'the line under the button is the reason, and only the reason');
   assert(src.includes('setInterval(() => setNow(new Date()), 15_000)'), 'now ticks, so a time that passes disables Schedule');
   assert(!src.includes('isFutureDraftDate'), 'the rule lives in canSchedule, not in the picker callback');
   assert(src.includes('if (d) setDraftDate(d.toISOString());'), 'a picked time is shown, never silently ignored');
-  assert(!src.includes("Everyone who's in gets a notification"), 'the footnote text lives in renewalReview.ts');
+  assert(!src.includes("Everyone who's in gets a notification"), 'the footnote is cut');
 });

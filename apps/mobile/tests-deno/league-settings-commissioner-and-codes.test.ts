@@ -151,9 +151,9 @@ Deno.test('every surface that shows an invite code draws it through the keep-tog
   assert(SOURCES['components/home/PreDraftCard.tsx'].includes('<InviteCodeText variant="callout" style={styles.code} code={inviteCode} />'));
   assert(SOURCES['components/game/DraftBlockersCard.tsx'].includes('<InviteCodeText variant="headline" selectable code={inviteCode} />'));
   assert(SOURCES['app/create-league.tsx'].includes('<InviteCodeText variant="title" style={styles.code} selectable code={created.inviteCode} />'));
-  // Codes inside a line of copy: the join preview's caption and the renewal review's Teams sub-line.
+  // Codes inside a line of copy: the join preview's caption. (The renewal review's Teams sub-line, which held one, is cut: rule 12, row 11.)
   assert(SOURCES['app/join-league.tsx'].includes('`Invite code ${keepCode(trimmed.toUpperCase())}`'));
-  assert(SOURCES['components/game/RenewalReview.tsx'].includes('sub={keepCodeIn(teams.sub, inviteCode)}'));
+  assert(!SOURCES['components/game/RenewalReview.tsx'].includes('keepCodeIn'));
 });
 
 Deno.test('no screen draws an invite code as a bare Text (the surfaces the ruling named, plus a sweep)', () => {

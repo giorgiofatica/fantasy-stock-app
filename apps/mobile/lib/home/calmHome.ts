@@ -44,18 +44,14 @@ export function seasonOverPrimary(args: { runItBackOn: boolean; isCommissioner: 
 // ── Before the draft: the draft card's order ───────────────────────────────
 export type PreDraftBlock =
   | 'postponedTitle'
-  | 'postponedLine'
   | 'noDate'
   | 'roomOpenTag'
   | 'countdown'
   | 'date'
   | 'starting'
   | 'pick'
-  | 'pickClock'
-  | 'orderSet'
   | 'waiting'
-  | 'buttons'
-  | 'noBuying';
+  | 'buttons';
 
 export interface PreDraftFlags {
   memberPostponed: boolean;
@@ -66,21 +62,21 @@ export interface PreDraftFlags {
   countdown: boolean;
   starting: boolean;
   pick: boolean;
-  pickClock: boolean;
-  orderSet: boolean;
   waiting: boolean;
   buttons: boolean;
 }
 
 /**
  * The draft card's blocks, top to bottom (the tag sits above them all). With a draft
- * time, the countdown leads (score.xl, the screen's one big number), then the date,
- * the pick clock, the order line and the button(s). The no-buying line is a caption
- * directly under the button, still hidden while waiting for managers.
+ * time, the countdown leads (score.xl, the screen's one big number), then the date and
+ * the button(s). UX rule 12 (the sweep, rows 5 and 6): the pick-clock line ("60-second
+ * picks · 6 rounds"), the order line ("The draft room opens Sat 6:00 PM ET, when the order
+ * is set."), the no-buying caption and a postponed card's line are not blocks any more:
+ * each said what the card, its button or another screen already says.
  */
 export function preDraftBlocks(f: PreDraftFlags): PreDraftBlock[] {
   const out: PreDraftBlock[] = [];
-  if (f.memberPostponed) out.push('postponedTitle', 'postponedLine');
+  if (f.memberPostponed) out.push('postponedTitle');
   else if (f.noDate) out.push('noDate');
   else {
     if (f.roomOpenTag) out.push('roomOpenTag');
@@ -89,17 +85,9 @@ export function preDraftBlocks(f: PreDraftFlags): PreDraftBlock[] {
     if (f.starting) out.push('starting');
     if (f.pick) out.push('pick');
   }
-  if (f.pickClock) out.push('pickClock');
-  if (f.orderSet) out.push('orderSet');
   if (f.waiting) out.push('waiting');
   if (f.buttons) out.push('buttons');
-  if (f.buttons && !f.waiting) out.push('noBuying');
   return out;
-}
-
-/** The draft card's chip: only "Postponed" is left (the "Pre-draft" chip went). */
-export function preDraftChipShown(postponed: boolean): boolean {
-  return postponed;
 }
 
 /** "Through Week N" names the last completed week; in Week 1 there is none yet (N = 0), so the

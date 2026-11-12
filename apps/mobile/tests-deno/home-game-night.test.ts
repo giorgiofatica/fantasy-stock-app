@@ -33,7 +33,8 @@ Deno.test('This week: your avatar ringed in `you`, theirs the slate `opp` in the
 });
 
 Deno.test('chips are the §9C Chip: live = accentTint + liveText with the dot; others inset + text', () => {
-  for (const f of ['components/home/ThisWeekCard.tsx', 'components/home/DraftingCard.tsx', 'components/home/PreDraftCard.tsx']) {
+  // PreDraftCard's "Postponed" chip is cut (rule 12, the sweep row 6), so it is not in this list any more.
+  for (const f of ['components/home/ThisWeekCard.tsx', 'components/home/DraftingCard.tsx']) {
     assert(SOURCES[f].includes('chipLook('), f);
     assert(!/styles\.chip, \{ backgroundColor: colors\.inset \}/.test(SOURCES[f]), `${f}: a hand-coloured chip`);
   }

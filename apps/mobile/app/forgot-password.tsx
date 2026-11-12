@@ -151,9 +151,6 @@ export default function ForgotPasswordScreen() {
     <AuthScaffold back={{ label: 'Back to sign in', onPress: () => (router.canGoBack() ? router.back() : backToSignIn()) }}>
       <View style={styles.heading}>
         <ScreenTitle>Forgot password?</ScreenTitle>
-        <Text variant="body" tone="secondary">
-          Enter your email address and we&apos;ll send you a link to reset your password.
-        </Text>
       </View>
       <Field
         label="Email address"

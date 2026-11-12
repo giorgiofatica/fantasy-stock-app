@@ -234,11 +234,12 @@ Deno.test('no fallback to a stored price: the queue never reads symbols.last_pri
   assert(HOOK.includes(".in('symbol', missingNames)"));
 });
 
-Deno.test('the closed-market line sits under the intro, above the rows', () => {
-  const intro = EDITOR.indexOf("If you step away, we'll auto-pick");
+Deno.test('the closed-market line sits under the heading, above the rows (the intro is cut, rule 12 row 2)', () => {
+  assert(!EDITOR.includes("If you step away, we'll auto-pick"));
+  const heading = EDITOR.indexOf('Your queue ·');
   const line = EDITOR.indexOf('{closedLine ?');
   const rows = EDITOR.indexOf('<QueueRow');
-  assert(intro > 0 && intro < line && line < rows);
+  assert(heading > 0 && heading < line && line < rows);
   assert(EDITOR.includes('useQueueMarketLine()') && EDITOR.includes('useQueueQuotes(queue)'));
 });
 

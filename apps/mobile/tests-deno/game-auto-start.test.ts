@@ -12,11 +12,8 @@ import {
   COMMISSIONER_FALLBACK,
   DRAFT_STATUS_LOAD_FAILED,
   DATE_LOCKED_AFTER_ROOM,
-  EARLIEST_NOTE,
   INVITE_SOMEONE_NEW,
-  PICKER_HELPER,
   PICK_NEW_TIME,
-  PICK_NEW_TIME_NOTE,
   blockerClause,
   clockFromStatus,
   blockerTitle,
@@ -40,7 +37,6 @@ import {
   onDraftGrid,
   parseStartStatus,
   pickerLine,
-  playoffFixLine,
   postponedAtMs,
   serverOffsetMs,
   startClock,
@@ -177,7 +173,8 @@ Deno.test('before the room opens (board AutoLobby scheduled)', () => {
     tag: 'Draft starts in',
     clock: '2d 06h 40m',
     starting: null,
-    lines: ['The draft starts automatically at Sat, Oct 3 · 7:00 PM ET.', 'The draft room opens at 6:00 PM ET, when the order is set.'],
+    // Rule 12 (the sweep, row 7): the time as a value, the same line as Home; "The draft room opens at 6:00 PM ET, when the order is set." is cut.
+    lines: ['Sat, Oct 3 · 7:00 PM ET'],
   });
 });
 
@@ -207,14 +204,10 @@ Deno.test('blockers card, at risk (board BlockersCard risk)', () => {
   });
 });
 
-Deno.test('blockers card, postponed (board BlockersCard postponed)', () => {
-  assertEquals(blockersCardCopy('postponed', '6:00 PM ET'), {
-    tag: 'Postponed',
-    title: 'The draft is postponed',
-    line: 'The league wasn’t ready at 6:00 PM ET. Fix these, then pick a new draft time.',
-  });
+Deno.test('blockers card, postponed: the title alone (rule 12, the sweep row 1: no "POSTPONED" tag, no line, no note under the button)', () => {
+  assertEquals(blockersCardCopy('postponed', '6:00 PM ET'), { tag: null, title: 'The draft is postponed', line: null });
+  assertEquals(blockersCardCopy('postponed', null), { tag: null, title: 'The draft is postponed', line: null });
   assertEquals(PICK_NEW_TIME, 'Pick a new draft time');
-  assertEquals(PICK_NEW_TIME_NOTE, "Fix these first. The new time needs at least an hour's notice.");
 });
 
 Deno.test('the board\'s blocker titles', () => {
@@ -246,7 +239,6 @@ Deno.test('the card shows only blockers the commissioner can fix', () => {
 });
 
 Deno.test('the fixes\' labels', () => {
-  assertEquals(playoffFixLine(7), 'Up to 7, one per team.');
   assertEquals(moveForwardLabel(7), 'Move forward with 7');
   assertEquals(INVITE_SOMEONE_NEW, 'Invite someone new');
 });
@@ -268,10 +260,11 @@ Deno.test('postponed: the time it wasn\'t ready at (room-open time, or T for a s
 });
 
 Deno.test('members once postponed, on Home: no "and on your Home" (Design Lead, PR #135)', () => {
+  // Rule 12 (the sweep, row 6): Home drops "You'll see it here, with at least an hour's notice."; the lobby's sentence is not on the board's list.
   assertEquals(memberPostponedCopy('Roberto B.', 'home'), {
     tag: 'Draft postponed',
     title: 'Roberto B. will pick a new time.',
-    line: "You'll see it here, with at least an hour's notice.",
+    line: null,
   });
 });
 
@@ -298,8 +291,6 @@ Deno.test('the picker line (board: "Today · 3:15 PM ET" + the earliest note)', 
   const now = Date.parse('2026-10-03T18:07:00Z');
   assertEquals(pickerLine(Date.parse('2026-10-03T19:15:00Z'), now), { value: 'Today · 3:15 PM ET', earliest: true });
   assertEquals(pickerLine(Date.parse('2026-10-04T23:00:00Z'), now), { value: 'Tomorrow · 7:00 PM ET', earliest: false });
-  assertEquals(EARLIEST_NOTE, '(the earliest you can pick: an hour from now)');
-  assertEquals(PICKER_HELPER, 'The draft room opens 1 hour before, and the draft starts automatically.');
 });
 
 Deno.test('the time is locked from the room opening until the start, except when postponed', () => {

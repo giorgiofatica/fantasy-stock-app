@@ -38,9 +38,6 @@ export function AppearancePicker() {
           <ThemeOption key={o.id} id={o.id} label={o.label} selected={preference === o.id} onPress={() => changeAppearance(o.id)} stacked={stacked} />
         ))}
       </View>
-      <Text variant="body" tone="secondary">
-        System follows your phone&apos;s light or dark setting. Saved on this device.
-      </Text>
     </>
   );
 }

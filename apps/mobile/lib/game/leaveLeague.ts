@@ -25,7 +25,6 @@ export const COMMISSIONER_YOU = 'You'; // board (the commissioner's own row valu
 export const LEAVE_LOCKED_LINE = 'Teams are locked in from an hour before the draft until the season ends.'; // board, ruled
 /** The commissioner's Leave row (Q4 = A, transfer first). */
 export const LEAVE_COMMISSIONER_FIRST = 'Make someone else commissioner first.'; // board
-export const WHO_TAKES_OVER = 'Who takes over as commissioner?'; // board (Q4 frame)
 /** The transfer sheet's title and the line under it (Design Lead, ruled). */
 export const TRANSFER_TITLE = 'Make someone else commissioner';
 export const TRANSFER_NOTE = 'The new commissioner takes over right away. You stay in the league.';
@@ -88,7 +87,7 @@ export function leaveRowView(window: LeaveWindow, isCommissioner: boolean, draft
   if (isCommissioner) return { enabled: false, sub: LEAVE_COMMISSIONER_FIRST };
   if (window === 'before_draft') {
     const at = orderSetAtMs(draftDate);
-    return { enabled: true, sub: at !== null ? `You can leave until ${orderAtLabel(at)}, when the draft order is set.` : LEAVE_UNTIL_NO_TIME };
+    return { enabled: true, sub: at !== null ? `You can leave until ${orderAtLabel(at)}.` : LEAVE_UNTIL_NO_TIME };
   }
   return { enabled: true, sub: null };
 }

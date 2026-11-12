@@ -166,7 +166,7 @@ Deno.test('Draft time: "Set draft time" and "Set later" are pinned; the wheel sc
   const s = src('components/game/DraftDateSheet.tsx');
   assertInFooterNotScroll(s, ['draft-time-set', 'draft-time-later']);
   const scroll = scrollPart(s);
-  for (const t of ['picker', 'lineText', 'PICKER_HELPER']) assert(scroll.includes(t), `"${t}" scrolls`);
+  for (const t of ['picker', 'lineText']) assert(scroll.includes(t), `"${t}" scrolls`); // the helper line is cut (rule 12, row 9)
 });
 
 Deno.test('Renewal change: the choice, its refusal and the note are the footer part of the ask; the question scrolls', () => {
@@ -174,10 +174,10 @@ Deno.test('Renewal change: the choice, its refusal and the note are the footer p
   const at = ask.indexOf('const footer = (');
   assert(at > 0, 'RenewalAskBody builds a footer part');
   const footer = group(ask, at + 'const footer = '.length);
-  assert(footer.includes('<RenewalChoice') && footer.includes('ASK_CHANGE_NOTE'), 'choice + note in the footer part');
+  assert(footer.includes('<RenewalChoice') && !footer.includes('ASK_CHANGE_NOTE'), 'the choice is the footer part (the note is cut, rule 12 row 11)');
   const body = ask.slice(ask.indexOf('const body = ('), at);
   assert(!body.includes('RenewalChoice') && !body.includes('ASK_CHANGE_NOTE'), 'not in the body part');
-  assert(body.includes('askQuestion(commissionerName)') && body.includes('ASK_LINE'), 'the question scrolls');
+  assert(body.includes('askQuestion(commissionerName)') && !body.includes('ASK_LINE'), 'the question scrolls (its line is cut)');
   assert(ask.includes('layout ? <>{layout({ body, footer })}</> : <>{body}{footer}</>'), 'the card keeps one run (no layout)');
   const sheet = src('components/game/RenewalChangeSheet.tsx');
   assert(/layout=\{\(\{ body, footer \}\) =>/.test(sheet) && sheet.includes('footer={footer}'), 'the sheet passes the footer part to SheetBody');

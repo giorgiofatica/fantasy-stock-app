@@ -147,12 +147,9 @@ export function nextWeekStartsLabel(week: number, when: string | null): string {
 }
 
 // ── State 5: before the season — board, verbatim ───────────────────────────
-export const PRE_SEASON_NO_LEADER = 'No leader yet.'; // board
 export const PRE_SEASON_SCORING_STARTS = "Scoring starts at Monday's open."; // board
-// board's HomePreSeason GameCard renders these as ONE sentence, not two
-// separate lines -- PhaseMessageCard's two-line layout was the mismatch
-// B3 (Design Lead, 2026-09-30) flagged, not the wording of either half.
-export const PRE_SEASON_CAPTION = `${PRE_SEASON_NO_LEADER} ${PRE_SEASON_SCORING_STARTS}`; // board
+// Rule 12 (the sweep, "Swept the same way"): "No leader yet." is cut (0 to 0 says it); the time stays.
+export const PRE_SEASON_CAPTION = PRE_SEASON_SCORING_STARTS;
 export const PRE_SEASON_TAG = 'Week 1'; // board
 export const PRE_SEASON_CHIP = 'Pre-season'; // board
 /** "Season starts Mon 9:30 AM ET" (board) from the REAL market-open
@@ -176,9 +173,6 @@ export function preSeasonStartsLabel(startsAtIso: string | null): string {
 export const PRE_DRAFT_TAG = 'Draft'; // board
 export const DRAFTING_TAG = 'Draft is live'; // board
 export const DRAFTING_CHIP = 'Drafting'; // board
-export function pickClockLine(pickSeconds: number, rounds: number): string {
-  return `${pickSeconds}-second picks · ${rounds} rounds`; // board ("60-second picks · 6 rounds")
-}
 export const BUILD_YOUR_QUEUE = 'Build your queue'; // board
 export const YOURE_ON_THE_CLOCK = "You're on the clock"; // board
 // ── Members / invite / note cards (board, B4) ───────────────────────────────
@@ -196,13 +190,8 @@ export function membersNeededCaption(count: number, needed: number): string {
   return `${count} joined · ${needed} needed to draft`; // board
 }
 export const INVITE_CODE_LABEL = 'Invite code'; // board
-export const NO_BUYING_BEFORE_DRAFT = 'No buying before the draft. Your team is set at the draft.'; // board
 // ── OrderWaiting (board, B4) ─────────────────────────────────────────────
 export const DRAFT_ORDER_WAITING_TAG = 'Draft order · waiting'; // board
-/** "Set 1 hour before the draft, once 4 managers have joined." (board). */
-export function orderWaitingLine(min: number): string {
-  return `Set 1 hour before the draft, once ${min} managers have joined.`; // board
-}
 /** "3 of 4 managers" (board) -- the OrderWaiting progress bar's own caption. */
 export function managersProgressCaption(count: number, min: number): string {
   return `${count} of ${min} managers`; // board

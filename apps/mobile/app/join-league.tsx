@@ -495,11 +495,6 @@ export default function JoinLeagueScreen() {
           disabled={view.action === 'join_disabled'}
           onPress={primary.onPress}
         />
-        {view.caption ? (
-          <Text variant="caption" tone="secondary" style={styles.caption}>
-            {view.caption}
-          </Text>
-        ) : null}
       </AuthScaffold>
     );
   }
@@ -510,9 +505,7 @@ export default function JoinLeagueScreen() {
       footer={<Button label="Find league" status={findStatus} disabled={!trimmed} onPress={find} />}
     >
       <ScreenTitle>Join a league</ScreenTitle>
-      <Text variant="body" tone="secondary">
-        {JOIN_COPY.codeIntro}
-      </Text>
+      {/* Rule 12 (the sweep, row 12): "Enter the invite code your commissioner sent you." is cut; the field's own label says it. */}
       <Field
         ref={inputRef}
         label="Invite code"
@@ -617,9 +610,6 @@ const styles = StyleSheet.create({
   },
   joinedRows: {
     alignSelf: 'stretch',
-  },
-  caption: {
-    textAlign: 'center',
   },
   center: {
     alignItems: 'center',

@@ -313,8 +313,8 @@ Deno.test('P1: "No leagues yet" only for someone with no leagues; Run it back re
   assert(league.includes("const fallback = leagueFallback({ loading, leagueCount: leagues.length, loadFailed });\n  if (fallback === 'pending') {"));
 });
 
-Deno.test('P1 XL: the Run it back line 1.5×, History\'s season record 1.5× (under the 19.5pt gains)', () => {
-  assert(SOURCES['app/(tabs)/league.tsx'].includes('<Text variant="callout" tone="secondary" maxFontSizeMultiplier={1.5}>Start Season 2 with the same group. Season 1 stays in History.</Text>'));
+Deno.test('P1 XL: History\'s season record 1.5× (under the 19.5pt gains); the Run it back line is cut (rule 12, the sweep row 11)', () => {
+  assert(!SOURCES['app/(tabs)/league.tsx'].includes('Start Season 2 with the same group'));
   assert(SOURCES['components/game/HistoryList.tsx'].includes('{s.myRecord ? <Text variant="callout" tone="secondary" maxFontSizeMultiplier={1.5}>{s.myRecord}</Text> : null}'));
 });
 

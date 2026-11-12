@@ -129,9 +129,6 @@ export default function SignInScreen() {
       </View>
       <View style={styles.heading}>
         <ScreenTitle>Welcome back</ScreenTitle>
-        <Text variant="body" tone="secondary">
-          Sign in to your league
-        </Text>
       </View>
       <ConfirmedEmailNotice />
       <DeletedAccountNotice />

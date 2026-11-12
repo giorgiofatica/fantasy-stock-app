@@ -9,7 +9,7 @@ import { radius, space } from '@/constants/tokens';
 import { supabase } from '@/lib/supabase';
 import { seamRpc } from '@/lib/game/seamCalls';
 import {
-  ASK_CHANGE_NOTE, ASK_LINE, ASK_TAG, TRY_AGAIN, YOURE_OUT_CHIP, askQuestion, renewalAnswerOutcome, renewalAnswerRefusal,
+  ASK_TAG, TRY_AGAIN, YOURE_OUT_CHIP, askQuestion, renewalAnswerOutcome, renewalAnswerRefusal,
 } from '@/lib/game/renewal';
 
 export type RenewalAnswer = 'in' | 'out';
@@ -62,14 +62,12 @@ export function RenewalAskBody({ leagueId, commissionerName, answered, onSaved, 
         ) : null}
       </View>
       <Text variant="headline">{askQuestion(commissionerName)}</Text>
-      <Text variant="callout" tone="secondary" subOf="headline">{ASK_LINE}</Text>
     </>
   );
   // The action: the two answers, a refusal under them, and the note about changing the answer.
   const footer = (
     <>
       <RenewalChoice leagueId={leagueId} current={answered} onSaved={onSaved} onSame={onSame} />
-      <Text variant="caption" tone="secondary">{ASK_CHANGE_NOTE}</Text>
     </>
   );
   return layout ? <>{layout({ body, footer })}</> : <>{body}{footer}</>;

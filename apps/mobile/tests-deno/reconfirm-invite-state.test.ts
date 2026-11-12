@@ -12,7 +12,6 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
   INVITE_SOMEONE_NEW,
-  INVITE_WAITING_LINE,
   INVITE_WAITING_TITLE_NO_NAME,
   RECONFIRM_NOT_SAVED,
   errorPlacement,
@@ -55,7 +54,8 @@ Deno.test("the waiting state's copy is the approved board strings (board #call-l
   const v = reconfirmView(sofia('invite'), 7);
   if (v.mode !== 'inviting') throw new Error('expected inviting');
   assertEquals(v.title, "Invite someone to take Sofia F.'s place");
-  assertEquals(v.line, 'Share the code. When someone joins, the draft is ready to go.');
+  // Rule 12 (the sweep, row 8): "Share the code. When someone joins, the draft is ready to go." is cut; the code and Share say it.
+  assertEquals('line' in v, false);
   assertEquals(v.moveForward, 'Move forward with 7 instead');
   assertEquals(inviteWaitingTitle('Ana P.'), "Invite someone to take Ana P.'s place");
 });
@@ -73,7 +73,6 @@ Deno.test('two or more left, or none named: the title drops the name (NEW copy),
     if (v.mode !== 'inviting') throw new Error('expected inviting');
     assertEquals(v.title, INVITE_WAITING_TITLE_NO_NAME);
     assertEquals(v.title, 'Invite someone to take their place');
-    assertEquals(v.line, INVITE_WAITING_LINE);
   }
 });
 
@@ -485,10 +484,12 @@ Deno.test('the sub-card title is a callout under the card title: it takes the LO
 });
 
 Deno.test('the lines, the stepper label and the refusal carry the 1.6 cap; no sub-line is left "subOf callout" (uncapped)', () => {
-  for (const needle of ['{view.line}', '{playoffFixLine(members)}']) {
+  // The below-four line is the one line left under a sub-card title ("Up to N, one per team." and "Share the code…" are cut, rule 12 row 8).
+  for (const needle of ['{view.line}']) {
     const t = tagOf(needle);
     assert(t.includes('variant="caption"') && t.includes('maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}'), t);
   }
+  assert(!CARD.includes('playoffFixLine'));
   const refusal = tagOf('accessibilityLiveRegion="polite"');
   assert(refusal.includes('maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}') && refusal.includes('color={colors.danger}'), refusal);
   assert(CARD.includes('labelMaxScale={SUB_CARD_LINE_MAX_SCALE}'));
@@ -692,12 +693,10 @@ Deno.test('the seam serves it through draft-control status when the flag is in E
 
 const BUTTON_SRC = SOURCES['components/sp/Button.tsx'];
 
-Deno.test('the note under Pick a new draft time carries the card-line cap (both strings: blocked and ready)', () => {
-  const t = tagOf('{blocked ? PICK_NEW_TIME_NOTE : PICK_NEW_TIME_READY}');
-  assert(t.includes('variant="caption"') && t.includes('maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}'), t);
-  assert(!t.includes('subOf="callout"'), 'not an uncapped sub-line');
-  // One element for both strings: the ready line cannot be left uncapped.
-  assertEquals(CARD.split('PICK_NEW_TIME_READY}').length - 1, 1);
+Deno.test('rule 12 (the sweep, row 1): the note under Pick a new draft time is gone, and the button shows only once nothing blocks', () => {
+  assert(!CARD.includes('PICK_NEW_TIME_NOTE') && !CARD.includes('PICK_NEW_TIME_READY'));
+  assert(CARD.includes("{phase === 'postponed' && !blocked ? ("), 'the button is shown only when nothing is left to fix');
+  assert(CARD.includes('<Button label={PICK_NEW_TIME} onPress={onPickNewTime} disabled={busy} />'));
 });
 
 Deno.test('the order holds at every size, AX5 included: card title >= button label >= the note', () => {

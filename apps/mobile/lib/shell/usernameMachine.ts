@@ -48,7 +48,6 @@ export type UsernameEvent =
 export const initialUsernameState: UsernameState = { kind: 'empty', seq: 0 };
 
 /** The line under the pre-filled field (Giorgio, 2026-10-14, approved with the plan). */
-export const HELPER_CHANGE_LATER = 'You can change it later in Profile.';
 
 /** Continue is enabled when the name could be saved: known available, or unknown because the check failed. */
 export function canSubmit(state: UsernameState): boolean {

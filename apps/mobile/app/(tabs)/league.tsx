@@ -195,8 +195,7 @@ export default function LeagueScreen() {
             {ready && RUN_IT_BACK_ON && phase && showRunItBackStrip({ phase, isCommissioner, hasSuccessor: !!activeLeague?.successor_league_id }) ? (
               <Card style={styles.strip}>
                 <Text variant="headline">You're the commissioner</Text>
-                {/* 1.5× at most: at XL the uncapped line outgrew its heading and the button (W4 DL gate). */}
-                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={1.5}>Start Season 2 with the same group. Season 1 stays in History.</Text>
+                {/* Rule 12 (the sweep, row 11): the line under this heading is cut; the heading and the button say it (Home's card is the same two). */}
                 <Button label="Run it back" onPress={() => void runItBack()} />
               </Card>
             ) : null}
@@ -499,7 +498,7 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
         {view?.memberPostponed ? (
           (() => {
             const c = memberPostponedCopy(commissionerName, 'lobby');
-            return <DraftCountdownCard tag={c.tag} title={c.title} lines={[]} notes={[c.line]} />;
+            return <DraftCountdownCard tag={c.tag} title={c.title} lines={[]} notes={c.line ? [c.line] : []} />;
           })()
         ) : null}
 
@@ -512,7 +511,6 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
             data={data}
             myUserId={user?.id ?? ''}
             draftDate={activeLeague?.draft_date ?? null}
-            pickSeconds={activeLeague?.pick_seconds ?? 60}
             rounds={activeLeague?.num_rounds ?? 6}
             now={new Date(serverNow)}
             showCountdown={false}

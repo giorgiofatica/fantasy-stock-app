@@ -9,7 +9,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  THIS_WEEK_HREF, STANDINGS_HREF, BRACKET_HREF, OPENS_MATCHUP_HINT, leagueSegmentFromParam, seasonOverPrimary, preDraftBlocks, preDraftChipShown,
+  THIS_WEEK_HREF, STANDINGS_HREF, BRACKET_HREF, OPENS_MATCHUP_HINT, leagueSegmentFromParam, seasonOverPrimary, preDraftBlocks,
   type PreDraftFlags,
 } from '../lib/home/calmHome.ts';
 import { HERO_SEASON_GAIN_LABEL, HERO_TODAY_LABEL, LIVE_CHIP } from '../lib/home/homeCopy.ts';
@@ -182,45 +182,38 @@ Deno.test('the season-over card has no filled button: "See the final standings" 
 
 const F = (o: Partial<PreDraftFlags>): PreDraftFlags => ({
   memberPostponed: false, noDate: false, date: false, roomOpenTag: false, countdown: false, starting: false,
-  pick: false, pickClock: false, orderSet: false, waiting: false, buttons: false, ...o,
+  pick: false, waiting: false, buttons: false, ...o,
 });
 
-Deno.test('with a draft time the countdown leads: countdown, date, pick clock, order line, button, then no-buying', () => {
+Deno.test('with a draft time the countdown leads: countdown, date, then the button (rule 12, the sweep row 5: no pick-clock line, no order line, no no-buying caption)', () => {
   assertEquals(
-    preDraftBlocks(F({ countdown: true, date: true, pickClock: true, orderSet: true, buttons: true })),
-    ['countdown', 'date', 'pickClock', 'orderSet', 'buttons', 'noBuying'],
+    preDraftBlocks(F({ countdown: true, date: true, buttons: true })),
+    ['countdown', 'date', 'buttons'],
   );
   // Room open: its tag heads the countdown, your position follows.
   assertEquals(
-    preDraftBlocks(F({ roomOpenTag: true, countdown: true, date: true, pick: true, pickClock: true, buttons: true })),
-    ['roomOpenTag', 'countdown', 'date', 'pick', 'pickClock', 'buttons', 'noBuying'],
+    preDraftBlocks(F({ roomOpenTag: true, countdown: true, date: true, pick: true, buttons: true })),
+    ['roomOpenTag', 'countdown', 'date', 'pick', 'buttons'],
   );
 });
 
-Deno.test('the no-buying line sits directly under the button and is hidden while waiting for managers', () => {
-  const waiting = preDraftBlocks(F({ date: true, pickClock: true, waiting: true }));
-  assert(!waiting.includes('noBuying') && !waiting.includes('buttons'));
-  const noDate = preDraftBlocks(F({ noDate: true, pickClock: true, buttons: true }));
-  assertEquals(noDate, ['noDate', 'pickClock', 'buttons', 'noBuying']);
-  const postponed = preDraftBlocks(F({ memberPostponed: true, buttons: true }));
-  assertEquals(postponed, ['postponedTitle', 'postponedLine', 'buttons', 'noBuying']);
-  // No separate note card any more: the line is a centred caption inside the draft card.
+Deno.test('rule 12, rows 5 and 6: waiting hides the button; no draft time and a member\'s postponed card carry no extra line, and the sources are gone', () => {
+  const waiting = preDraftBlocks(F({ date: true, waiting: true }));
+  assert(!waiting.includes('buttons'));
+  assertEquals(preDraftBlocks(F({ noDate: true, buttons: true })), ['noDate', 'buttons']);
+  assertEquals(preDraftBlocks(F({ memberPostponed: true, buttons: true })), ['postponedTitle', 'buttons']);
   const card = SOURCES['components/home/PreDraftCard.tsx'];
-  assertEquals(card.split('{NO_BUYING_BEFORE_DRAFT}').length, 2);
-  assert(card.includes('<Text variant="caption" tone="secondary" style={styles.noBuying}>'));
-  assert(/noBuying:\s*\{\s*textAlign: 'center',/.test(card));
+  for (const gone of ['NO_BUYING_BEFORE_DRAFT', 'pickClockLine', 'orderSetLine', 'orderWaitingLine', 'PICK_A_TIME_HOME', 'styles.noBuying', 'preDraftChipShown']) {
+    assert(!card.includes(gone), `${gone} is still on the card`);
+  }
   assert(card.includes('buttons: !waiting,'));
 });
 
-Deno.test('the "Pre-draft" chip is gone; "Postponed" stays; the order line has no dot', () => {
-  assertEquals(preDraftChipShown(true), true);
-  assertEquals(preDraftChipShown(false), false);
+Deno.test('the "Pre-draft" chip and the "Postponed" chip are gone (the tag already says "Draft postponed"); the card renders in preDraftBlocks\' order', () => {
   const card = SOURCES['components/home/PreDraftCard.tsx'];
-  assert(card.includes('{preDraftChipShown(postponed) ? ('));
   assert(!card.includes('PRE_DRAFT_CHIP') && !SOURCES['lib/home/homeCopy.ts'].includes('PRE_DRAFT_CHIP'));
-  assert(card.includes("case 'orderSet':\n        return <Text variant=\"callout\" tone=\"secondary\">{keepTime(orderSetLine(finalizeAt!) ?? '')}</Text>;"));
+  assert(!/Postponed\s*<\/Text>/.test(card), 'no "Postponed" chip text');
   assert(!card.includes('styles.dot'));
-  // The card renders in preDraftBlocks' order.
   assert(card.includes('{blocks.map((b) => <View key={b}>{renderBlock(b)}</View>)}'));
 });
 

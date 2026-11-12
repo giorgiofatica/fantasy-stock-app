@@ -10,9 +10,8 @@ import { Text } from '@/components/sp/Text';
 import { keepTime } from '@/lib/game/keepDots';
 import { Button } from '@/components/sp/Button';
 import { useTheme } from '@/components/sp/ThemeProvider';
-import { chipLook } from '@/components/sp/logic/gameNight';
 import { usePreDraftData } from '@/lib/home/usePreDraftData';
-import { draftDateTimeLabel, orderSetLine } from '@/lib/home/draftCountdown';
+import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { ordinal } from '@/lib/home/ordinal';
 import { useAuth } from '@/lib/useAuth';
 import { membersYouFirst } from '@/lib/home/preDraftMembers';
@@ -35,13 +34,13 @@ import { AutoStartBlockers } from '@/components/game/AutoStartBlockers';
 import { FirstTimeTip } from '@/components/shell/FirstTimeTip';
 import { DraftDateSheet } from '@/components/game/DraftDateSheet';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
-import { PICK_A_TIME_HOME, SET_DRAFT_TIME, homeNoDateBlock, homeSetsDraftTime } from '@/lib/game/draftTimeSheet';
+import { SET_DRAFT_TIME, homeNoDateBlock, homeSetsDraftTime } from '@/lib/game/draftTimeSheet';
 import {
-  pickClockLine, BUILD_YOUR_QUEUE, GO_TO_DRAFT_ROOM, PRE_DRAFT_TAG,
-  MEMBERS_TITLE, membersJoinedCaption, membersNeededCaption, INVITE_CODE_LABEL, NO_BUYING_BEFORE_DRAFT,
-  DRAFT_ORDER_WAITING_TAG, orderWaitingLine, managersProgressCaption,
+  BUILD_YOUR_QUEUE, GO_TO_DRAFT_ROOM, PRE_DRAFT_TAG,
+  MEMBERS_TITLE, membersJoinedCaption, membersNeededCaption, INVITE_CODE_LABEL,
+  DRAFT_ORDER_WAITING_TAG, managersProgressCaption,
 } from '@/lib/home/homeCopy';
-import { preDraftBlocks, preDraftChipShown, type PreDraftBlock } from '@/lib/home/calmHome';
+import { preDraftBlocks, type PreDraftBlock } from '@/lib/home/calmHome';
 
 // Stockpile — <PreDraftCard> (Phase 3b-2, states 6 — "before the draft" +
 // "waiting for managers"). Rebuilt to match the board's HomePreDraft/
@@ -70,8 +69,6 @@ import { preDraftBlocks, preDraftChipShown, type PreDraftBlock } from '@/lib/hom
 export interface PreDraftCardProps {
   leagueId: string;
   inviteCode: string;
-  pickSeconds: number;
-  numRounds: number;
   /** league.draft_date, straight from the caller (the SAME value
    * get_draft_order itself reads) -- never re-fetched here. */
   draftDate: string | null;
@@ -88,14 +85,14 @@ export interface PreDraftCardProps {
   pullKey?: number;
 }
 
-export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, draftDate, numParticipants, repliesPending = false, pullKey = 0 }: PreDraftCardProps) {
+export function PreDraftCard({ leagueId, inviteCode, draftDate, numParticipants, repliesPending = false, pullKey = 0 }: PreDraftCardProps) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const { activeLeague } = useLeagueContext();
   const auto = useDraftAutoStart(leagueId, { kick: false });
   const { ds, phase, serverNow, reread } = auto;
   // The order re-reads with the status (T-1h, T, the poll from T, a pull): set at T-1h, never stale "waiting".
-  const { waiting, members, loading, finalizeAt, memberCount, minMembers, orderRevealed } = usePreDraftData(leagueId, auto.statusKey);
+  const { waiting, members, loading, memberCount, minMembers, orderRevealed } = usePreDraftData(leagueId, auto.statusKey);
   // Home's pull re-reads the status (the first value is the mount's own read).
   useEffect(() => {
     if (pullKey > 0) reread();
@@ -151,9 +148,6 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
     countdown: !!clock,
     starting: !!countdown?.starting,
     pick: !!pick,
-    pickClock: !postponed,
-    // No draft time: no order time either (two sources disagreeing show neither).
-    orderSet: !!(!postponed && !roomOpen && !view?.noDate && !loading && !waiting && finalizeAt),
     waiting: !loading && !!waiting,
     buttons: !waiting,
   });
@@ -162,14 +156,13 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
     switch (b) {
       case 'postponedTitle':
         return <Text variant="title">{memberPostponedCopy(commissionerName, 'home').title}</Text>;
-      case 'postponedLine':
-        return <Text variant="callout" tone="secondary" subOf="title">{memberPostponedCopy(commissionerName, 'home').line}</Text>;
       case 'noDate':
-        // GS-11: no draft block while a renewal's replies are pending (the counts card says why).
+        // Rule 12 (the sweep, row 6): the commissioner's card is the title and "Set draft time" (the button says it); a member's line names
+        // who sets it. GS-11: no draft block while a renewal's replies are pending (the counts card says why).
         return homeNoDateBlock(true, repliesPending) ? (
           <View style={styles.stack}>
             <Text variant="title">{NO_DATE_TITLE}</Text>
-            <Text variant="callout" tone="secondary" subOf="title">{setsTime ? PICK_A_TIME_HOME : noDateCopy(ds.isCommissioner, commissionerName)}</Text>
+            {setsTime ? null : <Text variant="callout" tone="secondary" subOf="title">{noDateCopy(ds.isCommissioner, commissionerName)}</Text>}
           </View>
         ) : null;
       case 'roomOpenTag':
@@ -187,18 +180,11 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
         );
       case 'pick':
         return <Text variant="callout" style={[styles.bold, { color: colors.youText }]}>{pick}</Text>;
-      case 'pickClock':
-        return <Text variant="callout" tone="secondary">{pickClockLine(pickSeconds, numRounds)}</Text>;
-      case 'orderSet':
-        return <Text variant="callout" tone="secondary">{keepTime(orderSetLine(finalizeAt!) ?? '')}</Text>;
       case 'waiting':
         return (
           <View style={[styles.orderWaiting, { backgroundColor: colors.inset }]}>
             <Text variant="tag" style={{ color: colors.liveText }}>
               {DRAFT_ORDER_WAITING_TAG}
-            </Text>
-            <Text variant="callout" style={styles.orderWaitingLine} subOf="tag">
-              {orderWaitingLine(minMembers)}
             </Text>
             <View style={styles.progressRow} accessibilityLabel={`${memberCount} of ${minMembers} managers`}>
               {Array.from({ length: minMembers }, (_, i) => (
@@ -224,12 +210,6 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
             <Button label={roomOpen ? GO_TO_DRAFT_ROOM : BUILD_YOUR_QUEUE} onPress={() => router.push('/(tabs)/league')} variant="primary" />
           </View>
         );
-      case 'noBuying':
-        return (
-          <Text variant="caption" tone="secondary" style={styles.noBuying}>
-            {NO_BUYING_BEFORE_DRAFT}
-          </Text>
-        );
     }
   }
 
@@ -253,13 +233,6 @@ export function PreDraftCard({ leagueId, inviteCode, pickSeconds, numRounds, dra
           <Text variant="tag" style={{ color: colors.liveText }}>
             {view?.memberPostponed ? memberPostponedCopy(commissionerName, 'home').tag : PRE_DRAFT_TAG}
           </Text>
-          {preDraftChipShown(postponed) ? (
-            <View style={[styles.chip, { backgroundColor: chipLook('default', colors).fill }]}>
-              <Text variant="tag" color={chipLook('default', colors).ink}>
-                Postponed
-              </Text>
-            </View>
-          ) : null}
         </View>
         {blocks.map((b) => <View key={b}>{renderBlock(b)}</View>)}
       </Card>
@@ -330,20 +303,10 @@ const styles = StyleSheet.create({
   primary: {
     marginTop: space[2],
   },
-  noBuying: {
-    textAlign: 'center',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  chip: {
-    minHeight: 24,
-    justifyContent: 'center',
-    paddingHorizontal: space[4],
-    paddingVertical: space[2],
-    borderRadius: radius.pill,
   },
   countdown: {
     fontVariant: ['tabular-nums'],
@@ -360,9 +323,6 @@ const styles = StyleSheet.create({
     padding: space[4],
     borderRadius: radius.md,
     gap: space[2],
-  },
-  orderWaitingLine: {
-    fontWeight: '600',
   },
   progressRow: {
     flexDirection: 'row',

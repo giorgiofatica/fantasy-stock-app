@@ -14,15 +14,12 @@ import { codeLabelMaxScale } from '@/lib/game/codeLabel';
 import {
   INVITE_SOMEONE_NEW,
   PICK_NEW_TIME,
-  PICK_NEW_TIME_NOTE,
-  PICK_NEW_TIME_READY,
   blockerTitle,
   blockersCardCopy,
   errorPlacement,
   keepDepartedNames,
   mergeBelowMin,
   moveForwardLabel,
-  playoffFixLine,
   reconfirmView,
   showMoveForward,
   SUB_CARD_LINE_MAX_SCALE,
@@ -132,7 +129,6 @@ export function DraftBlockersCard({
       if (view.mode === 'inviting') {
         return (
           <>
-            <Text variant="caption" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}>{view.line}</Text>
             {inviteRow()}
             {showMoveForward(view.members) ? (
               <TextAction label={view.moveForward} onPress={() => choose('move_forward')} disabled={busy} status={statusOf('move_forward')} />
@@ -163,7 +159,6 @@ export function DraftBlockersCard({
             emphasis="warn"
             labelMaxScale={SUB_CARD_LINE_MAX_SCALE}
           />
-          <Text variant="caption" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE}>{playoffFixLine(members)}</Text>
         </>
       );
     }
@@ -187,10 +182,10 @@ export function DraftBlockersCard({
 
   return (
     <View accessibilityRole="alert" style={[styles.card, { backgroundColor: colors.warnTint, borderColor: colors.warnLine }]}>
-      <Text variant="tag" color={colors.warnText}>{keepTime(copy.tag)}</Text>
+      {copy.tag ? <Text variant="tag" color={colors.warnText}>{keepTime(copy.tag)}</Text> : null}
       <View style={styles.head}>
         <Text variant="headline" style={styles.bold}>{keepTime(copy.title)}</Text>
-        <Text variant="caption" subOf="headline">{keepTime(copy.line)}</Text>
+        {copy.line ? <Text variant="caption" subOf="headline">{keepTime(copy.line)}</Text> : null}
       </View>
       {cards.map((b, i) => (
         <Card key={`${b.code}-${i}`} style={styles.blocker}>
@@ -199,10 +194,12 @@ export function DraftBlockersCard({
           {placement.subCard === i ? errorLine : null}
         </Card>
       ))}
-      {phase === 'postponed' ? (
+      {/* Rule 12 (row 1): "Pick a new draft time" is there only once nothing is left to fix, so the card never holds a button that does
+          nothing; while something blocks, the sub-cards above are the whole card. The hour's notice is the time wheel's floor, and a refusal
+          shows in place. */}
+      {phase === 'postponed' && !blocked ? (
         <View style={styles.actions}>
-          <Button label={PICK_NEW_TIME} onPress={onPickNewTime} disabled={blocked || busy} />
-          <Text variant="caption" maxFontSizeMultiplier={SUB_CARD_LINE_MAX_SCALE} style={styles.center}>{blocked ? PICK_NEW_TIME_NOTE : PICK_NEW_TIME_READY}</Text>
+          <Button label={PICK_NEW_TIME} onPress={onPickNewTime} disabled={busy} />
         </View>
       ) : null}
       {placement.foot ? errorLine : null}
@@ -253,8 +250,5 @@ const styles = StyleSheet.create({
   },
   dim: {
     opacity: 0.5,
-  },
-  center: {
-    textAlign: 'center',
   },
 });

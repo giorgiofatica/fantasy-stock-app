@@ -18,9 +18,10 @@ export function buildRenewalSettings(form: Record<string, unknown>): Record<stri
   return out;
 }
 
-/** "Teams": who's in plus the newcomers, up to 16, with the invite code for more. */
-export function teamsLine(counts: { in: number; new: number }, inviteCode: string): { value: string; sub: string } {
-  return { value: String(counts.in + counts.new), sub: `Follows who's in, up to 16. More can join with ${inviteCode} until the draft.` };
+/** "Teams": who's in plus the newcomers. Rule 12 (the sweep, row 11): the line under it ("Follows who's in, up to 16. More can join with
+ * {code} until the draft.") is cut; the count is the row. */
+export function teamsLine(counts: { in: number; new: number }): { value: string } {
+  return { value: String(counts.in + counts.new) };
 }
 
 /** The draft can be scheduled once nobody is pending and a FUTURE draft time is set. `now` is passed in, never read
@@ -37,15 +38,8 @@ export const DRAFT_ROW_UNSET = 'Pick a draft time';
  * style. It covers no time AND a time that is in the past. */
 export const SCHEDULE_NEEDS_TIME = 'Pick a future draft time.';
 
-/** The footnote that returns once a future time is set (unchanged). */
-export const SCHEDULE_FOOTNOTE = "Everyone who's in gets a notification. Season 1 stays in History.";
-
 /** Why the button is disabled, or null when the time is fine (the footnote shows then). */
 export function scheduleReason(input: { draftDate: string | null; now: Date }): string | null {
   return isFutureDraftDate(input.draftDate, input.now) ? null : SCHEDULE_NEEDS_TIME;
 }
 
-/** The line under the button: the reason while the time is missing or past, else the footnote. */
-export function scheduleLine(input: { draftDate: string | null; now: Date }): string {
-  return scheduleReason(input) ?? SCHEDULE_FOOTNOTE;
-}

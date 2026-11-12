@@ -34,7 +34,6 @@ export function RunItBackCard() {
     <Card style={styles.card}>
       <Text variant="tag" tone="secondary">Season 2</Text>
       <Text variant="headline">Run it back?</Text>
-      <Text variant="callout" tone="secondary" subOf="headline">Everyone from Season 1 gets asked if they're in. Once you've heard from everyone, you set up the draft.</Text>
       <View style={styles.action}>
         <Button label="Run it back" onPress={() => void runItBack()} disabled={busy} />
       </View>

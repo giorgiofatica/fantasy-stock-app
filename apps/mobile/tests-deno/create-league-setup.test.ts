@@ -10,7 +10,6 @@ import {
   DRAFT_ORDER_OPTIONS,
   PICK_SECONDS_OPTIONS,
   pickClockLocked,
-  pickSecondsCaption,
   playoffTeamsBounds,
   seasonCaption,
 } from '../lib/game/createLeagueSetup.ts';
@@ -33,11 +32,6 @@ Deno.test('playoff teams run from 2 up to the league size, equal included', () =
 Deno.test('the pick clock steps match the server CHECK (30..90 by 15)', () => {
   assertEquals(PICK_SECONDS_OPTIONS.map((o) => o.value), [30, 45, 60, 75, 90]);
   assertEquals(DEFAULT_PICK_SECONDS, 60);
-});
-
-Deno.test('the pick clock caption names the chosen time, with 60 as the default', () => {
-  assertEquals(pickSecondsCaption(60), 'Time each manager has to make a pick. 60 seconds is the default.');
-  assertEquals(pickSecondsCaption(30), 'Time each manager has to make a pick. 30 seconds.');
 });
 
 Deno.test('the pick clock freezes once the draft has started, as the trigger does', () => {

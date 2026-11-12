@@ -8,7 +8,6 @@ import {
   EMPTY_SLOT,
   PRICE_TIERS_NEED_A_SLOT,
   SLOT_FIELD_LABELS,
-  rosterSlotsCaption,
   capacityLine,
   slotConfigIssues,
   slotFieldA11y,
@@ -90,13 +89,8 @@ Deno.test('VoiceOver reads the fields in words', () => {
   assertEquals(slotFieldA11y(1, 'max'), 'Slot 2, highest price in dollars');
 });
 
-Deno.test('roster slots caption: sentences, "price range" and never "bracket"', () => {
-  assertEquals(rosterSlotsCaption('price_tiers'), 'Required: each slot sets a price range.');
-  assertEquals(rosterSlotsCaption('fixed_notional'), 'Optional: a slot can require a category or a price range.');
-  assertEquals(rosterSlotsCaption(''), 'Optional: a slot can require a category or a price range.');
-  for (const line of [rosterSlotsCaption('price_tiers'), rosterSlotsCaption('budget_cap'), PRICE_TIERS_NEED_A_SLOT]) {
-    assertEquals(/bracket/i.test(line), false, line);
-  }
+Deno.test('rule 12 (the sweep, rows 3 and 10): the Roster slots caption is gone, and the ruled refusal never says "bracket"', () => {
+  assertEquals(/bracket/i.test(PRICE_TIERS_NEED_A_SLOT), false, PRICE_TIERS_NEED_A_SLOT);
 });
 
 Deno.test('price tiers with no slot: the ruled line', () => {
@@ -177,16 +171,6 @@ Deno.test('validateSlotConfig builds its lines from slotConfigIssues (away form 
   assertEquals(body.includes('capacityLine(capacity.total, capacity.rounds)'), true);
 });
 
-Deno.test('the Price tiers and Budget cap help lines are the ruled ones', () => {
-  assertEquals(
-    categoryDataSrc.includes("'One share per slot. Each roster slot takes stocks in a price range you set, so expensive stocks only compete with each other.'"),
-    true,
-  );
-  assertEquals(
-    categoryDataSrc.includes(`"One share per slot. Your roster's share prices must add up to no more than the league cap, so a tight cap makes every pick count."`),
-    true,
-  );
-  const help = [...categoryDataSrc.matchAll(/help: (['"])(.*?)\1,/g)].map((m) => m[2]);
-  assertEquals(help.length, 3);
-  for (const h of help) assertEquals(/bracket/i.test(h), false, h);
+Deno.test('the stake modes carry no help paragraph (rule 12, the sweep rows 4 and 10; their definitions are behind the "i")', () => {
+  assertEquals([...categoryDataSrc.matchAll(/help: /g)].length, 0);
 });

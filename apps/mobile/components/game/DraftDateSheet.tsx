@@ -10,7 +10,7 @@ import { Sheet, SheetBody, SHEET_FOOTER_MAX_SCALE } from '@/components/sp/Sheet'
 import { Text } from '@/components/sp/Text';
 import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
-import { EARLIEST_NOTE, PICKER_HELPER, earliestDraftMs, pickerLine } from '@/lib/game/autoStart';
+import { earliestDraftMs, pickerLine } from '@/lib/game/autoStart';
 import { SET_DRAFT_TIME, SET_LATER, draftTimeSheet, shownDraftTime, type SheetAction } from '@/lib/game/draftTimeSheet';
 
 // 3c-2 — the Draft time sheet (board #call-auto-start "Draft time sheet"; layout
@@ -75,9 +75,10 @@ export function DraftDateSheet({ visible, initial, onConfirm, onSetLater, onClos
     />
   );
   const lineText = (
+    // Rule 12 (the sweep, row 9): "(the earliest you can pick: an hour from now)" is cut. The wheel cannot show an earlier time, and a
+    // server refusal shows "Pick a time at least an hour from now." in place.
     <Text variant="callout">
       <Text variant="callout" style={styles.bold}>{keepTime(line.value)}</Text>
-      {line.earliest ? <Text variant="callout" tone="secondary">{` ${EARLIEST_NOTE}`}</Text> : null}
     </Text>
   );
 
@@ -115,9 +116,6 @@ export function DraftDateSheet({ visible, initial, onConfirm, onSetLater, onClos
               {lineText}
             </Pressable>
           )}
-          <Text variant="caption" tone="secondary">
-            {PICKER_HELPER}
-          </Text>
         </View>
       </SheetBody>
     </Sheet>

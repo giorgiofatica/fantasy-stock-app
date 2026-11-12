@@ -201,8 +201,6 @@ export const ASK_TAG = 'Season 2';
 export function askQuestion(commissionerName: string): string {
   return `${commissionerName} is running it back. Are you in?`;
 }
-export const ASK_LINE = 'Same league, new season. The draft is set once everyone has replied.';
-export const ASK_CHANGE_NOTE = 'You can change your answer until the draft is set.';
 
 /** A refused answer, in place under the choice (Design Lead ruling, 2026-10-11, verbatim).
  * Retrying fixes none of the three named reasons, so only the catch-all (no answer, or a
