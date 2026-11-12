@@ -66,20 +66,18 @@ Deno.test('History: no playoff rows, or a Final the server\'s champion did not w
 
 Deno.test('the board\'s #call-medals copy, verbatim', () => {
   assertEquals(COPY.finalStandingsTitle, 'Final standings');
-  assertEquals(COPY.finalStandingsSubtitle, 'After the playoffs');
+  // "After the playoffs" is cut from Standings' header (row 15) and from History (the DL), so the constant is gone.
+  assertEquals('finalStandingsSubtitle' in COPY, false);
   assertEquals(COPY.champion, 'Champion');
   assertEquals(COPY.runnerUp, 'Runner-up');
-  assertEquals(
-    COPY.finalStandingsCaption,
-    'The playoffs decide the top three: the champion, the runner-up, then the higher seed of the two semifinal losers. Everyone else keeps their regular-season place. Records and gains are the regular season’s.',
-  );
+  assertEquals('finalStandingsCaption' in COPY, false); // the top-three paragraph is cut (rule 12, row 15)
 });
 
 Deno.test('the three screens read the one order (source guards)', () => {
   const league = SOURCES['app/(tabs)/league.tsx'];
   assert(league.includes('const standings = standingsView({'));
-  assert(league.includes("header={{ title: GAME_COPY.finalStandingsTitle, subtitle: GAME_COPY.finalStandingsSubtitle }}"));
-  assert(league.includes('caption={GAME_COPY.finalStandingsCaption}'));
+  assert(league.includes('header={{ title: GAME_COPY.finalStandingsTitle }}'));
+  assert(!league.includes('finalStandingsCaption'));
   assert(league.includes("segment === 'playoffs' || (completed && segment === 'standings'),"));
   assert(league.includes('playoffs={seasonPlayoffs.status === \'ready\' ? seasonPlayoffs.byLeague : null}'));
   const history = SOURCES['components/game/HistoryList.tsx'];
@@ -99,7 +97,8 @@ Deno.test('GS-8b: History labels the playoff order the way Standings does (sourc
   // The same subtitle key as Standings' header, shown only when the playoffs ordered the season.
   // (W4: inside each season's SeasonBlock, which takes the season's table as `table`.)
   // (1.6× at most, like the champion line beside it: W4 DL gate.)
-  assert(history.includes('{table.medals ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={1.6}>{GAME_COPY.finalStandingsSubtitle}</Text> : null}'));
+  assert(!history.includes('finalStandingsSubtitle') && !history.includes('GAME_COPY'), 'History no longer says "After the playoffs"');
+  assert(history.includes('Champion ${s.champion}') && history.includes('Not finished yet'), '"Champion {name}" and "Not finished yet" stay');
   // The podium tags under the name (ManagerRow's `tag`), in both the one-line and the stacked layout.
   assert(history.includes('tag={tag}'));
   const row = SOURCES['components/sp/gn/ManagerRow.tsx'];

@@ -129,12 +129,12 @@ Deno.test('taken-name alternatives come from what was TYPED, then generated game
 
 // ── The username picker (source guards) ──────────────────────────────────────────
 
-Deno.test('picker: Keep / Change on a suggestion, Continue only when editing; helper; the chip clears on keep; no email prop', () => {
+Deno.test('picker: Keep / Change on a suggestion, Continue only when editing; no helper (rule 12); the chip clears on keep; no email prop', () => {
   const picker = code(SOURCES['components/shell/UsernamePicker.tsx']);
   assert(picker.includes('label="Keep"') && picker.includes('label="Change"'));
   assert(picker.includes('onPress={startEditing}'), 'Change acts: it opens the field');
   assert(picker.includes('view.continueShown ? ('));
-  assert(picker.includes('HELPER_CHANGE_LATER'));
+  assert(!picker.includes('HELPER_CHANGE_LATER'), 'rule 12 (the sweep, row 13): "You can change it later in Profile." is cut');
   assert(picker.includes('setEmailJustConfirmed(false)'), 'the chip clears when the name is kept');
   assert(picker.includes('SUGGEST_TIMEOUT_MS'), 'a slow generator falls back to typing');
   assert(picker.includes('pickAvailableGamertag('));

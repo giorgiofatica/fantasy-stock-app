@@ -182,14 +182,17 @@ export interface CountdownCopy {
 /** Board AutoLobby: before the room, room open, at 0. */
 export function countdownCopy(phase: 'scheduled' | 'room_open' | 'starting', startsAt: string, serverNowMs: number): CountdownCopy {
   const t = new Date(startsAt).getTime();
-  const auto = `The draft starts automatically at ${etWhenLabel(t)}.`;
+  // UX rule 12 (the sweep, row 7): before the room opens the card shows the time as a value, "Sat, Oct 3 · 7:00 PM ET" (the same line as
+  // Home); "The draft room opens at 6:00 PM ET, when the order is set." is cut (the push, and the card itself, change when it opens).
+  const when = etWhenLabel(t);
   if (phase === 'starting') return { tag: 'Draft starts in', clock: '00:00', starting: 'Starting the draft', lines: [] };
-  if (phase === 'room_open') return { tag: 'Draft room open · starts in', clock: startClock(t - serverNowMs), starting: null, lines: [auto] };
+  // Rule 12 (the DL's ruling on the room-open card): the time as a value, exactly as the scheduled card shows it; "The draft starts automatically at" is cut.
+  if (phase === 'room_open') return { tag: 'Draft room open · starts in', clock: startClock(t - serverNowMs), starting: null, lines: [when] };
   return {
     tag: 'Draft starts in',
     clock: startClock(t - serverNowMs),
     starting: null,
-    lines: [auto, `The draft room opens at ${etTimeLabel(roomOpensAtMs(startsAt))}, when the order is set.`],
+    lines: [when],
   };
 }
 
@@ -279,11 +282,6 @@ export function blockerTitle(b: Blocker): string {
   return c.charAt(0).toUpperCase() + c.slice(1);
 }
 
-/** The playoff stepper's line in the blockers card (board: "Up to 7, one per team."). */
-export function playoffFixLine(members: number): string {
-  return `Up to ${members}, one per team.`;
-}
-
 /** The reconfirm choices (the leave board's buttons). */
 export function moveForwardLabel(members: number): string {
   return `Move forward with ${members}`;
@@ -302,7 +300,6 @@ export function inviteWaitingTitle(name: string): string {
 }
 /** Two or more left, or none named: the same pattern without a single name. NEW copy. */
 export const INVITE_WAITING_TITLE_NO_NAME = 'Invite someone to take their place';
-export const INVITE_WAITING_LINE = 'Share the code. When someone joins, the draft is ready to go.';
 /** The way back from the waiting state (board: "Move forward with {teams} instead"). */
 export function moveForwardInsteadLabel(members: number): string {
   return `Move forward with ${members} instead`;
@@ -400,7 +397,7 @@ export function mergeBelowMin(blockers: Blocker[], memberCount: number): Blocker
 
 export type ReconfirmView =
   | { mode: 'choose'; members: number }
-  | { mode: 'inviting'; members: number; title: string; line: string; moveForward: string }
+  | { mode: 'inviting'; members: number; title: string; moveForward: string }
   | { mode: 'below_min'; members: number; line: string };
 
 export function reconfirmView(b: Blocker, memberCount: number): ReconfirmView {
@@ -413,15 +410,17 @@ export function reconfirmView(b: Blocker, memberCount: number): ReconfirmView {
     mode: 'inviting',
     members,
     title: names.length === 1 ? inviteWaitingTitle(names[0]) : INVITE_WAITING_TITLE_NO_NAME,
-    line: INVITE_WAITING_LINE,
     moveForward: moveForwardInsteadLabel(members),
   };
 }
 
+/** UX rule 12 (the sweep, row 1): a postponed card has NO tag and NO line, only its title. "POSTPONED" said the title twice, and
+ * "The league wasn't ready at 6:00 PM ET. Fix these, then pick a new draft time." said what the fix cards and the button already say.
+ * The at-risk card keeps its eyebrow and its "Fix these before …" line (row 8, superseded by step 25 (b); another build gives them the day). */
 export interface BlockersCardCopy {
-  tag: string;
+  tag: string | null;
   title: string;
-  line: string;
+  line: string | null;
 }
 
 /** Board BlockersCard. `deadlineLabel` is the room-open time ("6:00 PM ET"). */
@@ -434,19 +433,10 @@ export function blockersCardCopy(phase: 'risk' | 'postponed', deadlineLabel: str
       line: `Fix these before ${at}, when the draft room opens. If they’re still open then, the draft is postponed.`,
     };
   }
-  return {
-    tag: 'Postponed',
-    title: 'The draft is postponed',
-    line: deadlineLabel
-      ? `The league wasn’t ready at ${deadlineLabel}. Fix these, then pick a new draft time.`
-      : 'The league wasn’t ready in time. Fix these, then pick a new draft time.', // NEW (no time known)
-  };
+  return { tag: null, title: 'The draft is postponed', line: null };
 }
 
 export const PICK_NEW_TIME = 'Pick a new draft time';
-export const PICK_NEW_TIME_NOTE = "Fix these first. The new time needs at least an hour's notice.";
-/** Under the button once nothing blocks (NEW copy). */
-export const PICK_NEW_TIME_READY = "The new time needs at least an hour's notice.";
 /** The reconfirm choice didn't save. NEW copy. */
 export const RECONFIRM_NOT_SAVED = "Your choice wasn't saved. Try again.";
 /** The lobby's draft status read failed (the house "X didn't load" form, with Try again; Design Lead ruling). */
@@ -480,14 +470,10 @@ export function deadlineCopy(startsAt: string, serverNowMs: number): { tag: stri
 /** Board MemberPostponed. The line depends on where it shows: the lobby
  * says "here and on your Home"; Home itself drops "and on your Home"
  * (self-referential there; Design Lead, PR #135). */
-export function memberPostponedCopy(commissionerName: string, surface: 'lobby' | 'home' = 'lobby'): { tag: string; title: string; line: string } {
-  return {
-    tag: 'Draft postponed',
-    title: `${commissionerName} will pick a new time.`,
-    line: surface === 'home'
-      ? "You'll see it here, with at least an hour's notice."
-      : "You'll see it here and on your Home, with at least an hour's notice.",
-  };
+export function memberPostponedCopy(commissionerName: string): { tag: string; title: string } {
+  // UX rule 12 (the sweep, row 6 and the DL's ruling on the lobby's twin): no line under the title, on Home or in the lobby. "You'll see it
+  // here (and on your Home), with at least an hour's notice." said how it works; the time shows when it is set.
+  return { tag: 'Draft postponed', title: `${commissionerName} will pick a new time.` };
 }
 
 /** Who to name when the commissioner's name isn't known (backend's fallback). */
@@ -509,8 +495,6 @@ export function onDraftGrid(ms: number): boolean {
 export function pickerLine(ms: number, nowMs: number): { value: string; earliest: boolean } {
   return { value: `${etDayWord(ms, nowMs)} · ${etTimeLabel(ms)}`, earliest: ms === earliestDraftMs(nowMs) };
 }
-export const EARLIEST_NOTE = '(the earliest you can pick: an hour from now)';
-export const PICKER_HELPER = 'The draft room opens 1 hour before, and the draft starts automatically.';
 
 /** Board DateAfterRoom: the Draft time row once the room is open. */
 export const DATE_LOCKED_AFTER_ROOM = 'The draft time can’t change once the draft room opens.';

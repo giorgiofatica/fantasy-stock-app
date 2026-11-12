@@ -32,9 +32,9 @@ import { useLeaveLeague } from '@/lib/game/useLeaveLeague';
 import { COMMISSIONER_FALLBACK } from '@/lib/game/autoStart';
 import { LeaveLeagueRow, LeaveLeagueSheet, TransferCommissionerSheet } from '@/components/game/LeaveLeagueSheets';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
-import { DEFAULT_PICK_SECONDS, PICK_SECONDS_OPTIONS, pickClockLocked, pickSecondsCaption } from '@/lib/game/createLeagueSetup';
+import { DEFAULT_PICK_SECONDS, PICK_SECONDS_OPTIONS, pickClockLocked } from '@/lib/game/createLeagueSetup';
 import { leagueNameError, stepWithin } from '@/lib/game/createLeagueSteps';
-import { PRICE_TIERS_NEED_A_SLOT, rosterSlotsCaption } from '@/lib/game/slotBuilderCopy';
+import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
 import { SETTINGS_LOCKED, inviteShareMessage, inviteShareShown } from '@/lib/game/leagueSettingsEntry';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { keepDots } from '@/lib/game/keepDots';
@@ -56,6 +56,8 @@ import { canFindNewManager, membersRows } from '@/lib/account/findManager';
 import { useDeletedManagerLabel } from '@/lib/account/deletedLabelStore';
 import { useFindNewManager } from '@/lib/account/useFindNewManager';
 import { ChoiceRow, LockNote, RowDivider, SettingRow, SetupCard, SwitchRow, WarnNote } from '@/components/game/SetupRows';
+import { InfoButton, useInfoPopup } from '@/components/game/InfoPopup';
+import { CONTROL_INFO, infoForStakeMode } from '@/lib/game/infoPopups';
 
 /** The leave flow's kill switch (item 13; board #call-leave). On: members reach League settings too (Invite
  * code, Commissioner, Leave league), the commissioner gets the Commissioner row's transfer, and the Leave row
@@ -64,6 +66,8 @@ const LEAVE_LEAGUE_ON = leaveLeagueEnabled(process.env.EXPO_PUBLIC_LEAVE_LEAGUE)
 
 export default function LeagueSettingsScreen() {
   const { colors } = useTheme();
+  // The "i" popups (UX rule 13), declared before any early return (hooks).
+  const { open: openInfo, popup: infoPopup } = useInfoPopup();
   const { user } = useAuth();
   const { leagues, refresh, homeSummaryByLeague } = useLeagueContext();
   const { leagueId } = useLocalSearchParams<{ leagueId: string }>();
@@ -377,18 +381,14 @@ export default function LeagueSettingsScreen() {
             <Text variant="callout" style={styles.key}>Pick clock</Text>
             <Text variant="callout" style={[styles.bold, styles.tabular]}>{`${pickSeconds} seconds`}</Text>
           </View>
-          {/* Frozen once the draft starts (trg_leagues_pick_clock). */}
-          {clockLocked ? (
-            <Text variant="caption" tone="secondary">{`${pickSeconds} seconds per pick. The draft has started, so this is set.`}</Text>
-          ) : (
-            <>
-              <SegmentedControl
-                options={PICK_SECONDS_OPTIONS.map((o) => ({ label: o.label, value: String(o.value) }))}
-                value={String(pickSeconds)}
-                onChange={(v) => setPickSeconds(Number(v))}
-              />
-              <Text variant="caption" tone="secondary">{pickSecondsCaption(pickSeconds)}</Text>
-            </>
+          {/* Frozen once the draft starts (trg_leagues_pick_clock): the row shows "60 seconds" and the screen's lock note says why (rule 12,
+              the sweep, row 10: the per-row lock line and the pick-clock caption are cut). */}
+          {clockLocked ? null : (
+            <SegmentedControl
+              options={PICK_SECONDS_OPTIONS.map((o) => ({ label: o.label, value: String(o.value) }))}
+              value={String(pickSeconds)}
+              onChange={(v) => setPickSeconds(Number(v))}
+            />
           )}
         </SetupCard>
         <SetupCard>
@@ -409,7 +409,6 @@ export default function LeagueSettingsScreen() {
           <View style={styles.block}>
             <Stepper
               label="Rounds"
-              sub="One per roster slot"
               value={numRounds}
               onStep={(d) => setNumRounds(stepWithin(numRounds, d, 1, 12))}
               canDecrement={numRounds > 1}
@@ -450,7 +449,7 @@ export default function LeagueSettingsScreen() {
               {i > 0 ? <RowDivider /> : null}
               <ChoiceRow
                 title={opt.label}
-                help={opt.help}
+                info={infoForStakeMode(opt.value) ? <InfoButton info={infoForStakeMode(opt.value)!} onOpen={openInfo} edge /> : undefined}
                 selected={stakeMode === opt.value}
                 onPress={() => {
                   if (isLocked) return;
@@ -489,7 +488,7 @@ export default function LeagueSettingsScreen() {
         <SetupCard>
           <SwitchRow
             label="Allow non-draftable stocks (full universe)"
-            sub="Off (default): only vetted draftable stocks. On: the entire universe, including penny stocks and micro-caps."
+            info={<InfoButton info={CONTROL_INFO.nonDraftable} onOpen={openInfo} />}
             value={allowUndraftable}
             onValueChange={setAllowUndraftable}
             disabled={isLocked}
@@ -500,9 +499,6 @@ export default function LeagueSettingsScreen() {
       {/* Roster slots (Phase 4). */}
       <View style={styles.section}>
         <Text variant="headline" accessibilityRole="header">Roster slots</Text>
-        <Text variant="caption" tone="secondary" subOf="headline">
-          {rosterSlotsCaption(stakeMode)}
-        </Text>
         {slotsError ? (
           <Text variant="callout" color={colors.danger} accessibilityLiveRegion="polite">
             {slotsError}
@@ -562,6 +558,7 @@ export default function LeagueSettingsScreen() {
       {membersBlock}
       {leaveBlock}
       {transferSheet}
+      {infoPopup}
 
       <DraftDateSheet
         visible={showDatePicker && !isLocked && !dateLocked}

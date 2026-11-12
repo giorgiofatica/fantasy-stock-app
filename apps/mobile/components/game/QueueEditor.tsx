@@ -76,7 +76,8 @@ export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAF
   return (
     <Card style={[styles.card, styles.searchCard]}>
       <Text variant="tag" tone="secondary">{keepDots(`Your queue · ${queue.length} of ${QUEUE_MAX}`)}</Text>
-      <Text variant="caption" tone="secondary" subOf="tag">If you step away, we'll auto-pick from your queue when your time runs out. You can come back any time.</Text>
+      {/* Rule 12 (the sweep, row 2): "If you step away, we'll auto-pick from your queue…" is cut. The room's first-time tip says it, once
+          (lib/shell/firstTimeTipPolicy.ts). The empty queue's line is NOT built: it is not approved. */}
       {closedLine ? <Text variant="caption" tone="secondary" subOf="tag">{closedLine}</Text> : null}
       <View>
         {queue.map((sym, i) => (

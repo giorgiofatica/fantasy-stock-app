@@ -122,7 +122,8 @@ Deno.test('the sheet: 15-minute steps, ET, the earliest time as its minimum, the
   assertEquals(sheetSrc.includes('minuteInterval={15}'), true);
   assertEquals(sheetSrc.includes('timeZoneName="America/New_York"'), true);
   assertEquals(sheetSrc.includes('minimumDate={new Date(earliestDraftMs(nowMs))}'), true);
-  assertEquals(sheetSrc.includes('{PICKER_HELPER}'), true);
+  assertEquals(sheetSrc.includes('PICKER_HELPER'), false); // rule 12 (the sweep, row 9): the helper line is cut
+  assertEquals(sheetSrc.includes('EARLIEST_NOTE'), false);
   assertEquals(sheetSrc.includes('minimumDate={new Date()}'), false); // never "now" any more
 });
 

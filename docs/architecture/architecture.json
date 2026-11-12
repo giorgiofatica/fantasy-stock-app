@@ -2,27 +2,47 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "c1f0a6e48b16f926e4f89dfd80da92f48049de06",
-    "commitShort": "c1f0a6e4",
+    "commit": "b183fd31dd0e36bcd950348015b001d059497454",
+    "commitShort": "b183fd31",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/renewal-notice-gate",
+    "branch": "feat/rule12-sweep-info",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "??",
-        "path": "supabase/migrations/20261204000000_renewal_notices_wake_notify_cron.sql"
+        "code": "M",
+        "path": "apps/mobile/components/game/HistoryList.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/StandingsTable.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/gameCopy.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/final-standings-screens.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/league-game-night.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/rule12-sweep-phase2.test.ts"
       }
     ],
-    "timestamp": "2026-11-12T01:59:51Z",
-    "sourceHash": "sha256:54c68fcf87bd1938d5af85cabe972df88b1aa4899ed149acee0a0ee5f82e05ad",
+    "timestamp": "2026-11-12T04:19:24Z",
+    "sourceHash": "sha256:8f7f86d5e7f7f9f4215403f9f7534cd7e15790851f339c60df34c50ed19cc83d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 4.1,
-    "ageDays": 0.2,
+    "ageHours": 6.4,
+    "ageDays": 0.3,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:21978bcf035c670291c0755433e1c35e63b1eb9f2349f64048519859d51a996d",
@@ -19446,7 +19466,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:66"
+        "apps/mobile/lib/categoryData.ts:64"
       ]
     },
     {
@@ -19462,8 +19482,8 @@
         "gics_industry"
       ],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:103",
-        "apps/mobile/lib/categoryData.ts:143"
+        "apps/mobile/lib/categoryData.ts:101",
+        "apps/mobile/lib/categoryData.ts:141"
       ]
     },
     {
@@ -19478,7 +19498,7 @@
         "slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:212"
+        "apps/mobile/lib/categoryData.ts:210"
       ]
     },
     {
@@ -19491,7 +19511,7 @@
       "payload": ".from('league_draft_slots').delete()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:192"
+        "apps/mobile/lib/categoryData.ts:190"
       ]
     },
     {
@@ -19504,7 +19524,7 @@
       "payload": ".from('league_draft_slots').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:205"
+        "apps/mobile/lib/categoryData.ts:203"
       ]
     },
     {
@@ -19520,8 +19540,8 @@
         "symbol, category_id"
       ],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:144",
-        "apps/mobile/lib/categoryData.ts:85"
+        "apps/mobile/lib/categoryData.ts:142",
+        "apps/mobile/lib/categoryData.ts:83"
       ]
     },
     {
@@ -19537,10 +19557,10 @@
         "symbol"
       ],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:113",
-        "apps/mobile/lib/categoryData.ts:114",
-        "apps/mobile/lib/categoryData.ts:132",
-        "apps/mobile/lib/categoryData.ts:96"
+        "apps/mobile/lib/categoryData.ts:111",
+        "apps/mobile/lib/categoryData.ts:112",
+        "apps/mobile/lib/categoryData.ts:130",
+        "apps/mobile/lib/categoryData.ts:94"
       ]
     },
     {
@@ -19648,7 +19668,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('respond_to_renewal')",
       "callSites": [
-        "apps/mobile/components/game/RenewalAsk.tsx:97"
+        "apps/mobile/components/game/RenewalAsk.tsx:95"
       ],
       "via": [
         "seamRpc"
@@ -20446,7 +20466,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('renew_league')",
       "callSites": [
-        "apps/mobile/app/(tabs)/league.tsx:147"
+        "apps/mobile/app/(tabs)/league.tsx:146"
       ],
       "via": [
         "seamRpc"
@@ -20462,7 +20482,7 @@
       "payload": ".from('league_draft_slots').delete()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/league-settings.tsx:288"
+        "apps/mobile/app/league-settings.tsx:292"
       ],
       "via": [
         "seamSaveLeagueSlots"
@@ -20478,7 +20498,7 @@
       "payload": ".from('league_draft_slots').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/league-settings.tsx:288"
+        "apps/mobile/app/league-settings.tsx:292"
       ],
       "via": [
         "seamSaveLeagueSlots"
@@ -20494,7 +20514,7 @@
       "payload": ".from('leagues').update()",
       "columns": [],
       "callSites": [
-        "apps/mobile/app/league-settings.tsx:266"
+        "apps/mobile/app/league-settings.tsx:270"
       ],
       "via": [
         "seamUpdateLeague"
@@ -23828,9 +23848,9 @@
       "apps/web/src/pages/JoinLeague.jsx:49 -> join-league"
     ],
     "rpcs": [
-      "apps/mobile/app/(tabs)/league.tsx:147 -> renew_league (via seamRpc)",
+      "apps/mobile/app/(tabs)/league.tsx:146 -> renew_league (via seamRpc)",
       "apps/mobile/components/game/QueueEditor.tsx:66 -> set_draft_queue (via seamRpc)",
-      "apps/mobile/components/game/RenewalAsk.tsx:97 -> respond_to_renewal (via seamRpc)",
+      "apps/mobile/components/game/RenewalAsk.tsx:95 -> respond_to_renewal (via seamRpc)",
       "apps/mobile/components/game/RenewalReview.tsx:61 -> start_renewed_season (via seamRpc)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> nudge_renewal (via seamRpc, inferred)",
       "apps/mobile/components/game/RenewalRoster.tsx:58 -> remove_renewal_invitee (via seamRpc, inferred)",
@@ -23938,9 +23958,9 @@
       "apps/mobile/app/create-league.tsx:229 -> league_members.insert (via seamInsertMember)",
       "apps/mobile/app/create-league.tsx:239 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
       "apps/mobile/app/create-league.tsx:239 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
-      "apps/mobile/app/league-settings.tsx:266 -> leagues.update (via seamUpdateLeague)",
-      "apps/mobile/app/league-settings.tsx:288 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
-      "apps/mobile/app/league-settings.tsx:288 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
+      "apps/mobile/app/league-settings.tsx:270 -> leagues.update (via seamUpdateLeague)",
+      "apps/mobile/app/league-settings.tsx:292 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
+      "apps/mobile/app/league-settings.tsx:292 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> categories.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> drafts.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> league_draft_slots.select (via useRosterData)",
@@ -23958,18 +23978,18 @@
       "apps/mobile/lib/account/deleteLeaguesApi.ts:33 -> league_members.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:38 -> leagues.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:39 -> league_members.select",
-      "apps/mobile/lib/categoryData.ts:103 -> category_rules.select",
-      "apps/mobile/lib/categoryData.ts:113 -> symbols.select",
-      "apps/mobile/lib/categoryData.ts:114 -> symbols.select",
-      "apps/mobile/lib/categoryData.ts:132 -> symbols.select",
-      "apps/mobile/lib/categoryData.ts:143 -> category_rules.select",
-      "apps/mobile/lib/categoryData.ts:144 -> symbol_category_overrides.select",
-      "apps/mobile/lib/categoryData.ts:192 -> league_draft_slots.delete",
-      "apps/mobile/lib/categoryData.ts:205 -> league_draft_slots.insert",
-      "apps/mobile/lib/categoryData.ts:212 -> league_draft_slots.select",
-      "apps/mobile/lib/categoryData.ts:66 -> categories.select",
-      "apps/mobile/lib/categoryData.ts:85 -> symbol_category_overrides.select",
-      "apps/mobile/lib/categoryData.ts:96 -> symbols.select",
+      "apps/mobile/lib/categoryData.ts:101 -> category_rules.select",
+      "apps/mobile/lib/categoryData.ts:111 -> symbols.select",
+      "apps/mobile/lib/categoryData.ts:112 -> symbols.select",
+      "apps/mobile/lib/categoryData.ts:130 -> symbols.select",
+      "apps/mobile/lib/categoryData.ts:141 -> category_rules.select",
+      "apps/mobile/lib/categoryData.ts:142 -> symbol_category_overrides.select",
+      "apps/mobile/lib/categoryData.ts:190 -> league_draft_slots.delete",
+      "apps/mobile/lib/categoryData.ts:203 -> league_draft_slots.insert",
+      "apps/mobile/lib/categoryData.ts:210 -> league_draft_slots.select",
+      "apps/mobile/lib/categoryData.ts:64 -> categories.select",
+      "apps/mobile/lib/categoryData.ts:83 -> symbol_category_overrides.select",
+      "apps/mobile/lib/categoryData.ts:94 -> symbols.select",
       "apps/mobile/lib/game/seamCalls.ts:104 -> league_members.insert",
       "apps/mobile/lib/game/seamCalls.ts:67 -> leagues.update",
       "apps/mobile/lib/game/seamCalls.ts:98 -> leagues.insert",

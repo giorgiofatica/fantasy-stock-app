@@ -17,7 +17,7 @@ export function RenewalCountsCard({ roster: r }: { roster: Extract<RosterResult,
     <Card style={styles.card}>
       <Text variant="tag" tone="secondary">{`Season 2 · running back`}</Text>
       <Text variant="callout" subOf="tag">{countsLine(r.counts)}</Text>
-      {waiting.length > 0 ? <Text variant="caption" tone="secondary" subOf="tag">{`${waitingOnSentence(waiting)} You'll set up the draft once everyone has replied.`}</Text> : null}
+      {waiting.length > 0 ? <Text variant="caption" tone="secondary" subOf="tag">{waitingOnSentence(waiting)}</Text> : null}
       <View style={styles.action}>
         <Button label="See who's in" variant="secondary" onPress={() => router.push('/(tabs)/league')} />
       </View>

@@ -123,8 +123,9 @@ export function RenewalRoster({ roster, leagueId, season1Order, createdAt, now, 
             <Text variant="callout">Draft order</Text>
             <Text variant="callout" tone="secondary">Random</Text>
           </View>
+          {/* Rule 12 (the DL's ruling on the League-tab twin): "You can set the draft once everyone has replied." is cut; the names stay. */}
           {draftDisabled(roster.replies_pending) ? (
-            <Text variant="caption" tone="secondary">{`You can set the draft once everyone has replied. ${waitingOnSentence(waiting)}`}</Text>
+            <Text variant="caption" tone="secondary">{waitingOnSentence(waiting)}</Text>
           ) : null}
         </Card>
       ) : null}

@@ -13,7 +13,7 @@
 import { assert, assertEquals, assertNotEquals } from 'jsr:@std/assert';
 import { NBSP, keepDots, keepDotsIn, keepMoney, keepTime } from '../lib/game/keepDots.ts';
 import { endsAtLabel, marketResumesAt, nextWeekStartsLabel, preSeasonStartsLabel } from '../lib/home/homeCopy.ts';
-import { draftDateTimeLabel, orderSetLine, orderWasSetLine } from '../lib/home/draftCountdown.ts';
+import { draftDateTimeLabel } from '../lib/home/draftCountdown.ts';
 import { blockersCardCopy, countdownCopy, deadlineCopy, etTimeLabel, etWhenLabel, pickerLine } from '../lib/game/autoStart.ts';
 import { leaveRowView, leaveSheetCopy } from '../lib/game/leaveLeague.ts';
 import { weekOneLine } from '../lib/game/draftComplete.ts';
@@ -112,16 +112,12 @@ Deno.test('every clock time the app draws in wrapping text never splits at any w
     'Draft complete (bye)': weekOneLine(T, null, true),
     'Draft complete (no opponent)': weekOneLine(T, null),
     'Pre-draft card date': etWhenLabel(Date.parse(DRAFT)),
-    'Pre-draft card order line': orderSetLine('2026-10-03T22:00:00Z') ?? '',
-    'Lobby order-set line': orderWasSetLine('2026-10-03T22:00:00Z') ?? '',
     'Portfolio pre-draft date': preDraftPortfolio('not_started', DRAFT)?.hook?.kind === 'date' ? (preDraftPortfolio('not_started', DRAFT)!.hook as { label: string }).label : '',
     'Draft countdown (scheduled) line 1': countdownCopy('scheduled', DRAFT, SUNDAY).lines[0],
-    'Draft countdown (scheduled) line 2': countdownCopy('scheduled', DRAFT, SUNDAY).lines[1],
     'Draft countdown (room open)': countdownCopy('room_open', DRAFT, SUNDAY).lines[0],
     'Commissioner deadline line': deadlineCopy(DRAFT, SUNDAY).line,
-    'Blockers (risk) tag': blockersCardCopy('risk', etTimeLabel(Date.parse(DRAFT))).tag,
-    'Blockers (risk) line': blockersCardCopy('risk', etTimeLabel(Date.parse(DRAFT))).line,
-    'Blockers (postponed) line': blockersCardCopy('postponed', etTimeLabel(Date.parse(DRAFT))).line,
+    'Blockers (risk) tag': blockersCardCopy('risk', etTimeLabel(Date.parse(DRAFT))).tag ?? '',
+    'Blockers (risk) line': blockersCardCopy('risk', etTimeLabel(Date.parse(DRAFT))).line ?? '',
     'Draft picker line': pickerLine(Date.parse(DRAFT), SUNDAY - 3 * 86400000).value,
     'League settings Leave row': leaveRowView('before_draft', false, DRAFT).sub ?? '',
     'Leave sheet bullet': leaveSheetCopy('before_draft', { leagueName: 'Stock Scudetto', commissionerName: 'Giorgio F.', seasonNumber: 1, draftDate: DRAFT })?.bullets[1] ?? '',
@@ -158,9 +154,8 @@ const RENDER_SITES: Record<string, RegExp[]> = {
   'components/home/ThisWeekCard.tsx': [/\{keepTime\(keepWeek\(rightLabel\)\)\}/],
   'components/home/HomeHero.tsx': [/ · \{keepTime\(preSeasonLabel\)\}<\/Text>/],
   'components/home/PhaseMessageCard.tsx': [/\{keepTime\(line\)\}/],
-  'components/home/PreDraftCard.tsx': [/\{keepTime\(dateLabel!\)\}/, /\{keepTime\(orderSetLine\(finalizeAt!\) \?\? ''\)\}/],
+  'components/home/PreDraftCard.tsx': [/\{keepTime\(dateLabel!\)\}/],
   'components/game/DraftComplete.tsx': [/finished \? keepTime\(keepWeek\(weekLine\)\)/],
-  'components/game/DraftLobby.tsx': [/\{keepTime\(orderSetLine\(orderWasSetLine\(data\.finalizeAt\), draftDate\) \?\? ''\)\}/],
   'components/game/DraftCountdownCard.tsx': [/lines\.map\(\(l\) => \(\s*<Text[^>]*>\s*\{keepTime\(l\)\}/, /notes\.map\(\(l\) => \(\s*<Text[^>]*>\s*\{keepTime\(l\)\}/],
   'components/game/DraftBlockersCard.tsx': [/\{keepTime\(copy\.tag\)\}/, /\{keepTime\(copy\.title\)\}/, /\{keepTime\(copy\.line\)\}/],
   'components/game/DraftDateSheet.tsx': [/\{keepTime\(line\.value\)\}/],

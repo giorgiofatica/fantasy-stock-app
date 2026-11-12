@@ -150,8 +150,6 @@ function HomeBody({
     const preDraft: ComponentProps<typeof PreDraftCard> = {
       leagueId: leagueId!,
       inviteCode: league.invite_code,
-      pickSeconds: league.pick_seconds,
-      numRounds: league.num_rounds,
       draftDate: league.draft_date,
       numParticipants: league.num_participants,
       pullKey,

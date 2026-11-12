@@ -19,7 +19,6 @@ import { isEmailJustConfirmed, setEmailJustConfirmed, subscribeEmailJustConfirme
 import { SHELL_FIXTURE } from '@/lib/shell/devFixture';
 import { pickAvailableGamertag, seededRng } from '@/lib/shell/gamertag';
 import {
-  HELPER_CHANGE_LATER,
   initialUsernameState,
   pickAvailable,
   usernameReducer,
@@ -194,9 +193,6 @@ export function UsernamePicker({ current, onSaved }: UsernamePickerProps) {
       {firstRun && confirmed ? <EmailConfirmedChip /> : null}
       <View style={styles.heading}>
         <ScreenTitle>Pick a username</ScreenTitle>
-        <Text variant="body" tone="secondary">
-          Shown to your league on standings and matchups
-        </Text>
       </View>
 
       {/* The probe: the suggested tag's one-line width at the SYSTEM size, never shown. */}
@@ -234,7 +230,6 @@ export function UsernamePicker({ current, onSaved }: UsernamePickerProps) {
         onLayout={(e) => setFieldWidth(e.nativeEvent.layout.width)}
         maxLength={40}
         error={view.error}
-        helper={firstRun && picking ? HELPER_CHANGE_LATER : undefined}
         trailing={<UsernameStatusIcon state={mode === 'suggesting' ? 'checking' : view.trailing} />}
         rules={picking ? undefined : view.rules}
       />

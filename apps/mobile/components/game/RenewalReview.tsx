@@ -10,8 +10,8 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { radius, space } from '@/constants/tokens';
 import { supabase } from '@/lib/supabase';
 import { seamRpc } from '@/lib/game/seamCalls';
-import { keepCodeIn, keepMoney } from '@/lib/game/keepDots';
-import { teamsLine, canSchedule, buildRenewalSettings, scheduleLine, DRAFT_ROW_UNSET } from '@/lib/game/renewalReview';
+import { keepMoney } from '@/lib/game/keepDots';
+import { teamsLine, canSchedule, buildRenewalSettings, scheduleReason, DRAFT_ROW_UNSET } from '@/lib/game/renewalReview';
 import { byeNoticeCopy } from '@/lib/game/draftLobby';
 import { playoffLine } from '@/lib/playoffs';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
@@ -49,7 +49,7 @@ export function RenewalReview({ leagueId, inviteCode, counts, repliesPending, se
   const [weeks, setWeeks] = useState(settings.num_weeks);
   const [playoffTeams, setPlayoffTeams] = useState(settings.playoff_teams ?? 2);
   const managers = counts.in + counts.new;
-  const teams = teamsLine(counts, inviteCode);
+  const teams = teamsLine(counts);
   const bye = byeNoticeCopy(managers, weeks);
   const playoffs = playoffLine(playoffTeams);
   const enabled = canSchedule({ repliesPending, draftDate, now }) && !busy;
@@ -72,10 +72,9 @@ export function RenewalReview({ leagueId, inviteCode, counts, repliesPending, se
     <View style={styles.stack}>
       <Text variant="tag" tone="secondary">{settings.name}</Text>
       <Text variant="title">Season 2</Text>
-      <Text variant="callout" tone="secondary" subOf="title">Everything carries over from Season 1. Change anything before the draft.</Text>
       <Card style={styles.card}>
         <Row label="Who's in" value={`${counts.in} back · ${counts.new} new`} />
-        <Row label="Teams" value={teams.value} sub={keepCodeIn(teams.sub, inviteCode)} />
+        <Row label="Teams" value={teams.value} />
         <Row label="Draft" value={draftDate ? new Date(draftDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : DRAFT_ROW_UNSET} onPress={() => setEditingDate((v) => !v)} />
         {editingDate ? (
           <DateTimePicker
@@ -104,7 +103,9 @@ export function RenewalReview({ leagueId, inviteCode, counts, repliesPending, se
       </Card>
       {bye ? <Text variant="caption" tone="secondary">{bye}</Text> : null}
       <Button label="Schedule the draft" onPress={() => void schedule()} disabled={!enabled} />
-      <Text variant="caption" tone="secondary">{scheduleLine({ draftDate, now })}</Text>
+      {/* Rule 12 (the sweep, row 11): the footnote under the button ("Everyone who's in gets a notification…") is cut; only the reason
+          the button cannot act stays. */}
+      {scheduleReason({ draftDate, now }) ? <Text variant="caption" tone="secondary">{scheduleReason({ draftDate, now })}</Text> : null}
     </View>
   );
 }

@@ -19,13 +19,15 @@ export type CreateStep = 'league' | 'season' | 'draft' | 'stakes';
 
 export const CREATE_STEPS: readonly CreateStep[] = ['league', 'season', 'draft', 'stakes'];
 
-/** Titles and subtitles. Season and Draft are the board's; League and Stakes
- * are NEW copy (no frame), flagged for the Design Lead. */
-export const CREATE_STEP_COPY: Record<CreateStep, { title: string; subtitle: string }> = {
-  league: { title: 'League', subtitle: "Name your league and choose how it's played." }, // NEW copy
+/** The steps' titles. UX rule 12 (the sweep, Giorgio 2026-11-10): League, Draft and Stakes carry NO subtitle: it restated the
+ * title ("Name your league and choose how it's played.", "A live snake draft…", "How do teams stake their picks?"), and what a
+ * choice means now sits behind its "i" (UX rule 13). Season keeps its line until its own build (the Season strip, "B") lands:
+ * that step's lines go with it, not with this sweep. */
+export const CREATE_STEP_COPY: Record<CreateStep, { title: string; subtitle?: string }> = {
+  league: { title: 'League' },
   season: { title: 'Season', subtitle: 'How big the league is and how long it runs.' }, // board
-  draft: { title: 'Draft', subtitle: 'A live snake draft. Everyone picks in turn, and the order reverses each round.' }, // board
-  stakes: { title: 'Stakes', subtitle: 'How do teams stake their picks?' }, // the old stake step's line
+  draft: { title: 'Draft' },
+  stakes: { title: 'Stakes' },
 };
 
 export function stepNumber(step: CreateStep): number {
@@ -164,9 +166,6 @@ export function stepWithin(value: number, direction: 1 | -1, min: number, max: n
 }
 
 // ── Stakes step ─────────────────────────────────────────────────────────
-
-/** Under the Draft time row while it's TBD (Design Lead ruling; one term, "draft time"). */
-export const DRAFT_DATE_LATER = 'Set a draft time before the draft can start. You can do it later in League settings.';
 
 /** The budget-cap presets, as before. */
 export const BUDGET_PRESETS: readonly string[] = ['1000', '2500', '5000', '10000'];

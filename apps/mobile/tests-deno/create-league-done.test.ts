@@ -5,7 +5,6 @@
  */
 import { assertEquals } from 'jsr:@std/assert';
 import {
-  CREATED_LINE,
   CREATED_NO_DATE,
   CREATE_FAILED,
   GO_TO_LEAGUE,
@@ -15,10 +14,9 @@ import {
   inviteShareMessage,
 } from '../lib/game/createLeagueDone.ts';
 
-Deno.test('the done screen: "{Name} is ready" and its line', () => {
+Deno.test('the done screen: "{Name} is ready", with no subtitle (rule 12 cut "Share the invite code to bring your league in.")', () => {
   assertEquals(createdTitle('Office League'), 'Office League is ready');
   assertEquals(createdTitle('  Office League  '), 'Office League is ready');
-  assertEquals(CREATED_LINE, 'Share the invite code to bring your league in.');
   assertEquals(GO_TO_LEAGUE, 'Go to the league');
 });
 
@@ -43,4 +41,13 @@ Deno.test('a failed create never shows the raw message', () => {
 
 Deno.test('the share text: Giorgio\'s sentence verbatim, then the invite link on its own line (W3)', () => {
   assertEquals(inviteShareMessage('K7Q2XR'), 'Join my league with code K7Q2XR\nhttps://fantasy-stock-app.vercel.app/join/K7Q2XR');
+});
+
+Deno.test('rule 12: the done screen passes no subtitle, and "Set a draft time…" stays only when there is no date', async () => {
+  const { SOURCES } = await import('./sourceManifest.generated.ts');
+  const screen = SOURCES['app/create-league.tsx'].replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const done = screen.slice(screen.indexOf('if (created) {'), screen.indexOf('const last = step'));
+  assertEquals(/subtitle=/.test(done), false, 'no subtitle under "{Name} is ready"');
+  assertEquals(/Share the invite code/.test(screen), false);
+  assertEquals(/\{created\.noDate \? \(\s*<Text[^>]*>\{CREATED_NO_DATE\}<\/Text>/.test(done), true, 'the draft-time fact stays, only without a date');
 });

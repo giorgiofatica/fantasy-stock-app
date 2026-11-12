@@ -114,12 +114,12 @@ Deno.test('symbol_owned: the owner is named, and the next step is Pick another s
     { buttonLabel: 'Buy SHOP', buttonRole: 'buy' },
     { title: 'Bought SHOP', symbol: 'SHOP', ownerName: 'Ticker Tina' },
   );
-  assertEquals(r.message, 'Ticker Tina already owns SHOP. A stock has one owner per league.');
+  assertEquals(r.message, 'Ticker Tina already owns SHOP.');
   assertEquals(r.footer, 'pick_stock');
 });
 
 Deno.test('symbol_owned without a name falls back to another manager', () => {
-  assertEquals(REFUSED('symbol_owned').message, 'Another manager already owns SHOP. A stock has one owner per league.');
+  assertEquals(REFUSED('symbol_owned').message, 'Another manager already owns SHOP.');
 });
 
 Deno.test('over_budget and not_draftable: Pick another stock', () => {
@@ -154,7 +154,7 @@ const TABLE = (reason: string, retryable = false, tier?: { price: number | null;
 
 Deno.test('table: symbol_owned names the owner and the stock, then Pick another stock', () => {
   const r = TABLE('symbol_owned');
-  assertEquals(r.message, 'Ticker Tina already owns SHOP. A stock has one owner per league.');
+  assertEquals(r.message, 'Ticker Tina already owns SHOP.');
   assertEquals(r.footer, 'pick_stock');
 });
 

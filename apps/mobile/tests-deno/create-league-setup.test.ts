@@ -8,29 +8,14 @@ import { assertEquals } from 'jsr:@std/assert';
 import {
   DEFAULT_PICK_SECONDS,
   DRAFT_ORDER_OPTIONS,
-  IF_TIME_RUNS_OUT_COPY,
   PICK_SECONDS_OPTIONS,
-  draftOrderCaption,
   pickClockLocked,
-  pickSecondsCaption,
   playoffTeamsBounds,
   seasonCaption,
 } from '../lib/game/createLeagueSetup.ts';
 
 Deno.test('the two draft orders are the ones the database accepts', () => {
   assertEquals(DRAFT_ORDER_OPTIONS.map((o) => o.value), ['random', 'manual']);
-});
-
-Deno.test('draft order captions match the board', () => {
-  assertEquals(draftOrderCaption('random'), 'Random: revealed 1 hour before the draft.');
-  assertEquals(
-    draftOrderCaption('manual'),
-    'Manual: arrange it any time up to 1 hour before the draft. You can switch until then.',
-  );
-});
-
-Deno.test('the auto-pick line says never a random pick, never a skip', () => {
-  assertEquals(IF_TIME_RUNS_OUT_COPY.includes('Never a random pick, never a skip.'), true);
 });
 
 Deno.test('the Season caption counts playoff weeks from the playoff plan', () => {
@@ -47,11 +32,6 @@ Deno.test('playoff teams run from 2 up to the league size, equal included', () =
 Deno.test('the pick clock steps match the server CHECK (30..90 by 15)', () => {
   assertEquals(PICK_SECONDS_OPTIONS.map((o) => o.value), [30, 45, 60, 75, 90]);
   assertEquals(DEFAULT_PICK_SECONDS, 60);
-});
-
-Deno.test('the pick clock caption names the chosen time, with 60 as the default', () => {
-  assertEquals(pickSecondsCaption(60), 'Time each manager has to make a pick. 60 seconds is the default.');
-  assertEquals(pickSecondsCaption(30), 'Time each manager has to make a pick. 30 seconds.');
 });
 
 Deno.test('the pick clock freezes once the draft has started, as the trigger does', () => {

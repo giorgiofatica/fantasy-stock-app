@@ -35,14 +35,12 @@ export function GetStarted({ onCreate, onJoin, onSignIn }: GetStartedProps) {
     <>
       <BrandLockup />
       <View style={styles.heading}>
+        {/* Rule 12 (the sweep, row 13): no subtitle and no line under either choice; the two titles are the whole question. */}
         <ScreenTitle>Get started</ScreenTitle>
-        <Text variant="body" tone="secondary">
-          Start a league for your friends, or join one with a code.
-        </Text>
       </View>
       <View style={styles.choices}>
-        <Choice icon="add" title="Create a league" description="Pick the rules, invite friends, set the draft." onPress={onCreate} />
-        <Choice icon="trophy" title="Join with a code" description="Got a code from a friend? Enter it here." onPress={onJoin} />
+        <Choice icon="add" title="Create a league" onPress={onCreate} />
+        <Choice icon="trophy" title="Join with a code" onPress={onJoin} />
       </View>
       <Pressable onPress={onSignIn} accessibilityRole="link" style={styles.switch} hitSlop={8}>
         <Text variant="body" tone="secondary" style={styles.center}>
@@ -56,17 +54,15 @@ export function GetStarted({ onCreate, onJoin, onSignIn }: GetStartedProps) {
 function Choice({
   icon,
   title,
-  description,
   onPress,
 }: {
   icon: IconName;
   title: string;
-  description: string;
   onPress: () => void;
 }) {
   const { colors } = useTheme();
   return (
-    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${title}. ${description}`}>
+    <PressableScale onPress={onPress} accessibilityRole="button" accessibilityLabel={title}>
       <Card style={styles.choice}>
         <View style={[styles.tile, { backgroundColor: colors.inset }]}>
           <Icon name={icon} size="title" tone="text" />
@@ -74,9 +70,6 @@ function Choice({
         <View style={styles.choiceText}>
           <Text variant="headline" style={styles.bold}>
             {title}
-          </Text>
-          <Text variant="callout" tone="secondary" subOf="headline">
-            {description}
           </Text>
         </View>
         <Icon name="chevronRight" size="body" tone="text2" />

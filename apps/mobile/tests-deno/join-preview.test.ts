@@ -33,7 +33,8 @@ Deno.test('the board preview: name, Managers / Draft / Stakes / Season, button n
   ]);
   assertEquals(v.message, null);
   assertEquals(v.action, 'join');
-  assertEquals(v.caption, 'You can leave any time before the draft.');
+  // Rule 12 (the sweep, row 12): "You can leave any time before the draft." is cut; the preview has no caption.
+  assertEquals('caption' in v, false);
 });
 
 Deno.test('the board refusals, verbatim, naming the league', () => {
@@ -53,7 +54,8 @@ Deno.test('the board refusals, verbatim, naming the league', () => {
 Deno.test('every board error line', () => {
   assertEquals(JOIN_COPY.badCode, 'No league has that code. Check it and try again.');
   assertEquals(JOIN_COPY.unreachable, "Couldn't reach the league. Check your connection, then try again.");
-  assertEquals(JOIN_COPY.codeIntro, 'Enter the invite code your commissioner sent you.');
+  assertEquals('codeIntro' in JOIN_COPY, false); // rule 12: the field's label says it
+  assertEquals('leaveAnyTime' in JOIN_COPY, false);
 });
 
 Deno.test('a full league always reads N of N, and the draft row says Done once drafted', () => {
@@ -73,8 +75,6 @@ Deno.test('the button under each block: join / open / try another / disabled for
   assertEquals(previewAction('season_completed'), 'another');
   assertEquals(previewAction('unknown'), 'another');
   assertEquals(previewAction('left_league'), 'join_disabled');
-  // A refusal has no "you can leave any time" caption.
-  assertEquals(previewView(league(), 'league_full').caption, null);
 });
 
 Deno.test('flag (a): left_league is optional; an old server just sends already_member', () => {
@@ -177,9 +177,9 @@ Deno.test('interpretJoin: joined / refused (with the id a member gets) / errors'
 Deno.test('joined: the board copy, and a fallback when the draft has no date', () => {
   const v = joinedView('Serie A Traders', '2026-10-10T23:00:00Z');
   assertEquals(v.title, "You're in Serie A Traders");
-  assertEquals(v.body, 'The draft is Sat, Oct 10 · 7:00 PM ET. The draft order is set an hour before.');
+  assertEquals(v.body, 'The draft is Sat, Oct 10 · 7:00 PM ET.'); // rule 12 (row 12): "The draft order is set an hour before." is cut
   assertEquals(joinedView('X', null).body, JOIN_COPY.joinedNoDate);
-  assertEquals(JOIN_COPY.joinedNoDate, "The commissioner hasn't set a draft date yet. You'll see it on your Home once they do.");
+  assertEquals(JOIN_COPY.joinedNoDate, "The commissioner hasn't set a draft date yet."); // "You'll see it on your Home once they do." is cut
   // No push exists to promise (order-notify is still deferred).
   assertEquals(v.body.includes("let you know"), false);
   assertEquals(JOIN_COPY.joinedNoDate.includes("let you know"), false);
@@ -188,7 +188,7 @@ Deno.test('joined: the board copy, and a fallback when the draft has no date', (
 Deno.test('the preview reads ONLY what preview-league returns: no ids, no faces', () => {
   const v = previewView(league(), null);
   const text = JSON.stringify(v);
-  assertEquals(Object.keys(v).sort(), ['action', 'block', 'caption', 'message', 'name', 'rows']);
+  assertEquals(Object.keys(v).sort(), ['action', 'block', 'message', 'name', 'rows']);
   assertStringIncludes(text, 'Serie A Traders');
   // A raw league row carrying extras must not leak through the parser.
   const parsed = parsePreviewLeague({ ...SERIE_A, id: 'secret-id', commissioner_id: 'secret-uid', invite_code: 'SERIEA7' })!;

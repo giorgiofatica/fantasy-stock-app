@@ -90,7 +90,7 @@ Deno.test('the named screens: Members, the queue, the draft room\'s roster heade
   const pre = code(SOURCES['components/home/PreDraftCard.tsx']);
   assert(/<Text variant="caption" tone="secondary" subOf="headline">\s*\{waiting \? membersNeededCaption/.test(pre), 'Members: "1 of 4 joined" under the headline');
   const q = code(SOURCES['components/game/QueueEditor.tsx']);
-  assert(q.includes('<Text variant="caption" tone="secondary" subOf="tag">If you step away'), 'the queue intro under the tag');
+  assert(!q.includes('If you step away'), 'the queue intro is cut (rule 12, the sweep row 2)');
   assert(q.includes('<Text variant="caption" tone="secondary" subOf="tag">{closedLine}'), 'and its closed line');
   const grid = code(SOURCES['components/home/TeamSoFarGrid.tsx']);
   assert(grid.includes('<Text variant="caption" tone="secondary" subOf="headline">{caption ??'), 'the roster header\'s sub-line under the headline');

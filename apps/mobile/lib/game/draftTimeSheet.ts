@@ -14,7 +14,6 @@ import { seedDraftDate } from './draftDateSave';
 export const SET_DRAFT_TIME = 'Set draft time'; // Design Lead, ruled (B)
 export const SET_LATER = 'Set later'; // board
 /** Home, commissioner, no draft time yet (ruling B). */
-export const PICK_A_TIME_HOME = 'Pick a time, and the countdown starts here.'; // Design Lead, ruled (B)
 
 /** Home's no-time block ("No draft time yet" and its line). GS-11 (board RibHomeCounts):
  * a renewed league drops it while Season 1 players are still replying; the counts card

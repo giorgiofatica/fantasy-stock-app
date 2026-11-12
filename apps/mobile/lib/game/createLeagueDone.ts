@@ -10,9 +10,8 @@ export function createdTitle(name: string): string {
   return `${name.trim()} is ready`;
 }
 
-export const CREATED_LINE = 'Share the invite code to bring your league in.';
-
-/** Added when the league has no draft date yet. */
+/** The done screen has NO subtitle (UX rule 12, the sweep: "Share the invite code to bring your league in." was cut, the Share button says it). This one
+ * stays: a fact needed now, what is blocking the draft. Added when the league has no draft date yet. */
 export const CREATED_NO_DATE = 'Set a draft time before the draft can start.';
 
 export const GO_TO_LEAGUE = 'Go to the league';

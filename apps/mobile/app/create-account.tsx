@@ -160,9 +160,6 @@ export default function CreateAccountScreen() {
       <BrandLockup />
       <View style={styles.heading}>
         <ScreenTitle>Create account</ScreenTitle>
-        <Text variant="body" tone="secondary">
-          Join the competition
-        </Text>
       </View>
       {paused ? null : <SocialSignIn onPaused={showPaused} />}
       <View style={styles.fields}>

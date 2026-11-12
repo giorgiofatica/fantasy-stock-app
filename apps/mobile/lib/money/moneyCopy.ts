@@ -36,7 +36,7 @@ export const COPY = {
   // NEW (flagged): ownership and eligibility.
   ownedBy: (name: string) => `Owned by ${name}`,
   // Ruled by the audit's rule-8 table (ux-audit-2026-10): the stock and the owner are named.
-  alreadyOwned: (owner: string, symbol: string) => `${owner} already owns ${symbol}. A stock has one owner per league.`,
+  alreadyOwned: (owner: string, symbol: string) => `${owner} already owns ${symbol}.`,
   costsMoreThanBudget: (symbol: string) => `${symbol} costs more than your budget left.`,
   notDraftableSymbol: (symbol: string) => `${symbol} isn't in this league's list of stocks.`,
   notHeldSymbol: (symbol: string) => `You don't hold ${symbol} anymore.`,
@@ -111,7 +111,7 @@ export const COPY = {
   // W4 (board verbatim): the watchlist's "No free slot" (#call-watchlist C).
   noFreeSlot: 'No free slot',
   notInLeagueList: "Not in this league's list",
-  ownerBlocksBuy: (name: string, symbol: string) => `${name} owns ${symbol}. A stock has one owner per league.`,
+  ownerBlocksBuy: (name: string, symbol: string) => `${name} owns ${symbol}.`,
   sellAll: (qty: string, value: string) => `Sell all ${qty} sh ≈ ${value}`,
   pricesShowClose: (label: string) => `Prices show ${label}.`,
   // NEW (flagged): ownership states the board doesn't draw.
@@ -139,7 +139,6 @@ export const COPY = {
   perSlotAtDraft: (amount: string) => `${amount} per slot at the draft`,
   holdingsHeading: 'Holdings',
   tradeHistory: 'Trade history',
-  includesDraftPicks: 'Includes your draft picks',
   // Board pattern, verbatim: "Trading opens Mon 9:30 AM ET."
   tradingOpens: (when: string) => `Trading opens ${when}.`,
   // The player card's closed-market note (W4 Matchup gate), ONE string for the closed state on

@@ -7,7 +7,7 @@
  */
 import { assertEquals } from 'jsr:@std/assert';
 import {
-  PICK_A_TIME_HOME, SET_DRAFT_TIME, SET_LATER, draftTimeSheet, homeSetsDraftTime, shownDraftTime, type SheetAction, type SheetWrite,
+  SET_DRAFT_TIME, SET_LATER, draftTimeSheet, homeSetsDraftTime, shownDraftTime, type SheetAction, type SheetWrite,
 } from '../lib/game/draftTimeSheet.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
@@ -38,7 +38,6 @@ function play(actions: SheetAction[]): { writes: SheetWrite[]; open: boolean; lo
 Deno.test('the ruled copy, verbatim', () => {
   assertEquals(SET_DRAFT_TIME, 'Set draft time');
   assertEquals(SET_LATER, 'Set later');
-  assertEquals(PICK_A_TIME_HOME, 'Pick a time, and the countdown starts here.');
 });
 
 Deno.test('a dismiss writes nothing: open, spin, swipe away', () => {
@@ -138,7 +137,7 @@ Deno.test('Home leads with setting the time for the commissioner only; members a
 
 Deno.test('Home: the ruled line, primary "Set draft time" opening the sheet in place, Build your queue secondary (source guard)', () => {
   const home = SOURCES['components/home/PreDraftCard.tsx'];
-  assertEquals(home.includes('{setsTime ? PICK_A_TIME_HOME : noDateCopy(ds.isCommissioner, commissionerName)}'), true);
+  assertEquals(home.includes('{setsTime ? null : <Text variant="callout" tone="secondary" subOf="title">{noDateCopy(ds.isCommissioner, commissionerName)}</Text>}'), true); // rule 12 (row 6): no "Pick a time…" line
   assertEquals(home.includes('<Button label={SET_DRAFT_TIME} onPress={() => setPicking(true)} variant="primary"'), true);
   assertEquals(home.includes("<Button label={BUILD_YOUR_QUEUE} onPress={() => router.push('/(tabs)/league')} variant=\"secondary\" />"), true);
   // The same sheet and the same save as a postponed draft's new time; no Set later (no time yet).

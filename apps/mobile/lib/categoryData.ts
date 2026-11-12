@@ -9,24 +9,22 @@ import { countOrThrow, rowsOrThrow } from './readResult';
 
 export type StakeMode = 'fixed_notional' | 'price_tiers' | 'budget_cap';
 
-export const STAKE_MODE_OPTIONS: Array<{ value: StakeMode; label: string; icon: string; help: string }> = [
+// What each mode means is behind its "i" (UX rule 13; lib/game/infoPopups.ts), never a paragraph under the option (rule 12).
+export const STAKE_MODE_OPTIONS: Array<{ value: StakeMode; label: string; icon: string }> = [
   {
     value: 'fixed_notional',
     label: 'Equal stakes',
     icon: 'scale',
-    help: 'Every roster slot represents the same simulated dollar stake (fractional shares). Pick any stock without price strategy.',
   },
   {
     value: 'price_tiers',
     label: 'Price tiers',
     icon: 'layers',
-    help: 'One share per slot. Each roster slot takes stocks in a price range you set, so expensive stocks only compete with each other.',
   },
   {
     value: 'budget_cap',
     label: 'Budget cap',
     icon: 'wallet',
-    help: "One share per slot. Your roster's share prices must add up to no more than the league cap, so a tight cap makes every pick count.",
   },
 ];
 

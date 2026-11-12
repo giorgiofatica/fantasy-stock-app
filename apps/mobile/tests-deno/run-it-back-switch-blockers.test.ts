@@ -10,7 +10,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  ANSWER_NOT_SAVED, ASK_CHANGE_NOTE, ASK_LINE, CHANGE_ANSWER, MEMBER_DRAFT_LINE, RUNNING_BACK_BANNER, TRY_AGAIN, YOURE_OUT_CHIP,
+  ANSWER_NOT_SAVED, CHANGE_ANSWER, MEMBER_DRAFT_LINE, RUNNING_BACK_BANNER, TRY_AGAIN, YOURE_OUT_CHIP,
   afterAskAnswer, askQuestion, homeRepliesPending, renewalAnswerOutcome, renewalAnswerRefusal, renewalAskAnswer,
   renewalDraftSet, rosterCommissionerName, rosterView, screenFor, showsHomeRenewalAsk,
 } from '../lib/game/renewal.ts';
@@ -90,8 +90,8 @@ Deno.test("GS-10: Change's question names the real commissioner from the roster 
 });
 
 Deno.test('GS-10: the Change sheet IS the ask (its copy verbatim, the current answer selected, the same RPC)', () => {
-  assertEquals(ASK_LINE, 'Same league, new season. The draft is set once everyone has replied.');
-  assertEquals(ASK_CHANGE_NOTE, 'You can change your answer until the draft is set.');
+  // Rule 12 (the sweep, row 11): "Same league, new season. The draft is set once everyone has replied." and "You can change your answer
+  // until the draft is set." are cut; the question and the two answers are the whole card.
   const sheet = SOURCES['components/game/RenewalChangeSheet.tsx'];
   assert(sheet.includes('<RenewalAskBody'));
   assert(sheet.includes('answered={current}'));
@@ -100,8 +100,9 @@ Deno.test('GS-10: the Change sheet IS the ask (its copy verbatim, the current an
   const ask = SOURCES['components/game/RenewalAsk.tsx'];
   assert(ask.includes("seamRpc('respond_to_renewal', { p_league_id: leagueId, p_response: response })"));
   assert(ask.includes('selected={response === current}'));
-  // The ask's three strings come from the shared constants, so the card and the sheet can't drift.
-  for (const s of ['{askQuestion(commissionerName)}', '{ASK_LINE}', '{ASK_CHANGE_NOTE}']) assert(ask.includes(s), s);
+  // The ask's question comes from the shared constant, so the card and the sheet can't drift; the two lines are gone.
+  assert(ask.includes('{askQuestion(commissionerName)}'));
+  for (const s of ['ASK_LINE', 'ASK_CHANGE_NOTE']) assert(!ask.includes(s), s);
 });
 
 // ── Refusals, per reason (Design Lead ruling, 2026-10-11, verbatim) ──

@@ -393,14 +393,7 @@ Deno.test('the lobby fixtures agree: the order is set only once the room opens, 
   assert(SOURCES['lib/shell/devFixture.ts'].includes('playoff_teams: 8,'));
 });
 
-import { orderSetLine } from '../lib/game/draftLobby.ts';
-
-Deno.test('"Draft order set …, an hour before the draft" hides when there is no draft time (reachable after a postponement)', () => {
-  assertEquals(orderSetLine('Draft order set Tue 3:55 PM ET, an hour before the draft', '2026-10-13T20:55:00Z'), 'Draft order set Tue 3:55 PM ET, an hour before the draft');
-  assertEquals(orderSetLine('Draft order set Tue 3:55 PM ET, an hour before the draft', null), null);
-  assertEquals(orderSetLine(null, '2026-10-13T20:55:00Z'), null);
-  assert(SOURCES['components/game/DraftLobby.tsx'].includes('orderSetLine(orderWasSetLine(data.finalizeAt), draftDate)'));
-});
+// Rule 12 (the sweep, row 7): the lobby's "Draft order set … an hour before the draft" line is cut, with orderSetLine.
 
 Deno.test('the lobby order is ManagerRow itself (its order kind), not a hand copy', () => {
   const lobby = SOURCES['components/game/DraftLobby.tsx'];

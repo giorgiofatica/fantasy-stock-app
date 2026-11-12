@@ -26,17 +26,13 @@ import {
 import { seamInsertLeague, seamInsertMember, seamSaveLeagueSlots } from '@/lib/game/seamCalls';
 import {
   DRAFT_ORDER_OPTIONS,
-  IF_TIME_RUNS_OUT_COPY,
   type DraftOrderMode,
   DEFAULT_PICK_SECONDS,
   PICK_SECONDS_OPTIONS,
-  draftOrderCaption,
-  pickSecondsCaption,
 } from '@/lib/game/createLeagueSetup';
 import {
   BUDGET_PRESETS,
   CREATE_ROUNDS_BOUNDS,
-  DRAFT_DATE_LATER,
   CREATE_STEPS,
   CREATE_STEP_COPY,
   MANAGER_SIZES,
@@ -57,14 +53,13 @@ import {
   weeksShown,
 } from '@/lib/game/createLeagueSteps';
 import { byeNoticeCopy } from '@/lib/game/draftLobby';
-import { PRICE_TIERS_NEED_A_SLOT, rosterSlotsCaption } from '@/lib/game/slotBuilderCopy';
+import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { draftDateForSave } from '@/lib/game/draftDateSave';
 import { draftTimeRefusal } from '@/lib/game/autoStart';
 import { stakesLine } from '@/lib/stakesLine';
 import { INVITE_CODE_LABEL } from '@/lib/home/homeCopy';
 import {
-  CREATED_LINE,
   CREATED_NO_DATE,
   CREATE_FAILED,
   GO_TO_LEAGUE,
@@ -87,7 +82,9 @@ import { CAPTURE } from '@/lib/shell/captureDev';
 import { createFixtureStep } from '@/lib/shell/captureKnobs';
 import { keepDots, keepHyphens, keepMoney } from '@/lib/game/keepDots';
 import { pushAskRouteFor } from '@/lib/shell/pushAsk';
-import { ChoiceRow, RowDivider, RowKey, RowWrap, SettingRow, SetupCard, SwitchRow, WarnNote } from '@/components/game/SetupRows';
+import { ChoiceRow, LabelWithInfo, RowDivider, RowKey, RowWrap, SettingRow, SetupCard, SwitchRow, WarnNote } from '@/components/game/SetupRows';
+import { InfoButton, useInfoPopup } from '@/components/game/InfoPopup';
+import { CONTROL_INFO, infoForLeagueType, infoForStakeMode } from '@/lib/game/infoPopups';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
 import { codeLabelMaxScale } from '@/lib/game/codeLabel';
 
@@ -114,15 +111,18 @@ interface WizardState {
 
 // The League type card stays, with Matchup as its one option, already selected (PRODUCT_RULES,
 // "The League type card stays, with Matchup alone", 2026-11-11). When Duration comes back it
-// rejoins this card; its row is DURATION_TYPE_OPTION, unused until then.
-const TYPE_OPTIONS: { value: WizardState['type']; label: string; help: string }[] = [
-  { value: 'matchup', label: 'Matchup', help: 'Weekly head-to-head battles with playoffs at the end.' },
+// rejoins this card; its row is DURATION_TYPE_OPTION, unused until then. No line under the name: what Matchup means is
+// behind its "i" (UX rule 13), as every option's definition is.
+const TYPE_OPTIONS: { value: WizardState['type']; label: string }[] = [
+  { value: 'matchup', label: 'Matchup' },
 ];
 
 export default function CreateLeagueWizard() {
   const { colors } = useTheme();
   const { user } = useAuth();
   const { refresh, setActiveLeagueId } = useLeagueContext();
+  // The "i" popups (UX rule 13): one popup for the screen, opened by any option's "i".
+  const { open: openInfo, popup: infoPopup } = useInfoPopup();
 
   // DEV captures only (lib/shell/captureKnobs.ts): open on a step, or on the done screen.
   const [step, setStep] = useState<CreateStep>(createFixtureStep(CAPTURE.create));
@@ -313,17 +313,24 @@ export default function CreateLeagueWizard() {
         autoFocus
         returnKeyType="next"
         onSubmitEditing={goNext}
-        helper="Don't worry. You will be able to change this later."
       />
       <View style={styles.section}>
         <RowKey>League type</RowKey>
         <SetupCard>
-          {TYPE_OPTIONS.map((t, i) => (
-            <View key={t.value}>
-              {i > 0 ? <RowDivider /> : null}
-              <ChoiceRow title={t.label} help={t.help} selected={state.type === t.value} onPress={() => patch({ type: t.value })} />
-            </View>
-          ))}
+          {TYPE_OPTIONS.map((t, i) => {
+            const info = infoForLeagueType(t.value);
+            return (
+              <View key={t.value}>
+                {i > 0 ? <RowDivider /> : null}
+                <ChoiceRow
+                  title={t.label}
+                  selected={state.type === t.value}
+                  onPress={() => patch({ type: t.value })}
+                  info={info ? <InfoButton info={info} onOpen={openInfo} edge /> : undefined}
+                />
+              </View>
+            );
+          })}
         </SetupCard>
       </View>
     </>
@@ -356,6 +363,7 @@ export default function CreateLeagueWizard() {
           <View style={styles.tight}>
             <Stepper
               label="Playoff teams"
+              labelInfo={<InfoButton info={CONTROL_INFO.playoffTeams} onOpen={openInfo} />}
               sub={playoffTeamsSub(state.size)}
               value={playoffTeams}
               onStep={(d) => patch({ playoffTeams: stepWithin(playoffTeams, d, 2, state.size) })}
@@ -385,7 +393,6 @@ export default function CreateLeagueWizard() {
           value={String(state.pickSeconds)}
           onChange={(v) => patch({ pickSeconds: Number(v) })}
         />
-        <Text variant="caption" tone="secondary">{pickSecondsCaption(state.pickSeconds)}</Text>
       </SetupCard>
 
       <SetupCard>
@@ -401,29 +408,22 @@ export default function CreateLeagueWizard() {
         />
         <RowDivider />
         <View style={styles.block}>
-          <RowKey>Draft order</RowKey>
+          <LabelWithInfo label="Draft order" info={<InfoButton info={CONTROL_INFO.draftOrder} onOpen={openInfo} />} />
           <SegmentedControl
             options={DRAFT_ORDER_OPTIONS}
             value={state.draftOrder}
             onChange={(v) => patch({ draftOrder: v as DraftOrderMode })}
           />
-          <Text variant="caption" tone="secondary">{draftOrderCaption(state.draftOrder)}</Text>
         </View>
         <RowDivider />
         <View style={styles.block}>
           <Stepper
             label="Rounds"
-            sub="One per roster slot"
             value={state.numRounds}
             onStep={(d) => patch({ numRounds: stepWithin(state.numRounds, d, CREATE_ROUNDS_BOUNDS.min, CREATE_ROUNDS_BOUNDS.max) })}
             canDecrement={state.numRounds > CREATE_ROUNDS_BOUNDS.min}
             canIncrement={state.numRounds < CREATE_ROUNDS_BOUNDS.max}
           />
-        </View>
-        <RowDivider />
-        <View style={styles.block}>
-          <RowKey>If time runs out</RowKey>
-          <Text variant="caption" tone="secondary">{IF_TIME_RUNS_OUT_COPY}</Text>
         </View>
       </SetupCard>
 
@@ -432,12 +432,6 @@ export default function CreateLeagueWizard() {
           {dateError}
         </Text>
       ) : null}
-      {state.draftDateTBD ? (
-        <Text variant="caption" tone="secondary">
-          {DRAFT_DATE_LATER}
-        </Text>
-      ) : null}
-
       <DraftDateSheet
         visible={showDatePicker}
         initial={state.draftDate}
@@ -455,12 +449,20 @@ export default function CreateLeagueWizard() {
   const renderStakes = () => (
     <>
       <SetupCard>
-        {STAKE_MODE_OPTIONS.map((opt, i) => (
-          <View key={opt.value}>
-            {i > 0 ? <RowDivider /> : null}
-            <ChoiceRow title={opt.label} help={opt.help} selected={state.stakeMode === opt.value} onPress={() => patch({ stakeMode: opt.value })} />
-          </View>
-        ))}
+        {STAKE_MODE_OPTIONS.map((opt, i) => {
+          const info = infoForStakeMode(opt.value);
+          return (
+            <View key={opt.value}>
+              {i > 0 ? <RowDivider /> : null}
+              <ChoiceRow
+                title={opt.label}
+                selected={state.stakeMode === opt.value}
+                onPress={() => patch({ stakeMode: opt.value })}
+                info={info ? <InfoButton info={info} onOpen={openInfo} edge /> : undefined}
+              />
+            </View>
+          );
+        })}
       </SetupCard>
 
       {state.stakeMode === 'fixed_notional' ? (
@@ -470,7 +472,6 @@ export default function CreateLeagueWizard() {
           onChangeText={(text) => patch({ notionalPerSlot: text.replace(/[^0-9]/g, '') })}
           keyboardType="numeric"
           placeholder={String(DEFAULT_NOTIONAL_PER_SLOT)}
-          helper="Each pick simulates this dollar amount (fractional shares)."
         />
       ) : null}
 
@@ -499,7 +500,7 @@ export default function CreateLeagueWizard() {
       <SetupCard>
         <SwitchRow
           label="Allow non-draftable stocks (full universe)"
-          sub="Off (default): only vetted draftable stocks. On: the entire universe, including penny stocks and micro-caps."
+          info={<InfoButton info={CONTROL_INFO.nonDraftable} onOpen={openInfo} />}
           value={state.allowUndraftable}
           onValueChange={(value) => patch({ allowUndraftable: value })}
         />
@@ -508,11 +509,8 @@ export default function CreateLeagueWizard() {
       {state.stakeMode === 'price_tiers' ? (
         <View style={styles.section}>
           <Text variant="headline" accessibilityRole="header">Roster slots</Text>
-          <Text variant="caption" tone="secondary" subOf="headline">
-            {rosterSlotsCaption('price_tiers')}
-          </Text>
           {state.slots.length === 0 ? (
-            <Text variant="callout" color={colors.danger} accessibilityLiveRegion="polite">
+            <Text variant="callout" color={colors.danger} subOf="headline" accessibilityLiveRegion="polite">
               {PRICE_TIERS_NEED_A_SLOT}
             </Text>
           ) : null}
@@ -576,7 +574,6 @@ export default function CreateLeagueWizard() {
     return (
       <SetupScaffold
         title={createdTitle(created.name)}
-        subtitle={CREATED_LINE}
         footer={<Button label={GO_TO_LEAGUE} onPress={() => void pushAskRouteFor('/(tabs)/league').then((to) => router.replace(to as never))} />}
       >
         {/* The pre-draft Home invite-code card (board). */}
@@ -614,6 +611,7 @@ export default function CreateLeagueWizard() {
       }
     >
       {renderStep()}
+      {infoPopup}
     </SetupScaffold>
   );
 }

@@ -89,7 +89,6 @@ const SEGMENT_LABEL: Record<'standings' | 'schedule' | 'playoffs' | 'history', s
  * at XL no row on the tab outgrows the figures (the checklist's "The standout stays loudest"). */
 const LEAGUE_ROW_MAX_SCALE = 1.5;
 
-const STANDINGS_CAPTION = 'Ranked by win percentage, then head-to-head, then season gain. This is also the playoff seeding.';
 
 export default function LeagueScreen() {
   const { sheetLeagues, activeLeagueId, activeLeague, refresh, setActiveLeagueId, leagues, loading, loadFailed } = useLeagueContext();
@@ -195,8 +194,7 @@ export default function LeagueScreen() {
             {ready && RUN_IT_BACK_ON && phase && showRunItBackStrip({ phase, isCommissioner, hasSuccessor: !!activeLeague?.successor_league_id }) ? (
               <Card style={styles.strip}>
                 <Text variant="headline">You're the commissioner</Text>
-                {/* 1.5× at most: at XL the uncapped line outgrew its heading and the button (W4 DL gate). */}
-                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={1.5}>Start Season 2 with the same group. Season 1 stays in History.</Text>
+                {/* Rule 12 (the sweep, row 11): the line under this heading is cut; the heading and the button say it (Home's card is the same two). */}
                 <Button label="Run it back" onPress={() => void runItBack()} />
               </Card>
             ) : null}
@@ -235,7 +233,6 @@ export default function LeagueScreen() {
                 <BracketView
                   bracket={bracket.bracket}
                   myUserId={user?.id ?? ''}
-                  caption={activeLeague?.playoff_teams ? `The top ${activeLeague.playoff_teams} in the standings make the playoffs. A tied game goes to the higher seed.` : null}
                 />
               ) : (
                 <TilesSkeleton rows={4} />
@@ -244,16 +241,16 @@ export default function LeagueScreen() {
               standings.kind === 'final' ? (
                 <StandingsTable
                   rows={standings.rows}
-                  header={{ title: GAME_COPY.finalStandingsTitle, subtitle: GAME_COPY.finalStandingsSubtitle }}
-                  caption={GAME_COPY.finalStandingsCaption}
+                  header={{ title: GAME_COPY.finalStandingsTitle }}
                   seasonComplete
                   showMove={false}
-                  // "After the playoffs" says what this order is; no "Through Week N" beside it (W4 DL gate).
+                  // The title says what this order is (rule 12, row 15: its "After the playoffs" subtitle and the top-three paragraph are cut);
+                  // no "Through Week N" beside it (W4 DL gate).
                   throughLabel={null}
                   onPinChange={setPinnedRow}
                 />
               ) : standings.kind === 'regular' ? (
-                <StandingsTable rows={standings.rows} caption={STANDINGS_CAPTION} seasonComplete={standings.medals} throughLabel={throughLabel} nothingScored={throughWeek === 0} onPinChange={setPinnedRow} />
+                <StandingsTable rows={standings.rows} seasonComplete={standings.medals} throughLabel={throughLabel} nothingScored={throughWeek === 0} onPinChange={setPinnedRow} />
               ) : (
                 // GS-4: a finished season's order waits for the bracket (never the regular medals first).
                 <TilesSkeleton rows={Math.max(1, rows.length)} />
@@ -498,8 +495,8 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
 
         {view?.memberPostponed ? (
           (() => {
-            const c = memberPostponedCopy(commissionerName, 'lobby');
-            return <DraftCountdownCard tag={c.tag} title={c.title} lines={[]} notes={[c.line]} />;
+            const c = memberPostponedCopy(commissionerName);
+            return <DraftCountdownCard tag={c.tag} title={c.title} lines={[]} notes={[]} />;
           })()
         ) : null}
 
@@ -512,7 +509,6 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
             data={data}
             myUserId={user?.id ?? ''}
             draftDate={activeLeague?.draft_date ?? null}
-            pickSeconds={activeLeague?.pick_seconds ?? 60}
             rounds={activeLeague?.num_rounds ?? 6}
             now={new Date(serverNow)}
             showCountdown={false}

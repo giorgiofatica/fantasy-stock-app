@@ -29,13 +29,6 @@ export function slotFieldA11y(index: number, field: SlotField): string {
   return `Slot ${index + 1}, ${words[field]}`;
 }
 
-/** The Roster slots caption (Design Lead ruling; "price range", never "bracket", user-facing). */
-export function rosterSlotsCaption(stakeMode: string): string {
-  return stakeMode === 'price_tiers'
-    ? 'Required: each slot sets a price range.'
-    : 'Optional: a slot can require a category or a price range.';
-}
-
 /** Price tiers with no slot (Design Lead ruling), shown under Roster slots. */
 export const PRICE_TIERS_NEED_A_SLOT = 'Price tiers need at least one slot with a price range.';
 

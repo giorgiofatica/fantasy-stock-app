@@ -38,13 +38,11 @@ export type JoinErrorKind = 'unreachable' | 'rate_limited';
 // ── Copy ────────────────────────────────────────────────────────────────
 // Verbatim from the board unless marked NEW (flagged to the Design Lead).
 export const JOIN_COPY = {
-  codeIntro: 'Enter the invite code your commissioner sent you.',
   badCode: 'No league has that code. Check it and try again.',
   /** Board: "no connection" (under the field). Also used for any 5xx / unknown failure. */
   unreachable: "Couldn't reach the league. Check your connection, then try again.",
   /** NEW (Orchestrator-suggested): the server's 429, never its body text. */
   rateLimited: 'Too many tries. Wait a moment, then try again.',
-  leaveAnyTime: 'You can leave any time before the draft.',
   /** A refusal reason this app doesn't know yet (an older client against a newer server). Design Lead, #125. */
   unknownBlock: "You can't join this league right now. Ask your commissioner to check the invite.",
   /** The draft has no date yet (the board's sample always has one). Approved, #125. */
@@ -52,7 +50,7 @@ export const JOIN_COPY = {
   /** A draft that is under way but not "Done". Approved, #125. */
   draftInProgress: 'In progress',
   /** Joined, when the league has no draft date yet (Design Lead, #125: no push exists to promise). */
-  joinedNoDate: "The commissioner hasn't set a draft date yet. You'll see it on your Home once they do.",
+  joinedNoDate: "The commissioner hasn't set a draft date yet.",
 } as const;
 
 export function errorMessage(kind: JoinErrorKind): string {
@@ -212,8 +210,6 @@ export interface PreviewView {
   /** The Alert card under the rows; null when joinable. */
   message: string | null;
   action: PreviewAction;
-  /** The caption under a joinable preview's button; null otherwise. */
-  caption: string | null;
 }
 
 /** Board: Managers / Draft / Stakes / Season (Season dropped when the league has no length). */
@@ -233,7 +229,6 @@ export function previewView(l: PreviewLeague, block: JoinBlock | null, opts: { i
     block,
     message: block ? blockMessage(block, l, opts) : null,
     action: previewAction(block),
-    caption: block ? null : JOIN_COPY.leaveAnyTime,
   };
 }
 
@@ -304,7 +299,8 @@ export interface JoinedView {
   when: string | null;
 }
 
-/** "You're in {League}" / "The draft is {when}. The draft order is set an hour before." (Design Lead, #125: the board's "and we'll let you know" is dropped, the order-notify push doesn't exist yet.) */
+/** "You're in {League}" / "The draft is {when}." UX rule 12 (the sweep, row 12): "The draft order is set an hour before." and, with no date,
+ * "You'll see it on your Home once they do." are cut (how it works); the time, or the fact that there is none, stays. */
 export function joinedView(leagueName: string, draftDate: string | null): JoinedView {
   const when = draftDateTimeLabel(draftDate);
   return {
@@ -312,7 +308,7 @@ export function joinedView(leagueName: string, draftDate: string | null): Joined
     lead: "You're in",
     name: leagueName,
     body: when
-      ? `The draft is ${when}. The draft order is set an hour before.`
+      ? `The draft is ${when}.`
       : JOIN_COPY.joinedNoDate,
     when: when ?? null,
   };

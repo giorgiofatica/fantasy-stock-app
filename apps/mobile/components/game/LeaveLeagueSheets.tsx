@@ -10,7 +10,7 @@ import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { ChoiceRow, RowDivider, SetupCard } from '@/components/game/SetupRows';
 import {
-  HAND_OVER, LEAVE_LEAGUE, STAY, TRANSFER_CANCEL, TRANSFER_NOTE, TRANSFER_TITLE, WHO_TAKES_OVER, handOverLabel,
+  HAND_OVER, LEAVE_LEAGUE, STAY, TRANSFER_CANCEL, TRANSFER_NOTE, TRANSFER_TITLE, handOverLabel,
   type LeaveRowView, type LeaveSheetCopy, type TransferCandidate,
 } from '@/lib/game/leaveLeague';
 
@@ -130,7 +130,6 @@ export function TransferCommissionerSheet({ visible, candidates, busy, error, on
         <View style={styles.stack}>
           <Text variant="title" accessibilityRole="header">{TRANSFER_TITLE}</Text>
           <Text variant="callout" tone="secondary" subOf="title">{TRANSFER_NOTE}</Text>
-          <Text variant="tag" tone="secondary">{WHO_TAKES_OVER}</Text>
           <SetupCard>
             <View accessibilityRole="radiogroup">
               {candidates.map((c, i) => (
