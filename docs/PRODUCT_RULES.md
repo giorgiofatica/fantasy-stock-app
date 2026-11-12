@@ -937,6 +937,25 @@ building anything, and don't reopen a rule without him.
     proof); the share text "Take over a team in {league}"; on a takeover link already used,
     "Someone already took this team." with "Go to Home" (no heading); "Not now" under "Take
     the team" (reused from the notifications ask); and the league lines above.
+  - **The "already taken" screen is built like the takeover question** (2026-11-12, from the
+    build 1.3.0 (14) phone pass, step 28c). Giorgio's words: "the already took this team
+    message does not fit the format and theme of the app too". Shown the screen as shipped (a
+    yellow warning panel and a text link, centred, no icon) beside two options, he picked
+    **A**: the person icon, then "Someone already took this team." as the screen heading, and
+    "Go to Home" as the docked primary button. The words do not change. This replaces "(no
+    heading)" in the line above for this screen. The other dead takeover links, "already in
+    this league" and the invite arrival's dead link use the same panel-and-link pattern; they
+    are not ruled here and go to him on a board before they change.
+  - **A scheme takeover link still waits for a tap; the shared https link does not**
+    (2026-11-12, same step). Giorgio's words: "dont love that i open the invite link and then
+    it makes me "find the league" to be able to join. the invite link is for a specific
+    league. that is an unnecessary step and needs to be cleaned up." What he opened was the
+    `fantasystockapp://take/<code>` link, typed into Safari because the https share link
+    cannot open the app yet (no association file is served; the web piece is open). The https
+    link previews the team by itself, with no "Find league" tap, which is what he asked for.
+    The scheme link keeps its tap because any page can fire one with a made-up code and each
+    wrong code counts toward the lockout. No rule changed; the fix for what he felt is the
+    https link opening the app. Not yet confirmed by him after hearing this.
 - **When managers leave before the draft, below four** (2026-11-10, from the build 1.3.0 (12)
   phone pass, where "Move forward with 2" could only be refused):
   - Below four managers there is no "Move forward" and no "Invite someone new" button: one
