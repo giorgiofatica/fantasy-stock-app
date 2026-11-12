@@ -419,7 +419,7 @@
       <section className="b-sec" id="call-waiting-card" aria-labelledby="call-waiting-card-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">League</span>
-          <div><h2 id="call-waiting-card-h">{archived ? 'Decided' : 'Your call: the draft order card while it waits, at 4 or more managers'}</h2></div>
+          <div><h2 id="call-waiting-card-h">{archived ? 'Decided: B, no card until the order exists' : 'Your call: the draft order card while it waits, at 4 or more managers'}</h2></div>
         </header>
         <ul className="b-inv__notes">
           <li><b>Why you're being asked:</b> the sweep you approved cut the card's only line at 4 or more managers ("Set 1 hour before the draft, once 4 managers have joined."). What's left is a card with just its label, "DRAFT ORDER · WAITING", and nothing under it. It reads like something that failed to load. Fixing it changes the look of an approved screen, so it's yours.</li>
@@ -427,17 +427,18 @@
           <li><b>A · keep it (today).</b> The card stays, with just its label, until the order is set.</li>
           <li><b>B · hide it until the order exists.</b> At 4 or more managers there's nothing to show yet, so no card. When the order is set (an hour before the draft) the order card appears in its place, as today. Below 4, nothing changes: the card shows the bar and "3 of 4 managers" (third frame), because that's what's blocking.</li>
           <li><b>Recommended: B.</b> A card should hold something. The countdown above already says when the draft is, and the order card arrives on its own when there's an order to show.</li>
-          {archived ? null : <li><b>Answer with:</b> A or B.</li>}
+          {archived ? <li><b>Decided by Giorgio (2026-11-11): "B".</b> He was shown the real build (A) and the same screen with the card cut out (B). At 4 or more managers there is no card until the order exists; below 4 it keeps the bar and the count. Recorded in PRODUCT_RULES ("No draft order card while it waits, at 4 or more").</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <Grid>{[
           fig('wc-a', 'A · 5 managers, the label alone (today)', <Screen t="light" s={lobby([['tag', 'Draft order \u00b7 waiting']])} />, 'A card with nothing under its label.'),
-          fig('wc-b', 'B · 5 managers, no card (recommended)', <Screen t="light" s={lobby(null)} />, 'The countdown, then your queue.'),
+          fig('wc-b', archived ? 'B · 5 managers, no card (decided)' : 'B · 5 managers, no card (recommended)', <Screen t="light" s={lobby(null)} />, 'The countdown, then your queue.'),
           fig('wc-3', 'Both · 3 managers (unchanged)', <Screen t="light" s={lobby([['tag', 'Draft order \u00b7 waiting'], ['bar', 0.75], ['grey', '3 of 4 managers']])} />, 'Below 4 the card shows what\u2019s blocking, in A and B alike.'),
         ]}</Grid>
       </section>
     );
   }
-  window.KSWaitingCard = () => <CallWaitingCard />;
+  window.KSWaitingCard = () => null; // decided 2026-11-11: B; it lives in the Archive
+  window.KSWaitingCardArchived = () => <CallWaitingCard archived />;
 
   window.KSRule12Sweep = () => null; // decided 2026-11-10 (all of it, with the i); it lives in the Archive
   window.KSRule12SweepArchived = () => <Sections archived />;
