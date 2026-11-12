@@ -105,9 +105,9 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/LeaveLeagueSheets.tsx:29` | Pressable | onPress | `inline: view.enabled ? onPress : undefined` | fn onPress (conditional) | `!view.enabled` |
 | `components/game/LeaveLeagueSheets.tsx:67` | Button | onPress | `onLeave` | prop onLeave (the caller's) | `busy` |
 | `components/game/LeaveLeagueSheets.tsx:71` | Button | onPress | `onStay` | prop onStay (the caller's) | `busy` |
-| `components/game/LeaveLeagueSheets.tsx:120` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
-| `components/game/LeaveLeagueSheets.tsx:126` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
-| `components/game/LeaveLeagueSheets.tsx:139` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
+| `components/game/LeaveLeagueSheets.tsx:124` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
+| `components/game/LeaveLeagueSheets.tsx:130` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
+| `components/game/LeaveLeagueSheets.tsx:143` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
 | `components/game/QueueEditor.tsx:120` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
 | `components/game/QueueEditor.tsx:127` | Button | onPress | `inline: () => machine.retry()` | fn machine.retry | `view.status === 'saving'` |
 | `components/game/QueueRow.tsx:64` | Pressable | onPress | `inline: () => onMove(-1)` | fn onMove |  |

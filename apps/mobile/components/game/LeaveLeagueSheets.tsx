@@ -74,14 +74,18 @@ export function LeaveLeagueSheet({ visible, copy, busy, error, onLeave, onStay }
         >
           <View style={styles.stack}>
             <Text variant="title" accessibilityRole="header">{copy.title}</Text>
-            <View style={styles.bullets}>
-              {copy.bullets.map((b) => (
-                <View key={b} style={styles.bullet}>
-                  <Text variant="callout" tone="secondary">•</Text>
-                  <Text variant="callout" style={styles.grow}>{keepTime(b)}</Text>
-                </View>
-              ))}
-            </View>
+            {/* Below four with no draft time there are no bullets: render NO list, since an empty container
+                still takes the stack's gap (the League tab bug). */}
+            {copy.bullets.length > 0 ? (
+              <View style={styles.bullets}>
+                {copy.bullets.map((b) => (
+                  <View key={b} style={styles.bullet}>
+                    <Text variant="callout" tone="secondary">•</Text>
+                    <Text variant="callout" style={styles.grow}>{keepTime(b)}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </View>
         </SheetBody>
       ) : null}

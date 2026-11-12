@@ -5,11 +5,11 @@
  * the gate, so these only shape the row, the sheet, and the outcome lines.
  * Run: `cd apps/mobile/tests-deno && deno test .`
  */
-import { assertEquals } from 'jsr:@std/assert';
+import { assert, assertEquals } from 'jsr:@std/assert';
 import {
   COMMISSIONER_ROW, COMMISSIONER_YOU, HAND_OVER, LEAVE_COMMISSIONER_FIRST, LEAVE_LEAGUE, LEAVE_LOCKED_LINE, LEAVE_REFUSAL_REASONS,
   LEAVE_UNCONFIRMED, LEAVE_UNTIL_NO_TIME, STAY, TRANSFER_NOTE, TRANSFER_TITLE,
-  handOverLabel, leaveOutcome, leaveRecheck, transferUnknownLine, leaveRowView, leaveSheetCopy, leaveWindow, orderAtLabel, orderSetAtMs, transferAllowed, transferCandidates,
+  handOverLabel, knownMemberCount, commissionerChoosesOnLeave, leaveOutcome, leaveRecheck, transferUnknownLine, leaveRowView, leaveSheetCopy, leaveWindow, orderAtLabel, orderSetAtMs, transferAllowed, transferCandidates,
 } from '../lib/game/leaveLeague.ts';
 import { leaveLeagueFixture } from '../lib/game/seamFixtures.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
@@ -89,18 +89,58 @@ Deno.test('the title changes hands only when a member could leave (PR #132: one 
 
 // ── The sheet ──
 
-const facts = { leagueName: 'Serie A Traders', commissionerName: 'Roberto B.', seasonNumber: 1, draftDate: DRAFT };
+const facts = { leagueName: 'Serie A Traders', commissionerName: 'Roberto B.', seasonNumber: 1, draftDate: DRAFT, memberCount: 5 };
+const CHOICE = 'Roberto B. chooses whether to go ahead with one fewer team or invite someone new.';
+const REJOIN = 'You can rejoin with the invite code until Sat 6:00 PM ET.';
 
-Deno.test('the member\'s sheet before the draft (board LeaveSheet "pre")', () => {
-  assertEquals(leaveSheetCopy('before_draft', facts), {
-    title: 'Leave Serie A Traders?',
-    bullets: [
-      'Roberto B. chooses whether to go ahead with one fewer team or invite someone new.',
-      'You can rejoin with the invite code until Sat 6:00 PM ET.',
-    ],
-  });
+Deno.test('the member\'s sheet before the draft with five or more in (board LeaveSheet "pre"): both lines, as today', () => {
+  assertEquals(leaveSheetCopy('before_draft', facts), { title: 'Leave Serie A Traders?', bullets: [CHOICE, REJOIN] });
+  assertEquals(leaveSheetCopy('before_draft', { ...facts, memberCount: 16 })!.bullets, [CHOICE, REJOIN]);
   // No draft time: no rejoin deadline to state.
-  assertEquals(leaveSheetCopy('before_draft', { ...facts, draftDate: null })!.bullets.length, 1);
+  assertEquals(leaveSheetCopy('before_draft', { ...facts, draftDate: null })!.bullets, [CHOICE]);
+});
+
+Deno.test('your leave takes the league below four: the commissioner-choice line is dropped, nothing in its place (2026-11-12)', () => {
+  // 4, 3, 2, 1 managers, and an unknown count: the choice line is gone; the rejoin line stays with a draft time.
+  for (const memberCount of [4, 3, 2, 1, 0, null, undefined]) {
+    assertEquals(leaveSheetCopy('before_draft', { ...facts, memberCount })!.bullets, [REJOIN], `count ${memberCount}, draft time`);
+    // No draft time: no bullets at all, so the sheet is the title and its two buttons.
+    assertEquals(leaveSheetCopy('before_draft', { ...facts, memberCount, draftDate: null }), { title: 'Leave Serie A Traders?', bullets: [] }, `count ${memberCount}, no draft time`);
+  }
+  // A caller that never passes a count (the field is optional) gets the safe side too.
+  const { memberCount: _omitted, ...noCount } = facts;
+  assertEquals(leaveSheetCopy('before_draft', noCount)!.bullets, [REJOIN]);
+  // NaN / Infinity-shaped garbage is not a known count of five or more... NaN drops; a finite 5 keeps.
+  assertEquals(commissionerChoosesOnLeave(Number.NaN), false);
+  assertEquals(commissionerChoosesOnLeave(5), true);
+  assertEquals(commissionerChoosesOnLeave(4), false);
+});
+
+Deno.test('the real member count: an empty read is UNKNOWN (never zero), a loaded read is its length', () => {
+  assertEquals(knownMemberCount([]), null);
+  assertEquals(knownMemberCount(['a']), 1);
+  assertEquals(knownMemberCount(['a', 'b', 'c', 'd', 'e']), 5);
+  assertEquals(leaveSheetCopy('before_draft', { ...facts, memberCount: knownMemberCount([]) })!.bullets, [REJOIN]);
+  assertEquals(leaveSheetCopy('before_draft', { ...facts, memberCount: knownMemberCount(['a', 'b', 'c', 'd']) })!.bullets, [REJOIN]);
+  assertEquals(leaveSheetCopy('before_draft', { ...facts, memberCount: knownMemberCount(['a', 'b', 'c', 'd', 'e']) })!.bullets, [CHOICE, REJOIN]);
+});
+
+Deno.test('the after-season and locked sheets ignore the member count entirely', () => {
+  for (const memberCount of [2, 4, 5, null, undefined]) {
+    assertEquals(leaveSheetCopy('after_season', { ...facts, leagueName: 'Stock Scudetto', seasonNumber: 2, memberCount }), {
+      title: 'Leave Stock Scudetto?',
+      bullets: ['It comes off your Home and Your leagues.', 'Season 2 stays in the league’s History, with your record in it.'],
+    });
+    assertEquals(leaveSheetCopy('locked_order_set', { ...facts, memberCount }), null);
+    assertEquals(leaveSheetCopy('locked_season', { ...facts, memberCount }), null);
+  }
+});
+
+Deno.test('the sheet renders NO bullet list when there are no bullets (an empty container still takes the stack gap)', () => {
+  const v = SOURCES['components/game/LeaveLeagueSheets.tsx'];
+  assert(/copy\.bullets\.length > 0 \? \(\s*<View style=\{styles\.bullets\}>/.test(v), 'the bullets View is only mounted when there are bullets');
+  // …and the screen feeds the REAL count (current members), not a prop that can default to "five".
+  assert(SOURCES['app/league-settings.tsx'].includes('memberCount: knownMemberCount(leaving.memberIds)'));
 });
 
 Deno.test('a finished league\'s sheet (board LeaveFinished), with the season; never a guessed "Season 1"', () => {
