@@ -168,18 +168,21 @@ export interface ChoiceRowProps {
   selected: boolean;
   onPress: () => void;
   disabled?: boolean;
+  /** The "i" at the end of the row (an <InfoButton>; UX rule 13). A SIBLING of the radio, never inside it: an accessible radio hides
+   * its children from VoiceOver, and tapping the "i" must not select the option. */
+  info?: ReactNode;
 }
 
 /** One option of a single choice (a radio): the title, a help line, and a
  * check on the selected one (the League sheet's selection mark). */
-export function ChoiceRow({ title, help, selected, onPress, disabled = false }: ChoiceRowProps) {
-  return (
+export function ChoiceRow({ title, help, selected, onPress, disabled = false, info }: ChoiceRowProps) {
+  const radio = (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected, disabled }}
-      style={[styles.choiceRow, disabled && styles.dim]}
+      style={[styles.choiceRow, info ? styles.choicePress : null, disabled && styles.dim]}
     >
       <View style={styles.grow}>
         <Text variant="callout" style={styles.key}>
@@ -194,6 +197,26 @@ export function ChoiceRow({ title, help, selected, onPress, disabled = false }: 
       <View style={styles.check}>{selected ? <Icon name="check" size="headline" tone="accent" /> : null}</View>
     </Pressable>
   );
+  if (!info) return radio;
+  return (
+    <View style={styles.choiceWithInfo}>
+      {radio}
+      {info}
+    </View>
+  );
+}
+
+/** A label that ends in an "i" (a segmented control's label, Draft order): the key, then the "i", on one row that wraps at the
+ * large sizes. The "i" is its own 44 pt target; the label never shrinks below its own words. */
+export function LabelWithInfo({ label, info }: { label: string; info: ReactNode }) {
+  return (
+    <View style={styles.labelWithInfo}>
+      <View style={styles.labelShrink}>
+        <RowKey>{label}</RowKey>
+      </View>
+      {info}
+    </View>
+  );
 }
 
 export interface SwitchRowProps {
@@ -202,10 +225,12 @@ export interface SwitchRowProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
+  /** The "i" after the label (an <InfoButton>; UX rule 13), its own 44 pt target. */
+  info?: ReactNode;
 }
 
 /** A label, an optional help line, and a Switch. */
-export function SwitchRow({ label, sub, value, onValueChange, disabled = false }: SwitchRowProps) {
+export function SwitchRow({ label, sub, value, onValueChange, disabled = false, info }: SwitchRowProps) {
   const { colors } = useTheme();
   // Beside the label until the label breaks inside a word; then the switch drops under it (see SettingRow).
   const { broke, onTextLayout, onLayout, remountKey } = useLabelBreaks();
@@ -221,7 +246,16 @@ export function SwitchRow({ label, sub, value, onValueChange, disabled = false }
   return (
     <View key={remountKey} style={[styles.settingRow, broke && styles.settingRowWrap, disabled && styles.dim]}>
       <View style={broke ? styles.growWrap : styles.grow} onLayout={onLayout}>
-        <RowKey onTextLayout={onTextLayout}>{label}</RowKey>
+        {info ? (
+          <View style={styles.labelWithInfo}>
+            <View style={styles.labelShrink}>
+              <RowKey onTextLayout={onTextLayout}>{label}</RowKey>
+            </View>
+            {info}
+          </View>
+        ) : (
+          <RowKey onTextLayout={onTextLayout}>{label}</RowKey>
+        )}
         {sub ? (
           <Text variant="caption" tone="secondary">
             {sub}
@@ -337,6 +371,24 @@ const styles = StyleSheet.create({
     gap: space[3],
     minHeight: 44,
     paddingVertical: space[4],
+  },
+  // A choice row with an "i": the radio takes the width, the "i" (44 pt) sits at the end.
+  choiceWithInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  choicePress: {
+    flex: 1,
+  },
+  // A label and its "i" on one row. The "i" never wraps under the label (it would read as belonging to nothing): the label
+  // wraps its own words between lines and the "i" stays beside it, vertically centred (the board's LabelI).
+  labelWithInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: space[2],
+  },
+  labelShrink: {
+    flexShrink: 1,
   },
   grow: {
     flex: 1,

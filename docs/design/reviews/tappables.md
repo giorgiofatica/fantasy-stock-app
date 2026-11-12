@@ -4,8 +4,8 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **245** tappables in **90** files.
-- **97** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **249** tappables in **91** files.
+- **99** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **51** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
@@ -33,17 +33,17 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/create-account.tsx:133` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:135` | Button | onPress | `handleCreate` | fn handleCreate |  |
 | `app/create-account.tsx:140` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
-| `app/create-league.tsx:324` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
-| `app/create-league.tsx:386` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
-| `app/create-league.tsx:396` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
-| `app/create-league.tsx:408` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
+| `app/create-league.tsx:329` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
+| `app/create-league.tsx:395` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
+| `app/create-league.tsx:404` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
+| `app/create-league.tsx:416` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
 | `app/create-league.tsx:461` | ChoiceRow | onPress | `inline: () => patch({ stakeMode: opt.value })` | fn patch |  |
-| `app/create-league.tsx:492` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
-| `app/create-league.tsx:504` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
-| `app/create-league.tsx:521` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
-| `app/create-league.tsx:580` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
-| `app/create-league.tsx:588` | Button | onPress | `inline: () => void share()` | fn share |  |
-| `app/create-league.tsx:610` | Button | onPress | `goNext` | fn goNext | `blocked` |
+| `app/create-league.tsx:494` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
+| `app/create-league.tsx:506` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
+| `app/create-league.tsx:520` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
+| `app/create-league.tsx:579` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
+| `app/create-league.tsx:587` | Button | onPress | `inline: () => void share()` | fn share |  |
+| `app/create-league.tsx:609` | Button | onPress | `goNext` | fn goNext | `blocked` |
 | `app/forgot-password.tsx:139` | EmptyState | onAction | `backToSignIn` | route replace('/login') |  |
 | `app/forgot-password.tsx:141` | EmptyState | onSecondaryAction | `inline: () => { setSent(false); handleResetPassword(); }` | state setSent |  |
 | `app/forgot-password.tsx:178` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |
@@ -97,6 +97,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftRoom.tsx:503` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
 | `components/game/DraftRoom.tsx:513` | Button | onPress | `draft` | fn draft | `pending` |
 | `components/game/DraftRoom.tsx:569` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/InfoPopup.tsx:44` | Pressable | onPress | `inline: () => onOpen(info)` | fn onOpen |  |
+| `components/game/InfoPopup.tsx:87` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/game/InfoPopup.tsx:196` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/game/InfoPopup.tsx:222` | Pressable | onPress | `inline: () => onTurn(n)` | fn onTurn |  |
 | `components/game/LeagueRenewal.tsx:47` | Button | onPress | `inline: () => setRetry((n) => n + 1)` | state setRetry |  |
 | `components/game/LeaveLeagueSheets.tsx:29` | Pressable | onPress | `inline: view.enabled ? onPress : undefined` | fn onPress (conditional) | `!view.enabled` |
 | `components/game/LeaveLeagueSheets.tsx:67` | Button | onPress | `onLeave` | prop onLeave (the caller's) | `busy` |
@@ -125,12 +129,12 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/RenewalRoster.tsx:85` | Pressable | onPress | `inline: () => setChanging(true)` | state setChanging |  |
 | `components/game/RenewalRoster.tsx:107` | Pressable | onPress | `inline: () => runSheet(p)` | fn runSheet |  |
 | `components/game/SetupRows.tsx:154` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
-| `components/game/SetupRows.tsx:178` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
-| `components/game/SetupRows.tsx:215` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
+| `components/game/SetupRows.tsx:181` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
+| `components/game/SetupRows.tsx:240` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
 | `components/game/SetupScaffold.tsx:52` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
 | `components/game/StandingsTable.tsx:73` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
-| `components/game/Stepper.tsx:69` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
-| `components/game/Stepper.tsx:77` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
+| `components/game/Stepper.tsx:76` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
+| `components/game/Stepper.tsx:84` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
 | `components/home/DraftingCard.tsx:85` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/home/PhaseMessageCard.tsx:33` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
 | `components/home/PreDraftCard.tsx:216` | Button | onPress | `inline: () => setPicking(true)` | state setPicking |  |

@@ -12,16 +12,6 @@ export const DRAFT_ORDER_OPTIONS: { value: DraftOrderMode; label: string }[] = [
   { value: 'manual', label: 'Manual' },
 ];
 
-export function draftOrderCaption(mode: DraftOrderMode): string {
-  return mode === 'random'
-    ? 'Random: revealed 1 hour before the draft.'
-    : 'Manual: arrange it any time up to 1 hour before the draft. You can switch until then.';
-}
-
-/** The auto-pick line, from the board. */
-export const IF_TIME_RUNS_OUT_COPY =
-  "We pick for you: the first stock still available in your queue, otherwise the biggest company that fits the league's rules. Never a random pick, never a skip.";
-
 /** "Season: 11 weeks + 2 playoff weeks". Playoff weeks come from the playoff plan. */
 export function seasonCaption(regularWeeks: number, playoffTeams: number): string {
   const plan = playoffPlan(playoffTeams);

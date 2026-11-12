@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { radius, space, typeFontFamily } from '@/constants/tokens';
@@ -29,9 +30,13 @@ export interface StepperProps {
   emphasis?: 'warn';
   /** A ceiling for the label's Dynamic Type scale (the blockers card caps it under its sub-card title). Unset: the label scales freely, as before. */
   labelMaxScale?: number;
+  /** An "i" after the label (an <InfoButton>; UX rule 13). It must be reachable on its own, so the row is no longer ONE adjustable
+   * element: the adjustable element is the − value + box (it carries the label and the value), the label text is hidden from
+   * VoiceOver (the box already says it), and the "i" is a button beside it. Unset: the whole row is one adjustable element, as before. */
+  labelInfo?: ReactNode;
 }
 
-export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncrement, disabled = false, emphasis, labelMaxScale }: StepperProps) {
+export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncrement, disabled = false, emphasis, labelMaxScale, labelInfo }: StepperProps) {
   const { colors } = useTheme();
   // At accessibility sizes the box goes UNDER the label (W4 Onboarding, XL): beside it, the label's
   // column was too narrow and "Managers" broke mid-word ("Manager / s").
@@ -41,43 +46,68 @@ export function Stepper({ label, sub, value, unit, onStep, canDecrement, canIncr
   const up = !disabled && canIncrement;
   const valueText = unit ? `${value} ${unit}` : String(value);
 
-  return (
+  const adjustable = {
+    accessible: true as const,
+    accessibilityRole: 'adjustable' as const,
+    accessibilityLabel: sub ? `${label}, ${sub}` : label,
+    accessibilityValue: { text: valueText },
+    accessibilityState: { disabled },
+    accessibilityActions: [{ name: 'increment' }, { name: 'decrement' }],
+    onAccessibilityAction: (e: { nativeEvent: { actionName: string } }) => {
+      if (e.nativeEvent.actionName === 'increment' && up) onStep(1);
+      if (e.nativeEvent.actionName === 'decrement' && down) onStep(-1);
+    },
+  };
+  const labelText = (
+    <Text variant="callout" maxFontSizeMultiplier={labelMaxScale} style={styles.label}>
+      {label}
+    </Text>
+  );
+  const subText = sub ? (
+    <Text variant="caption" tone="secondary">
+      {sub}
+    </Text>
+  ) : null;
+  const box = (
     <View
-      accessible
-      accessibilityRole="adjustable"
-      accessibilityLabel={sub ? `${label}, ${sub}` : label}
-      accessibilityValue={{ text: valueText }}
-      accessibilityState={{ disabled }}
-      accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
-      onAccessibilityAction={(e) => {
-        if (e.nativeEvent.actionName === 'increment' && up) onStep(1);
-        if (e.nativeEvent.actionName === 'decrement' && down) onStep(-1);
-      }}
-      style={[styles.row, stacked && styles.rowStacked, disabled && styles.dim]}
+      {...(labelInfo ? adjustable : null)}
+      style={[styles.box, emphasis === 'warn' ? { borderColor: colors.warnLine, borderWidth: 2 } : { borderColor: colors.border }]}
     >
-      <View style={stacked ? styles.textsStacked : styles.texts}>
-        <Text variant="callout" maxFontSizeMultiplier={labelMaxScale} style={styles.label}>
-          {label}
+      <Pressable onPress={() => down && onStep(-1)} disabled={!down} style={styles.button} hitSlop={2}>
+        <Icon name="remove" size="headline" tone={down ? 'text' : 'text3'} />
+      </Pressable>
+      <View style={[styles.value, { borderColor: colors.border }]}>
+        <Text variant="headline" style={styles.tabular}>
+          {valueText}
         </Text>
-        {sub ? (
-          <Text variant="caption" tone="secondary">
-            {sub}
-          </Text>
-        ) : null}
       </View>
-      <View style={[styles.box, emphasis === 'warn' ? { borderColor: colors.warnLine, borderWidth: 2 } : { borderColor: colors.border }]}>
-        <Pressable onPress={() => down && onStep(-1)} disabled={!down} style={styles.button} hitSlop={2}>
-          <Icon name="remove" size="headline" tone={down ? 'text' : 'text3'} />
-        </Pressable>
-        <View style={[styles.value, { borderColor: colors.border }]}>
-          <Text variant="headline" style={styles.tabular}>
-            {valueText}
-          </Text>
-        </View>
-        <Pressable onPress={() => up && onStep(1)} disabled={!up} style={styles.button} hitSlop={2}>
-          <Icon name="add" size="headline" tone={up ? 'text' : 'text3'} />
-        </Pressable>
+      <Pressable onPress={() => up && onStep(1)} disabled={!up} style={styles.button} hitSlop={2}>
+        <Icon name="add" size="headline" tone={up ? 'text' : 'text3'} />
+      </Pressable>
+    </View>
+  );
+
+  return (
+    <View {...(labelInfo ? null : adjustable)} style={[styles.row, stacked && styles.rowStacked, disabled && styles.dim]}>
+      <View style={stacked ? styles.textsStacked : styles.texts}>
+        {labelInfo ? (
+          <>
+            <View style={styles.labelWithInfo}>
+              <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.labelShrink}>
+                {labelText}
+              </View>
+              {labelInfo}
+            </View>
+            <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{subText}</View>
+          </>
+        ) : (
+          <>
+            {labelText}
+            {subText}
+          </>
+        )}
       </View>
+      {box}
     </View>
   );
 }
@@ -109,6 +139,15 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: typeFontFamily.semiBold,
+  },
+  // The label and its "i": the label keeps its words (it wraps between them), the "i" stays at its end.
+  labelWithInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: space[2],
+  },
+  labelShrink: {
+    flexShrink: 1,
   },
   box: {
     flexDirection: 'row',

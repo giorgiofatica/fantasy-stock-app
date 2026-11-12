@@ -27,3 +27,8 @@ export const DELETED_NOTICE_FIXTURE = __DEV__ && process.env.EXPO_PUBLIC_DELETED
 import { parseSignupCapture } from '../auth/signupCapture';
 
 export const SIGNUP_CAPTURE = parseSignupCapture(__DEV__, { error: process.env.EXPO_PUBLIC_SIGNUP_ERROR, prefill: process.env.EXPO_PUBLIC_SIGNUP_PREFILL });
+
+// The "i" popup (UX rule 13): EXPO_PUBLIC_INFO_FIXTURE=<key>[:<page>] opens it once on launch (lib/game/infoPopups.ts). Dev builds only.
+import { parseInfoFixture } from '../game/infoPopups';
+
+export const INFO_FIXTURE = parseInfoFixture(__DEV__, process.env.EXPO_PUBLIC_INFO_FIXTURE);

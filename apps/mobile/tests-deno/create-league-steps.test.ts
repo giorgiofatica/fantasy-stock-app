@@ -12,7 +12,6 @@ import {
   CREATE_STEP_COPY,
   DURATION_OPTIONS,
   MANAGER_SIZES,
-  DRAFT_DATE_LATER,
   byeExpectedCopy,
   leagueNameError,
   roundRobinCaption,
@@ -55,19 +54,15 @@ Deno.test('back walks backward and the first step dismisses (no welcome step)', 
   assertEquals(prevStep('league'), null);
 });
 
-Deno.test('the Season and Draft titles and subtitles are the board\'s, verbatim', () => {
+Deno.test('rule 12: League, Draft and Stakes carry no subtitle; Season keeps the board\'s until its own build', () => {
+  assertEquals(CREATE_STEP_COPY.league, { title: 'League' });
+  assertEquals(CREATE_STEP_COPY.draft, { title: 'Draft' });
+  assertEquals(CREATE_STEP_COPY.stakes, { title: 'Stakes' });
   assertEquals(CREATE_STEP_COPY.season, { title: 'Season', subtitle: 'How big the league is and how long it runs.' });
-  assertEquals(CREATE_STEP_COPY.draft, {
-    title: 'Draft',
-    subtitle: 'A live snake draft. Everyone picks in turn, and the order reverses each round.',
-  });
 });
 
-Deno.test('every step has a title and a subtitle', () => {
-  for (const s of CREATE_STEPS) {
-    assertEquals(CREATE_STEP_COPY[s].title.length > 0, true, s);
-    assertEquals(CREATE_STEP_COPY[s].subtitle.length > 0, true, s);
-  }
+Deno.test('every step has a title', () => {
+  for (const s of CREATE_STEPS) assertEquals(CREATE_STEP_COPY[s].title.length > 0, true, s);
 });
 
 // ── Checks: the old checks, the Design Lead's inline copy ──────────────
@@ -168,9 +163,8 @@ Deno.test('rounds in create stay 3..12', () => {
   assertEquals(stepWithin(6, 1, 3, 12), 7);
 });
 
-Deno.test('round-robin caption and the TBD line (Design Lead rulings)', () => {
+Deno.test('round-robin caption (Design Lead ruling)', () => {
   assertEquals(roundRobinCaption(7), 'At least 7 weeks, so every team plays every other team once.');
-  assertEquals(DRAFT_DATE_LATER, 'Set a draft time before the draft can start. You can do it later in League settings.');
 });
 
 Deno.test('budget presets unchanged', () => {
