@@ -14,6 +14,7 @@ import { INVITE_COPY } from '../invite/inviteCopy';
 import { COPY as MONEY_COPY } from '../money/moneyCopy';
 import { JOIN_COPY, blockMessage } from '../join/joinPreview';
 import { splitRefusal } from '../refusalSplit';
+import { keepName } from './keepName';
 import type { RateWait } from './takeoverReply';
 import { GO_TO_HOME, NOT_NOW, OPEN_THE_LEAGUE, TAKEN_LINE, TRY_LATER } from './deleteCopy';
 
@@ -47,8 +48,9 @@ export function takeoverRefusal(state: RefusalState): RefusalSpec {
     case 'dead':
       return { icon: 'unlink', ...splitRefusal(INVITE_COPY.dead), primary: { label: GO_TO_HOME, action: 'home' } };
     case 'member':
-      // One sentence with the league's name in it: never split (a name can hold ". ").
-      return { icon: 'league', heading: blockMessage('already_member', { name: state.leagueName, max: 0 }), primary: { label: OPEN_THE_LEAGUE, action: 'open' } };
+      // One sentence with the league's name in it: never split (a name can hold ". "). The NAME alone goes through keepName, so it
+      // wraps as one piece ("You're already in / Stock Scudetto.", never "Stock / Scudetto."); the string source is unchanged.
+      return { icon: 'league', heading: blockMessage('already_member', { name: keepName(state.leagueName), max: 0 }), primary: { label: OPEN_THE_LEAGUE, action: 'open' } };
     case 'rate_limited': {
       const words = splitRefusal(waitLine(state.wait));
       // The hour's lockout has nothing to retry now: only "Not now" (Design Lead gate). A moment's wait keeps "Try again".

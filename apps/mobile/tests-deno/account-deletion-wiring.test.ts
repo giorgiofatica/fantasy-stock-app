@@ -265,7 +265,7 @@ Deno.test('DL copy: the wrong-password line sits in the field\'s error style, th
 
 Deno.test('DL copy: the landing shows "You\'re already in {league}." + "Open the league" for an already-in answer, and a name-less reply just opens', () => {
   const map = src('lib/account/takeoverRefusal.ts');
-  assert(map.includes("blockMessage('already_member', { name: state.leagueName, max: 0 })"));
+  assert(map.includes("blockMessage('already_member', { name: keepName(state.leagueName), max: 0 })"));
   assert(map.includes('OPEN_THE_LEAGUE'));
   const screen = src('app/takeover.tsx');
   assert(screen.includes('if (v.leagueName) {'));

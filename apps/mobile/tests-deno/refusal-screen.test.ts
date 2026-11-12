@@ -15,6 +15,7 @@ import { INVITE_COPY } from '../lib/invite/inviteCopy.ts';
 import { ARRIVAL_COPY } from '../lib/invite/arrivalView.ts';
 import { JOIN_COPY } from '../lib/join/joinPreview.ts';
 import { splitRefusal } from '../lib/refusalSplit.ts';
+import { keepName } from '../lib/account/keepName.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
@@ -109,7 +110,7 @@ const SPEC: Array<[string, RefusalState, string, string | undefined, string, str
   // [name, state, heading, line, primary label, secondary label]
   ['taken', { kind: 'taken' }, 'Someone already took this team.', undefined, 'Go to Home', undefined],
   ['dead takeover link', { kind: 'dead' }, "This invite link doesn't work anymore.", 'Ask for a new one.', 'Go to Home', undefined],
-  ['already in', { kind: 'member', leagueName: 'Stock Scudetto' }, "You're already in Stock Scudetto.", undefined, 'Open the league', undefined],
+  ['already in', { kind: 'member', leagueName: 'Stock Scudetto' }, "You're already in Stock\u00a0Scudetto.", undefined, 'Open the league', undefined],
   ['short wait', { kind: 'rate_limited', wait: 'moment' }, 'Too many tries.', 'Wait a moment, then try again.', 'Try again', 'Not now'],
   ['hour wait', { kind: 'rate_limited', wait: 'later' }, 'Too many tries.', 'Try again later.', 'Not now', undefined],
   ['no connection', { kind: 'unknown' }, "Couldn't reach the league.", 'Check your connection, then try again.', 'Try again', 'Not now'],
@@ -146,7 +147,7 @@ Deno.test('mapping: the hour\'s lockout has no Try again anywhere (it would fail
 
 Deno.test('already in: a name with ". " in it is never split; no name never shows an empty or "null" one (the app just opens Home)', () => {
   const s = takeoverRefusal({ kind: 'member', leagueName: 'St. Louis Traders' });
-  assertEquals([s.heading, s.line], ["You're already in St. Louis Traders.", undefined]);
+  assertEquals([s.heading, s.line], ["You're already in St.\u00a0Louis\u00a0Traders.", undefined]);
   // a reply with no league name is a member with a null name; the container opens Home instead of drawing a screen
   const v = interpretTakeoverPreview({ transport: false, reason: 'already_member', body: {} } as never);
   assertEquals(v, { kind: 'member', leagueName: null, leagueId: null });
@@ -177,4 +178,17 @@ Deno.test('invite arrival: ONLY the dead link is a RefusalScreen (broken link, s
   assertEquals(ARRIVAL_COPY.signIn, 'Sign in');
   assertEquals(arrival.split('<RefusalScreen').length - 1, 1, 'one dead end on the arrival');
   assert(arrival.includes('{view.refusal ? <WarnPanel text={view.refusal} /> : null}'), 'full / not taking players keep the panel above Sign in');
+});
+
+Deno.test('already in: the league NAME is one piece (keepName) so it wraps as a whole; the sentence around it keeps its breakable spaces', () => {
+  const s = takeoverRefusal({ kind: 'member', leagueName: 'Stock Scudetto' });
+  assertEquals(s.heading, `You're already in ${keepName('Stock Scudetto')}.`);
+  assert(s.heading.includes('Stock\u00a0Scudetto'), 'no break inside the name');
+  assert(s.heading.startsWith("You're already in "), 'the words around the name still break at ordinary spaces');
+  assertEquals(s.heading.replaceAll('\u00a0', ' '), "You're already in Stock Scudetto.", 'the words are unchanged: only the spaces inside the name differ');
+  assertEquals(s.heading.split('\u00a0').length - 1, 1, 'only the name carries the no-break space');
+  // a long name keeps its spaces breakable (keepName), so it can still wrap between words instead of mid-word
+  const long = takeoverRefusal({ kind: 'member', leagueName: 'The Very Long Stock League Of Friends' });
+  assertFalse(long.heading.includes('\u00a0'));
+  assert(mapping.includes('name: keepName(state.leagueName)') && mapping.includes("import { keepName } from './keepName';"));
 });
