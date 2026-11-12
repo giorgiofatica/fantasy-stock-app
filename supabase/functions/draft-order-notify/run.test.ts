@@ -14,7 +14,7 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { PUSH_TIMEOUT_MS } from '../_shared/notice-delivery.ts';
 import type { PushMessage, PushSendResult } from '../_shared/push.ts';
-import { EDGE_WALL_CLOCK_MAX_MS, MAX_PUSH_ATTEMPTS, MAX_ROW_HOLD_ESTIMATE_MS, STALE_SENDING_MS } from './plan.ts';
+import { EDGE_WALL_CLOCK_MAX_MS, MAX_PUSH_ATTEMPTS, MAX_ROW_HOLD_ESTIMATE_MS, nextPushStatus, reclaimExhausted, STALE_SENDING_MS } from './plan.ts';
 import { runDraftOrderNotify } from './run.ts';
 
 // ---------------------------------------------------------------------------
@@ -301,5 +301,116 @@ Deno.test('a failed settle leaves the row sending: re-sent once per STALE_SENDIN
   await runDraftOrderNotify(deps(T0 + STALE_SENDING_MS + 1));
   assertEquals(x.sent.length, 2);
   assertEquals(db.row('n1').push_status, 'sent');
+  assertEquals(db.row('n1').push_attempts, 2);
+});
+
+// ---------------------------------------------------------------------------
+// 5. The claim's version: BOTH halves of (push_status, push_attempts) matter
+// ---------------------------------------------------------------------------
+/** Gate the next two notice SELECTs so both runs read the same snapshot. */
+function gateTwoReads(db: FakeDb) {
+  let waiting = 0;
+  const both = deferred<void>();
+  db.selectGate = () => {
+    if (++waiting === 2) both.resolve();
+    return both.promise;
+  };
+}
+
+Deno.test('two runs that READ the same STALE sending row at once: exactly one reclaims and sends', async () => {
+  // The case overlap newly makes reachable. Status alone cannot decide it: both
+  // claims would match 'sending' -> 'sending'. The attempt count does.
+  const db = new FakeDb();
+  strandedAt(db, 'n1', T0 - STALE_SENDING_MS - 1, 1);
+  gateTwoReads(db);
+  const x = expo();
+  const deps = { admin: db, sendExpoPush: x.fn, getTargetToken: tokenOk, now: () => T0 };
+  const [a, b] = await Promise.all([runDraftOrderNotify(deps), runDraftOrderNotify(deps)]);
+  assertEquals(x.sent.length, 1, `sent ${x.sent.length} times: the claim does not check push_attempts`);
+  const outcomes = [a.outcomes, b.outcomes].map((o) => JSON.stringify(o)).sort();
+  assertEquals(outcomes, [JSON.stringify({ claim_lost: 1 }), JSON.stringify({ sent: 1 })]);
+  assertEquals(db.row('n1').push_attempts, 2);
+  assertEquals(db.row('n1').push_status, 'sent');
+});
+
+Deno.test('a row SETTLED between a run\'s read and its claim is not claimed again (status half of the version)', async () => {
+  // Run B reads the stale 'sending' row; before B claims, the row's owner
+  // settles it 'sent' (a settle leaves push_attempts alone). The count alone
+  // still matches; only the status eq stops a second push of a sent row.
+  const db = new FakeDb();
+  strandedAt(db, 'n1', T0 - STALE_SENDING_MS - 1, 1);
+  let first = true;
+  db.tick = () => {
+    if (first) {
+      first = false;
+      Object.assign(db.row('n1'), { push_status: 'sent', push_error: null });
+    }
+    return Promise.resolve();
+  };
+  const x = expo();
+  const r = await runDraftOrderNotify({ admin: db, sendExpoPush: x.fn, getTargetToken: tokenOk, now: () => T0 });
+  assertEquals(x.sent.length, 0, 'a sent row was claimed and pushed again');
+  assertEquals(r.outcomes, { claim_lost: 1 });
+  assertEquals(db.row('n1').push_status, 'sent');
+});
+
+// ---------------------------------------------------------------------------
+// 6. GUARD (a): a reclaim at the attempt cap settles 'failed' unsent
+// ---------------------------------------------------------------------------
+Deno.test('guard (a): a stale sending row that used its last attempt is settled failed WITHOUT a send', async () => {
+  assertEquals(reclaimExhausted({ push_status: 'sending', push_attempts: MAX_PUSH_ATTEMPTS }), true);
+  assertEquals(reclaimExhausted({ push_status: 'sending', push_attempts: MAX_PUSH_ATTEMPTS - 1 }), false);
+  assertEquals(reclaimExhausted({ push_status: 'pending', push_attempts: MAX_PUSH_ATTEMPTS }), false);
+  assertEquals(nextPushStatus('attempts_exhausted', MAX_PUSH_ATTEMPTS + 1), 'failed');
+
+  const db = new FakeDb();
+  strandedAt(db, 'n1', T0 - STALE_SENDING_MS - 1, MAX_PUSH_ATTEMPTS);
+  strandedAt(db, 'n2', T0 - STALE_SENDING_MS - 1, MAX_PUSH_ATTEMPTS - 1);
+  db.ctx.set('n2', db.ctx.get('n1'));
+  const x = expo();
+  const r = await runDraftOrderNotify({ admin: db, sendExpoPush: x.fn, getTargetToken: tokenOk, now: () => T0 });
+  assertEquals(x.sent.length, 1, 'only the row under the cap is sent');
+  assertEquals(db.row('n1').push_status, 'failed');
+  assertEquals(db.row('n1').push_error, 'attempts_exhausted');
+  assertEquals(db.row('n2').push_status, 'sent');
+  assertEquals(r.outcomes, { failed: 1, sent: 1 });
+});
+
+Deno.test('guard (a): even if EVERY settle fails, a row is pushed at most MAX_PUSH_ATTEMPTS times, then ends failed', async () => {
+  const db = new FakeDb();
+  addDraftStarted(db, 'n1');
+  const x = expo();
+  let settlesWork = false;
+  db.updateFault = (patch) => (!settlesWork && patch.push_status !== 'sending' ? { code: '08006', message: 'stub' } : null);
+  // A run every 10 min + 1 ms for many windows: each reclaims the stuck row.
+  for (let w = 0; w < MAX_PUSH_ATTEMPTS + 3; w++) {
+    await quiet(() => runDraftOrderNotify({ admin: db, sendExpoPush: x.fn, getTargetToken: tokenOk, now: () => T0 + w * (STALE_SENDING_MS + 1) }));
+  }
+  assertEquals(x.sent.length, MAX_PUSH_ATTEMPTS, `pushed ${x.sent.length} times`);
+  // Once a settle can land again, the exhausted row ends 'failed', still unsent.
+  settlesWork = true;
+  await runDraftOrderNotify({ admin: db, sendExpoPush: x.fn, getTargetToken: tokenOk, now: () => T0 + 20 * STALE_SENDING_MS });
+  assertEquals(x.sent.length, MAX_PUSH_ATTEMPTS);
+  assertEquals(db.row('n1').push_status, 'failed');
+  assertEquals(db.row('n1').push_error, 'attempts_exhausted');
+});
+
+// ---------------------------------------------------------------------------
+// 7. GUARD (b): a settle lands only on the run's own claim
+// ---------------------------------------------------------------------------
+Deno.test('guard (b): a run whose row was re-claimed meanwhile does not overwrite the newer claim (settle_lost)', async () => {
+  const db = new FakeDb();
+  addDraftStarted(db, 'n1');
+  const hold = deferred<PushSendResult>();
+  const x = expo(() => hold.promise);
+  const a = runDraftOrderNotify({ admin: db, sendExpoPush: x.fn, getTargetToken: tokenOk, now: () => T0 });
+  while (x.sent.length === 0) await new Promise((r) => setTimeout(r, 1));
+  assertEquals(db.row('n1').push_attempts, 1);
+  // Another run's claim lands on the row (attempt 2) while A is still in Expo.
+  Object.assign(db.row('n1'), { push_status: 'sending', push_attempts: 2, push_attempted_at: new Date(T0 + 1).toISOString() });
+  hold.resolve({ sent: true });
+  const r = await a;
+  assertEquals(r.outcomes, { settle_lost: 1 }, 'a lost settle is its own outcome, not settle_failed');
+  assertEquals(db.row('n1').push_status, 'sending', 'A overwrote a newer claim it does not own');
   assertEquals(db.row('n1').push_attempts, 2);
 });

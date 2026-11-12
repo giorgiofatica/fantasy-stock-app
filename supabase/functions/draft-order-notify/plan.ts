@@ -186,9 +186,25 @@ export type DeliveryOutcome =
   | 'superseded' // the event no longer holds (fixed, rescheduled, started): saying it would be wrong
   | 'lookup_failed'
   | 'expo_error'
-  | 'expo_ticket_error';
+  | 'expo_ticket_error'
+  // A stale 'sending' row whose LAST allowed attempt was already claimed (the
+  // run died, or its settle failed, after a send that may have gone out):
+  // settled 'failed' WITHOUT sending, so no row is ever pushed more than
+  // MAX_PUSH_ATTEMPTS times, whatever keeps failing. See reclaimExhausted.
+  | 'attempts_exhausted';
 
 export type PushStatus = 'pending' | 'sent' | 'no_device' | 'skipped' | 'failed';
+
+/**
+ * Is this row a RECLAIM of a 'sending' row that has already used its last
+ * attempt? (2026-11-11: runs can now overlap, and a failed settle leaves a row
+ * 'sending' to be reclaimed after STALE_SENDING_MS. Without this cap a row
+ * whose settle failed every time would be re-sent every 10 minutes forever.)
+ * `row` is the snapshot the run READ, before its own claim.
+ */
+export function reclaimExhausted(row: { push_status: string; push_attempts: number }): boolean {
+  return row.push_status === 'sending' && Number(row.push_attempts) >= MAX_PUSH_ATTEMPTS;
+}
 
 /** Where a claimed row settles. `attempts` INCLUDES the one just made. A
  * transient failure goes back to 'pending' (the next tick retries) until the
@@ -200,6 +216,7 @@ export function nextPushStatus(outcome: DeliveryOutcome, attempts: number): Push
     case 'not_in_order': return 'skipped';
     case 'unknown_kind': return 'skipped';
     case 'superseded': return 'skipped';
+    case 'attempts_exhausted': return 'failed';
     default: return attempts >= MAX_PUSH_ATTEMPTS ? 'failed' : 'pending';
   }
 }

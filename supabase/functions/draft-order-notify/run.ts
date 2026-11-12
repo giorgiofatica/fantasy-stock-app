@@ -12,13 +12,27 @@
 //     ~150 s.
 //   - the clock, Expo and the token lookup are injected (RunDeps), for tests.
 //   - the result is returned, not answered: ./handler.ts logs it as one line.
+//   - two guards for overlapping runs (below): a reclaim at the attempt cap is
+//     settled 'failed' unsent, and a settle only lands on the run's own claim.
 //
 // OVERLAP: see plan.ts STALE_SENDING_MS. In short, the CLAIM is a conditional
 // UPDATE on the (push_status, push_attempts) pair the run READ, so of two runs
 // holding the same snapshot exactly one claims; push_attempts grows on every
 // claim, so it is a version number and an old snapshot can never claim again.
-// A claimed row is invisible to other runs' selects until STALE_SENDING_MS has
-// passed since its claim, which is longer than any live run can hold it.
+// BOTH halves matter: the status alone cannot separate two runs that read the
+// same STALE 'sending' row ('sending' -> 'sending' matches twice), and the
+// count alone cannot tell a row settled since the read (a settle leaves the
+// count alone). A claimed row is invisible to other runs' selects until
+// STALE_SENDING_MS has passed since its claim, which is longer than any live
+// run can hold it.
+//   GUARD (a), reclaimExhausted: a stale 'sending' row that already used its
+//     last attempt is claimed and settled 'failed' (push_error
+//     'attempts_exhausted') WITHOUT a send, so a row is pushed at most
+//     MAX_PUSH_ATTEMPTS times even if every settle keeps failing.
+//   GUARD (b): the settle matches push_attempts = the count this run wrote, so
+//     a run never overwrites a newer claim; a settle that matches nothing is
+//     `settle_lost` (another run owns the row), distinct from `settle_failed`
+//     (a write error: the row stays 'sending' and is reclaimed later).
 import { getTargetToken as realGetTargetToken, type PushMessage, type PushSendResult, sendExpoPush as realSendExpoPush } from '../_shared/push.ts';
 import { PUSH_TIMEOUT_MS } from '../_shared/notice-delivery.ts';
 import {
@@ -30,6 +44,7 @@ import {
   MAX_PUSHES_PER_RUN,
   nextPushStatus,
   type NoticeContext,
+  reclaimExhausted,
   RENEWAL_KINDS,
   type RenewalKind,
   renewalNoticeMessage,
@@ -166,27 +181,44 @@ export async function runDraftOrderNotify(deps: RunDeps): Promise<NotifyResult> 
     if (!claimed) { bump('claim_lost'); continue; }
 
     let outcome: DeliveryOutcome;
-    try {
-      outcome = await deliver(row);
-    } catch (e) {
-      console.error('deliver threw', row.id, String(e));
-      outcome = 'expo_error';
+    if (reclaimExhausted(row)) {
+      // GUARD (a): claimed (so no other run takes it), but NOT sent. Its last
+      // allowed attempt is already spent; a send that may have gone out is not
+      // repeated. Bounds every row at MAX_PUSH_ATTEMPTS sends in total.
+      outcome = 'attempts_exhausted';
+    } else {
+      try {
+        outcome = await deliver(row);
+      } catch (e) {
+        console.error('deliver threw', row.id, String(e));
+        outcome = 'expo_error';
+      }
     }
     const status = nextPushStatus(outcome, attempts);
     // Check the EFFECT, not just the error: an UPDATE matching zero rows
     // resolves { data: null, error: null } (CLAUDE.md success signals #5).
+    // GUARD (b): settle only OUR claim (status AND the attempt count we wrote),
+    // so a run can never overwrite a newer claim by another run.
     const { data: settled, error: setErr } = await admin
       .from('league_notifications')
       .update({ push_status: status, push_error: outcome === 'sent' ? null : outcome })
       .eq('id', row.id)
       .eq('push_status', 'sending')
+      .eq('push_attempts', attempts)
       .select('id')
       .maybeSingle();
-    if (setErr || !settled) {
+    if (setErr) {
       // The row stays 'sending' and is reclaimed after STALE_SENDING_MS — a
-      // possible duplicate push, never a lost one.
+      // possible duplicate push (capped by guard (a)), never a lost one.
       bump('settle_failed');
-      console.error('settle failed', row.id, setErr ? JSON.stringify(setErr) : 'no row settled (reclaimed?)');
+      console.error('settle failed', row.id, JSON.stringify(setErr));
+      continue;
+    }
+    if (!settled) {
+      // Our claim is no longer the row's latest: another run reclaimed it (or
+      // it was moved on). That run owns the row and settles it; not an error.
+      bump('settle_lost');
+      console.log('settle lost: row re-claimed by another run', row.id);
       continue;
     }
     bump(status === 'pending' ? `retry_${outcome}` : status);
