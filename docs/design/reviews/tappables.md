@@ -131,7 +131,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/SetupRows.tsx:162` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:189` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:248` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
-| `components/game/SetupScaffold.tsx:52` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
+| `components/game/SetupScaffold.tsx:55` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
 | `components/game/StandingsTable.tsx:74` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
 | `components/game/Stepper.tsx:85` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
 | `components/game/Stepper.tsx:93` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
@@ -153,10 +153,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/league/MembersSection.tsx:63` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
 | `components/money/HoldingRow.tsx:82` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/LoadFailure.tsx:30` | EmptyState | onAction | `onRetry` | prop onRetry (the caller's) |  |
-| `components/money/PlayerPortfolioScreen.tsx:183` | LoadFailure | onRetry | `retry` | fn retry |  |
-| `components/money/PlayerPortfolioScreen.tsx:203` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
-| `components/money/PlayerPortfolioScreen.tsx:225` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
-| `components/money/PlayerPortfolioScreen.tsx:244` | Pressable | onPress | `close` | route replace('/(tabs)/portfolio'); route back |  |
+| `components/money/PlayerPortfolioScreen.tsx:184` | LoadFailure | onRetry | `retry` | fn retry |  |
+| `components/money/PlayerPortfolioScreen.tsx:204` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
+| `components/money/PlayerPortfolioScreen.tsx:226` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
+| `components/money/PlayerPortfolioScreen.tsx:245` | Pressable | onPress | `close` | route replace('/(tabs)/portfolio'); route back |  |
 | `components/money/PortfolioScreen.tsx:202` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
 | `components/money/PortfolioScreen.tsx:210` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
 | `components/money/PortfolioScreen.tsx:266` | RangePills | onChange | `setRange` | state setRange |  |
@@ -190,7 +190,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/TradeReviewPanel.tsx:156` | Pressable | onPress | `onBack` | prop onBack (the caller's) |  |
 | `components/shell/AppearancePicker.tsx:38` | ThemeOption | onPress | `inline: () => changeAppearance(o.id)` | fn changeAppearance |  |
 | `components/shell/AppearancePicker.tsx:49` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/shell/AuthScaffold.tsx:210` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
+| `components/shell/AuthScaffold.tsx:213` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
 | `components/shell/ConfirmEmailSent.tsx:68` | EmptyState | onAction | `onBack` | prop onBack (the caller's) |  |
 | `components/shell/ConfirmEmailSent.tsx:70` | EmptyState | onSecondaryAction | `resend` | fn resend |  |
 | `components/shell/ConfirmedEmailNotice.tsx:40` | Pressable | onPress | `inline: () => setConfirmFailedNotice(false)` | sheet setConfirmFailedNotice(false) |  |
@@ -229,7 +229,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/ProfileView.tsx:125` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/PushPrePrompt.tsx:38` | Button | onPress | `onContinue` | prop onContinue (the caller's) |  |
 | `components/shell/PushPrePrompt.tsx:40` | Pressable | onPress | `onNotNow` | prop onNotNow (the caller's) | `status !== 'idle'` |
-| `components/shell/ShellHeader.tsx:55` | Pressable | onPress | `inline: () => router.push(profileHref(profileFromPathname(pathname))` | route push(profileHref(profileFromPathname(pathname))) |  |
+| `components/shell/ShellHeader.tsx:56` | Pressable | onPress | `inline: () => router.push(profileHref(profileFromPathname(pathname))` | route push(profileHref(profileFromPathname(pathname))) |  |
 | `components/shell/ShellTabBar.tsx:108` | TabItem | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:109` | TabItem | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:151` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |

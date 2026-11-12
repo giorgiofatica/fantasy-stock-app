@@ -9,6 +9,7 @@ import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
+import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
 
 // 3c-2 — the frame Create league and League settings share (board: "Create
 // league · Season" / "· Draft step"): a back row with the "Step N of 4"
@@ -40,13 +41,15 @@ export interface SetupScaffoldProps {
 export function SetupScaffold({ back, step, title, subtitle, children, footer }: SetupScaffoldProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  // None inside an iOS page sheet (League settings), which already starts below the status bar.
+  const topInset = useScreenTopInset();
   const scrollRef = useRef<ScrollView>(null);
   // DEV captures only (lib/shell/fixtureRoute.ts).
   useFixtureScrollEnd(scrollRef);
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <View style={{ height: insets.top }} />
+      <View style={{ height: topInset }} />
       <View style={styles.topRow}>
         {back ? (
           <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={[styles.back, back.modal ? styles.backModal : null]} hitSlop={8}>

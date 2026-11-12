@@ -8,6 +8,7 @@ import { space } from '@/constants/tokens';
 import { contentFits, footerSecondaryShown, keyboardUpAfter, rememberRest, restTarget, revealOffset, settleOffset, stepReveal, type RevealEvent } from '@/components/shell/authFieldReveal';
 import { FieldBlockContext, RevealTailContext, type RevealTail } from '@/components/shell/FieldBlockContext';
 import { FooterFade } from '@/components/shell/FooterFade';
+import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -46,6 +47,8 @@ interface RevealScroll {
 export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function AuthScaffold({ children, footer, footerSecondary, back, centerBody }, ref) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  // None inside an iOS page sheet (Forgot password), which already starts below the status bar.
+  const topInset = useScreenTopInset();
   const { reduced } = useMotion();
   const reducedRef = useRef(reduced);
   reducedRef.current = reduced;
@@ -205,7 +208,7 @@ export const AuthScaffold = forwardRef<ScrollView, AuthScaffoldProps>(function A
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.fill, { backgroundColor: colors.bg }]}
     >
-      <View style={{ height: insets.top }} />
+      <View style={{ height: topInset }} />
       {back ? (
         <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={styles.back} hitSlop={8}>
           <Icon name="chevronLeft" size="callout" tone="text2" />

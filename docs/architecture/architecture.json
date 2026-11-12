@@ -2,21 +2,26 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "d00325f5fb39ff7d149c0fefffba3f5416484c68",
-    "commitShort": "d00325f5",
+    "commit": "3251b6b52c71b9cea78a1d360e2c59b0a1c433e3",
+    "commitShort": "3251b6b5",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "rebase/sale-picker",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-11-12T19:41:07Z",
-    "sourceHash": "sha256:1843996ece2a050286ff689c92839b8b273c997d838e5a4eca0783ec3fa8b122",
+    "branch": "fix/sheet-top-inset",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      }
+    ],
+    "timestamp": "2026-11-12T19:55:50Z",
+    "sourceHash": "sha256:e59e4901c8e5df64137a7fd27147ea5f1d570e1db398d9885f47f0ef39b5b94f",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 21.8,
+    "ageHours": 22,
     "ageDays": 0.9,
     "staleAfterDays": 14,
     "stale": false,
@@ -20664,7 +20669,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113"
       ],
       "via": [
         "useRosterData"
@@ -20682,7 +20687,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113"
       ],
       "via": [
         "useRosterData"
@@ -20700,7 +20705,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113"
       ],
       "via": [
         "useRosterData"
@@ -20718,7 +20723,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113"
       ],
       "via": [
         "useRosterData"
@@ -23936,10 +23941,10 @@
       "apps/mobile/app/league-settings.tsx:270 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/app/league-settings.tsx:292 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
       "apps/mobile/app/league-settings.tsx:292 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> categories.select (via useRosterData)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> drafts.select (via useRosterData)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:112 -> trades.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113 -> categories.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113 -> drafts.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113 -> trades.select (via useRosterData)",
       "apps/mobile/components/money/PortfolioScreen.tsx:90 -> categories.select (via useRosterData)",
       "apps/mobile/components/money/PortfolioScreen.tsx:90 -> drafts.select (via useRosterData)",
       "apps/mobile/components/money/PortfolioScreen.tsx:90 -> league_draft_slots.select (via useRosterData)",
