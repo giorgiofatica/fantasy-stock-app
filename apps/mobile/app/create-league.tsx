@@ -60,7 +60,6 @@ import { draftTimeRefusal } from '@/lib/game/autoStart';
 import { stakesLine } from '@/lib/stakesLine';
 import { INVITE_CODE_LABEL } from '@/lib/home/homeCopy';
 import {
-  CREATED_LINE,
   CREATED_NO_DATE,
   CREATE_FAILED,
   GO_TO_LEAGUE,
@@ -575,7 +574,6 @@ export default function CreateLeagueWizard() {
     return (
       <SetupScaffold
         title={createdTitle(created.name)}
-        subtitle={CREATED_LINE}
         footer={<Button label={GO_TO_LEAGUE} onPress={() => void pushAskRouteFor('/(tabs)/league').then((to) => router.replace(to as never))} />}
       >
         {/* The pre-draft Home invite-code card (board). */}
