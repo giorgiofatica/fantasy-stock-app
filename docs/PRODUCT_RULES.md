@@ -594,6 +594,16 @@ building anything, and don't reopen a rule without him.
 - **Cash from sales** (2026-10-05, option A, budget-cap and price-tier leagues): a sale's cash
   shows as its own "Cash from sales" line, and the header value includes it, matching Home.
 - **Market-data credit line**: credit Alpaca on price surfaces.
+- **Live price on screen is preferred; a 15-minute-old price is acceptable if the terms
+  require it** (2026-11-12). Shown the two side by side (A: the price on screen is live and
+  is the price a buy fills at, as the app does today; B: the price on screen is about 15
+  minutes old, labelled as delayed, and the buy still fills at the real current price on the
+  server, as HowTheMarketWorks, Wall Street Survivor and StockTrak do), Giorgio's words: "i
+  prefer a but b would be acceptable if its what terms dictate". So a price supplier is
+  asked for both, A is chosen where the licence and its cost allow it, and B is the
+  fallback, not a failure. B's on-screen words (the delayed label, a total that can differ
+  from the fill) are not written or approved yet; they go to him before any build. The
+  supplier is not chosen, and the Alpaca credit line above changes with it.
 - **Appearance:** System / Light / Dark. One layout and component set with two complete
   themes; no screen mixes them.
 - **Both themes, designed together, neither first** (2026-10-12, overruling the reset plan's
