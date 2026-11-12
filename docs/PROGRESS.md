@@ -45,13 +45,13 @@ Entries begin with the Recorder's first pass.
 - No draft order card while it waits, at 4 or more managers ("B"). #420 (merged 17:14:55Z) corrected the rule's text: no progress bar below 4 either; the bar was only in the drawings.
 
 **Found**
-- **Phone-pass step 26 (What the league sees) passed on build 14:** the page shows Giorgio's tick, 2026-11-12T17:41:46Z; his report relayed by the Planner via the Orchestrator, no recording. Parts A and B are now fully ticked on the page (32 of 47 steps; ids 1–26 and 42–47); the first unticked step is 27, the start of Part C.
+- **Phone-pass step 26 (What the league sees) passed on build 14:** the page shows Giorgio's tick, 2026-11-12T17:41:46Z; his report relayed by the Planner via the Orchestrator, no recording. Parts A and B are now fully ticked on the page (32 of 47 steps; ids 1–26 and 42–47); the first unticked step is 34, the first step of Part C.
 - Giorgio's 202 query soon after the draft-order-notify deploy returned 0 rows. Expected: the cron POSTs only when `draft_room_notices_due()` is true (its command is in the db-snapshot), so with no draft event there was no POST. The effect is still not shown.
 - `draft_order_notify_due()` is dead code (no cron, no caller). Not to be re-wired; a candidate to drop.
 - The `draft-order-notify` row in STATUS §2 said "Not scheduled yet (cron deferred)"; the 2026-11-11T21:55Z db-snapshot shows `draft_order_notify` scheduled `* * * * *` and active. The row is corrected.
 
 **Waiting on Giorgio**
-- The phone pass from step 27 (Part C, a second phone); steps 30–32 check the renewal-notice effect.
+- The phone pass, next step 34 (Part C, one phone, any time). The page is v24 (the Planner reorganised it so the checks that need no second phone come first; new ids 48 and 49; the second-phone steps are in Part F); steps 30–32 (Part E, once a league has finished its season) check the renewal-notice effect.
 
 **Next**
 - The next draft event shows whether the 202 and the pending→sent movement work on a real run.
