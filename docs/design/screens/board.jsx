@@ -383,7 +383,6 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-deleted-leaver', 'Two lines on the "draft can\u2019t start yet" card: who left, and the deadline\u2019s day', () => window.KSDeletedLeaver],
     ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)', () => window.KSRule12Sweep],
     ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)', () => window.KSRule12Info],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
@@ -393,6 +392,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-deleted-leaver', title: 'Two lines on the "draft can\u2019t start yet" card: who left, and the deadline\u2019s day', decision: '(a) A: a deleted account that leaves before the draft reads "A manager left the league". (b) B, over the recommended A: the deadline always names its day, today included ("before 6:30 PM ET today / tomorrow / on Tue, Nov 17"), in the tag and the line.', date: '2026-11-11', rec: 'PRODUCT_RULES (A deleted account that leaves before the draft is "A manager"; A draft deadline always names its day), plan #355', render: () => window.KSDeletedLeaverArchived },
     { id: 'call-type-step', title: 'The League type, now that only Matchup is offered', decision: 'A: the card stays, with Matchup as its one option, already selected, and its i; Duration rejoins it when it comes back. No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (The League type card stays, with Matchup alone)', render: () => window.KSTypeStepArchived },
     { id: 'call-season-step', title: 'The Season step in Create league', decision: 'B: three identical steppers ("11 wks"), no line under any label; a season strip (one tile per week, the playoff weeks named WC / SF / F, "Wk 1" to the last week) and the bye line; a limit\'s reason shows only at the limit. The sweep of the other screens is not yet decided.', date: '2026-11-10', rec: 'PRODUCT_RULES (The Season step in Create league)', render: () => window.KSSeasonStepArchived },
     { id: 'call-below-four', title: 'When a league drops below 4 before its draft', decision: 'B: below 4, one card (who left, "Fewer than 4 teams have joined.", the invite code and Share), no "Move forward"; at 4 or more, unchanged. "Invite someone to take their place" approved.', date: '2026-11-10', rec: 'PRODUCT_RULES (Below 4, there is nothing to move forward with)', render: () => window.KSBelowFourArchived },
