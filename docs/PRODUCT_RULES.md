@@ -625,6 +625,14 @@ building anything, and don't reopen a rule without him.
   - On Home, when the commissioner has no draft time set, "Set draft time" is the primary
     action and opens the picker in place ("Pick a time, and the countdown starts here."),
     with "Build your queue" secondary.
+- **A draft deadline always names its day** (2026-11-11, from the build 1.3.0 (14) phone
+  pass, step 25, where "before 6:30 PM ET" read as tonight for a draft six days away;
+  Giorgio picked **B** on board #call-deleted-leaver, PR #403, over the Design Lead's A,
+  relayed by the Orchestrator; his words: "include today when day of"). The commissioner's
+  blockers card says the day in both places, the tag ("Needs you before …") and the line
+  ("Fix these before …, when the draft room opens."), today included: "before 6:30 PM ET
+  today", "before 6:30 PM ET tomorrow", "before 6:30 PM ET on Tue, Nov 17". The day follows
+  the phone's own date and the time its own zone (Times show in the player's own time zone).
 - **Your turn in the draft room** (2026-10-06, Giorgio's board review): your turn must be
   impossible to miss. "That top part of the screen should like flash a color when they're
   up just to make sure that they're they really notice it", with text "that's very hard to
@@ -827,6 +835,14 @@ building anything, and don't reopen a rule without him.
     having left.
   - With four or more still in after a leave (six down to five), nothing changes: the
     commissioner still chooses between moving forward and inviting someone new.
+- **A deleted account that leaves before the draft is "A manager"** (2026-11-11, from the
+  build 1.3.0 (14) phone pass, step 25; Giorgio picked **A** on board #call-deleted-leaver,
+  PR #403, relayed by the Orchestrator; his words: "A, manager left the league"). Before the
+  draft there are no teams, so the deleted seat's label ("Open team") never names a leaver,
+  and the account's name stays hidden. The commissioner's card reads "A manager left the
+  league", the same words as the push ("A manager left {league}. Confirm your roster before
+  the draft."). Two or more leavers, any of them deleted, read "N managers left the league";
+  once inviting, "Invite someone to take their place" (approved 2026-11-10).
 - **Playoffs:** the commissioner sets any playoff team count P from 2 up to the number of
   managers (never more). The bracket is derived (weeks = ceil(log2 P); byes to the top
   seeds). Rounds are named by teams left: Final / Semifinals / Quarterfinals / Round of
