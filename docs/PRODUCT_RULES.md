@@ -399,8 +399,9 @@ building anything, and don't reopen a rule without him.
   sweep left it, and B the card hidden): on the League tab before the draft, once 4 or more
   managers have joined, there is no draft order card until the order exists; the countdown is
   followed by your queue. When the order is set (an hour before the draft) the order card
-  appears in its place, as before. Below 4 the card still shows the bar and "N of 4 managers"
-  (what is blocking). No new words.
+  appears in its place, as before. Below 4 the card still shows "N of 4 managers" (what is
+  blocking), as it does today; it has no progress bar (the board drew one by mistake; corrected
+  2026-11-12, at the build gate). No new words.
 
 ## Scoring and standings
 
