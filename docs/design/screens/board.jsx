@@ -390,6 +390,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-settings-top', title: 'The top of League settings', decision: 'C: the league\u2019s own name is the title, beside the floating close; no "League settings" heading or "League name" label at the top. The commissioner (before the draft) gets a pencil and renames in place, saved by the one "Save changes"; a member sees the name with no pencil. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (League settings opens on the league\u2019s own name)', render: () => window.KSSettingsTopArchived },
     { id: 'call-leave-below-four', title: 'The Leave sheet in a league of four', decision: 'B: when your leave takes the league below four, the sheet drops "{commissioner} chooses whether to go ahead with one fewer team or invite someone new." and keeps only the rejoin line; with no draft time, the title and the two buttons. Five or more unchanged. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (The Leave sheet when your leave takes the league below four)', render: () => window.KSLeaveBelowFourArchived },
     { id: 'call-waiting-card', title: 'The draft order card while it waits, at 4 or more managers', decision: 'B: no card until the order exists; the countdown, then your queue. The order card appears when the order is set; below 4 the card keeps "N of 4 managers" (it has no bar). No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (No draft order card while it waits, at 4 or more)', render: () => window.KSWaitingCardArchived },
     { id: 'call-limit-lines', title: 'The Season step\u2019s two limit lines: keep them or drop them too', decision: 'B: both go ("2 to 6, up to your expected managers", "At least 5 weeks, so every team plays every other team once."). A stepper at its end just greys out, with nothing beside it and nothing added to the Playoff teams i; this overrides "disabled with the reason beside it" for steppers at their ends.', date: '2026-11-11', rec: 'PRODUCT_RULES (The Season step: Steppers at their ends, no line; Nothing tappable does nothing)', render: () => window.KSLimitLinesArchived },
@@ -542,6 +543,7 @@
           {window.KSRule12Info ? <window.KSRule12Info /> : null}
           {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
           {window.KSBelowFour ? <window.KSBelowFour /> : null}
+          {window.KSSettingsTop ? <window.KSSettingsTop /> : null}
           {window.KSSheetTop ? <window.KSSheetTop /> : null}
           {window.KSLeaveBelowFour ? <window.KSLeaveBelowFour /> : null}
           {window.KSDraftClock ? <window.KSDraftClock /> : null}
