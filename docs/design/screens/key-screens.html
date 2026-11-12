@@ -12388,14 +12388,14 @@ window.KS_REFS = {
       s: { head: 'pill', tab: 'home', blocks: [
         { card: [['tag', 'Draft', LIVE], ['title', 'No draft time yet'], C('grey', 'Pick a time, and the countdown starts here.'), C('grey', '60-second picks · 6 rounds'), ['btn', 'Set draft time'], ['btnline', 'Build your queue'], C('grey', 'No buying before the draft. Your team is set at the draft.')] },
         { card: [C('tagchip', 'Draft postponed', 'Postponed'), A('tag', 'Draft postponed', LIVE), ['title', 'Giulia V. will pick a new time.'], C('grey', `You'll see it here, with at least an hour's notice.`), ['btnline', 'Build your queue']] },
-        { card: [['tag', 'Draft order · waiting'], C('grey', 'Set 1 hour before the draft, once 4 managers have joined.'), ['bar', 0.75], ['grey', '3 of 4 managers']] },
+        { card: [['tag', 'Draft order · waiting'], C('grey', 'Set 1 hour before the draft, once 4 managers have joined.'), ['grey', '3 of 4 managers']] },
       ] },
       lines: [
         ['"Pick a time, and the countdown starts here."', 'CUT', 'The "Set draft time" button says it.'],
         ['"60-second picks · 6 rounds" and the no-buying caption', 'CUT', 'As on the scheduled card.'],
         ['The "Postponed" chip', 'CUT', 'Repeated "Draft postponed".'],
         [`"You'll see it here, with at least an hour's notice."`, 'CUT', 'How it works; when the time is set, the card shows it.'],
-        ['"Set 1 hour before the draft, once 4 managers have joined."', 'CUT', 'The bar and "3 of 4 managers" show what is blocking.'],
+        ['"Set 1 hour before the draft, once 4 managers have joined."', 'CUT', '"3 of 4 managers" shows what is blocking.'],
         ['A member\'s "Giulia V. will set the draft time."', 'KEEP', 'A name: who you are waiting on.'],
       ],
     },
@@ -12610,14 +12610,14 @@ window.KS_REFS = {
           <li><b>Why you're being asked:</b> the sweep you approved cut the card's only line at 4 or more managers ("Set 1 hour before the draft, once 4 managers have joined."). What's left is a card with just its label, "DRAFT ORDER · WAITING", and nothing under it. It reads like something that failed to load. Fixing it changes the look of an approved screen, so it's yours.</li>
           <li><b>What you're looking at:</b> the League tab before the draft, 5 managers joined, two days out. Only the draft order card changes. No new words in either.</li>
           <li><b>A · keep it (today).</b> The card stays, with just its label, until the order is set.</li>
-          <li><b>B · hide it until the order exists.</b> At 4 or more managers there's nothing to show yet, so no card. When the order is set (an hour before the draft) the order card appears in its place, as today. Below 4, nothing changes: the card shows the bar and "3 of 4 managers" (third frame), because that's what's blocking.</li>
+          <li><b>B · hide it until the order exists.</b> At 4 or more managers there's nothing to show yet, so no card. When the order is set (an hour before the draft) the order card appears in its place, as today. Below 4, nothing changes: the card shows "3 of 4 managers" (third frame), because that's what's blocking.</li>
           <li><b>Recommended: B.</b> A card should hold something. The countdown above already says when the draft is, and the order card arrives on its own when there's an order to show.</li>
-          {archived ? <li><b>Decided by Giorgio (2026-11-11): "B".</b> He was shown the real build (A) and the same screen with the card cut out (B). At 4 or more managers there is no card until the order exists; below 4 it keeps the bar and the count. Recorded in PRODUCT_RULES ("No draft order card while it waits, at 4 or more").</li> : <li><b>Answer with:</b> A or B.</li>}
+          {archived ? <li><b>Decided by Giorgio (2026-11-11): "B".</b> He was shown the real build (A) and the same screen with the card cut out (B). At 4 or more managers there is no card until the order exists; below 4 it keeps the count ("3 of 4 managers"; the app has no bar there, and the bar these drawings once showed was a drawing error, corrected 2026-11-12). Recorded in PRODUCT_RULES ("No draft order card while it waits, at 4 or more").</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <Grid>{[
           fig('wc-a', 'A · 5 managers, the label alone (today)', <Screen t="light" s={lobby([['tag', 'Draft order \u00b7 waiting']])} />, 'A card with nothing under its label.'),
           fig('wc-b', archived ? 'B · 5 managers, no card (decided)' : 'B · 5 managers, no card (recommended)', <Screen t="light" s={lobby(null)} />, 'The countdown, then your queue.'),
-          fig('wc-3', 'Both · 3 managers (unchanged)', <Screen t="light" s={lobby([['tag', 'Draft order \u00b7 waiting'], ['bar', 0.75], ['grey', '3 of 4 managers']])} />, 'Below 4 the card shows what\u2019s blocking, in A and B alike.'),
+          fig('wc-3', 'Both · 3 managers (unchanged)', <Screen t="light" s={lobby([['tag', 'Draft order \u00b7 waiting'], ['grey', '3 of 4 managers']])} />, 'Below 4 the card shows what\u2019s blocking, in A and B alike.'),
         ]}</Grid>
       </section>
     );
