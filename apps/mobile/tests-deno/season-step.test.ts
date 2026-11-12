@@ -2,16 +2,16 @@
  * Create league › Season, B (PRODUCT_RULES, "The Season step in Create league", Giorgio 2026-11-10; board
  * #call-season-step): three identical steppers ("11 wks", VoiceOver "11 weeks"), no line under any label, the
  * season strip (one tile per week, the playoff weeks named with the season chart's chips, "Wk 1" to the last
- * week), one bye line, and a limit's reason only while its stepper is at that end. Plus the cuts.
+ * week), one bye line, and NO reason line at a limit (the stepper just greys out). Plus the cuts.
  * Run: `cd apps/mobile && deno test --no-check --sloppy-imports --allow-read --allow-env --unstable-raw-imports tests-deno/season-step.test.ts`
  */
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
+import * as seasonStepModule from '../lib/game/seasonStep.ts';
 import {
   UNIFORM_VALUE_WIDTH,
   WEEKS_UNIT_SHOWN,
   WEEKS_UNIT_SPOKEN,
   seasonByeLine,
-  seasonLimitReasons,
   seasonStrip,
   stripGap,
   uniformValueWidth,
@@ -89,31 +89,17 @@ Deno.test('bye line: the playoff line itself is unchanged (the mirrors hold)', (
   assertEquals(playoffLine(3), '3 teams · 2 weeks of playoffs · the top seed gets a first-round bye');
 });
 
-// ── The limits ──────────────────────────────────────────────────────────
+// ── The limits: a stepper at its end greys out, and says nothing ────────
+// Giorgio picked B on #call-limit-lines (2026-11-11): the weeks floor ("At least N weeks, so every team plays every
+// other team once.") and Playoff teams' range ("2 to N, up to your expected managers") are both dropped; Managers never
+// had one. No new words, nothing added to the Playoff teams "i".
 
-const WEEKS_REASON_6 = 'At least 5 weeks, so every team plays every other team once.';
-const PLAYOFF_REASON_6 = '2 to 6, up to your expected managers';
-
-Deno.test('limits: Regular season shows its reason only at its floor', () => {
-  assertEquals(seasonLimitReasons(6, 5, 4).weeks, WEEKS_REASON_6);
-  assertEquals(seasonLimitReasons(6, 6, 4).weeks, null);
-  assertEquals(seasonLimitReasons(8, 11, 4).weeks, null); // the default
-});
-
-Deno.test('limits: Playoff teams shows its range at either end, and nowhere between', () => {
-  assertEquals(seasonLimitReasons(6, 11, 6).playoffTeams, PLAYOFF_REASON_6);
-  assertEquals(seasonLimitReasons(6, 11, 2).playoffTeams, PLAYOFF_REASON_6);
-  assertEquals(seasonLimitReasons(6, 11, 5).playoffTeams, null);
-  assertEquals(seasonLimitReasons(6, 11, 3).playoffTeams, null);
-});
-
-Deno.test('limits: Managers has no reason at 4 or 16 (new words, for Giorgio)', () => {
-  assertEquals(seasonLimitReasons(4, 11, 4).managers, null);
-  assertEquals(seasonLimitReasons(16, 15, 4).managers, null);
-});
-
-Deno.test('limits: the default league shows no reason at all', () => {
-  assertEquals(seasonLimitReasons(8, 11, 4), { managers: null, weeks: null, playoffTeams: null });
+Deno.test('limits: seasonStep exports no reason helper, and createLeagueSteps keeps neither old line', () => {
+  assertEquals(Object.keys(seasonStepModule).filter((k) => /reason|limit|caption/i.test(k)), []);
+  const steps = SOURCES['lib/game/createLeagueSteps.ts'];
+  for (const gone of ['roundRobinCaption', 'playoffTeamsSub', 'every other team once', 'up to your expected managers']) {
+    assertFalse(steps.includes(gone), gone);
+  }
 });
 
 // ── The steppers ────────────────────────────────────────────────────────
@@ -147,9 +133,21 @@ Deno.test('screen: three identical steppers with no line under any label', () =>
 Deno.test('screen: the strip and the bye line follow the stepped values', () => {
   assert(season.includes('<SeasonStrip regularWeeks={shownWeeks} playoffTeams={playoffTeams} />'));
   assert(season.includes('const byeLine = seasonByeLine(playoffTeams);'));
-  assert(season.includes('const reasons = seasonLimitReasons(state.size, shownWeeks, playoffTeams);'));
-  assert(season.includes('{reasons.weeks ? <Text variant="caption">{reasons.weeks}</Text> : null}'));
-  assert(season.includes('{reasons.playoffTeams ? <Text variant="caption">{reasons.playoffTeams}</Text> : null}'));
+});
+
+Deno.test('screen: the only text the step draws itself is the bye line (no reason under a stepper at its end)', () => {
+  assertEquals(season.match(/<Text\b/g)?.length, 1);
+  assert(season.includes('<Text variant="callout" tone="secondary" style={styles.byeLine}>'));
+  assertFalse(season.includes('variant="caption"'));
+  assertFalse(/reasons?\b/i.test(season.replace(/^\s*\/\/.*$/gm, '')), 'no reasons wiring left in the step');
+});
+
+Deno.test('screen: each stepper still greys out at its end (− and +)', () => {
+  assert(season.includes('canDecrement={state.size > MANAGER_SIZES[0]}'));
+  assert(season.includes('canIncrement={state.size < MANAGER_SIZES[MANAGER_SIZES.length - 1]}'));
+  assert(season.includes('canDecrement={shownWeeks > minWeeks}'));
+  assert(season.includes('canDecrement={playoffTeams > 2}'));
+  assert(season.includes('canIncrement={playoffTeams < state.size}'));
 });
 
 Deno.test('screen: the Playoff teams "i" stays, and it is the only "i" on the step', () => {
@@ -165,13 +163,15 @@ Deno.test('cut: the old Season lines appear nowhere in the app', () => {
     'We check this again when the draft starts.',
     'How big the league is and how long it runs.',
     'This updates as people join.',
+    'weeks, so every team plays every other team once.',
+    'up to your expected managers',
     'seasonCheckCaption',
     'byeExpectedCopy',
   ];
   for (const [path, text] of Object.entries(SOURCES)) {
     for (const c of cut) assertFalse(text.includes(c), `${path} still has "${c}"`);
   }
-  for (const gone of ['roundRobinCaption(', 'playoffTeamsSub(', 'playoffLine(', 'byeNoticeCopy(', '<WarnNote']) {
+  for (const gone of ['roundRobinCaption', 'playoffTeamsSub', 'seasonLimitReasons', 'playoffLine(', 'byeNoticeCopy(', '<WarnNote']) {
     assertFalse(screen.includes(gone), `create-league.tsx still calls ${gone}`);
   }
 });

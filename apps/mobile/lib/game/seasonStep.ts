@@ -6,7 +6,6 @@
  */
 import { playoffByePhrase, playoffPlan, playoffRoundShortName } from '../playoffs';
 import { seasonCaption } from './createLeagueSetup';
-import { playoffTeamsSub, roundRobinCaption } from './createLeagueSteps';
 
 // ── The steppers ────────────────────────────────────────────────────────
 
@@ -24,25 +23,6 @@ const VALUE_MAX_SCALE = 1.6;
 export function uniformValueWidth(fontScale: number): number {
   const scale = Number.isFinite(fontScale) && fontScale > 0 ? fontScale : 1;
   return Math.round(UNIFORM_VALUE_WIDTH * Math.min(scale, VALUE_MAX_SCALE));
-}
-
-/** The reason under each stepper, shown ONLY while that stepper is at an end (its − or + greyed).
- * Managers has none: its words at 4 or 16 are new, for Giorgio (PRODUCT_RULES), so it stays null
- * until he approves them. Regular season has only a floor (one round robin, size − 1). Playoff
- * teams run 2..size, and its range line explains both ends. */
-export interface SeasonLimitReasons {
-  managers: null;
-  weeks: string | null;
-  playoffTeams: string | null;
-}
-
-export function seasonLimitReasons(size: number, shownWeeks: number, playoffTeams: number): SeasonLimitReasons {
-  const minWeeks = size - 1;
-  return {
-    managers: null,
-    weeks: shownWeeks <= minWeeks ? roundRobinCaption(minWeeks) : null,
-    playoffTeams: playoffTeams <= 2 || playoffTeams >= size ? playoffTeamsSub(size) : null,
-  };
 }
 
 // ── The strip ───────────────────────────────────────────────────────────

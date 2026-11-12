@@ -72,7 +72,7 @@ import { Field } from '@/components/shell/Field';
 import { SetupScaffold } from '@/components/game/SetupScaffold';
 import { Stepper } from '@/components/game/Stepper';
 import { SeasonStrip } from '@/components/game/SeasonStrip';
-import { WEEKS_UNIT_SHOWN, WEEKS_UNIT_SPOKEN, seasonByeLine, seasonLimitReasons } from '@/lib/game/seasonStep';
+import { WEEKS_UNIT_SHOWN, WEEKS_UNIT_SPOKEN, seasonByeLine } from '@/lib/game/seasonStep';
 import { DraftDateSheet } from '@/components/game/DraftDateSheet';
 import { CAPTURE } from '@/lib/shell/captureDev';
 import { createFixtureStep } from '@/lib/shell/captureKnobs';
@@ -334,11 +334,10 @@ export default function CreateLeagueWizard() {
   );
 
   // ── Step 2 · Season (PRODUCT_RULES, "The Season step in Create league", B) ─
-  // Three identical steppers, no line under any label; a limit's reason shows under its stepper only
-  // while it is at that end (seasonLimitReasons). Then the season strip, and one line outside the
-  // card: the playoff line's bye clause. Managers has no reason at 4 or 16 (its words are Giorgio's).
+  // Three identical steppers, no line under any label and none at a limit either: − or + just greys
+  // out at its end (Giorgio, #call-limit-lines B, 2026-11-11). Then the season strip, and one line
+  // outside the card: the playoff line's bye clause.
   const renderSeason = () => {
-    const reasons = seasonLimitReasons(state.size, shownWeeks, playoffTeams);
     const byeLine = seasonByeLine(playoffTeams);
     return (
       <>
@@ -365,7 +364,6 @@ export default function CreateLeagueWizard() {
               canDecrement={shownWeeks > minWeeks}
               canIncrement
             />
-            {reasons.weeks ? <Text variant="caption">{reasons.weeks}</Text> : null}
           </View>
           <RowDivider />
           <View style={styles.block}>
@@ -378,7 +376,6 @@ export default function CreateLeagueWizard() {
               canDecrement={playoffTeams > 2}
               canIncrement={playoffTeams < state.size}
             />
-            {reasons.playoffTeams ? <Text variant="caption">{reasons.playoffTeams}</Text> : null}
           </View>
           <RowDivider />
           <View style={styles.block}>

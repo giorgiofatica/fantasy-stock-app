@@ -13,9 +13,7 @@ import {
   DURATION_OPTIONS,
   MANAGER_SIZES,
   leagueNameError,
-  roundRobinCaption,
   nextStep,
-  playoffTeamsSub,
   prevStep,
   stakesStepError,
   stepCaption,
@@ -136,10 +134,6 @@ Deno.test('weeks step from the shown value and hold at the floor', () => {
   assertEquals(stepWeeks(11, 16, -1), 15);
 });
 
-Deno.test('playoff teams sub-line (board)', () => {
-  assertEquals(playoffTeamsSub(7), '2 to 7, up to your expected managers');
-});
-
 Deno.test('durations are exactly the CHECK values, in order', () => {
   assertEquals(DURATION_OPTIONS.map((d) => d.value), [7, 30, 90, 180, 365]);
 });
@@ -151,10 +145,6 @@ Deno.test('rounds in create stay 3..12', () => {
   assertEquals(stepWithin(12, 1, 3, 12), 12);
   assertEquals(stepWithin(3, -1, 3, 12), 3);
   assertEquals(stepWithin(6, 1, 3, 12), 7);
-});
-
-Deno.test('round-robin caption (Design Lead ruling)', () => {
-  assertEquals(roundRobinCaption(7), 'At least 7 weeks, so every team plays every other team once.');
 });
 
 Deno.test('budget presets unchanged', () => {

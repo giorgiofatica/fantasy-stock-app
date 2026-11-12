@@ -111,17 +111,6 @@ export function stepWeeks(numWeeks: number, size: number, direction: 1 | -1): nu
   return Math.max(size - 1, weeksShown(numWeeks, size) + direction);
 }
 
-/** The Regular season stepper's reason, shown under it only while it is at its floor (seasonStep.ts, seasonLimitReasons). */
-export function roundRobinCaption(minWeeks: number): string {
-  return `At least ${minWeeks} weeks, so every team plays every other team once.`;
-}
-
-/** "2 to 7, up to your expected managers" (board): the Playoff teams stepper's reason, shown under it only while it is at
- * an end (seasonStep.ts, seasonLimitReasons). */
-export function playoffTeamsSub(size: number): string {
-  return `2 to ${size}, up to your expected managers`;
-}
-
 /** UNUSED until Duration is built: PRODUCT_RULES, "Duration is hidden in Create league until
  * it is built" (2026-11-11, Giorgio picked "A"), and 20261203000000 refuses a new Duration
  * league on the server. Kept for when it comes back: Create league's old Duration row, and
