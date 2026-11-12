@@ -394,6 +394,13 @@ building anything, and don't reopen a rule without him.
   stepper on Create league › Draft stays a label and a number, with nothing behind it.
 - **Cut the league-name line** (2026-11-11, "3b cut"): "Don't worry. You will be able to
   change this later." under Create league's League name field goes. Nothing replaces it.
+- **No draft order card while it waits, at 4 or more** (2026-11-11, "B" on
+  `#call-waiting-card`, shown A the "DRAFT ORDER · WAITING" card with only its label, as the
+  sweep left it, and B the card hidden): on the League tab before the draft, once 4 or more
+  managers have joined, there is no draft order card until the order exists; the countdown is
+  followed by your queue. When the order is set (an hour before the draft) the order card
+  appears in its place, as before. Below 4 the card still shows the bar and "N of 4 managers"
+  (what is blocking). No new words.
 
 ## Scoring and standings
 
