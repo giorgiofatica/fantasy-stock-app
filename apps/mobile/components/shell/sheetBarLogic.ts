@@ -60,9 +60,24 @@ export function sheetEdgeShown(contentOffsetY: number): boolean {
   return contentOffsetY > 0;
 }
 
-/** Where the fade's gradient stops go: solid through the band, clear at the bottom edge. */
-export function sheetFadeLocations(fontScale: number): [number, number, number] {
-  return [0, sheetFadeSolid(fontScale) / sheetFadeHeight(fontScale), 1];
+/** The ramp after the solid band, EASED IN (Design Lead, gate re-check: with a linear ramp the lower halves of a line crossing the band's edge
+ * stayed dim but legible at 3x, "a dim half-word is the same complaint softened"). `at` is how far through the ramp's SHEET_EDGE_FADE_CLEAR pt;
+ * `alpha` is the surface colour's opacity there. It stays mostly opaque through the first half, then drops away. */
+export const SHEET_FADE_RAMP: readonly { at: number; alpha: number }[] = [
+  { at: 0, alpha: 1 },
+  { at: 0.5, alpha: 0.85 },
+  { at: 0.8, alpha: 0.4 },
+  { at: 1, alpha: 0 },
+];
+
+/** The surface colour's opacity at each gradient stop: opaque from the top through the solid band's end, then the ramp's. */
+export const SHEET_FADE_ALPHAS: readonly number[] = [1, ...SHEET_FADE_RAMP.map((r) => r.alpha)];
+
+/** Where the fade's gradient stops go (one per SHEET_FADE_ALPHAS entry): the top, the solid band's end, then the ramp's stops. */
+export function sheetFadeLocations(fontScale: number): [number, number, ...number[]] {
+  const solid = sheetFadeSolid(fontScale);
+  const height = sheetFadeHeight(fontScale);
+  return [0, ...SHEET_FADE_RAMP.map((r) => (solid + r.at * SHEET_EDGE_FADE_CLEAR) / height)] as [number, number, ...number[]];
 }
 
 /** What the bar's Save shows. `off`: grey and inert (nothing differs from what was loaded). `on`: the accent, a tap saves.

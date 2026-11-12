@@ -229,9 +229,9 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/PushPrePrompt.tsx:40` | Pressable | onPress | `onNotNow` | prop onNotNow (the caller's) | `status !== 'idle'` |
 | `components/shell/RefusalScreen.tsx:49` | Button | onPress | `primary.onPress` | prop primary.onPress |  |
 | `components/shell/RefusalScreen.tsx:50` | Link | onPress | `secondary.onPress` | prop secondary.onPress |  |
-| `components/shell/SheetBar.tsx:85` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
-| `components/shell/SheetBar.tsx:126` | Pressable | onPress | `rename.onBegin` | prop rename.onBegin |  |
-| `components/shell/SheetBar.tsx:181` | Pressable | onPress | `inline: inert ? undefined : save.onPress` | — |  |
+| `components/shell/SheetBar.tsx:87` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/shell/SheetBar.tsx:128` | Pressable | onPress | `rename.onBegin` | prop rename.onBegin |  |
+| `components/shell/SheetBar.tsx:183` | Pressable | onPress | `inline: inert ? undefined : save.onPress` | — |  |
 | `components/shell/ShellHeader.tsx:56` | Pressable | onPress | `inline: () => router.push(profileHref(profileFromPathname(pathname))` | route push(profileHref(profileFromPathname(pathname))) |  |
 | `components/shell/ShellTabBar.tsx:108` | TabItem | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/shell/ShellTabBar.tsx:109` | TabItem | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |

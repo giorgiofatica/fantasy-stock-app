@@ -11,6 +11,7 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import layout from '../app/_layout.tsx' with { type: 'text' };
 import { isPageSheet } from '../lib/shell/screenTopInset.ts';
+import { alphaOf, clearOf } from '../constants/tokens/color.ts';
 import {
   SHEET_BAR_CLOSE_GLYPH,
   SHEET_BAR_CLOSE_INK_INSET,
@@ -27,6 +28,8 @@ import {
   SHEET_EDGE_DIVIDER,
   SHEET_EDGE_FADE_CLEAR,
   SHEET_EDGE_ROW_SCALE_CAP,
+  SHEET_FADE_ALPHAS,
+  SHEET_FADE_RAMP,
   SHEET_EDGE_ROW_TEXT,
   sheetBarFieldSize,
   sheetBarPencilSize,
@@ -214,9 +217,14 @@ Deno.test('the fade\'s solid band is a FORMULA: one row line at the current text
   for (const [fontScale, solid] of [[1, 16], [1.235, 16 * 1.235], [1.353, 16 * 1.353], [2.143, 16 * 2.143], [3, 48], [3.571, 48], [4, 48]] as const) {
     assertEquals(sheetFadeSolid(fontScale), solid, `solid at ${fontScale}x`);
     assertEquals(sheetFadeHeight(fontScale), solid + 20, `height at ${fontScale}x`);
-    const [from, solidEnd, to] = sheetFadeLocations(fontScale);
-    assertEquals([from, to], [0, 1]);
-    assert(Math.abs(solidEnd * sheetFadeHeight(fontScale) - solid) < 1e-9, `solid stop at ${fontScale}x is the solid band`);
+    const stops = sheetFadeLocations(fontScale);
+    const h = sheetFadeHeight(fontScale);
+    assertEquals(stops.length, SHEET_FADE_ALPHAS.length, 'one location per colour');
+    assertEquals([stops[0], stops[stops.length - 1]], [0, 1]);
+    assert(Math.abs(stops[1] * h - solid) < 1e-9, `the solid band ends at ${fontScale}x`);
+    // The ramp's stops sit at 0 / 0.5 / 0.8 / 1 of the 20 pt after the band.
+    for (const [i, at] of [[1, 0], [2, 0.5], [3, 0.8], [4, 1]] as const) assert(Math.abs(stops[i] * h - (solid + at * 20)) < 1e-9, `ramp stop ${at} at ${fontScale}x`);
+    assert(stops.every((s, i) => i === 0 || s > stops[i - 1]), 'strictly increasing');
   }
   // At Large the band is at least the row text's own size (a 15-17 pt line), where the old 6 pt band left half a line legible.
   assert(sheetFadeSolid(1) >= 16 && sheetFadeSolid(1) > 6);
@@ -225,11 +233,22 @@ Deno.test('the fade\'s solid band is a FORMULA: one row line at the current text
   assertEquals(sheetFadeSolid(0), 16);
 });
 
+Deno.test('the ramp is EASED IN, not linear: surface opacity 1 / 0.85 / 0.4 / 0 at 0 / 0.5 / 0.8 / 1 of the ramp (DL re-check: a linear ramp left dim half-words)', () => {
+  assertEquals(SHEET_FADE_RAMP, [{ at: 0, alpha: 1 }, { at: 0.5, alpha: 0.85 }, { at: 0.8, alpha: 0.4 }, { at: 1, alpha: 0 }]);
+  assertEquals(SHEET_FADE_ALPHAS, [1, 1, 0.85, 0.4, 0], 'opaque through the band, then the ramp');
+  // Eased: at every interior stop the cover is stronger than a linear ramp's (1 - at), so a line crossing the band's edge is more hidden, not less.
+  for (const r of SHEET_FADE_RAMP.filter((x) => x.at > 0 && x.at < 1)) assert(r.alpha > 1 - r.at, `stop ${r.at} is above the linear ramp`);
+  // The colour of every stop is the surface token at that alpha; the last is the same colour at alpha 0 (clearOf), never `transparent`.
+  assertEquals(alphaOf('#0E132F', 0.85), 'rgba(14, 19, 47, 0.85)');
+  assertEquals(alphaOf('#0E132F', 0), clearOf('#0E132F'));
+  assertEquals(clearOf('#FDFEFF'), 'rgba(253, 254, 255, 0)');
+});
+
 Deno.test('the scroll edge: a 1pt border-token divider, and a fade in the bar\'s own colour whose height comes from the text size', () => {
   assertEquals(SHEET_EDGE_DIVIDER, 1);
   assert(/backgroundColor: colors\.border/.test(bar), 'the divider is the border token');
-  assert(/colors=\{\[colors\.surface, colors\.surface, clear\]\}/.test(bar), 'surface, surface, then the surface at alpha 0');
-  assert(/const clear = clearOf\(colors\.surface\)/.test(bar));
+  assert(/const fadeColors = SHEET_FADE_ALPHAS\.map\(\(a\) => alphaOf\(colors\.surface, a\)\)/.test(bar), 'one surface colour per stop, at that stop\'s alpha');
+  assert(/colors=\{fadeColors\}/.test(bar) && /locations=\{sheetFadeLocations\(fontScale\)\}/.test(bar), 'the eased stops drive the gradient');
   assert(!/transparent/.test(code(bar)), 'never the `transparent` keyword (black at alpha 0: a grey fade)');
   // The geometry is read from the formula with the live text scale, never a literal.
   assert(/useWindowDimensions\(\)/.test(bar) && /locations=\{sheetFadeLocations\(fontScale\)\}/.test(bar), 'the stops follow the text size');

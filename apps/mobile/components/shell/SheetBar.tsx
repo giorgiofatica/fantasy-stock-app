@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, TextInput, useWindowDimension
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { space, typeFontFamily } from '@/constants/tokens';
-import { clearOf } from '@/constants/tokens/color';
+import { alphaOf } from '@/constants/tokens/color';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -18,6 +18,7 @@ import {
   SHEET_BAR_TITLE_SIZE,
   SHEET_BAR_TARGET,
   SHEET_EDGE_DIVIDER,
+  SHEET_FADE_ALPHAS,
   saveInert,
   sheetBarFieldSize,
   sheetBarPencilSize,
@@ -69,7 +70,8 @@ export function SheetBar({ title, onClose, closeLabel = 'Close', closeTestID, sa
   const { colors } = useTheme();
   // None inside an iOS page sheet, which already starts below the status bar (components/shell/ScreenPresentation.tsx).
   const topInset = useScreenTopInset();
-  const clear = clearOf(colors.surface);
+  // The surface at each stop's opacity (never the `transparent` keyword, which is black at alpha 0: a grey fade).
+  const fadeColors = SHEET_FADE_ALPHAS.map((a) => alphaOf(colors.surface, a)) as [string, string, ...string[]];
   // The solid part of the fade covers one row line at the current text size (sheetBarLogic.ts), so no row straddling the divider shows half a line.
   const { fontScale } = useWindowDimensions();
 
@@ -96,7 +98,7 @@ export function SheetBar({ title, onClose, closeLabel = 'Close', closeTestID, sa
         <>
           {/* The fade is the bar's surface into the surface at alpha 0, never the `transparent` keyword (black at 0: a grey fade). */}
           <LinearGradient
-            colors={[colors.surface, colors.surface, clear]}
+            colors={fadeColors}
             locations={sheetFadeLocations(fontScale)}
             style={[styles.fade, { bottom: -sheetFadeHeight(fontScale), height: sheetFadeHeight(fontScale) }]}
             pointerEvents="none"
