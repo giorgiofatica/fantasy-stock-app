@@ -33,6 +33,8 @@ Entries begin with the Recorder's first pass.
 - **Not shown:** the `202` on a real run, and notices still moving from pending to sent. Both wait for the next draft event. `enrich-symbols` was not redeployed: `main` differs from prod there by a refactor-only change, and a redeploy is optional.
 
 **Merged, not confirmed live**
+- **Mobile, in no build (build 15), no server step:** #426 (merged 18:24:05Z; the Leave sheet below four drops the false commissioner-choice line, built from #424's ruling; the Design Lead passed it with no findings, and the Orchestrator verified it independently, Deno 3238/0). The newest EAS iOS build is still 1.3.0 (14), re-read.
+- **Docs:** #425 (my record: step 26, mirror v25, the no-AASA launch-prep finding) and #427 (the Researcher's `docs/research/2026-11-12-how-non-broker-apps-license-market-data.md`, docs only; nothing decided).
 - **Mobile, 2026-11-12, all in no build (build 15), no server step:** #415 (04:26Z; the rule-12 sweep and "i" popups; 85 files; the Design Lead passed it; the Orchestrator verified it independently: 3175 tests, no new tsc or lint errors, 10 of 10 mutants killed), #417 (17:08Z; your queue saves as you go), #419 (17:14Z; the Season step strip B, both limit lines dropped). #421 (my record) merged 17:18:57Z. The newest EAS iOS build is still 1.3.0 (14). Their effect on a phone is not shown until a build carries them.
 - **#422 (17:19Z) builds the waiting-card ruling, in no build (build 15):** no draft order card at 4 or more managers until the order exists (no card, no gap; below 4 unchanged; a failed first read draws nothing). It had failed the Design Lead's gate on a 16 pt gap left where the card was; the fix (`DraftLobby` returns `null` when it has nothing to draw) passed the Design Lead's re-gate, and the Orchestrator verified it independently (Deno 3234/0, no new tsc errors). Its effect on a phone is not shown until a build carries it.
 - Docs and design: #416 (stepper-end and Managers limit-line rules, gate checklist), #418 (the waiting-card board), #414 (the VoiceOver and queue rules), #406 (the Design Lead's step-25 board archive), #407 (my record), #409 (the Design Lead's board: the sweep's "Fix these before …" row is KEPT, superseded by step 25 (b)). The two step-25 rulings (the pre-draft card's "A manager left the league", a deadline that names its day) remain build items for 1.3.x, not built.
@@ -41,7 +43,7 @@ Entries begin with the Recorder's first pass.
 - The 7 VoiceOver descriptions are approved as written ("approved").
 - Your queue saves as you go, with no Save button ("B saves as you go").
 - Steppers at their ends get no line ("option B": the two approved limit lines go), and Managers at 4 and 16 gets no line.
-- The Leave sheet when your leave takes the league below four ("B", #424, merged 17:38:56Z): it drops the false "{commissioner} chooses whether…" line and adds nothing; not built (the build is in progress, not merged).
+- The Leave sheet when your leave takes the league below four ("B", #424, merged 17:38:56Z): it drops the false "{commissioner} chooses whether…" line and adds nothing; built in #426 (merged 18:24:05Z), in no build.
 - No draft order card while it waits, at 4 or more managers ("B"). #420 (merged 17:14:55Z) corrected the rule's text: no progress bar below 4 either; the bar was only in the drawings.
 
 **Found**
