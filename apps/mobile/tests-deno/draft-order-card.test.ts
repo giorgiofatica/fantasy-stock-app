@@ -1,6 +1,6 @@
 /**
  * When the lobby draws the draft-order card (Giorgio picked B on call-waiting-card): below 4 managers the
- * waiting card keeps its bar and "N of 4 managers"; at 4 or more with no order yet NO card (the rule-12 sweep
+ * waiting card keeps its "N of 4 managers" line; at 4 or more with no order yet NO card (the rule-12 sweep
  * left it a bare tag, the countdown above says when); the order card once the order is set.
  */
 import { assert, assertEquals } from 'jsr:@std/assert';

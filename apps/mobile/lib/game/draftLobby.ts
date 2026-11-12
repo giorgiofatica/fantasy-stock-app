@@ -24,7 +24,7 @@ export function managersProgressShown(memberCount: number, minMembers: number): 
 }
 
 /** Which card the lobby draws for the draft order. The order card once the order is set; below the minimum
- * managers the waiting card (its bar and "3 of 4 managers" are its whole content); and at the minimum or
+ * managers the waiting card ("3 of 4 managers" is its whole content); and at the minimum or
  * more with no order yet, NOTHING: the rule-12 sweep cut the card's only line, so it was a bare tag, and the
  * countdown card above already says when (Giorgio picked B, call-waiting-card). Two facts decide it, never
  * one: "no order yet" alone would still draw the bare card for a full league, and "4 or more" alone would
