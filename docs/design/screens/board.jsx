@@ -383,7 +383,7 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-managers-limit', 'The line under Managers at 4 and at 16', () => window.KSManagersLimit],
+    ['call-limit-lines', 'The Season step\u2019s two limit lines: keep them or drop them too', () => window.KSLimitLines],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
@@ -391,6 +391,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-managers-limit', title: 'The line under Managers at 4 and at 16', decision: 'Neither: no line. \u2212 greys out at 4 and + at 16, with nothing beside them ("no one wants to run something as a bunch of tiny little subheaders"; extra explanation belongs behind a tap).', date: '2026-11-11', rec: 'PRODUCT_RULES (The Season step: Managers at 4 and 16, no line)', render: () => window.KSManagersLimitArchived },
     { id: 'call-queue-save', title: 'Your queue: a Save button, or saves as you go', decision: 'B: every add, remove or reorder saves on its own; no "Save queue", no "Not saved yet."; a failed save shows "Your queue couldn\u2019t be saved." in place with "Try again". No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (Your queue saves as you go)', render: () => window.KSQueueSaveArchived },
     { id: 'rule12-info', title: 'The i: a popup for a choice we defined (your tweak to the sweep)', decision: 'Two pages (B), just the dots; the popup lines and the pictures\u2019 spoken descriptions approved as written; Rounds gets no i (1A); the league-name line cut (3B); the lines name what decides the winner (4A), Duration by dollars; Duration\u2019s i on hold until Duration is built.', date: '2026-11-11', rec: 'PRODUCT_RULES (the "i" popup entries under rule 12)', render: () => window.KSRule12InfoArchived },
     { id: 'rule12-sweep', title: 'Every heading in the app, without the lines that explain it (rule 12)', decision: 'All of it, screen by screen as drawn, with the i for a choice we defined. Later corrections: the queue keeps "Save queue" until it saves as you go; the at-risk card keeps "Fix these before \u2026" (step 25).', date: '2026-11-10', rec: 'PRODUCT_RULES (rule 12; Optional context for a choice we defined)', render: () => window.KSRule12SweepArchived },

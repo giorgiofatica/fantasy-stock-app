@@ -891,6 +891,14 @@ building anything, and don't reopen a rule without him.
     that stepper only while it is at the end ("2 to 6, up to your expected managers"; "At
     least 5 weeks, so every team plays every other team once."). Managers at 4 or 16 has no
     reason line yet: new words, for Giorgio, when it is built.
+  - **Managers at 4 and 16: no line** (2026-11-11, both options on `#call-managers-limit`
+    rejected): "I don't like this idea of adding in like this smaller subtext to explain things
+    that don't need to be explained. Like, if there needs to be an extra explanation for
+    something, I want it to be in like a little information thing or something that the user
+    would have to click to then see, because adding in those right now, it just adds clutter.
+    Like, no one wants to run something as a bunch of tiny little subheaders." So − greys out
+    at 4 and + at 16, with nothing beside them. Whether the two approved limit lines above go
+    the same way is open (board `#call-limit-lines`).
   - Removed: "How many you expect, you included" and "We check this again when the draft
     starts." (the draft-time blockers card catches a league that came in smaller).
   - Not yet decided: sweeping the same pattern from the Draft step, the Duration lengths, League
