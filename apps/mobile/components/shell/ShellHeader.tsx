@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
 import { Avatar } from '@/components/sp/Avatar';
 import { LeaguePill } from '@/components/shell/LeaguePill';
 import { ScreenTitle } from '@/components/shell/ScreenTitle';
+import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { useSession } from '@/lib/SessionProvider';
 import { profileFromPathname, profileHref } from '@/lib/shell/profileBack';
@@ -32,7 +32,8 @@ export interface ShellHeaderProps {
 }
 
 export function ShellHeader({ title, showAvatar = false }: ShellHeaderProps) {
-  const insets = useSafeAreaInsets();
+  // None inside an iOS page sheet (Trade history), which already starts below the status bar; a tab keeps it.
+  const topInset = useScreenTopInset();
   const { activeLeague, leagues, loading } = useLeagueContext();
   const { username, user } = useSession();
   const displayName = username ?? user?.email ?? '';
@@ -40,7 +41,7 @@ export function ShellHeader({ title, showAvatar = false }: ShellHeaderProps) {
   const pathname = usePathname();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + space[3] }]}>
+    <View style={[styles.header, { paddingTop: topInset + space[3] }]}>
       {activeLeague ? (
         <LeaguePill name={activeLeague.name} totalLeagues={leagues.length} />
       ) : loading ? (

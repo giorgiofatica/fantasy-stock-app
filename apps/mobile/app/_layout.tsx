@@ -41,6 +41,7 @@ import { useArrivalInvite } from '@/lib/invite/useArrivalInvite';
 import { shouldOpenTakeover, takeoverOwnerAction } from '@/lib/invite/pendingTakeover';
 import { pendingTakeover as takeoverStore, useTakeoverSnapshot } from '@/lib/invite/pendingTakeoverStore';
 import { loadDeletedManagerLabel } from '@/lib/account/deletedLabelStore';
+import { presentationScreenLayout } from '@/components/shell/ScreenPresentation';
 import { ThemeDipProvider } from '@/components/shell/ThemeDip';
 import { ThemeProvider, useTheme } from '@/components/sp/ThemeProvider';
 
@@ -62,6 +63,8 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 // Stable references — defined outside the component so re-renders
 // don't create new objects that cause native-stack to reconfigure
 const HIDDEN_HEADER = { headerShown: false } as const;
+// 'modal' is an iOS page sheet below the status bar: the root Stack's screenLayout tells its frame not to clear the
+// inset again (components/shell/ScreenPresentation.tsx; tests-deno/sheet-top-inset.test.ts lists every such route).
 const HIDDEN_HEADER_MODAL = { headerShown: false, presentation: 'modal' } as const;
 const HIDDEN_HEADER_FULLSCREEN = { headerShown: false, presentation: 'fullScreenModal' } as const;
 const WITH_HEADER = { headerShown: true } as const;
@@ -361,7 +364,7 @@ function RootLayoutNav({ fontsLoaded }: { fontsLoaded: boolean }) {
           {/* The league sheet and S3's flying label are drawn in a layer above
               the Stack (components/shell/ShellOverlay.tsx explains why). */}
           <ShellOverlayProvider>
-            <Stack screenOptions={HIDDEN_HEADER}>
+            <Stack screenOptions={HIDDEN_HEADER} screenLayout={presentationScreenLayout}>
               <Stack.Protected guard={!signedIn}>
                 {/* An invite link's arrival (W4; W3 supplies the pending invite). First in the group, so a
                     signed-out person with an invite pending lands here, not on the cards or Sign in. */}

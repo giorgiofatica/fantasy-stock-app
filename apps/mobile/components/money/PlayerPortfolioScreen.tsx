@@ -17,13 +17,13 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { space } from '@/constants/tokens';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { PlayerCard, type PlayerCardOwnership } from '@/components/sp/gn';
+import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { HoldingRow, ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { PortfolioSkeleton } from '@/components/money/PortfolioSkeleton';
@@ -84,7 +84,8 @@ function HeroLine({ label, money, pct, words, color }: { label: string; money: s
 export function PlayerPortfolioScreen({ userId, username }: { userId: string; username?: string | null }) {
   const { colors } = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  // None inside its iOS page sheet, which already starts below the status bar.
+  const topInset = useScreenTopInset();
   const { market, activeLeague } = useLeagueContext();
   const { user } = useAuth();
   const deletedLabel = useDeletedManagerLabel();
@@ -237,7 +238,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.moneyBg }]}>
-      <View style={[styles.header, { paddingTop: insets.top + space[3] }]}>
+      <View style={[styles.header, { paddingTop: topInset + space[3] }]}>
         <Text variant="title" numberOfLines={2} maxFontSizeMultiplier={1.3} accessibilityRole="header" style={styles.title}>
           {knownName ? `${knownName}${data.portfolio?.isBot ? ' · Bot' : ''}` : ' '}
         </Text>
