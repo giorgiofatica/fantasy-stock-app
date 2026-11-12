@@ -32,6 +32,14 @@ export function RowDivider() {
   return <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />;
 }
 
+/** A 1 pt rule across a SetupCard, edge to edge: the Season step's rows (the approved board, B, draws one between Managers,
+ * Regular season, Playoff teams and the strip). The card's other rows still divide by SPACE (RowDivider, §9C rule 2); this
+ * is only for the card the board draws with rules. */
+export function SetupRule() {
+  const { colors } = useTheme();
+  return <View style={[styles.rule, { backgroundColor: colors.border }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />;
+}
+
 /** A section's bold key, the board's `ks-callout` at weight 600. */
 export function RowKey({ children, maxScale, onTextLayout }: { children: string; maxScale?: number; onTextLayout?: (e: NativeSyntheticEvent<TextLayoutEventData>) => void }) {
   return (
@@ -314,6 +322,11 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: space[2],
+  },
+  // Full-bleed inside the card: it cancels the card's own horizontal padding.
+  rule: {
+    height: 1,
+    marginHorizontal: -space[5],
   },
   key: {
     fontFamily: typeFontFamily.semiBold,

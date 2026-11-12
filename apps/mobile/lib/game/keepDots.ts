@@ -72,9 +72,10 @@ export function keepMoney(text: string): string {
  * one line, wherever the rest of the sentence wraps ("Through Week 10", "You win Week 6", "Week 7 starts Mon 9:30 AM
  * ET", "playoff week 2"). Display only, like keepDots (the copy, and every accessibilityLabel, keep their plain
  * space). Matches "Week"/"week" + one space + a digit, so "Weekly 5" and "Week of" are untouched. Idempotent.
+ * Also "Wk N", the short form under Create league's season strip ("Wk 1", "Wk 14"; SeasonStrip.tsx).
  */
 export function keepWeek(text: string): string {
-  return text.replace(/\b([Ww]eek) (?=\d)/g, `$1${NBSP}`);
+  return text.replace(/\b([Ww]eek|Wk) (?=\d)/g, `$1${NBSP}`);
 }
 
 /**

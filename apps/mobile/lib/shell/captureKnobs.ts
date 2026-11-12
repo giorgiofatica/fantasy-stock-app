@@ -8,6 +8,8 @@
  *
  *   EXPO_PUBLIC_ONBOARDING_CARD=1|2|3      the onboarding card to open on
  *   EXPO_PUBLIC_CREATE_FIXTURE=<state>     Create league's step (or its done screen)
+ *   EXPO_PUBLIC_CREATE_SEASON=<m>,<w>,<p>  Create league starts with m managers, w regular weeks, p playoff teams
+ *                                          (the Season step's stills: a big league, each limit at its end)
  *   EXPO_PUBLIC_JOIN_AUTO=find|join        Join presses Find league (and then Join) by itself
  *   EXPO_PUBLIC_SIGNUP_PAUSED=1            Create account opens on the signups-paused refusal
  *   EXPO_PUBLIC_USERNAME_PREFILL=<name>    the username picker starts with this typed in
@@ -16,7 +18,7 @@
  *   EXPO_PUBLIC_CONFIRMED=chip|notice      the username screen shows the EMAIL CONFIRMED chip / Sign in shows
  *                                          the confirm-failed line (no email link can be opened on a simulator)
  */
-import type { CreateStep } from '../game/createLeagueSteps';
+import { MANAGER_SIZES, type CreateStep } from '../game/createLeagueSteps';
 import { INVITE_FIXTURES, type InviteFixtureKind } from '../invite/inviteFixture';
 
 export type CreateFixture = CreateStep | 'tiers' | 'done' | 'done_no_date';
@@ -32,9 +34,26 @@ export interface CaptureKnobs {
   pushAsk: boolean;
   confirmed: 'chip' | 'notice' | null;
   invite: InviteFixtureKind | null;
+  /** Create league's starting Season values; null = the usual defaults. */
+  createSeason: CreateSeasonFixture | null;
 }
 
-export const NO_KNOBS: CaptureKnobs = { onboardingCard: null, create: null, joinAuto: null, signupPaused: false, usernamePrefill: null, pushAsk: false, confirmed: null, invite: null };
+export interface CreateSeasonFixture {
+  size: number;
+  weeks: number;
+  playoffTeams: number;
+}
+
+export const NO_KNOBS: CaptureKnobs = { onboardingCard: null, create: null, joinAuto: null, signupPaused: false, usernamePrefill: null, pushAsk: false, confirmed: null, invite: null, createSeason: null };
+
+/** "16,15,16": a size create offers, at least one round robin of weeks, 2..size playoff teams. Anything else is ignored. */
+export function parseCreateSeason(raw: string | undefined): CreateSeasonFixture | null {
+  const parts = (raw ?? '').split(',').map((p) => Number(p.trim()));
+  if (parts.length !== 3 || !parts.every(Number.isInteger)) return null;
+  const [size, weeks, playoffTeams] = parts;
+  if (!MANAGER_SIZES.includes(size) || weeks < size - 1 || playoffTeams < 2 || playoffTeams > size) return null;
+  return { size, weeks, playoffTeams };
+}
 
 export interface CaptureEnv {
   card?: string;
@@ -45,6 +64,7 @@ export interface CaptureEnv {
   pushAsk?: string;
   confirmed?: string;
   invite?: string;
+  createSeason?: string;
 }
 
 /** Only a development build reads anything; an unrecognised value is ignored, never guessed. */
@@ -63,6 +83,7 @@ export function parseCaptureKnobs(isDev: boolean, env: CaptureEnv): CaptureKnobs
     pushAsk: env.pushAsk === '1',
     invite: (INVITE_FIXTURES as readonly string[]).includes(env.invite ?? '') ? (env.invite as InviteFixtureKind) : null,
     confirmed: env.confirmed === 'chip' || env.confirmed === 'notice' ? env.confirmed : null,
+    createSeason: parseCreateSeason(env.createSeason),
   };
 }
 

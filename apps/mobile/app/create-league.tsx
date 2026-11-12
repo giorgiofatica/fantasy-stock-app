@@ -12,7 +12,6 @@ import { useLeagueContext } from '@/lib/LeagueContext';
 import { validateLeagueName } from '@/lib/contentModeration';
 import { generateInviteCode } from '@/lib/inviteCode';
 import SlotBuilder from '@/components/SlotBuilder';
-import { playoffLine } from '@/lib/playoffs';
 import {
   type Category,
   type SlotDraft,
@@ -37,14 +36,10 @@ import {
   CREATE_STEP_COPY,
   MANAGER_SIZES,
   type CreateStep,
-  byeExpectedCopy,
   createNextDisabled,
   leagueNameError,
   nextStep,
-  playoffTeamsSub,
   prevStep,
-  roundRobinCaption,
-  seasonCheckCaption,
   stakesStepError,
   stepManagers,
   stepNumber,
@@ -52,7 +47,6 @@ import {
   stepWithin,
   weeksShown,
 } from '@/lib/game/createLeagueSteps';
-import { byeNoticeCopy } from '@/lib/game/draftLobby';
 import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { draftDateForSave } from '@/lib/game/draftDateSave';
@@ -77,12 +71,14 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { Field } from '@/components/shell/Field';
 import { SetupScaffold } from '@/components/game/SetupScaffold';
 import { Stepper } from '@/components/game/Stepper';
+import { SeasonStrip } from '@/components/game/SeasonStrip';
+import { WEEKS_UNIT_SHOWN, WEEKS_UNIT_SPOKEN, seasonByeLine } from '@/lib/game/seasonStep';
 import { DraftDateSheet } from '@/components/game/DraftDateSheet';
 import { CAPTURE } from '@/lib/shell/captureDev';
 import { createFixtureStep } from '@/lib/shell/captureKnobs';
 import { keepDots, keepHyphens, keepMoney } from '@/lib/game/keepDots';
 import { pushAskRouteFor } from '@/lib/shell/pushAsk';
-import { ChoiceRow, LabelWithInfo, RowDivider, RowKey, RowWrap, SettingRow, SetupCard, SwitchRow, WarnNote } from '@/components/game/SetupRows';
+import { ChoiceRow, LabelWithInfo, RowDivider, RowKey, RowWrap, SettingRow, SetupCard, SetupRule, SwitchRow } from '@/components/game/SetupRows';
 import { InfoButton, useInfoPopup } from '@/components/game/InfoPopup';
 import { CONTROL_INFO, infoForLeagueType, infoForStakeMode } from '@/lib/game/infoPopups';
 import { InviteCodeText } from '@/components/game/InviteCodeText';
@@ -145,14 +141,15 @@ export default function CreateLeagueWizard() {
   const [state, setState] = useState<WizardState>({
     name: CAPTURE.create ? 'Serie A Traders' : '',
     type: 'matchup',
-    size: 8,
+    // DEV captures only: EXPO_PUBLIC_CREATE_SEASON seeds the Season values once (lib/shell/captureKnobs.ts).
+    size: CAPTURE.createSeason?.size ?? 8,
     stakeMode: CAPTURE.create === 'tiers' ? 'price_tiers' : 'fixed_notional',
     notionalPerSlot: String(DEFAULT_NOTIONAL_PER_SLOT),
     budgetCap: String(DEFAULT_BUDGET_CAP),
     allowUndraftable: false,
     slots: [],
-    numWeeks: 11,
-    playoffTeams: 4,
+    numWeeks: CAPTURE.createSeason?.weeks ?? 11,
+    playoffTeams: CAPTURE.createSeason?.playoffTeams ?? 4,
     numRounds: 6,
     draftDate: null,
     draftDateTBD: true, // Default to TBD
@@ -336,46 +333,60 @@ export default function CreateLeagueWizard() {
     </>
   );
 
-  // ── Step 2 · Season (board: "Create league · Season") ─────────────────
+  // ── Step 2 · Season (PRODUCT_RULES, "The Season step in Create league", B) ─
+  // Three identical steppers, no line under any label and none at a limit either: − or + just greys
+  // out at its end (Giorgio, #call-limit-lines B, 2026-11-11), a 1 pt rule between them and the strip
+  // (the approved board draws them), then one line outside the card: the playoff line's bye clause.
   const renderSeason = () => {
-    const bye = byeNoticeCopy(state.size, shownWeeks);
+    const byeLine = seasonByeLine(playoffTeams);
     return (
       <>
-        <SetupCard style={styles.cardStack}>
-          <Stepper
-            label="Managers"
-            sub="How many you expect, you included"
-            value={state.size}
-            onStep={(d) => patch({ size: stepManagers(state.size, d) })}
-            canDecrement={state.size > MANAGER_SIZES[0]}
-            canIncrement={state.size < MANAGER_SIZES[MANAGER_SIZES.length - 1]}
-          />
-          <Stepper
-            label="Regular season"
-            value={shownWeeks}
-            unit="weeks"
-            onStep={(d) => patch({ numWeeks: stepWeeks(state.numWeeks, state.size, d) })}
-            canDecrement={shownWeeks > minWeeks}
-            canIncrement
-          />
-          <Text variant="caption" tone="secondary">{roundRobinCaption(minWeeks)}</Text>
-          {bye ? <WarnNote title={bye} line={byeExpectedCopy(state.size)} /> : null}
-          <View style={styles.tight}>
+        <SetupCard>
+          <View style={styles.block}>
+            <Stepper
+              label="Managers"
+              value={state.size}
+              uniformBox
+              onStep={(d) => patch({ size: stepManagers(state.size, d) })}
+              canDecrement={state.size > MANAGER_SIZES[0]}
+              canIncrement={state.size < MANAGER_SIZES[MANAGER_SIZES.length - 1]}
+            />
+          </View>
+          <SetupRule />
+          <View style={styles.block}>
+            <Stepper
+              label="Regular season"
+              value={shownWeeks}
+              unit={WEEKS_UNIT_SHOWN}
+              unitSpoken={WEEKS_UNIT_SPOKEN}
+              uniformBox
+              onStep={(d) => patch({ numWeeks: stepWeeks(state.numWeeks, state.size, d) })}
+              canDecrement={shownWeeks > minWeeks}
+              canIncrement
+            />
+          </View>
+          <SetupRule />
+          <View style={styles.block}>
             <Stepper
               label="Playoff teams"
               labelInfo={<InfoButton info={CONTROL_INFO.playoffTeams} onOpen={openInfo} />}
-              sub={playoffTeamsSub(state.size)}
               value={playoffTeams}
+              uniformBox
               onStep={(d) => patch({ playoffTeams: stepWithin(playoffTeams, d, 2, state.size) })}
               canDecrement={playoffTeams > 2}
               canIncrement={playoffTeams < state.size}
             />
-            <Text variant="caption" style={styles.tabular}>{keepHyphens(playoffLine(playoffTeams) ?? '')}</Text>
-            <Text variant="caption" tone="secondary" style={styles.tabular}>
-              {seasonCheckCaption(shownWeeks, playoffTeams)}
-            </Text>
+          </View>
+          <SetupRule />
+          <View style={styles.block}>
+            <SeasonStrip regularWeeks={shownWeeks} playoffTeams={playoffTeams} />
           </View>
         </SetupCard>
+        {byeLine ? (
+          <Text variant="callout" tone="secondary" style={styles.byeLine}>
+            {keepHyphens(byeLine)}
+          </Text>
+        ) : null}
       </>
     );
   };
@@ -624,8 +635,9 @@ const styles = StyleSheet.create({
     paddingVertical: space[5],
     gap: space[5],
   },
-  tight: {
-    gap: space[2],
+  // The bye line sits outside the card, in from its edge (board: paddingInline 4).
+  byeLine: {
+    paddingHorizontal: space[2],
   },
   block: {
     paddingVertical: space[4],
