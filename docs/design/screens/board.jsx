@@ -383,9 +383,6 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-queue-save', 'Your queue: a Save button, or saves as you go', () => window.KSQueueSave],
-    ['rule12-sweep', 'Every heading in the app, without the lines that explain it (rule 12)', () => window.KSRule12Sweep],
-    ['rule12-info', 'The i: a popup for a choice we defined (your tweak to the sweep)', () => window.KSRule12Info],
     ['call-leave-below-four', 'The Leave sheet in a league of four', () => window.KSLeaveBelowFour],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
@@ -393,6 +390,9 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-queue-save', title: 'Your queue: a Save button, or saves as you go', decision: 'B: every add, remove or reorder saves on its own; no "Save queue", no "Not saved yet."; a failed save shows "Your queue couldn\u2019t be saved." in place with "Try again". No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (Your queue saves as you go)', render: () => window.KSQueueSaveArchived },
+    { id: 'rule12-info', title: 'The i: a popup for a choice we defined (your tweak to the sweep)', decision: 'Two pages (B), just the dots; the popup lines and the pictures\u2019 spoken descriptions approved as written; Rounds gets no i (1A); the league-name line cut (3B); the lines name what decides the winner (4A), Duration by dollars; Duration\u2019s i on hold until Duration is built.', date: '2026-11-11', rec: 'PRODUCT_RULES (the "i" popup entries under rule 12)', render: () => window.KSRule12InfoArchived },
+    { id: 'rule12-sweep', title: 'Every heading in the app, without the lines that explain it (rule 12)', decision: 'All of it, screen by screen as drawn, with the i for a choice we defined. Later corrections: the queue keeps "Save queue" until it saves as you go; the at-risk card keeps "Fix these before \u2026" (step 25).', date: '2026-11-10', rec: 'PRODUCT_RULES (rule 12; Optional context for a choice we defined)', render: () => window.KSRule12SweepArchived },
     { id: 'call-deleted-leaver', title: 'Two lines on the "draft can\u2019t start yet" card: who left, and the deadline\u2019s day', decision: '(a) A: a deleted account that leaves before the draft reads "A manager left the league". (b) B, over the recommended A: the deadline always names its day, today included ("before 6:30 PM ET today / tomorrow / on Tue, Nov 17"), in the tag and the line.', date: '2026-11-11', rec: 'PRODUCT_RULES (A deleted account that leaves before the draft is "A manager"; A draft deadline always names its day), plan #355', render: () => window.KSDeletedLeaverArchived },
     { id: 'call-type-step', title: 'The League type, now that only Matchup is offered', decision: 'A: the card stays, with Matchup as its one option, already selected, and its i; Duration rejoins it when it comes back. No new words.', date: '2026-11-11', rec: 'PRODUCT_RULES (The League type card stays, with Matchup alone)', render: () => window.KSTypeStepArchived },
     { id: 'call-season-step', title: 'The Season step in Create league', decision: 'B: three identical steppers ("11 wks"), no line under any label; a season strip (one tile per week, the playoff weeks named WC / SF / F, "Wk 1" to the last week) and the bye line; a limit\'s reason shows only at the limit. The sweep of the other screens is not yet decided.', date: '2026-11-10', rec: 'PRODUCT_RULES (The Season step in Create league)', render: () => window.KSSeasonStepArchived },
