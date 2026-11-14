@@ -41,8 +41,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "app_config",
@@ -77,8 +77,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "categories",
@@ -104,8 +104,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "category_rules",
@@ -131,8 +131,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "cron_job_status",
@@ -181,7 +181,7 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "authenticated=rm/postgres",
+                "authenticated=r/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "draft_queue",
@@ -219,22 +219,12 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "draft_sessions",
             "policies": [
-                {
-                    "name": "Commissioners can manage draft sessions",
-                    "roles": [
-                        "PUBLIC"
-                    ],
-                    "using": "(EXISTS ( SELECT 1\n   FROM leagues\n  WHERE ((leagues.id = draft_sessions.league_id) AND (leagues.commissioner_id = (auth.uid())::text))))",
-                    "command": "ALL",
-                    "withCheck": "(EXISTS ( SELECT 1\n   FROM leagues\n  WHERE ((leagues.id = draft_sessions.league_id) AND (leagues.commissioner_id = (auth.uid())::text))))",
-                    "permissive": true
-                },
                 {
                     "name": "Users can view draft sessions in their leagues",
                     "roles": [
@@ -260,22 +250,12 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "draft_settings",
             "policies": [
-                {
-                    "name": "Commissioners can manage draft settings",
-                    "roles": [
-                        "PUBLIC"
-                    ],
-                    "using": "(EXISTS ( SELECT 1\n   FROM leagues\n  WHERE ((leagues.id = draft_settings.league_id) AND (leagues.commissioner_id = (auth.uid())::text))))",
-                    "command": "ALL",
-                    "withCheck": "(EXISTS ( SELECT 1\n   FROM leagues\n  WHERE ((leagues.id = draft_settings.league_id) AND (leagues.commissioner_id = (auth.uid())::text))))",
-                    "permissive": true
-                },
                 {
                     "name": "Users can view draft settings in their leagues",
                     "roles": [
@@ -368,22 +348,12 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "drafts",
             "policies": [
-                {
-                    "name": "Commissioners can delete picks",
-                    "roles": [
-                        "PUBLIC"
-                    ],
-                    "using": "(EXISTS ( SELECT 1\n   FROM leagues\n  WHERE ((leagues.id = drafts.league_id) AND (leagues.commissioner_id = (auth.uid())::text))))",
-                    "command": "DELETE",
-                    "withCheck": null,
-                    "permissive": true
-                },
                 {
                     "name": "Users can view picks in their leagues",
                     "roles": [
@@ -495,8 +465,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "league_draft_slots",
@@ -560,8 +530,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "league_invites",
@@ -609,8 +579,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "league_members",
@@ -769,8 +739,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=rxtm/postgres",
-                "authenticated=rxtm/postgres",
+                "anon=r/postgres",
+                "authenticated=r/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "league_seasons",
@@ -796,8 +766,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "league_standings",
@@ -823,8 +793,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "leagues",
@@ -834,7 +804,7 @@
                     "roles": [
                         "authenticated"
                     ],
-                    "using": "is_commissioner(id)",
+                    "using": "(is_commissioner(id) AND (draft_status = 'not_started'::text))",
                     "command": "DELETE",
                     "withCheck": null,
                     "permissive": true
@@ -996,8 +966,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "matchups",
@@ -1031,7 +1001,7 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "push_tokens",
@@ -1087,8 +1057,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "rate_limit_counters",
@@ -1104,8 +1074,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "signup_allowlist",
@@ -1181,7 +1151,7 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "authenticated=rm/postgres",
+                "authenticated=r/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "symbols",
@@ -1221,8 +1191,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "trades",
@@ -1268,7 +1238,7 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "user_profiles",
@@ -1318,8 +1288,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "week_snapshots",
@@ -1991,6 +1961,21 @@
                 "postgres=X/postgres",
                 "authenticated=X/postgres"
             ],
+            "args": "p_price_min numeric, p_price_max numeric, p_category_id uuid",
+            "name": "count_slot_matches",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
             "args": "p_league_id uuid, p_seat_user_id text",
             "name": "create_takeover_invite",
             "owner": "postgres",
@@ -2286,6 +2271,20 @@
                 "postgres=X/postgres"
             ],
             "args": "",
+            "name": "enforce_leagues_delete_before_draft",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "",
             "name": "enforce_leagues_draft_order_mode",
             "owner": "postgres",
             "proconfig": [
@@ -2352,6 +2351,20 @@
             "searchPath": "public, pg_temp",
             "volatility": "volatile",
             "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "",
+            "name": "enforce_leagues_server_columns",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": false
         },
         {
             "acl": [
@@ -2538,6 +2551,21 @@
                 "authenticated=X/postgres"
             ],
             "args": "p_league_id uuid",
+            "name": "get_league_pick_industries",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "stable",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
+            "args": "p_league_id uuid",
             "name": "get_portfolio_ledger",
             "owner": "postgres",
             "proconfig": [
@@ -2557,9 +2585,9 @@
             "name": "get_real_user_ids",
             "owner": "postgres",
             "proconfig": [
-                "search_path=public"
+                "search_path=public, pg_temp"
             ],
-            "searchPath": "public",
+            "searchPath": "public, pg_temp",
             "volatility": "volatile",
             "securityDefiner": true
         },
@@ -3242,6 +3270,21 @@
         {
             "acl": [
                 "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
+            "args": "",
+            "name": "symbols_enrichment_progress",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "stable",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
                 "service_role=X/postgres"
             ],
             "args": "",
@@ -3416,7 +3459,7 @@
             "securityDefiner": false
         }
     ],
-    "capturedAt": "2026-11-11T21:55:47Z",
+    "capturedAt": "2026-11-14T03:39:10Z",
     "publications": [
         {
             "table": "drafts",
@@ -3552,42 +3595,6 @@
             "publication": "supabase_realtime"
         },
         {
-            "table": "messages_2026_11_07",
-            "schema": "realtime",
-            "columns": [
-                "topic",
-                "extension",
-                "payload",
-                "event",
-                "private",
-                "updated_at",
-                "inserted_at",
-                "id",
-                "binary_payload",
-                "skip_broadcast",
-                "expires_at"
-            ],
-            "publication": "supabase_realtime_messages_publication"
-        },
-        {
-            "table": "messages_2026_11_08",
-            "schema": "realtime",
-            "columns": [
-                "topic",
-                "extension",
-                "payload",
-                "event",
-                "private",
-                "updated_at",
-                "inserted_at",
-                "id",
-                "binary_payload",
-                "skip_broadcast",
-                "expires_at"
-            ],
-            "publication": "supabase_realtime_messages_publication"
-        },
-        {
             "table": "messages_2026_11_09",
             "schema": "realtime",
             "columns": [
@@ -3676,6 +3683,42 @@
                 "expires_at"
             ],
             "publication": "supabase_realtime_messages_publication"
+        },
+        {
+            "table": "messages_2026_11_14",
+            "schema": "realtime",
+            "columns": [
+                "topic",
+                "extension",
+                "payload",
+                "event",
+                "private",
+                "updated_at",
+                "inserted_at",
+                "id",
+                "binary_payload",
+                "skip_broadcast",
+                "expires_at"
+            ],
+            "publication": "supabase_realtime_messages_publication"
+        },
+        {
+            "table": "messages_2026_11_15",
+            "schema": "realtime",
+            "columns": [
+                "topic",
+                "extension",
+                "payload",
+                "event",
+                "private",
+                "updated_at",
+                "inserted_at",
+                "id",
+                "binary_payload",
+                "skip_broadcast",
+                "expires_at"
+            ],
+            "publication": "supabase_realtime_messages_publication"
         }
     ],
     "storageBuckets": [
@@ -3707,8 +3750,8 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "anon=arwdDxtm/postgres",
-                "authenticated=arwdDxtm/postgres",
+                "anon=arwd/postgres",
+                "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "schema": "public",
