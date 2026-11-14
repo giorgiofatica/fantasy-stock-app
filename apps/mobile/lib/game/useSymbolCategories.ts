@@ -7,7 +7,7 @@
  * no code) and the next new pick tries them again. With the capture seam on, the fixture's
  * categories, and no read.
  *
- * The industries come from get_league_pick_industries (20261205000000): a member of the league
+ * The industries come from get_league_pick_industries (20261205000300): a member of the league
  * gets the industry of every stock drafted in it, and nothing else. A signed-in client may not
  * read symbols.gics_industry directly (S1, "nothing scrapable"). A stock the answer leaves out
  * (not yet drafted as far as the server knows) stays unknown and is asked again.

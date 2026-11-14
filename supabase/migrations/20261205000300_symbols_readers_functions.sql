@@ -1,70 +1,47 @@
--- symbols: a signed-in player reads symbol, name and is_draftable only (S1).
+-- symbols readers, EXPAND (S1 stage 1 of 2): the three functions the new
+-- clients call instead of reading symbols' price and industry columns directly.
 --
 -- docs/security/2026-11-13-brief-security-check.md S1 and
 -- docs/audits/2026-11-13-market-data-dependency-audit.md 5a: 20261114000000
--- closed the anonymous read but granted SELECT on the WHOLE table to
--- authenticated with USING (true), so any signed-in account could page all
--- ~14,750 rows of last_price, last_price_at, market_cap and gics_industry
--- through /rest/v1/symbols, around the per-user limits on quote,
--- ticker-quotes, historical-bars and symbols-search. Giorgio, 2026-10-08:
--- "I don't want people to be able to scrape anything". The live ACL was
--- authenticated=rm (db-snapshot 2026-11-11): the old revoke list also missed
--- MAINTAIN (m, Postgres 17).
+-- granted SELECT on the WHOLE symbols table to authenticated with USING (true),
+-- so any signed-in account can page last_price, last_price_at, market_cap and
+-- gics_industry for all ~14,750 rows. Giorgio, 2026-10-08: "I don't want people
+-- to be able to scrape anything". The lockdown is split in two, because a build
+-- that reads those columns directly breaks the moment they are revoked, and a
+-- build that calls these functions breaks while they do not exist:
 --
--- PRECONDITION (ORDER MATTERS): the mobile build that calls the two functions
--- below (count_slot_matches / symbols_enrichment_progress in categoryData.ts,
--- get_league_pick_industries in useSymbolCategories.ts) must be on every phone
--- that will be used BEFORE this is pushed. An older build reads last_price,
--- gics_industry, active and enriched_at directly; after this push those reads
--- are refused (42501): SlotBuilder's availability check shows its "couldn't
--- check" line and the draft board draws no category lines. Nothing else
--- breaks: names, search and the ledger read only granted columns.
+--   EXPAND   (this file) creates the functions and changes no existing
+--            privilege, so it is safe under EVERY build: build 14 keeps reading
+--            symbols directly, build 15 gets its functions. It can go in the
+--            next normal db push.
+--   CONTRACT supabase/migrations/deferred/20261205000400_symbols_column_grant.sql
+--            revokes the table and grants symbol, name, is_draftable only. HELD
+--            until a build that calls these functions is on every phone in use
+--            (precondition in supabase/migrations/deferred/README.md).
 --
 -- WHAT IT DOES
---   1. REVOKE ALL on the table from PUBLIC, anon and authenticated. ALL is
---      every table privilege the server knows, so on prod (17.4) it includes
---      MAINTAIN; TRUNCATE, REFERENCES and TRIGGER go too. Revoking a table
---      privilege also revokes it on every column, so a re-run first clears any
---      column grant made since (the migration is idempotent).
---   2. GRANT SELECT (symbol, name, is_draftable) to authenticated. Those are
---      the only columns a caller-scoped reader uses:
---        symbols-search (caller's JWT)  symbol, name, is_draftable
---        symbol-name    (caller's JWT)  symbol, name
---        get_portfolio_ledger (INVOKER) symbol, name
---        mobile useQueueQuotes          symbol, name, .in() bounded
---      A column grant is an ALLOW list: a column added later is unreadable by
---      clients until a migration grants it. PostgREST select=* is refused
---      (42501) under column grants; no client uses *.
---   3. count_slot_matches(min, max, category) and symbols_enrichment_progress():
+--   1. count_slot_matches(min, max, category) and symbols_enrichment_progress():
 --      SlotBuilder's availability check filtered on last_price and
 --      gics_industry and counted active / enriched_at rows directly. Filtering
 --      needs SELECT on the column, and a filter IS a read (bisect
---      last_price=gte.X on one symbol and you have its price), so those two
---      columns cannot be granted for filtering only. The functions return
---      counts, never rows. count_slot_matches is rate-limited per user (a
---      narrow category plus a price band is still a weak price oracle);
---      symbols_enrichment_progress returns two table-wide totals and is not.
---   4. get_league_pick_industries(league): the draft board's category lines
+--      last_price=gte.X on one symbol and you have its price), so after
+--      CONTRACT those columns cannot be granted "for filtering only". The
+--      functions return counts, never rows. count_slot_matches is rate-limited
+--      per user (a narrow category plus a price band is still a weak price
+--      oracle); symbols_enrichment_progress returns two table-wide totals and
+--      is not.
+--   2. get_league_pick_industries(league): the draft board's category lines
 --      need gics_industry for the stocks already picked in that league. Member
 --      of the league only (42501 otherwise), and only for symbols drafted in
 --      it, so it cannot be paged across the table.
+--   All three are SECURITY DEFINER with search_path pinned, and only
+--   authenticated may EXECUTE them (PUBLIC, anon and service_role revoked by
+--   name).
 --
--- Service_role readers (refresh-symbols, enrich-symbols, draft-write,
--- record-trade, validate-and-record-pick, category-eligibility, auto-pick) use
--- the secret key and are unaffected; so are the SECURITY DEFINER readers
--- (set_draft_queue, prune_drafted_symbol_from_queues) and the service_role-only
--- functions (draft_feasibility_pool, auto_pick_search_candidates,
--- record_live_prices).
---
--- POST-PUSH CHECKS: docs/security/2026-11-13-symbols-column-grant-checks.sql.
+-- POST-PUSH CHECKS: docs/security/2026-11-13-symbols-column-grant-checks.sql,
+-- PART A. Part B runs after CONTRACT.
 
 -- 1 ---------------------------------------------------------------------------
-revoke all on table public.symbols from public, anon, authenticated;
-
--- 2 ---------------------------------------------------------------------------
-grant select (symbol, name, is_draftable) on table public.symbols to authenticated;
-
--- 3 ---------------------------------------------------------------------------
 -- The same overrides-replace-rule count categoryData.countSlotMatches made on
 -- the client: draftable, inside the price band (a bound left NULL is open; a
 -- NULL last_price fails any bound), and for a category either an override to
@@ -138,7 +115,7 @@ begin
 end;
 $$;
 
--- 4 ---------------------------------------------------------------------------
+-- 2 ---------------------------------------------------------------------------
 -- Every symbol drafted in the league, with its industry (NULL when the symbol
 -- has no row or no industry: the client falls back to Misc, as it did when it
 -- read symbols directly).

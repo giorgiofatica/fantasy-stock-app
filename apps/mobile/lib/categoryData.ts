@@ -71,7 +71,7 @@ export async function fetchCategories(): Promise<Category[]> {
 }
 
 /** The live coverage of the enrichment cron: active symbols, and how many of them it has enriched. Two totals from
- * symbols_enrichment_progress (20261205000000): the client may not read symbols.active / enriched_at directly. */
+ * symbols_enrichment_progress (20261205000300): the client may not read symbols.active / enriched_at directly. */
 export async function fetchEnrichmentProgress(): Promise<{ enriched: number; total: number; partial: boolean }> {
   // A FAILED read throws (the caller's catch says "couldn't check"); it never reads as "no symbols yet".
   const rows = rowsOrThrow(await supabase.rpc('symbols_enrichment_progress'), 'symbols progress');
@@ -85,7 +85,7 @@ export async function fetchEnrichmentProgress(): Promise<{ enriched: number; tot
 }
 
 /** Draftable symbols matching one slot: the exact overrides-replace-rule count, made on the server by
- * count_slot_matches (20261205000000), which returns a number and never a row. Filtering on last_price or
+ * count_slot_matches (20261205000300), which returns a number and never a row. Filtering on last_price or
  * gics_industry here would need those columns readable, and a filter is a read (S1, "nothing scrapable"). */
 export async function countSlotMatches(
   slot: { priceMin: number | null; priceMax: number | null; categoryId: string | null },
