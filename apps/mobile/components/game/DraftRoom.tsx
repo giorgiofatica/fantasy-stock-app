@@ -296,7 +296,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
   const weekOne = useWeekOne(leagueId, myUserId, draftDone && finished);
   // The board's category lines (W4, §9C): one batch read, kept per stock; a failed read draws no line.
   const pickedSymbols = useMemo(() => Array.from(room.picks.values()).map((p) => p.symbol), [room.picks]);
-  const categories = useSymbolCategories(pickedSymbols);
+  const categories = useSymbolCategories(leagueId, pickedSymbols);
   // At the large text sizes the ring sits over the headline instead of beside it.
   const largeText = useLargeText();
   const { fontScale } = useWindowDimensions();

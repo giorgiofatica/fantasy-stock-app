@@ -25,3 +25,11 @@ export function rowsOrThrow<T>(res: RowsResult<T>, what: string): T[] {
   if (res.error) throw new Error(`${what}: ${res.error.message ?? 'read failed'}`);
   return res.data ?? [];
 }
+
+/** A number an RPC answered, or a throw. A clean answer that is not a finite number (null, a string, a missing
+ * field) is not a zero: it means the call did not return what it promises, so it fails like an error. */
+export function numberOrThrow(value: unknown, what: string): number {
+  const n = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
+  if (!Number.isFinite(n)) throw new Error(`${what}: no count in the answer`);
+  return n;
+}

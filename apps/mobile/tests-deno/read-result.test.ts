@@ -5,7 +5,7 @@
  * Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals, assertThrows } from 'jsr:@std/assert';
-import { countOrThrow, rowsOrThrow } from '../lib/readResult.ts';
+import { countOrThrow, numberOrThrow, rowsOrThrow } from '../lib/readResult.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
 Deno.test('countOrThrow: a failed read throws (never reads as zero); a clean read returns its count', () => {
@@ -23,14 +23,26 @@ Deno.test('rowsOrThrow: a failed read throws (never reads as empty); a clean rea
   assertEquals(rowsOrThrow({ data: null, error: null }, 'a'), []);
 });
 
-Deno.test('the availability reads unwrap their results (source pin: no bare { count } / { data } destructure)', () => {
+Deno.test('numberOrThrow: an RPC answer that is not a finite number throws (never reads as zero)', () => {
+  assertEquals(numberOrThrow(0, 'a'), 0, 'a real zero');
+  assertEquals(numberOrThrow(14754, 'a'), 14754);
+  assertEquals(numberOrThrow('12', 'a'), 12, 'a numeric string (bigint over the wire)');
+  for (const bad of [null, undefined, '', 'x', NaN, Infinity, {}, []]) {
+    assertThrows(() => numberOrThrow(bad, 'slot count'), Error, 'slot count: no count in the answer');
+  }
+});
+
+Deno.test('the availability reads go through the count RPCs and unwrap their results (source pin)', () => {
   const src = SOURCES['lib/categoryData.ts'];
   const start = src.indexOf('export async function fetchEnrichmentProgress');
   const end = src.indexOf('export function validateSlotConfig');
   const body = src.slice(start, end);
-  assert(body.includes("countOrThrow(totalRes, 'symbols total')") && body.includes("countOrThrow(enrichedRes, 'symbols enriched')"));
-  assert(body.includes("rowsOrThrow(ruleRes, 'category rules')") && body.includes("rowsOrThrow(overrideRes, 'category overrides')"));
-  assert(!/const \{ count[:\s}]/.test(body) && !/\{ data: (ruleRows|allOverrides) \}/.test(body), 'a resolved error would read as zero or empty');
+  // 20261205000000: the client may not read symbols' last_price / gics_industry / active / enriched_at (S1).
+  assert(!body.includes(".from('symbols')"), 'a direct symbols read is refused after 20261205000000');
+  assert(body.includes("rowsOrThrow(await supabase.rpc('symbols_enrichment_progress'), 'symbols progress')"));
+  assert(body.includes("numberOrThrow(row?.enriched, 'symbols enriched')") && body.includes("numberOrThrow(row?.total, 'symbols total')"));
+  assert(body.includes("supabase.rpc('count_slot_matches'") && body.includes('if (res.error) throw') && body.includes("numberOrThrow(res.data, 'slot count')"));
+  assert(!/const \{ (count|data)[:\s}]/.test(body), 'a resolved error would read as zero or empty');
 });
 
 Deno.test('SlotBuilder still shows the "couldn\'t check" line from its catch', () => {

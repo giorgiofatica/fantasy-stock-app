@@ -1,11 +1,12 @@
 // Category / eligibility data helpers for league setup + drafting UI (Phase 4
 // item 4 — DR-001). Mirror of apps/web/src/utils/categoryData.js — reads the
-// seeded reference tables (authenticated SELECT) and symbols (PUBLIC read).
+// seeded reference tables (authenticated SELECT); symbols only through the
+// count functions (a signed-in client reads symbol, name, is_draftable only).
 // Display-only: the authoritative eligibility logic lives in the
 // validate-and-record-pick / record-trade edge functions.
 import { supabase } from './supabase';
 import { capacityLine, slotConfigIssues, slotIssueAway } from './game/slotBuilderCopy';
-import { countOrThrow, rowsOrThrow } from './readResult';
+import { numberOrThrow, rowsOrThrow } from './readResult';
 
 export type StakeMode = 'fixed_notional' | 'price_tiers' | 'budget_cap';
 
@@ -69,99 +70,33 @@ export async function fetchCategories(): Promise<Category[]> {
   return categoriesCache;
 }
 
-/** Display eligibility: overrides if any, else rule for the vendor industry
- * label, else [] (unclassified -> flex-only). */
-export async function fetchSymbolCategories(
-  symbol: string,
-): Promise<{ categories: Category[]; classified: boolean }> {
-  const sym = String(symbol || '').trim().toUpperCase();
-  if (!sym) return { categories: [], classified: false };
-  const cats = await fetchCategories();
-  const byId = new Map(cats.map((c) => [c.id, c]));
-
-  const { data: ovr } = await supabase
-    .from('symbol_category_overrides')
-    .select('category_id')
-    .eq('symbol', sym);
-  if (ovr && ovr.length > 0) {
-    return {
-      categories: ovr.map((o) => byId.get(o.category_id)).filter(Boolean) as Category[],
-      classified: true,
-    };
-  }
-
-  const { data: symRow } = await supabase
-    .from('symbols')
-    .select('gics_industry')
-    .eq('symbol', sym)
-    .maybeSingle();
-  if (!symRow?.gics_industry) return { categories: [], classified: false };
-
-  const { data: rule } = await supabase
-    .from('category_rules')
-    .select('category_id')
-    .eq('gics_industry', symRow.gics_industry)
-    .maybeSingle();
-  const cat = rule?.category_id ? byId.get(rule.category_id) : undefined;
-  return { categories: cat ? [cat] : [], classified: !!cat };
-}
-
+/** The live coverage of the enrichment cron: active symbols, and how many of them it has enriched. Two totals from
+ * symbols_enrichment_progress (20261205000000): the client may not read symbols.active / enriched_at directly. */
 export async function fetchEnrichmentProgress(): Promise<{ enriched: number; total: number; partial: boolean }> {
-  const [totalRes, enrichedRes] = await Promise.all([
-    supabase.from('symbols').select('symbol', { count: 'exact', head: true }).eq('active', true),
-    supabase.from('symbols').select('symbol', { count: 'exact', head: true }).eq('active', true).not('enriched_at', 'is', null),
-  ]);
   // A FAILED read throws (the caller's catch says "couldn't check"); it never reads as "no symbols yet".
-  const t = countOrThrow(totalRes, 'symbols total');
-  const e = countOrThrow(enrichedRes, 'symbols enriched');
+  const rows = rowsOrThrow(await supabase.rpc('symbols_enrichment_progress'), 'symbols progress');
+  const row = rows[0] as { enriched?: unknown; total?: unknown } | undefined;
+  const e = numberOrThrow(row?.enriched, 'symbols enriched');
+  const t = numberOrThrow(row?.total, 'symbols total');
   // Coverage gate: mirrors @fantasy-stock/shared coverageIsPartial (Metro can't
   // import the workspace package). enriched/total are the LIVE symbol counts
-  // queried just above; below 90% coverage the per-slot counts are suppressed.
+  // read just above; below 90% coverage the per-slot counts are suppressed.
   return { enriched: e, total: t, partial: t === 0 || e < t * 0.9 };
 }
 
-/** Draftable symbols matching one slot — exact overrides-replace-rule count
- * (the overrides table is small enough to fetch whole). */
+/** Draftable symbols matching one slot: the exact overrides-replace-rule count, made on the server by
+ * count_slot_matches (20261205000000), which returns a number and never a row. Filtering on last_price or
+ * gics_industry here would need those columns readable, and a filter is a read (S1, "nothing scrapable"). */
 export async function countSlotMatches(
   slot: { priceMin: number | null; priceMax: number | null; categoryId: string | null },
 ): Promise<number> {
-  const base = () => {
-    let q = supabase
-      .from('symbols')
-      .select('symbol', { count: 'exact', head: true })
-      .eq('is_draftable', true);
-    if (slot.priceMin != null) q = q.gte('last_price', slot.priceMin);
-    if (slot.priceMax != null) q = q.lte('last_price', slot.priceMax);
-    return q;
-  };
-
-  if (!slot.categoryId) return countOrThrow(await base(), 'slot count');
-
-  const [ruleRes, overrideRes] = await Promise.all([
-    supabase.from('category_rules').select('gics_industry').eq('category_id', slot.categoryId),
-    supabase.from('symbol_category_overrides').select('symbol, category_id'),
-  ]);
-  const ruleRows = rowsOrThrow(ruleRes, 'category rules');
-  const allOverrides = rowsOrThrow(overrideRes, 'category overrides');
-  const industries = ruleRows.map((r) => r.gics_industry as string);
-  const overridden = [...new Set(allOverrides.map((o) => o.symbol as string))];
-  const catOverrideSyms = [
-    ...new Set(allOverrides.filter((o) => o.category_id === slot.categoryId).map((o) => o.symbol as string)),
-  ];
-
-  let ruleCount = 0;
-  if (industries.length > 0) {
-    let q = base().in('gics_industry', industries);
-    if (overridden.length > 0) q = q.not('symbol', 'in', `(${overridden.join(',')})`);
-    ruleCount = countOrThrow(await q, 'rule count');
-  }
-
-  let ovrCount = 0;
-  if (catOverrideSyms.length > 0) {
-    ovrCount = countOrThrow(await base().in('symbol', catOverrideSyms), 'override count');
-  }
-
-  return ruleCount + ovrCount;
+  const res = await supabase.rpc('count_slot_matches', {
+    p_price_min: slot.priceMin,
+    p_price_max: slot.priceMax,
+    p_category_id: slot.categoryId,
+  });
+  if (res.error) throw new Error(`slot count: ${res.error.message ?? 'read failed'}`);
+  return numberOrThrow(res.data, 'slot count');
 }
 
 /**

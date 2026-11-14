@@ -1,7 +1,10 @@
 // Category / eligibility data helpers for league setup + drafting UI (Phase 4
 // item 4 — DR-001). Reads only the seeded reference tables (categories,
 // category_rules, symbol_category_overrides — authenticated SELECT per Phase 2
-// RLS) and symbols (PUBLIC read policy).
+// RLS). symbols is column-limited for a signed-in client (symbol, name,
+// is_draftable; 20261205000000): the counts go through RPCs, and
+// fetchSymbolCategories answers from overrides only (null = not known). The
+// web app is paused (APP_PAUSED).
 //
 // These MIRROR the server's rules for display: the authoritative eligibility
 // logic lives in the validate-and-record-pick / record-trade edge functions
@@ -54,101 +57,56 @@ export async function fetchCategories() {
 }
 
 /**
- * Display eligibility for one symbol: overrides if any, else the rule for its
- * vendor industry label, else [] (unclassified -> flex-only).
- * Returns { categories: [{id, slug, name}], classified: boolean }.
+ * Display eligibility for one symbol, from its overrides only.
+ * Returns { categories: [{id, slug, name}], classified: true } when the symbol
+ * has overrides, else null ("not known": DraftPage draws no category line).
+ *
+ * The rule path (symbols.gics_industry -> category_rules) is gone: a signed-in
+ * client may not read gics_industry (20261205000000, S1), and mobile reads it
+ * only for a league's own picks (get_league_pick_industries). A quote of a stock
+ * nobody has drafted has no such path, so this answers "not known" rather than
+ * a wrong "unclassified". The web app is paused (APP_PAUSED).
  */
 export async function fetchSymbolCategories(symbol) {
   const sym = String(symbol || '').trim().toUpperCase();
-  if (!sym) return { categories: [], classified: false };
+  if (!sym) return null;
   const cats = await fetchCategories();
   const byId = new Map(cats.map((c) => [c.id, c]));
 
-  const { data: ovr } = await supabase
+  const { data: ovr, error } = await supabase
     .from('symbol_category_overrides')
     .select('category_id')
     .eq('symbol', sym);
-  if (ovr && ovr.length > 0) {
-    return { categories: ovr.map((o) => byId.get(o.category_id)).filter(Boolean), classified: true };
-  }
-
-  const { data: symRow } = await supabase
-    .from('symbols')
-    .select('gics_industry')
-    .eq('symbol', sym)
-    .maybeSingle();
-  if (!symRow?.gics_industry) return { categories: [], classified: false };
-
-  const { data: rule } = await supabase
-    .from('category_rules')
-    .select('category_id')
-    .eq('gics_industry', symRow.gics_industry)
-    .maybeSingle();
-  if (!rule?.category_id) return { categories: [], classified: false };
-  const cat = byId.get(rule.category_id);
-  return { categories: cat ? [cat] : [], classified: !!cat };
+  if (error || !ovr || ovr.length === 0) return null;
+  return { categories: ovr.map((o) => byId.get(o.category_id)).filter(Boolean), classified: true };
 }
 
 /** {enriched, total, partial} over the active universe — feasibility counts
- * are lower bounds while the enrichment cron is still covering the universe. */
+ * are lower bounds while the enrichment cron is still covering the universe.
+ * Two totals from symbols_enrichment_progress (20261205000000): a signed-in
+ * client may not read symbols.active / enriched_at directly. */
 export async function fetchEnrichmentProgress() {
-  const [{ count: total }, { count: enriched }] = await Promise.all([
-    supabase.from('symbols').select('symbol', { count: 'exact', head: true }).eq('active', true),
-    supabase.from('symbols').select('symbol', { count: 'exact', head: true }).eq('active', true).not('enriched_at', 'is', null),
-  ]);
-  const t = total || 0;
-  const e = enriched || 0;
-  // partial reads LIVE coverage (e/t queried above) against the shared threshold.
+  const { data } = await supabase.rpc('symbols_enrichment_progress');
+  const row = Array.isArray(data) ? data[0] : null;
+  const t = Number(row?.total) || 0;
+  const e = Number(row?.enriched) || 0;
+  // partial reads LIVE coverage (e/t read above) against the shared threshold.
   return { enriched: e, total: t, partial: coverageIsPartial(e, t) };
 }
 
 /**
- * How many draftable symbols match one slot definition?
- * Category slots are computed with the overrides-REPLACE-rule semantics
- * exactly: rule-path counts exclude ALL overridden symbols (the overrides
- * table is small), then this category's override symbols are added back.
+ * How many draftable symbols match one slot definition? count_slot_matches
+ * (20261205000000) makes the overrides-REPLACE-rule count on the server and
+ * returns a number, never rows: filtering on last_price / gics_industry here
+ * would need those columns readable, and a filter is a read (S1).
  */
 export async function countSlotMatches({ priceMin, priceMax, categoryId }) {
-  const base = () => {
-    let q = supabase
-      .from('symbols')
-      .select('symbol', { count: 'exact', head: true })
-      .eq('is_draftable', true);
-    if (priceMin != null && priceMin !== '') q = q.gte('last_price', Number(priceMin));
-    if (priceMax != null && priceMax !== '') q = q.lte('last_price', Number(priceMax));
-    return q;
-  };
-
-  if (!categoryId) {
-    const { count } = await base();
-    return count || 0;
-  }
-
-  const [{ data: ruleRows }, { data: allOverrides }] = await Promise.all([
-    supabase.from('category_rules').select('gics_industry').eq('category_id', categoryId),
-    supabase.from('symbol_category_overrides').select('symbol, category_id'),
-  ]);
-  const industries = (ruleRows || []).map((r) => r.gics_industry);
-  const overridden = [...new Set((allOverrides || []).map((o) => o.symbol))];
-  const catOverrideSyms = [
-    ...new Set((allOverrides || []).filter((o) => o.category_id === categoryId).map((o) => o.symbol)),
-  ];
-
-  let ruleCount = 0;
-  if (industries.length > 0) {
-    let q = base().in('gics_industry', industries);
-    if (overridden.length > 0) q = q.not('symbol', 'in', `(${overridden.join(',')})`);
-    const { count } = await q;
-    ruleCount = count || 0;
-  }
-
-  let ovrCount = 0;
-  if (catOverrideSyms.length > 0) {
-    const { count } = await base().in('symbol', catOverrideSyms);
-    ovrCount = count || 0;
-  }
-
-  return ruleCount + ovrCount;
+  const { data } = await supabase.rpc('count_slot_matches', {
+    p_price_min: priceMin != null && priceMin !== '' ? Number(priceMin) : null,
+    p_price_max: priceMax != null && priceMax !== '' ? Number(priceMax) : null,
+    p_category_id: categoryId || null,
+  });
+  return Number(data) || 0;
 }
 
 /**
