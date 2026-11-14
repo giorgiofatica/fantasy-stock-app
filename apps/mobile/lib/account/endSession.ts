@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { supabase } from '../supabase';
 import { signOutOfGoogle } from '../auth/socialSignIn';
 import { endSessionCore } from './endSessionCore';
@@ -10,9 +12,11 @@ import { forceSignedOut } from './forcedSignOut';
 // it from its first render.
 export async function endSessionAfterDeletion(userId: string | null): Promise<void> {
   await endSessionCore({
-    ...leaverStateDeps(userId), // the stores, AsyncStorage's removeItem and the user id
+    ...leaverStateDeps(), // the pending takeover, invite and route: the same set a plain sign-out clears
     signOutLocal: () => supabase.auth.signOut({ scope: 'local' }),
+    removeItem: (key) => AsyncStorage.removeItem(key),
     forceSignedOut,
     signOutOfGoogle,
+    userId,
   });
 }

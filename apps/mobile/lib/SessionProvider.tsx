@@ -340,9 +340,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       console.warn('[auth] sign out failed', signOutError.code ?? '');
       return;
     }
-    // Signed out: what this person opened or chose on this phone goes with them (security brief A1), the same cleanup an
-    // account deletion runs (lib/account/leaverStateCore.ts).
-    await clearLeaverState(leaverStateDeps(userId));
+    // Signed out: the links this person opened on this phone go with them (security brief A1), the same cleanup an account
+    // deletion runs (lib/account/leaverStateCore.ts). Their per-user active-league choice stays, for when they sign back in.
+    await clearLeaverState(leaverStateDeps());
     // The next person on this phone picks their own Google account.
     await signOutOfGoogle();
   }, [userId]);

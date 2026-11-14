@@ -8,10 +8,13 @@
 // hand and the app is told it is signed out. 401/403/404 from /logout (the user no longer exists) are treated as signed
 // out by supabase-js itself and come back with no error.
 //
-// Then, regardless: what the person who just left owns on this phone goes (lib/account/leaverStateCore.ts, the same cleanup
-// a plain sign-out runs), and the next person on this phone picks their own Google account.
+// Then, regardless: the links the person who just left opened on this phone go (lib/account/leaverStateCore.ts, the same
+// cleanup a plain sign-out runs), so does their per-user active-league choice (only here: a plain sign-out keeps it for
+// the same person signing back in, but this account is gone), and the next person on this phone picks their own Google
+// account.
 
 import { AUTH_STORAGE_KEY, verifierKey } from '../auth/verifierSlot';
+import { activeLeagueStorageKey } from '../shell/activeLeague';
 import { clearLeaverState, quiet, type LeaverStateDeps } from './leaverStateCore';
 
 export interface EndSessionDeps extends LeaverStateDeps {
@@ -20,6 +23,9 @@ export interface EndSessionDeps extends LeaverStateDeps {
   /** Publish "signed out" to the app (the session provider's state and the live session), for when signOut could not. */
   forceSignedOut(): void;
   signOutOfGoogle(): Promise<void>;
+  removeItem(key: string): Promise<void>;
+  /** The deleted user's id, for the per-user active-league key; null when unknown. */
+  userId: string | null;
 }
 
 export interface EndSessionResult {
@@ -41,6 +47,7 @@ export async function endSessionCore(deps: EndSessionDeps): Promise<EndSessionRe
     deps.forceSignedOut();
   }
   await clearLeaverState(deps);
+  if (deps.userId) await quiet(() => deps.removeItem(activeLeagueStorageKey(deps.userId as string)));
   await quiet(() => deps.signOutOfGoogle());
   return { forced: failed };
 }
