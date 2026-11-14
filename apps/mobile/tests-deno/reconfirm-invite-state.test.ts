@@ -355,7 +355,8 @@ Deno.test('with the flag, confirm_roster is refused with that reason and reads a
 Deno.test('the flag is dev-seam only: gated by SEAM_ON, handed to the fixture layer, and never read by a component', () => {
   const dev = SOURCES['lib/game/devSeam.ts'];
   assert(dev.includes('export const CAPTURE_CONFIRM_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL || null : null;'));
-  assert(SOURCES['lib/game/seamCalls.ts'].includes('process.env.EXPO_PUBLIC_LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL)'));
+  assert(SOURCES['lib/game/seamCalls.ts'].includes('DRAFT_START_FIXTURE, LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL)'));
+  assert(SOURCES['lib/game/seamCalls.ts'].includes('const LEAVE_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_LEAVE_FIXTURE : undefined;'));
   for (const [file, src] of Object.entries(SOURCES)) {
     if (file.startsWith('lib/game/') && ['devSeam.ts', 'seamCalls.ts', 'seamFixtures.ts', 'autoStartFixture.ts'].some((f) => file.endsWith(f))) continue;
     assert(!src.includes('CAPTURE_CONFIRM_REFUSAL'), `${file} reads the capture flag`);

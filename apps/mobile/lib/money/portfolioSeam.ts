@@ -2,10 +2,11 @@
  * portfolioSeam (W4, capture only): what Portfolio reads under the game capture seam
  * (EXPO_PUBLIC_GAME_SEAM=1), from the Matchup fixture's league — the same stocks, prices and
  * daily paths the player card already draws, so Portfolio, its cards and the stock sheet all
- * agree. Pure (no `__DEV__`, no env): devSeam.ts reads the flags and passes them in, so
- * tests-deno can pin it. Production never reaches it (usePortfolioData gates on SEAM_ON).
+ * agree. Pure (no `__DEV__`, no env): devSeam.ts reads the flags behind SEAM_ON and passes them in (or exports
+ * them, DELETED_SEAT_FIXTURE), so tests-deno can pin it. Production never reaches it (usePortfolioData gates on SEAM_ON).
  */
 import { seatify } from '../game/seamAccountDeletion';
+import { DELETED_SEAT_FIXTURE } from '../game/devSeam';
 import { fixtureSeasonBars, matchupWeekExtras, MSFT_BUY, seamSheetQuote, type MatchupFixtureVariant } from '../game/matchupFixture';
 import { fixtureQty, GIANLUIGI_HOLDINGS, ROBERTO_HOLDINGS, XL_MILLION_ROBERTO_HOLDINGS, XL_ROBERTO_HOLDINGS } from '../home/homeFixtureData';
 import { fixtureLedger } from '../game/matchupFixture';
@@ -167,5 +168,5 @@ function seamPortfolioLedgerRaw(variant: MatchupFixtureVariant, homeFixture: str
 
 /** DEV capture (EXPO_PUBLIC_DELETED_SEAT=1): Gianluigi's seat reads as the deleted-seat label (lib/game/seamAccountDeletion.ts), so the seat's team view names it. Off: the raw fixture, untouched. */
 export function seamPortfolioLedger(variant: MatchupFixtureVariant, homeFixture: string | null, me: string, opp: string, draftAt: string | null = null, leaguemates = false): PortfolioLedger {
-  return seatify(seamPortfolioLedgerRaw(variant, homeFixture, me, opp, draftAt, leaguemates), process.env.EXPO_PUBLIC_DELETED_SEAT === '1');
+  return seatify(seamPortfolioLedgerRaw(variant, homeFixture, me, opp, draftAt, leaguemates), DELETED_SEAT_FIXTURE);
 }

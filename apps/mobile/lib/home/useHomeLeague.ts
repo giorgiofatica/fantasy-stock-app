@@ -139,11 +139,17 @@ type FixtureHomeLeague = {
   quote: (s: string) => number | null; bars: BarsBySymbol; marketCalendar: MarketCalendarSession[];
 };
 
+// The Home fixture's capture knobs, dev builds only (like HOME_FIXTURE itself, lib/home/devFixture.ts): a release build
+// never consults the env.
+const DELETED_SEAT_KNOB = __DEV__ && process.env.EXPO_PUBLIC_DELETED_SEAT === '1';
+const MATCHUP_FIXTURE_KNOB = __DEV__ ? process.env.EXPO_PUBLIC_MATCHUP_FIXTURE : undefined;
+const SEASON_FIXTURE_KNOB = __DEV__ ? process.env.EXPO_PUBLIC_SEASON_FIXTURE : undefined;
+
 /** DEV capture (EXPO_PUBLIC_DELETED_SEAT=1): Gianluigi's seat reads as the deleted-seat label (lib/game/seamAccountDeletion.ts). Off: the raw fixture, untouched. */
 export function fixtureHomeLeague(fixture: import('./devFixture').HomeFixture | null): FixtureHomeLeague {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define -- a hoisted function declaration (no TDZ); kept below so the diff against the original body stays one hunk
   const r = fixtureHomeLeagueRaw(fixture);
-  return process.env.EXPO_PUBLIC_DELETED_SEAT === '1' ? { ...r, data: seatify(r.data, true) } : r;
+  return DELETED_SEAT_KNOB ? { ...r, data: seatify(r.data, true) } : r;
 }
 
 function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null): FixtureHomeLeague {
@@ -161,7 +167,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
   const robWeeks = isXLMillion ? XL_MILLION_ROBERTO_WEEKS : isXLLarge ? XL_ROBERTO_WEEKS : ROBERTO_WEEKS;
   // W4 capture only (EXPO_PUBLIC_MATCHUP_FIXTURE, matchupFixture.ts): 'bought' adds the
   // week's trades; 'stress' scales the XL million league's share counts to seven figures.
-  const matchupExtras = matchupWeekExtras(parseMatchupFixture(process.env.EXPO_PUBLIC_MATCHUP_FIXTURE));
+  const matchupExtras = matchupWeekExtras(parseMatchupFixture(MATCHUP_FIXTURE_KNOB));
   const qty = (h: HoldingRow) => fixtureQty(h) * matchupExtras.qtyScale;
   const myDrafts = robRows.map((h) => ({ symbol: h.symbol, entry_price: h.draft, quantity: qty(h), created_at: '2026-08-01T00:00:00Z' }));
   const mySnapshots = robRows.map((h) => ({ symbol: h.symbol, quantity: qty(h), week_start_price: h.mon, entered_mid_week: false, created_at: FIXTURE_WEEK6_START }));
@@ -169,7 +175,7 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
 
   const isPreSeason = fixture === 'pre_season';
   // EXPO_PUBLIC_SEASON_FIXTURE (capture only, seasonFixture.ts): 'week11' makes the live week week 11.
-  const seasonVariant = parseSeasonFixture(process.env.EXPO_PUBLIC_SEASON_FIXTURE);
+  const seasonVariant = parseSeasonFixture(SEASON_FIXTURE_KNOB);
   const liveWeekNo = seasonVariant === 'week11' ? 11 : 6;
   // W4 gate: Week 1 live (the season line's shortest states), on week 6's calendar dates.
   const isWeek1 = fixture === 'week1_monday' || fixture === 'week1_tuesday';

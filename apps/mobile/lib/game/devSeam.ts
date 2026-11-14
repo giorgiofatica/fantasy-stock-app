@@ -11,18 +11,21 @@ export const SEAM_ON: boolean = seamActive(typeof __DEV__ !== 'undefined' ? __DE
 
 /** The Matchup capture fixture's variant (EXPO_PUBLIC_MATCHUP_FIXTURE; matchupFixture.ts). Read
  * here, beside SEAM_ON, so matchupFixture.ts stays pure for tests-deno. */
-export const MATCHUP_FIXTURE_VARIANT: MatchupFixtureVariant = parseMatchupFixture(process.env.EXPO_PUBLIC_MATCHUP_FIXTURE);
+export const MATCHUP_FIXTURE_VARIANT: MatchupFixtureVariant = SEAM_ON ? parseMatchupFixture(process.env.EXPO_PUBLIC_MATCHUP_FIXTURE) : parseMatchupFixture(undefined);
 
 /** The League tab's capture fixture (EXPO_PUBLIC_LEAGUE_FIXTURE; leagueFixture.ts), seam only. */
 export const LEAGUE_FIXTURE_VARIANT: LeagueFixture | null = SEAM_ON ? parseLeagueFixture(process.env.EXPO_PUBLIC_LEAGUE_FIXTURE) : null;
 
 /** The Portfolio capture's stake mode (EXPO_PUBLIC_PORTFOLIO_STAKE: budget_cap, budget_null — a budget cap whose budget_amount is NULL, price_tiers;
  * anything else = fixed_notional, the Matchup fixture's own league). Capture only. */
+const PORTFOLIO_STAKE_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_PORTFOLIO_STAKE : undefined;
 export const PORTFOLIO_STAKE_VARIANT: 'fixed_notional' | 'budget_cap' | 'budget_null' | 'price_tiers' =
-  process.env.EXPO_PUBLIC_PORTFOLIO_STAKE === 'budget_cap' || process.env.EXPO_PUBLIC_PORTFOLIO_STAKE === 'price_tiers'
-    || process.env.EXPO_PUBLIC_PORTFOLIO_STAKE === 'budget_null'
-    ? process.env.EXPO_PUBLIC_PORTFOLIO_STAKE
+  PORTFOLIO_STAKE_KNOB === 'budget_cap' || PORTFOLIO_STAKE_KNOB === 'price_tiers' || PORTFOLIO_STAKE_KNOB === 'budget_null'
+    ? PORTFOLIO_STAKE_KNOB
     : 'fixed_notional';
+
+/** DEV captures (account deletion): a seat reads as the deleted-seat label (EXPO_PUBLIC_DELETED_SEAT=1). Seam only. */
+export const DELETED_SEAT_FIXTURE: boolean = SEAM_ON && process.env.EXPO_PUBLIC_DELETED_SEAT === '1';
 
 /** Capture only: hold Portfolio's seam ledger this long (its loading state) — EXPO_PUBLIC_CAPTURE_DELAY_MS. */
 export const CAPTURE_DELAY_MS: number = SEAM_ON ? Number(process.env.EXPO_PUBLIC_CAPTURE_DELAY_MS) || 0 : 0;
