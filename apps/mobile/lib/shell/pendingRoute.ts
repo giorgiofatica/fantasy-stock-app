@@ -35,6 +35,11 @@ export interface PendingRoute {
   releaseHold(): string | null;
   /** Forget a kept link without opening it (the reset was cancelled / the person is being signed out). */
   dropHeld(): void;
+  /**
+   * Forget everything: the waiting link and any held one. For a deliberate sign-out (lib/account/leaverState.ts): a
+   * link one person opened (e.g. while the username gate showed) must not open for the next person on this phone.
+   */
+  forget(): void;
   peek(): string | null;
 }
 
@@ -71,6 +76,10 @@ export function createPendingRoute(): PendingRoute {
       return out;
     },
     dropHeld() {
+      held = null;
+    },
+    forget() {
+      target = null;
       held = null;
     },
     peek() {

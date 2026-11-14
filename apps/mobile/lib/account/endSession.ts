@@ -1,10 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import { supabase } from '../supabase';
 import { signOutOfGoogle } from '../auth/socialSignIn';
-import { pendingInvite } from '../invite/pendingInviteStore';
-import { pendingTakeover } from '../invite/pendingTakeoverStore';
 import { endSessionCore } from './endSessionCore';
+import { leaverStateDeps } from './leaverState';
 import { forceSignedOut } from './forcedSignOut';
 
 // Account deletion (W4) — after {ok:true} (or a committed `stage`): the server deleted, or is finishing the deletion of,
@@ -13,12 +10,9 @@ import { forceSignedOut } from './forcedSignOut';
 // it from its first render.
 export async function endSessionAfterDeletion(userId: string | null): Promise<void> {
   await endSessionCore({
+    ...leaverStateDeps(userId), // the stores, AsyncStorage's removeItem and the user id
     signOutLocal: () => supabase.auth.signOut({ scope: 'local' }),
-    removeItem: (key) => AsyncStorage.removeItem(key),
     forceSignedOut,
-    clearPendingTakeover: () => pendingTakeover.clear(),
-    clearPendingInvite: () => pendingInvite.clear(),
     signOutOfGoogle,
-    userId,
   });
 }
