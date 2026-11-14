@@ -9,8 +9,9 @@ description = """
 Known-safe matches only. The Supabase ANON key is a PUBLISHABLE client key — it
 ships in the web bundle and is designed to be public (RLS is the real boundary),
 so its appearance in templates, EAS build config, and the legacy cron migrations
-is not a leak. SERVICE-ROLE keys are NOT allowlisted here and must
-never be committed.
+is not a leak. It is allowlisted by EXACT VALUE (regexes below), never by the
+files it appears in, so any other secret in those files is still caught.
+SERVICE-ROLE keys are NOT allowlisted here and must never be committed.
 """
 
 # Template / example / documentation / config files that legitimately contain the
@@ -18,15 +19,17 @@ never be committed.
 paths = [
   '''(^|/)\.env\.example$''',
   '''(^|/)\.env\.sample$''',
-  '''^apps/mobile/eas\.json$''',
   '''^docs/.*\.md$''',
   '''^CLAUDE\.md$''',
   '''^\.gitleaks\.toml$''',
-  '''^\.claude/''',
 ]
 
 # The exact publishable anon key value, so it is allowlisted wherever it appears
 # (e.g. the two legacy cron migrations) WITHOUT allowlisting those whole files.
 regexes = [
   '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaWFhaWZqY2Nsc3Zta2ZxZ21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjM2NzM4ODMsImV4cCI6MjAzOTI0OTg4M30.OmPOPSgDyF4mRAYOFof8OKHKk0SvpLLHPEVBSKBAXL4''',
+  # A second publishable anon key for the same project (role=anon, iat 1753823309), committed in
+  # apps/mobile/eas.json, .claude/settings.local.json and scripts/test-draft.js history. Same treatment as the first:
+  # its exact value, never a path.
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaWFhaWZqY2Nsc3Zta2ZxZ21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjMzMDksImV4cCI6MjA2OTM5OTMwOX0.wZWwFO4gCaX2RePa-rJKG47YJ6K6ghDhKcgnvhy6RiI''',
 ]
