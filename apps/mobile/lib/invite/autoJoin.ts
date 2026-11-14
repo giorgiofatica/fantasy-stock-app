@@ -93,7 +93,7 @@ export function shouldAutoOpenInvite(input: {
 /** The route the layout opens. The code is NOT in it: the screen reads the stored invite. */
 export const INVITE_JOIN_ROUTE = '/join-league?invite=1';
 
-/** The same screen in TAP mode: the existing "Join {league}" preview, which waits for the person's tap (decision 18). */
+/** The same screen in TAP mode: the existing "Join {league}" preview, which waits for the person's tap (inviteNeedsTap). */
 export const INVITE_TAP_ROUTE = '/join-league?invite=tap';
 
 /** Whether a person with this auth phase had a session when a link arrived. 'unknown' (a cold start, auth not resolved yet) is null: settled later, at the first resolved phase. */
@@ -103,14 +103,14 @@ export function signedInAtArrivalFrom(phase: 'unknown' | 'signedOut' | 'gated' |
 }
 
 /**
- * Whether the invite joins on its own or waits for the person's tap (Planner, decision 18). Only the SHARED https link
- * auto-joins (Decision 8's zero-tap join). A custom-scheme link (fantasystockapp://join/<CODE>) that arrived while the
- * person was SIGNED IN waits: other apps and redirects can fire a scheme link silently, and a silent join is a visible
- * social action. A signed-out arrival behaves the same either way (capture, then sign in, then join). Decided from facts
- * recorded when the link arrived, never inferred later; an arrival not yet settled counts as needing the tap.
+ * Whether the invite joins on its own or waits for the person's tap. PRODUCT_RULES, Onboarding (Giorgio, 2026-11-13, "B";
+ * security brief A2; supersedes decision 18 for a signed-in arrival): a shared invite link never joins a signed-in person
+ * without a tap. A link that arrived while the person was SIGNED IN, the https link and the scheme link alike, opens on
+ * the league's Join preview and waits for Join; any page, message or QR code can carry a link. A SIGNED-OUT arrival is
+ * unchanged for both: capture, then sign in, then the join. Decided from facts recorded when the link arrived, never
+ * inferred later; an arrival not yet settled counts as needing the tap. The origin no longer changes the answer.
  */
 export function inviteNeedsTap(invite: { origin: 'https' | 'scheme'; signedInAtArrival: boolean | null }): boolean {
-  if (invite.origin === 'https') return false;
   return invite.signedInAtArrival !== false;
 }
 

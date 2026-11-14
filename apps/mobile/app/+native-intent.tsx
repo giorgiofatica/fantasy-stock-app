@@ -38,10 +38,10 @@ export function redirectSystemPath({ path }: { path: string; initial: boolean })
   // dropped here and the router sees the original path, which matches no route and falls back as before.
   try {
     // The origin (the shared https link, or the scheme) and whether the person already had a session are decided HERE,
-    // once, and travel with the invite (decision 18): a scheme link that arrives while signed in waits for a tap.
+    // once, and travel with the invite: any invite link that arrives while signed in waits for a tap (inviteNeedsTap).
     // Whether the person has a session is read LIVE (lib/auth/liveSession.ts, published by SessionProvider the instant
     // the session appears), never from the layout's phase, which lags a sign-in by the profile read and the button's
-    // hold: a scheme link fired in that window would otherwise read as signed out and auto-join.
+    // hold: a link fired in that window would otherwise read as signed out and auto-join.
     const invite = parseInviteArrival(path);
     const live = getLiveSession();
     if (invite && pendingInvite.capture(invite.code, { origin: invite.origin, signedInAtArrival: live.signedIn, userIdAtArrival: live.userId })) {

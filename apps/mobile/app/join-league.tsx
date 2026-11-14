@@ -57,10 +57,10 @@ import {
 // call, so an `already_member` answer after a lost response reads as "You're in", not a silent open.
 // Dismissing the screen clears the invite (the person closed it); an app kill keeps it for the next launch.
 //
-// TAP MODE (?invite=tap; decision 18): a custom-scheme link that arrived while the person was SIGNED IN. Other apps and
-// redirects can fire those silently, so it never joins by itself: the same screen shows the existing "Join {league}"
-// preview and waits for the person's tap (lib/invite/inviteJoin.ts runInvitePreviewOnly). The shared https link keeps the
-// zero-tap join above. No new copy in either mode.
+// TAP MODE (?invite=tap): an invite link, https or scheme, that arrived while the person was SIGNED IN (PRODUCT_RULES,
+// 2026-11-13 "B"; any page, message or QR code can carry one). It never joins by itself: the same screen shows the existing
+// "Join {league}" preview and waits for the person's tap (lib/invite/inviteJoin.ts runInvitePreviewOnly). A link that
+// arrived signed OUT keeps the join above after sign-in. No new copy in either mode.
 //
 // Game Night (W4 Onboarding): the preview's rows sit in the §9C Card and divide by space,
 // never a line; a refusal is the WarnPanel (`warnTint`, its own `warnText` ink, no icon), as on

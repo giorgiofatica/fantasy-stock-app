@@ -78,10 +78,10 @@ export interface InviteArrival {
 
 /**
  * The invite in a system link, with its ORIGIN, decided here once and carried with the pending invite (Planner,
- * decision 18). `https` is the link people actually share (https://<domain>/join/<CODE>); it keeps the zero-tap
- * auto-join. Everything else is `scheme`: fantasystockapp://join/<CODE>, which any other app or redirect can fire
- * silently, and the dev-only exp:// and bare-path shapes. A scheme link that arrives while the person is signed in
- * never joins without their tap.
+ * decision 18). `https` is the link people actually share (https://<domain>/join/<CODE>). Everything else is `scheme`:
+ * fantasystockapp://join/<CODE>, which any other app or redirect can fire silently, and the dev-only exp:// and
+ * bare-path shapes. Since 2026-11-13 ("B") no invite link joins a signed-in person without their tap, whatever its origin
+ * (autoJoin.ts inviteNeedsTap). The origin is still recorded with the invite; takeover links gate on their own origin.
  */
 export function parseInviteArrival(raw: string | null | undefined, dev: boolean = isDevBuild()): InviteArrival | null {
   if (typeof raw !== 'string') return null;

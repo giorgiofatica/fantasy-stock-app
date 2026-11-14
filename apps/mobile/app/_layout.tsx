@@ -201,14 +201,14 @@ function RootLayoutNav({ fontsLoaded }: { fontsLoaded: boolean }) {
   }, [ownerAction, userId]);
 
   // A link that arrived at a cold start (auth not resolved yet) records "unknown"; the first resolved phase settles whether
-  // the person had a session then. The https link never needs it (it auto-joins either way).
+  // the person had a session then. Every link needs it: a signed-in arrival waits for the tap (inviteNeedsTap).
   useEffect(() => {
     if (invite.code && invite.signedInAtArrival === null && shownPhase !== 'unknown') {
       // The live session first (no lag), the phase only as the fallback.
       inviteStore.settleArrival(getLiveSession().signedIn ?? signedInAtArrivalFrom(shownPhase) === true);
     }
   }, [invite.code, invite.signedInAtArrival, shownPhase]);
-  const arrivalSettled = invite.origin === 'https' || invite.signedInAtArrival !== null;
+  const arrivalSettled = invite.signedInAtArrival !== null;
 
   // ...and opened when the hold ends (the reset finished or was cancelled, or the link was refused).
   const [holdTick, setHoldTick] = useState(0);
@@ -229,8 +229,8 @@ function RootLayoutNav({ fontsLoaded }: { fontsLoaded: boolean }) {
   useEffect(() => {
     if (!shouldAutoOpenInvite({ phase: shownPhase, code: invite.code, autoOpenedCode: invite.autoOpenedCode, recoveryHold: isRecoveryHold(), ownerAction, arrivalSettled })) return;
     inviteStore.markAutoOpened(invite.code as string);
-    // Auto-join for the shared https link; the "Join {league}" preview that waits for a tap for a scheme link that
-    // arrived while signed in (inviteJoinRoute, decision 18).
+    // Auto-join for a link that arrived while signed OUT (the invited friend, after sign-in); the "Join {league}" preview
+    // that waits for a tap for any link that arrived while signed in (inviteJoinRoute, PRODUCT_RULES 2026-11-13 "B").
     const route = inviteJoinRoute(invite);
     setTimeout(() => router.push(route as never), 0);
   }, [shownPhase, invite, holdTick, ownerAction, arrivalSettled]);

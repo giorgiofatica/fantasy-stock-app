@@ -1044,17 +1044,19 @@ Deno.test('signed in when the link ARRIVED: observed from the auth phase, "unkno
   assertEquals(signedInAtArrivalFrom('unknown'), null);
 });
 
-Deno.test('who joins on their own: ONLY the shared https link; a scheme link that arrived signed in waits for the tap', () => {
+Deno.test('who joins on their own: nobody signed in at arrival does (B, 2026-11-13); a signed-out arrival joins after sign-in', () => {
   const needs = (origin: 'https' | 'scheme', signedInAtArrival: boolean | null) => inviteNeedsTap({ origin, signedInAtArrival });
-  // https: zero-tap, whatever the arrival (Decision 8)
-  for (const si of [true, false, null]) assertEquals(needs('https', si), false, `https ${si}`);
-  // scheme + signed in at arrival: the tap
-  assertEquals(needs('scheme', true), true);
-  // scheme + signed out at arrival: capture, sign in, join (the same as https)
-  assertEquals(needs('scheme', false), false);
-  // not yet known: the cautious answer
-  assertEquals(needs('scheme', null), true);
-  assertEquals(inviteJoinRoute({ origin: 'https', signedInAtArrival: true }), '/join-league?invite=1');
+  for (const origin of ['https', 'scheme'] as const) {
+    // signed in at arrival: the Join preview waits for the tap, the https link included (security brief A2)
+    assertEquals(needs(origin, true), true, `${origin} signed in`);
+    // signed out at arrival: capture, sign in, join
+    assertEquals(needs(origin, false), false, `${origin} signed out`);
+    // not yet known: the cautious answer
+    assertEquals(needs(origin, null), true, `${origin} unsettled`);
+  }
+  assertEquals(inviteJoinRoute({ origin: 'https', signedInAtArrival: true }), '/join-league?invite=tap');
+  assertEquals(inviteJoinRoute({ origin: 'https', signedInAtArrival: false }), '/join-league?invite=1');
+  assertEquals(inviteJoinRoute({ origin: 'https', signedInAtArrival: null }), '/join-league?invite=tap');
   assertEquals(inviteJoinRoute({ origin: 'scheme', signedInAtArrival: true }), '/join-league?invite=tap');
   assertEquals(inviteJoinRoute({ origin: 'scheme', signedInAtArrival: false }), '/join-league?invite=1');
   assertEquals(INVITE_TAP_ROUTE, '/join-league?invite=tap');
@@ -1101,7 +1103,7 @@ Deno.test('the pending invite carries its arrival: first arrival wins (no upgrad
   assertEquals(r.store.getSnapshot().signedInAtArrival, null);
 });
 
-Deno.test('TAP MODE never joins: scheme + signed in -> preview only; https + signed in -> the join is called', async () => {
+Deno.test('TAP MODE never joins: any link + signed in -> preview only; signed out at arrival -> the join after sign-in', async () => {
   // the whole decision: parse -> arrival -> route -> sequence, counting the join calls
   const arrive = (url: string, phase: 'ready' | 'signedOut' | 'gated', dev = false) => {
     const a = parseInviteArrival(url, dev)!;
@@ -1113,9 +1115,16 @@ Deno.test('TAP MODE never joins: scheme + signed in -> preview only; https + sig
     const res = tap ? await runInvitePreviewOnly(deps, CODE) : await runInviteJoin(deps, CODE);
     return { tap, res, state };
   };
-  // https + signed in: zero-tap join
+  // https + signed in: the preview, NO join (B, 2026-11-13: no zero-tap join for a signed-in person)
   let r = await run(arrive(`https://fantasy-stock-app.vercel.app/join/${CODE}`, 'ready'));
-  assertEquals([r.tap, r.res?.kind, r.state.joins, r.state.markTried], [false, 'joined', 1, 1]);
+  assertEquals([r.tap, r.res?.kind, r.state.joins, r.state.markTried, r.state.cleared], [true, 'preview', 0, 0, 0]);
+  assertEquals((r.res as { block: unknown }).block, null, 'joinable: the preview\'s Join button waits');
+  // https + the username gate: the same
+  r = await run(arrive(`https://fantasy-stock-app.vercel.app/join/${CODE}`, 'gated'));
+  assertEquals([r.tap, r.state.joins], [true, 0]);
+  // https + SIGNED OUT at arrival: unchanged, capture, sign in, then it joins
+  r = await run(arrive(`https://fantasy-stock-app.vercel.app/join/${CODE}`, 'signedOut'));
+  assertEquals([r.tap, r.res?.kind, r.state.joins], [false, 'joined', 1]);
   // scheme + signed in: the preview, NO join, NO triedJoin
   r = await run(arrive(`fantasystockapp://join/${CODE}`, 'ready'));
   assertEquals([r.tap, r.res?.kind, r.state.joins, r.state.markTried, r.state.cleared], [true, 'preview', 0, 0, 0]);
@@ -1168,7 +1177,8 @@ Deno.test('tap mode wiring: native-intent records the arrival, the layout routes
   assert(n.includes('const live = getLiveSession();'));
   assertFalse(n.includes('pendingRoute.phase'), 'the layout\'s phase lags a sign-in; the arrival is read live');
   const l = strip(SOURCES['app/_layout.tsx']);
-  assert(l.includes('const arrivalSettled = invite.origin === \'https\' || invite.signedInAtArrival !== null;'));
+  assert(l.includes('const arrivalSettled = invite.signedInAtArrival !== null;'), 'an https arrival waits to be settled too');
+  assertFalse(l.includes("invite.origin === 'https' ||"), 'no https shortcut past the settle');
   assert(l.includes('inviteStore.settleArrival(getLiveSession().signedIn ?? signedInAtArrivalFrom(shownPhase) === true);'));
   assert(l.includes("shownPhase !== 'unknown'"));
   const j = strip(SOURCES['app/join-league.tsx']);
@@ -1189,9 +1199,12 @@ Deno.test('tap mode wiring: native-intent records the arrival, the layout routes
 
 Deno.test('the join screen\'s mode comes from the stored invite, not from the router param: ?invite=1 cannot force zero-tap', () => {
   const inv = (o: Partial<{ code: string | null; origin: 'https' | 'scheme'; signedInAtArrival: boolean | null; autoOpenedCode: string | null }> = {}) =>
-    ({ code: CODE, origin: 'https' as const, signedInAtArrival: true, autoOpenedCode: CODE, ...o });
+    ({ code: CODE, origin: 'https' as const, signedInAtArrival: false, autoOpenedCode: CODE, ...o });
   // the legitimate openings
-  assertEquals(inviteScreenMode('1', inv()), 'auto', 'https, opened by the layout');
+  assertEquals(inviteScreenMode('1', inv()), 'auto', 'https tapped signed out, opened by the layout after sign-in');
+  // B (2026-11-13): an https link that arrived signed in is the tap preview, even opened by the layout with ?invite=1
+  assertEquals(inviteScreenMode('1', inv({ signedInAtArrival: true })), 'tap', 'https signed in waits for Join');
+  assertEquals(inviteScreenMode('1', inv({ signedInAtArrival: null })), 'tap', 'https unsettled waits too');
   assertEquals(inviteScreenMode('1', inv({ origin: 'scheme', signedInAtArrival: false })), 'auto', 'scheme tapped signed out');
   assertEquals(inviteScreenMode('tap', inv({ origin: 'scheme', signedInAtArrival: true })), 'tap');
   // THE EXPLOIT: another app fires fantasystockapp://join/<CODE> (tap screen), then fantasystockapp://join-league?invite=1
