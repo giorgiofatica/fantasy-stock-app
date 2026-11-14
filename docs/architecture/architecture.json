@@ -2,27 +2,27 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "70ae3c262997a2ffc9f50cf86cb28484013c7c48",
-    "commitShort": "70ae3c26",
+    "commit": "04d9dd39002629f60e6c270bc4c694f5a6059af5",
+    "commitShort": "04d9dd39",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/sheet-top-bar",
+    "branch": "fix/commissioner-direct-writes",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+        "code": "??",
+        "path": "supabase/migrations/20261205000100_commissioner_direct_writes.sql"
       }
     ],
-    "timestamp": "2026-11-12T21:20:46Z",
-    "sourceHash": "sha256:b22180e44a2607ec84664b9dfc0a842a1ece7070db65b66c4ea0511e2be06068",
+    "timestamp": "2026-11-14T00:59:30Z",
+    "sourceHash": "sha256:a9906051c53f4dca3c610d759d618cbe43ebdc7341b70e03bfc82b22b24ca6ee",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 23.4,
-    "ageDays": 1,
+    "ageHours": 51.1,
+    "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:21978bcf035c670291c0755433e1c35e63b1eb9f2349f64048519859d51a996d",
@@ -4594,6 +4594,37 @@
       "source": {
         "path": "supabase/migrations/20261010000000_draft_pick_clock_and_queue.sql",
         "line": 115
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261205000100_commissioner_direct_writes.sql:93"
+        ],
+        "latestDefinition": "supabase/migrations/20261205000100_commissioner_direct_writes.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.enforce_leagues_server_columns",
+      "label": "enforce_leagues_server_columns()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261205000100_commissioner_direct_writes.sql",
+        "line": 93
       }
     },
     {
@@ -19217,6 +19248,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.tbl.leagues->pg.enforce_leagues_server_columns",
+      "from": "tbl.leagues",
+      "to": "pg.enforce_leagues_server_columns",
+      "protocol": "pg-trigger",
+      "payload": "trigger on leagues",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000100_commissioner_direct_writes.sql:157"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.tbl.leagues->pg.enforce_playoff_teams_frozen_after_draft_start",
       "from": "tbl.leagues",
       "to": "pg.enforce_playoff_teams_frozen_after_draft_start",
@@ -22527,6 +22571,16 @@
   ],
   "drift": [
     {
+      "node": "pg.enforce_leagues_server_columns",
+      "label": "enforce_leagues_server_columns()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -23681,6 +23735,12 @@
   },
   "unverified": [
     {
+      "scope": "pg.enforce_leagues_server_columns",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -23749,13 +23809,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 316,
-    "edges": 769,
+    "nodes": 317,
+    "edges": 770,
     "flows": 7,
-    "drift": 34,
-    "driftHigh": 0,
+    "drift": 35,
+    "driftHigh": 1,
     "deadCode": 63,
-    "unverified": 11
+    "unverified": 12
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -24389,7 +24449,8 @@
       "20261201000000_autopick_sweep_fast_cadence.sql",
       "20261202000000_draft_turn_lease_and_escalation_claim.sql",
       "20261203000000_refuse_new_duration_leagues.sql",
-      "20261204000000_renewal_notices_wake_notify_cron.sql"
+      "20261204000000_renewal_notices_wake_notify_cron.sql",
+      "20261205000100_commissioner_direct_writes.sql"
     ],
     "config": [
       "delete-account=true",
