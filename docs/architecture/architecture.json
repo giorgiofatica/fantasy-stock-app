@@ -2,21 +2,21 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "63453558222bd4862d1efc120cce26197c792b9d",
-    "commitShort": "63453558",
+    "commit": "809bf7299ec41ba7506253aada670a16e88faab0",
+    "commitShort": "809bf729",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "rebase/hb",
+    "branch": "fix/symbols-expand-contract",
     "dirty": false,
     "dirtyPaths": [],
-    "timestamp": "2026-11-14T03:24:55Z",
-    "sourceHash": "sha256:e83c568688b1cd946415d9869d400cc9b26be29e2650901575c4a1a452f97acc",
+    "timestamp": "2026-11-14T03:32:22Z",
+    "sourceHash": "sha256:ca384bc26b0bb432f7982cef6783bdf563199a1a45c85077166d0f5ffd0ec1dd",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 53.5,
+    "ageHours": 53.6,
     "ageDays": 2.2,
     "staleAfterDays": 14,
     "stale": false,
@@ -3438,9 +3438,9 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261205000000_symbols_column_grant.sql:72"
+          "supabase/migrations/20261205000300_symbols_readers_functions.sql:49"
         ],
-        "latestDefinition": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "latestDefinition": "supabase/migrations/20261205000300_symbols_readers_functions.sql",
         "redefinitions": 1
       },
       "drift": [
@@ -3459,8 +3459,8 @@
       "sublabel": "not in snapshot",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261205000000_symbols_column_grant.sql",
-        "line": 72
+        "path": "supabase/migrations/20261205000300_symbols_readers_functions.sql",
+        "line": 49
       }
     },
     {
@@ -5276,9 +5276,9 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261205000000_symbols_column_grant.sql:145"
+          "supabase/migrations/20261205000300_symbols_readers_functions.sql:122"
         ],
-        "latestDefinition": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "latestDefinition": "supabase/migrations/20261205000300_symbols_readers_functions.sql",
         "redefinitions": 1
       },
       "drift": [
@@ -5297,8 +5297,8 @@
       "sublabel": "not in snapshot",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261205000000_symbols_column_grant.sql",
-        "line": 145
+        "path": "supabase/migrations/20261205000300_symbols_readers_functions.sql",
+        "line": 122
       }
     },
     {
@@ -7560,9 +7560,9 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261205000000_symbols_column_grant.sql:122"
+          "supabase/migrations/20261205000300_symbols_readers_functions.sql:99"
         ],
-        "latestDefinition": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "latestDefinition": "supabase/migrations/20261205000300_symbols_readers_functions.sql",
         "redefinitions": 1
       },
       "drift": [
@@ -7581,8 +7581,8 @@
       "sublabel": "not in snapshot",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261205000000_symbols_column_grant.sql",
-        "line": 122
+        "path": "supabase/migrations/20261205000300_symbols_readers_functions.sql",
+        "line": 99
       }
     },
     {
@@ -14644,7 +14644,7 @@
       "payload": "SELECT category_rules (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261205000000_symbols_column_grant.sql:107"
+        "supabase/migrations/20261205000300_symbols_readers_functions.sql:84"
       ]
     },
     {
@@ -14657,8 +14657,8 @@
       "payload": "SELECT symbol_category_overrides (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261205000000_symbols_column_grant.sql:101",
-        "supabase/migrations/20261205000000_symbols_column_grant.sql:105"
+        "supabase/migrations/20261205000300_symbols_readers_functions.sql:78",
+        "supabase/migrations/20261205000300_symbols_readers_functions.sql:82"
       ]
     },
     {
@@ -14671,7 +14671,7 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261205000000_symbols_column_grant.sql:94"
+        "supabase/migrations/20261205000300_symbols_readers_functions.sql:71"
       ]
     },
     {
@@ -15893,7 +15893,7 @@
       "payload": "SELECT drafts (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261205000000_symbols_column_grant.sql:154"
+        "supabase/migrations/20261205000300_symbols_readers_functions.sql:131"
       ]
     },
     {
@@ -15906,7 +15906,7 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261205000000_symbols_column_grant.sql:156"
+        "supabase/migrations/20261205000300_symbols_readers_functions.sql:133"
       ]
     },
     {
@@ -18500,7 +18500,7 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261205000000_symbols_column_grant.sql:131"
+        "supabase/migrations/20261205000300_symbols_readers_functions.sql:108"
       ]
     },
     {
@@ -24063,6 +24063,18 @@
   },
   "unverified": [
     {
+      "scope": "pg.enforce_leagues_delete_before_draft",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.enforce_leagues_server_columns",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "pg.count_slot_matches",
       "claim": "function exists in prod",
       "reason": "Present in migrations, absent from db-snapshot.json.",
@@ -24076,18 +24088,6 @@
     },
     {
       "scope": "pg.get_league_pick_industries",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
-      "scope": "pg.enforce_leagues_delete_before_draft",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
-      "scope": "pg.enforce_leagues_server_columns",
       "claim": "function exists in prod",
       "reason": "Present in migrations, absent from db-snapshot.json.",
       "resolve": "Re-capture the snapshot, or confirm the migration was applied."
@@ -24801,9 +24801,9 @@
       "20261202000000_draft_turn_lease_and_escalation_claim.sql",
       "20261203000000_refuse_new_duration_leagues.sql",
       "20261204000000_renewal_notices_wake_notify_cron.sql",
-      "20261205000000_symbols_column_grant.sql",
       "20261205000100_commissioner_direct_writes.sql",
-      "20261205000200_revoke_api_table_ddl_privileges.sql"
+      "20261205000200_revoke_api_table_ddl_privileges.sql",
+      "20261205000300_symbols_readers_functions.sql"
     ],
     "config": [
       "delete-account=true",
