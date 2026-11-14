@@ -29,7 +29,8 @@ Entries begin with the Recorder's first pass.
 
 **Shipped**
 - **Three migrations are APPLIED** (Giorgio's `db push` on 2026-11-13 from the deploy checkout at `f79c67ae`, after #455, #456, #457 and #459 merged; the dry run listed exactly `20261205000100`, `20261205000200` and `20261205000300`, and not `20261205000000`): `20261205000100_commissioner_direct_writes` (S2/S3), `20261205000200_revoke_api_table_ddl_privileges` (no TRUNCATE, REFERENCES, TRIGGER or MAINTAIN for anon or authenticated on public tables; `get_real_user_ids` pinned to `public, pg_temp`) and `20261205000300_symbols_readers_functions` (the S1 EXPAND: three reader functions). Verified by query by the Orchestrator (run by Giorgio): all three in `schema_migrations`; `trg_leagues_delete_before_draft` and `trg_leagues_server_columns` enabled; the only `drafts` policy is the members' SELECT, the commissioner delete policy gone; 0 TRUNCATE, REFERENCES or TRIGGER privileges left; the three reader functions definer with EXECUTE for `postgres` and `authenticated` only; `symbols` ACL `postgres=arwdDxtm`, `authenticated=r`, `service_role=arwdDxtm`.
-- **Not yet shown:** #455's effect tests are pending (the Orchestrator will send the result); the S1 checks PART A and a db-snapshot re-capture are on Giorgio's list.
+- **S2/S3 effect shown in prod:** #455's effect test (`docs/security/commissioner-direct-writes-effect-test.sql`), run by Giorgio in the prod SQL editor on 2026-11-13, rolled back by design and began "COMMISSIONER WRITES EFFECT TEST: PASS". For a league with 24 picks: picks 24 → 24 (0 deleted), league deleted 0; a live column write refused (`league_rules_locked`); a live draft-date change refused (`draft_time_locked`); a pre-draft server column refused (`league_column_server_only`); an insert with `season_status` refused; a `draft_sessions` write refused by RLS; a pre-draft league with a pick, delete refused (`league_delete_locked`); and the legitimate writes still worked (rename 1, a pre-draft empty-league delete 1, rolled back). Each attack was refused (the Orchestrator's note).
+- **Not yet shown:** the S1 checks PART A (A3 is pending with Giorgio) and a db-snapshot re-capture are on his list.
 - **S1 is half done by design:** #456 merged its migration as one file that would have broken build 14, so #459 split it: EXPAND applied, CONTRACT (`deferred/20261205000400_symbols_column_grant.sql`) HELD until a build with the app change is on every phone in use. The `symbols` table is still readable by any signed-in account until then.
 - The newest EAS iOS build is still 1.3.0 (14).
 
@@ -51,7 +52,7 @@ Entries begin with the Recorder's first pass.
 - The Phase 4 decision on the legacy keys (item 29), now with the live key in `settings.local.json`.
 
 **Next**
-- Promote the S1 CONTRACT (`deferred/20261205000400`) only after a build with #456's app change is on every phone in use (build 15), re-stamped, then a dry run, the push and PART B. #455's effect tests.
+- Promote the S1 CONTRACT (`deferred/20261205000400`) only after a build with #456's app change is on every phone in use (build 15), re-stamped, then a dry run, the push and PART B.
 - The build-15 re-check (a long list of merged mobile changes, all in no build), Part D at the next draft, and step 34's re-run on build 15.
 
 ## 2026-11-12
