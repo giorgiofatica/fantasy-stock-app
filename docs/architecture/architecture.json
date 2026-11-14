@@ -2,27 +2,22 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "57e9ad3d381924621539b9243a55d4b856f92cc6",
-    "commitShort": "57e9ad3d",
+    "commit": "63a5775b2ac54fc818955e9cf3a17e52a4cc7077",
+    "commitShort": "63a5775b",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/commissioner-direct-writes",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "supabase/migrations/20261205000100_commissioner_direct_writes.sql"
-      }
-    ],
-    "timestamp": "2026-11-14T01:07:27Z",
-    "sourceHash": "sha256:a9906051c53f4dca3c610d759d618cbe43ebdc7341b70e03bfc82b22b24ca6ee",
+    "branch": "rebase/s1",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-14T03:19:58Z",
+    "sourceHash": "sha256:a383e1d28a5daff5583384e14aeb2090a45b50778b58e1cab53fb2b5e6340e17",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 51.2,
-    "ageDays": 2.1,
+    "ageHours": 53.4,
+    "ageDays": 2.2,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:21978bcf035c670291c0755433e1c35e63b1eb9f2349f64048519859d51a996d",
@@ -3440,6 +3435,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261205000000_symbols_column_grant.sql:72"
+        ],
+        "latestDefinition": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.count_slot_matches",
+      "label": "count_slot_matches()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "line": 72
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -5242,6 +5268,37 @@
       "source": {
         "path": "supabase/migrations/20261119000001_frozen_leaver_names_callers.sql",
         "line": 637
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261205000000_symbols_column_grant.sql:145"
+        ],
+        "latestDefinition": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.get_league_pick_industries",
+      "label": "get_league_pick_industries()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "line": 145
       }
     },
     {
@@ -7495,6 +7552,37 @@
       "source": {
         "path": "supabase/migrations/20261115000003_run_it_back_rpcs.sql",
         "line": 403
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261205000000_symbols_column_grant.sql:122"
+        ],
+        "latestDefinition": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.symbols_enrichment_progress",
+      "label": "symbols_enrichment_progress()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261205000000_symbols_column_grant.sql",
+        "line": 122
       }
     },
     {
@@ -11054,6 +11142,23 @@
       "drift": [],
       "annotation": null,
       "verified": true,
+      "id": "ui.tests-deno.gn-w4-draft.test",
+      "label": "gn-w4-draft.test.ts",
+      "sublabel": "mobile/tests-deno/gn-w4-draft.test.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/tests-deno/gn-w4-draft.test.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
       "id": "ui.tests-deno.leaguemate-team-view.test",
       "label": "leaguemate-team-view.test.ts",
       "sublabel": "mobile/tests-deno/leaguemate-team-view.test.ts",
@@ -11077,6 +11182,23 @@
       "kind": "client-screen",
       "source": {
         "path": "apps/mobile/tests-deno/onboarding-w3-invite-links.test.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "ui.tests-deno.read-result.test",
+      "label": "read-result.test.ts",
+      "sublabel": "mobile/tests-deno/read-result.test.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/tests-deno/read-result.test.ts",
         "line": 1
       }
     },
@@ -14515,6 +14637,46 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.count_slot_matches->tbl.category_rules",
+      "from": "pg.count_slot_matches",
+      "to": "tbl.category_rules",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT category_rules (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000000_symbols_column_grant.sql:107"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.count_slot_matches->tbl.symbol_category_overrides",
+      "from": "pg.count_slot_matches",
+      "to": "tbl.symbol_category_overrides",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbol_category_overrides (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000000_symbols_column_grant.sql:101",
+        "supabase/migrations/20261205000000_symbols_column_grant.sql:105"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.count_slot_matches->tbl.symbols",
+      "from": "pg.count_slot_matches",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000000_symbols_column_grant.sql:94"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.create_takeover_invite->tbl.league_invites",
       "from": "pg.create_takeover_invite",
       "to": "tbl.league_invites",
@@ -15719,6 +15881,32 @@
         "supabase/migrations/20261119000001_frozen_leaver_names_callers.sql:655",
         "supabase/migrations/20261119000001_frozen_leaver_names_callers.sql:666",
         "supabase/migrations/20261119000001_frozen_leaver_names_callers.sql:695"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_pick_industries->tbl.drafts",
+      "from": "pg.get_league_pick_industries",
+      "to": "tbl.drafts",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT drafts (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000000_symbols_column_grant.sql:154"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_pick_industries->tbl.symbols",
+      "from": "pg.get_league_pick_industries",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000000_symbols_column_grant.sql:156"
       ]
     },
     {
@@ -18305,6 +18493,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.symbols_enrichment_progress->tbl.symbols",
+      "from": "pg.symbols_enrichment_progress",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000000_symbols_column_grant.sql:131"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.sync_draft_order_on_member_change->tbl.league_draft_order",
       "from": "pg.sync_draft_order_on_member_change",
       "to": "tbl.league_draft_order",
@@ -19538,6 +19739,30 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.ui.categoryData->pg.count_slot_matches",
+      "from": "ui.categoryData",
+      "to": "pg.count_slot_matches",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('count_slot_matches')",
+      "callSites": [
+        "apps/mobile/lib/categoryData.ts:93"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.categoryData->pg.symbols_enrichment_progress",
+      "from": "ui.categoryData",
+      "to": "pg.symbols_enrichment_progress",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('symbols_enrichment_progress')",
+      "callSites": [
+        "apps/mobile/lib/categoryData.ts:77"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.ui.categoryData->tbl.categories",
       "from": "ui.categoryData",
       "to": "tbl.categories",
@@ -19547,24 +19772,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:64"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.ui.categoryData->tbl.category_rules",
-      "from": "ui.categoryData",
-      "to": "tbl.category_rules",
-      "protocol": "postgrest-select",
-      "payload": ".from('category_rules').select('category_id')",
-      "columns": [
-        "category_id",
-        "gics_industry"
-      ],
-      "callSites": [
-        "apps/mobile/lib/categoryData.ts:101",
-        "apps/mobile/lib/categoryData.ts:141"
+        "apps/mobile/lib/categoryData.ts:65"
       ]
     },
     {
@@ -19579,7 +19787,7 @@
         "slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:210"
+        "apps/mobile/lib/categoryData.ts:145"
       ]
     },
     {
@@ -19592,7 +19800,7 @@
       "payload": ".from('league_draft_slots').delete()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:190"
+        "apps/mobile/lib/categoryData.ts:125"
       ]
     },
     {
@@ -19605,43 +19813,7 @@
       "payload": ".from('league_draft_slots').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/categoryData.ts:203"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.ui.categoryData->tbl.symbol_category_overrides",
-      "from": "ui.categoryData",
-      "to": "tbl.symbol_category_overrides",
-      "protocol": "postgrest-select",
-      "payload": ".from('symbol_category_overrides').select('category_id')",
-      "columns": [
-        "category_id",
-        "symbol, category_id"
-      ],
-      "callSites": [
-        "apps/mobile/lib/categoryData.ts:142",
-        "apps/mobile/lib/categoryData.ts:83"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.ui.categoryData->tbl.symbols",
-      "from": "ui.categoryData",
-      "to": "tbl.symbols",
-      "protocol": "postgrest-select",
-      "payload": ".from('symbols').select('gics_industry')",
-      "columns": [
-        "gics_industry",
-        "symbol"
-      ],
-      "callSites": [
-        "apps/mobile/lib/categoryData.ts:111",
-        "apps/mobile/lib/categoryData.ts:112",
-        "apps/mobile/lib/categoryData.ts:130",
-        "apps/mobile/lib/categoryData.ts:94"
+        "apps/mobile/lib/categoryData.ts:138"
       ]
     },
     {
@@ -20312,6 +20484,18 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.ui.game.useSymbolCategories->pg.get_league_pick_industries",
+      "from": "ui.game.useSymbolCategories",
+      "to": "pg.get_league_pick_industries",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('get_league_pick_industries')",
+      "callSites": [
+        "apps/mobile/lib/game/useSymbolCategories.ts:28"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.ui.game.useSymbolCategories->tbl.category_rules",
       "from": "ui.game.useSymbolCategories",
       "to": "tbl.category_rules",
@@ -20321,7 +20505,7 @@
         "gics_industry, category_id"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useSymbolCategories.ts:27"
+        "apps/mobile/lib/game/useSymbolCategories.ts:38"
       ]
     },
     {
@@ -20336,22 +20520,7 @@
         "symbol, category_id"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useSymbolCategories.ts:22"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.ui.game.useSymbolCategories->tbl.symbols",
-      "from": "ui.game.useSymbolCategories",
-      "to": "tbl.symbols",
-      "protocol": "postgrest-select",
-      "payload": ".from('symbols').select('symbol, gics_industry')",
-      "columns": [
-        "symbol, gics_industry"
-      ],
-      "callSites": [
-        "apps/mobile/lib/game/useSymbolCategories.ts:23"
+        "apps/mobile/lib/game/useSymbolCategories.ts:27"
       ]
     },
     {
@@ -21888,6 +22057,31 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.ui.tests-deno.gn-w4-draft.test->pg.get_league_pick_industries",
+      "from": "ui.tests-deno.gn-w4-draft.test",
+      "to": "pg.get_league_pick_industries",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('get_league_pick_industries')",
+      "callSites": [
+        "apps/mobile/tests-deno/gn-w4-draft.test.ts:162"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.tests-deno.gn-w4-draft.test->tbl.symbols",
+      "from": "ui.tests-deno.gn-w4-draft.test",
+      "to": "tbl.symbols",
+      "protocol": "postgrest-select",
+      "payload": ".from('symbols').select()",
+      "columns": [],
+      "callSites": [
+        "apps/mobile/tests-deno/gn-w4-draft.test.ts:163"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.ui.tests-deno.leaguemate-team-view.test->tbl.week_snapshots",
       "from": "ui.tests-deno.leaguemate-team-view.test",
       "to": "tbl.week_snapshots",
@@ -21908,6 +22102,43 @@
       "payload": "functions.invoke('invite-preview')",
       "callSites": [
         "apps/mobile/tests-deno/onboarding-w3-invite-links.test.ts:717"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.tests-deno.read-result.test->pg.count_slot_matches",
+      "from": "ui.tests-deno.read-result.test",
+      "to": "pg.count_slot_matches",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('count_slot_matches')",
+      "callSites": [
+        "apps/mobile/tests-deno/read-result.test.ts:44"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.tests-deno.read-result.test->pg.symbols_enrichment_progress",
+      "from": "ui.tests-deno.read-result.test",
+      "to": "pg.symbols_enrichment_progress",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('symbols_enrichment_progress')",
+      "callSites": [
+        "apps/mobile/tests-deno/read-result.test.ts:42"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.tests-deno.read-result.test->tbl.symbols",
+      "from": "ui.tests-deno.read-result.test",
+      "to": "tbl.symbols",
+      "protocol": "postgrest-select",
+      "payload": ".from('symbols').select()",
+      "columns": [],
+      "callSites": [
+        "apps/mobile/tests-deno/read-result.test.ts:41"
       ]
     },
     {
@@ -22628,6 +22859,16 @@
   ],
   "drift": [
     {
+      "node": "pg.count_slot_matches",
+      "label": "count_slot_matches()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "pg.enforce_leagues_delete_before_draft",
       "label": "enforce_leagues_delete_before_draft()",
       "groupKey": "existence",
@@ -22640,6 +22881,26 @@
     {
       "node": "pg.enforce_leagues_server_columns",
       "label": "enforce_leagues_server_columns()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.get_league_pick_industries",
+      "label": "get_league_pick_industries()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.symbols_enrichment_progress",
+      "label": "symbols_enrichment_progress()",
       "groupKey": "existence",
       "field": "existence",
       "declared": "created by migration",
@@ -23802,6 +24063,24 @@
   },
   "unverified": [
     {
+      "scope": "pg.count_slot_matches",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.symbols_enrichment_progress",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.get_league_pick_industries",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "pg.enforce_leagues_delete_before_draft",
       "claim": "function exists in prod",
       "reason": "Present in migrations, absent from db-snapshot.json.",
@@ -23882,13 +24161,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 318,
-    "edges": 772,
+    "nodes": 323,
+    "edges": 782,
     "flows": 7,
-    "drift": 36,
-    "driftHigh": 2,
+    "drift": 39,
+    "driftHigh": 5,
     "deadCode": 63,
-    "unverified": 13
+    "unverified": 16
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -23973,6 +24252,8 @@
       "apps/mobile/lib/account/accountApi.ts:56 -> create_takeover_invite (via seamRpc)",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:42 -> get_league_display_names",
       "apps/mobile/lib/account/deletedLabelStore.ts:15 -> deleted_manager_label",
+      "apps/mobile/lib/categoryData.ts:77 -> symbols_enrichment_progress",
+      "apps/mobile/lib/categoryData.ts:93 -> count_slot_matches",
       "apps/mobile/lib/game/useDraftRoom.ts:53 -> get_draft_clock (via seamRpc)",
       "apps/mobile/lib/game/useDraftRoom.ts:54 -> get_draft_order (via seamRpc)",
       "apps/mobile/lib/game/useDraftRoom.ts:56 -> get_league_display_names (via seamRpc)",
@@ -23983,6 +24264,7 @@
       "apps/mobile/lib/game/useLeaveLeague.ts:29 -> get_league_display_names (via seamRpc)",
       "apps/mobile/lib/game/useRenewalRoster.ts:56 -> get_renewal_roster (via seamRpc)",
       "apps/mobile/lib/game/useSeasonPlayoffs.ts:30 -> get_season_matchups (via seamRpc)",
+      "apps/mobile/lib/game/useSymbolCategories.ts:28 -> get_league_pick_industries",
       "apps/mobile/lib/home/useDraftingData.ts:84 -> get_draft_clock",
       "apps/mobile/lib/home/useDraftingData.ts:85 -> get_draft_order",
       "apps/mobile/lib/home/useHomeLeague.ts:652 -> get_home_league",
@@ -23994,6 +24276,9 @@
       "apps/mobile/lib/shell/usernameApi.ts:30 -> check_usernames",
       "apps/mobile/lib/shell/usernameApi.ts:49 -> set_username",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:154 -> deleted_manager_label",
+      "apps/mobile/tests-deno/gn-w4-draft.test.ts:162 -> get_league_pick_industries",
+      "apps/mobile/tests-deno/read-result.test.ts:42 -> symbols_enrichment_progress",
+      "apps/mobile/tests-deno/read-result.test.ts:44 -> count_slot_matches",
       "apps/web/src/context/UserProfilesContext.jsx:30 -> get_visible_profiles",
       "apps/web/src/pages/DraftPage.jsx:379 -> get_draft_order",
       "apps/web/src/pages/DraftPage.jsx:392 -> get_real_user_ids",
@@ -24091,18 +24376,10 @@
       "apps/mobile/lib/account/deleteLeaguesApi.ts:33 -> league_members.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:38 -> leagues.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:39 -> league_members.select",
-      "apps/mobile/lib/categoryData.ts:101 -> category_rules.select",
-      "apps/mobile/lib/categoryData.ts:111 -> symbols.select",
-      "apps/mobile/lib/categoryData.ts:112 -> symbols.select",
-      "apps/mobile/lib/categoryData.ts:130 -> symbols.select",
-      "apps/mobile/lib/categoryData.ts:141 -> category_rules.select",
-      "apps/mobile/lib/categoryData.ts:142 -> symbol_category_overrides.select",
-      "apps/mobile/lib/categoryData.ts:190 -> league_draft_slots.delete",
-      "apps/mobile/lib/categoryData.ts:203 -> league_draft_slots.insert",
-      "apps/mobile/lib/categoryData.ts:210 -> league_draft_slots.select",
-      "apps/mobile/lib/categoryData.ts:64 -> categories.select",
-      "apps/mobile/lib/categoryData.ts:83 -> symbol_category_overrides.select",
-      "apps/mobile/lib/categoryData.ts:94 -> symbols.select",
+      "apps/mobile/lib/categoryData.ts:125 -> league_draft_slots.delete",
+      "apps/mobile/lib/categoryData.ts:138 -> league_draft_slots.insert",
+      "apps/mobile/lib/categoryData.ts:145 -> league_draft_slots.select",
+      "apps/mobile/lib/categoryData.ts:65 -> categories.select",
       "apps/mobile/lib/game/seamCalls.ts:108 -> leagues.insert",
       "apps/mobile/lib/game/seamCalls.ts:114 -> league_members.insert",
       "apps/mobile/lib/game/seamCalls.ts:73 -> leagues.update",
@@ -24124,9 +24401,8 @@
       "apps/mobile/lib/game/useRosterData.ts:54 -> league_draft_slots.select",
       "apps/mobile/lib/game/useRosterData.ts:78 -> drafts.select",
       "apps/mobile/lib/game/useRosterData.ts:86 -> trades.select",
-      "apps/mobile/lib/game/useSymbolCategories.ts:22 -> symbol_category_overrides.select",
-      "apps/mobile/lib/game/useSymbolCategories.ts:23 -> symbols.select",
-      "apps/mobile/lib/game/useSymbolCategories.ts:27 -> category_rules.select",
+      "apps/mobile/lib/game/useSymbolCategories.ts:27 -> symbol_category_overrides.select",
+      "apps/mobile/lib/game/useSymbolCategories.ts:38 -> category_rules.select",
       "apps/mobile/lib/game/useWeekOne.ts:17 -> matchups.select",
       "apps/mobile/lib/home/useDraftingData.ts:86 -> drafts.select",
       "apps/mobile/lib/pushTokenStore.ts:27 -> push_tokens.upsert",
@@ -24139,7 +24415,9 @@
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:244 -> league_invites.select",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:245 -> league_invites.select",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:248 -> league_invites.insert",
+      "apps/mobile/tests-deno/gn-w4-draft.test.ts:163 -> symbols.select",
       "apps/mobile/tests-deno/leaguemate-team-view.test.ts:193 -> week_snapshots.select",
+      "apps/mobile/tests-deno/read-result.test.ts:41 -> symbols.select",
       "apps/web/src/Header.jsx:110 -> league_members.select",
       "apps/web/src/Header.jsx:118 -> leagues.select",
       "apps/web/src/pages/Dashboard.jsx:132 -> drafts.select",
@@ -24523,6 +24801,7 @@
       "20261202000000_draft_turn_lease_and_escalation_claim.sql",
       "20261203000000_refuse_new_duration_leagues.sql",
       "20261204000000_renewal_notices_wake_notify_cron.sql",
+      "20261205000000_symbols_column_grant.sql",
       "20261205000100_commissioner_direct_writes.sql"
     ],
     "config": [
