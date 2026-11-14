@@ -16,6 +16,7 @@ Repo conventions and hard-won operational rules are in the root [`CLAUDE.md`](..
 | [`design/`](design/) | UI/UX program charter (`UI-UX-PROGRAM.md` — roles, phases, UI worker contract), mobile UI overhaul spec (`STOCKPILE_UI_OVERHAUL.md`), landing-page spec, brand assets, visual references (`REFERENCES.md`) and their studied DNA (`design.md`; adopt/adapt/skip of Hallmark in `reviews/hallmark-notes.md`) | Yes |
 | [`fixes/`](fixes/) | Post-mortems of production incidents | Append-only |
 | [`security/`](security/) | Security reviews and runbooks (`REMAINING-SECURITY-WORK.md`, `DEPLOY-RUNBOOK.md`), the SQL effect tests that prove a lockdown, and point-in-time security reads such as the Claude Data connector read (2026-11-10) | Security reads are dated records; effect tests are re-runnable |
+| [`audits/`](audits/) | Point-in-time audits from reading code: the week-window audit (2026-09-30) and the market-data dependency audit (2026-11-13: what we fetch, who sees it, what we keep); a findings file is not a plan | Dated records; findings are not kept current |
 | [`testing/`](testing/) | Season simulation harness guide, testing roadmap, and running the mobile app in the iOS Simulator (`MOBILE_SIMULATOR.md`) | Yes |
 | [`assets/`](assets/) | Screenshots used by the root README | — |
 | [`history/`](history/) | Superseded plans, old session logs, completed handoffs | **No — archive, read for context only** |

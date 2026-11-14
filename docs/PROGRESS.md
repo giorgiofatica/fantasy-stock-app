@@ -23,6 +23,33 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-13
+
+(Times are UTC; 00:47Z–03:19Z on 2026-11-14 is the evening of 2026-11-13 in Giorgio's time zone.)
+
+**Shipped**
+- Nothing applied or deployed today. The newest EAS iOS build is still 1.3.0 (14).
+
+**Merged, not confirmed live**
+- **#455 (03:19:13Z): migration `20261205000100_commissioner_direct_writes` is on `main`, NOT applied** (the next `supabase db push` would apply it). It closes S2 and S3 of the security check: it drops "Commissioners can delete picks" on `drafts`, narrows `leagues_delete_commissioner` to `not_started` with a before-delete trigger that refuses a user session once the draft started or any pick exists, adds `trg_leagues_server_columns` for the server-owned `leagues` columns, and drops the commissioner policies on `draft_sessions` and `draft_settings`. The Orchestrator verified it (`supabase/tests` 287/0, `supabase/functions` 1109/0); that is not an effect on prod.
+- **Docs:** #452 (the brief security check) and #453 (the market-data dependency audit), both merged 00:47Z, findings only; #454 (03:19:05Z; the A2 rule "B"). See STATUS §1 and §4 item 30. Index: `docs/README.md` now has an `audits/` row.
+
+**Decided** (Giorgio's words are in `PRODUCT_RULES.md`; this only points)
+- An https invite link waits for a tap when you are already signed in (his "B" on A2, #454): it opens on the Join preview and joins only on the tap; a signed-out arrival is unchanged. Not built: the app change is in #457 (open).
+
+**Found**
+- **The brief security check (#452):** no CRITICAL or HIGH, no secret values in the repo, five MEDIUM (S1 `symbols` readable by any signed-in account, confirmed; S2 and S3 commissioner direct writes; A1 plain sign-out leaves the pending stores; A2 https invite joins without a tap).
+- **The market-data dependency audit (#453):** Alpaca from 12 edge functions through 9 copies of the request code, Finnhub from one place, NASDAQ Trader from one place, provider prices kept permanently in four tables; nothing decided.
+- **NEW (the Orchestrator's verified finding; the value is not reproduced):** the legacy `service_role` JWT is in the gitignored `.claude/settings.local.json`; the legacy keys are still enabled, so it is live, and rotating it is Phase 4. STATUS §4 item 29. Also CLAUDE.md's "full-history gitleaks scan is clean" held only because of the `.claude/` allowlist; #457 (open) removes it.
+
+**Waiting on Giorgio**
+- The `db push` of `20261205000100` (#455), when he and the Orchestrator choose; the S1 order (merge #456, a build on the phones, then the push); the read-only queries in the security check's "Needs Giorgio" list.
+- The Phase 4 decision on the legacy keys (item 29), now with the live key in `settings.local.json`.
+
+**Next**
+- Open PRs, not merged: #456 (S1 migration `20261205000000`; needs the app build first) and #457 (hardening batch; migration `20261205000200` needs a `db push` after merge).
+- The build-15 re-check (a long list of merged mobile changes, all in no build), Part D at the next draft, and step 34's re-run on build 15.
+
 ## 2026-11-12
 
 (Times are UTC; 02:00Z is the evening of 2026-11-11 in Giorgio's time zone.)
