@@ -1,7 +1,10 @@
 // Category / eligibility data helpers for league setup + drafting UI (Phase 4
 // item 4 — DR-001). Reads only the seeded reference tables (categories,
 // category_rules, symbol_category_overrides — authenticated SELECT per Phase 2
-// RLS) and symbols (PUBLIC read policy).
+// RLS). symbols is column-limited for a signed-in client (symbol, name,
+// is_draftable; 20261205000000): the counts go through RPCs, and
+// fetchSymbolCategories' gics_industry read is refused (it then reports the
+// stock unclassified). The web app is paused (APP_PAUSED).
 //
 // These MIRROR the server's rules for display: the authoritative eligibility
 // logic lives in the validate-and-record-pick / record-trade edge functions
@@ -90,65 +93,31 @@ export async function fetchSymbolCategories(symbol) {
 }
 
 /** {enriched, total, partial} over the active universe — feasibility counts
- * are lower bounds while the enrichment cron is still covering the universe. */
+ * are lower bounds while the enrichment cron is still covering the universe.
+ * Two totals from symbols_enrichment_progress (20261205000000): a signed-in
+ * client may not read symbols.active / enriched_at directly. */
 export async function fetchEnrichmentProgress() {
-  const [{ count: total }, { count: enriched }] = await Promise.all([
-    supabase.from('symbols').select('symbol', { count: 'exact', head: true }).eq('active', true),
-    supabase.from('symbols').select('symbol', { count: 'exact', head: true }).eq('active', true).not('enriched_at', 'is', null),
-  ]);
-  const t = total || 0;
-  const e = enriched || 0;
-  // partial reads LIVE coverage (e/t queried above) against the shared threshold.
+  const { data } = await supabase.rpc('symbols_enrichment_progress');
+  const row = Array.isArray(data) ? data[0] : null;
+  const t = Number(row?.total) || 0;
+  const e = Number(row?.enriched) || 0;
+  // partial reads LIVE coverage (e/t read above) against the shared threshold.
   return { enriched: e, total: t, partial: coverageIsPartial(e, t) };
 }
 
 /**
- * How many draftable symbols match one slot definition?
- * Category slots are computed with the overrides-REPLACE-rule semantics
- * exactly: rule-path counts exclude ALL overridden symbols (the overrides
- * table is small), then this category's override symbols are added back.
+ * How many draftable symbols match one slot definition? count_slot_matches
+ * (20261205000000) makes the overrides-REPLACE-rule count on the server and
+ * returns a number, never rows: filtering on last_price / gics_industry here
+ * would need those columns readable, and a filter is a read (S1).
  */
 export async function countSlotMatches({ priceMin, priceMax, categoryId }) {
-  const base = () => {
-    let q = supabase
-      .from('symbols')
-      .select('symbol', { count: 'exact', head: true })
-      .eq('is_draftable', true);
-    if (priceMin != null && priceMin !== '') q = q.gte('last_price', Number(priceMin));
-    if (priceMax != null && priceMax !== '') q = q.lte('last_price', Number(priceMax));
-    return q;
-  };
-
-  if (!categoryId) {
-    const { count } = await base();
-    return count || 0;
-  }
-
-  const [{ data: ruleRows }, { data: allOverrides }] = await Promise.all([
-    supabase.from('category_rules').select('gics_industry').eq('category_id', categoryId),
-    supabase.from('symbol_category_overrides').select('symbol, category_id'),
-  ]);
-  const industries = (ruleRows || []).map((r) => r.gics_industry);
-  const overridden = [...new Set((allOverrides || []).map((o) => o.symbol))];
-  const catOverrideSyms = [
-    ...new Set((allOverrides || []).filter((o) => o.category_id === categoryId).map((o) => o.symbol)),
-  ];
-
-  let ruleCount = 0;
-  if (industries.length > 0) {
-    let q = base().in('gics_industry', industries);
-    if (overridden.length > 0) q = q.not('symbol', 'in', `(${overridden.join(',')})`);
-    const { count } = await q;
-    ruleCount = count || 0;
-  }
-
-  let ovrCount = 0;
-  if (catOverrideSyms.length > 0) {
-    const { count } = await base().in('symbol', catOverrideSyms);
-    ovrCount = count || 0;
-  }
-
-  return ruleCount + ovrCount;
+  const { data } = await supabase.rpc('count_slot_matches', {
+    p_price_min: priceMin != null && priceMin !== '' ? Number(priceMin) : null,
+    p_price_max: priceMax != null && priceMax !== '' ? Number(priceMax) : null,
+    p_category_id: categoryId || null,
+  });
+  return Number(data) || 0;
 }
 
 /**

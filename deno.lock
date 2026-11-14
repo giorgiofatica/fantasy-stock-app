@@ -6,6 +6,7 @@
     "jsr:@supabase/functions-js@*": "2.111.0",
     "jsr:@supabase/supabase-js@2": "2.111.0",
     "npm:@electric-sql/pglite@0.2": "0.2.17",
+    "npm:@electric-sql/pglite@0.3": "0.3.16",
     "npm:@eslint/js@^9.30.1": "9.39.5",
     "npm:@hcaptcha/react-hcaptcha@^1.14.0": "1.17.4_react@19.2.8_react-dom@19.2.8__react@19.2.8",
     "npm:@supabase/auth-js@2.111.0": "2.111.0",
@@ -288,6 +289,9 @@
     },
     "@electric-sql/pglite@0.2.17": {
       "integrity": "sha512-qEpKRT2oUaWDH6tjRxLHjdzMqRUGYDnGZlKrnL4dJ77JVMcP2Hpo3NYnOSPKdZdeec57B6QPprCUFg0picx5Pw=="
+    },
+    "@electric-sql/pglite@0.3.16": {
+      "integrity": "sha512-mZkZfOd9OqTMHsK+1cje8OSzfAQcpD7JmILXTl5ahdempjUDdmg4euf1biDex5/LfQIDJ3gvCu6qDgdnDxfJmA=="
     },
     "@esbuild/aix-ppc64@0.28.1": {
       "integrity": "sha512-Svl7tq8k/08+p6CXPpRjQ1fKX+1odH/BQbb48fV6fj3CWHhsoIOoY87w1oHXm0qEpkIK3ZfVgp0hed3XBXzXMQ==",
