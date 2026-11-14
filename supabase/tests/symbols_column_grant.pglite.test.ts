@@ -7,7 +7,10 @@
  * Postgres 16): prod is 17.4 and its live ACL was `authenticated=rm`. MAINTAIN (m)
  * only exists from 17, so a 16 replica cannot show the leftover privilege this
  * migration removes. The chain up to 20261204000000 reproduces prod's ACL exactly
- * (asserted in BEFORE), which is the evidence the replica is the right one.
+ * (asserted in BEFORE). That match is partly by construction (full_chain.ts grants
+ * Supabase's defaults, 20261114000000 trims them) and agrees with the 2026-11-11
+ * db-snapshot; it is not independent evidence about prod, which the post-push
+ * checks (docs/security/2026-11-13-symbols-column-grant-checks.sql) are.
  *
  * What it proves, as each role (42501 from a GRANT check reads "permission denied
  * for table symbols"; the functions' own refusals read "not authenticated" / "not a
@@ -19,7 +22,8 @@
  *   - every caller-scoped reader still works: the symbols-search / symbol-name
  *     queries, and get_portfolio_ledger (SECURITY INVOKER);
  *   - count_slot_matches equals the count the old client made itself
- *     (categoryData.countSlotMatches before this change), and is rate-limited;
+ *     (categoryData.countSlotMatches before this change), and is rate-limited
+ *     (each window refuses on its own);
  *   - symbols_enrichment_progress returns the two totals;
  *   - get_league_pick_industries answers a member, for that league's picks only;
  *   - the source guard: no other SECURITY INVOKER function an API role may run
@@ -258,6 +262,18 @@ Deno.test({
       assertEquals(r.n, oldClientCount(null, null, null), 'another user is not limited by C');
     });
 
+    await t.step('count_slot_matches: the HOUR window (1200) refuses on its own, with the minute window clear', async () => {
+      await q(`delete from rate_limit_counters where bucket like 'count-slot-matches%' and subject = $1`, [`user:${M}`]);
+      for (const offset of [0, 3600]) {
+        await q(`insert into rate_limit_counters (bucket, subject, window_start, hits)
+                 values ('count-slot-matches-hour', $1, to_timestamp(floor((extract(epoch from now()) + $2) / 3600) * 3600), 1200)
+                 on conflict (bucket, subject, window_start) do update set hits = 1200`, [`user:${M}`, offset]);
+      }
+      const err = await assertRejects(() => as('authenticated', M, () => q(`select public.count_slot_matches(null, null, null)`)), Error, 'rate limited');
+      assertEquals((err as Error & { code?: string }).code, 'PT429');
+      await q(`delete from rate_limit_counters where bucket like 'count-slot-matches%' and subject = $1`, [`user:${M}`]);
+    });
+
     await t.step('symbols_enrichment_progress: active symbols, and how many are enriched', async () => {
       const [r] = await as('authenticated', M, () => q(`select * from public.symbols_enrichment_progress()`));
       assertEquals(r, { enriched: SYMS.filter((s) => s.active && s.enriched).length, total: SYMS.filter((s) => s.active).length });
@@ -297,6 +313,20 @@ Deno.test({
                                and (has_function_privilege('authenticated', p.oid, 'execute') or has_function_privilege('anon', p.oid, 'execute'))
                              order by 1`);
       assertEquals(rows.map((r: Row) => r.proname), ['get_portfolio_ledger']);
+    });
+
+    await t.step('checks block 3b: every function an API role may run whose body names symbols is the documented list', async () => {
+      const rows = await q(`select p.proname, p.prosecdef from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                             where n.nspname = 'public' and p.prosrc ~* '\\msymbols\\M'
+                               and (has_function_privilege('authenticated', p.oid, 'execute') or has_function_privilege('anon', p.oid, 'execute'))
+                             order by 1`);
+      // create_takeover_invite matches on a comment ("each of the 10 symbols"): it does not read the table.
+      assertEquals(rows.map((r: Row) => `${r.proname}:${r.prosecdef}`), [
+        'count_slot_matches:true', 'create_takeover_invite:true', 'get_league_pick_industries:true',
+        'get_portfolio_ledger:false', 'set_draft_queue:true', 'symbols_enrichment_progress:true',
+      ]);
+      const checks = await Deno.readTextFile(new URL('../../docs/security/2026-11-13-symbols-column-grant-checks.sql', import.meta.url));
+      for (const r of rows) assert(checks.includes(r.proname), `checks block 3b lists ${r.proname}`);
     });
 
     await t.step('service_role (refresh / enrich / draft-write) still reads and writes every column', async () => {

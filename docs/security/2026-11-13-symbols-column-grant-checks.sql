@@ -32,6 +32,38 @@ select proname, prosecdef, proconfig, proacl
    and proname in ('count_slot_matches', 'symbols_enrichment_progress', 'get_league_pick_industries')
  order by proname;
 
+-- 3b. Every function an API role may run whose body names symbols. The test
+--     pins this list on the migration chain; prod can also hold out-of-band
+--     functions no migration made, which only this query sees. EXPECT exactly
+--     these six (prosecdef in brackets):
+--       count_slot_matches [t], create_takeover_invite [t] (matches on a comment,
+--       "each of the 10 symbols", and reads no table), get_league_pick_industries [t],
+--       get_portfolio_ledger [f], set_draft_queue [t], symbols_enrichment_progress [t].
+--     Any other row: read its body. A SECURITY INVOKER one breaks under the
+--     column grant if it reads a refused column; a SECURITY DEFINER one must not
+--     return last_price / last_price_at / market_cap / gics_industry.
+select p.proname, p.prosecdef
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname = 'public' and p.prosrc ~* '\msymbols\M'
+   and (has_function_privilege('authenticated', p.oid, 'execute') or has_function_privilege('anon', p.oid, 'execute'))
+ order by 1;
+
+-- 3c. OPTIONAL (the price-band oracle, security review item 3): how many
+--     draftable symbols each category's count can see. A category with only a
+--     few would let count_slot_matches narrow those few prices by bisection
+--     (rate-limited to 120/min, 1200/hr per user). Report the smallest counts.
+select c.slug,
+       count(*) filter (where o.symbol is not null) as by_override,
+       count(*) filter (where o.symbol is null and r.category_id = c.id) as by_rule
+  from public.categories c
+  join public.symbols s on s.is_draftable
+  left join public.symbol_category_overrides o on o.symbol = s.symbol and o.category_id = c.id
+  left join public.category_rules r on r.gics_industry = s.gics_industry
+   and not exists (select 1 from public.symbol_category_overrides x where x.symbol = s.symbol)
+ where o.symbol is not null or r.category_id = c.id
+ group by c.slug
+ order by count(*);
+
 -- 4. EFFECT, as a real signed-in member (the claims pattern of
 --    run-it-back-effect-test.sql). ALWAYS ends in RAISE, so the whole block
 --    rolls back, including the rate-limit counter it bumps. The verdict is the

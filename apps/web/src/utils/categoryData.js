@@ -3,8 +3,8 @@
 // category_rules, symbol_category_overrides — authenticated SELECT per Phase 2
 // RLS). symbols is column-limited for a signed-in client (symbol, name,
 // is_draftable; 20261205000000): the counts go through RPCs, and
-// fetchSymbolCategories' gics_industry read is refused (it then reports the
-// stock unclassified). The web app is paused (APP_PAUSED).
+// fetchSymbolCategories answers from overrides only (null = not known). The
+// web app is paused (APP_PAUSED).
 //
 // These MIRROR the server's rules for display: the authoritative eligibility
 // logic lives in the validate-and-record-pick / record-trade edge functions
@@ -57,39 +57,28 @@ export async function fetchCategories() {
 }
 
 /**
- * Display eligibility for one symbol: overrides if any, else the rule for its
- * vendor industry label, else [] (unclassified -> flex-only).
- * Returns { categories: [{id, slug, name}], classified: boolean }.
+ * Display eligibility for one symbol, from its overrides only.
+ * Returns { categories: [{id, slug, name}], classified: true } when the symbol
+ * has overrides, else null ("not known": DraftPage draws no category line).
+ *
+ * The rule path (symbols.gics_industry -> category_rules) is gone: a signed-in
+ * client may not read gics_industry (20261205000000, S1), and mobile reads it
+ * only for a league's own picks (get_league_pick_industries). A quote of a stock
+ * nobody has drafted has no such path, so this answers "not known" rather than
+ * a wrong "unclassified". The web app is paused (APP_PAUSED).
  */
 export async function fetchSymbolCategories(symbol) {
   const sym = String(symbol || '').trim().toUpperCase();
-  if (!sym) return { categories: [], classified: false };
+  if (!sym) return null;
   const cats = await fetchCategories();
   const byId = new Map(cats.map((c) => [c.id, c]));
 
-  const { data: ovr } = await supabase
+  const { data: ovr, error } = await supabase
     .from('symbol_category_overrides')
     .select('category_id')
     .eq('symbol', sym);
-  if (ovr && ovr.length > 0) {
-    return { categories: ovr.map((o) => byId.get(o.category_id)).filter(Boolean), classified: true };
-  }
-
-  const { data: symRow } = await supabase
-    .from('symbols')
-    .select('gics_industry')
-    .eq('symbol', sym)
-    .maybeSingle();
-  if (!symRow?.gics_industry) return { categories: [], classified: false };
-
-  const { data: rule } = await supabase
-    .from('category_rules')
-    .select('category_id')
-    .eq('gics_industry', symRow.gics_industry)
-    .maybeSingle();
-  if (!rule?.category_id) return { categories: [], classified: false };
-  const cat = byId.get(rule.category_id);
-  return { categories: cat ? [cat] : [], classified: !!cat };
+  if (error || !ovr || ovr.length === 0) return null;
+  return { categories: ovr.map((o) => byId.get(o.category_id)).filter(Boolean), classified: true };
 }
 
 /** {enriched, total, partial} over the active universe — feasibility counts
