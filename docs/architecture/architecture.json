@@ -2,21 +2,21 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "63a5775b2ac54fc818955e9cf3a17e52a4cc7077",
-    "commitShort": "63a5775b",
+    "commit": "63453558222bd4862d1efc120cce26197c792b9d",
+    "commitShort": "63453558",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "rebase/s1",
+    "branch": "rebase/hb",
     "dirty": false,
     "dirtyPaths": [],
-    "timestamp": "2026-11-14T03:19:58Z",
-    "sourceHash": "sha256:a383e1d28a5daff5583384e14aeb2090a45b50778b58e1cab53fb2b5e6340e17",
+    "timestamp": "2026-11-14T03:24:55Z",
+    "sourceHash": "sha256:e83c568688b1cd946415d9869d400cc9b26be29e2650901575c4a1a452f97acc",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 53.4,
+    "ageHours": 53.5,
     "ageDays": 2.2,
     "staleAfterDays": 14,
     "stale": false,
@@ -19982,7 +19982,7 @@
       "payload": ".from('league_members').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:114"
+        "apps/mobile/lib/game/seamCalls.ts:123"
       ]
     },
     {
@@ -19995,7 +19995,7 @@
       "payload": ".from('leagues').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:108"
+        "apps/mobile/lib/game/seamCalls.ts:117"
       ]
     },
     {
@@ -20008,7 +20008,7 @@
       "payload": ".from('leagues').update()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:73"
+        "apps/mobile/lib/game/seamCalls.ts:82"
       ]
     },
     {
@@ -20601,7 +20601,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('historical-bars')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:696"
+        "apps/mobile/lib/home/useHomeLeague.ts:702"
       ]
     },
     {
@@ -20613,7 +20613,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('quote')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:679"
+        "apps/mobile/lib/home/useHomeLeague.ts:685"
       ]
     },
     {
@@ -20625,7 +20625,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_home_league')",
       "callSites": [
-        "apps/mobile/lib/home/useHomeLeague.ts:652"
+        "apps/mobile/lib/home/useHomeLeague.ts:658"
       ]
     },
     {
@@ -21209,7 +21209,7 @@
         "username"
       ],
       "callSites": [
-        "apps/mobile/lib/SessionProvider.tsx:204"
+        "apps/mobile/lib/SessionProvider.tsx:206"
       ]
     },
     {
@@ -22786,7 +22786,7 @@
           "detail": "quote — single-symbol live price. The most-invoked function in the app.",
           "files": [
             "apps/mobile/lib/game/useAllMatchups.ts:83",
-            "apps/mobile/lib/home/useHomeLeague.ts:679",
+            "apps/mobile/lib/home/useHomeLeague.ts:685",
             "apps/mobile/lib/money/priceReads.ts:38",
             "apps/web/src/components/TradeModal.jsx:159",
             "apps/web/src/components/TradeModal.jsx:63",
@@ -22847,7 +22847,7 @@
           ],
           "detail": "historical-bars — chart series for portfolio P/L.",
           "files": [
-            "apps/mobile/lib/home/useHomeLeague.ts:696",
+            "apps/mobile/lib/home/useHomeLeague.ts:702",
             "apps/mobile/lib/money/priceReads.ts:52",
             "apps/mobile/lib/money/useStockChartData.ts:46"
           ]
@@ -23988,7 +23988,7 @@
         "surface": "client",
         "name": "seamInsertLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 103,
+        "line": 112,
         "kind": "seam-stub",
         "detail": "leagues.insert"
       },
@@ -23996,7 +23996,7 @@
         "surface": "client",
         "name": "seamInsertMember",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 111,
+        "line": 120,
         "kind": "seam-stub",
         "detail": "league_members.insert"
       },
@@ -24004,7 +24004,7 @@
         "surface": "client",
         "name": "seamInvoke",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 64,
+        "line": 73,
         "kind": "forwarder:invoke",
         "detail": "argument 0 is the function name"
       },
@@ -24012,7 +24012,7 @@
         "surface": "client",
         "name": "seamRpc",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 51,
+        "line": 60,
         "kind": "forwarder:rpc",
         "detail": "argument 0 is the RPC name"
       },
@@ -24020,7 +24020,7 @@
         "surface": "client",
         "name": "seamSaveLeagueSlots",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 117,
+        "line": 126,
         "kind": "seam-stub",
         "detail": "league_draft_slots.delete, league_draft_slots.insert"
       },
@@ -24036,7 +24036,7 @@
         "surface": "client",
         "name": "seamUpdateLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 70,
+        "line": 79,
         "kind": "seam-stub",
         "detail": "leagues.update"
       },
@@ -24209,8 +24209,8 @@
       "apps/mobile/lib/game/useDraftStatus.ts:49 -> draft-control (via seamInvoke)",
       "apps/mobile/lib/game/useLeaveLeague.ts:47 -> leave-league (via seamInvoke)",
       "apps/mobile/lib/game/useQueueQuotes.ts:33 -> symbols-search (via seamInvoke)",
-      "apps/mobile/lib/home/useHomeLeague.ts:679 -> quote",
-      "apps/mobile/lib/home/useHomeLeague.ts:696 -> historical-bars",
+      "apps/mobile/lib/home/useHomeLeague.ts:685 -> quote",
+      "apps/mobile/lib/home/useHomeLeague.ts:702 -> historical-bars",
       "apps/mobile/lib/invite/invitePreviewApi.ts:14 -> invite-preview",
       "apps/mobile/lib/money/priceReads.ts:38 -> quote",
       "apps/mobile/lib/money/priceReads.ts:52 -> historical-bars",
@@ -24267,7 +24267,7 @@
       "apps/mobile/lib/game/useSymbolCategories.ts:28 -> get_league_pick_industries",
       "apps/mobile/lib/home/useDraftingData.ts:84 -> get_draft_clock",
       "apps/mobile/lib/home/useDraftingData.ts:85 -> get_draft_order",
-      "apps/mobile/lib/home/useHomeLeague.ts:652 -> get_home_league",
+      "apps/mobile/lib/home/useHomeLeague.ts:658 -> get_home_league",
       "apps/mobile/lib/home/usePreDraftData.ts:112 -> get_draft_order (via seamRpc)",
       "apps/mobile/lib/home/usePreDraftData.ts:113 -> get_league_display_names (via seamRpc)",
       "apps/mobile/lib/home/useSeasonResult.ts:8 -> get_season_result",
@@ -24372,7 +24372,7 @@
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",
       "apps/mobile/lib/LeagueContext.tsx:322 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:334 -> leagues.select",
-      "apps/mobile/lib/SessionProvider.tsx:204 -> user_profiles.select",
+      "apps/mobile/lib/SessionProvider.tsx:206 -> user_profiles.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:33 -> league_members.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:38 -> leagues.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:39 -> league_members.select",
@@ -24380,9 +24380,9 @@
       "apps/mobile/lib/categoryData.ts:138 -> league_draft_slots.insert",
       "apps/mobile/lib/categoryData.ts:145 -> league_draft_slots.select",
       "apps/mobile/lib/categoryData.ts:65 -> categories.select",
-      "apps/mobile/lib/game/seamCalls.ts:108 -> leagues.insert",
-      "apps/mobile/lib/game/seamCalls.ts:114 -> league_members.insert",
-      "apps/mobile/lib/game/seamCalls.ts:73 -> leagues.update",
+      "apps/mobile/lib/game/seamCalls.ts:117 -> leagues.insert",
+      "apps/mobile/lib/game/seamCalls.ts:123 -> league_members.insert",
+      "apps/mobile/lib/game/seamCalls.ts:82 -> leagues.update",
       "apps/mobile/lib/game/useAllMatchups.ts:45 -> matchups.select",
       "apps/mobile/lib/game/useAllMatchups.ts:58 -> week_snapshots.select",
       "apps/mobile/lib/game/useAllMatchups.ts:68 -> trades.select",
@@ -24802,7 +24802,8 @@
       "20261203000000_refuse_new_duration_leagues.sql",
       "20261204000000_renewal_notices_wake_notify_cron.sql",
       "20261205000000_symbols_column_grant.sql",
-      "20261205000100_commissioner_direct_writes.sql"
+      "20261205000100_commissioner_direct_writes.sql",
+      "20261205000200_revoke_api_table_ddl_privileges.sql"
     ],
     "config": [
       "delete-account=true",

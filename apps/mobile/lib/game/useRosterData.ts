@@ -15,17 +15,17 @@
 import { useEffect, useState } from 'react';
 
 import { supabase } from '../supabase';
-import { SEAM_ON, captureFailsOnce } from './devSeam';
+import { MATCHUP_FIXTURE_VARIANT, SEAM_ON, captureFailsOnce } from './devSeam';
 import { SEAM_LEAGUE } from './seamTables';
 import { checkRowsComplete } from './readGuard';
 import { fetchCategories } from '../categoryData';
 import { usePortfolioLedger } from '../money/usePortfolioLedger';
 import type { PortfolioLedger } from '../money/portfolioLedger';
-import { fixtureLedger, fixtureSlots, parseMatchupFixture } from './matchupFixture';
+import { fixtureLedger, fixtureSlots } from './matchupFixture';
 import { isSlotted, recordedSlots, type SlotEvent, type SlotRow } from './matchupRoster';
 import type { Category } from '../../components/sp/logic/gameNight';
 
-const VARIANT = parseMatchupFixture(process.env.EXPO_PUBLIC_MATCHUP_FIXTURE);
+const VARIANT = MATCHUP_FIXTURE_VARIANT; // seam only (devSeam.ts)
 
 export interface RosterSlotsState {
   status: 'idle' | 'loading' | 'ready' | 'error';

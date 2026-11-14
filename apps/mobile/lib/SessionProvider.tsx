@@ -13,6 +13,8 @@ import { pkceCryptoReady } from './auth/pkceCrypto';
 import { confirmationCooldown, RESEND_TOO_SOON } from './auth/resendCooldown';
 import { removeLegacyAuthKeys } from './auth/legacyAuthKeys';
 import { subscribeForcedSignOut } from './account/forcedSignOut';
+import { clearLeaverState } from './account/leaverStateCore';
+import { leaverStateDeps } from './account/leaverState';
 import { signInWithApple as nativeAppleSignIn, signInWithGoogle as nativeGoogleSignIn, signOutOfGoogle } from './auth/socialSignIn';
 import type { SocialSignInResult } from './auth/socialOutcome';
 import { pendingRoute, type AuthPhase } from './shell/pendingRoute';
@@ -338,6 +340,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       console.warn('[auth] sign out failed', signOutError.code ?? '');
       return;
     }
+    // Signed out: the links this person opened on this phone go with them (security brief A1), the same cleanup an account
+    // deletion runs (lib/account/leaverStateCore.ts). Their per-user active-league choice stays, for when they sign back in.
+    await clearLeaverState(leaverStateDeps());
     // The next person on this phone picks their own Google account.
     await signOutOfGoogle();
   }, [userId]);

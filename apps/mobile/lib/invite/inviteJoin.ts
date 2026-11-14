@@ -50,7 +50,7 @@ async function call(f: () => Promise<{ data: unknown; error: unknown }>): Promis
 }
 
 /**
- * TAP MODE (decision 18): a scheme link that arrived while the person was signed in. Look the league up and SHOW it;
+ * TAP MODE (inviteNeedsTap): any invite link that arrived while the person was signed in. Look the league up and SHOW it;
  * never join, never mark `triedJoin`, never touch the active league. The preview's own button joins (or opens) on the
  * person's tap, through the same screen and the same copy as typing a code. The invite stays until that tap or a
  * dismissal, except on a definitive answer that has nothing to wait for (no such league, or a refusal), which clears

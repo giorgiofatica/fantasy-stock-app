@@ -30,6 +30,7 @@ function deps(over: Partial<EndSessionDeps> = {}) {
     forceSignedOut: () => { log.push('forced'); },
     clearPendingTakeover: () => { log.push('clearTakeover'); return Promise.resolve(); },
     clearPendingInvite: () => { log.push('clearInvite'); return Promise.resolve(); },
+    clearPendingRoute: () => { log.push('clearRoute'); },
     signOutOfGoogle: () => { log.push('google'); return Promise.resolve(); },
     userId: 'u-1',
     ...over,
@@ -64,7 +65,7 @@ Deno.test('end session: the leaver\'s pending takeover, pending invite, per-user
   for (const out of [{ error: null }, { error: { message: 'x' } }]) {
     const { d, log } = deps({ signOutLocal: () => Promise.resolve(out) });
     await endSessionCore(d);
-    for (const want of ['clearTakeover', 'clearInvite', `remove:${activeLeagueStorageKey('u-1')}`, 'google']) assert(log.includes(want), want);
+    for (const want of ['clearTakeover', 'clearInvite', 'clearRoute', `remove:${activeLeagueStorageKey('u-1')}`, 'google']) assert(log.includes(want), want);
   }
   const { d, log } = deps({ userId: null });
   await endSessionCore(d);
