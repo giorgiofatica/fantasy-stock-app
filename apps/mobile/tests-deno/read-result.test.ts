@@ -37,8 +37,8 @@ Deno.test('the availability reads go through the count RPCs and unwrap their res
   const start = src.indexOf('export async function fetchEnrichmentProgress');
   const end = src.indexOf('export function validateSlotConfig');
   const body = src.slice(start, end);
-  // 20261205000000: the client may not read symbols' last_price / gics_industry / active / enriched_at (S1).
-  assert(!body.includes(".from('symbols')"), 'a direct symbols read is refused after 20261205000000');
+  // S1 CONTRACT (deferred/20261205000400): the client may not read symbols' last_price / gics_industry / active / enriched_at (S1).
+  assert(!body.includes(".from('symbols')"), 'a direct symbols read is refused after the S1 CONTRACT (deferred/20261205000400)');
   assert(body.includes("rowsOrThrow(await supabase.rpc('symbols_enrichment_progress'), 'symbols progress')"));
   assert(body.includes("numberOrThrow(row?.enriched, 'symbols enriched')") && body.includes("numberOrThrow(row?.total, 'symbols total')"));
   assert(body.includes("supabase.rpc('count_slot_matches'") && body.includes('if (res.error) throw') && body.includes("numberOrThrow(res.data, 'slot count')"));

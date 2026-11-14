@@ -158,9 +158,9 @@ Deno.test('categories: a failed read is no category at all, never Misc (the hook
   // Three reads for the whole board, by symbol set or by league: never one per stock.
   assert(hook.includes(".in('symbol', symbols)"));
   assert(hook.includes(".in('gics_industry', inds)"));
-  // The industries come from the league-scoped RPC (20261205000000): symbols.gics_industry is not client-readable (S1).
+  // The industries come from the league-scoped RPC (20261205000300): symbols.gics_industry is not client-readable (S1).
   assert(hook.includes("supabase.rpc('get_league_pick_industries', { p_league_id: leagueId })"));
-  assert(!hook.includes(".from('symbols')"), 'a direct symbols read of gics_industry is refused after 20261205000000');
+  assert(!hook.includes(".from('symbols')"), 'a direct symbols read of gics_industry is refused after the S1 CONTRACT (deferred/20261205000400)');
   // A stock the server left out is not cached: it stays unknown and is asked again (never Misc by omission).
   assert(hook.includes('for (const s of missing) if (s in got) { known.set(s, got[s] ?? null); changed = true; }'));
 });

@@ -2,7 +2,7 @@
 // item 4 — DR-001). Reads only the seeded reference tables (categories,
 // category_rules, symbol_category_overrides — authenticated SELECT per Phase 2
 // RLS). symbols is column-limited for a signed-in client (symbol, name,
-// is_draftable; 20261205000000): the counts go through RPCs, and
+// is_draftable; S1 CONTRACT, deferred/20261205000400): the counts go through RPCs, and
 // fetchSymbolCategories answers from overrides only (null = not known). The
 // web app is paused (APP_PAUSED).
 //
@@ -62,7 +62,7 @@ export async function fetchCategories() {
  * has overrides, else null ("not known": DraftPage draws no category line).
  *
  * The rule path (symbols.gics_industry -> category_rules) is gone: a signed-in
- * client may not read gics_industry (20261205000000, S1), and mobile reads it
+ * client may not read gics_industry (S1 CONTRACT, deferred/20261205000400), and mobile reads it
  * only for a league's own picks (get_league_pick_industries). A quote of a stock
  * nobody has drafted has no such path, so this answers "not known" rather than
  * a wrong "unclassified". The web app is paused (APP_PAUSED).
@@ -83,7 +83,7 @@ export async function fetchSymbolCategories(symbol) {
 
 /** {enriched, total, partial} over the active universe — feasibility counts
  * are lower bounds while the enrichment cron is still covering the universe.
- * Two totals from symbols_enrichment_progress (20261205000000): a signed-in
+ * Two totals from symbols_enrichment_progress (20261205000300): a signed-in
  * client may not read symbols.active / enriched_at directly. */
 export async function fetchEnrichmentProgress() {
   const { data } = await supabase.rpc('symbols_enrichment_progress');
@@ -96,7 +96,7 @@ export async function fetchEnrichmentProgress() {
 
 /**
  * How many draftable symbols match one slot definition? count_slot_matches
- * (20261205000000) makes the overrides-REPLACE-rule count on the server and
+ * (20261205000300) makes the overrides-REPLACE-rule count on the server and
  * returns a number, never rows: filtering on last_price / gics_industry here
  * would need those columns readable, and a filter is a read (S1).
  */

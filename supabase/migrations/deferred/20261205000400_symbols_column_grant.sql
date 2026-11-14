@@ -1,0 +1,58 @@
+-- symbols column grant, CONTRACT (S1 stage 2 of 2): a signed-in player reads
+-- symbol, name and is_draftable only.
+--
+-- HELD in supabase/migrations/deferred/ (db push ignores this directory).
+-- PRECONDITION (supabase/migrations/deferred/README.md): move into
+-- supabase/migrations/ only after a build containing the categoryData RPC
+-- change is on every phone in use. Its stage 1,
+-- 20261205000300_symbols_readers_functions.sql (the functions that build
+-- calls), must already be applied. When promoting, RE-STAMP it (git mv to a
+-- new name) with a timestamp that sorts after every migration applied by
+-- then, or db push refuses it as out of order without --include-all.
+--
+-- Why it waits: an older build reads last_price, gics_industry, active and
+-- enriched_at directly. After this, those reads are refused (42501):
+-- SlotBuilder's availability check shows its "couldn't check" line and the
+-- draft board draws no category lines. Names, search and the ledger read only
+-- granted columns and keep working.
+--
+-- docs/security/2026-11-13-brief-security-check.md S1: 20261114000000 granted
+-- SELECT on the WHOLE table to authenticated with USING (true), so any
+-- signed-in account could page all ~14,750 rows of last_price, last_price_at,
+-- market_cap and gics_industry through /rest/v1/symbols. Giorgio, 2026-10-08:
+-- "I don't want people to be able to scrape anything". The live ACL was
+-- authenticated=rm (db-snapshot 2026-11-11): the old revoke list also missed
+-- MAINTAIN (m, Postgres 17). 20261205000200 has since revoked MAINTAIN from the
+-- API roles on every table; REVOKE ALL here clears it regardless.
+--
+-- WHAT IT DOES
+--   1. REVOKE ALL on the table from PUBLIC, anon and authenticated. ALL is
+--      every table privilege the server knows, so on prod (17.4) it includes
+--      MAINTAIN; TRUNCATE, REFERENCES and TRIGGER go too. Revoking a table
+--      privilege also revokes it on every column, so a re-run first clears any
+--      column grant made since (the migration is idempotent).
+--   2. GRANT SELECT (symbol, name, is_draftable) to authenticated. Those are
+--      the only columns a caller-scoped reader uses:
+--        symbols-search (caller's JWT)  symbol, name, is_draftable
+--        symbol-name    (caller's JWT)  symbol, name
+--        get_portfolio_ledger (INVOKER) symbol, name
+--        mobile useQueueQuotes          symbol, name, .in() bounded
+--      A column grant is an ALLOW list: a column added later is unreadable by
+--      clients until a migration grants it. PostgREST select=* is refused
+--      (42501) under column grants; no client uses *.
+--
+-- Service_role readers (refresh-symbols, enrich-symbols, draft-write,
+-- record-trade, validate-and-record-pick, category-eligibility, auto-pick) use
+-- the secret key and are unaffected; so are the SECURITY DEFINER readers
+-- (set_draft_queue, prune_drafted_symbol_from_queues, the three stage-1
+-- functions) and the service_role-only functions (draft_feasibility_pool,
+-- auto_pick_search_candidates, record_live_prices).
+--
+-- POST-PUSH CHECKS: docs/security/2026-11-13-symbols-column-grant-checks.sql,
+-- PART B (the effect test).
+
+-- 1 ---------------------------------------------------------------------------
+revoke all on table public.symbols from public, anon, authenticated;
+
+-- 2 ---------------------------------------------------------------------------
+grant select (symbol, name, is_draftable) on table public.symbols to authenticated;
