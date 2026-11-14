@@ -2,18 +2,18 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "04d9dd39002629f60e6c270bc4c694f5a6059af5",
-    "commitShort": "04d9dd39",
+    "commit": "57e9ad3d381924621539b9243a55d4b856f92cc6",
+    "commitShort": "57e9ad3d",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/commissioner-direct-writes",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "??",
+        "code": "M",
         "path": "supabase/migrations/20261205000100_commissioner_direct_writes.sql"
       }
     ],
-    "timestamp": "2026-11-14T00:59:30Z",
+    "timestamp": "2026-11-14T01:07:27Z",
     "sourceHash": "sha256:a9906051c53f4dca3c610d759d618cbe43ebdc7341b70e03bfc82b22b24ca6ee",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -21,7 +21,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-11T21:55:47Z",
-    "ageHours": 51.1,
+    "ageHours": 51.2,
     "ageDays": 2.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -4380,6 +4380,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261205000100_commissioner_direct_writes.sql:112"
+        ],
+        "latestDefinition": "supabase/migrations/20261205000100_commissioner_direct_writes.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.enforce_leagues_delete_before_draft",
+      "label": "enforce_leagues_delete_before_draft()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261205000100_commissioner_direct_writes.sql",
+        "line": 112
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -4602,7 +4633,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261205000100_commissioner_direct_writes.sql:93"
+          "supabase/migrations/20261205000100_commissioner_direct_writes.sql:143"
         ],
         "latestDefinition": "supabase/migrations/20261205000100_commissioner_direct_writes.sql",
         "redefinitions": 1
@@ -4624,7 +4655,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261205000100_commissioner_direct_writes.sql",
-        "line": 93
+        "line": 143
       }
     },
     {
@@ -15029,6 +15060,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.enforce_leagues_delete_before_draft->tbl.drafts",
+      "from": "pg.enforce_leagues_delete_before_draft",
+      "to": "tbl.drafts",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT drafts (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000100_commissioner_direct_writes.sql:123"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.enforce_leagues_draft_order_mode->tbl.league_draft_order_meta",
       "from": "pg.enforce_leagues_draft_order_mode",
       "to": "tbl.league_draft_order_meta",
@@ -19183,6 +19227,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.tbl.leagues->pg.enforce_leagues_delete_before_draft",
+      "from": "tbl.leagues",
+      "to": "pg.enforce_leagues_delete_before_draft",
+      "protocol": "pg-trigger",
+      "payload": "trigger on leagues",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261205000100_commissioner_direct_writes.sql:138"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.tbl.leagues->pg.enforce_leagues_draft_order_mode",
       "from": "tbl.leagues",
       "to": "pg.enforce_leagues_draft_order_mode",
@@ -19255,7 +19312,7 @@
       "payload": "trigger on leagues",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261205000100_commissioner_direct_writes.sql:157"
+        "supabase/migrations/20261205000100_commissioner_direct_writes.sql:207"
       ]
     },
     {
@@ -22571,6 +22628,16 @@
   ],
   "drift": [
     {
+      "node": "pg.enforce_leagues_delete_before_draft",
+      "label": "enforce_leagues_delete_before_draft()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "pg.enforce_leagues_server_columns",
       "label": "enforce_leagues_server_columns()",
       "groupKey": "existence",
@@ -23735,6 +23802,12 @@
   },
   "unverified": [
     {
+      "scope": "pg.enforce_leagues_delete_before_draft",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "pg.enforce_leagues_server_columns",
       "claim": "function exists in prod",
       "reason": "Present in migrations, absent from db-snapshot.json.",
@@ -23809,13 +23882,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 317,
-    "edges": 770,
+    "nodes": 318,
+    "edges": 772,
     "flows": 7,
-    "drift": 35,
-    "driftHigh": 1,
+    "drift": 36,
+    "driftHigh": 2,
     "deadCode": 63,
-    "unverified": 12
+    "unverified": 13
   },
   "sourceIndex": {
     "edgeFunctions": [

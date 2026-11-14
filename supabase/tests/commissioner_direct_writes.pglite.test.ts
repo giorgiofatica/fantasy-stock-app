@@ -139,6 +139,20 @@ Deno.test({
       const [fn] = await q(`select prosecdef, proconfig, proacl::text acl from pg_proc p join pg_namespace s on s.oid = p.pronamespace
                              where s.nspname = 'public' and proname = 'enforce_leagues_server_columns'`);
       assertEquals(fn.prosecdef, false, 'SECURITY INVOKER: current_user is the caller');
+      const [dt] = await q(`select tgenabled, pg_get_triggerdef(t.oid) def from pg_trigger t
+                             where tgname = 'trg_leagues_delete_before_draft' and tgrelid = 'public.leagues'::regclass`);
+      assertEquals(dt.tgenabled, 'O');
+      assert(/BEFORE DELETE ON public\.leagues FOR EACH ROW EXECUTE FUNCTION enforce_leagues_delete_before_draft\(\)/.test(dt.def), dt.def);
+      const [dfn] = await q(`select prosecdef, proconfig, proacl::text acl from pg_proc p join pg_namespace s on s.oid = p.pronamespace
+                              where s.nspname = 'public' and proname = 'enforce_leagues_delete_before_draft'`);
+      assertEquals(dfn.prosecdef, true, 'DEFINER: it must see every pick, past the caller\'s drafts RLS');
+      assertEquals(dfn.proconfig, ['search_path=public, pg_temp']);
+      assert(dfn.acl !== null && !/(anon|authenticated|service_role)=/.test(dfn.acl) && !/(^|[{,])=/.test(dfn.acl), `owner only: ${dfn.acl}`);
+      const [st] = await q(`select is_nullable, pg_get_constraintdef(c.oid) chk from information_schema.columns i
+                              join pg_constraint c on c.conrelid = 'public.leagues'::regclass and c.conname = 'leagues_draft_status_check'
+                             where i.table_name = 'leagues' and i.column_name = 'draft_status'`);
+      assertEquals(st.is_nullable, 'NO', 'draft_status is NOT NULL: the three CHECK values are the whole status domain');
+      assert(/'not_started'.*'in_progress'.*'completed'/.test(st.chk), st.chk);
       assertEquals(fn.proconfig, ['search_path=public, pg_temp']);
       assert(fn.acl !== null && !/(anon|authenticated|service_role)=/.test(fn.acl) && !/(^|[{,])=/.test(fn.acl), `owner only: ${fn.acl}`);
     });
@@ -166,6 +180,107 @@ Deno.test({
         assert(await leagueExists(id));
         assertEquals(await picks(id), before);
       }
+    });
+
+
+    // ---------------------------------------------------------------- S2: every draft state
+    // draft_status is NOT NULL and one of three values; the finer states live in side tables.
+    // Every one is seeded and pinned (CLAUDE.md partial state: the pre-draft states are also
+    // seeded WITH picks, the state a status-only guard cannot see).
+    type State = { name: string; status: 'not_started' | 'in_progress' | 'completed'; season?: string; date: string | null;
+      setup?: (id: string) => Promise<void>; dateMove: string | null };
+    const STATES: State[] = [
+      { name: 'not_started, no draft time (Set later)', status: 'not_started', date: null, dateMove: null },
+      { name: 'not_started, before the room opens', status: 'not_started', date: `now() + interval '5 hours'`, dateMove: null },
+      { name: 'not_started, room open (order finalized)', status: 'not_started', date: `now() + interval '30 minutes'`, dateMove: 'draft_time_locked',
+        setup: async (id) => { await q(`insert into league_draft_order_meta (league_id, state, source, finalized_at) values ($1, 'finalized', 'random', now())`, [id]); } },
+      { name: 'not_started, postponed', status: 'not_started', date: `now() - interval '10 minutes'`, dateMove: null,
+        setup: async (id) => { await q(`insert into draft_postponements (league_id, postponed_from, stage, reason) values ($1, now() - interval '10 minutes', 'start', 'not_enough_members')`, [id]); } },
+      { name: 'not_started, renewal replies pending', status: 'not_started', date: null, dateMove: 'renewal_replies_pending',
+        setup: async (id) => {
+          // One successor per Season 1 (leagues_one_successor_uidx): a fresh finished predecessor each time.
+          const [p1] = await q(`insert into leagues (name, commissioner_id, invite_code, num_participants, league_type, playoff_teams,
+              draft_status, season_status) values ('Season 1', $1, $2, 8, 'matchup', 4, 'completed', 'completed') returning id`, [C, code()]);
+          await q(`update leagues set previous_league_id = $2, lineage_id = $2, season_number = 2 where id = $1`, [id, p1.id]);
+          await q(`insert into league_renewal_responses (league_id, user_id, status) values ($1, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'pending')`, [id]);
+        } },
+      { name: 'in_progress, running', status: 'in_progress', date: `now() - interval '20 minutes'`, dateMove: 'draft_time_locked' },
+      { name: 'in_progress, stalled ("auto-pick paused")', status: 'in_progress', date: `now() - interval '20 minutes'`, dateMove: 'draft_time_locked',
+        setup: async (id) => { await q(`insert into draft_stalls (league_id, pick_number, picker_id, reason) values ($1, 3, $2, 'no_price')`, [id, M]); } },
+      { name: 'in_progress, price outage', status: 'in_progress', date: `now() - interval '20 minutes'`, dateMove: 'draft_time_locked',
+        setup: async (id) => { await q(`insert into draft_turn_outages (league_id, pick_number) values ($1, 3)`, [id]); } },
+      { name: 'completed, season active', status: 'completed', season: 'active', date: `now() - interval '7 days'`, dateMove: 'draft_time_locked' },
+      { name: 'completed, playoffs', status: 'completed', season: 'playoffs', date: `now() - interval '70 days'`, dateMove: 'draft_time_locked' },
+      { name: 'completed, season completed', status: 'completed', season: 'completed', date: `now() - interval '90 days'`, dateMove: 'draft_time_locked' },
+    ];
+    /** A league in `st`, seeded as the owner: both managers, the state's side rows, and picks if asked. */
+    async function stateLeague(st: State, withPicks: boolean) {
+      const [l] = await q(
+        `insert into leagues (name, commissioner_id, invite_code, num_participants, num_rounds, stake_mode, league_type,
+           num_weeks, playoff_teams, draft_status, season_status, draft_date)
+         values ($1, $2, $3, 8, 6, 'fixed_notional', 'matchup', 11, 4, $4, $5, ${st.date ?? 'null'}) returning id`,
+        [`${st.name} ${n}`, C, code(), st.status, st.season ?? 'active'],
+      );
+      await q(`insert into league_members (league_id, user_id, role) values ($1, $2, 'commissioner'), ($1, $3, 'member')`, [l.id, C, M]);
+      await st.setup?.(l.id);
+      if (withPicks) {
+        await q(`insert into drafts (league_id, user_id, symbol, entry_price, quantity, round, pick_number)
+                 values ($1, $2, 'AAPL', 100, 10, 1, 1), ($1, $3, 'MSFT', 100, 10, 1, 2)`, [l.id, C, M]);
+      }
+      return l.id as string;
+    }
+
+    await t.step('S2, every draft state: no pick is ever deletable; a league only before its draft AND with no picks', async () => {
+      for (const st of STATES) {
+        const pre = st.status === 'not_started';
+        // With picks: in every state, for a not_started one too (the partial state).
+        const id = await stateLeague(st, true);
+        assertEquals((await user(() => q(`delete from drafts where league_id = $1 returning id`, [id]))).length, 0, `${st.name}: pick delete`);
+        if (pre) {
+          // The policy lets a not_started league through; the trigger sees the picks.
+          await assertRejects(() => user(() => q(`delete from leagues where id = $1`, [id])), Error, 'league_delete_locked: a league with draft picks cannot be deleted');
+        } else {
+          assertEquals((await user(() => q(`delete from leagues where id = $1 returning id`, [id]))).length, 0, `${st.name}: league delete`);
+        }
+        assertEquals((await as(M, () => q(`delete from leagues where id = $1 returning id`, [id]))).length, 0, `${st.name}: member league delete`);
+        assert(await leagueExists(id), `${st.name}: the league is still there`);
+        assertEquals(await picks(id), 2, `${st.name}: both picks are still there`);
+
+        // Without picks: only a not_started league is deletable by its commissioner.
+        const empty = await stateLeague(st, false);
+        const gone = await user(() => q(`delete from leagues where id = $1 returning id`, [empty]));
+        assertEquals(gone.length, pre ? 1 : 0, `${st.name}: empty league delete`);
+      }
+    });
+
+    await t.step('S3, every draft state: season columns refused; draft_date only where the draft-time rules allow', async () => {
+      for (const st of STATES) {
+        const id = await stateLeague(st, st.status !== 'not_started');
+        const to = st.season === 'completed' ? 'active' : 'completed';
+        const err = await assertRejects(() => user(() => q(`update leagues set season_status = $2 where id = $1`, [id, to])));
+        const want = st.status === 'not_started' ? /^league_column_server_only/ : /^(league_rules_locked|league_column_server_only)/;
+        assert(want.test((err as Error).message), `${st.name}: ${(err as Error).message}`);
+        // A real move out of each state (forward, or the rewind from completed).
+        const next = { not_started: 'in_progress', in_progress: 'completed', completed: 'not_started' }[st.status];
+        await assertRejects(() => user(() => q(`update leagues set draft_status = $2 where id = $1`, [id, next])), Error, 'draft_status_server_only', st.name);
+        const move = () => user(() => q(`update leagues set draft_date = $2 where id = $1 returning id`, [id, DRAFT_AT2]));
+        if (st.dateMove === null) assertEquals((await move()).length, 1, `${st.name}: a new draft time saves`);
+        else await assertRejects(move, Error, st.dateMove, st.name);
+      }
+    });
+
+    await t.step('S2, the DEFINER path a user calls: cancel_league_renewal is refused on a renewal league with picks', async () => {
+      const st = STATES.find((s) => s.name.includes('renewal'))!;
+      const withPicks = await stateLeague(st, true);
+      await assertRejects(() => user(() => q(`select public.cancel_league_renewal($1)`, [withPicks])), Error, 'league_delete_locked');
+      assertEquals(await picks(withPicks), 2);
+      const clean = await stateLeague(st, false);
+      const [{ r }] = await user(() => q(`select public.cancel_league_renewal($1) r`, [clean]));
+      assertEquals(r.status, 'cancelled');
+      assert(!(await leagueExists(clean)));
+      // The service role (scrub_deleted_manager's path) and the owner are not refused.
+      const svc = await stateLeague(STATES[STATES.length - 1], true);
+      assertEquals((await as('service', () => q(`delete from leagues where id = $1 returning id`, [svc]))).length, 1);
     });
 
     // ---------------------------------------------------------------- S3: leagues columns
@@ -363,6 +478,38 @@ Deno.test({
       await q(`update leagues set season_status = 'active', current_week = 1 where id = $1`, [pre]);
     });
 
+
+    await t.step('mutants: the delete trigger lines are load-bearing', async () => {
+      // Without the picks check, the not_started league that still holds picks goes, picks and all.
+      await withMutant('enforce_leagues_delete_before_draft',
+        (src) => src.replace(/if exists \(select 1 from public\.drafts d where d\.league_id = old\.id\) then/, 'if false then'),
+        async () => {
+          const id = await stateLeague(STATES[1], true);
+          assertEquals((await user(() => q(`delete from leagues where id = $1 returning id`, [id]))).length, 1);
+        });
+      // Without the status check, a user-called DEFINER delete of a started league goes through
+      // (the policy does not apply inside a DEFINER function). Shown with an empty started league.
+      await q(`create function public.cdw_test_delete(p uuid) returns void language sql security definer set search_path = public as
+               $f$ delete from leagues where id = p $f$`);
+      await q(`grant execute on function public.cdw_test_delete(uuid) to authenticated`);
+      const started = await stateLeague(STATES[5], false);
+      await assertRejects(() => user(() => q(`select public.cdw_test_delete($1)`, [started])), Error, 'league_delete_locked: a league cannot be deleted once its draft has started');
+      await withMutant('enforce_leagues_delete_before_draft',
+        (src) => src.replace(/if old\.draft_status is distinct from 'not_started' then/, 'if false then'),
+        async () => {
+          await user(() => q(`select public.cdw_test_delete($1)`, [started]));
+          assert(!(await leagueExists(started)), 'the started league was deleted with the status line removed');
+        });
+      // Keyed on current_user instead of auth.uid(), a DEFINER trigger exempts EVERY caller (it runs
+      // as the owner), so the partial-state delete lands.
+      await withMutant('enforce_leagues_delete_before_draft',
+        (src) => src.replace('if auth.uid() is null then', `if current_user not in ('anon', 'authenticated') then`),
+        async () => {
+          const id = await stateLeague(STATES[0], true);
+          assertEquals((await user(() => q(`delete from leagues where id = $1 returning id`, [id]))).length, 1);
+        });
+    });
+
     await t.step('mutants: the old policies back, the attacks land', async () => {
       // drafts DELETE policy (20251205110000's), pre-draft so the freeze trigger lets it through.
       await q(`insert into drafts (league_id, user_id, symbol, entry_price, quantity, round, pick_number) values ($1, $2, 'NVDA', 100, 10, 1, 1)`, [pre, C]);
@@ -373,15 +520,30 @@ Deno.test({
       } finally {
         await q(`drop policy "Commissioners can delete picks" on drafts`);
       }
-      // leagues DELETE without the status gate: the finished league goes. (Whether its picks
-      // cascade depends on prod's dashboard-made drafts FK, which the harness does not model.)
-      await q(`alter policy leagues_delete_commissioner on leagues using (public.is_commissioner(id))`);
+      // leagues DELETE: TWO layers now refuse a started league (the policy's status gate and the
+      // delete trigger's status line). Each alone is an EQUIVALENT mutant; with both removed the
+      // finished league goes.
+      const loosen = `alter policy leagues_delete_commissioner on leagues using (public.is_commissioner(id))`;
+      const restore = `alter policy leagues_delete_commissioner on leagues using (public.is_commissioner(id) and draft_status = 'not_started')`;
+      await q(loosen);
       try {
-        const victim = await league('completed');
-        assertEquals((await user(() => q(`delete from leagues where id = $1 returning id`, [victim]))).length, 1);
-        assert(!(await leagueExists(victim)), 'the finished league is gone');
+        const victim = await stateLeague(STATES[STATES.length - 1], false);
+        await assertRejects(() => user(() => q(`delete from leagues where id = $1`, [victim])), Error, 'league_delete_locked', 'policy alone removed: the trigger still refuses');
+        await withMutant('enforce_leagues_delete_before_draft',
+          (src) => src.replace(/if old\.draft_status is distinct from 'not_started' then/, 'if false then'),
+          async () => {
+            assertEquals((await user(() => q(`delete from leagues where id = $1 returning id`, [victim]))).length, 1, 'both removed: it goes');
+          });
       } finally {
-        await q(`alter policy leagues_delete_commissioner on leagues using (public.is_commissioner(id) and draft_status = 'not_started')`);
+        await q(restore);
+      }
+      {
+        const victim = await stateLeague(STATES[STATES.length - 1], false);
+        await withMutant('enforce_leagues_delete_before_draft',
+          (src) => src.replace(/if old\.draft_status is distinct from 'not_started' then/, 'if false then'),
+          async () => {
+            assertEquals((await user(() => q(`delete from leagues where id = $1 returning id`, [victim]))).length, 0, 'trigger line alone removed: the policy still refuses');
+          });
       }
       // draft_sessions FOR ALL policy: the commissioner insert lands.
       await q(`create policy "Commissioners can manage draft sessions" on draft_sessions for all

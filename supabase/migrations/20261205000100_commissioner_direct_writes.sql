@@ -39,6 +39,25 @@
 --       NARROWED to draft_status = 'not_started' (a pre-draft league has no
 --       picks, trades or results to lose), not dropped, so a future pre-draft
 --       "Delete league" stays one client call.
+--       PARTIAL STATE (CLAUDE.md): a status flag is not evidence that no picks
+--       exist. A not_started league can still hold pick rows (legacy data, a
+--       half-reset draft), and a status-only gate would let the cascade take
+--       them. So a NEW BEFORE DELETE trigger, trg_leagues_delete_before_draft,
+--       checks the rows themselves: any user session (auth.uid() set, a direct
+--       write OR a DEFINER RPC acting for a user, e.g. cancel_league_renewal) is
+--       refused when the draft has started or ANY pick row exists. It is a
+--       DEFINER trigger on purpose: a subquery in the policy would run under the
+--       caller's drafts RLS (members only), so a commissioner without a
+--       membership row would see zero picks and pass. The service role
+--       (scrub_deleted_manager via the account-deletion functions), cron and the
+--       SQL editor have no auth.uid() and pass.
+--       States pinned in the test, every one: not_started (no time, pre-room,
+--       room open with the order finalized, postponed, renewal replies pending),
+--       in_progress (running, stalled = "auto-pick paused", price outage) and
+--       completed (season active, playoffs, season completed), each with and
+--       (for not_started) without picks. draft_status is NOT NULL with a CHECK,
+--       so those three values are the whole status domain; "paused" and "room
+--       open" are side-table substates, not statuses.
 --   (3) leagues, columns no client flow writes and no trigger guarded BEFORE the
 --       draft (or at all): id, created_at, invite_code, league_start_date,
 --       league_end_date, current_week, season_status, current_season_id. Before
@@ -88,6 +107,37 @@ drop policy if exists "leagues_delete_commissioner" on public.leagues;
 create policy "leagues_delete_commissioner" on public.leagues
   for delete to authenticated
   using (public.is_commissioner(id) and draft_status = 'not_started');
+
+-- (2b) ...and never a league that holds picks, whatever its status says.
+create or replace function public.enforce_leagues_delete_before_draft()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if auth.uid() is null then
+    return old;   -- service role, cron, the SQL editor
+  end if;
+  if old.draft_status is distinct from 'not_started' then
+    raise exception 'league_delete_locked: a league cannot be deleted once its draft has started'
+      using errcode = '42501';
+  end if;
+  -- The evidence, not the flag: one pick row is enough to refuse.
+  if exists (select 1 from public.drafts d where d.league_id = old.id) then
+    raise exception 'league_delete_locked: a league with draft picks cannot be deleted'
+      using errcode = '42501';
+  end if;
+  return old;
+end;
+$$;
+
+revoke all on function public.enforce_leagues_delete_before_draft() from public, anon, authenticated, service_role;
+
+drop trigger if exists trg_leagues_delete_before_draft on public.leagues;
+create trigger trg_leagues_delete_before_draft
+  before delete on public.leagues
+  for each row execute function public.enforce_leagues_delete_before_draft();
 
 -- (3) + (4) leagues: server-owned columns.
 create or replace function public.enforce_leagues_server_columns()
