@@ -45,13 +45,14 @@ Entries begin with the Recorder's first pass.
 - An https invite link waits for a tap when you are already signed in (his "B" on A2, #454): it opens on the Join preview and joins only on the tap; a signed-out arrival is unchanged. Built in #457 (merged), in no build.
 
 **Found**
+- **Phase 4 pre-disable checks (a) and (b) PASSED (the Orchestrator's verified notes; prefixes only, no key value):** (a) the EAS `production` env has one var, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, beginning `sb_publishable_`, no legacy `eyJ` key (Giorgio ran `eas env:list production --include-sensitive`); (b) Vercel has `VITE_SUPABASE_PUBLISHABLE_KEY` beginning `sb_publishable_` and `VITE_SUPABASE_URL` only, which matches `apps/web/src/supabase/supabaseClient.js` on `main` (it reads just those two; no `ANON_KEY` fallback; I read it). **(c), the legacy keys' last-used on the Supabase API Keys page, is next with the Planner.** The legacy keys are still enabled. STATUS §4 item 29. #461 (my last record) merged 03:44:19Z.
 - **The brief security check (#452):** no CRITICAL or HIGH, no secret values in the repo, five MEDIUM (S1 `symbols` readable by any signed-in account, confirmed; S2 and S3 commissioner direct writes; A1 plain sign-out leaves the pending stores; A2 https invite joins without a tap).
 - **The market-data dependency audit (#453):** Alpaca from 12 edge functions through 9 copies of the request code, Finnhub from one place, NASDAQ Trader from one place, provider prices kept permanently in four tables; nothing decided.
 - **NEW (the Orchestrator's verified finding; the value is not reproduced):** the legacy `service_role` JWT is in the gitignored `.claude/settings.local.json`; the legacy keys are still enabled, so it is live, and rotating it is Phase 4. STATUS §4 item 29. Also CLAUDE.md's "full-history gitleaks scan is clean" held only because of the `.claude/` allowlist; #457 (open) removes it.
 
 **Waiting on Giorgio**
 - The S1 CONTRACT push after build 15 is on every phone in use; the read-only queries in the security check's "Needs Giorgio" list.
-- The Phase 4 decision on the legacy keys (item 29), now with the live key in `settings.local.json`.
+- The Phase 4 decision on the legacy keys (item 29): checks (a) and (b) passed, (c) next, and the live key in `settings.local.json` raises the urgency.
 
 **Next**
 - Promote the S1 CONTRACT (`deferred/20261205000400`) only after a build with #456's app change is on every phone in use (build 15), re-stamped, then a dry run, the push and PART B.
