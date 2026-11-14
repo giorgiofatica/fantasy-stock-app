@@ -1220,6 +1220,19 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
 - **The inviter's name** shows on the invite page and the link-arrival preview ("{Roberto}
   invited you to {Stock Scudetto}"); the inviter only, nobody else (recommendation taken;
   amends the 2026-10-11 "no commissioner name" rule for link arrivals only).
+- **A shared invite link never joins a signed-in person without a tap** (2026-11-13, from the
+  brief security check, item A2). Shown the two side by side (A: tapping the link joins at
+  once, the rule the Planner and the Orchestrator set on 2026-10-14 as decision 18 of the
+  onboarding plan; B: the link opens straight on that league's preview with a Join button and
+  "Not now", and nothing is joined until the tap), Giorgio picked **B**. Reason given to him:
+  with A, any link, message or QR code carrying an invite puts a signed-in person in that
+  league; B costs one tap and matches the takeover link, which always waits. The link still
+  opens directly on the league: no code to type and no "Find league" step (his words,
+  2026-11-12: "the invite link is for a specific league. that is an unnecessary step"). This
+  covers a person who is already signed in when the link arrives, for the https link and
+  the scheme link alike. A signed-out arrival is not changed by this ruling (the invite
+  screen, then sign-in, then the join). The preview's words in the mockup were placeholders;
+  the screen reuses the shipped Join preview unless he approves new words.
 - **Before sign-in the invite shows the league's name and the inviter, nothing else**
   (2026-10-14, board `#call-ob-arrival`: **B**). The no-sign-in preview returns only the name,
   the inviter and why a link can't be used (the Planner's security ruling), so the arrival, in
