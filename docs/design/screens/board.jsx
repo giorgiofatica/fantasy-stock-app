@@ -383,8 +383,6 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-draft-turn', 'The turn card while someone else picks', () => window.KSDraftTurn],
-    ['call-blockers-card', 'The commissioner\u2019s “can\u2019t start yet” card', () => window.KSBlockersCard],
     ['call-dead-links', 'The dead password link and the “Nothing here” page', () => window.KSDeadLinks],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
@@ -392,6 +390,8 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-blockers-card', title: 'The commissioner\u2019s “can\u2019t start yet” card', decision: 'A: no line under "The draft can\u2019t start yet"; both sentences go, the consequence included. The tag, the heading and the blocker rows stay. Removal only.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSBlockersCardArchived },
+    { id: 'call-draft-turn', title: 'The turn card while someone else picks', decision: 'B: "Round 2 of 6 \u00b7 Pick 11" as the card\u2019s small label above "Sofia is up", one line about you under it; after your pick "You took NVDA \u00b7 you\u2019re up in 3 picks" in your colour. No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDraftTurnArchived },
     { id: 'call-queue-card', title: 'The queue card', decision: 'B: the search becomes the queue list\u2019s last row, "+ Search by ticker or name" in the accent colour, no box; a tap turns it into the field in place, with the same results. No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSQueueCardArchived },
     { id: 'call-draft-card', title: 'The draft card before the draft', decision: 'B: the time folds into the label, nothing under the countdown: "Draft \u00b7 Sat, Nov 14 \u00b7 6:44 PM ET", then once the room opens "Draft room open \u00b7 12:48 PM ET". Both labels approved as copy.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDraftCardArchived },
     { id: 'call-buy-top', title: 'The top of Buy a stock', decision: 'B: the back arrow and the search field on one top row; no "Buy a stock" title and no league pill on this page; VoiceOver keeps "Portfolio". The empty field\u2019s words may end in "\u2026" at his size (accepted). No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (Buy a stock: the top of the screen is too crowded)', render: () => window.KSBuyTopArchived },
