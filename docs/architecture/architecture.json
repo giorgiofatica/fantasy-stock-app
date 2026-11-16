@@ -2,50 +2,30 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "f10fd60e80fc7d2054213f9d908dd16dd6a23ffc",
-    "commitShort": "f10fd60e",
+    "commit": "d0c3a57230f0ef1a641917712dff21fc239da92a",
+    "commitShort": "d0c3a572",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "chore/retire-send-notification",
+    "branch": "chore/db-snapshot-2026-11-16",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/ARCHITECTURE.md"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/shell/notificationRoute.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/config.toml"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/push-copy.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/push.ts"
-      },
-      {
-        "code": "D",
-        "path": "supabase/functions/send-notification/index.ts"
+        "path": "docs/architecture/db-snapshot.json"
       }
     ],
-    "timestamp": "2026-11-16T19:23:16Z",
-    "sourceHash": "sha256:14b206366b6cba94dcf8d8368dbdef7231b4e03a4f39377aa3bb11207ef86e89",
+    "timestamp": "2026-11-16T21:41:15Z",
+    "sourceHash": "sha256:21533078f27501c0907cbe08817f33a4c9b777f6367aadfb89d28547c798477f",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-11-14T03:39:10Z",
-    "ageHours": 63.7,
-    "ageDays": 2.7,
+    "capturedAt": "2026-11-16T21:40:11Z",
+    "ageHours": 0,
+    "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:809a3f101b793ffcafe544c233dd5c086aff77b2a06ae0230c6a9eb2134c89d1",
+    "hash": "sha256:6e7a92b9130df74c981c933c5b636c82a38b9ed9fc7251c9d85358a9e8df17d4",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
@@ -24709,6 +24689,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=false"
     ],
-    "dbSnapshot": "sha256:809a3f101b793ffcafe544c233dd5c086aff77b2a06ae0230c6a9eb2134c89d1"
+    "dbSnapshot": "sha256:6e7a92b9130df74c981c933c5b636c82a38b9ed9fc7251c9d85358a9e8df17d4"
   }
 }
