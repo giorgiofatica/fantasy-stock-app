@@ -700,11 +700,15 @@ building anything, and don't reopen a rule without him.
   - Already on `main`, not yet in a build (they arrive with build 15): the queue saves by
     itself with no "Save queue" and no "Not saved yet." (ruled 2026-11-11); the line "If you
     step away, we'll auto-pick from your queue…" is cut (the rule-12 sweep); the "Draft order ·
-    Waiting" card is gone at four or more managers (#422).
-  - Not done: the draft card's two lines under the countdown ("The draft starts automatically
-    at…" and "The draft room opens at…"), and the queue card's overall weight (a large search
-    field under the list). Both carry facts a manager needs, so what stays is not ruled: the
-    Design Lead boards them and they come to him as A / B.
+    Waiting" card is gone at four or more managers (#422); and both lines he quoted under the
+    draft countdown ("The draft starts automatically at…" and "The draft room opens at…") are
+    cut (`autoStart.ts` `countdownCopy`, the rule-12 sweep, row 7). Build 14 predates all of
+    these.
+  - Not done: what is left under the countdown is one line, the date and time as a value
+    ("Tue, Nov 17 · 7:30 PM ET"), and the queue card's overall weight (a large search field
+    under the list). What stays is not ruled: the Design Lead boards both and they come to
+    him as A / B. (Corrected 2026-11-16: this note first listed the two cut lines as not
+    done. The Planner had matched them in code comments, not in what the card shows.)
 - **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
   "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
   to make the pick. the selection needs to be instant so the draft flow continues". So: when
