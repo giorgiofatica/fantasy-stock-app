@@ -206,16 +206,16 @@
     );
   }
 
-  function CallDeadLinks() {
+  function CallDeadLinks({ archived = false }) {
     return (
       <section className="b-sec" id="call-dead-links" aria-labelledby="call-dead-links-h">
-        <Head id="call-dead-links" code="Links" title="Your call: the dead password link and the “Nothing here” page" job={'Two dead ends the dead-end family didn’t cover: a password-reset link that no longer works, and a link that leads nowhere. Both have a long grey paragraph today. Both go into the form you signed off (a picture, the sentence as the heading, the way out at the bottom).'} />
+        <Head id="call-dead-links" code="Links" title={archived ? 'Decided: B, the dead password link and the “Nothing here” page' : 'Your call: the dead password link and the “Nothing here” page'} job={'Two dead ends the dead-end family didn’t cover: a password-reset link that no longer works, and a link that leads nowhere. Both have a long grey paragraph today. Both go into the form you signed off (a picture, the sentence as the heading, the way out at the bottom).'} />
         <ul className="b-inv__notes">
           <li><b>A · No line.</b> "This link didn't work." with "Request a new link" and "Back to sign in"; "Nothing here." with "Go to Home".</li>
           <li><b>B · One short line each.</b> Under the reset heading: "It may have been opened on a different device." <NEW /> (the most common reason by far, and the only one the person can do something about). Under "Nothing here.": "This link is old or incomplete." (today's first sentence).</li>
-          <li><b>Recommended: B.</b> A dead reset link is usually the email opened on a laptop instead of the phone; one line saves a support message. The rest of today's paragraph goes in both.</li>
+          <li><b>Recommended: B{archived ? ' (taken)' : ''}.</b> A dead reset link is usually the email opened on a laptop instead of the phone; one line saves a support message. The rest of today's paragraph goes in both.</li>
           <li><b>New words in B:</b> "It may have been opened on a different device." (a cut of today's sentence). A has none. The headings gain a full stop, as in the dead-end family.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-16): "B".</b> Both screens take the dead-end family's form, each with one short line: "This link didn't work." + "It may have been opened on a different device." (new words, approved by his pick) and "Nothing here." + "This link is old or incomplete." Recorded in PRODUCT_RULES by the Planner.</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <h3 className="b-sub">Today</h3>
         <Grid>{[
@@ -227,7 +227,7 @@
           fig('dla', 'Dead reset link · A · Light · Large', <Dead {...RESET} label="Dead reset link, option A" />),
           fig('nfa', 'Nothing here · A · Light · Large', <Dead {...NF} label="Not found, option A" />),
         ]}</Grid>
-        <h3 className="b-sub">B · one short line (recommended)</h3>
+        <h3 className="b-sub">B · one short line {archived ? '(decided)' : '(recommended)'}</h3>
         <Grid>{[
           fig('dlb', 'Dead reset link · B · Light · Large', <Dead {...RESET} line={RESET_B_LINE} label="Dead reset link, option B" />),
           fig('nfb', 'Nothing here · B · Light · Large', <Dead {...NF} line={NF_B_LINE} label="Not found, option B" />),
@@ -242,5 +242,6 @@
   window.KSDraftTurnArchived = () => <CallDraftTurn archived />;
   window.KSBlockersCard = () => null; // decided 2026-11-16: A; it lives in the Archive
   window.KSBlockersCardArchived = () => <CallBlockersCard archived />;
-  window.KSDeadLinks = () => <CallDeadLinks />;
+  window.KSDeadLinks = () => null; // decided 2026-11-16: B; it lives in the Archive
+  window.KSDeadLinksArchived = () => <CallDeadLinks archived />;
 })();

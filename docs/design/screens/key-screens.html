@@ -14527,16 +14527,16 @@ window.KS_REFS = {
     );
   }
 
-  function CallDeadLinks() {
+  function CallDeadLinks({ archived = false }) {
     return (
       <section className="b-sec" id="call-dead-links" aria-labelledby="call-dead-links-h">
-        <Head id="call-dead-links" code="Links" title="Your call: the dead password link and the “Nothing here” page" job={'Two dead ends the dead-end family didn’t cover: a password-reset link that no longer works, and a link that leads nowhere. Both have a long grey paragraph today. Both go into the form you signed off (a picture, the sentence as the heading, the way out at the bottom).'} />
+        <Head id="call-dead-links" code="Links" title={archived ? 'Decided: B, the dead password link and the “Nothing here” page' : 'Your call: the dead password link and the “Nothing here” page'} job={'Two dead ends the dead-end family didn’t cover: a password-reset link that no longer works, and a link that leads nowhere. Both have a long grey paragraph today. Both go into the form you signed off (a picture, the sentence as the heading, the way out at the bottom).'} />
         <ul className="b-inv__notes">
           <li><b>A · No line.</b> "This link didn't work." with "Request a new link" and "Back to sign in"; "Nothing here." with "Go to Home".</li>
           <li><b>B · One short line each.</b> Under the reset heading: "It may have been opened on a different device." <NEW /> (the most common reason by far, and the only one the person can do something about). Under "Nothing here.": "This link is old or incomplete." (today's first sentence).</li>
-          <li><b>Recommended: B.</b> A dead reset link is usually the email opened on a laptop instead of the phone; one line saves a support message. The rest of today's paragraph goes in both.</li>
+          <li><b>Recommended: B{archived ? ' (taken)' : ''}.</b> A dead reset link is usually the email opened on a laptop instead of the phone; one line saves a support message. The rest of today's paragraph goes in both.</li>
           <li><b>New words in B:</b> "It may have been opened on a different device." (a cut of today's sentence). A has none. The headings gain a full stop, as in the dead-end family.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-16): "B".</b> Both screens take the dead-end family's form, each with one short line: "This link didn't work." + "It may have been opened on a different device." (new words, approved by his pick) and "Nothing here." + "This link is old or incomplete." Recorded in PRODUCT_RULES by the Planner.</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <h3 className="b-sub">Today</h3>
         <Grid>{[
@@ -14548,7 +14548,7 @@ window.KS_REFS = {
           fig('dla', 'Dead reset link · A · Light · Large', <Dead {...RESET} label="Dead reset link, option A" />),
           fig('nfa', 'Nothing here · A · Light · Large', <Dead {...NF} label="Not found, option A" />),
         ]}</Grid>
-        <h3 className="b-sub">B · one short line (recommended)</h3>
+        <h3 className="b-sub">B · one short line {archived ? '(decided)' : '(recommended)'}</h3>
         <Grid>{[
           fig('dlb', 'Dead reset link · B · Light · Large', <Dead {...RESET} line={RESET_B_LINE} label="Dead reset link, option B" />),
           fig('nfb', 'Nothing here · B · Light · Large', <Dead {...NF} line={NF_B_LINE} label="Not found, option B" />),
@@ -14563,7 +14563,8 @@ window.KS_REFS = {
   window.KSDraftTurnArchived = () => <CallDraftTurn archived />;
   window.KSBlockersCard = () => null; // decided 2026-11-16: A; it lives in the Archive
   window.KSBlockersCardArchived = () => <CallBlockersCard archived />;
-  window.KSDeadLinks = () => <CallDeadLinks />;
+  window.KSDeadLinks = () => null; // decided 2026-11-16: B; it lives in the Archive
+  window.KSDeadLinksArchived = () => <CallDeadLinks archived />;
 })();
 
 </script>
@@ -14952,14 +14953,13 @@ window.KS_REFS = {
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [
-    ['call-dead-links', 'The dead password link and the “Nothing here” page', () => window.KSDeadLinks],
-  ];
+  const OPEN = [];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-dead-links', title: 'The dead password link and the “Nothing here” page', decision: 'B: both in the dead-end family\u2019s form with one short line each: "This link didn\u2019t work." + "It may have been opened on a different device." (new words, approved), and "Nothing here." + "This link is old or incomplete."', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDeadLinksArchived },
     { id: 'call-blockers-card', title: 'The commissioner\u2019s “can\u2019t start yet” card', decision: 'A: no line under "The draft can\u2019t start yet"; both sentences go, the consequence included. The tag, the heading and the blocker rows stay. Removal only.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSBlockersCardArchived },
     { id: 'call-draft-turn', title: 'The turn card while someone else picks', decision: 'B: "Round 2 of 6 \u00b7 Pick 11" as the card\u2019s small label above "Sofia is up", one line about you under it; after your pick "You took NVDA \u00b7 you\u2019re up in 3 picks" in your colour. No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDraftTurnArchived },
     { id: 'call-queue-card', title: 'The queue card', decision: 'B: the search becomes the queue list\u2019s last row, "+ Search by ticker or name" in the accent colour, no box; a tap turns it into the field in place, with the same results. No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSQueueCardArchived },
