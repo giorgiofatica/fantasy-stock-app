@@ -39,13 +39,13 @@ The probe read one id from `cron_job_status`, which only `service_role` can see,
 
 ## This repo's exposure to item 4 (main @ afa5cbf6)
 
-12 functions have `verify_jwt = true`. 8 call `getUser`/`getClaims` in their own folder: `preview-league`, `join-league`, `leave-league`, `delete-account`, `draft-control`, `validate-and-record-pick`, `record-trade`, `send-notification`. 4 show no such call in their folder and rely on the gateway check: `quote`, `historical-bars`, `symbol-name`, `symbols-search`. They may use a shared helper; the build confirms. No Database Webhooks exist (0 uses of `supabase_functions.http_request` in migrations). Every cron authenticates with the vault `cron_apikey` (an `sb_secret_` key).
+12 functions have `verify_jwt = true`. **11 check the user in code:** 8 call `getUser`/`getClaims` in their own folder (`preview-league`, `join-league`, `leave-league`, `delete-account`, `draft-control`, `validate-and-record-pick`, `record-trade`, `send-notification`), and `quote` (`index.ts:215`), `historical-bars` (`:98`) and `symbols-search` (`:108`) call `resolveUser` / `guardSignedInCaller` in `_shared/market-guard.ts`, which call `auth.getUser()` (`:69`). **`symbol-name` is the only one with no user check of its own:** it forwards the caller's token to PostgREST with the publishable key and relies on the `symbols` table's signed-in-only grant (a refused read surfaces as 500 "Failed to lookup symbol"). *(Corrected 2026-11-16: the first version listed four gateway-only functions; the Planner read the shared helper on `main` @ `afa5cbf6`, and the Orchestrator re-checked it.)* No Database Webhooks exist (0 uses of `supabase_functions.http_request` in migrations). Every cron authenticates with the vault `cron_apikey` (an `sb_secret_` key).
 
 ## Phase 4b order
 
 | # | Step | Undo? | Whose |
 |---|---|---|---|
-| 1 | Code: the 12 functions go to verify_jwt=false plus an in-code JWT check (the 4 gain one), with tests | yes | build chip (Opus) |
+| 1 | Code: the 12 functions go to verify_jwt=false; `symbol-name` gains the in-code user check (the other 11 have one); tests per function | yes | build chip (Opus) |
 | 2 | Deploy those functions; smoke-test sign-in, a read and a write on a phone | yes | Giorgio |
 | 3 | Dashboard: Migrate JWT secret (standby asymmetric key) | yes | Giorgio |
 | 4 | Dashboard: Rotate; smoke-test the app, the crons and every function path | yes | Giorgio |
