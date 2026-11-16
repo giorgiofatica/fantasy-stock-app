@@ -1,6 +1,6 @@
 # Phase 4b: retire the old signing secret
 
-Status: Approved (Giorgio, 2026-11-16); building: steps 1 and 2 DONE (step 1 merged #467; the 11 functions deployed 2026-11-16 19:33Z); `send-notification` retired and undeployed (#469); the step-2 phone check PASSED (build 14, Giorgio's report, 2026-11-16); step 2b probe PASSED and the `--legacy` baseline ran (19:43Z): Realtime ACCEPTS the leaked key; steps 3 (Migrate) and 4 (Rotate) DONE (rotated 20:01Z, all checks passed); step 6 (Revoke) DONE 21:27Z and step 7.1 PASSED: the leaked key is DEAD (Realtime refuses it); 7.3 to 7.7 still to come
+Status: Shipped (Giorgio approved 2026-11-16; code #467, #469, probes #465, #474; prod steps 1 to 7 done 2026-11-16: the 11 functions deployed 19:33Z, Migrate, Rotate 20:01Z, HS256 revoked 21:27Z, the leaked key DEAD on every tested route, post-revoke checks passed; `send-notification` retired and undeployed, so step 2 deployed 11 of the 12; the db-snapshot re-captured and merged, #482)
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 Research this plan is built on: `docs/security/2026-11-16-legacy-jwt-secret-research.md`
