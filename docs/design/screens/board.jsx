@@ -382,7 +382,14 @@
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [];
+  const OPEN = [
+    ['call-buy-top', 'The top of Buy a stock', () => window.KSBuyTop],
+    ['call-draft-card', 'The draft card before the draft', () => window.KSDraftCard],
+    ['call-queue-card', 'The queue card', () => window.KSQueueCard],
+    ['call-draft-turn', 'The turn card while someone else picks', () => window.KSDraftTurn],
+    ['call-blockers-card', 'The commissioner\u2019s “can\u2019t start yet” card', () => window.KSBlockersCard],
+    ['call-dead-links', 'The dead password link and the “Nothing here” page', () => window.KSDeadLinks],
+  ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
@@ -544,6 +551,12 @@
           {window.KSRule12Info ? <window.KSRule12Info /> : null}
           {window.KSSeasonStep ? <window.KSSeasonStep /> : null}
           {window.KSBelowFour ? <window.KSBelowFour /> : null}
+          {window.KSBuyTop ? <window.KSBuyTop /> : null}
+          {window.KSDraftCard ? <window.KSDraftCard /> : null}
+          {window.KSQueueCard ? <window.KSQueueCard /> : null}
+          {window.KSDraftTurn ? <window.KSDraftTurn /> : null}
+          {window.KSBlockersCard ? <window.KSBlockersCard /> : null}
+          {window.KSDeadLinks ? <window.KSDeadLinks /> : null}
           {window.KSRefusalFamily ? <window.KSRefusalFamily /> : null}
           {window.KSSheetBar ? <window.KSSheetBar /> : null}
           {window.KSSettingsTop ? <window.KSSettingsTop /> : null}
