@@ -1,6 +1,6 @@
 # Phase 4b: retire the old signing secret
 
-Status: Approved (Giorgio, 2026-11-16); building: step 1 merged (#467, 2026-11-16), not deployed
+Status: Approved (Giorgio, 2026-11-16); building: step 1 merged (#467, 2026-11-16), not deployed; `send-notification` retired and undeployed (#469), so step 2 deploys 11 of the 12
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 Research this plan is built on: `docs/security/2026-11-16-legacy-jwt-secret-research.md`
