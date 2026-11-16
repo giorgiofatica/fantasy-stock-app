@@ -64,8 +64,9 @@ Twelve functions have `verify_jwt = true` in `supabase/config.toml`: `quote`,
 `leave-league`, `delete-account`, `draft-control`, `validate-and-record-pick`, `record-trade`,
 `send-notification`.
 
-The research found four of them with no user check in their own folder and noted they "may
-use a shared helper; the build confirms". I read the code:
+The research first listed four of them as having no user check in their own folder, with
+the note that they "may use a shared helper". I read the code, the Orchestrator verified it
+(2026-11-16), and the research file now says one:
 
 - **`quote`, `historical-bars`, `symbols-search` do check the user in code**, through
   `_shared/market-guard.ts` (`resolveUser` and `guardSignedInCaller`, both of which call
@@ -98,21 +99,24 @@ fails.
 | 0 | Two looks on the dashboard: the access-token lifetime (the wait in step 5 is that plus 15 minutes; the research assumes one hour), and that the signing-keys page offers "Migrate". | Giorgio | Lifetime noted; the page matches the research | n/a |
 | 1 | Build: the 12 functions go to `verify_jwt = false`; `symbol-name` gains the user check; tests for both. | One Opus security chip, run by the Orchestrator | See "What the build must prove" | Revert the PR |
 | 2 | Merge, then deploy the 12 functions from the deploy checkout, verified as `CLAUDE.md` requires. | Giorgio | For each function: a request with no credentials gets **our** 401 body, not the gateway's, and the dashboard's Verify JWT toggle is off. On the phone: Home loads, a stock sheet opens, the queue saves. | Redeploy the previous version |
+| 2b | The probe is replaced before any dashboard step. The Phase 4 scripts read the key from a file that is now clean, so they stop at setup. The new one runs the control line alone with no old key, and in its full mode takes the old key from a hidden prompt and covers REST, functions, sign-in admin and Realtime (a channel join with the old key as the token: joined or refused). Dry-run by the Orchestrator first. | Orchestrator | The control line prints 200 with 0 rows on Giorgio's Mac | n/a |
 | 3 | Dashboard: Migrate the signing secret. This creates the new key in standby. Nothing changes for players. | Giorgio | Probe line P1 still 200 with 0 rows; the app still loads | Reversible in the dashboard |
-| 4 | Dashboard: Rotate. New sessions are signed the new way. Nobody is signed out. | Giorgio | On the phone after a fresh start: Home loads; a stock sheet opens (prices, name, chart: four of the functions); the queue saves; **a draft room or pre-draft room opens and updates live**; sign out and back in. Scheduled jobs: the timestamped `net._http_response` query shows only 200 and 202. | Rotate back (state changes are throttled about five minutes) |
+| 4 | Dashboard: Rotate. New sessions are signed the new way. Nobody is signed out. | Giorgio | On the phone after a fresh start: Home loads; a stock sheet opens (prices, name, chart: four of the functions); the queue saves; **a draft room or pre-draft room opens and updates live**; sign out and back in. On the web: one sign-in, if a web sign-in page is live by then (the web client is a separate build of the same library and gets new-signed sessions too; today the web app is paused and serves only the landing page, so there may be nothing to check). Scheduled jobs: the timestamped `net._http_response` query shows only 200 and 202. | Rotate back (state changes are throttled about five minutes) |
 | 5 | Wait: the access-token lifetime plus 15 minutes (75 minutes at one hour). | n/a | Clock | n/a |
 | 6 | Dashboard: Revoke the old secret. | Giorgio | He reads the confirm dialog to the Planner before confirming, as in Phase 4 | **Treated as final** |
 | 7 | Probe, read-only: the old key must be refused on REST, the functions gateway, the sign-in admin API **and Realtime**. Then the phone checks from step 4 once more, and a `db-snapshot` re-capture. | Giorgio runs; Orchestrator verifies | All four refused; the app and the jobs still work | n/a |
 
-Steps 3 to 7 happen in one sitting. Steps 1 and 2 can land days earlier and are safe
+Steps 3 to 7 happen in one sitting. Steps 1, 2 and 2b can land days earlier and are safe
 alone: they change who performs a check, not whether it happens.
 
 ## What the build must prove (step 1)
 
 - **Each of the 12 refuses a caller with no token, a caller with only the public app key, and
-  a caller with an expired token**, with our own 401, before any database read or supplier
-  call. This is the boundary once the gateway check is off, so it is tested per function, not
-  sampled.
+  a caller with an expired token**, with our own 401, before **any** side effect: a database
+  read or write, a supplier call, a push sent (`send-notification`), an account touched
+  (`delete-account`), a rate-limit counter bumped. This is the boundary once the gateway
+  check is off, so it is tested per function, not sampled, and it is how the Orchestrator
+  gates the build.
 - **A real signed-in caller still gets through** on each.
 - **`symbol-name` returns 401, not 500, for a caller who is not signed in.** Today a refused
   read surfaces as "Failed to lookup symbol".
