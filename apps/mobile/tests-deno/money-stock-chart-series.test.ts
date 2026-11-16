@@ -224,3 +224,50 @@ Deno.test('the stock chart turns the dashed base off; the shared Chart still dra
   assertEquals(chartSource.includes('showBase = true'), true);
   assertEquals(/\{showBase \? <Line/.test(chartSource), true);
 });
+
+// ── DL conditions on PR #480 (the short windows) ─────────────────────────────────────────
+import { buildLine } from '../components/sp/logic/lineChart.ts';
+
+const BOX = { width: 390, height: 140, padLeft: 2, padRight: 12, padTop: 12, padBottom: 9 };
+
+Deno.test('stock 1W with ONE session: the dot and its one label, never a line across', () => {
+  const s = stockLineSeries({ range: '1W', bars: closes(['2026-10-02']), price: null, todayEt: '2026-10-03', now: new Date('2026-10-03T17:00:00Z'), sessions: [] });
+  assertEquals(dayIsos(s), ['2026-10-02']);
+  assertEquals(s.points.length, 1);
+  const g = buildLine(s.points, [0, 0], s.base, BOX);
+  assertEquals(g.path, ''); // nothing to stroke
+  assertEquals(g.length, 0);
+  assertEquals(g.end !== null, true); // the dot
+  const labels = layoutAxis(s.axis, 366, (t) => g.toX(t), () => 24);
+  assertEquals(labels.map((l) => l.text), ['Fri']);
+  assertEquals(labels[0].align, 'right'); // under the dot, which sits at the right end
+});
+
+Deno.test('stock 1W with ONE session that is today (a first-day listing, live price): still a lone dot', () => {
+  const s = stockLineSeries({ range: '1W', bars: [], price: 12, todayEt: '2026-10-05', now: new Date('2026-10-05T17:00:00Z'), sessions: sess('2026-10-05') });
+  assertEquals(s.points, [{ t: 0, value: 12 }]);
+  assertEquals(buildLine(s.points, [0, 0], s.base, BOX).path, '');
+});
+
+Deno.test('stock 1W LOADING (no bars yet): no points and no labels, so the axis row is empty but keeps its own fixed height', () => {
+  const s = stockLineSeries({ range: '1W', bars: [], price: null, todayEt: '2026-10-05', now: new Date('2026-10-05T12:00:00Z'), sessions: sess('2026-10-05') });
+  assertEquals(s.points, []);
+  assertEquals(layoutAxis(s.axis, 366, (t) => t, () => 24), []);
+  assertEquals(axisRangeLabel(s.axis), ''); // Chart drops the empty part: no dangling comma in VoiceOver
+});
+
+// The labels are absolutely positioned inside a row whose height is set from the font scale alone,
+// so labels arriving cannot move anything below the chart (the 1 s-later frame is a sim still).
+import chartSource2 from '../components/sp/gn/Chart.tsx' with { type: 'text' };
+Deno.test('Chart: the axis row\'s height does not depend on its labels', () => {
+  assertEquals(/\{ height: AXIS_LINE_HEIGHT \* fontScale \+ 2 \}/.test(chartSource2), true);
+  assertEquals(/label: \{\s*position: 'absolute'/.test(chartSource2), true);
+  assertEquals(chartSource2.includes("[accessibilityLabel, range, last ? formatValue(last.value) : ''].filter(Boolean)"), true);
+});
+
+Deno.test('StockChart: while the bars load, the axis has no labels (no lone "Mon" under an empty chart)', () => {
+  assertEquals(stockChartSource.includes("const LOADING_AXIS: AxisSpec = { kind: 'sessions', days: [] };"), true);
+  assertEquals(/axis=\{ready \? series\.axis : LOADING_AXIS\}/.test(stockChartSource), true);
+  assertEquals(/points=\{ready \? series\.points : \[\]\}/.test(stockChartSource), true);
+  assertEquals(layoutAxis({ kind: 'sessions', days: [] }, 366, (t) => t, () => 24), []);
+});
