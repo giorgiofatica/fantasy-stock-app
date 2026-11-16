@@ -41,6 +41,9 @@ export interface ChartProps {
   points: LinePointIn[];
   /** The dashed base line's value (0 for a gain series; the start price for a price line). */
   base: number;
+  /** Draw the dashed base line (default). The stock sheet turns it off (Giorgio, 2026-11-16:
+   * "it sometimes looks like a y-axis or an x-axis"); `base` still sets the line's gain/loss tone. */
+  showBase?: boolean;
   axis: AxisSpec;
   /** The plot's height (the axis row adds below it). */
   height?: number;
@@ -99,7 +102,7 @@ const LABEL_SLACK = 12;
  * (Design Lead, W4 gate, 2026-10-13: uncapped, XL dates outgrew everything around them). */
 export const AXIS_MAX_SCALE = 1.3;
 
-export function Chart({ points, base, axis, height = 124, bleed = 0, live = false, drawKey = 'chart', formatValue, accessibilityLabel, under, underPlacement = 'afterAxis', underHeight, skipEntrance = false, onScrubIndex, captureScrubAction }: ChartProps) {
+export function Chart({ points, base, showBase = true, axis, height = 124, bleed = 0, live = false, drawKey = 'chart', formatValue, accessibilityLabel, under, underPlacement = 'afterAxis', underHeight, skipEntrance = false, onScrubIndex, captureScrubAction }: ChartProps) {
   const { colors } = useTheme();
   const { reduced, duration } = useMotion();
   const { fontScale: deviceScale } = useWindowDimensions();
@@ -165,7 +168,7 @@ export function Chart({ points, base, axis, height = 124, bleed = 0, live = fals
         <GestureDetector gesture={pan}>
           <View style={{ height }}>
             <Svg width={width} height={height}>
-              <Line x1={0} x2={width} y1={geometry.baseY} y2={geometry.baseY} stroke={colors.borderStrong} strokeWidth={1} strokeDasharray="3 5" />
+              {showBase ? <Line x1={0} x2={width} y1={geometry.baseY} y2={geometry.baseY} stroke={colors.borderStrong} strokeWidth={1} strokeDasharray="3 5" /> : null}
               {path ? <Path testID="chart-line" d={path} stroke={lineColor} strokeWidth={STROKE} fill="none" strokeLinejoin="round" strokeLinecap="round" /> : null}
               {endVisible && !live ? (
                 <>

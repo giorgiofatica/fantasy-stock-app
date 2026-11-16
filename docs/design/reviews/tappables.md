@@ -164,7 +164,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/SalePicker.tsx:85` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
 | `components/money/SalePicker.tsx:108` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
 | `components/money/SalePicker.tsx:115` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
-| `components/money/StockChart.tsx:64` | RangePills | onChange | `setRange` | state setRange |  |
+| `components/money/StockChart.tsx:67` | RangePills | onChange | `setRange` | state setRange |  |
 | `components/money/StockSearchScreen.tsx:120` | Pressable | onPress | `inline: () => router.back()` | route back |  |
 | `components/money/StockSearchScreen.tsx:156` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
 | `components/money/StockSearchScreen.tsx:189` | SearchRow | onPress | `inline: () => handleSelect(item)` | fn handleSelect |  |

@@ -4,13 +4,16 @@
  * Run with: cd apps/mobile/tests-deno && deno test .
  */
 import { assertEquals } from 'jsr:@std/assert';
+import { axisRangeLabel, layoutAxis, pointName } from '../components/sp/logic/chartAxis.ts';
+import type { MarketCalendarSession } from '../lib/time/marketWeek.ts';
 import {
   barsForRange,
   CHART_RANGES,
   DEFAULT_CHART_RANGE,
   deltaSeries,
   rangeLookbackDays,
-  referenceLine,
+  SESSIONS_1W,
+  stockLineSeries,
   stockScrubLabel,
   type DailyBar,
 } from '../lib/money/stockChartSeries.ts';
@@ -21,8 +24,8 @@ Deno.test("Giorgio's ruling (A): the ranges are 1W/1M/3M/1Y in that order, defau
   assertEquals(CHART_RANGES.includes('1D' as never), false);
 });
 
-Deno.test('rangeLookbackDays: a calendar-day window per range', () => {
-  assertEquals(rangeLookbackDays('1W'), 7);
+Deno.test('rangeLookbackDays: a calendar-day window for 1M/3M/1Y (1W counts sessions, not days)', () => {
+  assertEquals(SESSIONS_1W, 5);
   assertEquals(rangeLookbackDays('1M'), 31);
   assertEquals(rangeLookbackDays('3M'), 93);
   assertEquals(rangeLookbackDays('1Y'), 366);
@@ -36,9 +39,12 @@ const BARS: DailyBar[] = [
 ];
 const NOW = new Date('2026-10-05T20:00:00Z');
 
-Deno.test('barsForRange: 1W keeps only bars within 7 days, oldest first', () => {
+Deno.test('barsForRange: 1W is the last five bars (sessions), not a calendar window, oldest first', () => {
+  // Only four bars exist (a month of gaps): 1W takes all of them, however old.
   const r = barsForRange(BARS, '1W', NOW);
-  assertEquals(r.map((b) => b.date), ['2026-10-01', '2026-10-05']);
+  assertEquals(r.map((b) => b.date), ['2026-09-01', '2026-09-20', '2026-10-01', '2026-10-05']);
+  const six: DailyBar[] = ['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02', '2026-10-05'].map((date, i) => ({ date, close: 100 + i }));
+  assertEquals(barsForRange(six, '1W', NOW).map((b) => b.date), ['2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02', '2026-10-05']);
 });
 
 Deno.test('barsForRange: 1M keeps the whole month window', () => {
@@ -52,11 +58,10 @@ Deno.test('barsForRange: never invents a bar for a day with no row (real bars on
   for (const b of r) assertEquals(BARS.some((raw) => raw.date === b.date && raw.close === b.close), true);
 });
 
-Deno.test('barsForRange: a bar outside the window, even by one day, is excluded', () => {
-  const bars: DailyBar[] = [{ date: '2026-09-27', close: 90 }, { date: '2026-09-28', close: 91 }];
-  // NOW - 7 days = 2026-09-28T20:00Z -> cutoff date string 2026-09-28.
-  const r = barsForRange(bars, '1W', NOW);
-  assertEquals(r.map((b) => b.date), ['2026-09-28']);
+Deno.test('barsForRange: 1M excludes a bar one day outside its window', () => {
+  const bars: DailyBar[] = [{ date: '2026-09-03', close: 90 }, { date: '2026-09-04', close: 91 }];
+  // NOW - 31 days = 2026-09-04T20:00Z -> cutoff date string 2026-09-04.
+  assertEquals(barsForRange(bars, '1M', NOW).map((b) => b.date), ['2026-09-04']);
 });
 
 Deno.test('deltaSeries: each close relative to the baseline (previous close)', () => {
@@ -65,47 +70,6 @@ Deno.test('deltaSeries: each close relative to the baseline (previous close)', (
 
 Deno.test('deltaSeries: an empty series stays empty', () => {
   assertEquals(deltaSeries([], 100), []);
-});
-
-// Design Lead ruling, 2026-10-06: the reference line is the range's FIRST close, not
-// the previous close; "A week ago $X" etc., unless the history itself starts later
-// than the range (a newly listed stock), which gets its own date instead.
-const FULL_HISTORY: DailyBar[] = [
-  { date: '2025-10-01', close: 90 },
-  { date: '2026-09-01', close: 100 },
-  { date: '2026-09-20', close: 110 },
-  { date: '2026-10-01', close: 120 },
-  { date: '2026-10-05', close: 130 },
-];
-
-Deno.test('referenceLine: full history, 1W names the period, baseline is the first bar in range', () => {
-  const r = referenceLine(FULL_HISTORY, '1W', NOW);
-  assertEquals(r, { baseline: 120, text: 'A week ago $120.00' });
-});
-
-Deno.test('referenceLine: one label per range, all four periods', () => {
-  assertEquals(referenceLine(FULL_HISTORY, '1M', NOW)?.text, 'A month ago $110.00');
-  assertEquals(referenceLine(FULL_HISTORY, '3M', NOW)?.text, '3 months ago $100.00');
-  // 2025-10-01 falls OUTSIDE 1Y's own 366-day window from 2026-10-05, so 1Y's baseline
-  // is the earliest bar actually inside it (2026-09-01), not the full history's first bar.
-  assertEquals(referenceLine(FULL_HISTORY, '1Y', NOW)?.text, 'A year ago $100.00');
-});
-
-Deno.test('referenceLine: short history (a newly listed stock) names the bar\'s own date, never the range', () => {
-  // The whole history starts 2026-09-20: inside 1W's 7-day window (full coverage there),
-  // but later than 1Y's ~366-day cutoff (short history for 1Y).
-  const shortHistory: DailyBar[] = [
-    { date: '2026-09-20', close: 105 },
-    { date: '2026-10-01', close: 120 },
-    { date: '2026-10-05', close: 130 },
-  ];
-  assertEquals(referenceLine(shortHistory, '1Y', NOW), { baseline: 105, text: 'Sep 20 close $105.00' });
-  // Not the short-history case for 1W: there IS a bar before its cutoff, so "A week ago" stands.
-  assertEquals(referenceLine(shortHistory, '1W', NOW)?.text, 'A week ago $120.00');
-});
-
-Deno.test('referenceLine: no bars in range at all returns null', () => {
-  assertEquals(referenceLine([], '1W', NOW), null);
 });
 
 Deno.test('stockScrubLabel: date, price, and the change vs the range baseline, signed', () => {
@@ -165,4 +129,98 @@ Deno.test('stressChartBars: deterministic for the same symbol and now', async ()
 Deno.test('stressChartBars: an unknown symbol gets no bars, never guessed ones', async () => {
   const { stressChartBars } = await import('../lib/money/stressFixture.ts');
   assertEquals(stressChartBars('ZZZZ', new Date()), []);
+});
+
+// ── stockLineSeries: 1W is the past five trading sessions (Giorgio, 2026-11-16) ──────────
+// A normal Mon–Fri session (09:30–16:00 ET) for each ISO date given.
+const sess = (...dates: string[]): MarketCalendarSession[] => dates.map((sessionDate) => ({ sessionDate, openEt: '09:30:00', closeEt: '16:00:00' }));
+const closes = (dates: string[], from = 100): DailyBar[] => dates.map((date, i) => ({ date, close: from + i }));
+const dayIsos = (s: ReturnType<typeof stockLineSeries>) => (s.axis.kind === 'sessions' ? [...s.axis.days] : null);
+
+// Fri Sep 25 .. Thu Oct 1 2026 bars (a Mon Oct 5 has no bar yet).
+const WEEK_BARS = closes(['2026-09-24', '2026-09-25', '2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02']);
+
+Deno.test('stock 1W on a MONDAY after the open: last four closes + the live price, five sessions, not one stroke', () => {
+  const s = stockLineSeries({ range: '1W', bars: WEEK_BARS, price: 140, todayEt: '2026-10-05', now: new Date('2026-10-05T17:00:00Z'), sessions: sess('2026-10-05', '2026-10-06') });
+  assertEquals(dayIsos(s), ['2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02', '2026-10-05']);
+  assertEquals(s.points, [{ t: 0, value: 103 }, { t: 1, value: 104 }, { t: 2, value: 105 }, { t: 3, value: 106 }, { t: 4, value: 140 }]);
+  assertEquals(s.base, 103);
+});
+
+Deno.test('stock 1W on a Monday BEFORE the open: the five latest closes, today not yet a point', () => {
+  const s = stockLineSeries({ range: '1W', bars: WEEK_BARS, price: 106, todayEt: '2026-10-05', now: new Date('2026-10-05T12:00:00Z'), sessions: sess('2026-10-05') });
+  assertEquals(dayIsos(s), ['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02']);
+  assertEquals(s.points.length, 5);
+  assertEquals(s.points[4].value, 106);
+});
+
+Deno.test('stock 1W mid-week (Wed, open): four prior closes + live; the axis names the weekdays', () => {
+  const s = stockLineSeries({ range: '1W', bars: WEEK_BARS.filter((b) => b.date <= '2026-09-29'), price: 120, todayEt: '2026-09-30', now: new Date('2026-09-30T15:00:00Z'), sessions: sess('2026-09-28', '2026-09-29', '2026-09-30') });
+  assertEquals(dayIsos(s), ['2026-09-24', '2026-09-25', '2026-09-28', '2026-09-29', '2026-09-30']);
+  assertEquals(s.points.map((p) => p.value), [100, 101, 102, 103, 120]);
+  assertEquals([0, 1, 2, 3, 4].map((t) => pointName(s.axis, t)), ['Thu', 'Fri', 'Mon', 'Tue', 'Wed']);
+  assertEquals(axisRangeLabel(s.axis, 4), 'from Thu to Wed');
+});
+
+Deno.test('stock 1W on a WEEKEND: the window ends on Friday\'s close, no phantom Saturday point', () => {
+  const s = stockLineSeries({ range: '1W', bars: WEEK_BARS, price: 106, todayEt: '2026-10-03', now: new Date('2026-10-03T17:00:00Z'), sessions: sess('2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02') });
+  assertEquals(dayIsos(s), ['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02']);
+  assertEquals(s.points[4], { t: 4, value: 106 });
+});
+
+Deno.test('stock 1W in a week with a market HOLIDAY: sessions are counted, the holiday takes no slot', () => {
+  // Thu Nov 26 2026 (Thanksgiving) has no bar and no session; Fri Nov 27 is open.
+  const bars = closes(['2026-11-20', '2026-11-23', '2026-11-24', '2026-11-25', '2026-11-27']);
+  const s = stockLineSeries({ range: '1W', bars, price: null, todayEt: '2026-11-28', now: new Date('2026-11-28T15:00:00Z'), sessions: sess('2026-11-23', '2026-11-24', '2026-11-25', '2026-11-27') });
+  assertEquals(dayIsos(s), ['2026-11-20', '2026-11-23', '2026-11-24', '2026-11-25', '2026-11-27']);
+  assertEquals(s.points.map((p) => p.t), [0, 1, 2, 3, 4]); // even spacing: no empty Thursday
+  // Fri Nov 20 and Fri Nov 27 are both in the window, so "Fri" would be ambiguous: dates instead.
+  assertEquals([0, 1, 2, 3, 4].map((t) => pointName(s.axis, t)), ['Nov 20', 'Nov 23', 'Nov 24', 'Nov 25', 'Nov 27']);
+});
+
+Deno.test('stock 1W with fewer than five bars (a new listing): draws what exists, never pads', () => {
+  const s = stockLineSeries({ range: '1W', bars: closes(['2026-10-01', '2026-10-02']), price: null, todayEt: '2026-10-03', now: new Date('2026-10-03T17:00:00Z'), sessions: [] });
+  assertEquals(dayIsos(s), ['2026-10-01', '2026-10-02']);
+  assertEquals(s.points.length, 2);
+  const none = stockLineSeries({ range: '1W', bars: [], price: null, todayEt: '2026-10-03', now: new Date('2026-10-03T17:00:00Z'), sessions: [] });
+  assertEquals(none.points, []);
+  assertEquals(layoutAxis(none.axis, 300, (t) => t * 10), []);
+});
+
+Deno.test('stock 1W axis: labels are the session weekdays, first left and last right of the plot', () => {
+  const s = stockLineSeries({ range: '1W', bars: WEEK_BARS, price: 140, todayEt: '2026-10-05', now: new Date('2026-10-05T17:00:00Z'), sessions: sess('2026-10-05') });
+  const labels = layoutAxis(s.axis, 300, (t) => (t / 4) * 300);
+  assertEquals(labels.map((l) => l.text), ['Tue', 'Wed', 'Thu', 'Fri', 'Mon']);
+  assertEquals(labels[0].left, 0);
+  assertEquals(labels[4].left + labels[4].width, 300);
+});
+
+Deno.test('stock 1W: nothing is drawn for a reference line any more (no referenceLine export)', async () => {
+  const mod = await import('../lib/money/stockChartSeries.ts');
+  assertEquals('referenceLine' in mod, false);
+});
+
+Deno.test('stock 1M / 3M / 1Y are unchanged: dated axes, the window\'s first close as base, the live price last', () => {
+  const bars = closes(['2026-08-24', '2026-09-18', '2026-09-21', '2026-09-22', '2026-09-23'], 90);
+  const input = { bars, price: 106, todayEt: '2026-09-24', now: new Date('2026-09-24T17:37:00Z'), sessions: [] as MarketCalendarSession[] };
+  const m = stockLineSeries({ ...input, range: '1M' });
+  assertEquals(m.axis, { kind: 'dated', start: '2026-08-24', end: '2026-09-24', months: false });
+  assertEquals(m.base, 90);
+  assertEquals(m.points[m.points.length - 1], { t: 31, value: 106 });
+  const q = stockLineSeries({ ...input, range: '3M' });
+  assertEquals(q.axis, { kind: 'dated', start: '2026-08-24', end: '2026-09-24', months: false });
+  const y = stockLineSeries({ ...input, range: '1Y' });
+  assertEquals(y.axis.kind === 'dated' && y.axis.months, true);
+  assertEquals(y.points.length, 6);
+});
+
+// The dashed base is gone from the stock chart (Giorgio, 2026-11-16) but stays on Home/Portfolio's
+// charts: StockChart opts out, and Chart keeps it on by default.
+import stockChartSource from '../components/money/StockChart.tsx' with { type: 'text' };
+import chartSource from '../components/sp/gn/Chart.tsx' with { type: 'text' };
+
+Deno.test('the stock chart turns the dashed base off; the shared Chart still draws it by default', () => {
+  assertEquals(/<Chart[\s\S]*?showBase=\{false\}/.test(stockChartSource), true);
+  assertEquals(chartSource.includes('showBase = true'), true);
+  assertEquals(/\{showBase \? <Line/.test(chartSource), true);
 });

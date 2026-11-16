@@ -112,13 +112,12 @@ const STOCK_BARS = [
   { date: '2026-09-21', close: 102 }, { date: '2026-09-22', close: 99 }, { date: '2026-09-23', close: 104 },
 ];
 
-Deno.test('stock 1W: the Mon…Fri axis from Friday\'s close, the live price where the session is', () => {
+Deno.test('stock 1W: the past five sessions on the sessions axis, the live price where today is', () => {
   const now = new Date('2026-09-24T17:37:00Z');
   const s = stockLineSeries({ range: '1W', bars: STOCK_BARS, price: 106, todayEt: '2026-09-24', now, sessions: standardWeekSessions('2026-09-24T16:00:00Z') });
-  assertEquals(s.axis, { kind: 'week' });
+  assertEquals(s.axis, { kind: 'sessions', days: ['2026-09-18', '2026-09-21', '2026-09-22', '2026-09-23', '2026-09-24'] });
   assertEquals(s.base, 100);
-  assertEquals(s.points.slice(0, 4), [{ t: 0, value: 100 }, { t: 1, value: 102 }, { t: 2, value: 99 }, { t: 3, value: 104 }]);
-  assertEquals(s.points[4].value, 106);
+  assertEquals(s.points, [{ t: 0, value: 100 }, { t: 1, value: 102 }, { t: 2, value: 99 }, { t: 3, value: 104 }, { t: 4, value: 106 }]);
 });
 
 Deno.test('stock 1M: a dated axis from the window\'s first close to today, the live price last', () => {

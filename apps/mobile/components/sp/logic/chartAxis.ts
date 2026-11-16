@@ -7,6 +7,10 @@
 //     days (Mon open = 0, Mon close = 1, …, Fri close = 5). Labels Mon · Tue · Wed · Thu ·
 //     Fri sit under each day's slot, even on Thursday: the line stops at now and the days
 //     to come stay empty.
+//   - SESSIONS (the stock sheet's 1W, Giorgio 2026-11-16: "the past week, not this calendar
+//     week"): the last N trading sessions, one point each, spaced evenly (a weekend or holiday
+//     takes no room). The domain is [0, N-1]; labels are the sessions' weekday names
+//     ("Tue … Mon"), or "MMM d" when two sessions share a weekday (a holiday inside the window).
 //   - DATED: from the range's start to NOW, no future slots. The domain is [0, days], in
 //     calendar days from `start`. 3–5 labels evenly spaced in time, the first at the start
 //     and the last at now, "MMM d" (or "MMM" with `months`, for 1Y).
@@ -18,6 +22,7 @@
 
 export type AxisSpec =
   | { kind: 'week' }
+  | { kind: 'sessions'; days: readonly string[] }
   | { kind: 'dated'; start: string; end: string; months?: boolean; maxLabels?: number };
 
 export type LabelAlign = 'left' | 'center' | 'right';
@@ -80,9 +85,18 @@ export function formatAxisDate(iso: string, months = false): string {
   return months ? MONTHS[m - 1] : `${MONTHS[m - 1]} ${d}`;
 }
 
+const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** A session's axis label: its weekday, or its date when the window repeats a weekday. */
+function sessionLabel(days: readonly string[], i: number): string {
+  const names = days.map((d) => WEEKDAY_NAMES[new Date(`${d}T00:00:00Z`).getUTCDay()]);
+  return new Set(names).size === names.length ? names[i] : formatAxisDate(days[i]);
+}
+
 /** The domain an axis spans, in its own units. */
 export function axisDomain(spec: AxisSpec): [number, number] {
   if (spec.kind === 'week') return [WEEK_DOMAIN[0], WEEK_DOMAIN[1]];
+  if (spec.kind === 'sessions') return [0, Math.max(0, spec.days.length - 1)];
   return [0, Math.max(0, dayOffset(spec.start, spec.end))];
 }
 
@@ -93,6 +107,10 @@ export function pointName(spec: AxisSpec, t: number): string {
     const i = Math.min(4, Math.max(0, Math.ceil(t) - 1));
     return WEEK_DAYS[t <= 0 ? 0 : i];
   }
+  if (spec.kind === 'sessions') {
+    if (!spec.days.length) return '';
+    return sessionLabel(spec.days, Math.min(spec.days.length - 1, Math.max(0, Math.round(t))));
+  }
   return formatAxisDate(isoOf(dayNumber(spec.start) + Math.round(t)));
 }
 
@@ -102,6 +120,12 @@ export function axisRangeLabel(spec: AxisSpec, lastT?: number): string {
   if (spec.kind === 'week') {
     const end = lastT === undefined ? 'Fri' : pointName(spec, lastT);
     return end === 'Mon' ? 'Mon' : `from Mon to ${end}`;
+  }
+  if (spec.kind === 'sessions') {
+    if (!spec.days.length) return '';
+    const a = sessionLabel(spec.days, 0);
+    const b = sessionLabel(spec.days, spec.days.length - 1);
+    return a === b ? a : `from ${a} to ${b}`;
   }
   const a = formatAxisDate(spec.start);
   const b = formatAxisDate(spec.end);
@@ -136,6 +160,19 @@ function candidateSets(spec: AxisSpec): Candidate[][] {
     const all = WEEK_DAYS.map((text, i) => ({ text, t: i + 0.5, align: 'center' as LabelAlign }));
     // Interior first: Mon·Wed·Fri, then Mon·Fri, then Fri alone (where the week ends).
     return [all, [all[0], all[2], all[4]], [all[0], all[4]], [all[4]]];
+  }
+  if (spec.kind === 'sessions') {
+    const n = spec.days.length;
+    if (n === 0) return [[]];
+    const at = (i: number): Candidate => ({ text: sessionLabel(spec.days, i), t: i, align: i === 0 ? 'left' : i === n - 1 ? 'right' : 'center' });
+    if (n === 1) return [[at(0)]];
+    // Every session first, then first·middle·last, then first·last, then the latest alone.
+    const all = Array.from({ length: n }, (_, i) => at(i));
+    const sets = [all];
+    if (n > 3) sets.push([all[0], all[Math.floor((n - 1) / 2)], all[n - 1]]);
+    if (n > 2) sets.push([all[0], all[n - 1]]);
+    sets.push([all[n - 1]]);
+    return sets;
   }
   const span = Math.max(0, dayOffset(spec.start, spec.end));
   const fmt = (t: number) => formatAxisDate(isoOf(dayNumber(spec.start) + Math.round(t)), spec.months);
