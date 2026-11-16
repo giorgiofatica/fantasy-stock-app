@@ -618,6 +618,15 @@ building anything, and don't reopen a rule without him.
   this huge big basically blank page and just all the text is all in like the same top left
   area." Not ruled how: the Design Lead boards it (the league pill, the back link, the title
   and the search field), and it comes to him as A / B.
+  - **Ruled the same day: "B"** (board `#call-buy-top`, PR #478; typed in the Orchestrator's
+    chat, 2026-11-16 21:44Z: "B, and merged 483", in reply to "A or B for the top of Buy a
+    stock"). The top of Buy a stock is ONE row: the back arrow and the search field ("Search by
+    ticker or name"). No title. The league pill is not on this page: you buy for the league
+    you came from, and switching leagues stays on the tabs. VoiceOver keeps "Portfolio" on the
+    back arrow. At the largest text size the empty field's placeholder may end in "…". No
+    new words. This is about the page as it is today; where "Buy a stock" itself ends up once
+    stock search has its own tab is a separate, open question (see "Stock search gets its own
+    tab").
 - **Cash from sales** (2026-10-05, option A, budget-cap and price-tier leagues): a sale's cash
   shows as its own "Cash from sales" line, and the header value includes it, matching Home.
 - **Market-data credit line**: credit Alpaca on price surfaces.
@@ -709,6 +718,43 @@ building anything, and don't reopen a rule without him.
     under the list). What stays is not ruled: the Design Lead boards both and they come to
     him as A / B. (Corrected 2026-11-16: this note first listed the two cut lines as not
     done. The Planner had matched them in code comments, not in what the card shows.)
+  - **The draft card, ruled the same day: "B"** (board `#call-draft-card`, PR #478; typed in the
+    Orchestrator's chat, 2026-11-16 21:45Z: "B", in reply to "Next board: the draft card on the
+    League tab. A or B?"). The date and time move into the small label above the countdown,
+    and nothing sits under the countdown. The two labels are new copy, approved by this pick
+    (he was told that picking B approves the wording): **"Draft · {Sat, Nov 14} · {6:44 PM
+    ET}"** before the room opens, and **"Draft room open · {12:48 PM ET}"** once it is open.
+    The format follows the existing draft-time copy, and the time stays together on one line
+    at the largest text sizes. A (build 15 as it stood: "Draft starts in", the countdown, the
+    date on a line under it) was not picked.
+  - **The queue card, ruled the same day: "B"** (board `#call-queue-card`, PR #478; typed in
+    the Orchestrator's chat, 2026-11-16 21:45Z: "B", in reply to "Next board: your queue card.
+    A or B?"). The search is no longer a large box under the list. It is the queue list's last
+    row: one line, "+ Search by ticker or name", in the accent colour, with no box. A tap turns
+    that row into the search field in place, with the same results as today. No new words. The
+    lobby and the draft room share one queue editor, so it applies to both. A (build 15 as it
+    stood: autosave, no "Save queue", no small lines, the big grey search box under the list)
+    was not picked.
+- **In the draft room, on someone else's turn: the round and pick are the card's label**
+  (2026-11-16, board `#call-draft-turn`, PR #478; typed in the Orchestrator's chat, 21:46Z:
+  "B", in reply to "Next board: the draft room while someone else is picking. A or B?"). The
+  card had "{name} is up" with two small lines under it ("Round 2 of 6 · Pick 11" and "3
+  picks until you"). Now "Round 2 of 6 · Pick 11" is the small label above "{name} is up",
+  and one line about you sits under it: "3 picks until you", or after your own pick, "You
+  took {SYMBOL} · you're up in 3 picks" in your colour. No new words; the existing lines are
+  rearranged. A (the two lines joined into one) was not picked. Part of the rule-12 work on
+  small text under headings.
+- **The commissioner's "The draft can't start yet" card has no line under its heading**
+  (2026-11-16, board `#call-blockers-card`, PR #478; typed in the Orchestrator's chat, 21:47Z:
+  "A", in reply to "the commissioner's "The draft can't start yet" card. A or B?"). Both lines
+  are cut: "Fix these before {6:00 PM ET}, when the draft room opens." and "If they're still
+  open then, the draft is postponed." The "Needs you before {time}" tag, the heading and the
+  blocker rows stay. B, the Design Lead's pick (keep only the postponed line, as the one fact
+  shown nowhere else), was not picked; he was told A was "the stricter version if you'd rather
+  have no lines anywhere" and chose it.
+  - The Planner's reading, not his words: he cut a line that stated a consequence, so "it is
+    a fact you can't see elsewhere" does not by itself earn a small line under a heading. A
+    future board that wants to keep one should expect to be asked the same question.
 - **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
   "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
   to make the pick. the selection needs to be instant so the draft flow continues". So: when
@@ -1051,6 +1097,20 @@ building anything, and don't reopen a rule without him.
     so at the largest text size it never outgrows the heading. Not covered: the invite's
     "full" and "not taking players" lines, which keep their place above Sign in, and Join's
     lines inside the Join sheet.
+  - **Two more dead ends join that family: the dead reset link and "Nothing here"**
+    (2026-11-16, board `#call-dead-links`, PR #478; typed in the Orchestrator's chat, 21:47Z:
+    "B", in reply to "Last board: the two dead-end screens. A or B?"). Both take the family's
+    form: a picture, the heading ending in a full stop, at most one line under it, and the way
+    out docked at the bottom.
+    - the dead password-reset link: "This link didn't work." with one line under it, **"It may
+      have been opened on a different device."** That line is new copy, approved by this pick;
+      it is cut down from the sentence the screen shows today.
+    - the not-found page: "Nothing here." with one line under it, "This link is old or
+      incomplete.", which is today's first sentence.
+    A (the heading alone, no line) was not picked. He was reminded that on the board before
+    it he went with no line. So his choices on one line under a heading are per screen: he
+    kept one on these two dead ends and on the seven of 2026-11-12, and cut both on the
+    commissioner's "The draft can't start yet" card the same day.
   - **A scheme takeover link still waits for a tap; the shared https link does not**
     (2026-11-12, same step). Giorgio's words: "dont love that i open the invite link and then
     it makes me "find the league" to be able to join. the invite link is for a specific
