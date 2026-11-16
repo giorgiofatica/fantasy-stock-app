@@ -735,6 +735,15 @@ building anything, and don't reopen a rule without him.
     lobby and the draft room share one queue editor, so it applies to both. A (build 15 as it
     stood: autosave, no "Save queue", no small lines, the big grey search box under the list)
     was not picked.
+- **In the draft room, on someone else's turn: the round and pick are the card's label**
+  (2026-11-16, board `#call-draft-turn`, PR #478; typed in the Orchestrator's chat, 21:46Z:
+  "B", in reply to "Next board: the draft room while someone else is picking. A or B?"). The
+  card had "{name} is up" with two small lines under it ("Round 2 of 6 · Pick 11" and "3
+  picks until you"). Now "Round 2 of 6 · Pick 11" is the small label above "{name} is up",
+  and one line about you sits under it: "3 picks until you", or after your own pick, "You
+  took {SYMBOL} · you're up in 3 picks" in your colour. No new words; the existing lines are
+  rearranged. A (the two lines joined into one) was not picked. Part of the rule-12 work on
+  small text under headings.
 - **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
   "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
   to make the pick. the selection needs to be instant so the draft flow continues". So: when
