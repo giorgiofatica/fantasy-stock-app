@@ -155,6 +155,9 @@ export function afterPickLine(symbol: string, picksAway: number, auto = false): 
  * headline: "3 picks until you" (secondary) before your first pick, or "You took NVDA · you're up in 3 picks" (your colour, bold)
  * after it. Never both. On YOUR turn nothing moves: no label, the round line under "You're on the clock", no line about you.
  * The strings are the existing ones (roundPickLine, picksUntilYouLine, afterPickLine); nothing new is worded here.
+ *
+ * A STALLED turn shows ONE label (the Design Lead's ruling on the gate, 2026-11-16): "Draft paused" only, so the round label is hidden there (the
+ * headline already names whose slot). "Auto-pick is waiting for prices" carries no tag of its own, so that state keeps the round label.
  */
 export interface TurnCardView {
   /** The small label above the headline (someone else's turn only). */
@@ -164,10 +167,10 @@ export interface TurnCardView {
   /** The one line about you under the headline (someone else's turn only), or null (none: you have no pick left, or it is your turn). */
   under: { text: string; mine: boolean } | null;
 }
-export function turnCardView(a: { isMyTurn: boolean; roundLine: string; lastMine: string | null; lastMineAuto: boolean; picksAway: number }): TurnCardView {
+export function turnCardView(a: { isMyTurn: boolean; roundLine: string; lastMine: string | null; lastMineAuto: boolean; picksAway: number; stalled?: boolean }): TurnCardView {
   if (a.isMyTurn) return { tag: null, roundUnder: a.roundLine, under: null };
   const text = a.lastMine ? afterPickLine(a.lastMine, a.picksAway, a.lastMineAuto) : picksUntilYouLine(a.picksAway);
-  return { tag: a.roundLine, roundUnder: null, under: text ? { text, mine: !!a.lastMine } : null };
+  return { tag: a.stalled ? null : a.roundLine, roundUnder: null, under: text ? { text, mine: !!a.lastMine } : null };
 }
 
 /** VoiceOver reads the turn card's group as: the round, then the headline, then the clock; your own turn keeps its order (headline, clock, round). */

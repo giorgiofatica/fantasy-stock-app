@@ -429,7 +429,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, stakeMode = null, budget
   // like the then blank blank picked twice") and no "60-second picks" ("I don't think it needs
   // that last thing at the bottom"). Everything else stays, the your-next-pick lines included.
   const roundLine = roundPickLine(round, rounds, onClockPick);
-  const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway });
+  const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null });
 
   return (
     <View style={styles.stack}>

@@ -144,7 +144,7 @@ Deno.test('the room renders both lines (source guard)', () => {
   // Giorgio, 2026-10-13: "Round X of Y · Pick N" only, no snake suffix (gn-w4-draft.test.ts pins it).
   assertEquals(room.includes('const roundLine = roundPickLine(round, rounds, onClockPick);'), true);
   // Before your first pick, the picks-until line; after it, the board's "You took …" line (turnCardView picks ONE; board #call-draft-turn, B).
-  assertEquals(room.includes('const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway });'), true);
+  assertEquals(room.includes('const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null });'), true);
   assertEquals(SOURCES['lib/game/draftRoom.ts'].includes('const text = a.lastMine ? afterPickLine(a.lastMine, a.picksAway, a.lastMineAuto) : picksUntilYouLine(a.picksAway);'), true);
 });
 

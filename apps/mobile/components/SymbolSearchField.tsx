@@ -19,6 +19,7 @@ import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
 import { useSymbolSearch, type UseSymbolSearchOptions } from '@/lib/useSymbolSearch';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { useCaptureAction } from '@/lib/money/captureScript';
+import { COPY } from '@/lib/money/moneyCopy';
 import { useScrollReveal } from '@/components/shell/scrollReveal';
 import { acceptsChange, listJustOpened, nextPhase, type FieldPhase } from '@/components/sp/logic/searchField';
 
@@ -59,7 +60,9 @@ export default function SymbolSearchField({
   onChangeText,
   onSelect,
   selectedSymbol = '',
-  placeholder = 'Search by ticker or name...',
+  // ONE placeholder app-wide (the Design Lead's ruling on #488's gate, 2026-11-16: "Search by ticker or name", no dots): the draft room's field, the
+  // queue's field and Buy a stock all read the same constant.
+  placeholder = COPY.stockSearchPlaceholder,
   extraLoading = false,
   ownedSymbols,
   allowUndraftable,

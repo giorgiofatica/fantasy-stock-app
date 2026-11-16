@@ -13,7 +13,6 @@ import { keepDots } from '@/lib/game/keepDots';
 import { QueueRow } from '@/components/game/QueueRow';
 import { QueueSearchRow } from '@/components/game/QueueSearchRow';
 import { blurReturnsToRow, queueSearchMode } from '@/lib/game/queueSearchRow';
-import { COPY } from '@/lib/money/moneyCopy';
 import { useQueueQuotes } from '@/lib/game/useQueueQuotes';
 import { useQueueMarketLine } from '@/lib/game/useQueueMarketLine';
 import { useCaptureAction } from '@/lib/money/captureScript';
@@ -136,7 +135,6 @@ export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAF
           onSelect={onSelect}
           selectedSymbol=""
           ownedSymbols={NO_OWNED_SYMBOLS}
-          placeholder={COPY.stockSearchPlaceholder}
           captureAction="typeq"
           clearOnSelect
           autoFocus={searchOpen}

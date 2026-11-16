@@ -229,3 +229,71 @@ Deno.test('6 Dead links: the secondary on the reset screen is the muted "Back to
   assert(r.includes('<Link label={secondary.label} onPress={secondary.onPress} muted />'));
   assert(r.includes('<Button label={primary.label} onPress={primary.onPress} fullWidth />'));
 });
+
+// ── The approved words, pinned LITERALLY (not against the constants that carry them) ─────────────────────────
+
+Deno.test('the dead-link words are pinned in the SOURCE and in the values, so a reworded constant fails', () => {
+  const copy = SOURCES['lib/shell/deadLinkCopy.ts'];
+  for (const w of [
+    "heading: \"This link didn't work.\"",
+    "line: 'It may have been opened on a different device.'",
+    "primary: 'Request a new link'",
+    "secondary: 'Back to sign in'",
+    "heading: 'Nothing here.'",
+    "line: 'This link is old or incomplete.'",
+    "primary: 'Go to Home'",
+  ]) assert(copy.includes(w), w);
+  assertEquals(RESET_DEAD_LINK.line, 'It may have been opened on a different device.');
+  assertEquals(NOT_FOUND.line, 'This link is old or incomplete.');
+  assertEquals([RESET_DEAD_LINK.heading, NOT_FOUND.heading], ["This link didn't work.", 'Nothing here.']);
+  assertFalse(strip(copy).includes('elsewhere') || strip(copy).includes('Everything in your leagues'));
+});
+
+Deno.test('the draft-card labels are pinned LITERALLY: both patterns, a fixed time, and the template in the source', () => {
+  const sat = '2026-11-14T23:44:00Z'; // Sat, Nov 14 · 6:44 PM ET
+  const open = '2026-11-14T17:48:00Z'; // 12:48 PM ET
+  assertEquals(leagueCountdownCopy('scheduled', sat, Date.parse(sat) - 3_600_000).tag, 'Draft · Sat, Nov 14 · 6:44 PM ET');
+  assertEquals(leagueCountdownCopy('room_open', open, Date.parse(open) - 60_000).tag, 'Draft room open · 12:48 PM ET');
+  assertEquals(leagueCountdownCopy('starting', sat, Date.parse(sat)).tag, 'Draft starts in');
+  const auto = SOURCES['lib/game/autoStart.ts'];
+  assert(auto.includes('`Draft room open · ${etTimeLabel(t)}`') && auto.includes('`Draft · ${etWhenLabel(t)}`'));
+  assertFalse(auto.includes('Draft room opens ·'));
+});
+
+// ── Ruling (a): ONE search placeholder app-wide ───────────────────────────────────────────────────────────────
+
+Deno.test('(a) one placeholder: the draft room\'s own field reads the same constant, no dots anywhere', () => {
+  const field = src('components/SymbolSearchField.tsx');
+  assert(field.includes('placeholder = COPY.stockSearchPlaceholder,'), 'the default IS the constant');
+  assert(field.includes("import { COPY } from '@/lib/money/moneyCopy';"));
+  assertEquals(COPY.stockSearchPlaceholder, 'Search by ticker or name');
+  const room = src('components/game/DraftRoom.tsx');
+  assertFalse(/<SymbolSearchField[\s\S]{0,400}placeholder=/.test(room), 'the room passes none, so it takes the default');
+  for (const [p, s] of Object.entries(SOURCES)) {
+    assertFalse(/ticker or name\.\.\./i.test(s), `${p} still has the dotted placeholder`);
+    if (p !== 'lib/money/moneyCopy.ts') assertFalse(/'Search by ticker or name'/.test(strip(s)), `${p} retypes the placeholder`);
+  }
+});
+
+// ── Ruling (c): a stalled turn shows ONE label ────────────────────────────────────────────────────────────────
+
+Deno.test('(c) a stalled turn hides the round label ("Draft paused" is its one label); the line about you stays', () => {
+  const v = turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: 'NVDA', lastMineAuto: false, picksAway: 8, stalled: true });
+  assertEquals(v.tag, null);
+  assertEquals(v.under, { text: "You took NVDA · you're up in 8 picks", mine: true });
+  assertEquals(turnCardLabel(v, "No stock left fits Alessandro D.'s next slot", null), "No stock left fits Alessandro D.'s next slot");
+  const before = turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 3, stalled: true });
+  assertEquals([before.tag, before.under?.text], [null, '3 picks until you']);
+});
+
+Deno.test('(c) waiting for prices carries no tag of its own, so it KEEPS the round label; the room passes only the stalled state', () => {
+  const v = turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 3, stalled: false });
+  assertEquals(v.tag, 'Round 2 of 6 · Pick 11');
+  assertEquals(turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 3 }).tag, 'Round 2 of 6 · Pick 11', 'stalled defaults to off');
+  const room = src('components/game/DraftRoom.tsx');
+  assert(room.includes('turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null })'));
+  assert(room.includes('{stalled?.tag ? <Text variant="tag"'), 'the stalled tag ("Draft paused") is still drawn once');
+  assert(room.includes('{AUTO_PICK_WAITING_FOR_PRICES}'), 'the waiting caption is not a tag');
+  // YOUR turn is never stalled-styled: the own-turn view is unchanged.
+  assertEquals(turnCardView({ isMyTurn: true, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 0, stalled: true }), { tag: null, roundUnder: ROUND, under: null });
+});

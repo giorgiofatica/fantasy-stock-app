@@ -72,8 +72,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/SlotBuilder.tsx:228` | Button | onPress | `checkFeasibility` | fn checkFeasibility | `disabled` |
 | `components/SlotBuilder.tsx:241` | ChoiceRow | onPress | `inline: () => pick('')` | fn pick |  |
 | `components/SlotBuilder.tsx:247` | ChoiceRow | onPress | `inline: () => pick(c.id)` | fn pick |  |
-| `components/SymbolSearchField.tsx:200` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
-| `components/SymbolSearchField.tsx:254` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
+| `components/SymbolSearchField.tsx:203` | TouchableOpacity | onPress | `inline: () => handleSelect(item)` | fn handleSelect | `!item.selectable` |
+| `components/SymbolSearchField.tsx:257` | TouchableOpacity | onPress | `retry` | fn retry (from a hook or import) |  |
 | `components/game/DraftBlockersCard.tsx:72` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled \|\| loading` |
 | `components/game/DraftBlockersCard.tsx:113` | Button | onPress | `onShareInvite` | prop onShareInvite (the caller's) |  |
 | `components/game/DraftBlockersCard.tsx:134` | TextAction | onPress | `inline: () => choose('move_forward')` | fn choose | `busy` |
@@ -104,9 +104,9 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/LeaveLeagueSheets.tsx:124` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
 | `components/game/LeaveLeagueSheets.tsx:130` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
 | `components/game/LeaveLeagueSheets.tsx:143` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
-| `components/game/QueueEditor.tsx:131` | QueueSearchRow | onPress | `inline: () => setSearchOpen(true)` | sheet setSearchOpen(true) |  |
-| `components/game/QueueEditor.tsx:136` | SymbolSearchField | onSelect | `onSelect` | sheet setSearchOpen(false) |  |
-| `components/game/QueueEditor.tsx:153` | Button | onPress | `inline: () => machine.retry()` | fn machine.retry | `view.status === 'saving'` |
+| `components/game/QueueEditor.tsx:130` | QueueSearchRow | onPress | `inline: () => setSearchOpen(true)` | sheet setSearchOpen(true) |  |
+| `components/game/QueueEditor.tsx:135` | SymbolSearchField | onSelect | `onSelect` | sheet setSearchOpen(false) |  |
+| `components/game/QueueEditor.tsx:151` | Button | onPress | `inline: () => machine.retry()` | fn machine.retry | `view.status === 'saving'` |
 | `components/game/QueueRow.tsx:64` | Pressable | onPress | `inline: () => onMove(-1)` | fn onMove |  |
 | `components/game/QueueRow.tsx:69` | Pressable | onPress | `inline: () => onMove(1)` | fn onMove |  |
 | `components/game/QueueRow.tsx:73` | Pressable | onPress | `onRemove` | prop onRemove (the caller's) |  |
