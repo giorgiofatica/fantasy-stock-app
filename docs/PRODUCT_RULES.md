@@ -618,6 +618,15 @@ building anything, and don't reopen a rule without him.
   this huge big basically blank page and just all the text is all in like the same top left
   area." Not ruled how: the Design Lead boards it (the league pill, the back link, the title
   and the search field), and it comes to him as A / B.
+  - **Ruled the same day: "B"** (board `#call-buy-top`, PR #478; typed in the Orchestrator's
+    chat, 2026-11-16 21:44Z: "B, and merged 483", in reply to "A or B for the top of Buy a
+    stock"). The top of Buy a stock is ONE row: the back arrow and the search field ("Search by
+    ticker or name"). No title. The league pill is not on this page: you buy for the league
+    you came from, and switching leagues stays on the tabs. VoiceOver keeps "Portfolio" on the
+    back arrow. At the largest text size the empty field's placeholder may end in "…". No
+    new words. This is about the page as it is today; where "Buy a stock" itself ends up once
+    stock search has its own tab is a separate, open question (see "Stock search gets its own
+    tab").
 - **Cash from sales** (2026-10-05, option A, budget-cap and price-tier leagues): a sale's cash
   shows as its own "Cash from sales" line, and the header value includes it, matching Home.
 - **Market-data credit line**: credit Alpaca on price surfaces.
