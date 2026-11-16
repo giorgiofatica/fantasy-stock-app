@@ -157,16 +157,16 @@
     <header className="b-sec__head"><span className="b-sec__n b-sec__n--code">{code}</span><div><h2 id={`${id}-h`}>{title}</h2><p className="b-job">{job}</p></div></header>
   );
 
-  function CallDraftTurn() {
+  function CallDraftTurn({ archived = false }) {
     return (
       <section className="b-sec" id="call-draft-turn" aria-labelledby="call-draft-turn-h">
-        <Head id="call-draft-turn" code="Draft" title="Your call: the turn card while someone else picks" job={'In the draft room, while someone else is on the clock, the card has two lines under "Sofia is up": the round and pick, then how far you are from your turn. Every part is a fact, but it’s two lines of small text under a name. Two ways to make it one.'} />
+        <Head id="call-draft-turn" code="Draft" title={archived ? 'Decided: B, the turn card while someone else picks' : 'Your call: the turn card while someone else picks'} job={'In the draft room, while someone else is on the clock, the card has two lines under "Sofia is up": the round and pick, then how far you are from your turn. Every part is a fact, but it’s two lines of small text under a name. Two ways to make it one.'} />
         <ul className="b-inv__notes">
           <li><b>A · One line:</b> the round, the pick and your distance joined: "Round 2 of 6 · Pick 11 · 3 picks until you". After your first pick it reads "… · you're up in 3 picks", and "You took NVDA" goes (your pick is on the board and in your team).</li>
           <li><b>B · The round moves above the name.</b> "Round 2 of 6 · Pick 11" becomes the card's small label, then "Sofia is up", then the one line about you: "3 picks until you", or after your first pick "You took NVDA · you're up in 3 picks" in your colour.</li>
-          <li><b>Recommended: B.</b> Nothing is lost: your own pick still gets its moment, and the round reads like the other cards' labels. A is shorter but drops "You took NVDA".</li>
+          <li><b>Recommended: B{archived ? ' (taken)' : ''}.</b> Nothing is lost: your own pick still gets its moment, and the round reads like the other cards' labels. A is shorter but drops "You took NVDA".</li>
           <li><b>No new words.</b> Both only rearrange lines the room already shows.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-16): "B".</b> The round is the card's small label above the name, with one line about you under it; after your pick it reads "You took NVDA · you're up in 3 picks" in your colour. No new words. Recorded in PRODUCT_RULES by the Planner.</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <Grid>{[
           fig('tt', 'Today · Light · Large', <DraftRoom v="today" label="Draft room, someone else's turn, today" />, 'Two lines under the name.'),
@@ -184,21 +184,21 @@
     );
   }
 
-  function CallBlockersCard() {
+  function CallBlockersCard({ archived = false }) {
     return (
       <section className="b-sec" id="call-blockers-card" aria-labelledby="call-blockers-card-h">
-        <Head id="call-blockers-card" code="League" title="Your call: the commissioner's “can't start yet” card" job={'When something blocks the draft, the commissioner sees "Needs you before 6:00 PM ET", "The draft can’t start yet", then: "Fix these before 6:00 PM ET, when the draft room opens. If they’re still open then, the draft is postponed." The first sentence repeats the label above it. The second is the one fact nowhere else: what happens if you don’t.'} />
+        <Head id="call-blockers-card" code="League" title={archived ? 'Decided: A, the commissioner\u2019s “can\u2019t start yet” card' : 'Your call: the commissioner\u2019s “can\u2019t start yet” card'} job={'When something blocks the draft, the commissioner sees "Needs you before 6:00 PM ET", "The draft can’t start yet", then: "Fix these before 6:00 PM ET, when the draft room opens. If they’re still open then, the draft is postponed." The first sentence repeats the label above it. The second is the one fact nowhere else: what happens if you don’t.'} />
         <ul className="b-inv__notes">
           <li><b>A · No line.</b> The label, the title, then what to fix. The countdown above already says when.</li>
           <li><b>B · Keep only the second sentence:</b> "If they're still open then, the draft is postponed." Cut, not rewritten.</li>
-          <li><b>Recommended: B.</b> The card is the commissioner's one warning before the draft gets postponed; saying so in one line is worth it. A if you'd rather the deadline speak for itself.</li>
+          <li><b>{archived ? 'Recommended (not taken): B.' : 'Recommended: B.'}</b> The card is the commissioner's one warning before the draft gets postponed; saying so in one line is worth it. A if you'd rather the deadline speak for itself.</li>
           <li><b>No new words</b> in either. The lines inside "Sofia F. left the league" are a separate card you've already ruled on (below four).</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-16): "A".</b> No line under "The draft can't start yet": both sentences go, the consequence included. The tag, the heading and the blocker rows stay. Removal only. Recorded in PRODUCT_RULES by the Planner.</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <Grid>{[
           fig('bkt', 'Today · Light · Large', <LeagueRisk v="today" label="League tab, commissioner, draft at risk, today" />, 'Two sentences under the title.'),
           fig('bka', 'A · Light · Large', <LeagueRisk v="A" label="League tab, commissioner, draft at risk, option A" />, 'No line.'),
-          fig('bkb', 'B · Light · Large (recommended)', <LeagueRisk v="B" label="League tab, commissioner, draft at risk, option B" />, 'Only the consequence.'),
+          fig('bkb', archived ? 'B · Light · Large (not taken)' : 'B · Light · Large (recommended)', <LeagueRisk v="B" label="League tab, commissioner, draft at risk, option B" />, 'Only the consequence.'),
           fig('bkd', 'B · Dark · Large', <LeagueRisk t="dark" v="B" label="League tab, commissioner, draft at risk, option B, Dark" />),
           fig('bkx', 'B · Light · your size (AX5, approximate)', <LeagueRisk v="B" x={AX5} label="League tab, commissioner, draft at risk, option B, AX5" />),
         ]}</Grid>
@@ -238,7 +238,9 @@
     );
   }
 
-  window.KSDraftTurn = () => <CallDraftTurn />;
-  window.KSBlockersCard = () => <CallBlockersCard />;
+  window.KSDraftTurn = () => null; // decided 2026-11-16: B; it lives in the Archive
+  window.KSDraftTurnArchived = () => <CallDraftTurn archived />;
+  window.KSBlockersCard = () => null; // decided 2026-11-16: A; it lives in the Archive
+  window.KSBlockersCardArchived = () => <CallBlockersCard archived />;
   window.KSDeadLinks = () => <CallDeadLinks />;
 })();
