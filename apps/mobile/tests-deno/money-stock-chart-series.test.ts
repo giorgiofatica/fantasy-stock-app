@@ -264,3 +264,10 @@ Deno.test('Chart: the axis row\'s height does not depend on its labels', () => {
   assertEquals(/label: \{\s*position: 'absolute'/.test(chartSource2), true);
   assertEquals(chartSource2.includes("[accessibilityLabel, range, last ? formatValue(last.value) : ''].filter(Boolean)"), true);
 });
+
+Deno.test('StockChart: while the bars load, the axis has no labels (no lone "Mon" under an empty chart)', () => {
+  assertEquals(stockChartSource.includes("const LOADING_AXIS: AxisSpec = { kind: 'sessions', days: [] };"), true);
+  assertEquals(/axis=\{ready \? series\.axis : LOADING_AXIS\}/.test(stockChartSource), true);
+  assertEquals(/points=\{ready \? series\.points : \[\]\}/.test(stockChartSource), true);
+  assertEquals(layoutAxis({ kind: 'sessions', days: [] }, 366, (t) => t, () => 24), []);
+});

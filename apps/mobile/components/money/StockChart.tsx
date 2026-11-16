@@ -17,6 +17,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { space } from '@/constants/tokens';
 import { Chart, RangePills } from '@/components/sp/gn';
+import type { AxisSpec } from '@/components/sp/logic/chartAxis';
 import { formatMoney } from '@/components/sp/logic/money';
 import { CHART_RANGES, DEFAULT_CHART_RANGE, stockLineSeries, type ChartRange } from '@/lib/money/stockChartSeries';
 import { useStockChartData } from '@/lib/money/useStockChartData';
@@ -38,6 +39,8 @@ export interface StockChartProps {
 }
 
 const HEIGHT = 140;
+/** No sessions yet: no labels (chartAxis 'sessions' with no days). */
+const LOADING_AXIS: AxisSpec = { kind: 'sessions', days: [] };
 
 export function StockChart({ symbol, price, live, now = new Date(), sessions, bleed }: StockChartProps) {
   const [range, setRange] = useState<ChartRange>(DEFAULT_CHART_RANGE);
@@ -49,13 +52,16 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [range, data.bars, price, todayEt, sessions],
   );
+  // Until the bars are in, the chart is empty AND its axis has no labels (the live price alone
+  // would otherwise make a lone "Mon" under nothing). The axis row keeps its height either way.
+  const ready = data.status === 'ready';
   return (
     <View style={styles.wrap}>
       <Chart
-        points={data.status === 'ready' ? series.points : []}
+        points={ready ? series.points : []}
         base={series.base}
         showBase={false}
-        axis={series.axis}
+        axis={ready ? series.axis : LOADING_AXIS}
         height={HEIGHT}
         bleed={bleed}
         live={live}
