@@ -133,7 +133,7 @@ export default function ForgotPasswordScreen() {
         <EmptyState
           icon={() => <Icon name="mail" size="title" tone="text2" />}
           title="Check your email"
-          message={`We sent a reset link to ${email}. It opens the app to set a new password.`}
+          message={`We sent a reset link to ${email}.`}
           actionLabel="Back to sign in"
           onAction={backToSignIn}
           secondaryActionLabel="Didn't receive it? Send again"

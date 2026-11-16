@@ -149,7 +149,7 @@ Deno.test('with no leagues, League is the shared no-league state (same words as 
   const home = SOURCES['app/(tabs)/index.tsx'];
   assert(home.includes('<NoLeagueState title="Home"'));
   const shared = SOURCES['components/shell/NoLeagueState.tsx'];
-  assert(shared.includes("heading: 'No leagues yet'") && shared.includes("message: 'Create or join a league to get started.'"));
+  assert(shared.includes("heading: 'No leagues yet'") && !shared.includes('message: ') && !shared.includes('NO_LEAGUE_COPY.message'), 'rule 12: the heading and the two buttons, no line');
   assert(shared.includes("onAction={() => router.push('/create-league')}"));
   assert(shared.includes("onSecondaryAction={() => router.push('/join-league')}"));
 });

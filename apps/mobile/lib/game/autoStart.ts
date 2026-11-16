@@ -202,9 +202,6 @@ export function noDateCopy(isCommissioner: boolean, commissionerName: string): s
 }
 export const NO_DATE_TITLE = 'No draft time yet'; // NEW copy
 
-/** Shown under "Starting the draft" while the server retries a start (draft_start_retrying). NEW copy. */
-export const START_RETRYING = 'Still starting. This can take a minute.';
-
 // ── The commissioner's blockers card ─────────────────────────────────────
 
 /** Codes that never show as a blocker in the card: the date itself is the

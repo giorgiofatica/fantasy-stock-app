@@ -36,7 +36,8 @@ export interface EmptyStateProps {
   /** A component, not a string — e.g. `(p) => <Ionicons name="trophy-outline" {...p} />`. Never an emoji. */
   icon: (props: EmptyStateIconProps) => ReactNode;
   title: string;
-  message: string;
+  /** Optional: with none, no Text is drawn (UX rule 12). */
+  message?: string;
   actionLabel?: string;
   onAction?: () => void;
   /**
@@ -69,9 +70,11 @@ export function EmptyState({ icon: Icon, title, message, actionLabel, onAction, 
       <Text variant="title" style={styles.title}>
         {title}
       </Text>
-      <Text variant="body" tone="secondary" maxFontSizeMultiplier={MESSAGE_MAX_SCALE} style={styles.message}>
-        {message}
-      </Text>
+      {message ? (
+        <Text variant="body" tone="secondary" maxFontSizeMultiplier={MESSAGE_MAX_SCALE} style={styles.message}>
+          {message}
+        </Text>
+      ) : null}
       {carded ? (
         <View style={[styles.action, styles.actionStretched, styles.actionPair]}>
           <Button label={actionLabel!} onPress={onAction} />
