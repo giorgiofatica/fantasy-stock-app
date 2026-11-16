@@ -7,6 +7,12 @@ Research this plan is built on: `docs/security/2026-11-16-legacy-jwt-secret-rese
 (the Orchestrator, PR #463, `c2486f50`; official Supabase docs with URLs, and the probe results
 measured in prod). Code facts below were read at `origin/main` @ `afa5cbf6`.
 
+**Change since approval (2026-11-16): 11 functions, not 12.** `send-notification` had been
+inert since 2026-10-06 with no callers. It was retired from the code by #469 and undeployed
+from prod the same day (the Orchestrator verified a 404). So step 2 deploys 11 functions, and
+nothing below that names `send-notification` applies any more. Step 1 was built and tested
+for all 12 (#467) before the retirement. No rule or decision in this plan changed.
+
 ## Goal
 
 The old admin key that sat in local files on Giorgio's Mac stops working everywhere, for
@@ -62,7 +68,7 @@ None for Giorgio. Two things need him to look, not decide (Step 0).
 Twelve functions have `verify_jwt = true` in `supabase/config.toml`: `quote`,
 `historical-bars`, `symbols-search`, `symbol-name`, `preview-league`, `join-league`,
 `leave-league`, `delete-account`, `draft-control`, `validate-and-record-pick`, `record-trade`,
-`send-notification`.
+`send-notification` (retired since; see the note at the top).
 
 The research first listed four of them as having no user check in their own folder, with
 the note that they "may use a shared helper". I read the code, the Orchestrator verified it
@@ -98,7 +104,7 @@ fails.
 |---|---|---|---|---|
 | 0 | Two looks on the dashboard: the access-token lifetime (the wait in step 5 is that plus 15 minutes; the research assumes one hour), and that the signing-keys page offers "Migrate". | Giorgio | Lifetime noted; the page matches the research | n/a |
 | 1 | Build: the 12 functions go to `verify_jwt = false`; `symbol-name` gains the user check; tests for both. | One Opus security chip, run by the Orchestrator | See "What the build must prove" | Revert the PR |
-| 2 | Merge, then deploy the 12 functions from the deploy checkout, verified as `CLAUDE.md` requires. | Giorgio | For each function: a request with no credentials gets **our** 401 body, not the gateway's, and the dashboard's Verify JWT toggle is off. On the phone: Home loads, a stock sheet opens, the queue saves. | Redeploy the previous version |
+| 2 | Merge, then deploy the 11 functions (12 at approval; `send-notification` is deleted, not redeployed) from the deploy checkout, verified as `CLAUDE.md` requires. | Giorgio | For each function: a request with no credentials gets **our** 401 body, not the gateway's, and the dashboard's Verify JWT toggle is off. On the phone: Home loads, a stock sheet opens, the queue saves. | Redeploy the previous version |
 | 2b | The probe is replaced before any dashboard step. The Phase 4 scripts read the key from a file that is now clean, so they stop at setup. The new one runs the control line alone with no old key, and in its full mode takes the old key from a hidden prompt and covers REST, functions, sign-in admin and Realtime (a channel join with the old key as the token: joined or refused). Dry-run by the Orchestrator first. | Orchestrator | The control line prints 200 with 0 rows on Giorgio's Mac | n/a |
 | 3 | Dashboard: Migrate the signing secret. This creates the new key in standby. Nothing changes for players. | Giorgio | Probe line P1 still 200 with 0 rows; the app still loads | Reversible in the dashboard |
 | 4 | Dashboard: Rotate. New sessions are signed the new way. Nobody is signed out. | Giorgio | On the phone after a fresh start: Home loads; a stock sheet opens (prices, name, chart: four of the functions); the queue saves; **a draft room or pre-draft room opens and updates live**; sign out and back in. On the web: one sign-in, if a web sign-in page is live by then (the web client is a separate build of the same library and gets new-signed sessions too; today the web app is paused and serves only the landing page, so there may be nothing to check). Scheduled jobs: the timestamped `net._http_response` query shows only 200 and 202. | Rotate back (state changes are throttled about five minutes) |
@@ -111,9 +117,9 @@ alone: they change who performs a check, not whether it happens.
 
 ## What the build must prove (step 1)
 
-- **Each of the 12 refuses a caller with no token, a caller with only the public app key, and
+- **Each function refuses a caller with no token, a caller with only the public app key, and
   a caller with an expired token**, with our own 401, before **any** side effect: a database
-  read or write, a supplier call, a push sent (`send-notification`), an account touched
+  read or write, a supplier call, a push sent, an account touched
   (`delete-account`), a rate-limit counter bumped. This is the boundary once the gateway
   check is off, so it is tested per function, not sampled, and it is how the Orchestrator
   gates the build.
@@ -129,7 +135,7 @@ alone: they change who performs a check, not whether it happens.
   - A `verify_jwt` true-to-false flip may not take on the first deploy. The proof is a
     no-credential request that reaches our code, plus the dashboard toggle. The deploy's own
     output proves nothing.
-  - A deploy ships whatever is in the folder it runs from. Before deploying 12 functions, the
+  - A deploy ships whatever is in the folder it runs from. Before deploying the functions, the
     Orchestrator diffs what is deployed against `main` for each, so no unrelated merged change
     rides along unnoticed.
 
@@ -141,7 +147,7 @@ alone: they change who performs a check, not whether it happens.
 | Live updates stop after the switch | Unknown: not documented either way | Checked at step 4, before the point of no return. If it fails, rotate back and stop |
 | A player's session is cut at the revoke | Low | The wait in step 5 outlasts every token signed the old way. The research quotes Supabase: "no users will be forcefully signed out" at the rotate |
 | Database access rules read the token differently afterwards | Low; the research marks this as an inference, not a documented fact | The phone check at step 4 does a read and a write under the rules |
-| The 12 functions get junk traffic that the gateway used to stop | Certain, small | Each function refuses before doing work; the four market-data functions already rate-limit per user |
+| The 11 functions get junk traffic that the gateway used to stop | Certain, small | Each function refuses before doing work; the four market-data functions already rate-limit per user |
 | Step 6 is confirmed and something was missed | Low | Everything that can be tested is tested at step 4 on the new signing while the old is still trusted. Step 6 only removes the old |
 
 ## What this plan does not do
