@@ -727,6 +727,14 @@ building anything, and don't reopen a rule without him.
     The format follows the existing draft-time copy, and the time stays together on one line
     at the largest text sizes. A (build 15 as it stood: "Draft starts in", the countdown, the
     date on a line under it) was not picked.
+  - **The queue card, ruled the same day: "B"** (board `#call-queue-card`, PR #478; typed in
+    the Orchestrator's chat, 2026-11-16 21:45Z: "B", in reply to "Next board: your queue card.
+    A or B?"). The search is no longer a large box under the list. It is the queue list's last
+    row: one line, "+ Search by ticker or name", in the accent colour, with no box. A tap turns
+    that row into the search field in place, with the same results as today. No new words. The
+    lobby and the draft room share one queue editor, so it applies to both. A (build 15 as it
+    stood: autosave, no "Save queue", no small lines, the big grey search box under the list)
+    was not picked.
 - **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
   "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
   to make the pick. the selection needs to be instant so the draft flow continues". So: when
