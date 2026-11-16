@@ -604,9 +604,10 @@ building anything, and don't reopen a rule without him.
   that... It doesn't do just like the week you're in... that needs to be changed." His
   reference was Apple's Stocks app, whose 1W shows the last five trading days whatever day it
   is (a reference only; third-party screenshots are not kept in the repo). So 1W always shows
-  the past five trading days. Still open, shown to him as A / B the same day: one point a day
-  (possible with the daily history we have) or detail inside each day (needs prices within the
-  day, which we do not fetch; it belongs with the price-supplier decision).
+  the past five trading days. Shown A (one point a day, from the daily history we have) beside
+  B (detail inside each day, like his reference, which needs prices within the day that we do
+  not fetch), he picked, the same day: "A now, B later with the supplier". So A is built now,
+  and B is part of the price-supplier work, not a separate promise with a date.
 - **Buy a stock: the top of the screen is too crowded** (2026-11-16, Portfolio › Buy a
   stock). His words: "I don't love how we're formatting it to where it's like League B up top
   and then like a small little portfolio and then big buy of the stock and then the thing. It
