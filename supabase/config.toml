@@ -325,20 +325,3 @@ entrypoint = "./functions/symbols-search/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/ticker-quotes/index.ts"
-
-# F7/F8 (spec L2): server-side push dispatch. verify_jwt=true (until Phase 4b) — the caller must be
-# a real logged-in user, since the function authorizes on their identity. It reads
-# push tokens with SB_SECRET_KEY_INTERNAL so no client ever needs to, which is the
-# prerequisite for relocating the token off user_profiles (a column REVOKE cannot
-# close the Realtime broadcast path; the column has to physically move).
-# Authorizes BOTH the target (caller and target share a league) and the CONTENT
-# (title/body derived server-side from a closed type map, never client strings).
-# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
-# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
-# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
-# server, so it does not care how the token was signed). Pinned per function by
-# supabase/tests/handler_auth_boundary.test.ts.
-[functions.send-notification]
-enabled = true
-verify_jwt = false
-entrypoint = "./functions/send-notification/index.ts"

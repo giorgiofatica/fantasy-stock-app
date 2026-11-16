@@ -1,13 +1,15 @@
 /**
- * Server-side Expo push: the target-token lookup and the send, extracted
- * VERBATIM from send-notification/index.ts (getTargetToken, and the
- * fetch-to-Expo + ticket check in its SEND block) so a server-originated push
- * (draft-order-notify, a cron) cannot drift from the user-triggered one.
+ * Server-side Expo push: the target-token lookup and the send. Every push the
+ * app sends goes through here (draft-write.ts, draft-order-notify,
+ * notice-delivery.ts, leave-league); no client triggers a push.
  *
- * send-notification is deliberately NOT switched over to this module in the
- * same change — that would need its own redeploy + byte-verification
- * (CLAUDE.md), the same precedent as ./cron-auth.ts. It remains the reference
- * this file must keep matching.
+ * Extracted verbatim from the old user-triggered send-notification function
+ * (getTargetToken, and the fetch-to-Expo + ticket check in its SEND block).
+ * That function was RETIRED on 2026-11-16: its closed type map had been empty
+ * since 2026-10-06 and nothing called it. This file is now the reference. If a
+ * user-triggered push is ever needed again, restore send-notification from git
+ * history together with its real caller, and authorize BOTH the target and the
+ * content server-side (F7).
  *
  * F8 (push tokens are a bearer capability): tokens are read here with the
  * service role, inside an edge function, and never leave it — no client reads

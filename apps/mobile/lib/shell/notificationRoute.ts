@@ -1,7 +1,7 @@
 /**
  * Where a tapped push opens (3c-2). Pure, so the rules tests see it.
  *
- * screen:'draft' (draft_turn from send-notification, draft_order_set from
+ * screen:'draft' (draft_turn from the server's turn push, draft_order_set from
  * draft-order-notify) opens the League tab, which shows the pre-draft lobby
  * or the live draft room by phase. It never opens the legacy (tabs)/draft
  * route, which is now only a redirect to the League tab (UX final sweep S-2;

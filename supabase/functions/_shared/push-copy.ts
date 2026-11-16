@@ -1,7 +1,7 @@
 /**
- * Push notification COPY, the one source of truth for each message both a
- * user-triggered push (send-notification) and a server-originated push
- * (draft-write.ts) can send. Pure: no I/O, no Deno APIs.
+ * Push notification COPY, the one source of truth for each message the
+ * server sends (draft-write.ts and the other ./push.ts callers). Pure: no I/O,
+ * no Deno APIs.
  *
  * Every argument must be a server-verified value (e.g. the league name read
  * from the leagues row), never caller input: the copy is the content the F7

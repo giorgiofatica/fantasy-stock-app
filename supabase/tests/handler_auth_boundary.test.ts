@@ -1,5 +1,5 @@
 /**
- * Phase 4b, step 1 (docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): the 12
+ * Phase 4b, step 1 (docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): the 11
  * user-facing functions run with verify_jwt = false, so each HANDLER is the auth
  * boundary. This file proves that boundary per function, not by sample, against
  * the REAL index.ts files.
@@ -242,7 +242,7 @@ async function call(
 }
 
 // ---------------------------------------------------------------------------
-// The 12, each with a request that WOULD do work if the check were missing
+// The 11 (12 at Phase 4b; send-notification retired 2026-11-16), each with a request that WOULD do work if the check were missing
 // ---------------------------------------------------------------------------
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
@@ -260,7 +260,6 @@ const FUNCTIONS: Array<{ fn: string; body: unknown; our401: Record<string, unkno
   { fn: 'draft-control', body: { league_id: LEAGUE_ID, action: 'start' }, our401: { ok: false, reason: 'not_authenticated' } },
   { fn: 'validate-and-record-pick', body: { league_id: LEAGUE_ID, symbol: 'AAPL' }, our401: { ok: false, reason: 'not_authenticated' } },
   { fn: 'record-trade', body: { league_id: LEAGUE_ID, symbol: 'AAPL', action: 'buy' }, our401: { ok: false, reason: 'not_authenticated' } },
-  { fn: 'send-notification', body: { type: 'draft_turn', league_id: LEAGUE_ID, target_user_id: OTHER_ID }, our401: { error: 'not_authenticated' } },
 ];
 
 const REFUSED_CALLERS: Array<{ label: string; headers: Record<string, string>; setup?: (n: Net) => void; asks: boolean }> = [
@@ -333,7 +332,7 @@ for (const { fn, body, our401 } of FUNCTIONS) {
 }
 
 // ---------------------------------------------------------------------------
-// Config: the 12 are verify_jwt = false, and this file covers exactly them
+// Config: the 11 are verify_jwt = false, and this file covers exactly them
 // ---------------------------------------------------------------------------
 
 /** [functions.<name>] -> verify_jwt, read from supabase/config.toml. */
@@ -352,12 +351,12 @@ function verifyJwtByFunction(): Map<string, boolean> {
   return out;
 }
 
-Deno.test('config.toml: the 12 user-facing functions are verify_jwt = false (the handler is the boundary)', () => {
+Deno.test('config.toml: the 11 user-facing functions are verify_jwt = false (the handler is the boundary)', () => {
   const cfg = verifyJwtByFunction();
   for (const { fn } of FUNCTIONS) {
     assertEquals(cfg.get(fn), false, `${fn}: expected verify_jwt = false in supabase/config.toml`);
   }
-  assertEquals(FUNCTIONS.length, 12);
+  assertEquals(FUNCTIONS.length, 11);
 });
 
 Deno.test('config.toml: NO function relies on the gateway check any more', () => {

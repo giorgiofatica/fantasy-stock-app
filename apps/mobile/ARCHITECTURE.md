@@ -193,6 +193,8 @@ policies `[I2b]`/`[I6]` that used to allow them directly are deferred for remova
   (tokens readable by any authenticated user); the fix moves tokens to an owner-only
   `push_tokens` table and sending to the `send-notification` edge function (PR #9 +
   `supabase/migrations/20261017000000_f8_push_tokens_relocation.sql` (promoted 2026-09-30 from the staged file)).
+  Since then every push is sent server-side through `supabase/functions/_shared/push.ts`;
+  `send-notification` was retired on 2026-11-16 (empty type map since 2026-10-06, no callers).
 
 ---
 
