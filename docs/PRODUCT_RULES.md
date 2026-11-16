@@ -1097,6 +1097,20 @@ building anything, and don't reopen a rule without him.
     so at the largest text size it never outgrows the heading. Not covered: the invite's
     "full" and "not taking players" lines, which keep their place above Sign in, and Join's
     lines inside the Join sheet.
+  - **Two more dead ends join that family: the dead reset link and "Nothing here"**
+    (2026-11-16, board `#call-dead-links`, PR #478; typed in the Orchestrator's chat, 21:47Z:
+    "B", in reply to "Last board: the two dead-end screens. A or B?"). Both take the family's
+    form: a picture, the heading ending in a full stop, at most one line under it, and the way
+    out docked at the bottom.
+    - the dead password-reset link: "This link didn't work." with one line under it, **"It may
+      have been opened on a different device."** That line is new copy, approved by this pick;
+      it is cut down from the sentence the screen shows today.
+    - the not-found page: "Nothing here." with one line under it, "This link is old or
+      incomplete.", which is today's first sentence.
+    A (the heading alone, no line) was not picked. He was reminded that on the board before
+    it he went with no line. So his choices on one line under a heading are per screen: he
+    kept one on these two dead ends and on the seven of 2026-11-12, and cut both on the
+    commissioner's "The draft can't start yet" card the same day.
   - **A scheme takeover link still waits for a tap; the shared https link does not**
     (2026-11-12, same step). Giorgio's words: "dont love that i open the invite link and then
     it makes me "find the league" to be able to join. the invite link is for a specific
