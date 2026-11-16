@@ -23,6 +23,25 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-16
+
+(Times are UTC. The Orchestrator's account throughout; statuses, counts and prefixes only, no key value.)
+
+**Shipped**
+- **Phase 4 is DONE: the legacy JWT API keys are disabled.** Giorgio clicked "Disable JWT-based API keys" on 2026-11-16 at about 17:38Z. Verified by a read-only probe (it reads the keys from local files and prints only HTTP status and row counts): baseline 2026-11-14T06:52:51Z P1 (publishable only) 200/0 rows, P2 (legacy `service_role` as apikey and Bearer) 200/1, P3 200/1; after, 17:40:07Z, P1 200/0, P2 401, P3 401; probe 2 at 18:08:26Z returned 401 "Legacy API keys are disabled" on REST, the Functions gateway (`symbol-name`, `verify_jwt=true`) and the Auth admin API. Crons after the disable (`net._http_response`): 17:50:00Z 202, 18:00:00Z 202 and 18:00:00Z 200, no 401. Build 14 on Giorgio's phone after the disable: Home loads, a league opens, a draft-queue save persists. The leaked legacy `service_role` JWT is refused on REST, Functions and Auth admin. **Realtime is untested.**
+
+**Found**
+- **Check (c), the dashboard's last-used indicator, was not possible:** the legacy keys page has none; the probe replaced it.
+- **The disable is reversible, not a one-way door** (the confirm dialog said the keys "remain valid as a JWT"; per the Orchestrator, Supabase's docs say it can be re-enabled). The "one-way door" wording is corrected in STATUS and `docs/migrations/MIGRATION_STATUS.md`; the history bullets are left as written.
+- **The legacy JWT SECRET is not revoked** (it still signs user sessions): do not call the key dead; it is dead after Phase 4b.
+
+**Waiting on Giorgio**
+- The cleanup script that removes the saved legacy-JWT permission rules from 85 local `.claude/settings.local.json` files (dry run: 255 `service_role` and 255 `anon` rules); the Orchestrator will send the result.
+
+**Next**
+- **Phase 4b, open and not yet planned:** migrate the secret, rotate, wait 75+ minutes, revoke; before the rotation, the 12 `verify_jwt=true` functions move to in-code JWT checks. STATUS §4 item 29.
+- A Realtime check (untested), the build-15 re-check, Part D at the next draft, and the S1 CONTRACT after build 15.
+
 ## 2026-11-13
 
 (Times are UTC; 00:47Z–03:35Z on 2026-11-14 is the evening of 2026-11-13 in Giorgio's time zone.)
