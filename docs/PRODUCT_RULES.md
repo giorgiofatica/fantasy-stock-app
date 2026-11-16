@@ -744,6 +744,17 @@ building anything, and don't reopen a rule without him.
   took {SYMBOL} · you're up in 3 picks" in your colour. No new words; the existing lines are
   rearranged. A (the two lines joined into one) was not picked. Part of the rule-12 work on
   small text under headings.
+- **The commissioner's "The draft can't start yet" card has no line under its heading**
+  (2026-11-16, board `#call-blockers-card`, PR #478; typed in the Orchestrator's chat, 21:47Z:
+  "A", in reply to "the commissioner's "The draft can't start yet" card. A or B?"). Both lines
+  are cut: "Fix these before {6:00 PM ET}, when the draft room opens." and "If they're still
+  open then, the draft is postponed." The "Needs you before {time}" tag, the heading and the
+  blocker rows stay. B, the Design Lead's pick (keep only the postponed line, as the one fact
+  shown nowhere else), was not picked; he was told A was "the stricter version if you'd rather
+  have no lines anywhere" and chose it.
+  - The Planner's reading, not his words: he cut a line that stated a consequence, so "it is
+    a fact you can't see elsewhere" does not by itself earn a small line under a heading. A
+    future board that wants to keep one should expect to be asked the same question.
 - **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
   "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
   to make the pick. the selection needs to be instant so the draft flow continues". So: when
