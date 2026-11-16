@@ -718,6 +718,15 @@ building anything, and don't reopen a rule without him.
     under the list). What stays is not ruled: the Design Lead boards both and they come to
     him as A / B. (Corrected 2026-11-16: this note first listed the two cut lines as not
     done. The Planner had matched them in code comments, not in what the card shows.)
+  - **The draft card, ruled the same day: "B"** (board `#call-draft-card`, PR #478; typed in the
+    Orchestrator's chat, 2026-11-16 21:45Z: "B", in reply to "Next board: the draft card on the
+    League tab. A or B?"). The date and time move into the small label above the countdown,
+    and nothing sits under the countdown. The two labels are new copy, approved by this pick
+    (he was told that picking B approves the wording): **"Draft · {Sat, Nov 14} · {6:44 PM
+    ET}"** before the room opens, and **"Draft room open · {12:48 PM ET}"** once it is open.
+    The format follows the existing draft-time copy, and the time stays together on one line
+    at the largest text sizes. A (build 15 as it stood: "Draft starts in", the countdown, the
+    date on a line under it) was not picked.
 - **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
   "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
   to make the pick. the selection needs to be instant so the draft flow continues". So: when
