@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 /**
  * StockChart: the stock sheet's line (3e, M2; W4 Game Night). The Game Night Chart (§9C rule
- * 6: one line, no grid, no fill, a dashed base, the end dot live while the market is open)
- * over a labelled X axis, and the range as money-screen pills under it.
+ * 6: one line, no grid, no fill, the end dot live while the market is open)
+ * over a labelled X axis, and the range as money-screen pills under it. No dashed base on the
+ * stock chart (Giorgio, 2026-11-16: "it sometimes looks like a y-axis or an x-axis"); the first
+ * value still decides the line's gain/loss colour.
  *
  * Giorgio's chart-ranges ruling (A, 2026-10-05): 1W / 1M / 3M / 1Y, 1W the default, no 1D
- * (the bars are daily). 1W sits on the Mon…Fri axis; the others on dated axes
- * (stockChartSeries.stockLineSeries). The base is the range's first value (the Design Lead's
- * 2026-10-06 ruling). The line draws in once per range (the Chart's drawKey); Reduce Motion
+ * (the bars are daily). 1W is the past five trading sessions on a weekday-named axis (Giorgio,
+ * 2026-11-16); the others sit on dated axes (stockChartSeries.stockLineSeries). The base is the
+ * range's first value (the Design Lead's 2026-10-06 ruling), used for the line's tone only. The line draws in once per range (the Chart's drawKey); Reduce Motion
  * shows it drawn.
  */
 import { useMemo, useState } from 'react';
@@ -29,7 +31,7 @@ export interface StockChartProps {
   live: boolean;
   /** The sheet's clock (the capture seam plays the fixture's); defaults to now. */
   now?: Date;
-  /** This week's sessions, for 1W's Mon…Fri axis. */
+  /** This week's sessions: tells 1W whether today is a trading day (and whether it has opened). */
   sessions: readonly MarketCalendarSession[];
   /** The sheet's gutter: the line runs past it to the sheet's edges. */
   bleed: number;
@@ -52,6 +54,7 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
       <Chart
         points={data.status === 'ready' ? series.points : []}
         base={series.base}
+        showBase={false}
         axis={series.axis}
         height={HEIGHT}
         bleed={bleed}
