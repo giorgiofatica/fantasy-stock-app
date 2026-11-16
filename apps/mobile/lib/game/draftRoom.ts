@@ -158,6 +158,10 @@ export function afterPickLine(symbol: string, picksAway: number, auto = false): 
  *
  * A STALLED turn shows ONE label (the Design Lead's ruling on the gate, 2026-11-16): "Draft paused" only, so the round label is hidden there (the
  * headline already names whose slot). "Auto-pick is waiting for prices" carries no tag of its own, so that state keeps the round label.
+ *
+ * WAITING FOR PRICES (the DL's P2 on the final gate, 2026-11-16): while the turn waits for prices, "Auto-pick is waiting for prices." REPLACES the line about
+ * you (never stacked under it, so the card never has two lines under the headline); when prices return the line about you comes back. Your own turn is
+ * unchanged: it has no line about you, and the caption stays under the card as before.
  */
 export interface TurnCardView {
   /** The small label above the headline (someone else's turn only). */
@@ -167,8 +171,9 @@ export interface TurnCardView {
   /** The one line about you under the headline (someone else's turn only), or null (none: you have no pick left, or it is your turn). */
   under: { text: string; mine: boolean } | null;
 }
-export function turnCardView(a: { isMyTurn: boolean; roundLine: string; lastMine: string | null; lastMineAuto: boolean; picksAway: number; stalled?: boolean }): TurnCardView {
+export function turnCardView(a: { isMyTurn: boolean; roundLine: string; lastMine: string | null; lastMineAuto: boolean; picksAway: number; stalled?: boolean; waitingForPrices?: boolean }): TurnCardView {
   if (a.isMyTurn) return { tag: null, roundUnder: a.roundLine, under: null };
+  if (a.waitingForPrices && !a.stalled) return { tag: a.roundLine, roundUnder: null, under: { text: AUTO_PICK_WAITING_FOR_PRICES, mine: false } };
   const text = a.lastMine ? afterPickLine(a.lastMine, a.picksAway, a.lastMineAuto) : picksUntilYouLine(a.picksAway);
   return { tag: a.stalled ? null : a.roundLine, roundUnder: null, under: text ? { text, mine: !!a.lastMine } : null };
 }

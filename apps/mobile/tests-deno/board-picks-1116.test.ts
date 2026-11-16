@@ -8,7 +8,7 @@
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
 import { blockersCardCopy, countdownCopy, etTimeLabel, etWhenLabel, leagueCountdownCopy } from '../lib/game/autoStart.ts';
 import { keepDots, keepTime, NBSP } from '../lib/game/keepDots.ts';
-import { afterPickLine, picksUntilYouLine, roundPickLine, turnCardLabel, turnCardView } from '../lib/game/draftRoom.ts';
+import { AUTO_PICK_WAITING_FOR_PRICES, afterPickLine, picksUntilYouLine, roundPickLine, turnCardLabel, turnCardView } from '../lib/game/draftRoom.ts';
 import { QUEUE_MAX } from '../lib/game/draftQueue.ts';
 import { blurReturnsToRow, queueSearchMode, QUEUE_SEARCH_ROW_MAX_SCALE } from '../lib/game/queueSearchRow.ts';
 import { NOT_FOUND, RESET_DEAD_LINK } from '../lib/shell/deadLinkCopy.ts';
@@ -291,9 +291,37 @@ Deno.test('(c) waiting for prices carries no tag of its own, so it KEEPS the rou
   assertEquals(v.tag, 'Round 2 of 6 · Pick 11');
   assertEquals(turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 3 }).tag, 'Round 2 of 6 · Pick 11', 'stalled defaults to off');
   const room = src('components/game/DraftRoom.tsx');
-  assert(room.includes('turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null })'));
+  assert(room.includes('turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null, waitingForPrices: waitingNow })'));
   assert(room.includes('{stalled?.tag ? <Text variant="tag"'), 'the stalled tag ("Draft paused") is still drawn once');
   assert(room.includes('{AUTO_PICK_WAITING_FOR_PRICES}'), 'the waiting caption is not a tag');
   // YOUR turn is never stalled-styled: the own-turn view is unchanged.
   assertEquals(turnCardView({ isMyTurn: true, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 0, stalled: true }), { tag: null, roundUnder: ROUND, under: null });
+});
+
+// ── DL P2 (final gate): waiting for prices REPLACES the line about you, never stacks under it ────────────────────
+
+Deno.test('P2 waiting for prices: the waiting sentence REPLACES the line about you (before and after your first pick), never both', () => {
+  assertEquals(AUTO_PICK_WAITING_FOR_PRICES, 'Auto-pick is waiting for prices.');
+  for (const lastMine of [null, 'NVDA']) {
+    const v = turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine, lastMineAuto: false, picksAway: 8, waitingForPrices: true });
+    assertEquals(v.under, { text: 'Auto-pick is waiting for prices.', mine: false }, String(lastMine));
+    assertEquals(v.tag, 'Round 2 of 6 · Pick 11', 'the round label stays');
+    assertFalse(/picks? until you|you're up in|You took/.test(v.under?.text ?? ''), 'the personal line is not there at the same time');
+  }
+});
+
+Deno.test('P2 waiting for prices: when prices return the line about you comes back (the same view without the flag)', () => {
+  const back = turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: 'NVDA', lastMineAuto: false, picksAway: 8, waitingForPrices: false });
+  assertEquals(back.under, { text: "You took NVDA · you're up in 8 picks", mine: true });
+  assertEquals(turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 3 }).under?.text, '3 picks until you');
+});
+
+Deno.test('P2 waiting for prices: stalled still wins (the stalled card keeps the line about you); your own turn keeps the caption under the card', () => {
+  const stalled = turnCardView({ isMyTurn: false, roundLine: ROUND, lastMine: 'NVDA', lastMineAuto: false, picksAway: 8, stalled: true, waitingForPrices: true });
+  assertEquals(stalled, { tag: null, roundUnder: null, under: { text: "You took NVDA · you're up in 8 picks", mine: true } });
+  assertEquals(turnCardView({ isMyTurn: true, roundLine: ROUND, lastMine: null, lastMineAuto: false, picksAway: 0, waitingForPrices: true }), { tag: null, roundUnder: ROUND, under: null });
+  const room = src('components/game/DraftRoom.tsx');
+  assert(room.includes('const waitingNow = waitingForPrices === onClockPick && !stalled;'));
+  assert(room.includes('{waitingNow && isMyTurn ? <Text variant="caption"'), 'the separate caption only on YOUR turn: someone else\'s turn has the one line');
+  assertFalse(/\{waitingNow \? <Text variant="caption"/.test(room), 'never a caption stacked under the line about you');
 });

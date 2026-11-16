@@ -90,9 +90,9 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftDateSheet.tsx:115` | Pressable | onPress | `inline: () => setAndroidPicking(true)` | state setAndroidPicking |  |
 | `components/game/DraftRoom.tsx:386` | DraftClockChip | onPress | `showTheClock` | fn showTheClock |  |
 | `components/game/DraftRoom.tsx:396` | Button | onPress | `room.refresh` | prop room.refresh |  |
-| `components/game/DraftRoom.tsx:507` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
-| `components/game/DraftRoom.tsx:517` | Button | onPress | `draft` | fn draft | `pending` |
-| `components/game/DraftRoom.tsx:573` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/DraftRoom.tsx:509` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
+| `components/game/DraftRoom.tsx:519` | Button | onPress | `draft` | fn draft | `pending` |
+| `components/game/DraftRoom.tsx:575` | Button | onPress | `room.refresh` | prop room.refresh |  |
 | `components/game/InfoPopup.tsx:44` | Pressable | onPress | `inline: () => onOpen(info)` | fn onOpen |  |
 | `components/game/InfoPopup.tsx:87` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/game/InfoPopup.tsx:196` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |

@@ -429,7 +429,9 @@ export function DraftRoom({ leagueId, myUserId, rounds, stakeMode = null, budget
   // like the then blank blank picked twice") and no "60-second picks" ("I don't think it needs
   // that last thing at the bottom"). Everything else stays, the your-next-pick lines included.
   const roundLine = roundPickLine(round, rounds, onClockPick);
-  const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null });
+  // Waiting for prices: someone else's turn swaps it in for the line about you (turnCardView); your own turn keeps the caption under the card.
+  const waitingNow = waitingForPrices === onClockPick && !stalled;
+  const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null, waitingForPrices: waitingNow });
 
   return (
     <View style={styles.stack}>
@@ -480,7 +482,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, stakeMode = null, budget
             ) : null}
           </View>
         </View>
-        {waitingForPrices === onClockPick && !stalled ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary" animatedStyle={onTheClock ? captionInk : undefined}>{AUTO_PICK_WAITING_FOR_PRICES}</Text> : null}
+        {waitingNow && isMyTurn ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary" animatedStyle={onTheClock ? captionInk : undefined}>{AUTO_PICK_WAITING_FOR_PRICES}</Text> : null}
       </Card>
       </View>
 
