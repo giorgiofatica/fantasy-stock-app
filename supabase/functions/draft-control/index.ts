@@ -148,7 +148,9 @@ Deno.serve(async (req: Request) => {
   try {
     const { data: auth } = await authed.auth.getUser();
     const user = auth?.user;
-    if (!user) return json({ ok: false, reason: 'not_authenticated' }, 401);
+    // `?.id`, not just truthiness: supabase-js getUser() returns `data.user ?? data`, so a 200
+    // with no user id yields a truthy user with id undefined (handler_auth_boundary.test.ts).
+    if (!user?.id) return json({ ok: false, reason: 'not_authenticated' }, 401);
 
     const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim();
     if (!(await rateLimitOk(admin, user.id, ip))) {

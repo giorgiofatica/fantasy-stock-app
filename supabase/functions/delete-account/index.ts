@@ -160,7 +160,9 @@ Deno.serve(async (req: Request) => {
     const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
     const { data: auth } = await authed.auth.getUser(jwt);
     const user = auth?.user;
-    const caller = user ? toCaller(user) : null;
+    // `?.id`, not just truthiness: supabase-js getUser() returns `data.user ?? data`, so a 200
+    // with no user id yields a truthy user with id undefined (handler_auth_boundary.test.ts).
+    const caller = user?.id ? toCaller(user) : null;
     const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim();
     const body = await req.json().catch(() => null);
 

@@ -95,7 +95,39 @@ class Net {
   /** the Authorization header each identity question carried */
   identityAsks: Array<string | null> = [];
   gotrueDown = false;
+  /** a GoTrue that answers 200 for the issued token but with a body that is not a
+   * usable user. 'null' makes supabase-js getUser() THROW (see GOTRUE_BAD_200). */
+  gotrueBad200: GoTrueBad200 | null = null;
 }
+
+type GoTrueBad200 = 'empty' | 'no-id' | 'user-null' | 'null';
+
+/**
+ * 200 answers from /auth/v1/user that carry no user id. Each was a SURVIVING
+ * mutant of the Orchestrator's review (2026-11-16) until it was pinned here.
+ *
+ * Why they matter (@supabase/auth-js 2.117.2, lib/fetch.js `_userResponse`):
+ * getUser() returns `{ user: data.user ?? data }`, so a 200 `{}`, a 200 user
+ * object with no id, and a 200 `{"user":null}` all yield a TRUTHY `user` with
+ * `user.id === undefined`. A handler that checks only `if (!user)` would accept
+ * it. A 200 `null` body makes `_userResponse` read `null.user`; that TypeError is
+ * not an AuthError, so `_getUser`'s catch (GoTrueClient.js `throw error`)
+ * rethrows it and getUser() itself THROWS, which is the only way to reach
+ * resolveUser's `catch`. No real GoTrue answers like this; the point is that a
+ * malformed upstream answer can never be read as a user.
+ */
+const GOTRUE_BAD_200: Record<GoTrueBad200, string> = {
+  empty: '{}',
+  'no-id': JSON.stringify({ aud: 'authenticated', role: 'authenticated', email: 'player@example.test' }),
+  'user-null': '{"user":null}',
+  null: 'null',
+};
+
+/** The functions whose check is _shared/market-guard.ts resolveUser /
+ * guardSignedInCaller (which catch a throwing getUser and answer 401). The rest
+ * call getUser() inside their own try, so a throw lands in their catch: a 5xx,
+ * still with zero side effects. */
+const MARKET_GUARD_FNS = new Set(['quote', 'historical-bars', 'symbols-search', 'symbol-name']);
 
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -133,6 +165,9 @@ function install(net: Net): () => void {
     if (url.origin === URL_ && url.pathname === '/auth/v1/user' && req.method === 'GET') {
       net.identityAsks.push(req.headers.get('Authorization'));
       if (net.gotrueDown) throw new TypeError('connection refused');
+      if (net.gotrueBad200) {
+        return new Response(GOTRUE_BAD_200[net.gotrueBad200], { status: 200, headers: { 'content-type': 'application/json' } });
+      }
       return gotrueUser(req.headers.get('Authorization'));
     }
     // Everything else is a side effect. Answer plausibly so a handler that got
@@ -256,6 +291,29 @@ for (const { fn, body, our401 } of FUNCTIONS) {
         assertFalse(r.body.error === 'not_authenticated' || r.body.reason === 'not_authenticated');
         assertEquals(r.net.identityAsks, [`Bearer ${USER_JWT}`], 'asked the sign-in server once, with the caller header unchanged');
         assert(r.net.sideEffects.length > 0, `${fn}: the control did no work past the check, so it proves nothing`);
+      });
+
+      for (const mode of ['empty', 'no-id', 'user-null'] as const) {
+        await t.step(`sign-in server answers 200 with no user id (${mode}) → our 401, zero side effects`, async () => {
+          const r = await call(fn, body, { apikey: PUBLISHABLE, Authorization: `Bearer ${USER_JWT}` }, (n) => { n.gotrueBad200 = mode; });
+          assertEquals(r.status, 401, `${fn}: ${JSON.stringify(r.body)}`);
+          assertEquals(r.body, our401);
+          assertEquals(r.net.sideEffects, [], `${fn} treated a user with no id as a user`);
+        });
+      }
+
+      await t.step('getUser() THROWS (sign-in server 200 with a null body) → refused, zero side effects', async () => {
+        const r = await call(fn, body, { apikey: PUBLISHABLE, Authorization: `Bearer ${USER_JWT}` }, (n) => { n.gotrueBad200 = 'null'; });
+        assertEquals(r.net.identityAsks.length, 1);
+        assertEquals(r.net.sideEffects, [], `${fn} did work after getUser threw`);
+        if (MARKET_GUARD_FNS.has(fn)) {
+          // resolveUser's catch is the refusal: exactly our 401 (kills catch -> fail-open).
+          assertEquals(r.status, 401, `${fn}: ${JSON.stringify(r.body)}`);
+          assertEquals(r.body, our401);
+        } else {
+          // The handler's own catch-all: a 5xx, never a pass.
+          assert(r.status >= 500, `${fn}: expected its catch-all 5xx, got ${r.status} ${JSON.stringify(r.body)}`);
+        }
       });
 
       for (const c of REFUSED_CALLERS) {
