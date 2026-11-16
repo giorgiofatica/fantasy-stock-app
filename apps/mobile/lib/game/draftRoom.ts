@@ -149,6 +149,10 @@ export function afterPickLine(symbol: string, picksAway: number, auto = false): 
   return `${lead} · you're up in ${picksAway} ${picksAway === 1 ? 'pick' : 'picks'}`;
 }
 
+/** The draft room's auto-pick backstop came back "price_unavailable" (audit
+ * Rule 8 table, NEW): shown in the clock card, no next step. */
+export const AUTO_PICK_WAITING_FOR_PRICES = 'Auto-pick is waiting for prices.';
+
 /**
  * What the draft room's turn card says around its headline (board #call-draft-turn, B; Giorgio 2026-11-16, "B"). While SOMEONE ELSE
  * is up, "Round 2 of 6 · Pick 11" is the card's small label ABOVE "Sofia is up", and exactly one line about you sits UNDER the
@@ -286,6 +290,3 @@ export function pickRefusalView(reason: string | null, status: number | null, ct
   };
 }
 
-/** The draft room's auto-pick backstop came back "price_unavailable" (audit
- * Rule 8 table, NEW): shown in the clock card, no next step. */
-export const AUTO_PICK_WAITING_FOR_PRICES = 'Auto-pick is waiting for prices.';
