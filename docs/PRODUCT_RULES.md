@@ -879,6 +879,27 @@ building anything, and don't reopen a rule without him.
   when they arent allowed to buy. they should still be able to search and add stocks to a
   watchlist or something to save for later." Search never depends on market hours; a
   watchlist exists (plan: [`plans/2026-10-08-trading-window-and-watchlist.md`](plans/2026-10-08-trading-window-and-watchlist.md)).
+- **Stock search gets its own tab** (2026-11-16, build 1.3.0 (14)). Giorgio's words: "right
+  now, the only place to look up a stock is when you go to buy a stock. There should be some
+  sort of search feature. Maybe there's just a new tab at the bottom that's just a little
+  magnifying glass or something, and there's just like a search, kind of like a discover or
+  like a search, almost like a waiver wire kind of style for if it's fantasy football. That
+  way... I can go in and I can look at different stocks and I can kind of look around, see
+  different markets, something like that. So maybe that's something that we start planning is
+  almost like a what our version of like the waiver wire is going to look like a discover page
+  where I can go and search up stocks and then add them to a watch list or add them to
+  something like that. Also, once the season begins, because right now, if I want to look up a
+  stock, I have to go to the buy a stock tab or bar in the portfolio."
+  - Shown his 2026-10-09 pick (A: the watchlist as a tab inside "Buy a stock" plus a
+    "Watching" section on Portfolio, four tabs) beside B (search, the watchlist and browsing
+    in a tab of their own in the bottom bar, five tabs), he picked **B**. This replaces
+    decision 12 of the watchlist and claims plan for where it lives. Everything else in that
+    plan stands: search any time, the per-league watchlist, daily claims, the waiver order.
+  - Not decided: the tab's name and its place in the bar, what happens to "Buy a stock" on
+    Portfolio, and what browsing offers ("look around, see different markets"). Browsing by
+    our own categories needs nothing new; lists that depend on live market data (movers,
+    most active) wait on the price-supplier decision. These go to him as mockups in the
+    plan's revision. The names in the mockup ("Stocks", "Watching") were placeholders.
 - **The watchlist is per league** (2026-10-08): "by league. if im in multiple fantasy football
   leagues, each one has its own waiver wire. if i want to buy apple in one league, i may not
   be able to in another if another player has it, i already have it, or it doesnt fit my
