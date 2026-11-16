@@ -382,14 +382,13 @@
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [
-    ['call-dead-links', 'The dead password link and the “Nothing here” page', () => window.KSDeadLinks],
-  ];
+  const OPEN = [];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-dead-links', title: 'The dead password link and the “Nothing here” page', decision: 'B: both in the dead-end family\u2019s form with one short line each: "This link didn\u2019t work." + "It may have been opened on a different device." (new words, approved), and "Nothing here." + "This link is old or incomplete."', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDeadLinksArchived },
     { id: 'call-blockers-card', title: 'The commissioner\u2019s “can\u2019t start yet” card', decision: 'A: no line under "The draft can\u2019t start yet"; both sentences go, the consequence included. The tag, the heading and the blocker rows stay. Removal only.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSBlockersCardArchived },
     { id: 'call-draft-turn', title: 'The turn card while someone else picks', decision: 'B: "Round 2 of 6 \u00b7 Pick 11" as the card\u2019s small label above "Sofia is up", one line about you under it; after your pick "You took NVDA \u00b7 you\u2019re up in 3 picks" in your colour. No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDraftTurnArchived },
     { id: 'call-queue-card', title: 'The queue card', decision: 'B: the search becomes the queue list\u2019s last row, "+ Search by ticker or name" in the accent colour, no box; a tap turns it into the field in place, with the same results. No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSQueueCardArchived },
