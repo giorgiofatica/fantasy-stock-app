@@ -32,11 +32,12 @@ Entries begin with the Recorder's first pass.
 
 **Found**
 - **Check (c), the dashboard's last-used indicator, was not possible:** the legacy keys page has none; the probe replaced it.
-- **The disable is reversible, not a one-way door** (the confirm dialog said the keys "remain valid as a JWT"; per the Orchestrator, Supabase's docs say it can be re-enabled). The "one-way door" wording is corrected in STATUS and `docs/migrations/MIGRATION_STATUS.md`; the history bullets are left as written.
+- **The disable is reversible, not a one-way door** (the confirm dialog said the keys "remain valid as a JWT"; source: supabase.com/docs/guides/getting-started/migrating-to-new-api-keys, which says the legacy keys can be re-activated, so the step is reversible (cited by the Orchestrator; I did not fetch the page, per my no-web rule)). The "one-way door" wording is corrected in STATUS and `docs/migrations/MIGRATION_STATUS.md`; the history bullets are left as written.
 - **The legacy JWT SECRET is not revoked** (it still signs user sessions): do not call the key dead; it is dead after Phase 4b.
 
 **Waiting on Giorgio**
 - The cleanup script that removes the saved legacy-JWT permission rules from 85 local `.claude/settings.local.json` files (dry run: 255 `service_role` and 255 `anon` rules); the Orchestrator will send the result.
+- Then deleting two lines by name, `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_ANON_KEY`, from the gitignored `.env` at the main checkout's repo root (they held a legacy `service_role` and a legacy `anon` JWT; never committed per the Orchestrator; nothing in the repo reads either name, I grepped). The Orchestrator will send both results together.
 
 **Next**
 - **Phase 4b, open and not yet planned:** migrate the secret, rotate, wait 75+ minutes, revoke; before the rotation, the 12 `verify_jwt=true` functions move to in-code JWT checks. STATUS §4 item 29.
