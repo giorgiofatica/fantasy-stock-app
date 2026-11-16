@@ -290,6 +290,20 @@ Deno.test('ticker-quotes: the anonymous allowlist is EXACTLY the web ticker tape
   assertEquals(server, web);
 });
 
+Deno.test('market data: all five run verify_jwt = false, so each handler is the boundary', () => {
+  // Phase 4b (2026-11-16): quote, historical-bars, symbols-search and symbol-name
+  // joined ticker-quotes at verify_jwt = false, because the gateway check may
+  // refuse sessions signed with the new keys. It also never proved a user (the
+  // public anon key passed it). Each one's in-code refusal is proven per caller
+  // in handler_auth_boundary.test.ts; ticker-quotes' anonymous path is above.
+  const toml = Deno.readTextFileSync(new URL('../config.toml', import.meta.url));
+  for (const fn of ['quote', 'historical-bars', 'symbols-search', 'symbol-name', 'ticker-quotes']) {
+    const block = new RegExp(`\\[functions\\.${fn}\\][^\\[]*?verify_jwt\\s*=\\s*(true|false)`).exec(toml);
+    assert(block, `[functions.${fn}] has no verify_jwt line`);
+    assertEquals(block[1], 'false', `${fn}: expected verify_jwt = false`);
+  }
+});
+
 // Put the developer's env back after every test in this file has run.
 globalThis.addEventListener('unload', () => {
   for (const [k, v] of SAVED_ENV) v === undefined ? Deno.env.delete(k) : Deno.env.set(k, v);

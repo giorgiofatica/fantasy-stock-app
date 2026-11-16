@@ -2,27 +2,35 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "f79c67ae9e908e723c21dc51f97769c4f12fe550",
-    "commitShort": "f79c67ae",
+    "commit": "cd2f246e024dcdc579917c3264442d41e15c6a82",
+    "commitShort": "cd2f246e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "chore/db-snapshot-2026-11-14",
+    "branch": "feat/phase4b-verify-jwt-in-code",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "docs/architecture/db-snapshot.json"
+        "path": "scripts/gen-architecture.mjs"
+      },
+      {
+        "code": "M",
+        "path": "supabase/config.toml"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/symbol-name/index.ts"
       }
     ],
-    "timestamp": "2026-11-14T03:40:52Z",
-    "sourceHash": "sha256:8f3d53c77ee34585a1fe840f9571533f5a4d12374ca28118c112b896148234f3",
+    "timestamp": "2026-11-16T18:56:01Z",
+    "sourceHash": "sha256:80a1917dd21762690ca800ac7760cf75362d8e44ae168717e75d72a7ecf75791",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-14T03:39:10Z",
-    "ageHours": 0,
-    "ageDays": 0,
+    "ageHours": 63.3,
+    "ageDays": 2.6,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:809a3f101b793ffcafe544c233dd5c086aff77b2a06ae0230c6a9eb2134c89d1",
@@ -534,9 +542,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:102",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:130",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "run.ts"
         ],
@@ -557,7 +566,7 @@
       "verified": true,
       "id": "fn.delete-account",
       "label": "delete-account",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/delete-account/index.ts",
@@ -568,8 +577,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:156",
+        "verifyJwtSource": "supabase/config.toml:189",
         "authGuard": "in-code guard (isAuthorized)",
+        "userGuard": null,
         "localModules": [],
         "tests": [],
         "envVars": [
@@ -597,9 +607,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:122",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:155",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "rules.ts"
         ],
@@ -621,7 +632,7 @@
       "verified": true,
       "id": "fn.draft-control",
       "label": "draft-control",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/draft-control/index.ts",
@@ -632,8 +643,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:167",
+        "verifyJwtSource": "supabase/config.toml:200",
         "authGuard": null,
+        "userGuard": null,
         "localModules": [
           "handler.ts",
           "plan.ts",
@@ -665,8 +677,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:132",
+        "verifyJwtSource": "supabase/config.toml:165",
         "authGuard": null,
+        "userGuard": null,
         "localModules": [
           "batch.ts",
           "handler.ts",
@@ -697,8 +710,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:111",
+        "verifyJwtSource": "supabase/config.toml:139",
         "authGuard": "in-code guard (isAuthorized)",
+        "userGuard": null,
         "localModules": [
           "run.ts"
         ],
@@ -728,9 +742,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:227",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:279",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "paginate.ts"
         ],
@@ -753,7 +768,7 @@
       "verified": true,
       "id": "fn.historical-bars",
       "label": "historical-bars",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/historical-bars/index.ts",
@@ -764,8 +779,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:75",
+        "verifyJwtSource": "supabase/config.toml:86",
         "authGuard": null,
+        "userGuard": null,
         "localModules": [
           "lookup.ts",
           "respond.ts"
@@ -797,9 +813,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:84",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:100",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "takeover.ts"
         ],
@@ -820,7 +837,7 @@
       "verified": true,
       "id": "fn.join-league",
       "label": "join-league",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/join-league/index.ts",
@@ -830,9 +847,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:93",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:114",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "logic.ts"
         ],
@@ -853,7 +871,7 @@
       "verified": true,
       "id": "fn.leave-league",
       "label": "leave-league",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/leave-league/index.ts",
@@ -863,9 +881,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:63",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:74",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "inviter.ts",
           "reason.ts",
@@ -890,7 +909,7 @@
       "verified": true,
       "id": "fn.preview-league",
       "label": "preview-league",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/preview-league/index.ts",
@@ -901,8 +920,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:19",
+        "verifyJwtSource": "supabase/config.toml:24",
         "authGuard": "apikey header, constant-time, fail-closed",
+        "userGuard": null,
         "localModules": [
           "grouping.ts",
           "job-status.ts",
@@ -947,9 +967,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:4",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:9",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
         "tests": [],
         "envVars": [
@@ -968,7 +989,7 @@
       "verified": true,
       "id": "fn.quote",
       "label": "quote",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/quote/index.ts",
@@ -978,9 +999,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:186",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:229",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "commit.ts",
           "gate.ts"
@@ -1005,7 +1027,7 @@
       "verified": true,
       "id": "fn.record-trade",
       "label": "record-trade",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/record-trade/index.ts",
@@ -1016,8 +1038,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:144",
+        "verifyJwtSource": "supabase/config.toml:177",
         "authGuard": "apikey header, constant-time, fail-closed",
+        "userGuard": null,
         "localModules": [
           "plan.ts",
           "run.ts"
@@ -1053,8 +1076,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:52",
+        "verifyJwtSource": "supabase/config.toml:57",
         "authGuard": "apikey header, constant-time, fail-closed",
+        "userGuard": null,
         "localModules": [],
         "tests": [],
         "envVars": [
@@ -1081,9 +1105,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:282",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:341",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
         "tests": [],
         "envVars": [
@@ -1100,7 +1125,7 @@
       "verified": true,
       "id": "fn.send-notification",
       "label": "send-notification",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/send-notification/index.ts",
@@ -1111,8 +1136,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:27",
+        "verifyJwtSource": "supabase/config.toml:32",
         "authGuard": "apikey header, constant-time, fail-closed",
+        "userGuard": null,
         "localModules": [
           "close.ts"
         ],
@@ -1146,8 +1172,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:33",
+        "verifyJwtSource": "supabase/config.toml:38",
         "authGuard": "apikey header, constant-time, fail-closed",
+        "userGuard": null,
         "localModules": [
           "plan.ts"
         ],
@@ -1180,16 +1207,17 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:232",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:284",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
         "tests": [],
         "envVars": [
           "SB_PUBLISHABLE_KEY",
           "SUPABASE_URL"
         ],
-        "lines": 46
+        "lines": 73
       },
       "db": null,
       "declared": null,
@@ -1198,19 +1226,20 @@
       "verified": true,
       "id": "fn.symbol-name",
       "label": "symbol-name",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/symbol-name/index.ts",
-        "line": 26
+        "line": 45
       }
     },
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:237",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:289",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "prices.ts"
         ],
@@ -1232,7 +1261,7 @@
       "verified": true,
       "id": "fn.symbols-search",
       "label": "symbols-search",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/symbols-search/index.ts",
@@ -1243,8 +1272,9 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:270",
+        "verifyJwtSource": "supabase/config.toml:324",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
         "tests": [],
         "envVars": [
@@ -1263,7 +1293,7 @@
       "verified": true,
       "id": "fn.ticker-quotes",
       "label": "ticker-quotes",
-      "sublabel": "verify_jwt=false",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/ticker-quotes/index.ts",
@@ -1273,9 +1303,10 @@
     {
       "layer": "edge",
       "facts": {
-        "verifyJwt": true,
-        "verifyJwtSource": "supabase/config.toml:177",
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:215",
         "authGuard": null,
+        "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
         "tests": [],
         "envVars": [
@@ -1294,7 +1325,7 @@
       "verified": true,
       "id": "fn.validate-and-record-pick",
       "label": "validate-and-record-pick",
-      "sublabel": "verify_jwt=true",
+      "sublabel": "verify_jwt=false · user guard",
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/validate-and-record-pick/index.ts",
@@ -13338,7 +13369,7 @@
         "name"
       ],
       "callSites": [
-        "supabase/functions/symbol-name/index.ts:41"
+        "supabase/functions/symbol-name/index.ts:68"
       ]
     },
     {
@@ -22321,7 +22352,7 @@
         {
           "n": 3,
           "edge": "e.ui.join-league->fn.join-league",
-          "detail": "On confirm, the join is performed server-side. verify_jwt=true, so the caller identity is the gateway-verified JWT.",
+          "detail": "On confirm, the join is performed server-side. The caller identity is the in-code getUser() (verify_jwt=false since Phase 4b; the gateway check never proved a user, the anon key passed it).",
           "files": [
             "apps/mobile/app/join-league.tsx:94"
           ]
@@ -22688,7 +22719,7 @@
         {
           "n": 2,
           "edge": "e.ui.money.recordTrade->fn.record-trade",
-          "detail": "The ONLY trade write path since DR-001 Phase 3: the client-INSERT policy on trades was dropped (20260811000002). verify_jwt=true + in-code getUser(). The same function answers the review's advisory preview (slot map, would_fill — which ignores the budget, so the client refuses an over-budget buy itself).",
+          "detail": "The ONLY trade write path since DR-001 Phase 3: the client-INSERT policy on trades was dropped (20260811000002). In-code getUser() is the auth boundary (verify_jwt=false since Phase 4b). The same function answers the review's advisory preview (slot map, would_fill — which ignores the budget, so the client refuses an over-budget buy itself).",
           "files": [
             "apps/mobile/lib/money/recordTrade.ts:33"
           ]
@@ -24562,7 +24593,7 @@
       "supabase/functions/snapshot-week-start/index.ts:590 -> week_snapshots.select",
       "supabase/functions/snapshot-week-start/index.ts:626 -> matchups.update",
       "supabase/functions/snapshot-week-start/index.ts:765 -> week_snapshots.upsert",
-      "supabase/functions/symbol-name/index.ts:41 -> symbols.select",
+      "supabase/functions/symbol-name/index.ts:68 -> symbols.select",
       "supabase/functions/symbols-search/index.ts:160 -> symbols.select",
       "supabase/functions/symbols-search/index.ts:169 -> symbols.select",
       "supabase/functions/symbols-search/index.ts:180 -> symbols.select",
@@ -24772,29 +24803,29 @@
       "20261205000300_symbols_readers_functions.sql"
     ],
     "config": [
-      "delete-account=true",
+      "delete-account=false",
       "draft-autopick-sweep=false",
-      "draft-control=true",
+      "draft-control=false",
       "draft-order-notify=false",
       "enrich-symbols=false",
       "heal-account-deletions=false",
-      "historical-bars=true",
+      "historical-bars=false",
       "invite-preview=false",
-      "join-league=true",
-      "leave-league=true",
-      "preview-league=true",
+      "join-league=false",
+      "leave-league=false",
+      "preview-league=false",
       "process-week-results=false",
-      "quote=true",
-      "record-trade=true",
+      "quote=false",
+      "record-trade=false",
       "refresh-market-calendar=false",
       "refresh-symbols=false",
-      "send-notification=true",
+      "send-notification=false",
       "snapshot-week-end=false",
       "snapshot-week-start=false",
-      "symbol-name=true",
-      "symbols-search=true",
+      "symbol-name=false",
+      "symbols-search=false",
       "ticker-quotes=false",
-      "validate-and-record-pick=true"
+      "validate-and-record-pick=false"
     ],
     "dbSnapshot": "sha256:809a3f101b793ffcafe544c233dd5c086aff77b2a06ae0230c6a9eb2134c89d1"
   }
