@@ -2,55 +2,47 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "88b5a2b26732cafa19d5c7c2dcff635f4dfe39aa",
-    "commitShort": "88b5a2b2",
+    "commit": "f10fd60e80fc7d2054213f9d908dd16dd6a23ffc",
+    "commitShort": "f10fd60e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/phase4b-verify-jwt-in-code",
+    "branch": "chore/retire-send-notification",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/delete-account/index.ts"
+        "path": "apps/mobile/ARCHITECTURE.md"
       },
       {
         "code": "M",
-        "path": "supabase/functions/draft-control/index.ts"
+        "path": "apps/mobile/lib/shell/notificationRoute.ts"
       },
       {
         "code": "M",
-        "path": "supabase/functions/join-league/index.ts"
+        "path": "supabase/config.toml"
       },
       {
         "code": "M",
-        "path": "supabase/functions/leave-league/index.ts"
+        "path": "supabase/functions/_shared/push-copy.ts"
       },
       {
         "code": "M",
-        "path": "supabase/functions/preview-league/index.ts"
+        "path": "supabase/functions/_shared/push.ts"
       },
       {
-        "code": "M",
-        "path": "supabase/functions/record-trade/index.ts"
-      },
-      {
-        "code": "M",
+        "code": "D",
         "path": "supabase/functions/send-notification/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/validate-and-record-pick/index.ts"
       }
     ],
-    "timestamp": "2026-11-16T19:03:45Z",
-    "sourceHash": "sha256:93f2d8aaef2ec246cf933778baced4ac2f47d23976615ae4130990232bec3feb",
+    "timestamp": "2026-11-16T19:23:16Z",
+    "sourceHash": "sha256:14b206366b6cba94dcf8d8368dbdef7231b4e03a4f39377aa3bb11207ef86e89",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-14T03:39:10Z",
-    "ageHours": 63.4,
-    "ageDays": 2.6,
+    "ageHours": 63.7,
+    "ageDays": 2.7,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:809a3f101b793ffcafe544c233dd5c086aff77b2a06ae0230c6a9eb2134c89d1",
@@ -1120,36 +1112,6 @@
       "source": {
         "path": "supabase/functions/refresh-symbols/index.ts",
         "line": 86
-      }
-    },
-    {
-      "layer": "edge",
-      "facts": {
-        "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:341",
-        "authGuard": null,
-        "userGuard": "in-code getUser (a real signed-in user)",
-        "localModules": [],
-        "tests": [],
-        "envVars": [
-          "SB_PUBLISHABLE_KEY",
-          "SB_SECRET_KEY_INTERNAL",
-          "SUPABASE_URL"
-        ],
-        "lines": 273
-      },
-      "db": null,
-      "declared": null,
-      "drift": [],
-      "annotation": null,
-      "verified": true,
-      "id": "fn.send-notification",
-      "label": "send-notification",
-      "sublabel": "verify_jwt=false · user guard",
-      "kind": "edge-function",
-      "source": {
-        "path": "supabase/functions/send-notification/index.ts",
-        "line": 165
       }
     },
     {
@@ -12884,82 +12846,6 @@
     {
       "annotation": null,
       "verified": true,
-      "id": "e.fn.send-notification->pg.check_and_bump_rate_limit",
-      "from": "fn.send-notification",
-      "to": "pg.check_and_bump_rate_limit",
-      "protocol": "postgrest-rpc",
-      "payload": "rpc('check_and_bump_rate_limit')",
-      "callSites": [
-        "supabase/functions/send-notification/index.ts:101",
-        "supabase/functions/send-notification/index.ts:104"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.fn.send-notification->tbl.league_members",
-      "from": "fn.send-notification",
-      "to": "tbl.league_members",
-      "protocol": "postgrest-select",
-      "payload": ".from('league_members').select('user_id')",
-      "columns": [
-        "user_id"
-      ],
-      "callSites": [
-        "supabase/functions/send-notification/index.ts:216",
-        "supabase/functions/send-notification/index.ts:222"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.fn.send-notification->tbl.leagues",
-      "from": "fn.send-notification",
-      "to": "tbl.leagues",
-      "protocol": "postgrest-select",
-      "payload": ".from('leagues').select('name')",
-      "columns": [
-        "name"
-      ],
-      "callSites": [
-        "supabase/functions/send-notification/index.ts:231"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.fn.send-notification->tbl.push_tokens",
-      "from": "fn.send-notification",
-      "to": "tbl.push_tokens",
-      "protocol": "postgrest-select",
-      "payload": ".from('push_tokens').select('token')",
-      "columns": [
-        "token"
-      ],
-      "callSites": [
-        "supabase/functions/send-notification/index.ts:153"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
-      "id": "e.fn.send-notification->tbl.user_profiles",
-      "from": "fn.send-notification",
-      "to": "tbl.user_profiles",
-      "protocol": "postgrest-select",
-      "payload": ".from('user_profiles').select('notifications_enabled')",
-      "columns": [
-        "expo_push_token",
-        "notifications_enabled"
-      ],
-      "callSites": [
-        "supabase/functions/send-notification/index.ts:148",
-        "supabase/functions/send-notification/index.ts:159"
-      ]
-    },
-    {
-      "annotation": null,
-      "verified": true,
       "id": "e.fn.snapshot-week-end->ext.alpaca-data",
       "from": "fn.snapshot-week-end",
       "to": "ext.alpaca-data",
@@ -23298,20 +23184,6 @@
   ],
   "deadCode": [
     {
-      "node": "fn.send-notification",
-      "label": "send-notification",
-      "kind": "edge-function",
-      "source": "supabase/functions/send-notification/index.ts:165",
-      "outbound": [
-        "pg.check_and_bump_rate_limit",
-        "tbl.league_members",
-        "tbl.leagues",
-        "tbl.push_tokens",
-        "tbl.user_profiles"
-      ],
-      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
-    },
-    {
       "node": "pg._account_deletion_apple_rank",
       "label": "_account_deletion_apple_rank(p_state text)",
       "kind": "pg-function",
@@ -24178,12 +24050,12 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 323,
-    "edges": 782,
+    "nodes": 322,
+    "edges": 777,
     "flows": 7,
     "drift": 34,
     "driftHigh": 0,
-    "deadCode": 63,
+    "deadCode": 62,
     "unverified": 11
   },
   "sourceIndex": {
@@ -24204,7 +24076,6 @@
       "record-trade[commit.ts,gate.ts]",
       "refresh-market-calendar[plan.ts,run.ts]",
       "refresh-symbols[]",
-      "send-notification[]",
       "snapshot-week-end[close.ts]",
       "snapshot-week-start[plan.ts]",
       "symbol-name[]",
@@ -24357,8 +24228,6 @@
       "supabase/functions/record-trade/index.ts:167 -> check_and_bump_rate_limit",
       "supabase/functions/record-trade/index.ts:463 -> record_trade_atomic",
       "supabase/functions/refresh-market-calendar/index.ts:166 -> apply_market_calendar",
-      "supabase/functions/send-notification/index.ts:101 -> check_and_bump_rate_limit",
-      "supabase/functions/send-notification/index.ts:104 -> check_and_bump_rate_limit",
       "supabase/functions/snapshot-week-end/index.ts:126 -> schedule_snapshot_retry",
       "supabase/functions/snapshot-week-start/index.ts:143 -> schedule_snapshot_retry",
       "supabase/functions/validate-and-record-pick/index.ts:128 -> check_and_bump_rate_limit",
@@ -24528,9 +24397,9 @@
       "supabase/functions/_shared/job-status-io.ts:99 -> cron_job_status.upsert",
       "supabase/functions/_shared/notice-delivery.ts:46 -> league_notifications.update",
       "supabase/functions/_shared/notice-delivery.ts:70 -> league_notifications.update",
-      "supabase/functions/_shared/push.ts:49 -> user_profiles.select",
-      "supabase/functions/_shared/push.ts:54 -> push_tokens.select",
-      "supabase/functions/_shared/push.ts:60 -> user_profiles.select",
+      "supabase/functions/_shared/push.ts:51 -> user_profiles.select",
+      "supabase/functions/_shared/push.ts:56 -> push_tokens.select",
+      "supabase/functions/_shared/push.ts:62 -> user_profiles.select",
       "supabase/functions/_shared/turn-lease.ts:78 -> draft_turn_leases.delete",
       "supabase/functions/delete-account/index.ts:71 -> rate_limit_counters.select",
       "supabase/functions/draft-control/index.ts:174 -> leagues.select",
@@ -24587,12 +24456,6 @@
       "supabase/functions/record-trade/index.ts:345 -> league_members.select",
       "supabase/functions/record-trade/index.ts:422 -> symbols.select",
       "supabase/functions/refresh-symbols/index.ts:171 -> symbols.upsert",
-      "supabase/functions/send-notification/index.ts:148 -> user_profiles.select",
-      "supabase/functions/send-notification/index.ts:153 -> push_tokens.select",
-      "supabase/functions/send-notification/index.ts:159 -> user_profiles.select",
-      "supabase/functions/send-notification/index.ts:216 -> league_members.select",
-      "supabase/functions/send-notification/index.ts:222 -> league_members.select",
-      "supabase/functions/send-notification/index.ts:231 -> leagues.select",
       "supabase/functions/snapshot-week-end/index.ts:270 -> trades.select",
       "supabase/functions/snapshot-week-end/index.ts:297 -> matchups.select",
       "supabase/functions/snapshot-week-end/index.ts:393 -> leagues.select",
@@ -24839,7 +24702,6 @@
       "record-trade=false",
       "refresh-market-calendar=false",
       "refresh-symbols=false",
-      "send-notification=false",
       "snapshot-week-end=false",
       "snapshot-week-start=false",
       "symbol-name=false",

@@ -153,7 +153,7 @@ Deno.test({
       assertEquals(grants.length, 0);
     });
 
-    await t.step('service_role (send-notification\'s admin client) reads any token', async () => {
+    await t.step('service_role (the edge functions\' admin client, _shared/push.ts) reads any token', async () => {
       // service_role bypasses RLS in Supabase via BYPASSRLS; PGlite's replica role
       // lacks that attribute, so grant it here the way Supabase defines the role.
       await db.exec(`alter role service_role bypassrls`);
