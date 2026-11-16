@@ -11,6 +11,8 @@ import { seamRpc } from '@/lib/game/seamCalls';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { keepDots } from '@/lib/game/keepDots';
 import { QueueRow } from '@/components/game/QueueRow';
+import { QueueSearchRow } from '@/components/game/QueueSearchRow';
+import { blurReturnsToRow, queueSearchMode } from '@/lib/game/queueSearchRow';
 import { useQueueQuotes } from '@/lib/game/useQueueQuotes';
 import { useQueueMarketLine } from '@/lib/game/useQueueMarketLine';
 import { useCaptureAction } from '@/lib/money/captureScript';
@@ -81,6 +83,14 @@ export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAF
   const queue = view.list;
   const edit = (f: (q: string[]) => string[]) => machine.edit(f(machine.snapshot().list));
   const [search, setSearch] = useState('');
+  // Board #call-queue-card, B: the search is the list's last row until you tap it (then it is the boxed field in place, focused), and
+  // back to the row on a blur with nothing typed or after a pick. `searchText` is read at blur time (the pick empties it just before).
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchText = useRef('');
+  searchText.current = search;
+  // DEV capture only: the same tap on the row (the boxed field mounts, focused; then "typeq:n" types into it).
+  useCaptureAction('queuesearch', () => setSearchOpen(true));
+  const searchMode = queueSearchMode({ queueLength: queue.length, open: searchOpen, text: search });
   // The company and the draft search's price for every queued stock, read when the card opens (and for a stock added later).
   const { names, prices } = useQueueQuotes(queue);
   const closedLine = useQueueMarketLine();
@@ -94,6 +104,7 @@ export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAF
     if (!r.selectable) return;
     edit((q) => addSymbol(q, r.symbol));
     setSearch('');
+    setSearchOpen(false);
   };
 
   return (
@@ -116,8 +127,21 @@ export function QueueEditor({ leagueId, initial, onSaved, drafted = NOTHING_DRAF
           />
         ))}
       </View>
-      {queue.length < QUEUE_MAX ? (
-        <SymbolSearchField value={search} onChangeText={setSearch} onSelect={onSelect} selectedSymbol="" ownedSymbols={NO_OWNED_SYMBOLS} captureAction="typeq" clearOnSelect />
+      {searchMode === 'row' ? <QueueSearchRow onPress={() => setSearchOpen(true)} /> : null}
+      {searchMode === 'field' ? (
+        <SymbolSearchField
+          value={search}
+          onChangeText={setSearch}
+          onSelect={onSelect}
+          selectedSymbol=""
+          ownedSymbols={NO_OWNED_SYMBOLS}
+          captureAction="typeq"
+          clearOnSelect
+          autoFocus={searchOpen}
+          onBlur={() => {
+            if (blurReturnsToRow(searchText.current)) setSearchOpen(false);
+          }}
+        />
       ) : null}
       {/* Board #call-queue-save, B when a save fails: the app's existing line in place, then Try again. The list
           above stays exactly as you left it; a secondary pill, so the room's one primary stays Draft. */}

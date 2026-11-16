@@ -34,7 +34,7 @@ import { useSymbolCategories } from '@/lib/game/useSymbolCategories';
 import { keepDots, keepMoney } from '@/lib/game/keepDots';
 import { PICK_LOG_MAX_SCALE, pickLogLabelText, pickLogLayout } from '@/lib/game/pickLogRow';
 import { DraftBoard } from '@/components/game/DraftBoard';
-import { PICK_SENDING, YOUR_ROSTER, afterPickLine, budgetLeft, isAutoPick, myDraftedSoFar, pickClockLabel, pickRowView, pickRefusalView, AUTO_PICK_WAITING_FOR_PRICES, picksUntilYouLine, rosterCaption, roundPickLine, liveClock } from '@/lib/game/draftRoom';
+import { PICK_SENDING, YOUR_ROSTER, budgetLeft, isAutoPick, myDraftedSoFar, pickClockLabel, pickRowView, pickRefusalView, AUTO_PICK_WAITING_FOR_PRICES, rosterCaption, roundPickLine, liveClock, turnCardLabel, turnCardView } from '@/lib/game/draftRoom';
 import { TeamSoFarGrid } from '@/components/home/TeamSoFarGrid';
 import { DraftRoomSkeleton } from '@/components/game/LoadingSkeletons';
 import { DraftComplete } from '@/components/game/DraftComplete';
@@ -429,6 +429,9 @@ export function DraftRoom({ leagueId, myUserId, rounds, stakeMode = null, budget
   // like the then blank blank picked twice") and no "60-second picks" ("I don't think it needs
   // that last thing at the bottom"). Everything else stays, the your-next-pick lines included.
   const roundLine = roundPickLine(round, rounds, onClockPick);
+  // Waiting for prices: someone else's turn swaps it in for the line about you (turnCardView); your own turn keeps the caption under the card.
+  const waitingNow = waitingForPrices === onClockPick && !stalled;
+  const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway, stalled: stalled !== null, waitingForPrices: waitingNow });
 
   return (
     <View style={styles.stack}>
@@ -457,23 +460,29 @@ export function DraftRoom({ leagueId, myUserId, rounds, stakeMode = null, budget
               />
             </View>
           ) : null}
-          <View style={[styles.clockText, largeText ? styles.clockTextStacked : null]} accessible accessibilityLabel={[headline, clockLabel, roundLine].filter(Boolean).join(', ')} accessibilityRole={onTheClock ? 'header' : undefined}>
-            {onTheClock ? (
-              <Text variant="display" numberOfLines={2} style={styles.yourTurnTitle} color={titleRest} animatedStyle={titleInk}>{headline}</Text>
-            ) : (
-              <Text variant="headline" style={styles.headline}>{headline}</Text>
-            )}
-            <Text variant="callout" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone={isMyTurn ? undefined : 'secondary'} style={isMyTurn ? styles.bold : null} animatedStyle={onTheClock ? bodyInk : undefined}>{keepDots(roundLine)}</Text>
+          {/* Board #call-draft-turn, B: someone else's turn reads round (the small label), headline, then ONE line about you; your own
+              turn is as it was. The group is the round, the headline and the clock for VoiceOver; the line about you is its own
+              element after it (it keeps its live region, so a pick landing is announced). */}
+          <View style={[styles.clockText, largeText ? styles.clockTextStacked : null]}>
+            <View style={styles.turnGroup} accessible accessibilityLabel={turnCardLabel(turn, headline, clockLabel)} accessibilityRole={onTheClock ? 'header' : undefined}>
+              {turn.tag ? <Text variant="tag" tone="secondary" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} testID="turn-round-tag">{keepDots(turn.tag)}</Text> : null}
+              {onTheClock ? (
+                <Text variant="display" numberOfLines={2} style={styles.yourTurnTitle} color={titleRest} animatedStyle={titleInk}>{headline}</Text>
+              ) : (
+                <Text variant="headline" style={styles.headline}>{headline}</Text>
+              )}
+              {turn.roundUnder ? <Text variant="callout" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} style={styles.bold} animatedStyle={onTheClock ? bodyInk : undefined}>{keepDots(turn.roundUnder)}</Text> : null}
+            </View>
+            {turn.under ? (
+              turn.under.mine ? (
+                <Text variant="callout" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} color={colors.youText} style={styles.bold} accessibilityLiveRegion="polite" testID="turn-under-line">{keepDots(turn.under.text)}</Text>
+              ) : (
+                <Text variant="callout" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary" testID="turn-under-line">{keepDots(turn.under.text)}</Text>
+              )
+            ) : null}
           </View>
         </View>
-        {/* The board's "After the pick" state (U-09): once you have a recorded pick and are waiting. */}
-        {!isMyTurn && lastMine && afterPickLine(lastMine, picksAway, lastMineAuto) ? (
-          <Text variant="callout" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} color={colors.youText} style={styles.bold} accessibilityLiveRegion="polite">{keepDots(afterPickLine(lastMine, picksAway, lastMineAuto) ?? '')}</Text>
-        ) : null}
-        {!isMyTurn && !lastMine && picksUntilYouLine(picksAway) ? (
-          <Text variant="callout" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary">{picksUntilYouLine(picksAway)}</Text>
-        ) : null}
-        {waitingForPrices === onClockPick && !stalled ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary" animatedStyle={onTheClock ? captionInk : undefined}>{AUTO_PICK_WAITING_FOR_PRICES}</Text> : null}
+        {waitingNow && isMyTurn ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary" animatedStyle={onTheClock ? captionInk : undefined}>{AUTO_PICK_WAITING_FOR_PRICES}</Text> : null}
       </Card>
       </View>
 
@@ -588,6 +597,7 @@ const styles = StyleSheet.create({
   // The ring beside the headline (the board's 14 between them); stacked at large text.
   clockRow: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   clockRowStacked: { flexDirection: 'column', alignItems: 'flex-start' },
+  turnGroup: { gap: space[1] },
   clockText: { flex: 1, gap: space[1], alignSelf: 'stretch', justifyContent: 'center' },
   // Stacked, the block is sized by its text: `flex: 1` in a column grew it into an empty gap (XL capture).
   clockTextStacked: { flex: 0 },

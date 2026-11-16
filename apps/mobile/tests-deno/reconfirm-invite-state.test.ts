@@ -160,10 +160,10 @@ Deno.test("the 'invite' fixture carries choice 'invite' on the reconfirm blocker
 });
 
 Deno.test('EXPO_PUBLIC_DRAFT_START_FIXTURE takes an :invite flag, alone or with :member', () => {
-  assertEquals(parseDraftStartFixture('at_risk:invite'), { state: 'at_risk', member: false, invite: true, below4: false });
-  assertEquals(parseDraftStartFixture('at_risk:member:invite'), { state: 'at_risk', member: true, invite: true, below4: false });
-  assertEquals(parseDraftStartFixture('at_risk:invite:member'), { state: 'at_risk', member: true, invite: true, below4: false });
-  assertEquals(parseDraftStartFixture('at_risk'), { state: 'at_risk', member: false, invite: false, below4: false });
+  assertEquals(parseDraftStartFixture('at_risk:invite'), { state: 'at_risk', member: false, invite: true, below4: false, single: false });
+  assertEquals(parseDraftStartFixture('at_risk:member:invite'), { state: 'at_risk', member: true, invite: true, below4: false, single: false });
+  assertEquals(parseDraftStartFixture('at_risk:invite:member'), { state: 'at_risk', member: true, invite: true, below4: false, single: false });
+  assertEquals(parseDraftStartFixture('at_risk'), { state: 'at_risk', member: false, invite: false, below4: false, single: false });
   const res = invokeFixtureFor('draft-control', { action: 'status' }, 'postponed:invite', null) as { data: { blockers: { code: string; choice?: string }[] } };
   assertEquals(res.data.blockers.find((b) => b.code === 'roster_reconfirm_required')?.choice, 'invite');
 });
@@ -355,7 +355,7 @@ Deno.test('with the flag, confirm_roster is refused with that reason and reads a
 Deno.test('the flag is dev-seam only: gated by SEAM_ON, handed to the fixture layer, and never read by a component', () => {
   const dev = SOURCES['lib/game/devSeam.ts'];
   assert(dev.includes('export const CAPTURE_CONFIRM_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL || null : null;'));
-  assert(SOURCES['lib/game/seamCalls.ts'].includes('DRAFT_START_FIXTURE, LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL)'));
+  assert(SOURCES['lib/game/seamCalls.ts'].includes('DRAFT_START_FIXTURE, LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL, CAPTURE_DRAFT_REFUSAL)'));
   assert(SOURCES['lib/game/seamCalls.ts'].includes('const LEAVE_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_LEAVE_FIXTURE : undefined;'));
   for (const [file, src] of Object.entries(SOURCES)) {
     if (file.startsWith('lib/game/') && ['devSeam.ts', 'seamCalls.ts', 'seamFixtures.ts', 'autoStartFixture.ts'].some((f) => file.endsWith(f))) continue;
@@ -653,9 +653,9 @@ Deno.test('the Pick-a-new-time gate still counts the server\'s blockers, not the
 // ── the dev seam's 2-of-4 league ──
 
 Deno.test('<state>:below4 is a league of two (two of four left): the server\'s two blockers, no playoff blocker, member_count 2', () => {
-  assertEquals(parseDraftStartFixture('postponed:below4'), { state: 'postponed', member: false, invite: false, below4: true });
-  assertEquals(parseDraftStartFixture('at_risk:below4:invite'), { state: 'at_risk', member: false, invite: true, below4: true });
-  assertEquals(parseDraftStartFixture('at_risk:invite:member:below4'), { state: 'at_risk', member: true, invite: true, below4: true });
+  assertEquals(parseDraftStartFixture('postponed:below4'), { state: 'postponed', member: false, invite: false, below4: true, single: false });
+  assertEquals(parseDraftStartFixture('at_risk:below4:invite'), { state: 'at_risk', member: false, invite: true, below4: true, single: false });
+  assertEquals(parseDraftStartFixture('at_risk:invite:member:below4'), { state: 'at_risk', member: true, invite: true, below4: true, single: false });
   for (const state of ['at_risk', 'postponed'] as const) {
     const s = draftStartStatusFixture(state, false, NOW, false, true) as { member_count: number; blockers: B[] };
     assertEquals(s.member_count, 2, state);
@@ -684,7 +684,7 @@ Deno.test('the seam serves it through draft-control status when the flag is in E
   const res = invokeFixtureFor('draft-control', { action: 'status' }, 'postponed:below4', null, null) as { data: { member_count: number; blockers: B[] } };
   assertEquals(res.data.member_count, 2);
   assertEquals(fixableBlockers(res.data.blockers).length, 2);
-  assert(SOURCES['lib/game/seamFixtures.ts'].includes('picked.invite, picked.below4)'));
+  assert(SOURCES['lib/game/seamFixtures.ts'].includes('picked.invite, picked.below4, picked.single)'));
 });
 
 // ── the note under "Pick a new draft time" is capped (DL gate on #358, AX5) ──

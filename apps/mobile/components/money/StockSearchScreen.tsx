@@ -27,7 +27,9 @@ import { Text } from '@/components/sp/Text';
 import { formatMoney } from '@/components/sp/logic/money';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
-import { ShellHeader } from '@/components/shell/ShellHeader';
+import { useScreenTopInset } from '@/components/shell/ScreenPresentation';
+import { useSheetScrollEdge } from '@/components/shell/useSheetScrollEdge';
+import { SHEET_EDGE_DIVIDER } from '@/components/shell/sheetBarLogic';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
@@ -67,6 +69,8 @@ export function StockSearchScreen() {
   // The scale goes in the props too, or a remounted field can reuse a recycled native view that keeps its
   // old placeholder size (remeasureKey.ts, "The PLACEHOLDER").
   const searchFont = searchRemount.fontProps(SEARCH_INPUT_FONT_SIZE);
+  const topInset = useScreenTopInset();
+  const { edge, onScroll } = useSheetScrollEdge();
   const { results, loading, error, retry } = useMoneyStockSearch(query, '');
 
   // E-3: ownership in results, from the same league-wide ledger the stock sheet
@@ -109,27 +113,20 @@ export function StockSearchScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.moneyBg }]}>
-      <ShellHeader title={COPY.stockSearchTitle} />
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        {/* E-6: one back control, "‹ Portfolio" -- the ShellHeader title never shows while
-            a league is active, so the screen's own title goes right below it. */}
-        <Pressable accessibilityRole="button" accessibilityLabel="Portfolio" onPress={() => router.back()} hitSlop={4} style={styles.back}>
-          <Icon name="chevronLeft" size="callout" tone="accent" />
-          <Text variant="callout" maxFontSizeMultiplier={SEARCH_TEXT_MAX_SCALE} color={colors.accent} style={styles.bold}>Portfolio</Text>
+      {/* Board #call-buy-top, B (Giorgio 2026-11-16): the top is ONE row, the back arrow and the search field. No league pill
+          (you buy for the league you came from), no "‹ Portfolio" text link, no title. The row sits on the screen's surface;
+          a 1pt divider shows under it once the results have scrolled. */}
+      <View style={[styles.topRow, { paddingTop: topInset + space[2], borderBottomColor: edge ? colors.border : 'transparent' }]} testID="buy-top-row">
+        <Pressable accessibilityRole="button" accessibilityLabel="Portfolio" onPress={() => router.back()} style={styles.back} testID="buy-back">
+          <Icon name="chevronLeft" size="title" tone="accent" />
         </Pressable>
-        {/* C-9 (Design Lead gate): the board's page-title size, not headline. */}
-        <Text variant="title">{COPY.stockSearchTitle}</Text>
-
         <View style={[styles.field, { backgroundColor: colors.inset, borderColor: focused ? colors.accent : colors.rim }]}>
           <Icon name="search" size="body" tone="text2" />
           <TextInput
             key={searchRemount.key}
             style={[styles.input, { color: colors.text }, searchFont && { fontSize: searchFont.fontSize }]}
             allowFontScaling={searchFont ? searchFont.allowFontScaling : undefined}
+            maxFontSizeMultiplier={SEARCH_TEXT_MAX_SCALE}
             value={query}
             // E-8 (3e UX audit): kept as typed -- matching is already case-insensitive,
             // both live (symbols-search) and in the fixture (filterStressSearchCatalog).
@@ -139,6 +136,7 @@ export function StockSearchScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             autoFocus={searchRemount.autoFocus}
+            numberOfLines={1}
             onFocus={() => {
               setFocused(true);
               searchRemount.onFocus();
@@ -150,7 +148,14 @@ export function StockSearchScreen() {
             accessibilityLabel={COPY.stockSearchPlaceholder}
           />
         </View>
-
+      </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
         {/* E-1 (3e UX audit): a failed search is its own framed state, never "no matches". */}
         {error ? (
           <LoadFailure title={COPY.stockSearchLoadTitle} message={COPY.loadRetryMessage} onRetry={retry} />
@@ -250,9 +255,10 @@ function SearchRow({ item, status, onPress }: { item: ShapedSearchResult; status
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { paddingHorizontal: space[6], paddingTop: space[2], gap: space[5], paddingBottom: space[9] },
-  back: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[1], alignSelf: 'flex-start' },
-  field: { minHeight: 48, borderRadius: radius.lg, borderWidth: 1.5, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: 14 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: space[1], paddingLeft: space[2], paddingRight: space[6], paddingBottom: space[2], borderBottomWidth: SHEET_EDGE_DIVIDER },
+  content: { paddingHorizontal: space[6], paddingTop: space[3], gap: space[5], paddingBottom: space[9] },
+  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  field: { flex: 1, minWidth: 0, minHeight: 48, borderRadius: radius.lg, borderWidth: 1.5, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: 14 },
   input: { flex: 1, minHeight: 44, fontSize: SEARCH_INPUT_FONT_SIZE, fontFamily: 'Archivo-Medium' },
   results: { gap: space[1] },
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingVertical: space[3] },

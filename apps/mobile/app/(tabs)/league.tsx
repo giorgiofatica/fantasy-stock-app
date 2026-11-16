@@ -37,7 +37,7 @@ import {
   COMMISSIONER_FALLBACK,
   DRAFT_STATUS_LOAD_FAILED,
   NO_DATE_TITLE,
-  countdownCopy,
+  leagueCountdownCopy,
   deadlineCopy,
   lobbyShowsOrder,
   memberPostponedCopy,
@@ -476,7 +476,7 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
 
         {view?.countdown && ds.startsAt ? (
           (() => {
-            const c = countdownCopy(view.countdown, ds.startsAt, serverNow);
+            const c = leagueCountdownCopy(view.countdown, ds.startsAt, serverNow);
             return (
               <DraftCountdownCard
                 tag={c.tag}

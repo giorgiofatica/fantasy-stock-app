@@ -95,6 +95,9 @@ export const FIXTURE_ACTIVE_LEAGUE: string | null = __DEV__ ? (process.env.EXPO_
 /** The League capture fixture's playoffs in progress (EXPO_PUBLIC_LEAGUE_FIXTURE=playoffs_live,
  * leagueFixture.ts): Stock Scudetto is in its playoffs. */
 export const FIXTURE_PLAYOFFS_LIVE: boolean = __DEV__ ? process.env.EXPO_PUBLIC_LEAGUE_FIXTURE === 'playoffs_live' : false;
+/** Capture only (DEV, __DEV__-gated like the knobs around it): EXPO_PUBLIC_SHELL_DRAFTING_MEMBER=1 makes the 'drafting' fixture league someone else's
+ * (Paolo is commissioner), so the draft room can be shot as a MEMBER as well as the commissioner. No other fixture reads it. */
+export const FIXTURE_DRAFTING_MEMBER: boolean = __DEV__ ? process.env.EXPO_PUBLIC_SHELL_DRAFTING_MEMBER === '1' : false;
 export const FIXTURE_LEAGUE_NAME_OVERRIDE: string | null = __DEV__ ? (process.env.EXPO_PUBLIC_SHELL_LEAGUE_NAME || null) : null;
 
 export function fixtureUsername(fixture: ShellFixture): string | null {
@@ -149,7 +152,7 @@ export function fixtureLeagues(fixture: ShellFixture, renewalCaller: RenewalCall
   if (fixture === 'leagues-failed-once') fixture = 'leagues';
   if (fixture === 'drafting') {
     // One league, so it is necessarily the active one (no persisted id wins).
-    const l = league({ id: 'fx-drafting', name: 'Serie A Traders', num_participants: 8, draft_status: 'in_progress', league_start_date: null, current_week: 1 });
+    const l = league({ id: 'fx-drafting', name: 'Serie A Traders', num_participants: 8, draft_status: 'in_progress', league_start_date: null, current_week: 1, ...(FIXTURE_DRAFTING_MEMBER ? { commissioner_id: 'paolo' } : {}) });
     return {
       leagues: [l],
       sheet: [

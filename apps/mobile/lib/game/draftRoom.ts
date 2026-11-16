@@ -149,6 +149,44 @@ export function afterPickLine(symbol: string, picksAway: number, auto = false): 
   return `${lead} · you're up in ${picksAway} ${picksAway === 1 ? 'pick' : 'picks'}`;
 }
 
+/** The draft room's auto-pick backstop came back "price_unavailable" (audit
+ * Rule 8 table, NEW): shown in the clock card, no next step. */
+export const AUTO_PICK_WAITING_FOR_PRICES = 'Auto-pick is waiting for prices.';
+
+/**
+ * What the draft room's turn card says around its headline (board #call-draft-turn, B; Giorgio 2026-11-16, "B"). While SOMEONE ELSE
+ * is up, "Round 2 of 6 · Pick 11" is the card's small label ABOVE "Sofia is up", and exactly one line about you sits UNDER the
+ * headline: "3 picks until you" (secondary) before your first pick, or "You took NVDA · you're up in 3 picks" (your colour, bold)
+ * after it. Never both. On YOUR turn nothing moves: no label, the round line under "You're on the clock", no line about you.
+ * The strings are the existing ones (roundPickLine, picksUntilYouLine, afterPickLine); nothing new is worded here.
+ *
+ * A STALLED turn shows ONE label (the Design Lead's ruling on the gate, 2026-11-16): "Draft paused" only, so the round label is hidden there (the
+ * headline already names whose slot). "Auto-pick is waiting for prices" carries no tag of its own, so that state keeps the round label.
+ *
+ * WAITING FOR PRICES (the DL's P2 on the final gate, 2026-11-16): while the turn waits for prices, "Auto-pick is waiting for prices." REPLACES the line about
+ * you (never stacked under it, so the card never has two lines under the headline); when prices return the line about you comes back. Your own turn is
+ * unchanged: it has no line about you, and the caption stays under the card as before.
+ */
+export interface TurnCardView {
+  /** The small label above the headline (someone else's turn only). */
+  tag: string | null;
+  /** The round line under the headline (your own turn only, as before). */
+  roundUnder: string | null;
+  /** The one line about you under the headline (someone else's turn only), or null (none: you have no pick left, or it is your turn). */
+  under: { text: string; mine: boolean } | null;
+}
+export function turnCardView(a: { isMyTurn: boolean; roundLine: string; lastMine: string | null; lastMineAuto: boolean; picksAway: number; stalled?: boolean; waitingForPrices?: boolean }): TurnCardView {
+  if (a.isMyTurn) return { tag: null, roundUnder: a.roundLine, under: null };
+  if (a.waitingForPrices && !a.stalled) return { tag: a.roundLine, roundUnder: null, under: { text: AUTO_PICK_WAITING_FOR_PRICES, mine: false } };
+  const text = a.lastMine ? afterPickLine(a.lastMine, a.picksAway, a.lastMineAuto) : picksUntilYouLine(a.picksAway);
+  return { tag: a.stalled ? null : a.roundLine, roundUnder: null, under: text ? { text, mine: !!a.lastMine } : null };
+}
+
+/** VoiceOver reads the turn card's group as: the round, then the headline, then the clock; your own turn keeps its order (headline, clock, round). */
+export function turnCardLabel(v: Pick<TurnCardView, 'tag' | 'roundUnder'>, headline: string, clockLabel: string | null | undefined): string {
+  return (v.tag ? [v.tag, headline, clockLabel] : [headline, clockLabel, v.roundUnder]).filter(Boolean).join(', ');
+}
+
 /** The Draft button while the pick is on its way (UX rule 9). NEW. */
 export const PICK_SENDING = 'Sending…';
 /** The pick's outcome is unknown (a transport error, no answer): never "That pick
@@ -252,6 +290,3 @@ export function pickRefusalView(reason: string | null, status: number | null, ct
   };
 }
 
-/** The draft room's auto-pick backstop came back "price_unavailable" (audit
- * Rule 8 table, NEW): shown in the clock card, no next step. */
-export const AUTO_PICK_WAITING_FOR_PRICES = 'Auto-pick is waiting for prices.';

@@ -18,11 +18,11 @@ const iso = (ms: number) => new Date(ms).toISOString();
 export const DRAFT_START_FIXTURE_STATES: readonly StartState[] = ['no_date', 'scheduled', 'at_risk', 'room_open', 'due', 'postponed', 'started'];
 
 /** "at_risk" / "postponed:member" / "at_risk:invite" / "postponed:below4" → the state, the viewer, the reconfirm choice and the size; null if unknown. */
-export function parseDraftStartFixture(raw: string | null | undefined): { state: StartState; member: boolean; invite: boolean; below4: boolean } | null {
+export function parseDraftStartFixture(raw: string | null | undefined): { state: StartState; member: boolean; invite: boolean; below4: boolean; single: boolean } | null {
   if (!raw) return null;
   const [state, ...flags] = raw.split(':');
   if (!(DRAFT_START_FIXTURE_STATES as readonly string[]).includes(state)) return null;
-  return { state: state as StartState, member: flags.includes('member'), invite: flags.includes('invite'), below4: flags.includes('below4') };
+  return { state: state as StartState, member: flags.includes('member'), invite: flags.includes('invite'), below4: flags.includes('below4'), single: flags.includes('single') };
 }
 
 const sofiaLeft = (choice: 'pending' | 'invite') => ({ code: 'roster_reconfirm_required', departed: [{ name: 'Sofia F.' }], membersBefore: 8, members: 7, choice });
@@ -69,7 +69,7 @@ export function fixtureOrderSet(state: StartState): boolean {
   return state === 'room_open' || state === 'due' || state === 'started';
 }
 
-export function draftStartStatusFixture(state: StartState, member: boolean, nowMs: number, invite = false, below4 = false): Record<string, unknown> {
+export function draftStartStatusFixture(state: StartState, member: boolean, nowMs: number, invite = false, below4 = false, single = false): Record<string, unknown> {
   const choice = invite ? 'invite' : 'pending';
   // The reconfirm and its companion blockers, in the server's order: the sample's (Sofia, 8 playoff teams in 7) or rule B's (2 of 4).
   const LEFT = below4 ? twoOfFourLeft(choice) : sofiaLeft(choice);
@@ -86,7 +86,8 @@ export function draftStartStatusFixture(state: StartState, member: boolean, nowM
     }
     case 'at_risk': {
       const t = fixtureStartsAtMs('at_risk', nowMs) as number;
-      return { ...base, can_start: false, start_state: 'at_risk', starts_at: iso(t), blockers: [LEFT, COMPANION, notReached(t)] };
+      // `single` (at_risk only): ONE fix card (the reconfirm), for the blockers card's captures: "at_risk:single".
+      return { ...base, can_start: false, start_state: 'at_risk', starts_at: iso(t), blockers: single ? [LEFT, notReached(t)] : [LEFT, COMPANION, notReached(t)] };
     }
     case 'room_open': {
       const t = fixtureStartsAtMs('room_open', nowMs) as number;

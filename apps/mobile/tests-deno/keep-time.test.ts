@@ -14,7 +14,7 @@ import { assert, assertEquals, assertNotEquals } from 'jsr:@std/assert';
 import { NBSP, keepDots, keepDotsIn, keepMoney, keepTime } from '../lib/game/keepDots.ts';
 import { endsAtLabel, marketResumesAt, nextWeekStartsLabel, preSeasonStartsLabel } from '../lib/home/homeCopy.ts';
 import { draftDateTimeLabel } from '../lib/home/draftCountdown.ts';
-import { blockersCardCopy, countdownCopy, deadlineCopy, etTimeLabel, etWhenLabel, pickerLine } from '../lib/game/autoStart.ts';
+import { blockersCardCopy, countdownCopy, leagueCountdownCopy, deadlineCopy, etTimeLabel, etWhenLabel, pickerLine } from '../lib/game/autoStart.ts';
 import { leaveRowView, leaveSheetCopy } from '../lib/game/leaveLeague.ts';
 import { weekOneLine } from '../lib/game/draftComplete.ts';
 import { marketOpensLabel } from '../lib/money/marketOpensLabel.ts';
@@ -115,9 +115,10 @@ Deno.test('every clock time the app draws in wrapping text never splits at any w
     'Portfolio pre-draft date': preDraftPortfolio('not_started', DRAFT)?.hook?.kind === 'date' ? (preDraftPortfolio('not_started', DRAFT)!.hook as { label: string }).label : '',
     'Draft countdown (scheduled) line 1': countdownCopy('scheduled', DRAFT, SUNDAY).lines[0],
     'Draft countdown (room open)': countdownCopy('room_open', DRAFT, SUNDAY).lines[0],
+    'League draft card tag (scheduled)': leagueCountdownCopy('scheduled', DRAFT, SUNDAY).tag,
+    'League draft card tag (room open)': leagueCountdownCopy('room_open', DRAFT, SUNDAY).tag,
     'Commissioner deadline line': deadlineCopy(DRAFT, SUNDAY).line,
     'Blockers (risk) tag': blockersCardCopy('risk', etTimeLabel(Date.parse(DRAFT))).tag ?? '',
-    'Blockers (risk) line': blockersCardCopy('risk', etTimeLabel(Date.parse(DRAFT))).line ?? '',
     'Draft picker line': pickerLine(Date.parse(DRAFT), SUNDAY - 3 * 86400000).value,
     'League settings Leave row': leaveRowView('before_draft', false, DRAFT).sub ?? '',
     'Leave sheet bullet': leaveSheetCopy('before_draft', { leagueName: 'Stock Scudetto', commissionerName: 'Giorgio F.', seasonNumber: 1, draftDate: DRAFT, memberCount: 5 })?.bullets[1] ?? '',

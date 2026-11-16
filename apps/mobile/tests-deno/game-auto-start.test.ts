@@ -200,7 +200,8 @@ Deno.test('blockers card, at risk (board BlockersCard risk)', () => {
   assertEquals(blockersCardCopy('risk', '6:00 PM ET'), {
     tag: 'Needs you before 6:00 PM ET',
     title: 'The draft can’t start yet',
-    line: 'Fix these before 6:00 PM ET, when the draft room opens. If they’re still open then, the draft is postponed.',
+    // Board #call-blockers-card, A (Giorgio 2026-11-16): both sentences are cut; the eyebrow and the title stay.
+    line: null,
   });
 });
 

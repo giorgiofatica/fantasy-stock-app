@@ -203,6 +203,21 @@ export function symbolsSearchFixture(body: Record<string, unknown>): { items: { 
   return { items };
 }
 
+/** The refusal reasons EXPO_PUBLIC_CAPTURE_DRAFT_REFUSAL can seed, each for the ONE call the real server refuses with it. */
+export const CAPTURE_DRAFT_REFUSALS: Readonly<Record<string, { fn: string; action: string }>> = {
+  stalled: { fn: 'validate-and-record-pick', action: 'auto_pick' },
+  price_unavailable: { fn: 'validate-and-record-pick', action: 'auto_pick' },
+  draft_start_retrying: { fn: 'draft-control', action: 'start' },
+};
+
+/** A seeded refusal for this call, or null: `{ ok: false, reason }` (the shape readFunctionRefusal reads) when the knob names a known reason
+ * AND this is the call the server refuses with it. Pure and string-free: the words on screen are the app's own. */
+export function captureDraftRefusal(fn: string, body: Record<string, unknown>, reason: string | null | undefined): { data: { ok: false; reason: string }; error: null } | null {
+  const rule = reason ? CAPTURE_DRAFT_REFUSALS[reason] : undefined;
+  if (!reason || !rule || rule.fn !== fn || body.action !== rule.action) return null;
+  return { data: { ok: false, reason }, error: null };
+}
+
 /** The fixture for a function invocation (validate-and-record-pick, draft-control), or null. */
 export function invokeFixtureFor(
   fn: string,
@@ -214,7 +229,11 @@ export function invokeFixtureFor(
   leaveFixture?: string | null,
   /** EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL: confirm_roster is refused with this reason (autoStartFixture). Unset: it saves. */
   confirmRefusal?: string | null,
+  /** EXPO_PUBLIC_CAPTURE_DRAFT_REFUSAL: stalled / price_unavailable / draft_start_retrying (captureDraftRefusal). Unset: no refusal. */
+  draftRefusal?: string | null,
 ): { data: unknown; error: null } | null {
+  const refused = captureDraftRefusal(fn, body, draftRefusal);
+  if (refused) return refused;
   if (fn === 'leave-league') return { data: leaveLeagueFixture(body, leaveFixture), error: null };
   if (fn === 'symbols-search') return { data: Array.isArray(body.symbols) ? symbolsBatchFixture(body) : symbolsSearchFixture(body), error: null };
   if (fn === 'validate-and-record-pick') {
@@ -234,7 +253,7 @@ export function invokeFixtureFor(
     if (body.action === 'confirm_roster' && confirmRefusal) return { data: confirmRosterRefusalFixture(confirmRefusal), error: null };
     if (body.action === 'confirm_roster') return { data: { ok: true, members: 7, playoff_teams: body.playoff_teams ?? 6 }, error: null };
     const picked = parseDraftStartFixture(draftStartFixture);
-    if (picked) return { data: draftStartStatusFixture(picked.state, picked.member, Date.now(), picked.invite, picked.below4), error: null };
+    if (picked) return { data: draftStartStatusFixture(picked.state, picked.member, Date.now(), picked.invite, picked.below4, picked.single), error: null };
     return { data: { ok: true, can_start: true, blockers: [], is_commissioner: true, member_count: 6, min_members: 4 }, error: null };
   }
   return null;
