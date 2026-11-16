@@ -301,7 +301,7 @@ Deno.test('the clock card\'s headline outranks its other lines at every text siz
   const room = SOURCES['components/game/DraftRoom.tsx'];
   const card = room.slice(room.indexOf('<Card style={[styles.card, onTheClock ?'), room.indexOf('<DraftBoard'));
   const lines = card.match(/<Text variant="(callout|caption)"[^>]*>/g) ?? [];
-  assertEquals(lines.length, 5); // "N-second picks" left the card (Giorgio, 2026-10-13)
+  assertEquals(lines.length, 4); // "N-second picks" left the card (Giorgio, 2026-10-13); the stalled line too (rule 12, 2026-11-16)
   for (const l of lines) assert(l.includes('maxFontSizeMultiplier={CARD_LINE_MAX_SCALE}'), l);
 });
 
@@ -339,7 +339,7 @@ Deno.test('the clock card: the headline and "Round X of Y · Pick N" only: no ",
   assert(room.includes('accessibilityLabel={[headline, clockLabel, roundLine].filter(Boolean).join(\', \')}'));
   // The ring and the status lines stay.
   assert(card.includes('<ClockRing'));
-  assert(card.includes('{stalled?.line ?'));
+  assert(!card.includes('stalled?.line'), 'rule 12: the stalled line is cut');
   assert(card.includes('{AUTO_PICK_WAITING_FOR_PRICES}'));
   // Exactly those two went: on someone else's card the lines that say when you're up stay
   // (U-09 "You took AAPL · you're up in 2 picks", UX rule 10 "N picks until you").

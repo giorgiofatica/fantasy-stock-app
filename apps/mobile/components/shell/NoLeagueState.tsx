@@ -15,7 +15,6 @@ import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 
 export const NO_LEAGUE_COPY = {
   heading: 'No leagues yet',
-  message: 'Create or join a league to get started.',
   create: 'Create a league',
   join: 'Join with a code',
 } as const;
@@ -26,7 +25,6 @@ export function NoLeagueState({ title, onRefresh }: { title: string; onRefresh?:
       title={title}
       icon={() => <Icon name="trophy" size="title" tone="text2" />}
       heading={NO_LEAGUE_COPY.heading}
-      message={NO_LEAGUE_COPY.message}
       actionLabel={NO_LEAGUE_COPY.create}
       onAction={() => router.push('/create-league')}
       secondaryActionLabel={NO_LEAGUE_COPY.join}

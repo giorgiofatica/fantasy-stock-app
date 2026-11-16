@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { seamRpc } from '@/lib/game/seamCalls';
 import {
   groupCopy, countsLine, draftDisabled, nudgeWindow, orderRoster, buildNonReplySheet, askedLine, nudgedLine, type SheetAction, waitingOnSentence,
-  rosterView, rosterCommissionerName, MEMBER_DRAFT_LINE, RUNNING_BACK_BANNER, CHANGE_ANSWER } from '@/lib/game/renewal';
+  rosterView, rosterCommissionerName, RUNNING_BACK_BANNER, CHANGE_ANSWER } from '@/lib/game/renewal';
 import type { RosterResult } from '@/lib/game/useRenewalRoster';
 import { yourNameStyle, yourRowTint, youA11y } from '@/lib/game/managerRow';
 import { useAuth } from '@/lib/useAuth';
@@ -32,8 +32,8 @@ export interface RenewalRosterProps {
 /** Who's running back (R5 for the commissioner, R6 read-only for a member who is
  * in). The order is Season 1's. A non-reply's actions open the native sheet (R7).
  * GS-10 (board RibMemberList): the draft card is the commissioner's; a member who is
- * in gets "You're running back" with Change (until the draft is set) and the board's
- * line under the list. What shows is decided in rosterView (lib/game/renewal). */
+ * in gets "You're running back" with Change (until the draft is set); the board's line
+ * under the list is cut (UX rule 12). What shows is decided in rosterView (lib/game/renewal). */
 export function RenewalRoster({ roster, leagueId, season1Order, createdAt, now, onChanged }: RenewalRosterProps) {
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -129,7 +129,6 @@ export function RenewalRoster({ roster, leagueId, season1Order, createdAt, now, 
           ) : null}
         </Card>
       ) : null}
-      {view.memberLine ? <Text variant="caption" tone="secondary">{MEMBER_DRAFT_LINE}</Text> : null}
       {view.change ? (
         <RenewalChangeSheet
           visible={changing}

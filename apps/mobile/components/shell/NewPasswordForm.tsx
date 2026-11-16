@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { space } from '@/constants/tokens';
-import { PASSWORD_REQUIREMENTS, PASSWORD_RULE_SENTENCE, checkPassword } from '@/constants/passwordRules';
+import { PASSWORD_REQUIREMENTS, checkPassword } from '@/constants/passwordRules';
 import { Button, type ButtonStatus } from '@/components/sp/Button';
 import { Text } from '@/components/sp/Text';
 import { useMotion } from '@/components/sp/motion';
@@ -81,9 +81,6 @@ export function NewPasswordForm({ submit, onDone, onCancel }: NewPasswordFormPro
     <>
       <View style={styles.heading}>
         <ScreenTitle>Set a new password</ScreenTitle>
-        <Text variant="body" tone="secondary">
-          {PASSWORD_RULE_SENTENCE}
-        </Text>
       </View>
       <View style={styles.fields}>
         <Field

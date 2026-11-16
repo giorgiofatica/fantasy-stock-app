@@ -19,7 +19,8 @@ export interface PhasePlaceholderProps {
   title: string;
   icon: (props: EmptyStateIconProps) => ReactNode;
   heading: string;
-  message: string;
+  /** Optional: a heading and its actions need no line under them (UX rule 12). */
+  message?: string;
   actionLabel?: string;
   onAction?: () => void;
   secondaryActionLabel?: string;

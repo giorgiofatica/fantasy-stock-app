@@ -347,7 +347,7 @@ Deno.test('rule 8: every line is a whole sentence, with no em dash and no placeh
     assertEquals(l.includes('—'), false, r);
     assertEquals(l.includes('[new'), false, r);
   }
-  assertEquals(AUTO_PICK_WAITING_FOR_PRICES, 'Auto-pick is waiting for prices. Nobody is skipped.');
+  assertEquals(AUTO_PICK_WAITING_FOR_PRICES, 'Auto-pick is waiting for prices.');
 });
 
 Deno.test('no names known: the manager falls back, never an empty possessive', () => {

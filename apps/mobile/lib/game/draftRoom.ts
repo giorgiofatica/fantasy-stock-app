@@ -254,4 +254,4 @@ export function pickRefusalView(reason: string | null, status: number | null, ct
 
 /** The draft room's auto-pick backstop came back "price_unavailable" (audit
  * Rule 8 table, NEW): shown in the clock card, no next step. */
-export const AUTO_PICK_WAITING_FOR_PRICES = 'Auto-pick is waiting for prices. Nobody is skipped.';
+export const AUTO_PICK_WAITING_FOR_PRICES = 'Auto-pick is waiting for prices.';

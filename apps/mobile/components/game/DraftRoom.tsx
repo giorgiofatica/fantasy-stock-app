@@ -56,8 +56,6 @@ export interface DraftRoomProps {
   leagueId: string;
   myUserId: string;
   rounds: number;
-  /** The stalled-turn card's line differs for the commissioner (board "Draft paused"). */
-  isCommissioner?: boolean;
   /** leagues.stake_mode / budget_amount / notional_per_slot: the roster strip's
    * caption ("· $2,000 per slot", or "· $1,240 left" in a budget-cap league). */
   stakeMode?: string | null;
@@ -75,7 +73,7 @@ export interface DraftRoomProps {
  * search and the one-tap Draft, and the auto-pick backstop. A legacy SKIP row is
  * a plain row with a dash. Nothing is shown as a pick that the server did not
  * record. */
-export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, stakeMode = null, budgetAmount = null, notionalPerSlot = null, marketCalendar = [], onEnding, onSeeMatchup }: DraftRoomProps) {
+export function DraftRoom({ leagueId, myUserId, rounds, stakeMode = null, budgetAmount = null, notionalPerSlot = null, marketCalendar = [], onEnding, onSeeMatchup }: DraftRoomProps) {
   const { colors } = useTheme();
   const room = useDraftRoom(leagueId);
   const [search, setSearch] = useState('');
@@ -419,7 +417,7 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
   }
 
   const log = Array.from(room.picks.entries()).sort((a, b) => b[0] - a[0]).slice(0, 8);
-  const stalled = stalledAt === onClockPick ? turnState({ reason: 'stalled', pickNumber: onClockPick, managerName: nameOf(onClockManager), isCommissioner }) : null;
+  const stalled = stalledAt === onClockPick ? turnState({ reason: 'stalled', pickNumber: onClockPick, managerName: nameOf(onClockManager) }) : null;
   const lastMine = mine.symbols.length > 0 ? mine.symbols[mine.symbols.length - 1] : null;
   const lastMineAuto = mine.sources.length > 0 && isAutoPick(mine.sources[mine.sources.length - 1]);
   // Your turn, really yours (not stalled, not the auto-pick running): the screen's one emphasis (G-2).
@@ -475,7 +473,6 @@ export function DraftRoom({ leagueId, myUserId, rounds, isCommissioner = false, 
         {!isMyTurn && !lastMine && picksUntilYouLine(picksAway) ? (
           <Text variant="callout" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary">{picksUntilYouLine(picksAway)}</Text>
         ) : null}
-        {stalled?.line ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary">{stalled.line}</Text> : null}
         {waitingForPrices === onClockPick && !stalled ? <Text variant="caption" maxFontSizeMultiplier={CARD_LINE_MAX_SCALE} tone="secondary" animatedStyle={onTheClock ? captionInk : undefined}>{AUTO_PICK_WAITING_FOR_PRICES}</Text> : null}
       </Card>
       </View>

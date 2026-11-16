@@ -168,8 +168,6 @@ export function showsHomeRenewalAsk(input: { isCommissioner: boolean; successorI
 
 // ── GS-10: the member list (board #run-it-back RibMemberList) ──────────────
 
-/** The board's line under a member's list (RibMemberList), verbatim. */
-export const MEMBER_DRAFT_LINE = 'The draft is set once everyone has replied. You can change your answer until then.';
 /** The board's banner for a member who is in (RibMemberList), verbatim. */
 export const RUNNING_BACK_BANNER = "You're running back";
 export const CHANGE_ANSWER = 'Change';
@@ -224,8 +222,9 @@ export function rosterCommissionerName(people: readonly { is_commissioner: boole
 
 /** What the full roster (R5 reconcile / R6 member list) shows its caller. The draft card
  * ("Draft time · Not set", "Draft order") is the commissioner's alone (GS-10 item 1). A
- * member who answered I'm in gets the banner and the board's line, and Change until the
- * draft is set (item 2; Change also needs the commissioner's real name for its question).
+ * member who answered I'm in gets the banner, and Change until the draft is set (item 2;
+ * Change also needs the commissioner's real name for its question). The board's line under
+ * the list is cut (UX rule 12, 2026-11-16 sweep).
  * A newcomer (group 'new') joined by code and has no answer to change, so gets neither. */
 export function rosterView(r: {
   is_commissioner: boolean;
@@ -233,15 +232,13 @@ export function rosterView(r: {
   draft_date?: string | null;
   draft_status?: string | null;
   people: readonly { is_commissioner: boolean; display_name: string }[];
-}): { draftCard: boolean; banner: boolean; change: boolean; memberLine: boolean } {
+}): { draftCard: boolean; banner: boolean; change: boolean } {
   const memberIn = !r.is_commissioner && r.caller_status === 'in';
   const set = renewalDraftSet(r);
   return {
     draftCard: r.is_commissioner,
     banner: memberIn,
     change: memberIn && !set && rosterCommissionerName(r.people) !== null,
-    // "You can change your answer until then" is false once the draft is set.
-    memberLine: memberIn && !set,
   };
 }
 

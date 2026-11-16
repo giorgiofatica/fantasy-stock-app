@@ -16,14 +16,14 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | Where | Element | Prop | Handler | Destination | Disabled when |
 |---|---|---|---|---|---|
 | `app/(tabs)/index.tsx:278` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
-| `app/(tabs)/league.tsx:198` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
-| `app/(tabs)/league.tsx:216` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
-| `app/(tabs)/league.tsx:221` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:231` | LoadFailed | onRetry | `retry` | fn retry |  |
-| `app/(tabs)/league.tsx:273` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/league.tsx:460` | Button | onPress | `auto.reread` | prop auto.reread |  |
-| `app/(tabs)/league.tsx:528` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
-| `app/(tabs)/league.tsx:539` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:197` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
+| `app/(tabs)/league.tsx:215` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
+| `app/(tabs)/league.tsx:220` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:230` | LoadFailed | onRetry | `retry` | fn retry |  |
+| `app/(tabs)/league.tsx:272` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
+| `app/(tabs)/league.tsx:457` | Button | onPress | `auto.reread` | prop auto.reread |  |
+| `app/(tabs)/league.tsx:525` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
+| `app/(tabs)/league.tsx:536` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
 | `app/(tabs)/matchup.tsx:120` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
 | `app/(tabs)/matchup.tsx:139` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/(tabs)/matchup.tsx:293` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
@@ -91,11 +91,11 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftDateSheet.tsx:95` | Pressable | onPress | `inline: () => run({ type: 'set_later' })` | fn run |  |
 | `components/game/DraftDateSheet.tsx:109` | Pressable | onPress | `inline: () => run({ type: 'dismiss' })` | fn run |  |
 | `components/game/DraftDateSheet.tsx:115` | Pressable | onPress | `inline: () => setAndroidPicking(true)` | state setAndroidPicking |  |
-| `components/game/DraftRoom.tsx:388` | DraftClockChip | onPress | `showTheClock` | fn showTheClock |  |
-| `components/game/DraftRoom.tsx:398` | Button | onPress | `room.refresh` | prop room.refresh |  |
-| `components/game/DraftRoom.tsx:503` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
-| `components/game/DraftRoom.tsx:513` | Button | onPress | `draft` | fn draft | `pending` |
-| `components/game/DraftRoom.tsx:569` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/DraftRoom.tsx:386` | DraftClockChip | onPress | `showTheClock` | fn showTheClock |  |
+| `components/game/DraftRoom.tsx:396` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/DraftRoom.tsx:500` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
+| `components/game/DraftRoom.tsx:510` | Button | onPress | `draft` | fn draft | `pending` |
+| `components/game/DraftRoom.tsx:566` | Button | onPress | `room.refresh` | prop room.refresh |  |
 | `components/game/InfoPopup.tsx:44` | Pressable | onPress | `inline: () => onOpen(info)` | fn onOpen |  |
 | `components/game/InfoPopup.tsx:87` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/game/InfoPopup.tsx:196` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
@@ -210,14 +210,14 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/LeagueSheet.tsx:210` | Button | onPress | `onJoin` | prop onJoin (the caller's) |  |
 | `components/shell/LeagueSheetRow.tsx:35` | PressableScale | onPress | `inline: () => onPick(league.id, league.name, labelRef)` | fn onPick |  |
 | `components/shell/Link.tsx:15` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
-| `components/shell/NewPasswordForm.tsx:123` | Button | onPress | `handleUpdate` | sheet setConfirmError(null); sheet setConfirmError("Passwords don't match.") | `!password \|\| !confirm` |
-| `components/shell/NewPasswordForm.tsx:124` | Pressable | onPress | `onCancel` | prop onCancel (the caller's) |  |
-| `components/shell/NoLeagueState.tsx:31` | PhasePlaceholder | onAction | `inline: () => router.push('/create-league')` | route push('/create-league') |  |
-| `components/shell/NoLeagueState.tsx:33` | PhasePlaceholder | onSecondaryAction | `inline: () => router.push('/join-league')` | route push('/join-league') |  |
-| `components/shell/NoLeagueState.tsx:48` | PhasePlaceholder | onAction | `onRefresh` | prop onRefresh (the caller's) |  |
+| `components/shell/NewPasswordForm.tsx:120` | Button | onPress | `handleUpdate` | sheet setConfirmError(null); sheet setConfirmError("Passwords don't match.") | `!password \|\| !confirm` |
+| `components/shell/NewPasswordForm.tsx:121` | Pressable | onPress | `onCancel` | prop onCancel (the caller's) |  |
+| `components/shell/NoLeagueState.tsx:29` | PhasePlaceholder | onAction | `inline: () => router.push('/create-league')` | route push('/create-league') |  |
+| `components/shell/NoLeagueState.tsx:31` | PhasePlaceholder | onSecondaryAction | `inline: () => router.push('/join-league')` | route push('/join-league') |  |
+| `components/shell/NoLeagueState.tsx:46` | PhasePlaceholder | onAction | `onRefresh` | prop onRefresh (the caller's) |  |
 | `components/shell/PasswordReveal.tsx:25` | Pressable | onPress | `reveal.toggle` | prop reveal.toggle |  |
-| `components/shell/PhasePlaceholder.tsx:54` | EmptyState | onAction | `onAction` | prop onAction (the caller's) |  |
-| `components/shell/PhasePlaceholder.tsx:56` | EmptyState | onSecondaryAction | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
+| `components/shell/PhasePlaceholder.tsx:55` | EmptyState | onAction | `onAction` | prop onAction (the caller's) |  |
+| `components/shell/PhasePlaceholder.tsx:57` | EmptyState | onSecondaryAction | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
 | `components/shell/ProfileView.tsx:63` | Row | onPress | `onUsername` | prop onUsername (the caller's) |  |
 | `components/shell/ProfileView.tsx:67` | Row | onPress | `onChangePassword` | prop onChangePassword (the caller's) |  |
 | `components/shell/ProfileView.tsx:69` | Row | onPress | `onAppearance` | prop onAppearance (the caller's) |  |
@@ -251,8 +251,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/onboarding/OnboardingPager.tsx:247` | Button | onPress | `onNext` | prop onNext (the caller's) |  |
 | `components/sp/Button.tsx:121` | PressableScale | ... | `spread {...rest}` | props of rest | `!a11y.pressable` |
 | `components/sp/Chip.tsx:39` | PressableScale | onPress | `onPress` | prop onPress (the caller's) | `disabled \|\| !onPress` |
-| `components/sp/EmptyState.tsx:77` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
-| `components/sp/EmptyState.tsx:78` | Button | onPress | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
+| `components/sp/EmptyState.tsx:80` | Button | onPress | `onAction` | prop onAction (the caller's) |  |
+| `components/sp/EmptyState.tsx:81` | Button | onPress | `onSecondaryAction` | prop onSecondaryAction (the caller's) |  |
 | `components/sp/ListRow.tsx:59` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/sp/SegmentedControl.tsx:95` | Pressable | onPress | `inline: () => choose(option.value)` | fn choose |  |
 | `components/sp/gn/ManagerRow.tsx:171` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |

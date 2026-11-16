@@ -268,8 +268,8 @@ Deno.test('reachable: the League tab shows League settings to the commissioner a
   assertEquals(tab.includes('{ready && activeLeagueId && showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id, LEAVE_LEAGUE_ON) ? ('), true);
   // The 1.3.0 (5) bug: the doorway itself must never hang on the leave flag (the commissioner lost Members/takeovers).
   assertEquals(tab.includes('LEAVE_LEAGUE_ON && activeLeagueId &&'), false);
-  // The draft room's commissioner check keeps its commissioner-only meaning.
-  assertEquals(tab.includes('isCommissioner={showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id)}'), true);
+  // The draft room took a commissioner check only for its stalled line, which rule 12 cut.
+  assertEquals(tab.includes('isCommissioner={showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id)}'), false);
 });
 
 Deno.test('the transfer picker reads CURRENT members only: a post-season leaver is never offered (source guard)', () => {

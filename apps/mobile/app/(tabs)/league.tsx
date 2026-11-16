@@ -37,7 +37,6 @@ import {
   COMMISSIONER_FALLBACK,
   DRAFT_STATUS_LOAD_FAILED,
   NO_DATE_TITLE,
-  START_RETRYING,
   countdownCopy,
   deadlineCopy,
   lobbyShowsOrder,
@@ -407,8 +406,6 @@ function LeagueDraftRoom({ leagueId, rounds, onEnding, onEndingDone }: { leagueI
           leagueId={leagueId}
           myUserId={user?.id ?? ''}
           rounds={rounds}
-          // The same commissioner check as the settings row (a missing id never matches).
-          isCommissioner={showsLeagueSettingsRow(activeLeague?.commissioner_id, user?.id)}
           stakeMode={activeLeague?.stake_mode ?? null}
           budgetAmount={activeLeague?.budget_amount ?? null}
           notionalPerSlot={activeLeague?.notional_per_slot ?? null}
@@ -487,7 +484,7 @@ function LeagueLobby({ leagueId }: { leagueId: string }) {
                 live={view.countdown !== 'scheduled'}
                 starting={c.starting}
                 lines={c.lines.slice(0, 1)}
-                notes={[...c.lines.slice(1), ...(auto.retrying && c.starting ? [START_RETRYING] : [])]}
+                notes={c.lines.slice(1)}
               />
             );
           })()
