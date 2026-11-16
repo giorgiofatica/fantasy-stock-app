@@ -591,6 +591,33 @@ building anything, and don't reopen a rule without him.
   label from "season gain"; never reuse one for the other.
 - **Stock chart ranges** (2026-10-05, option A): 1W / 1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
+- **The stock chart has no dotted line** (2026-11-16, build 1.3.0 (14), the stock sheet).
+  Giorgio's words: "I don't understand what this dotted line is because on some it's up. I
+  mean, I guess it's where like the stock started that day... quite frankly, I don't love that
+  sometimes it's up high, sometimes it's down low. I think we just get rid of that. Like it to
+  me, it sometimes it looks like a y-axis or an x-axis." So the dashed reference line (the
+  range's first close, a Design Lead ruling of 2026-10-06) is removed from the stock chart.
+  The change line under the price ("−$17.04 · −2.53% today") is not what he objected to.
+- **1W on the stock chart is the past week, not this calendar week** (2026-11-16, same
+  screen). On a Monday the 1W chart was one stroke under a Mon to Fri axis. His words: "on a
+  Monday... I click the 1 week on deer, and it's just a straight line down. I don't love
+  that... It doesn't do just like the week you're in... that needs to be changed." His
+  reference was Apple's Stocks app, whose 1W shows the last five trading days whatever day it
+  is (a reference only; third-party screenshots are not kept in the repo). So 1W always shows
+  the past five trading days. Shown A (one point a day, from the daily history we have) beside
+  B (detail inside each day, like his reference, which needs prices within the day that we do
+  not fetch), he picked, the same day: "A now, B later with the supplier". So A is built now,
+  and B is part of the price-supplier work, not a separate promise with a date.
+- **Buy a stock: the top of the screen is too crowded** (2026-11-16, Portfolio › Buy a
+  stock). His words: "I don't love how we're formatting it to where it's like League B up top
+  and then like a small little portfolio and then big buy of the stock and then the thing. It
+  just looks like that top left is a bit too jumbled and there's too much going on. I think we
+  need to kind of reimagine how we make sure to be able to give the user an option to go back
+  to the previous page while still having like whatever's important on the page they're on and
+  it not just be all right next to each other, because I think it looks weird that there's
+  this huge big basically blank page and just all the text is all in like the same top left
+  area." Not ruled how: the Design Lead boards it (the league pill, the back link, the title
+  and the search field), and it comes to him as A / B.
 - **Cash from sales** (2026-10-05, option A, budget-cap and price-tier leagues): a sale's cash
   shows as its own "Cash from sales" line, and the header value includes it, matching Home.
 - **Market-data credit line**: credit Alpaca on price surfaces.
@@ -660,6 +687,24 @@ building anything, and don't reopen a rule without him.
     the never-stall rules above it always finds one, unless no stock fits at all.
   - If no stock fits, the turn waits and keeps retrying. Nobody is notified (see below).
   - This supersedes the same day's "closest stock" and "cheapest anyway" rulings.
+- **Small text under a heading goes, on the pre-draft League screen too** (2026-11-16, build
+  1.3.0 (14), the League tab before a draft; the fourth time he has said it, after UX rule 12).
+  His words on the queue card: "there's still the issue where we have like the header and then
+  there's just like a bunch of smaller subtext subheader below it that I don't want. I don't
+  want a page covered in text." On saving: "I don't like the save queue button. It should just
+  automatically save if I do anything". On the card as a whole: "it's weird that there's just
+  like the your queue, then a bunch of little text, and then kind of a bigger stock thing, and
+  then a big search bar, and then a big save queue button. It just looks cluttered." On the
+  draft card: "I don't love that there's draft starts, this big, date thing, and then two lines
+  of smaller text below it. We really need to work on removing these small subheader text."
+  - Already on `main`, not yet in a build (they arrive with build 15): the queue saves by
+    itself with no "Save queue" and no "Not saved yet." (ruled 2026-11-11); the line "If you
+    step away, we'll auto-pick from your queue…" is cut (the rule-12 sweep); the "Draft order ·
+    Waiting" card is gone at four or more managers (#422).
+  - Not done: the draft card's two lines under the countdown ("The draft starts automatically
+    at…" and "The draft room opens at…"), and the queue card's overall weight (a large search
+    field under the list). Both carry facts a manager needs, so what stays is not ruled: the
+    Design Lead boards them and they come to him as A / B.
 - **The auto-pick is instant** (2026-11-10, from the build-14 draft on his phone). Giorgio:
   "the auto pick was way too slow. sometimes it took up to 20 seconds after the time expired
   to make the pick. the selection needs to be instant so the draft flow continues". So: when
