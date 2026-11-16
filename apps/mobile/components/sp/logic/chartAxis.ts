@@ -165,7 +165,9 @@ function candidateSets(spec: AxisSpec): Candidate[][] {
     const n = spec.days.length;
     if (n === 0) return [[]];
     const at = (i: number): Candidate => ({ text: sessionLabel(spec.days, i), t: i, align: i === 0 ? 'left' : i === n - 1 ? 'right' : 'center' });
-    if (n === 1) return [[at(0)]];
+    // One session: the dot sits at the zero-length domain's right end (lineChart.buildLine), so its
+    // one label is right-aligned under it.
+    if (n === 1) return [[{ ...at(0), align: 'right' }]];
     // Every session first, then first·middle·last, then first·last, then the latest alone.
     const all = Array.from({ length: n }, (_, i) => at(i));
     const sets = [all];

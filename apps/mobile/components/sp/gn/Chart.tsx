@@ -134,7 +134,7 @@ export function Chart({ points, base, showBase = true, axis, height = 124, bleed
 
   const last = points.length ? points[points.length - 1] : null;
   const range = axisRangeLabel(axis, last?.t);
-  const summary = `${accessibilityLabel}, ${range}${last ? `, ${formatValue(last.value)}` : ''}`;
+  const summary = [accessibilityLabel, range, last ? formatValue(last.value) : ''].filter(Boolean).join(', ');
   // The line runs edge to edge, but the end dot keeps its whole halo on screen (a Monday-
   // morning dot sits at the very first x).
   const end = geometry.end ? { x: Math.min(Math.max(geometry.end.x, HALO_R + 1), width - HALO_R - 1), y: geometry.end.y } : null;
