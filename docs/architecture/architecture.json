@@ -2,47 +2,31 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "193502a693f63c57eb984e389046e2123e6b6ead",
-    "commitShort": "193502a6",
+    "commit": "e0a5c57473b42e054e189ad81e2af5d8da41cb47",
+    "commitShort": "e0a5c574",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/board-picks-1116",
+    "branch": "security/s1-contract",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "M",
-        "path": "apps/mobile/components/game/DraftRoom.tsx"
+        "code": "RM",
+        "path": "supabase/migrations/20261206000000_symbols_column_grant.sql"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/game/QueueEditor.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/SymbolSearchField.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/draftRoom.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/board-picks-1116.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-draft-room.test.ts"
+        "path": "supabase/migrations/deferred/README.md"
       }
     ],
-    "timestamp": "2026-11-16T22:19:51Z",
-    "sourceHash": "sha256:9a8c083a12471e47eaf911a58e2a02e9ce1a93559bc841c9a61acb76417c338c",
+    "timestamp": "2026-11-16T23:40:29Z",
+    "sourceHash": "sha256:09e8503690912db867997f35a2ae8be8f7cfa5cdf2d164a1498b122787dafe8e",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-16T21:40:11Z",
-    "ageHours": 0.7,
-    "ageDays": 0,
+    "ageHours": 2,
+    "ageDays": 0.1,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:6e7a92b9130df74c981c933c5b636c82a38b9ed9fc7251c9d85358a9e8df17d4",
@@ -24683,7 +24667,8 @@
       "20261204000000_renewal_notices_wake_notify_cron.sql",
       "20261205000100_commissioner_direct_writes.sql",
       "20261205000200_revoke_api_table_ddl_privileges.sql",
-      "20261205000300_symbols_readers_functions.sql"
+      "20261205000300_symbols_readers_functions.sql",
+      "20261206000000_symbols_column_grant.sql"
     ],
     "config": [
       "delete-account=false",
