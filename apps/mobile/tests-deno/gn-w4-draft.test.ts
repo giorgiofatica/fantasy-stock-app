@@ -266,7 +266,7 @@ Deno.test('keepDots: no line starts with "·"; short segments stay whole; long o
 
 Deno.test('every "·" line the draft surfaces draw goes through keepDots (source guard)', () => {
   const room = SOURCES['components/game/DraftRoom.tsx'];
-  for (const n of ['{keepDots(roundLine)}', '{keepDots(afterPickLine(', 'caption={keepMoney(keepDots(caption))}', 'pickLogLabelText(row.label']) assert(room.includes(n), n); // the pick log's label goes through keepDots inside pickLogLabelText (pickLogRow.ts)
+  for (const n of ['{keepDots(turn.tag)}', '{keepDots(turn.roundUnder)}', '{keepDots(turn.under.text)}', 'caption={keepMoney(keepDots(caption))}', 'pickLogLabelText(row.label']) assert(room.includes(n), n); // the pick log's label goes through keepDots inside pickLogLabelText (pickLogRow.ts)
   assert(SOURCES['components/game/QueueEditor.tsx'].includes('{keepDots(`Your queue · ${queue.length} of ${QUEUE_MAX}`)}'));
   assert(SOURCES['components/game/DraftLobby.tsx'].includes("{keepDots('Draft order · waiting')}"));
   assert(SOURCES['components/game/DraftComplete.tsx'].includes('{keepMoney(keepDots(rosterPickCaption(r)))}'));
@@ -336,18 +336,19 @@ Deno.test('the clock card: the headline and "Round X of Y · Pick N" only: no ",
   assert(card.includes('totalSeconds={room.pickSeconds}'));
   assert(!card.includes('-second'));
   // VoiceOver follows the same rule.
-  assert(room.includes('accessibilityLabel={[headline, clockLabel, roundLine].filter(Boolean).join(\', \')}'));
+  assert(room.includes('accessibilityLabel={turnCardLabel(turn, headline, clockLabel)}'));
   // The ring and the status lines stay.
   assert(card.includes('<ClockRing'));
   assert(!card.includes('stalled?.line'), 'rule 12: the stalled line is cut');
   assert(card.includes('{AUTO_PICK_WAITING_FOR_PRICES}'));
   // Exactly those two went: on someone else's card the lines that say when you're up stay
   // (U-09 "You took AAPL · you're up in 2 picks", UX rule 10 "N picks until you").
-  assert(card.includes('{keepDots(afterPickLine(lastMine, picksAway, lastMineAuto) ?? \'\')}'));
-  assert(card.includes('{picksUntilYouLine(picksAway)}'));
-  // ...shown under the same conditions as before the ruling (off your turn; before / after your first pick).
-  assert(card.includes('{!isMyTurn && lastMine && afterPickLine(lastMine, picksAway, lastMineAuto) ? ('));
-  assert(card.includes('{!isMyTurn && !lastMine && picksUntilYouLine(picksAway) ? ('));
+  // Board #call-draft-turn, B (2026-11-16): the same two lines, now ONE of them under the headline (turnCardView; board-picks-1116.test.ts).
+  assert(card.includes('{keepDots(turn.under.text)}'));
+  assert(card.includes('{turn.under ? ('));
+  const view = strip(SOURCES['lib/game/draftRoom.ts']);
+  assert(view.includes('a.lastMine ? afterPickLine(a.lastMine, a.picksAway, a.lastMineAuto) : picksUntilYouLine(a.picksAway)'));
+  assert(view.includes('if (a.isMyTurn) return { tag: null, roundUnder: a.roundLine, under: null };'), 'off your turn only');
 });
 
 import { HEADER_NAME_PT, headerNamePt, headerNameWidth } from '../lib/game/draftBoardLayout.ts';

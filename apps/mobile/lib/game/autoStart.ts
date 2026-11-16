@@ -196,6 +196,19 @@ export function countdownCopy(phase: 'scheduled' | 'room_open' | 'starting', sta
   };
 }
 
+/**
+ * The League tab's countdown card (board #call-draft-card, B; Giorgio 2026-11-16, "B", which approved both labels): the date and time
+ * move into the small label above the clock and NOTHING sits under it. Before the room opens "Draft · Sat, Nov 14 · 6:44 PM ET";
+ * once it is open "Draft room open · 12:48 PM ET" (the tag keeps the live colour, the card's `live`). At 00:00 the card is unchanged:
+ * "Draft starts in" and the spinner. Home's pre-draft card is NOT this card and keeps `countdownCopy` as it was.
+ */
+export function leagueCountdownCopy(phase: 'scheduled' | 'room_open' | 'starting', startsAt: string, serverNowMs: number): CountdownCopy {
+  const t = new Date(startsAt).getTime();
+  if (phase === 'starting') return countdownCopy('starting', startsAt, serverNowMs);
+  const tag = phase === 'room_open' ? `Draft room open · ${etTimeLabel(t)}` : `Draft · ${etWhenLabel(t)}`;
+  return { tag, clock: startClock(t - serverNowMs), starting: null, lines: [] };
+}
+
 /** No draft time yet. NEW copy (no frame). */
 export function noDateCopy(isCommissioner: boolean, commissionerName: string): string {
   return isCommissioner ? 'Set a draft time in League settings.' : `${commissionerName} will set the draft time.`;
@@ -427,7 +440,9 @@ export function blockersCardCopy(phase: 'risk' | 'postponed', deadlineLabel: str
     return {
       tag: `Needs you before ${at}`,
       title: 'The draft can’t start yet',
-      line: `Fix these before ${at}, when the draft room opens. If they’re still open then, the draft is postponed.`,
+      // Board #call-blockers-card, A (Giorgio 2026-11-16, "A"): both lines are cut ("Fix these before …, when the draft room opens." and
+      // "If they're still open then, the draft is postponed."). The eyebrow, the title and the blocker cards stay.
+      line: null,
     };
   }
   return { tag: null, title: 'The draft is postponed', line: null };

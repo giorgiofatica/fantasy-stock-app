@@ -143,8 +143,9 @@ Deno.test('the room renders both lines (source guard)', () => {
   const room = SOURCES['components/game/DraftRoom.tsx'];
   // Giorgio, 2026-10-13: "Round X of Y · Pick N" only, no snake suffix (gn-w4-draft.test.ts pins it).
   assertEquals(room.includes('const roundLine = roundPickLine(round, rounds, onClockPick);'), true);
-  // Before your first pick, the picks-until line; after it, the board's "You took …" line.
-  assertEquals(room.includes('!isMyTurn && !lastMine && picksUntilYouLine(picksAway)'), true);
+  // Before your first pick, the picks-until line; after it, the board's "You took …" line (turnCardView picks ONE; board #call-draft-turn, B).
+  assertEquals(room.includes('const turn = turnCardView({ isMyTurn, roundLine, lastMine, lastMineAuto, picksAway });'), true);
+  assertEquals(SOURCES['lib/game/draftRoom.ts'].includes('const text = a.lastMine ? afterPickLine(a.lastMine, a.picksAway, a.lastMineAuto) : picksUntilYouLine(a.picksAway);'), true);
 });
 
 // ── U-06: the board's roster strip ("Your roster · 1 of 6 · $2,000 per slot"), Home's grid ──
@@ -270,7 +271,7 @@ Deno.test('counted on the snake, from the board as read (6 teams; you are seat 1
 
 Deno.test('the room shows it from the recorded board, not from the button: no timer, no "is yours" (source guard)', () => {
   const room = SOURCES['components/game/DraftRoom.tsx'];
-  assertEquals(room.includes('!isMyTurn && lastMine && afterPickLine(lastMine, picksAway, lastMineAuto)'), true);
+  assertEquals(SOURCES['lib/game/draftRoom.ts'].includes('a.lastMine ? afterPickLine(a.lastMine, a.picksAway, a.lastMineAuto)'), true);
   assertEquals(room.includes('const lastMineAuto = mine.sources.length > 0 && isAutoPick(mine.sources[mine.sources.length - 1]);'), true);
   assertEquals(room.includes('const lastMine = mine.symbols.length > 0 ? mine.symbols[mine.symbols.length - 1] : null;'), true);
   for (const gone of ['setConfirmed', 'PICK_CONFIRMED_MS', 'pickConfirmedLine', 'is yours']) assertEquals(room.includes(gone), false, gone);

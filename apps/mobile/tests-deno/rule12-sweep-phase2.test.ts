@@ -64,11 +64,13 @@ Deno.test('every line the sweep CUTs is gone from the mobile source (rows 1-13, 
   for (const [row, text] of cut) assertFalse(app.includes(text), `row ${row}: "${text}" is still in the source`);
 });
 
-Deno.test('acceptance 4: the at-risk card keeps "Fix these before …" and its eyebrow, wording unchanged (a separate build, plan #355, adds the day)', () => {
+Deno.test('acceptance 4 (superseded 2026-11-16): the at-risk card keeps its eyebrow and title and has no line under the title', () => {
   const auto = strip(SOURCES['lib/game/autoStart.ts']);
   assert(auto.includes('tag: `Needs you before ${at}`,'));
   assert(auto.includes("title: 'The draft can’t start yet',"));
-  assert(auto.includes('line: `Fix these before ${at}, when the draft room opens. If they’re still open then, the draft is postponed.`,'));
+  // Superseded 2026-11-16 (board #call-blockers-card, A): both sentences under the title are cut. The eyebrow and the title stay.
+  assertFalse(auto.includes('Fix these before'));
+  assertFalse(auto.includes('the draft is postponed.`'));
   const card = strip(SOURCES['components/game/DraftBlockersCard.tsx']);
   assert(card.includes('{copy.line ? <Text variant="caption" subOf="headline">{keepTime(copy.line)}</Text> : null}'), 'the line still renders');
   assert(card.includes('{copy.tag ? <Text variant="tag" color={colors.warnText}>{keepTime(copy.tag)}</Text> : null}'), 'and so does the eyebrow');

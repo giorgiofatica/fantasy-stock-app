@@ -37,7 +37,7 @@ Deno.test('1: the stalled card keeps its tag, its headline and the round line; n
   const card = room.slice(room.indexOf('<Card style={[styles.card, onTheClock ?'), room.indexOf('<DraftBoard'));
   assert(card.includes('{stalled?.tag ? <Text variant="tag" color={colors.liveText}>{stalled.tag}</Text> : null}'));
   assert(room.includes("const headline = stalled ? (stalled.label ?? '')"));
-  assert(card.includes('{keepDots(roundLine)}'));
+  assert(card.includes('{keepDots(turn.tag)}'), 'the round line is the small label above the headline now (board #call-draft-turn, B)');
   assertFalse(card.includes('stalled?.line'));
   assertFalse(card.includes('stalled.line'));
   // The commissioner check existed only for that line: neither the room nor the League tab carries it now.

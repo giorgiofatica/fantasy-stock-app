@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { radius, space, typeFontFamily } from '@/constants/tokens';
 import { Card } from '@/components/sp/Card';
 import { Text } from '@/components/sp/Text';
-import { keepTime } from '@/lib/game/keepDots';
+import { keepDots, keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 
 // 3c-2 — the lobby's countdown (board #call-auto-start AutoLobby, and the
@@ -35,8 +35,10 @@ export function DraftCountdownCard({ tag, clock, title, live = false, starting, 
   const label = [tag, clock, title, starting, ...lines, ...notes].filter(Boolean).join('. ');
   return (
     <Card style={styles.card} accessible accessibilityLabel={label}>
+      {/* Board #call-draft-card, B: the tag now carries the date and time ("Draft · Sat, Nov 14 · 6:44 PM ET"). The time never splits
+          (keepTime) and a "·" never starts a line (keepDots), so at AX5 it wraps between its parts. The label above reads the plain tag. */}
       <Text variant="tag" color={live ? colors.liveText : colors.text2} style={styles.center}>
-        {tag}
+        {keepDots(keepTime(tag))}
       </Text>
       {clock ? (
         <Text variant="score.lg" style={styles.center}>

@@ -22,9 +22,9 @@ Deno.test('wiring: the Buy a stock row title is in the accent colour, not the pl
   assertEquals(portfolioScreenSrc.includes('color={colors.accent}'), true);
 });
 
-Deno.test("wiring: the search screen's title uses the board's page-title size, not headline", () => {
-  assertEquals(stockSearchScreenSrc.includes('variant="title">{COPY.stockSearchTitle}'), true);
-  assertEquals(stockSearchScreenSrc.includes('variant="headline">{COPY.stockSearchTitle}'), false);
+Deno.test("wiring: the search screen has NO title any more (board #call-buy-top, B, 2026-11-16: the top is the back arrow and the field)", () => {
+  assertEquals(stockSearchScreenSrc.includes('COPY.stockSearchTitle'), false);
+  assertEquals(/<Text variant="(title|headline)">/.test(stockSearchScreenSrc), false);
 });
 
 Deno.test("wiring: the stock sheet closes with the × icon, not \"Done\" text, key screen 5", () => {

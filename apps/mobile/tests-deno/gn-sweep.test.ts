@@ -217,21 +217,22 @@ Deno.test('Button: its checks read the label\'s own token (every fill has its ow
 
 // ── 3. reset-password and +not-found ─────────────────────────────────────────────
 
-Deno.test('reset-password: the success and invalid states draw sp Icons in the EmptyState disc (text2, the house load pattern)', () => {
+Deno.test('reset-password: the success state draws its sp Icon in the EmptyState disc; the dead link is a RefusalScreen (board #call-dead-links, B, 2026-11-16)', () => {
   const rp = code(SOURCES['app/reset-password.tsx']);
   assert(rp.includes('icon={() => <Icon name="checkCircle" size="title" tone="text2" />}'));
-  assert(rp.includes('icon={() => <Icon name="alert" size="title" tone="text2" />}'));
   // Every tappable acts: Continue → Home; Request a new link → forgot-password; Back to sign in → Cancel.
   assert(rp.includes("onAction={() => router.replace('/')}"));
-  assert(rp.includes("onAction={() => router.replace('/forgot-password')}"));
-  assert(rp.includes('onSecondaryAction={handleCancel}'));
+  assert(rp.includes("onPress: () => router.replace('/forgot-password')"));
+  assert(rp.includes('onPress: handleCancel'));
+  assert(rp.includes('<RefusalScreen'));
   assert(rp.includes('<Pressable onPress={handleCancel} accessibilityRole="button"'));
 });
 
-Deno.test('+not-found: one way out (Go to Home), the sp medallion, no raw glyphs', () => {
+Deno.test('+not-found: one way out (Go to Home) as a RefusalScreen, the swipe-back stays off, no raw glyphs (board #call-dead-links, B)', () => {
   const nf = code(SOURCES['app/+not-found.tsx']);
-  assert(nf.includes('<Icon name="search" size="medallion" tone="text2" discTone="sunken" />'));
-  assert(nf.includes('<Button label="Go to Home" onPress={goHome} />'));
+  assert(nf.includes('<RefusalScreen'));
+  assert(nf.includes('primary={{ label: NOT_FOUND.primary, onPress: goHome }}'));
+  assert(nf.includes('gestureEnabled: false'));
   assert(!nf.includes('Ionicons'));
 });
 

@@ -48,6 +48,10 @@ interface SymbolSearchFieldProps extends UseSymbolSearchOptions {
   /** Points UNDER the status-bar fade where the scroll-up puts this field's top (default REVEAL_MARGIN, 12). The draft room asks for
    * more while your clock runs, so the field lands below its pinned clock (draftClockChip.chipRevealBelow). */
   revealMargin?: number;
+  /** Takes focus (and the keyboard) when it first mounts: the queue's search row turns into this field on a tap. Unset: no. */
+  autoFocus?: boolean;
+  /** Fired after the field loses focus (the queue turns back into its row when nothing is typed). */
+  onBlur?: () => void;
 }
 
 export default function SymbolSearchField({
@@ -65,6 +69,8 @@ export default function SymbolSearchField({
   captureAction = '',
   clearOnSelect = false,
   revealMargin,
+  autoFocus = false,
+  onBlur,
 }: SymbolSearchFieldProps) {
   const [showResults, setShowResults] = useState(false);
   const containerRef = useRef<View>(null);
@@ -113,7 +119,7 @@ export default function SymbolSearchField({
   // remount never drops the keyboard (useInputRemountKey).
   const { fontScale } = useWindowDimensions();
   const remountKey = fontScaleKey(fontScale);
-  const inputRemount = useInputRemountKey(undefined);
+  const inputRemount = useInputRemountKey(autoFocus ? true : undefined);
   // The scale goes in the props too: a remounted field can reuse a recycled native view that keeps its
   // old placeholder size otherwise (remeasureKey.ts, "The PLACEHOLDER").
   const inputFont = inputRemount.fontProps(INPUT_FONT_SIZE);
@@ -177,6 +183,7 @@ export default function SymbolSearchField({
         onBlur={() => {
           phase.current = nextPhase(phase.current, 'blur');
           inputRemount.onBlur();
+          onBlur?.();
         }}
       />
       {(loading || extraLoading) && value.length > 0 && (

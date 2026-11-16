@@ -78,7 +78,8 @@ const TABS_AND_PLACEHOLDER = [
 ];
 /** Sub-screens with their own back control ("‹ Portfolio"): they keep their own header rules (pill, no avatar). */
 // Trade history left this list (2026-11-12): it is a sheet now and draws the shared SheetBar, not the pill (tests-deno/sheet-bar.test.ts).
-const BACK_BUTTON_SCREENS = ['components/money/StockSearchScreen.tsx'];
+// Buy a stock left this list too (2026-11-16, board #call-buy-top, B): its top is one row, the back arrow and the field; no ShellHeader.
+const BACK_BUTTON_SCREENS: string[] = [];
 
 Deno.test('every top-level ShellHeader shows the avatar; nothing passes a phase chip', () => {
   for (const p of TABS_AND_PLACEHOLDER) {
@@ -90,12 +91,10 @@ Deno.test('every top-level ShellHeader shows the avatar; nothing passes a phase 
   for (const [p, src] of Object.entries(SOURCES)) assert(!/\bshowPhase\b/.test(code(src)), `${p} still names showPhase`);
 });
 
-Deno.test('the back-button sub-screens keep their own rules: the pill, no avatar, no chip', () => {
-  for (const p of BACK_BUTTON_SCREENS) {
-    const src = code(SOURCES[p]);
-    assert(/<ShellHeader title=\{COPY\.\w+\} \/>/.test(src), p);
-    assert(src.includes('accessibilityLabel="Portfolio"'), `${p} has its back control`);
-  }
+Deno.test('Buy a stock draws no ShellHeader: its top is the back arrow and the search field (board #call-buy-top, B)', () => {
+  const src = code(SOURCES['components/money/StockSearchScreen.tsx']);
+  assert(!src.includes('ShellHeader') && !src.includes('LeaguePill'));
+  assert(src.includes('accessibilityLabel="Portfolio"'), 'it keeps its back control, named "Portfolio" for VoiceOver');
 });
 
 Deno.test('every ShellHeader caller is accounted for (a new one must be a tab or a back-button screen)', () => {

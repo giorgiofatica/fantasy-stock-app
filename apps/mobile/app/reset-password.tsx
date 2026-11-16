@@ -12,6 +12,8 @@ import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { AuthScaffold } from '@/components/shell/AuthScaffold';
 import { NewPasswordForm } from '@/components/shell/NewPasswordForm';
+import { RefusalScreen } from '@/components/shell/RefusalScreen';
+import { RESET_DEAD_LINK } from '@/lib/shell/deadLinkCopy';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/useAuth';
 import { isRecoverySession, setRecoverySession, subscribeRecoverySession } from '@/lib/auth/recoverySession';
@@ -148,17 +150,14 @@ export default function ResetPasswordScreen() {
 
   if (screenState === 'invalid') {
     return (
-      <AuthScaffold>
-        <EmptyState
-          icon={() => <Icon name="alert" size="title" tone="text2" />}
-          title="This link didn't work"
-          message="It may have expired, been used already, or been opened on a different device than the one that asked for it. Request a new link to continue."
-          actionLabel="Request a new link"
-          onAction={() => router.replace('/forgot-password')}
-          secondaryActionLabel="Back to sign in"
-          onSecondaryAction={handleCancel}
-        />
-      </AuthScaffold>
+      // Board #call-dead-links, B: the dead-end family's form (RefusalScreen), its words in lib/shell/deadLinkCopy.ts.
+      <RefusalScreen
+        icon={RESET_DEAD_LINK.icon}
+        heading={RESET_DEAD_LINK.heading}
+        line={RESET_DEAD_LINK.line}
+        primary={{ label: RESET_DEAD_LINK.primary, onPress: () => router.replace('/forgot-password') }}
+        secondary={{ label: RESET_DEAD_LINK.secondary ?? '', onPress: handleCancel }}
+      />
     );
   }
 
