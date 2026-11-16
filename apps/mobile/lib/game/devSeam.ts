@@ -41,6 +41,11 @@ export const CAPTURE_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_
  * playoff_teams_exceeds_members), for the blockers card's refusal capture. Seeded in the seam's response only; unset
  * (or the seam off): the reconfirm saves, and production never reads it. */
 export const CAPTURE_CONFIRM_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL || null : null;
+/** Capture only: the draft's server answers one REFUSAL (EXPO_PUBLIC_CAPTURE_DRAFT_REFUSAL; seamFixtures.captureDraftRefusal), so the draft
+ * room's and the lobby's quiet states can be gated visually: `stalled` (auto-pick finds no legal stock: the stalled card),
+ * `price_unavailable` (auto-pick is waiting for prices), `draft_start_retrying` (the start at 0:00 is retrying). Seeded in the seam's
+ * response only; unset (or the seam off) answers as before, and production never reads it. */
+export const CAPTURE_DRAFT_REFUSAL: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_DRAFT_REFUSAL || null : null;
 /** Capture only: your draft happened today (Thu 6 PM ET, after the close) — Portfolio's one-point
  * Season line (EXPO_PUBLIC_CAPTURE_DRAFT_TODAY=1). */
 export const CAPTURE_DRAFT_TODAY: boolean = SEAM_ON && process.env.EXPO_PUBLIC_CAPTURE_DRAFT_TODAY === '1';

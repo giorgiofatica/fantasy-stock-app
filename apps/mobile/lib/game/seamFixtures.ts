@@ -203,6 +203,21 @@ export function symbolsSearchFixture(body: Record<string, unknown>): { items: { 
   return { items };
 }
 
+/** The refusal reasons EXPO_PUBLIC_CAPTURE_DRAFT_REFUSAL can seed, each for the ONE call the real server refuses with it. */
+export const CAPTURE_DRAFT_REFUSALS: Readonly<Record<string, { fn: string; action: string }>> = {
+  stalled: { fn: 'validate-and-record-pick', action: 'auto_pick' },
+  price_unavailable: { fn: 'validate-and-record-pick', action: 'auto_pick' },
+  draft_start_retrying: { fn: 'draft-control', action: 'start' },
+};
+
+/** A seeded refusal for this call, or null: `{ ok: false, reason }` (the shape readFunctionRefusal reads) when the knob names a known reason
+ * AND this is the call the server refuses with it. Pure and string-free: the words on screen are the app's own. */
+export function captureDraftRefusal(fn: string, body: Record<string, unknown>, reason: string | null | undefined): { data: { ok: false; reason: string }; error: null } | null {
+  const rule = reason ? CAPTURE_DRAFT_REFUSALS[reason] : undefined;
+  if (!reason || !rule || rule.fn !== fn || body.action !== rule.action) return null;
+  return { data: { ok: false, reason }, error: null };
+}
+
 /** The fixture for a function invocation (validate-and-record-pick, draft-control), or null. */
 export function invokeFixtureFor(
   fn: string,
@@ -214,7 +229,11 @@ export function invokeFixtureFor(
   leaveFixture?: string | null,
   /** EXPO_PUBLIC_CAPTURE_CONFIRM_REFUSAL: confirm_roster is refused with this reason (autoStartFixture). Unset: it saves. */
   confirmRefusal?: string | null,
+  /** EXPO_PUBLIC_CAPTURE_DRAFT_REFUSAL: stalled / price_unavailable / draft_start_retrying (captureDraftRefusal). Unset: no refusal. */
+  draftRefusal?: string | null,
 ): { data: unknown; error: null } | null {
+  const refused = captureDraftRefusal(fn, body, draftRefusal);
+  if (refused) return refused;
   if (fn === 'leave-league') return { data: leaveLeagueFixture(body, leaveFixture), error: null };
   if (fn === 'symbols-search') return { data: Array.isArray(body.symbols) ? symbolsBatchFixture(body) : symbolsSearchFixture(body), error: null };
   if (fn === 'validate-and-record-pick') {
