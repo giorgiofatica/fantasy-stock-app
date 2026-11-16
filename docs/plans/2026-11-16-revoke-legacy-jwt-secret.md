@@ -1,6 +1,6 @@
 # Phase 4b: retire the old signing secret
 
-Status: Draft, awaiting Giorgio's approval
+Status: Approved (Giorgio, 2026-11-16)
 Planner session: Planner (Fable 5.2) · Orchestrator hand-off: —
 
 Research this plan is built on: `docs/security/2026-11-16-legacy-jwt-secret-research.md`
