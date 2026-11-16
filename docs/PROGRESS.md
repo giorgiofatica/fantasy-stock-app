@@ -23,6 +23,26 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-16
+
+(Times are UTC. The Orchestrator's account throughout; statuses, counts and prefixes only, no key value.)
+
+**Shipped**
+- **Phase 4 is DONE: the legacy JWT API keys are disabled.** Giorgio clicked "Disable JWT-based API keys" on 2026-11-16 at about 17:38Z. Verified by a read-only probe (it reads the keys from local files and prints only HTTP status and row counts): baseline 2026-11-14T06:52:51Z P1 (publishable only) 200/0 rows, P2 (legacy `service_role` as apikey and Bearer) 200/1, P3 200/1; after, 17:40:07Z, P1 200/0, P2 401, P3 401; probe 2 at 18:08:26Z returned 401 "Legacy API keys are disabled" on REST, the Functions gateway (`symbol-name`, `verify_jwt=true`) and the Auth admin API. Crons after the disable (`net._http_response`): 17:50:00Z 202, 18:00:00Z 202 and 18:00:00Z 200, no 401. Build 14 on Giorgio's phone after the disable: Home loads, a league opens, a draft-queue save persists. The leaked legacy `service_role` JWT is refused on REST, Functions and Auth admin. **Realtime is untested.**
+
+**Found**
+- **Local cleanups DONE (Giorgio ran them; the Orchestrator's verified account, 2026-11-16; counts and variable names only):** (1) the settings cleanup's apply run read "DONE: 85 files, 255 service_role rules, 255 anon rules, 0 problems" and "re-scan: files still holding a legacy key = 0"; the Orchestrator's independent dry run afterwards read 0 files, and the main settings file still parses. (2) the `.env` cleanup: both legacy names are deleted, and the file now holds only `SUPABASE_URL`, `SB_PUBLISHABLE_KEY`, `SB_SECRET_KEY_LOCAL_SCRIPTS` and `SB_SECRET_KEY_CRON` (checked by name); the Orchestrator's role scan finds 0 legacy JWTs in it, in the shell history files or in the global Claude config. (3) The Planner's role-decoding re-scan found 0 `service_role` copies across the main checkout, the deploy checkout and all 84 worktrees (about 100k files); anon-only copies remain in tracked files, which is harmless since anon keys are public by design and are now disabled. **Its limits:** it skips `node_modules`, `.git` and build folders, and session transcripts still hold the key, **which is why Phase 4b revokes the secret.** **Status unchanged:** the leaked key is refused on REST, Functions and Auth admin; Realtime is untested; it is dead only after Phase 4b. The Planner's research is PR #463 (`docs/security/2026-11-16-legacy-jwt-secret-research.md`, OPEN, not merged; I have not read it), and the Planner writes the Phase 4b plan next.
+- **Check (c), the dashboard's last-used indicator, was not possible:** the legacy keys page has none; the probe replaced it.
+- **The disable is reversible, not a one-way door** (the confirm dialog said the keys "remain valid as a JWT"; source: supabase.com/docs/guides/getting-started/migrating-to-new-api-keys, which says the legacy keys can be re-activated, so the step is reversible (cited by the Orchestrator; I did not fetch the page, per my no-web rule)). The "one-way door" wording is corrected in STATUS and `docs/migrations/MIGRATION_STATUS.md`; the history bullets are left as written.
+- **The legacy JWT SECRET is not revoked** (it still signs user sessions): do not call the key dead; it is dead after Phase 4b.
+
+**Waiting on Giorgio**
+- Nothing pending from the legacy-key cleanup (done, below); the Phase 4b plan is the Planner's next piece.
+
+**Next**
+- **Phase 4b, open and not yet planned:** migrate the secret, rotate, wait 75+ minutes, revoke; before the rotation, the 12 `verify_jwt=true` functions move to in-code JWT checks. STATUS §4 item 29.
+- A Realtime check (untested), the build-15 re-check, Part D at the next draft, and the S1 CONTRACT after build 15.
+
 ## 2026-11-13
 
 (Times are UTC; 00:47Z–03:35Z on 2026-11-14 is the evening of 2026-11-13 in Giorgio's time zone.)
@@ -45,13 +65,14 @@ Entries begin with the Recorder's first pass.
 - An https invite link waits for a tap when you are already signed in (his "B" on A2, #454): it opens on the Join preview and joins only on the tap; a signed-out arrival is unchanged. Built in #457 (merged), in no build.
 
 **Found**
+- **Phase 4 pre-disable checks (a) and (b) PASSED (the Orchestrator's verified notes; prefixes only, no key value):** (a) the EAS `production` env has one var, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, beginning `sb_publishable_`, no legacy `eyJ` key (Giorgio ran `eas env:list production --include-sensitive`); (b) Vercel has `VITE_SUPABASE_PUBLISHABLE_KEY` beginning `sb_publishable_` and `VITE_SUPABASE_URL` only, which matches `apps/web/src/supabase/supabaseClient.js` on `main` (it reads just those two; no `ANON_KEY` fallback; I read it). **(c), the legacy keys' last-used on the Supabase API Keys page, is next with the Planner.** **(a), (b) and (c) are the Planner's pre-disable checks, not the two hard gates; the Orchestrator ruled BOTH hard gates CLEARED on 2026-11-13** (the publishable-key write: real trades on build 14 during market hours on 2026-11-12; the real-app draft: manual picks in a real draft on 2026-11-10; the repo's closest entries are indirect, cited in `docs/migrations/MIGRATION_STATUS.md`). The legacy keys are still enabled; Phase 4 has not been done. STATUS §4 item 29. #461 (my last record) merged 03:44:19Z.
 - **The brief security check (#452):** no CRITICAL or HIGH, no secret values in the repo, five MEDIUM (S1 `symbols` readable by any signed-in account, confirmed; S2 and S3 commissioner direct writes; A1 plain sign-out leaves the pending stores; A2 https invite joins without a tap).
 - **The market-data dependency audit (#453):** Alpaca from 12 edge functions through 9 copies of the request code, Finnhub from one place, NASDAQ Trader from one place, provider prices kept permanently in four tables; nothing decided.
 - **NEW (the Orchestrator's verified finding; the value is not reproduced):** the legacy `service_role` JWT is in the gitignored `.claude/settings.local.json`; the legacy keys are still enabled, so it is live, and rotating it is Phase 4. STATUS §4 item 29. Also CLAUDE.md's "full-history gitleaks scan is clean" held only because of the `.claude/` allowlist; #457 (open) removes it.
 
 **Waiting on Giorgio**
 - The S1 CONTRACT push after build 15 is on every phone in use; the read-only queries in the security check's "Needs Giorgio" list.
-- The Phase 4 decision on the legacy keys (item 29), now with the live key in `settings.local.json`.
+- The Phase 4 decision on the legacy keys (item 29): checks (a) and (b) passed, (c) next, and the live key in `settings.local.json` raises the urgency.
 
 **Next**
 - Promote the S1 CONTRACT (`deferred/20261205000400`) only after a build with #456's app change is on every phone in use (build 15), re-stamped, then a dry run, the push and PART B.
