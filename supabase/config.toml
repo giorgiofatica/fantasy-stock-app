@@ -1,9 +1,14 @@
 
-# verify_jwt passes the PUBLIC anon JWT too, so quote also requires a real user
+# verify_jwt passed the PUBLIC anon JWT too, so quote also requires a real user
 # in code (getUser) plus a fail-closed per-user limit (_shared/market-guard.ts).
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
 [functions.quote]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/quote/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -60,9 +65,15 @@ entrypoint = "./functions/refresh-symbols/index.ts"
 # (RLS-bypass) so leagues/league_members/league_invites stay members-only to
 # clients. Rate-limited (per-user + per-IP, fail-open) so it isn't an enumeration
 # oracle. Returns display-only fields — no id/commissioner_id/invite_code.
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
+# The "post-login" property above is now the in-code getUser() alone.
 [functions.preview-league]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/preview-league/index.ts"
 
 # Onboarding W3 (Planner ruling, 2026-10-14): the NO-SESSION league preview behind the invite link, for the web
@@ -77,31 +88,48 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/invite-preview/index.ts"
 
-# RLS-hardening (preview/join pair): atomic server-side JOIN. verify_jwt=true. The
+# RLS-hardening (preview/join pair): atomic server-side JOIN. verify_jwt=true (until Phase 4b). The
 # mutation runs in join_league_by_code (SECURITY DEFINER, EXECUTE granted to
 # service_role ONLY), so league_members inserts + league_invites accept-updates
 # never touch the client. Retires interim policy [I7].
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
 [functions.join-league]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/join-league/index.ts"
 
 # Leave league (STATUS §4 item 11): pre-draft leave / post-season hide.
-# verify_jwt=true + in-code getUser(); the user id comes only from the JWT. The
+# verify_jwt=true (until Phase 4b) + in-code getUser(); the user id comes only from the JWT. The
 # rules live in leave_league / unhide_league (SECURITY DEFINER, EXECUTE granted to
 # service_role ONLY, 20261107000001). Retires interim policy [I5].
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
 [functions.leave-league]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/leave-league/index.ts"
 
 # Account deletion (docs/plans/2026-10-21-account-deletion.md): the player deletes
-# their own account after re-proving who they are. verify_jwt=true + in-code
+# their own account after re-proving who they are. verify_jwt=true (until Phase 4b) + in-code
 # getUser(); the user id comes only from the JWT. The scrub and the vault RPCs are
 # SECURITY DEFINER, EXECUTE service_role ONLY, so this function is their caller.
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
+# Here the check is getUser(jwt) in index.ts, and run.ts refuses a null caller
+# before the limiter, the proof or any ledger write.
 [functions.delete-account]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/delete-account/index.ts"
 
 # Hourly heal for interrupted account deletions (20261125000010). CRON ONLY:
@@ -114,14 +142,19 @@ verify_jwt = false
 entrypoint = "./functions/heal-account-deletions/index.ts"
 
 # Mobile draft launch-blocker (docs/STATUS.md §4/§5): server-side draft start +
-# bot seeding. verify_jwt=true + in-code getUser() + in-code commissioner check
+# bot seeding. verify_jwt=true (until Phase 4b) + in-code getUser() + in-code commissioner check
 # (from the leagues row, never the request body) — same auth shape as
 # join-league/validate-and-record-pick. Writes use SB_SECRET_KEY_INTERNAL
 # (bypasses RLS); [I2a]/[I6] remain as the PostgREST fallback until the
 # deferred migration retires them (supabase/migrations/deferred/README.md).
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
 [functions.draft-control]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/draft-control/index.ts"
 
 # In-house simulator (DR-001 Phase 4): symbols enrichment cron. Cron-only —
@@ -171,21 +204,31 @@ entrypoint = "./functions/draft-order-notify/index.ts"
 
 # In-house simulator (DR-001 Phase 3): server-side draft legality gate. RLS on
 # drafts remains the membership backstop; this function is the single legality
-# gate + write path the clients use. verify_jwt=true + in-code getUser() +
+# gate + write path the clients use. verify_jwt=true (until Phase 4b) + in-code getUser() +
 # in-code membership check (writes use SB_SECRET_KEY_INTERNAL, which bypasses
 # RLS). Fill prices come from the shared app-key Alpaca path (_shared/).
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
 [functions.validate-and-record-pick]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/validate-and-record-pick/index.ts"
 
 # In-house simulator (DR-001 Phase 3): post-draft add/drop. Same auth shape as
 # validate-and-record-pick. Replaces the removed place-order broker path;
 # TradeModal submits here. Quantity is server-computed per stake mode — the
 # client's quantity input is not trusted.
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
 [functions.record-trade]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/record-trade/index.ts"
 
 # ============================================================================
@@ -220,28 +263,39 @@ entrypoint = "./functions/record-trade/index.ts"
 # ============================================================================
 
 # Market data, no per-user credentials — uses the shared server-side
-# ALPACA_API_KEY. verify_jwt=true passes the PUBLIC anon JWT, so it is NOT the
+# ALPACA_API_KEY. verify_jwt=true passed the PUBLIC anon JWT, so it is NOT the
 # boundary: historical-bars (like quote) requires a real user in code plus a
 # fail-closed per-user limit (_shared/market-guard.ts); symbol-name and
 # symbols-search read symbols AS the caller (signed-in only, 20261114000000).
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
+# symbols-search: guardSignedInCaller (getUser + fail-closed per-user limit).
+# symbol-name: had NO in-code check until Phase 4b (it relied on the gateway and
+# the table grant, and a refused caller got 500); it now calls resolveUser
+# (getUser) first and answers our 401. No rate limit there: no supplier spend.
 [functions.historical-bars]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/historical-bars/index.ts"
 
 [functions.symbol-name]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/symbol-name/index.ts"
 
 [functions.symbols-search]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/symbols-search/index.ts"
 
 # ⚠️ THE ODD ONE OUT — verify_jwt = FALSE. Until 2026-10-08 it had NO in-code
 # guard either, so it was fully anon-callable (see L4 ACTIONED below). It is the only market-data function that is; quote,
-# historical-bars, symbol-name and symbols-search are all ON.
+# historical-bars, symbol-name and symbols-search were all ON. (Since Phase 4b,
+# 2026-11-16, they are OFF too, each with its own in-code getUser() boundary; it is
+# still the only one an ANONYMOUS caller can use, for the tape's symbols.)
 #
 # DELIBERATE IN ORIGIN, not a mis-set toggle:
 #   * apps/web/src/Ticker.jsx:27 states the intent in a comment — "uses
@@ -272,14 +326,19 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/ticker-quotes/index.ts"
 
-# F7/F8 (spec L2): server-side push dispatch. verify_jwt=true — the caller must be
+# F7/F8 (spec L2): server-side push dispatch. verify_jwt=true (until Phase 4b) — the caller must be
 # a real logged-in user, since the function authorizes on their identity. It reads
 # push tokens with SB_SECRET_KEY_INTERNAL so no client ever needs to, which is the
 # prerequisite for relocating the token off user_profiles (a column REVOKE cannot
 # close the Realtime broadcast path; the column has to physically move).
 # Authorizes BOTH the target (caller and target share a league) and the CONTENT
 # (title/body derived server-side from a closed type map, never client strings).
+# PHASE 4b (2026-11-16, docs/plans/2026-11-16-revoke-legacy-jwt-secret.md): verify_jwt
+# = false. The gateway check may refuse sessions signed with the new asymmetric keys,
+# so the handler's own auth.getUser() check is the boundary (it asks the sign-in
+# server, so it does not care how the token was signed). Pinned per function by
+# supabase/tests/handler_auth_boundary.test.ts.
 [functions.send-notification]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 entrypoint = "./functions/send-notification/index.ts"

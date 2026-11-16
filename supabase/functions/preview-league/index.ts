@@ -62,7 +62,9 @@ Deno.serve(async (req: Request) => {
   try {
     const { data: auth } = await authed.auth.getUser();
     const user = auth?.user;
-    if (!user) return json({ error: 'not_authenticated', message: 'Please sign in to view this league.' }, 401);
+    // `?.id`, not just truthiness: supabase-js getUser() returns `data.user ?? data`, so a 200
+    // with no user id yields a truthy user with id undefined (handler_auth_boundary.test.ts).
+    if (!user?.id) return json({ error: 'not_authenticated', message: 'Please sign in to view this league.' }, 401);
 
     const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim();
     if (!(await rateLimitOk(admin, 'preview-league', user.id, ip))) {

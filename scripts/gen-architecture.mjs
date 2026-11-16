@@ -255,7 +255,7 @@ function scanEdgeFunctions() {
       const files = readdirSync(fnDir).sort();
       const modules = files.filter((f) => f.endsWith('.ts') && f !== 'index.ts' && !f.endsWith('.test.ts'));
       const tests = files.filter((f) => f.endsWith('.test.ts'));
-      let imports = [], envVars = [], serveLine = null, lines = 0, authGuard = null;
+      let imports = [], envVars = [], serveLine = null, lines = 0, authGuard = null, userGuard = null;
       if (existsSync(entry)) {
         const content = read(entry);
         lines = content.split('\n').length;
@@ -268,8 +268,16 @@ function scanEdgeFunctions() {
         } else if (/isAuthorized/.test(content)) {
           authGuard = 'in-code guard (isAuthorized)';
         }
+        // A signed-in-user check (GoTrue getUser, directly or via _shared/market-guard.ts).
+        // Kept apart from authGuard: the cron drift check below keys on authGuard, and a
+        // cron cannot satisfy a user check. Since Phase 4b (2026-11-16) the 12 user-facing
+        // functions run verify_jwt=false with this as their boundary, so without it the map
+        // would draw them as gateway-off with no guard at all.
+        if (/\.auth\.getUser\(|\bresolveUser\(|\bguardSignedInCaller\(/.test(content)) {
+          userGuard = 'in-code getUser (a real signed-in user)';
+        }
       }
-      return { name, entry: existsSync(entry) ? rel(entry) : null, serveLine, lines, modules, tests, imports, envVars, authGuard };
+      return { name, entry: existsSync(entry) ? rel(entry) : null, serveLine, lines, modules, tests, imports, envVars, authGuard, userGuard };
     });
 }
 
@@ -484,7 +492,7 @@ const FLOWS = [
     steps: [
       { edge: 'e.ui.join-league->fn.preview-league', detail: 'Screen posts the code for a display-only preview. Rate-limited per-user and per-IP.', anchors: [['apps/mobile/app/join-league.tsx', "invoke('preview-league'"]] },
       { edge: 'e.fn.preview-league->pg.check_and_bump_rate_limit', detail: 'Per-user and per-IP buckets. Fail-open by design — a limiter outage must not block joins.', anchors: [['supabase/functions/preview-league/index.ts', 'check_and_bump_rate_limit']] },
-      { edge: 'e.ui.join-league->fn.join-league', detail: 'On confirm, the join is performed server-side. verify_jwt=true, so the caller identity is the gateway-verified JWT.', anchors: [['apps/mobile/app/join-league.tsx', "invoke('join-league'"]] },
+      { edge: 'e.ui.join-league->fn.join-league', detail: 'On confirm, the join is performed server-side. The caller identity is the in-code getUser() (verify_jwt=false since Phase 4b; the gateway check never proved a user, the anon key passed it).', anchors: [['apps/mobile/app/join-league.tsx', "invoke('join-league'"]] },
       { edge: 'e.fn.join-league->pg.check_and_bump_rate_limit', detail: 'Same two buckets on the mutating path.', anchors: [['supabase/functions/join-league/index.ts', 'check_and_bump_rate_limit']] },
       { edge: 'e.fn.join-league->pg.join_league_by_code', detail: 'Atomic membership insert + invite accept. p_user_id comes from the verified JWT, never the request body. EXECUTE is service_role only, so the client cannot reach this directly.', anchors: [['supabase/functions/join-league/index.ts', "rpc('join_league_by_code'"]] },
       { edge: 'e.pg.join_league_by_code->tbl.league_members#insert', detail: 'Membership row written inside the function, so league_members stays unwritable by clients under RLS.' },
@@ -544,7 +552,7 @@ const FLOWS = [
     trigger: { kind: 'user', detail: 'User confirms a buy or sell in the stock sheet\'s review (post-draft add/drop; the legacy TradeModal was deleted in W4 Portfolio)' },
     steps: [
       { edge: 'e.ui.money.useStockSheetData->fn.ticker-quotes', detail: 'Live quote for display before confirming. Advisory only — the fill price is re-derived server-side.', anchors: [['apps/mobile/lib/money/useStockSheetData.ts', "invoke('ticker-quotes'"]] },
-      { edge: 'e.ui.money.recordTrade->fn.record-trade', detail: 'The ONLY trade write path since DR-001 Phase 3: the client-INSERT policy on trades was dropped (20260811000002). verify_jwt=true + in-code getUser(). The same function answers the review\'s advisory preview (slot map, would_fill — which ignores the budget, so the client refuses an over-budget buy itself).', anchors: [['apps/mobile/lib/money/recordTrade.ts', "invoke('record-trade'"]] },
+      { edge: 'e.ui.money.recordTrade->fn.record-trade', detail: 'The ONLY trade write path since DR-001 Phase 3: the client-INSERT policy on trades was dropped (20260811000002). In-code getUser() is the auth boundary (verify_jwt=false since Phase 4b). The same function answers the review\'s advisory preview (slot map, would_fill — which ignores the budget, so the client refuses an over-budget buy itself).', anchors: [['apps/mobile/lib/money/recordTrade.ts', "invoke('record-trade'"]] },
       { edge: 'e.fn.record-trade->pg.check_and_bump_rate_limit', detail: 'Per-user and per-IP buckets.', anchors: [['supabase/functions/record-trade/index.ts', "p_bucket: 'record-trade'"]] },
       { edge: 'e.fn.record-trade->tbl.leagues', detail: 'League rules: stake mode, budget, notional, allow_undraftable.', anchors: [['supabase/functions/record-trade/commit.ts', 'allowUndraftable: league.allow_undraftable']] },
       { edge: 'e.fn.record-trade->tbl.symbols', detail: 'is_draftable gate for buys (bypassed only when the commissioner set allow_undraftable).', anchors: [['supabase/functions/record-trade/index.ts', ".from('symbols').select('is_draftable')"]] },
@@ -651,12 +659,13 @@ function build() {
     else if (verifyJwt === true) sub.push('verify_jwt=true');
     else sub.push('verify_jwt unset');
     if (fn.authGuard) sub.push('apikey guard');
+    if (fn.userGuard) sub.push('user guard');
     addNode({
       id: `fn.${fn.name}`, label: fn.name, sublabel: sub.join(' · '), kind: 'edge-function',
       source: fn.entry ? { path: fn.entry, line: fn.serveLine || 1 } : null,
       facts: {
         verifyJwt, verifyJwtSource: cfg.line ? `supabase/config.toml:${cfg.line}` : null,
-        authGuard: fn.authGuard, localModules: fn.modules, tests: fn.tests,
+        authGuard: fn.authGuard, userGuard: fn.userGuard, localModules: fn.modules, tests: fn.tests,
         envVars: fn.envVars, lines: fn.lines,
       },
     });

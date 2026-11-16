@@ -175,14 +175,19 @@ Deno.test({
         } finally { f.restore(); }
       });
 
-      await t.step('symbol-name: anon-JWT caller → refused, no name leaks', async () => {
+      await t.step('symbol-name: anon-JWT caller → our 401 BEFORE the read, no name leaks', async () => {
+        // Since Phase 4b (2026-11-16, verify_jwt off) the handler's own getUser
+        // check refuses a caller with no real user before the symbols read, so
+        // the table grant is the second layer, not the first, and the refusal is
+        // a 401, not the old 500 "Failed to lookup symbol".
         const f = install();
         try {
           const res = await post(name, ANON_JWT, { symbol: 'AAPL' });
           const body = await res.json();
-          assertFalse(res.ok);
+          assertEquals(res.status, 401);
+          assertEquals(body.error, 'not_authenticated');
           assertFalse('name' in body && body.name);
-          assertEquals(f.seen[0].authorization, `Bearer ${ANON_JWT}`);
+          assertEquals(f.seen, [], 'a caller with no real user must not reach the symbols read');
         } finally { f.restore(); }
       });
     } finally {
