@@ -70,3 +70,13 @@ Deno.test('DEV-only and seam-shaped: read behind SEAM_ON, handed through the sea
   assert(calls.indexOf('invokeFixtureFor(fn, opts.body') > calls.indexOf('export async function seamInvoke') && calls.indexOf('invokeFixtureFor(fn, opts.body') < calls.indexOf('return supabase.functions' + '.invoke(fn, opts)'));
   assertFalse(SOURCES['lib/game/seamFixtures.ts'].includes('process.env'), 'the pure fixture module reads no env');
 });
+
+Deno.test('the drafting fixture has a DEV-only MEMBER variant (EXPO_PUBLIC_SHELL_DRAFTING_MEMBER) so the room can be shot as a member too', () => {
+  const dev = SOURCES['lib/shell/devFixture.ts'];
+  assert(dev.includes("export const FIXTURE_DRAFTING_MEMBER: boolean = __DEV__ ? process.env.EXPO_PUBLIC_SHELL_DRAFTING_MEMBER === '1' : false;"));
+  assert(dev.includes("current_week: 1, ...(FIXTURE_DRAFTING_MEMBER ? { commissioner_id: 'paolo' } : {}) });"), 'only the drafting league');
+  const readers = Object.entries(SOURCES).filter(([, s]) => s.includes('EXPO_PUBLIC_SHELL_DRAFTING_MEMBER') && !s.startsWith('/**\n * Captures')).map(([p]) => p).sort();
+  assert(readers.every((p) => p === 'lib/shell/devFixture.ts'), readers.join(','));
+  // The room has no role branch at all, so a member and the commissioner see the same stalled card.
+  assertFalse(SOURCES['components/game/DraftRoom.tsx'].includes('isCommissioner'));
+});
