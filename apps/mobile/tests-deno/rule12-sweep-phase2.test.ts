@@ -169,11 +169,11 @@ Deno.test('rows 14-15 and the unlisted lines: what the DL ruled KEEP stays, word
   assert(strip(SOURCES['app/(tabs)/league.tsx']).includes('header={{ title: GAME_COPY.finalStandingsTitle }}'));
 });
 
-Deno.test('(b) the member list\'s MEMBER_DRAFT_LINE is LEFT: it can show while the Change control does not (the commissioner\'s name unknown)', () => {
+Deno.test('(b) the member list: MEMBER_DRAFT_LINE, LEFT in phase 2, is cut by the 2026-11-16 sweep (rule12-sweep-phase3); Change still needs the commissioner\'s name', () => {
   const rn = strip(SOURCES['lib/game/renewal.ts']);
   assert(rn.includes('change: memberIn && !set && rosterCommissionerName(r.people) !== null,'), 'Change needs the commissioner\'s name');
-  assert(rn.includes('memberLine: memberIn && !set,'), 'the line does not');
-  assert(strip(SOURCES['components/game/RenewalRoster.tsx']).includes('{view.memberLine ? <Text variant="caption" tone="secondary">{MEMBER_DRAFT_LINE}</Text> : null}'));
+  assertFalse(rn.includes('memberLine'));
+  assertFalse(strip(SOURCES['components/game/RenewalRoster.tsx']).includes('MEMBER_DRAFT_LINE'));
   // The commissioner's caption is the names alone.
   assert(strip(SOURCES['components/game/RenewalRoster.tsx']).includes('<Text variant="caption" tone="secondary">{waitingOnSentence(waiting)}</Text>'));
 });

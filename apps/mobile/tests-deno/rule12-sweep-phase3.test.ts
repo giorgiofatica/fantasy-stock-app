@@ -26,6 +26,8 @@ Deno.test('every line the phase-3 sweep cuts is gone from the mobile source', ()
     ['3', 'START_RETRYING'],
     ['4', 'Create or join a league to get started'],
     ['6', 'It opens the app to set a new password'],
+    ['7', 'The draft is set once everyone has replied'],
+    ['7', 'MEMBER_DRAFT_LINE'],
   ];
   for (const [row, text] of cut) assertFalse(app.includes(text), `${row}: "${text}" is still in the source`);
 });

@@ -10,13 +10,13 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  ANSWER_NOT_SAVED, CHANGE_ANSWER, MEMBER_DRAFT_LINE, RUNNING_BACK_BANNER, TRY_AGAIN, YOURE_OUT_CHIP,
+  ANSWER_NOT_SAVED, CHANGE_ANSWER, RUNNING_BACK_BANNER, TRY_AGAIN, YOURE_OUT_CHIP,
   afterAskAnswer, askQuestion, homeRepliesPending, renewalAnswerOutcome, renewalAnswerRefusal, renewalAskAnswer,
   renewalDraftSet, rosterCommissionerName, rosterView, screenFor, showsHomeRenewalAsk,
 } from '../lib/game/renewal.ts';
 import { homeNoDateBlock, homeSetsDraftTime } from '../lib/game/draftTimeSheet.ts';
 import { showsLeagueRenewalAsk } from '../lib/game/leaguePhase.ts';
-import { callerAfterAnswer, fixtureRoster, FIXTURE_SET_DRAFT_DATE } from '../lib/game/renewalFixture.ts';
+import { callerAfterAnswer, fixtureRoster } from '../lib/game/renewalFixture.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
 const NOW = new Date('2026-01-17T20:00:00Z');
@@ -40,12 +40,11 @@ Deno.test('GS-10: no commissioner draft card for a member; the commissioner keep
   assertEquals(roster.split('Draft time</Text>').length, 2, 'one draft card, no ungated copy');
 });
 
-Deno.test("GS-10: a member who is in gets the board's line under the list, verbatim; not once the draft is set", () => {
-  assertEquals(MEMBER_DRAFT_LINE, 'The draft is set once everyone has replied. You can change your answer until then.');
-  assertEquals(rosterView(member()).memberLine, true);
-  assertEquals(rosterView(member({ draft_date: FIXTURE_SET_DRAFT_DATE })).memberLine, false);
-  assertEquals(rosterView(member({ is_commissioner: true })).memberLine, false);
-  assert(SOURCES['components/game/RenewalRoster.tsx'].includes('{view.memberLine ? <Text variant="caption" tone="secondary">{MEMBER_DRAFT_LINE}</Text> : null}'));
+Deno.test("GS-10: no line under a member's list (UX rule 12, 2026-11-16 sweep): the banner and Change say it", () => {
+  assertEquals('memberLine' in rosterView(member()), false);
+  const roster = SOURCES['components/game/RenewalRoster.tsx'];
+  assertEquals(roster.includes('MEMBER_DRAFT_LINE'), false);
+  assertEquals(roster.includes('The draft is set once everyone has replied'), false);
 });
 
 // ── GS-10 item 2: "You're running back" + Change, until the draft is set ──
@@ -53,7 +52,7 @@ Deno.test("GS-10: a member who is in gets the board's line under the list, verba
 Deno.test("GS-10: the banner and Change for a member who is in (board copy verbatim)", () => {
   assertEquals(RUNNING_BACK_BANNER, "You're running back");
   assertEquals(CHANGE_ANSWER, 'Change');
-  assertEquals(rosterView(member()), { draftCard: false, banner: true, change: true, memberLine: true });
+  assertEquals(rosterView(member()), { draftCard: false, banner: true, change: true });
   // A newcomer joined by code: no answer to change. The commissioner gets the reconcile view.
   assertEquals(rosterView(member({ caller_status: 'new' })).banner, false);
   assertEquals(rosterView(member({ caller_status: 'new' })).change, false);
