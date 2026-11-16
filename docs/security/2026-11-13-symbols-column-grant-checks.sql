@@ -101,7 +101,7 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
   perform set_config('request.jwt.claim.sub', v_user, true);
 
-  -- a. The functions answer a member (build 15).
+  -- a. The functions answer a member (build 16; there was no build 15).
   v_cnt := public.count_slot_matches(null, null, null);
   if v_cnt is null or v_cnt = 0 then v_fail := v_fail || ' a:count_slot_matches=' || coalesce(v_cnt::text, 'null'); end if;
   select * into v_prog from public.symbols_enrichment_progress();

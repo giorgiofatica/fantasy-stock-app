@@ -127,10 +127,16 @@ export async function loadChain(db: PGlite, opts: { untilBefore?: string } = {})
   return applied;
 }
 
-/** Apply every migration with version >= from (after loadChain({ untilBefore: from })). */
-export async function applyFrom(db: PGlite, from: string): Promise<string[]> {
+/**
+ * Apply every migration with version >= from (after loadChain({ untilBefore: from })).
+ * `untilBefore` stops before a version, so a test of one migration's effect can exclude a
+ * LATER migration that deliberately changes the same thing (e.g. the S1 CONTRACT,
+ * 20261206000000, revokes the symbols table grant that 20261205000200's test pins).
+ */
+export async function applyFrom(db: PGlite, from: string, opts: { untilBefore?: string } = {}): Promise<string[]> {
   const applied: string[] = [];
   for (const f of await migrationFiles()) {
+    if (opts.untilBefore && f >= opts.untilBefore) break;
     if (f < from || FIRST.includes(f) || SKIP.includes(f)) continue;
     await db.exec(strip(await readMigration(f)));
     applied.push(f);

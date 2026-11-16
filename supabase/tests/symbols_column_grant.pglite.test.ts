@@ -51,8 +51,10 @@ import { applyFrom, loadChain, migrationFiles, readMigration } from './full_chai
 
 const EXPAND = '20261205000300_symbols_readers_functions.sql';
 const EXPAND_VERSION = '20261205000300';
-const CONTRACT_NAME = '20261205000400_symbols_column_grant.sql';
-const CONTRACT_URL = new URL(`../migrations/deferred/${CONTRACT_NAME}`, import.meta.url);
+// Promoted 2026-11-16 from deferred/ (authored as 20261205000400), re-stamped to sort last.
+const CONTRACT_NAME = '20261206000000_symbols_column_grant.sql';
+const CONTRACT_VERSION = '20261206000000';
+const CONTRACT_URL = new URL(`../migrations/${CONTRACT_NAME}`, import.meta.url);
 const CHECKS_URL = new URL('../../docs/security/2026-11-13-symbols-column-grant-checks.sql', import.meta.url);
 
 const C = '00000000-0000-4000-8000-0000000000c1'; // commissioner, member of L
@@ -111,19 +113,23 @@ function effectBlock(checks: string, marker: string): string {
   return block;
 }
 
-Deno.test('S1 staging: EXPAND is in the apply path, CONTRACT is HELD in deferred/, the old single file is gone', async () => {
+Deno.test('S1 staging: EXPAND and the promoted CONTRACT are in the apply path, in order; nothing left in deferred/', async () => {
   const files = await migrationFiles();
   assert(files.includes(EXPAND), `${EXPAND} is in supabase/migrations/`);
   assert(!files.includes('20261205000000_symbols_column_grant.sql'), 'the old single migration is deleted');
-  // CONTRACT must not reach db push before its precondition (deferred/README.md). When it is
-  // promoted (re-stamped), point CONTRACT_URL at the new file and turn this into a check of that.
-  assert(!files.some((f) => f.endsWith('_symbols_column_grant.sql')), 'no symbols column grant in the apply path yet');
+  // Promoted (deferred/README.md History, 2026-11-16): exactly one column-grant file, sorting after EXPAND.
+  const grants = files.filter((f) => f.endsWith('_symbols_column_grant.sql'));
+  assertEquals(grants, [CONTRACT_NAME], 'the promoted CONTRACT is the only symbols column grant in the apply path');
+  assert(files.indexOf(CONTRACT_NAME) > files.indexOf(EXPAND), 'CONTRACT sorts after EXPAND');
   const contract = await Deno.readTextFile(CONTRACT_URL);
   assert(/revoke all on table public\.symbols/.test(contract) && /grant select \(symbol, name, is_draftable\)/.test(contract));
   const expand = await readMigration(EXPAND);
   assert(!/on table public\.symbols/i.test(expand.replace(/--.*$/gm, '')), 'EXPAND changes no privilege on the table');
   const readme = await Deno.readTextFile(new URL('../migrations/deferred/README.md', import.meta.url));
-  assert(readme.includes(CONTRACT_NAME) && readme.includes('categoryData RPC change is on every phone in use'), 'the precondition is recorded');
+  assert(readme.includes(CONTRACT_NAME) && readme.includes('20261205000400'), 'the promotion is recorded in History');
+  let held = true;
+  try { await Deno.stat(new URL('../migrations/deferred/20261205000400_symbols_column_grant.sql', import.meta.url)); } catch { held = false; }
+  assert(!held, 'the held copy is gone from deferred/');
 });
 
 Deno.test({
@@ -204,7 +210,8 @@ Deno.test({
 
     // ======================= EXPAND alone =======================
     const expandSql = await readMigration(EXPAND);
-    const applied = await applyFrom(chainDb, EXPAND_VERSION);
+    // EXPAND alone: stop before the promoted CONTRACT, which this test applies on its own below.
+    const applied = await applyFrom(chainDb, EXPAND_VERSION, { untilBefore: CONTRACT_VERSION });
     assertEquals(applied[0], EXPAND, 'EXPAND is the next migration in the chain');
     assert(!applied.some((f) => f.includes('symbols_column_grant')), `CONTRACT is not in the apply path: ${applied.join(', ')}`);
 

@@ -89,7 +89,9 @@ Deno.test({
       assertEquals(fnBefore.proconfig, ['search_path=public']);
     });
 
-    const applied = await applyFrom(db as unknown as ChainDb, VERSION);
+    // Stop before the S1 CONTRACT (20261206000000): it deliberately revokes the symbols table grant,
+    // so it is not part of "DML exactly as before". Its own test is symbols_column_grant.pglite.test.ts.
+    const applied = await applyFrom(db as unknown as ChainDb, VERSION, { untilBefore: '20261206000000' });
     assertEquals(applied[0], `${VERSION}_revoke_api_table_ddl_privileges.sql`);
 
     await t.step('AFTER: no API role holds TRUNCATE / REFERENCES / TRIGGER / MAINTAIN on any public relation', async () => {

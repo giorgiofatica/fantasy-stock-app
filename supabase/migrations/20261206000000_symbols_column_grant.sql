@@ -1,14 +1,12 @@
 -- symbols column grant, CONTRACT (S1 stage 2 of 2): a signed-in player reads
 -- symbol, name and is_draftable only.
 --
--- HELD in supabase/migrations/deferred/ (db push ignores this directory).
--- PRECONDITION (supabase/migrations/deferred/README.md): move into
--- supabase/migrations/ only after a build containing the categoryData RPC
--- change is on every phone in use. Its stage 1,
--- 20261205000300_symbols_readers_functions.sql (the functions that build
--- calls), must already be applied. When promoting, RE-STAMP it (git mv to a
--- new name) with a timestamp that sorts after every migration applied by
--- then, or db push refuses it as out of order without --include-all.
+-- PROMOTED 2026-11-16 from supabase/migrations/deferred/ (authored as
+-- 20261205000400, re-stamped so it sorts after every applied migration).
+-- Precondition met: stage 1, 20261205000300_symbols_readers_functions.sql, is
+-- applied (verified 2026-11-13), and build 1.3.0 (16), cut from ba1be61c, which
+-- contains the categoryData RPC change (PR #456), is on every phone in use
+-- (Giorgio: "im the only phone", 2026-11-16).
 --
 -- Why it waits: an older build reads last_price, gics_industry, active and
 -- enriched_at directly. After this, those reads are refused (42501):

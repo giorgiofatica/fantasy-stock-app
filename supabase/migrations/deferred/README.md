@@ -6,7 +6,7 @@ Supabase CLI applies only the timestamped `.sql` files directly in
 Do **not** move a file back to the parent directory until its stated precondition
 is met.
 
-**Currently held:** 2 files (see *Held* below): `20261116000002_revoke_anon_default_grants.sql` (a PROPOSAL awaiting Giorgio's go-ahead) and `20261205000400_symbols_column_grant.sql` (S1 CONTRACT, waiting on a mobile build).
+**Currently held:** 1 file (see *Held* below): `20261116000002_revoke_anon_default_grants.sql` (a PROPOSAL awaiting Giorgio's go-ahead).
 
 ## How to use it
 
@@ -53,41 +53,9 @@ of exposing the function. Tested: `supabase/tests/revoke_anon_default_grants.pgl
 privilege, no anon-callable function, the default-privilege rules), then the
 signed-in app end to end and a signed-out `GET /rest/v1/<table>` → 401/42501.
 
-### `20261205000400_symbols_column_grant.sql` — S1 CONTRACT (signed-in reads symbol, name, is_draftable only)
-
-Revokes every table privilege on `public.symbols` from PUBLIC, anon and
-authenticated (MAINTAIN included), then grants authenticated SELECT on
-`symbol, name, is_draftable` only. Stage 1 (EXPAND,
-`supabase/migrations/20261205000300_symbols_readers_functions.sql`) creates the
-three functions the new clients call instead.
-
-**Precondition:** move into `supabase/migrations/` only after a build containing
-the categoryData RPC change is on every phone in use. That change is
-`apps/mobile/lib/categoryData.ts` calling `count_slot_matches` /
-`symbols_enrichment_progress`, and `apps/mobile/lib/game/useSymbolCategories.ts`
-calling `get_league_pick_industries`. An older build reads `last_price`,
-`gics_industry`, `active` and `enriched_at` directly, and after this file those
-reads are refused (42501): SlotBuilder's availability check shows "couldn't
-check" and the draft board loses its category lines.
-
-**Proof before promoting:**
-1. Stage 1 is applied:
-   `SELECT version FROM supabase_migrations.schema_migrations WHERE version = '20261205000300';`
-2. Every phone in use runs a build cut from a commit that contains the RPC change
-   (`git merge-base --is-ancestor <PR #456 merge commit> <build commit>`). Checked
-   by asking, not by a query.
-
-**Promoting:** `git mv` it into `supabase/migrations/` under a NEW timestamp that
-sorts after every migration applied by then (otherwise `db push` refuses it as
-out of order without `--include-all`), in a small PR. Merge, then push from the
-deploy checkout.
-
-**After applying:** `docs/security/2026-11-13-symbols-column-grant-checks.sql`
-PART B (table ACL, column grants, the effect test that must say PASS), then the
-in-app checks and a db-snapshot re-capture. Tested on both stages:
-`supabase/tests/symbols_column_grant.pglite.test.ts`.
-
 ## History
+
+- 2026-11-16: `20261205000400_symbols_column_grant.sql` (S1 CONTRACT) promoted as `20261206000000_symbols_column_grant.sql`. Proof: stage 1 `20261205000300` applied (verified by query 2026-11-13); build 1.3.0 (16), cut from `ba1be61c`, contains PR #456's merge commit `fdd35af7` (`git merge-base --is-ancestor`); every signed-in read of `symbols` in that build and in the edge functions uses only `symbol, name, is_draftable` (wider reads go through the admin client); Giorgio: "im the only phone" (2026-11-16), on build 16. After applying: PART B of `docs/security/2026-11-13-symbols-column-grant-checks.sql`, the in-app checks, a db-snapshot re-capture.
 
 - 2026-10-12: promoted after 1.1.0 was retired (Giorgio, the only 1.1.0 user, is on 1.2.0; his go: "go with your recommendation" on the release-now recommendation, with an explicit go at db push): `20261115000008_drop_start_new_league_season.sql` → `20261121000000_drop_start_new_league_season.sql`; `20260929000000_drop_I6_I2b.sql` → `20261121000001_drop_I6_I2b.sql`. Post-apply checks: the function and both policies are gone; drafting is re-verified on a fresh test league (Giorgio's 1.2.0 walkthrough draft).
 
