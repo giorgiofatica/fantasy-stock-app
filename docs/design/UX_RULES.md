@@ -239,8 +239,10 @@ an explainer to cut silently: it moves behind an "i" (rule 13).
 setting label, sheet title) with every line of text between it and the first control or row.
 Each such line is named in the report with one of: *fact needed now* (which fact), or
 *explainer* (a finding). More than one line under a heading is a finding whatever the lines
-say. Proposed priority P1 on a screen being built or changed; P2 on a screen the branch did
-not touch (it goes to the sweep list, not into the branch).
+say. Proposed priority **P1 on every screen in the build, touched by the branch or not**
+(changed 2026-11-16 after his fourth report: the P2 "sweep list" for untouched screens is
+how these kept reaching his phone). The gate reads the copy modules as well as the captures,
+so a line in a state no fixture reaches is still checked (w4 gate checklist, section 5).
 
 ## 13. A choice we defined carries optional context
 
