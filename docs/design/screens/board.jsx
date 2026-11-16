@@ -383,9 +383,6 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-buy-top', 'The top of Buy a stock', () => window.KSBuyTop],
-    ['call-draft-card', 'The draft card before the draft', () => window.KSDraftCard],
-    ['call-queue-card', 'The queue card', () => window.KSQueueCard],
     ['call-draft-turn', 'The turn card while someone else picks', () => window.KSDraftTurn],
     ['call-blockers-card', 'The commissioner\u2019s “can\u2019t start yet” card', () => window.KSBlockersCard],
     ['call-dead-links', 'The dead password link and the “Nothing here” page', () => window.KSDeadLinks],
@@ -395,6 +392,9 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-queue-card', title: 'The queue card', decision: 'B: the search becomes the queue list\u2019s last row, "+ Search by ticker or name" in the accent colour, no box; a tap turns it into the field in place, with the same results. No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSQueueCardArchived },
+    { id: 'call-draft-card', title: 'The draft card before the draft', decision: 'B: the time folds into the label, nothing under the countdown: "Draft \u00b7 Sat, Nov 14 \u00b7 6:44 PM ET", then once the room opens "Draft room open \u00b7 12:48 PM ET". Both labels approved as copy.', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDraftCardArchived },
+    { id: 'call-buy-top', title: 'The top of Buy a stock', decision: 'B: the back arrow and the search field on one top row; no "Buy a stock" title and no league pill on this page; VoiceOver keeps "Portfolio". The empty field\u2019s words may end in "\u2026" at his size (accepted). No new words.', date: '2026-11-16', rec: 'PRODUCT_RULES (Buy a stock: the top of the screen is too crowded)', render: () => window.KSBuyTopArchived },
     { id: 'call-refusal-family', title: 'The other dead-end screens, in the taken screen\u2019s form', decision: 'Signed off ("all screens look good"): every dead end on a takeover or invite link is a picture, the sentence as the heading, at most one line under it (a two-sentence refusal split at its full stop; the line capped at 2x), and the way out docked; no yellow panel. Words unchanged.', date: '2026-11-12', rec: 'PRODUCT_RULES (Every dead end on a takeover or invite link takes the same form)', render: () => window.KSRefusalFamilyArchived },
     { id: 'call-sheet-bar', title: 'The top bar on League settings (and every tall sheet)', decision: 'B, "and no, hitting back or x just closes it": a solid bar, \u00d7 at the left, the league\u2019s name with the pencil as the title, Save at the right (grey until a change); no pinned Save at the bottom. Closing never asks; unsaved changes are dropped. Read-only sheets get \u00d7 only. No new words.', date: '2026-11-12', rec: 'PRODUCT_RULES (A sheet\u2019s top must not be a stuck block that cuts text, the top-bar amendment; League settings opens on the league\u2019s own name)', render: () => window.KSSheetBarArchived },
     { id: 'call-sheet-top', title: 'The floating close on tall sheets (never signed off)', decision: 'Superseded: Giorgio sent the ESPN league-manager screens instead ("i like the idea of having the top left being a back or close button and the top right being the save button. it is greyed out until you make a change and then you click save when it populates"). The top bar is the open call #call-sheet-bar.', date: '2026-11-12', rec: 'PRODUCT_RULES records it when the bar is decided', render: () => window.KSSheetTop },

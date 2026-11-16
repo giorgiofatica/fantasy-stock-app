@@ -201,17 +201,17 @@
     </header>
   );
 
-  function CallBuyTop() {
+  function CallBuyTop({ archived = false }) {
     return (
       <section className="b-sec" id="call-buy-top" aria-labelledby="call-buy-top-h">
-        <Head id="call-buy-top" code="Portfolio" title="Your call: the top of Buy a stock" job={'You said the top left is too jumbled: the league pill, "‹ Portfolio", "Buy a stock" and the search all stacked in one corner over an empty page. Two ways to clean it up. Both drop the league pill here (you’re buying for the league you came from; switching leagues stays on the tabs) and both keep a way back to Portfolio.'} />
+        <Head id="call-buy-top" code="Portfolio" title={archived ? 'Decided: B, the top of Buy a stock' : 'Your call: the top of Buy a stock'} job={'You said the top left is too jumbled: the league pill, "‹ Portfolio", "Buy a stock" and the search all stacked in one corner over an empty page. Two ways to clean it up. Both drop the league pill here (you’re buying for the league you came from; switching leagues stays on the tabs) and both keep a way back to Portfolio.'} />
         <ul className="b-inv__notes">
           <li><b>A · A bar, like the sheets.</b> The back arrow at the left, "Buy a stock" centred, the same bar you picked for the tall sheets. The search field sits right under it, full width.</li>
           <li><b>B · The search is the top.</b> The back arrow, then the search field across the rest of the top row. No title: "Search by ticker or name" in the field says what the page is for, like the search in Apple's Stocks and App Store.</li>
           <li><b>In both, the empty page is mostly keyboard:</b> the field is ready to type the moment the page opens, so the space under it is the keyboard, and results fill it as you type.</li>
-          <li><b>Recommended: B.</b> It's one row instead of two, and the first thing on the page is the thing you came to do. A is the better pick if you'd rather every page keep a title in the bar.</li>
+          <li><b>Recommended: B{archived ? ' (taken)' : ''}.</b> It's one row instead of two, and the first thing on the page is the thing you came to do. A is the better pick if you'd rather every page keep a title in the bar.</li>
           <li><b>No new words.</b> VoiceOver still says "Portfolio" on the back arrow.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-16): "B".</b> The back arrow and the search field on one top row, no title, no league pill; VoiceOver keeps "Portfolio"; he accepted the empty field's “…” at his size. Recorded in PRODUCT_RULES ("Buy a stock: the top of the screen is too crowded").</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <h3 className="b-sub">Today (build 14)</h3>
         <Grid>{[fig('bt', 'Today · Light · Large', <BuyToday />, 'Four things stacked in the top left.')]}</Grid>
@@ -221,7 +221,7 @@
           fig('ba1', 'A · typing "n" · Light · Large', <BuyA results />, 'Results fill the page.'),
           fig('ba2', 'A · just opened · Dark · Large', <BuyA t="dark" />),
         ]}</Grid>
-        <h3 className="b-sub">B · the search is the top row (recommended)</h3>
+        <h3 className="b-sub">B · the search is the top row {archived ? '(decided)' : '(recommended)'}</h3>
         <Grid>{[
           fig('bb0', 'B · just opened · Light · Large', <BuyB />, 'One row: back and the field.'),
           fig('bb1', 'B · typing "n" · Light · Large', <BuyB results />, 'Results start right under the top row.'),
@@ -232,16 +232,16 @@
     );
   }
 
-  function CallDraftCard() {
+  function CallDraftCard({ archived = false }) {
     return (
       <section className="b-sec" id="call-draft-card" aria-labelledby="call-draft-card-h">
-        <Head id="call-draft-card" code="League" title="Your call: the draft card before the draft" job={'You said: "draft starts, this big date thing, and then two lines of smaller text below it." The two lines ("The draft room opens at…" and "The draft starts automatically at…") are already gone in build 15. What’s left under the countdown is the draft’s day and time. Keep that line, or put the time in the label above the countdown so nothing sits under it.'} />
+        <Head id="call-draft-card" code="League" title={archived ? 'Decided: B, the draft card before the draft' : 'Your call: the draft card before the draft'} job={'You said: "draft starts, this big date thing, and then two lines of smaller text below it." The two lines ("The draft room opens at…" and "The draft starts automatically at…") are already gone in build 15. What’s left under the countdown is the draft’s day and time. Keep that line, or put the time in the label above the countdown so nothing sits under it.'} />
         <ul className="b-inv__notes">
           <li><b>A · As build 15 has it.</b> "Draft starts in", the countdown, then one line: "Sat, Nov 14 · 6:44 PM ET". The line is a fact you can't see anywhere else on the card (when), so rule 12 lets it stay.</li>
           <li><b>B · Nothing under the countdown.</b> The time moves into the small label above it: "Draft · Sat, Nov 14 · 6:44 PM ET", then the countdown. Once the room opens: "Draft room open · 12:48 PM ET", then the countdown.</li>
-          <li><b>Recommended: B.</b> It's the one layout with no small text under the big number, which is what you asked for, and nothing is lost: the time is still on the card.</li>
+          <li><b>Recommended: B{archived ? ' (taken)' : ''}.</b> It's the one layout with no small text under the big number, which is what you asked for, and nothing is lost: the time is still on the card.</li>
           <li><b>New words in B:</b> the two labels put words you already have together: "Draft · {'{day and time}'}" <NEW /> and "Draft room open · {'{time}'}" <NEW />. A has no new words.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-16): "B", both labels approved as copy.</b> "Draft · {'{day and time}'}" and "Draft room open · {'{time}'}" above the countdown, nothing under it. Recorded in PRODUCT_RULES by the Planner (the 11-16 pre-draft League entry).</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <h3 className="b-sub">Build 14 (what you saw) · A (build 15) · B</h3>
         <Grid>{[
@@ -260,16 +260,16 @@
     );
   }
 
-  function CallQueueCard() {
+  function CallQueueCard({ archived = false }) {
     return (
       <section className="b-sec" id="call-queue-card" aria-labelledby="call-queue-card-h">
-        <Head id="call-queue-card" code="League" title="Your call: the queue card" job={'You said: "your queue, then a bunch of little text, and then kind of a bigger stock thing, and then a big search bar, and then a big save queue button. It just looks cluttered." In build 15 the save button and the line under "Your queue" are gone (it saves by itself). What’s left that’s heavy is the big search box under the list.'} />
+        <Head id="call-queue-card" code="League" title={archived ? 'Decided: B, the queue card' : 'Your call: the queue card'} job={'You said: "your queue, then a bunch of little text, and then kind of a bigger stock thing, and then a big search bar, and then a big save queue button. It just looks cluttered." In build 15 the save button and the line under "Your queue" are gone (it saves by itself). What’s left that’s heavy is the big search box under the list.'} />
         <ul className="b-inv__notes">
           <li><b>A · As build 15 has it.</b> "Your queue · 3 of 50", your stocks, then the search box under them.</li>
           <li><b>B · The search becomes the list's last row.</b> No box: a "+" and "Search by ticker or name" in the accent colour, the height of one row. Tap it and it turns into the search field right there, with the same results as today. The card reads as one list.</li>
-          <li><b>Recommended: B.</b> The box is the biggest thing on the card and it's the thing you use least once your queue is set; as a row it's still one tap away.</li>
+          <li><b>Recommended: B{archived ? ' (taken)' : ''}.</b> The box is the biggest thing on the card and it's the thing you use least once your queue is set; as a row it's still one tap away.</li>
           <li><b>No new words.</b> Both use the field's own words.</li>
-          <li><b>Answer with:</b> A or B.</li>
+          {archived ? <li><b>Decided by Giorgio (2026-11-16): "B".</b> The search is the queue list's last row, “+ Search by ticker or name” in the accent colour with no box; a tap turns it into the field in place, with the same results. No new words. Recorded in PRODUCT_RULES by the Planner.</li> : <li><b>Answer with:</b> A or B.</li>}
         </ul>
         <Grid>{[
           fig('qa', 'A · build 15 · Light · Large', <LeagueTab queue="A" label="League tab, queue card, option A" />, 'The search box under the list.'),
@@ -281,7 +281,10 @@
     );
   }
 
-  window.KSBuyTop = () => <CallBuyTop />;
-  window.KSDraftCard = () => <CallDraftCard />;
-  window.KSQueueCard = () => <CallQueueCard />;
+  window.KSBuyTop = () => null; // decided 2026-11-16: B; it lives in the Archive
+  window.KSBuyTopArchived = () => <CallBuyTop archived />;
+  window.KSDraftCard = () => null; // decided 2026-11-16: B; it lives in the Archive
+  window.KSDraftCardArchived = () => <CallDraftCard archived />;
+  window.KSQueueCard = () => null; // decided 2026-11-16: B; it lives in the Archive
+  window.KSQueueCardArchived = () => <CallQueueCard archived />;
 })();
