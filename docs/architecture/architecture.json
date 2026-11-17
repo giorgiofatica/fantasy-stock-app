@@ -2,35 +2,27 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "9582a30fa03f493fa5fc699016af1865778203c1",
-    "commitShort": "9582a30f",
+    "commit": "079699766b6fd3ea8e9d0b5e6ac2501c32b5fe9a",
+    "commitShort": "07969976",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
+        "path": "apps/mobile/components/money/StockSheetBody.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/money/StockChart.tsx"
+        "path": "apps/mobile/lib/money/devFixture.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/money/portfolioChart.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/stockChartSeries.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
+        "path": "apps/mobile/lib/money/useStockChartData.ts"
       }
     ],
-    "timestamp": "2026-11-17T18:44:25Z",
-    "sourceHash": "sha256:dc885f7de6aeaadbefa0498f64b556219918d6825ea47a56fd13b588cb4e6fdb",
+    "timestamp": "2026-11-17T18:44:29Z",
+    "sourceHash": "sha256:adafc3fc160f7e9cbce23a739d527906dfcc40df03b2f257ca56a5467509823e",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -21122,7 +21114,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('historical-bars')",
       "callSites": [
-        "apps/mobile/lib/money/useStockChartData.ts:46"
+        "apps/mobile/lib/money/useStockChartData.ts:48"
       ]
     },
     {
@@ -22845,7 +22837,7 @@
           "files": [
             "apps/mobile/lib/home/useHomeLeague.ts:702",
             "apps/mobile/lib/money/priceReads.ts:52",
-            "apps/mobile/lib/money/useStockChartData.ts:46"
+            "apps/mobile/lib/money/useStockChartData.ts:48"
           ]
         }
       ],
@@ -24147,7 +24139,7 @@
       "apps/mobile/lib/money/priceReads.ts:52 -> historical-bars",
       "apps/mobile/lib/money/recordTrade.ts:33 -> record-trade",
       "apps/mobile/lib/money/recordTrade.ts:73 -> record-trade",
-      "apps/mobile/lib/money/useStockChartData.ts:46 -> historical-bars",
+      "apps/mobile/lib/money/useStockChartData.ts:48 -> historical-bars",
       "apps/mobile/lib/money/useStockSheetData.ts:139 -> ticker-quotes",
       "apps/mobile/lib/money/useStockSheetData.ts:155 -> symbol-name",
       "apps/mobile/lib/money/useTradeSubmit.ts:35 -> record-trade (via callRecordTrade)",

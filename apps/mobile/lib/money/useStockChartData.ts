@@ -1,8 +1,8 @@
 /**
- * useStockChartData: the stock sheet's chart history (3e, M2). One
- * historical-bars read per symbol per sheet-open, wide enough for the
- * longest range (1Y) -- the shorter ranges are a client-side slice
- * (stockChartSeries.barsForRange), never a separate request per tab.
+ * useStockChartData: a stock's chart history (the sheet and the player card). One
+ * historical-bars read per symbol per open, wide enough for the longest range (YTD,
+ * at most ~365 days; 400 here is ~275 daily bars, well inside historical-bars' 407-day
+ * ceiling) -- every range is a client-side window of it, never a separate request per tab.
  * DEV fixture: stressFixture.stressChartBars, no network.
  */
 import { useEffect, useState } from 'react';
@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 import type { DailyBar } from './stockChartSeries';
-import { MONEY_FIXTURE_CONFIG } from './devFixture';
+import { MONEY_FIXTURE_CONFIG, MONEY_RECENT_BARS } from './devFixture';
 import { stressChartBars } from './stressFixture';
 import { CAPTURE_LOSS, MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '../game/devSeam';
 import { seamBars } from './portfolioSeam';
@@ -20,7 +20,7 @@ export interface StockChartData {
   bars: DailyBar[];
 }
 
-const LOOKBACK_DAYS = 400; // covers 1Y (366) with a buffer for the window's own edge.
+const LOOKBACK_DAYS = 400; // covers YTD (<= 366 days) with a buffer for the window's own edge; the server allows 407.
 
 export function useStockChartData(symbol: string, enabled: boolean): StockChartData {
   const [state, setState] = useState<StockChartData>({ status: 'loading', bars: [] });
@@ -31,7 +31,9 @@ export function useStockChartData(symbol: string, enabled: boolean): StockChartD
       return;
     }
     if (MONEY_FIXTURE_CONFIG) {
-      setState({ status: 'ready', bars: stressChartBars(symbol) });
+      const all = stressChartBars(symbol);
+      // DEV capture knob: a recent listing has only its last N daily bars (devFixture.MONEY_RECENT_BARS).
+      setState({ status: 'ready', bars: MONEY_RECENT_BARS ? all.slice(-MONEY_RECENT_BARS) : all });
       return;
     }
     // The game capture seam: the fixture's own daily path, no network.

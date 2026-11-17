@@ -31,7 +31,7 @@ import { Text } from '@/components/sp/Text';
 import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { formatMoney, formatPercent } from '@/components/sp/logic/money';
 import { useLeagueContext } from '@/lib/LeagueContext';
-import { MONEY_FIXTURE, MONEY_FIXTURE_CONFIG } from '@/lib/money/devFixture';
+import { MONEY_FIXTURE, MONEY_FIXTURE_CONFIG, MONEY_PRE_DRAFT } from '@/lib/money/devFixture';
 import { SEAM_ON } from '@/lib/game/devSeam';
 import { FIXTURE_LEAGUE_ID, fixtureLeague, fixtureMarket } from '@/lib/money/fixtureMode';
 import { STRESS_CALLER } from '@/lib/money/stressFixture';
@@ -199,7 +199,7 @@ export function StockSheetBody({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marketCalendar, todayEt]);
   // Season on this stock's chart: since THIS league's draft (null before the draft, or with no league).
-  const draftDone = activeLeague ? activeLeague.draft_status === 'completed' : !!(MONEY_FIXTURE_CONFIG || SEAM_ON);
+  const draftDone = MONEY_PRE_DRAFT ? false : activeLeague ? activeLeague.draft_status === 'completed' : !!(MONEY_FIXTURE_CONFIG || SEAM_ON);
   const seasonStart = useMemo(() => seasonStartOf(draftDone, ledgerState.ledger?.activity), [draftDone, ledgerState.ledger]);
   const [choice, setChoice] = useState<'buy' | 'sell' | null>(null);
   const [open, setOpen] = useState<OpenReview | null>(null);
