@@ -8,7 +8,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { cardAction, type PlayerCardOwnership } from '../components/sp/logic/gameNight.ts';
-import { openingOf, playerCardData, prevCloseOf, stockWeek } from '../lib/game/playerCardModel.ts';
+import { holdingRangeGain, openLots, openingOf, playerCardData, prevCloseOf, stockWeek, type HoldingLot } from '../lib/game/playerCardModel.ts';
 import { fixtureLedger } from '../lib/game/matchupFixture.ts';
 import { rangeGain } from '../lib/chart/chartRanges.ts';
 import { stockLineSeries } from '../lib/money/stockChartSeries.ts';
@@ -153,7 +153,7 @@ Deno.test('playerCardData: the card agrees with the row and says how it was got'
   assertEquals(d.held, fixtureQty(nvda));
   // TWO figures' worth of numbers (Price with today, Week gain) and no "since" figures: "Since the
   // draft" is Season's gain line now (Giorgio 2026-11-17, "B").
-  assertEquals(Object.keys(d).sort(), ['acquisition', 'company', 'held', 'price', 'seasonStart', 'ticker', 'todayPct', 'weekGain', 'weekPct']);
+  assertEquals(Object.keys(d).sort(), ['acquisition', 'company', 'held', 'lots', 'price', 'seasonStart', 'ticker', 'todayPct', 'weekGain', 'weekPct']);
   assertEquals(Math.round(d.todayPct * 100) / 100, Math.round(((nvda.thu - 306.68) / 306.68) * 10000) / 100, "today's percent is from the last close before today");
   // Season's first day on the card is the league's draft day (ET), the same for any stock.
   assert(d.seasonStart !== null && /^\d{4}-\d{2}-\d{2}$/.test(d.seasonStart));
@@ -171,6 +171,89 @@ Deno.test('playerCardData: Week gain is the matchup week and is NOT the 1W range
   const oneWeek = rangeGain(one.points, one.base)!;
   assert(Math.abs(d.weekGain - oneWeek.money) > 0.01, 'the week gain and the 1W gain are different numbers');
   assertEquals(d.weekGain, 62.4);
+});
+
+// ── The card's range gain is the HOLDING's P/L, not per share (Design Lead gate P1, 2026-11-17) ──
+
+const near = (a: number, b: number, eps = 1e-6) => assert(Math.abs(a - b) < eps, `${a} vs ${b}`);
+
+Deno.test('P/L: Season on a DRAFTED stock = (price now − draft price) × shares, the figure "How you got it" implies', () => {
+  // NVDA drafted Aug 31 at $290.10 (6.8942 sh); the draft-day CLOSE was $293.93 — the basis is the entry, not the close.
+  const lots: HoldingLot[] = [{ date: '2026-08-31', quantity: 6.8942, price: 290.1 }];
+  const g = holdingRangeGain({ lots, start: '2026-08-31', base: 293.93, price: 318.37 })!;
+  near(g.money, 6.8942 * (318.37 - 290.1));
+  near(g.pct, ((318.37 - 290.1) / 290.1) * 100);
+  assertEquals(g.tone, 'gain');
+  // …which is NOT the per-share move from the draft-day close.
+  assert(Math.abs(g.money - (318.37 - 293.93)) > 1);
+});
+
+Deno.test('P/L: a lot opened inside the range is measured from its OWN entry price, an older lot from the range start', () => {
+  // 4 sh drafted at $290.10 (older than 1M's start Oct 16), 2 sh bought Oct 20 at $320. Price now $318.37, price at the range start $300.
+  const lots: HoldingLot[] = [{ date: '2026-08-31', quantity: 4, price: 290.1 }, { date: '2026-10-20', quantity: 2, price: 320 }];
+  const g = holdingRangeGain({ lots, start: '2026-10-16', base: 300, price: 318.37 })!;
+  near(g.money, 4 * (318.37 - 300) + 2 * (318.37 - 320));
+  near(g.pct, (g.money / (4 * 300 + 2 * 320)) * 100);
+});
+
+Deno.test('P/L: a stock bought mid-season — Season (the range starts BEFORE the buy) is its gain since the buy', () => {
+  const lots: HoldingLot[] = [{ date: '2026-09-10', quantity: 3, price: 330 }]; // entry ABOVE the draft-day close
+  const season = holdingRangeGain({ lots, start: '2026-08-31', base: 293.93, price: 318.37 })!;
+  near(season.money, 3 * (318.37 - 330));
+  assertEquals(season.tone, 'loss', 'the stock is up since the draft but this buy is under water');
+  near(season.pct, ((318.37 - 330) / 330) * 100);
+});
+
+Deno.test('P/L: a range starting AFTER the buy measures from the price at the range start (the lot is older than the window)', () => {
+  const lots: HoldingLot[] = [{ date: '2026-09-10', quantity: 3, price: 330 }];
+  const g = holdingRangeGain({ lots, start: '2026-09-17', base: 305, price: 318.37 })!;
+  near(g.money, 3 * (318.37 - 305));
+  assertEquals(g.tone, 'gain');
+});
+
+Deno.test('P/L: the tone is the P/L\'s sign, not the drawn line\'s (a stock up on the range, a lot bought above it)', () => {
+  const lots: HoldingLot[] = [{ date: '2026-11-10', quantity: 1, price: 120 }];
+  const g = holdingRangeGain({ lots, start: '2026-11-01', base: 100, price: 110 })!;
+  assertEquals(g.tone, 'loss');
+  assertEquals(holdingRangeGain({ lots: [{ date: '2026-11-10', quantity: 1, price: 110 }], start: '2026-11-01', base: 100, price: 110 })!.tone, 'zero');
+});
+
+Deno.test('P/L: nothing to measure → null (no lots, no live price, no range)', () => {
+  const lot: HoldingLot = { date: '2026-09-10', quantity: 1, price: 10 };
+  assertEquals(holdingRangeGain({ lots: [], start: '2026-09-01', base: 1, price: 2 }), null);
+  assertEquals(holdingRangeGain({ lots: [lot], start: '2026-09-01', base: 1, price: null }), null);
+  assertEquals(holdingRangeGain({ lots: [lot], start: null, base: 1, price: 2 }), null);
+});
+
+Deno.test('openLots: every buy is a lot at its own price; a sale shrinks every open lot in proportion; a full sale closes them', () => {
+  const act = (o: Partial<LedgerActivityRow>) => row({ user_id: 'u', symbol: 'NVDA', ...o });
+  const rows = [
+    act({ kind: 'draft', action: 'buy', quantity: 4, price: 100, occurred_at: '2026-09-01T00:30:00Z' }),
+    act({ kind: 'trade', action: 'buy', quantity: 2, price: 110, occurred_at: '2026-10-05T15:00:00Z' }),
+    act({ kind: 'trade', action: 'sell', quantity: 3, price: 120, occurred_at: '2026-10-07T15:00:00Z' }),
+    row({ user_id: 'someone-else', symbol: 'NVDA', kind: 'trade', action: 'buy', quantity: 99, price: 1, occurred_at: '2026-10-01T15:00:00Z' }),
+  ];
+  const lots = openLots('u', 'nvda', rows);
+  assertEquals(lots.length, 2);
+  assertEquals(lots[0].date, '2026-08-31', 'the draft instant in ET');
+  near(lots[0].quantity, 2); near(lots[1].quantity, 1); // 6 sh, 3 sold: half of each
+  assertEquals([lots[0].price, lots[1].price], [100, 110]);
+  assertEquals(openLots('u', 'NVDA', [...rows, act({ kind: 'trade', action: 'sell', quantity: 3, price: 130, occurred_at: '2026-10-08T15:00:00Z' })]), []);
+  assertEquals(openLots('u', 'AAPL', rows), []);
+  // A buy with no price is never a guessed basis.
+  assertEquals(openLots('u', 'NVDA', [act({ kind: 'draft', action: 'buy', quantity: 1, price: null, occurred_at: '2026-09-01T00:30:00Z' })]), []);
+});
+
+Deno.test('playerCardData carries the lots held now (the card\'s gain line is their P/L)', () => {
+  const ledger = fixtureLedger('unslotted', 'me', 'g');
+  const d = playerCardData({
+    symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
+    weekGain: 62.4, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
+  })!;
+  assertEquals(d.lots, openLots('me', 'NVDA', ledger.activity));
+  near(d.lots.reduce((n, l) => n + l.quantity, 0), d.held, 1e-4);
+  const g = holdingRangeGain({ lots: d.lots, start: d.seasonStart, base: 1, price: nvda.thu })!;
+  near(g.money, d.held * (nvda.thu - nvda.draft), 1e-3); // Season on the drafted stock: (price − draft price) × shares
 });
 
 // ── The card as drawn (the W3 gate's carried items) ───────────────────────────────

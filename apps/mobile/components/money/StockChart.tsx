@@ -27,12 +27,13 @@ import { RangePills } from '@/components/sp/gn/RangePills';
 import type { AxisSpec } from '@/components/sp/logic/chartAxis';
 import { formatMoney } from '@/components/sp/logic/money';
 import {
-  asChartRange, CHART_RANGES, rangeGain, selectableRange, SHEET_DEFAULT_RANGE, type ChartRange,
+  asChartRange, CHART_RANGES, rangeFirstDay, rangeGain, selectableRange, SHEET_DEFAULT_RANGE, type ChartRange,
 } from '@/lib/chart/chartRanges';
 import { stockGreyedRanges, stockLineSeries } from '@/lib/money/stockChartSeries';
 import { useStockChartData } from '@/lib/money/useStockChartData';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { etDateOf } from '@/lib/game/matchupRoster';
+import { holdingRangeGain, type HoldingLot } from '@/lib/game/playerCardModel';
 import type { MarketCalendarSession } from '@/lib/time/marketWeek';
 
 export interface StockChartProps {
@@ -53,13 +54,19 @@ export interface StockChartProps {
   defaultRange?: ChartRange;
   /** The plot's height. */
   height?: number;
+  /**
+   * The player card's lots held now. With them the gain line is the HOLDING's P/L over the range
+   * (not the stock's per-share move) and the line's colour follows that P/L's sign; the line itself
+   * stays the stock's price. Without them (the stock sheet) everything is per share.
+   */
+  lots?: readonly HoldingLot[];
 }
 
 const HEIGHT = 140;
 /** No sessions yet: no labels (chartAxis 'sessions' with no days). */
 const LOADING_AXIS: AxisSpec = { kind: 'sessions', days: [] };
 
-export function StockChart({ symbol, price, live, now = new Date(), sessions, bleed, seasonStart, defaultRange = SHEET_DEFAULT_RANGE, height = HEIGHT }: StockChartProps) {
+export function StockChart({ symbol, price, live, now = new Date(), sessions, bleed, seasonStart, defaultRange = SHEET_DEFAULT_RANGE, height = HEIGHT, lots }: StockChartProps) {
   const [picked, setPicked] = useState<ChartRange>(defaultRange);
   const data = useStockChartData(symbol, true);
   const todayEt = etDateOf(now) ?? now.toISOString().slice(0, 10);
@@ -78,7 +85,11 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [range, data.bars, price, todayEt, sessions, seasonStart],
   );
-  const gain = ready ? rangeGain(series.points, series.base) : null;
+  const holding = ready && lots?.length
+    ? holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, todayEt, seasonStart), base: series.base, price })
+    : null;
+  // The holding's P/L when the card has lots; otherwise (the sheet, or a sold stock) the per-share move.
+  const gain = ready ? holding ?? rangeGain(series.points, series.base) : null;
   // DEV capture only: the same handler a pill tap runs.
   useCaptureAction('stockrange', (r) => {
     const next = asChartRange(r ?? undefined);
@@ -86,10 +97,11 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
   });
   return (
     <View style={styles.wrap}>
-      <RangeGainLine range={range} gain={gain} />
+      <RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />
       <Chart
         points={ready ? series.points : []}
         base={series.base}
+        tone={holding ? holding.tone : undefined}
         axis={ready ? series.axis : LOADING_AXIS}
         height={height}
         bleed={bleed}

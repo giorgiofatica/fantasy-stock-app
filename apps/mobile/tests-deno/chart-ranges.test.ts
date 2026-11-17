@@ -174,7 +174,7 @@ Deno.test('(c) a grey pill keeps its place, is dimmed and inert: disabled, never
   assert(src.includes('accessibilityState={{ selected, disabled: dead }}'), 'VoiceOver reads it as dimmed');
   assert(src.includes('disabled={dead}'));
   assert(src.includes('if (selected || dead) return;'), 'a tap does nothing (no onChange)');
-  assert(src.includes('dead ? styles.dead : null') && /dead: \{\s*opacity: 0\.38,/.test(src), 'the disabled pill style: the board\'s 38%');
+  assert(src.includes('dead ? styles.dead : null') && /dead: \{\s*opacity: 0\.5,/.test(src), 'the disabled pill style: the app\'s one disabled look, 50% (Stepper, SetupRows)');
   // It stays in the row (the map is over every option) and there is no explanation line.
   assert(src.includes('options.map((option) => {'));
   assert(!/explain|because|older than/i.test(src));
@@ -210,7 +210,8 @@ Deno.test('(d) the gain reads "+$54.60 (+41.42%) past 6 months": dollars first, 
   const t = rangeGainText('6M', g);
   assertEquals(t.figures, '+$54.60 (+41.42%)');
   assertEquals(t.label, '+$54.60 (+41.42%) past 6 months');
-  assert(!t.label.includes('·') && !t.keptFigures.includes('·'), 'no dot between the numbers');
+  assert(!t.label.includes('·') && !t.figures.includes('·'), 'no dot between the numbers');
+  assertEquals([t.money, t.pct], ['+$54.60', '+41.42%']);
   assertEquals(rangeGainText('Season', g).label, '+$54.60 (+41.42%) since the draft');
   assertEquals(rangeGainText('YTD', g).label, '+$54.60 (+41.42%) this year');
   assertEquals(rangeGainText('1W', g).label, '+$54.60 (+41.42%) past week');
@@ -233,30 +234,27 @@ Deno.test('(d) a loss reads −$ and −%, in the loss tone; the tone IS the lin
 
 Deno.test('(d) the gain line colours its WHOLE line by the sign (the same colors[tone] the Chart strokes with)', () => {
   assert(strip(gainLineSrc).includes('const color = colors[gain.tone];'));
-  assert(strip(chartSrc).includes('const tone = lineTone(points, base);') && strip(chartSrc).includes('const lineColor = colors[tone];'));
+  assert(strip(chartSrc).includes('const tone = toneOverride ?? lineTone(points, base);') && strip(chartSrc).includes('const lineColor = colors[tone];'));
+  // The words are in the gain colour too (the whole line), figures and brackets alike.
+  const g = strip(gainLineSrc);
+  assertEquals((g.match(/color=\{color\}/g) ?? []).length, 5, 'both numbers, both brackets and the words');
 });
 
-Deno.test('(e) the break rule: the figures are one run, the period phrase is one run, and ONE plain space between them', () => {
+Deno.test('(e) the break rule: the figures are one non-wrapping run, the period phrase another, one break between', () => {
   const g = rangeGain([{ t: 0, value: 131.82 }, { t: 1, value: 186.42 }], 131.82)!;
   for (const range of CHART_RANGES) {
     const t = rangeGainText(range, g);
-    const shown = `${t.keptFigures} ${t.keptWords}`;
-    assertEquals((shown.match(/ /g) ?? []).length, 1, `${range}: exactly one breakable space`);
-    // Every glyph of the figures is joined: no break opportunity inside "+$54.60", the bracket or the percent.
-    const figs = t.keptFigures;
-    assert(figs.includes(NBSP) && !figs.includes(' '), 'the figures contain no plain space');
+    // The phrase never breaks: every space in it is a no-break space.
     assert(!t.keptWords.includes(' ') && t.keptWords.replaceAll(NBSP, ' ') === RANGE_WORDS[range], `${range}: the phrase never breaks`);
-    // Display only: the same words.
-    assertEquals(shown.replaceAll(WORD_JOINER, '').replaceAll(NBSP, ' '), t.label);
+    assertEquals(t.figures.replace(' (', ' ('), `${t.money} (${t.pct})`);
   }
-});
-
-Deno.test('(e) every money amount and percent in the figures is joined glyph to glyph (keepMoney), the bracket stays on its number', () => {
-  const t = rangeGainText('6M', rangeGain([{ t: 0, value: 131.82 }, { t: 1, value: 186.42 }], 131.82)!);
-  const joined = (s: string) => Array.from(s).join(WORD_JOINER);
-  assert(t.keptFigures.includes(joined('+$54.60')));
-  assert(t.keptFigures.includes(joined('+41.42%')));
-  assert(t.keptFigures.includes(`${WORD_JOINER}(${WORD_JOINER}`) && t.keptFigures.endsWith(`${WORD_JOINER})`));
+  // The component: [nowrap group: money, " (", percent, ")"] then the phrase, in a wrapping row, so the
+  // only break is between the two groups. The gap before the bracket and before the phrase is a
+  // no-break space, so neither can start a line.
+  const src = strip(gainLineSrc);
+  assert(/row: \{ flexDirection: 'row', flexWrap: 'wrap'/.test(src) && /nowrap: \{ flexDirection: 'row'/.test(src) && !/flexWrap: 'wrap'[^}]*nowrap/.test(src));
+  assert(src.includes('{`${NBSP}(`}') && src.includes('{`${NBSP}${text.keptWords}`}'));
+  assert(src.indexOf('<View style={styles.nowrap}>') < src.indexOf('text={text.money}') && src.indexOf('text={text.pct}') < src.indexOf('text.keptWords'));
 });
 
 Deno.test('(f) the gain follows the range: tapping a pill changes the line, the gain and the axis together (one source)', () => {
@@ -275,8 +273,8 @@ Deno.test('(f) the gain follows the range: tapping a pill changes the line, the 
   assertEquals(gains.find((g) => g.range === 'Season')!.text, '+$15.00 (+10.00%) since the draft');
   // The component renders all three from ONE `range` (gain, chart, drawKey, pills).
   const src = strip(stockChartSrc);
-  assert(src.includes('<RangeGainLine range={range} gain={gain} />') && src.includes('drawKey={`${symbol}-${range}`}') && src.includes('value={range}'));
-  assert(strip(portfolioSrc).includes('<RangeGainLine range={shownRange} gain={gain} />') && strip(portfolioSrc).includes('drawKey={shownRange}'));
+  assert(src.includes('<RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />') && src.includes('drawKey={`${symbol}-${range}`}') && src.includes('value={range}'));
+  assert(strip(portfolioSrc).includes('<RangeGainLine range={shownRange} gain={gain} rollKey={`${rollKey}-${shownRange}`} />') && strip(portfolioSrc).includes('drawKey={shownRange}'));
 });
 
 Deno.test('(f) the gain is measured from the range\'s first value to the LIVE value (the end of the drawn line)', () => {
@@ -337,4 +335,46 @@ Deno.test('(i) the six pills stay on ONE row at the largest size: capped at 1.3x
 Deno.test('no chart has a dotted or base line: Chart takes no showBase, nothing passes one', () => {
   assert(!/showBase|strokeDasharray/.test(chartSrc));
   for (const src of [stockChartSrc, portfolioSrc, cardSrc]) assert(!/showBase/.test(src));
+});
+
+// ── (Design Lead gate P2-2) the range gain rolls on a quote refresh; a pill tap swaps it at once ─────
+
+Deno.test('the range gain rolls its two numbers (RollingMoney) and a pill tap never rolls: the roll key carries the range', () => {
+  const g = strip(gainLineSrc);
+  assertEquals((g.match(/<RollingMoney /g) ?? []).length, 2, 'money and percent, each their own rolling figure');
+  assert(g.includes('rollKey={rollKey}'));
+  // RollingMoney diffs against ITSELF when its key changes (no roll): the key must change with the range.
+  assert(strip(stockChartSrc).includes('rollKey={`${symbol}-${range}`}'));
+  assert(strip(portfolioSrc).includes('rollKey={`${rollKey}-${shownRange}`}'));
+});
+
+// ── (Design Lead gate P2-3) one disabled look ───────────────────────────────────────────────
+
+Deno.test('a grey pill is the app\'s one disabled look: 50% opacity, as Stepper and SetupRows', async () => {
+  assert(/dead: \{\s*opacity: 0\.5,/.test(pillsSrc));
+  assert(!pillsSrc.includes('0.38'));
+  const stepper = await Deno.readTextFile(new URL('../components/game/Stepper.tsx', import.meta.url));
+  assert(/opacity: 0\.5,/.test(stepper), 'the look it mirrors');
+});
+
+// ── (Design Lead gate P2-1) Portfolio's today line ──────────────────────────────────────────
+
+Deno.test('Portfolio\'s today line: "+$121.27 (+0.99%) today" in the bracket format, the WHOLE line in the gain colour', () => {
+  const src = strip(portfolioSrc);
+  const hero = src.slice(src.indexOf('function HeroLine'), src.indexOf('const styles = StyleSheet.create'));
+  assert(hero.includes("{'\\u00a0('}") && hero.includes('>)</Text>'), 'a bracket around the percent');
+  assert(!hero.includes('·'), 'no dot between the numbers');
+  assert(!/tone="secondary"/.test(hero), '"today" is not grey: it takes the line\'s colour');
+  assertEquals((hero.match(/color=\{color\}/g) ?? []).length, 5, 'both numbers, both brackets, the word');
+  assert(src.includes('label={`${v.todayMoneyText} (${v.todayPctText}) today`}'), 'VoiceOver says it in the same order');
+  assert(src.includes('color={toneColor(colors, v.todayTone)}'), 'the colour is the sign\'s (zero is the neutral grey)');
+});
+
+Deno.test('the card passes its lots to the chart (P/L gain, the line coloured by it); the stock sheet stays per share', () => {
+  assert(strip(cardSrc).includes('lots={lots}'));
+  assert(!/lots=/.test(strip(stockSheetSrc)), 'the sheet draws per share');
+  const src = strip(stockChartSrc);
+  assert(src.includes('holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, todayEt, seasonStart), base: series.base, price })'));
+  assert(src.includes('const gain = ready ? holding ?? rangeGain(series.points, series.base) : null;'));
+  assert(src.includes('tone={holding ? holding.tone : undefined}'), 'the colour follows the gain line when it is the holding\'s P/L');
 });

@@ -347,6 +347,7 @@ const CARD_YOURS = {
   visible: true, onClose: () => {}, ticker: 'NVDA', company: 'NVIDIA', owner: 'you' as const, price: 318.37, todayPct: 3.81,
   // 3.434 sh: week (318.37 − 300.20) × qty = +$62.40 (the matchup week, not 1W).
   weekGain: 62.4, weekPct: 6.05, acquisition: { kind: 'drafted' as const, pick: 2, date: 'Sep 29', price: 290.1 },
+  lots: [{ date: '2026-09-29', quantity: 3.434, price: 290.1 }],
   // The card's one chart reads its own bars (the DEV fixtures there); Season starts at the draft.
   seasonStart: '2026-09-29', sessions: [] as MarketCalendarSession[], now: new Date('2026-10-08T17:00:00Z'),
   marketOpen: false, opens: 'Mon 9:30 AM ET',

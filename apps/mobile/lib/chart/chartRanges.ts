@@ -19,7 +19,7 @@
 import { dayOffset, type AxisSpec } from '../../components/sp/logic/chartAxis';
 import { lineTone, type LinePointIn, type LineTone } from '../../components/sp/logic/lineChart';
 import { formatMoney, formatPercent } from '../../components/sp/logic/money';
-import { keepMoney, NBSP, WORD_JOINER } from '../game/keepDots';
+import { NBSP } from '../game/keepDots';
 import { etWallClockToUtcIso, type MarketCalendarSession } from '../time/marketWeek';
 
 export type ChartRange = '1W' | '1M' | '3M' | '6M' | 'Season' | 'YTD';
@@ -65,6 +65,16 @@ export function rangeStartDate(range: ChartRange, todayEt: string, seasonStart: 
   if (range === 'Season') return seasonStart;
   if (range === 'YTD') return `${todayEt.slice(0, 4)}-01-01`;
   return addDaysIso(todayEt, -LOOKBACK_DAYS[range]);
+}
+
+/**
+ * The first calendar day the DRAWN range covers: 1W's first session, a dated range's nominal start
+ * (or, with none, its first point). The player card measures a lot opened on or after it from the
+ * lot's own entry price.
+ */
+export function rangeFirstDay(range: ChartRange, axis: AxisSpec, todayEt: string, seasonStart: string | null): string | null {
+  if (axis.kind === 'sessions') return axis.days[0] ?? null;
+  return rangeStartDate(range, todayEt, seasonStart) ?? (axis.kind === 'dated' ? axis.start : null);
 }
 
 export interface GreyContext {
@@ -201,34 +211,29 @@ export function rangeGain(points: readonly LinePointIn[], base: number): RangeGa
 }
 
 export interface RangeGainText {
+  /** The dollars, signed ("+$54.60"). */
+  money: string;
+  /** The percent, signed ("+41.42%"), shown in brackets. */
+  pct: string;
   /** "+$54.60 (+41.42%)": dollars, the percent in brackets, no dot. */
   figures: string;
   /** The approved period words ("past 6 months"). */
   words: string;
   /** Everything, plain, for VoiceOver. */
   label: string;
-  /** The figures with every break forbidden (a money amount never breaks inside itself, and
-   * the bracket stays with it); display only. */
-  keptFigures: string;
   /** The words with a no-break space between each: the period phrase never breaks. */
   keptWords: string;
 }
 
 /**
- * "+$54.60 (+41.42%) past 6 months". The one space between the figures and the words is the
- * ONLY place the line may break: the figures are one unbreakable run (keepMoney on each number,
- * a no-break space and word joiners around the bracket), and so is the period phrase.
+ * "+$54.60 (+41.42%) past 6 months". The only place the line may break is between the figures and the
+ * words: the component draws the figures as one non-wrapping run (each number a rolling figure) and the
+ * phrase as one run whose spaces are no-break (keptWords).
  */
 export function rangeGainText(range: ChartRange, gain: RangeGain): RangeGainText {
   const money = formatMoney(gain.money, { sign: 'always' });
   const pct = formatPercent(gain.pct, { sign: 'always' });
   const words = RANGE_WORDS[range];
   const figures = `${money} (${pct})`;
-  return {
-    figures,
-    words,
-    label: `${figures} ${words}`,
-    keptFigures: `${keepMoney(money)}${NBSP}${WORD_JOINER}(${WORD_JOINER}${keepMoney(pct)}${WORD_JOINER})`,
-    keptWords: words.replace(/ /g, NBSP),
-  };
+  return { money, pct, figures, words, label: `${figures} ${words}`, keptWords: words.replace(/ /g, NBSP) };
 }

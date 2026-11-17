@@ -10,6 +10,11 @@
  *    so "Claimed off waivers" can't be told apart yet and is never invented.
  *  - The week figure: the server's own accounting (liveWeekScore) over this one stock, so
  *    it is exactly the row's number.
+ *  - The card's range gain is the HOLDING's P/L, not a per-share move (Design Lead gate, 2026-11-17):
+ *    Σ over the lots held now of shares × (price now − basis), where a lot's basis is the stock's
+ *    price at the range's start, or the lot's OWN entry price if it was opened on or after the
+ *    range's first day (so Season on a drafted stock = (price − draft price) × shares, the very
+ *    figure "How you got it" implies). openLots / holdingRangeGain below; the stock sheet stays per share.
  *  - The chart is NOT here any more: the card shows the stock's own six-range chart
  *    (components/money/StockChart, opening on Season; Giorgio 2026-11-17), so the card carries
  *    Price (with today), Week gain, and `seasonStart` (the league's draft day, Season's first day).
@@ -21,6 +26,7 @@ import { seasonStartOf } from '../money/seasonStart';
 import { etDateOf } from './matchupRoster';
 import type { Acquisition } from '../../components/sp/logic/gameNight';
 import { formatAxisDate } from '../../components/sp/logic/chartAxis';
+import type { RangeGain } from '../chart/chartRanges';
 
 export interface Opening {
   acquisition: Acquisition;
@@ -87,6 +93,60 @@ export function prevCloseOf(bars: readonly { date: string; close: number }[], to
   return before.length ? before[before.length - 1].close : null;
 }
 
+/** One lot of a position held now: when it was opened (ET date), how many shares of it remain, its entry price. */
+export interface HoldingLot {
+  date: string;
+  quantity: number;
+  price: number;
+}
+
+/**
+ * The lots `userId` holds in `symbol` now, from the league's activity. Every buy (a draft pick or a
+ * trade) opens a lot at its own price; a sale shrinks EVERY open lot in proportion (the position's
+ * cost basis falls proportionally, as the stock sheet's "Your position" does), so a half sale halves
+ * each lot and keeps its entry price. A buy with no price is left out (never a guessed basis).
+ */
+export function openLots(userId: string, symbol: string, activity: readonly LedgerActivityRow[]): HoldingLot[] {
+  const sym = symbol.toUpperCase();
+  const rows = activity
+    .filter((r) => r.user_id === userId && r.symbol.toUpperCase() === sym)
+    .sort((a, b) => (a.occurred_at < b.occurred_at ? -1 : a.occurred_at > b.occurred_at ? 1 : 0));
+  let lots: HoldingLot[] = [];
+  for (const r of rows) {
+    if (r.action === 'sell') {
+      const total = lots.reduce((n, l) => n + l.quantity, 0);
+      lots = total > r.quantity ? lots.map((l) => ({ ...l, quantity: l.quantity * ((total - r.quantity) / total) })) : [];
+      continue;
+    }
+    const date = etDateOf(r.occurred_at);
+    if (date && r.price != null && r.quantity > 0) lots.push({ date, quantity: r.quantity, price: r.price });
+  }
+  return lots;
+}
+
+const centsOf = (n: number) => Math.round(n * 100);
+
+/**
+ * The card's gain for a range: the holding's P/L. A lot opened on or after the range's first day
+ * (`start`) is measured from its own entry price; an older lot from `base`, the stock's price at the
+ * range's start. Percent = P/L ÷ Σ(shares × basis). The tone is the P/L's own sign (so the chart line
+ * and the gain line agree even when the stock rose over the range but your lot was bought above it).
+ * Null with no lots, no live price or no range.
+ */
+export function holdingRangeGain(input: { lots: readonly HoldingLot[]; start: string | null; base: number; price: number | null }): RangeGain | null {
+  const { lots, start, base, price } = input;
+  if (!lots.length || price == null || start == null) return null;
+  let pl = 0;
+  let cost = 0;
+  for (const l of lots) {
+    const basis = l.date >= start ? l.price : base;
+    pl += l.quantity * (price - basis);
+    cost += l.quantity * basis;
+  }
+  const c = centsOf(pl);
+  return { money: pl, pct: cost > 0 ? (pl / cost) * 100 : 0, tone: c > 0 ? 'gain' : c < 0 ? 'loss' : 'zero' };
+}
+
 /** Everything the card shows for one stock, or null when the ledger has no opening event
  * for it (then the row isn't pressable: a card without "How you got it" is never shown). */
 export interface PlayerCardData {
@@ -99,6 +159,8 @@ export interface PlayerCardData {
   weekGain: number;
   weekPct: number;
   acquisition: Acquisition;
+  /** The lots held now (the range gain is their P/L). */
+  lots: HoldingLot[];
   /** Season's first day on the card's chart: the league's draft day (ET), the same window for
    * any stock. Null before the league's draft is done (the card is never opened then). */
   seasonStart: string | null;
@@ -135,6 +197,7 @@ export function playerCardData(input: {
     // The row's own gain over the stock's week basis: the card says what the row scores.
     weekPct: weekPctOf(weekGain, stockBasis(symbol, snapshots, trades)),
     acquisition: opening.acquisition,
+    lots: openLots(userId, symbol, activity),
     seasonStart: seasonStartOf(true, activity),
     held: opening.quantity,
   };

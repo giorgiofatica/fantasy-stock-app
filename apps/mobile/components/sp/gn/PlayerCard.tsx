@@ -20,6 +20,7 @@ import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 import { StockChart } from '@/components/money/StockChart';
 import { SEASON_DEFAULT_RANGE } from '@/lib/chart/chartRanges';
 import type { MarketCalendarSession } from '@/lib/time/marketWeek';
+import type { HoldingLot } from '@/lib/game/playerCardModel';
 
 // Stockpile — <PlayerCard>, Game Night (§9C "PlayerCard", in the order of Giorgio's review on
 // ESPN's player card, 2026-10-12): tapping ANY stock, yours or theirs, on Matchup or
@@ -30,8 +31,8 @@ import type { MarketCalendarSession } from '@/lib/time/marketWeek';
 //      "B": the matchup week, Monday to now, which is not 1W). They keep their two columns at the
 //      largest text size. "Since the draft" is no longer a figure: it is what Season's gain line says.
 //   3. ONE chart, the same one a stock's sheet has (components/money/StockChart): the range's gain
-//      directly above the line, the six ranges under it, opening on Season ("+$X (+Y%) since the
-//      draft"); a range longer than the stock's history is grey; no dotted line, and NO acquisition
+//      directly above the line (the HOLDING's P/L over the range, e.g. "+$195 (+9.74%) since the draft"),
+//      the six ranges under it, opening on Season; a range longer than the stock's history is grey; no dotted line, and NO acquisition
 //      marker: block 5 says how. This replaces the two stacked charts (a Season chart over a This
 //      week chart).
 //   4. The one action: your stock → Sell while the market is open, disabled with the reason while
@@ -60,6 +61,8 @@ interface PlayerCardBase {
   weekGain: number;
   weekPct: number;
   acquisition: Acquisition;
+  /** The lots held now: the chart's gain line is their P/L, not a per-share move. */
+  lots: readonly HoldingLot[];
   /** The league's draft day (ET): Season's first day on the chart. Null: Season is grey. */
   seasonStart: string | null;
   /** This week's sessions and the clock: 1W's window (whether today has opened). */
@@ -91,7 +94,7 @@ export function PlayerCard(props: PlayerCardProps) {
 export function PlayerCardBody(props: PlayerCardProps) {
   const {
     onClose, ticker, company, owner, slot, category, price, todayPct, weekGain, weekPct, acquisition,
-    seasonStart, sessions, now, marketOpen, opens,
+    lots, seasonStart, sessions, now, marketOpen, opens,
   } = props;
   const { colors } = useTheme();
   const action = cardAction(props);
@@ -143,6 +146,7 @@ export function PlayerCardBody(props: PlayerCardProps) {
         sessions={sessions}
         bleed={SHEET_GUTTER}
         seasonStart={seasonStart}
+        lots={lots}
         defaultRange={SEASON_DEFAULT_RANGE}
         height={CHART_HEIGHT}
       />

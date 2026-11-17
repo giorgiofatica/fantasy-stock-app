@@ -108,9 +108,9 @@ const styles = StyleSheet.create({
     minHeight: 32,
     marginVertical: 6,
   },
-  // The board: a grey range is the ink at 38%.
+  // A grey range is the app's one disabled look: 50% (Stepper.tsx, SetupRows.tsx), Design Lead gate 2026-11-17.
   dead: {
-    opacity: 0.38,
+    opacity: 0.5,
   },
   underline: {
     marginTop: space[1],

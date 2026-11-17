@@ -2,26 +2,78 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "ba2d811863dad3676c788809c4ff47c407fdd857",
-    "commitShort": "ba2d8118",
+    "commit": "375ddca35e0c24263757ea83e0254b308b799fb4",
+    "commitShort": "375ddca3",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/six-range-charts",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/lib/money/portfolioSeam.ts"
+        "path": "apps/mobile/app/design-gallery.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/StockChart.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/Chart.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/PlayerCard.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/RangeGainLine.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/RangePills.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/chart/chartRanges.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/playerCardModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/useStockChartData.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c6-rolling.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/rolling-money-large-text.test.ts"
       }
     ],
-    "timestamp": "2026-11-17T18:45:20Z",
-    "sourceHash": "sha256:a64b2545a846810bf74ed12cd78729f8be425c8d5c0789e80749413fb16b18cd",
+    "timestamp": "2026-11-17T18:55:00Z",
+    "sourceHash": "sha256:8732575bd4fc03a7de22804d9f0252bcbea242055530bd3e4c906940391f9d98",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 0.3,
+    "ageHours": 0.5,
     "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
@@ -21106,7 +21158,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('historical-bars')",
       "callSites": [
-        "apps/mobile/lib/money/useStockChartData.ts:50"
+        "apps/mobile/lib/money/useStockChartData.ts:53"
       ]
     },
     {
@@ -22829,7 +22881,7 @@
           "files": [
             "apps/mobile/lib/home/useHomeLeague.ts:702",
             "apps/mobile/lib/money/priceReads.ts:52",
-            "apps/mobile/lib/money/useStockChartData.ts:50"
+            "apps/mobile/lib/money/useStockChartData.ts:53"
           ]
         }
       ],
@@ -24131,7 +24183,7 @@
       "apps/mobile/lib/money/priceReads.ts:52 -> historical-bars",
       "apps/mobile/lib/money/recordTrade.ts:33 -> record-trade",
       "apps/mobile/lib/money/recordTrade.ts:73 -> record-trade",
-      "apps/mobile/lib/money/useStockChartData.ts:50 -> historical-bars",
+      "apps/mobile/lib/money/useStockChartData.ts:53 -> historical-bars",
       "apps/mobile/lib/money/useStockSheetData.ts:139 -> ticker-quotes",
       "apps/mobile/lib/money/useStockSheetData.ts:155 -> symbol-name",
       "apps/mobile/lib/money/useTradeSubmit.ts:35 -> record-trade (via callRecordTrade)",

@@ -11,17 +11,17 @@ import portfolioScreenSrc from '../components/money/PortfolioScreen.tsx' with { 
 
 Deno.test('wiring: the today line rolls (money and percent, each their own RollingMoney)', () => {
   // W4: the value, then HeroLine's two units (money, percent). The "since the draft" hero line is
-  // now the range's gain (RangeGainLine, 2026-11-17: it follows the range and has no rolling).
+  // now the range's gain (RangeGainLine, 2026-11-17: it follows the range, and rolls on a quote refresh too).
   const heroLine = portfolioScreenSrc.slice(portfolioScreenSrc.indexOf('function HeroLine'));
   assertEquals((heroLine.match(/<RollingMoney text=\{(money|pct)\}/g) ?? []).length, 2);
   assertEquals(portfolioScreenSrc.includes('<RollingMoney text={v.valueText}'), true);
-  assertEquals(portfolioScreenSrc.includes('<RangeGainLine range={shownRange} gain={gain} />'), true);
+  assertEquals(portfolioScreenSrc.includes('<RangeGainLine range={shownRange} gain={gain} rollKey={`${rollKey}-${shownRange}`} />'), true);
   assertEquals(portfolioScreenSrc.includes('v.todayMoneyText'), true);
   assertEquals(portfolioScreenSrc.includes('v.todayPctText'), true);
 });
 
-Deno.test('wiring: the today row is one accessible element, not loose rolling digits; the range gain is one labelled Text', () => {
+Deno.test('wiring: the today row is one accessible element, not loose rolling digits; the range gain is one labelled element', () => {
   // W4: HeroLine is one accessible element labelled with the whole sentence.
   assertEquals(portfolioScreenSrc.includes('<View accessible accessibilityLabel={label} style={styles.rollRow}>'), true);
-  assertEquals(portfolioScreenSrc.includes('label={`${v.todayText} today`}'), true);
+  assertEquals(portfolioScreenSrc.includes('label={`${v.todayMoneyText} (${v.todayPctText}) today`}'), true);
 });

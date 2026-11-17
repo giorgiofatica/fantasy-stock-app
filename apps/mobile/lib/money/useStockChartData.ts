@@ -20,7 +20,10 @@ export interface StockChartData {
   bars: DailyBar[];
 }
 
-const LOOKBACK_DAYS = 400; // covers YTD (<= 366 days) with a buffer for the window's own edge; the server allows 407.
+// Covers YTD (<= 366 days) with a buffer for the window's own edge; the server allows 407. A season cannot
+// reach this cap (a league's season is far shorter than 400 days), so Season never greys a stock for want of
+// fetched history, only for a stock listed after the draft.
+const LOOKBACK_DAYS = 400;
 
 export function useStockChartData(symbol: string, enabled: boolean): StockChartData {
   const [state, setState] = useState<StockChartData>({ status: 'loading', bars: [] });

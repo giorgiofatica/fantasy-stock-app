@@ -12,7 +12,7 @@ import { partialLinePath } from '@/lib/chart/chartGeometry';
 import { useChartScrub } from '@/lib/chart/useChartScrub';
 import { useDrawIn } from '@/lib/chart/useDrawIn';
 import { useCaptureAction } from '@/lib/money/captureScript';
-import { buildLine, lineTone, type LinePointIn } from '@/components/sp/logic/lineChart';
+import { buildLine, lineTone, type LinePointIn, type LineTone } from '@/components/sp/logic/lineChart';
 import {
   AXIS_GAP, AXIS_LINE_HEIGHT, axisDomain, axisRangeLabel, estimateLabelWidth, layoutAxis, pointName, type AxisSpec,
 } from '@/components/sp/logic/chartAxis';
@@ -42,6 +42,9 @@ export interface ChartProps {
   /** The value the line is measured from (0 for a gain series; the range's first price for a
    * price line). Never drawn: it sets the line's gain/loss tone and where the line sits. */
   base: number;
+  /** The line's colour tone when it is NOT the drawn points' own sign: the player card draws the
+   * stock's price but colours it by the holding's P/L, the sign of the gain line above it. */
+  tone?: LineTone;
   axis: AxisSpec;
   /** The plot's height (the axis row adds below it). */
   height?: number;
@@ -100,7 +103,7 @@ const LABEL_SLACK = 12;
  * (Design Lead, W4 gate, 2026-10-13: uncapped, XL dates outgrew everything around them). */
 export const AXIS_MAX_SCALE = 1.3;
 
-export function Chart({ points, base, axis, height = 124, bleed = 0, live = false, drawKey = 'chart', formatValue, accessibilityLabel, under, underPlacement = 'afterAxis', underHeight, skipEntrance = false, onScrubIndex, captureScrubAction }: ChartProps) {
+export function Chart({ points, base, tone: toneOverride, axis, height = 124, bleed = 0, live = false, drawKey = 'chart', formatValue, accessibilityLabel, under, underPlacement = 'afterAxis', underHeight, skipEntrance = false, onScrubIndex, captureScrubAction }: ChartProps) {
   const { colors } = useTheme();
   const { reduced, duration } = useMotion();
   const { fontScale: deviceScale } = useWindowDimensions();
@@ -110,7 +113,7 @@ export function Chart({ points, base, axis, height = 124, bleed = 0, live = fals
   const geometry = buildLine(points, axisDomain(axis), base, {
     width, height, padLeft: PAD.left, padRight: PAD.right, padTop: PAD.top, padBottom: PAD.bottom,
   });
-  const tone = lineTone(points, base);
+  const tone = toneOverride ?? lineTone(points, base);
   const lineColor = colors[tone];
 
   const progress = useDrawIn({ key: drawKey, lineLength: geometry.length, reduced, durationMs: duration.feature, skipFirst: skipEntrance });
