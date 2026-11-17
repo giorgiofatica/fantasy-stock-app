@@ -662,6 +662,11 @@ building anything, and don't reopen a rule without him.
       stock yesterday greys nothing on its chart.
     - This extends his grey-out ruling for the Portfolio graph (above) to stock charts, which
       that ruling had left open.
+  - The Design Lead's spec, NOT asked of him (2026-11-17): on a stock's chart the shortest
+    range, 1W, never greys. A stock listed less than a week ago would otherwise have every
+    range greyed and nothing to open on, since the stock sheet opens on 1W; so 1W stays
+    available and draws only the days that exist. Treated as what his rule needs to work, and
+    to be raised with him if he ever questions it.
   - The Design Lead's spec, shown to him on that board under both options and not objected
     to (not his own ruling): after the draft, Season runs from the league's draft day to now
     for ANY stock, owned or not. It is the same window for everyone in the league.
