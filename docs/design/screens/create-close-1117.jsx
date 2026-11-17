@@ -100,7 +100,7 @@
           fig('ct1', 'Today · step 1', <Step v="today" n={1} label="Create league step 1, today" />, '"Cancel" only here.'),
           fig('ct2', 'Today · step 2', <Step v="today" n={2} label="Create league step 2, today" />, 'Only Back: three taps to get to Cancel from step 4.'),
         ]}</Grid>
-        <h3 className="b-sub">A · Back left, × right (recommended)</h3>
+        <h3 className="b-sub">{archived ? 'A · Back left, × right (decided)' : 'A · Back left, × right (recommended)'}</h3>
         <Grid>{[
           fig('ca1', 'A · step 1', <Step v="A" n={1} label="Create league step 1, option A" />, '× top right; nothing to go back to.'),
           fig('ca2', 'A · step 2', <Step v="A" n={2} label="Create league step 2, option A" />, 'Back where it was, × in the corner.'),
@@ -117,5 +117,11 @@
     );
   }
 
-  window.KSCreateClose = () => <CallCreateClose />;
+  window.KSCreateClose = () => null; // decided 2026-11-17: A; it lives in the Archive
+  window.KSCreateCloseArchived = () => (
+    <CallCreateClose
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "A".</b> Every step of Create league has a × at the top right that closes the whole flow at once, with no question. "‹ Back" stays at the top left and "Step N of 4" moves to the centre. Step 1's "Cancel" becomes the ×; VoiceOver reads it "Close". Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
 })();

@@ -15037,7 +15037,7 @@ window.KS_REFS = {
           fig('ct1', 'Today · step 1', <Step v="today" n={1} label="Create league step 1, today" />, '"Cancel" only here.'),
           fig('ct2', 'Today · step 2', <Step v="today" n={2} label="Create league step 2, today" />, 'Only Back: three taps to get to Cancel from step 4.'),
         ]}</Grid>
-        <h3 className="b-sub">A · Back left, × right (recommended)</h3>
+        <h3 className="b-sub">{archived ? 'A · Back left, × right (decided)' : 'A · Back left, × right (recommended)'}</h3>
         <Grid>{[
           fig('ca1', 'A · step 1', <Step v="A" n={1} label="Create league step 1, option A" />, '× top right; nothing to go back to.'),
           fig('ca2', 'A · step 2', <Step v="A" n={2} label="Create league step 2, option A" />, 'Back where it was, × in the corner.'),
@@ -15054,7 +15054,13 @@ window.KS_REFS = {
     );
   }
 
-  window.KSCreateClose = () => <CallCreateClose />;
+  window.KSCreateClose = () => null; // decided 2026-11-17: A; it lives in the Archive
+  window.KSCreateCloseArchived = () => (
+    <CallCreateClose
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "A".</b> Every step of Create league has a × at the top right that closes the whole flow at once, with no question. "‹ Back" stays at the top left and "Step N of 4" moves to the centre. Step 1's "Cancel" becomes the ×; VoiceOver reads it "Close". Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
 })();
 
 </script>
@@ -15190,7 +15196,7 @@ window.KS_REFS = {
           fig('sad', 'A · Dark', <Stakes t="dark" v="A" label="Roster slots, option A, Dark" />),
           fig('sax', 'A · your size (AX5, approximate)', <Stakes x={AX5} v="A" scroll={330} label="Roster slots, option A, AX5" />, 'Scrolled down to the line.'),
         ]}</Grid>
-        <h3 className="b-sub">B · Block (recommended)</h3>
+        <h3 className="b-sub">{archived ? 'B · Block (decided)' : 'B · Block (recommended)'}</h3>
         <Grid>{[
           fig('sb1', 'B', <Stakes v="B" label="Roster slots, option B" />, 'Create league grey until slot 1 can be filled.'),
           fig('sbd', 'B · Dark', <Stakes t="dark" v="B" label="Roster slots, option B, Dark" />),
@@ -15200,7 +15206,13 @@ window.KS_REFS = {
     );
   }
 
-  window.KSSlotCheck = () => <CallSlotCheck />;
+  window.KSSlotCheck = () => null; // decided 2026-11-17: B; it lives in the Archive
+  window.KSSlotCheckArchived = () => (
+    <CallSlotCheck
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "B".</b> The check runs by itself ("should be done by us automatically ... and then notify the user if something cannot work"); "Check availability" goes. A slot that can't be filled shows its line in red on the slot, and Create league (and Save in League settings) stays grey until it can be filled. A failed check never blocks. Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
 })();
 
 </script>
@@ -15590,14 +15602,14 @@ window.KS_REFS = {
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-create-close', 'Closing Create league from any step', () => window.KSCreateClose],
-    ['call-slot-check', "A slot that can't be filled", () => window.KSSlotCheck],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-slot-check', title: "A slot that can't be filled", decision: 'B: the check runs by itself ("Check availability" goes); a short slot shows its line in red on the slot and Create league (and League settings\u2019 Save) stays grey until it can be filled; a failed check never blocks.', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSSlotCheckArchived },
+    { id: 'call-create-close', title: 'Closing Create league from any step', decision: 'A: a \u00d7 at the top right of every step closes the whole flow at once, no question; "\u2039 Back" stays top left, "Step N of 4" moves to the centre; step 1\u2019s "Cancel" becomes the \u00d7 (VoiceOver "Close").', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCreateCloseArchived },
     { id: 'call-range-gain', title: 'The gain beside each chart', decision: 'Words A ("past week" \u2026 "since the draft", "this year"); player card B: two figures (Price, Week gain) and the range\u2019s gain above the chart, "+$54.60 (+41.42%) past 6 months".', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSRangeGainArchived },
     { id: 'call-season-predraft', title: 'Season on a stock before the draft', decision: 'B and D: before the draft Season is greyed in its place on the stock sheet (not hidden); a stock chart greys any range longer than its trading history (a recent IPO\u2019s 3M, 6M, YTD).', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSSeasonPredraftArchived },
     { id: 'call-chart-default', title: 'Which range each chart opens on', decision: 'B: "go with B". Portfolio and the player card open on Season; the stock sheet (a stock you\u2019re shopping for) opens on 1W.', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSChartDefaultArchived },
