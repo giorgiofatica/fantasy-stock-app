@@ -9,8 +9,8 @@
  *
  * W4 (Game Night, §9C): the sheet is a money surface. The header is the player card's (the
  * ticker badge, the ticker in `ticker.card`, the company, the ×); the price in `money`
- * (44/500, the sheet's standout), today in its sign's colour; the line on the Game Night
- * Chart with its labelled axis and the range pills; "Your position" in an `inset` panel; then
+ * (44/500, the sheet's standout); the range's gain, the line on the Game Night
+ * Chart with its labelled axis and the six range pills (no "today" line: it is 1W's last point); "Your position" in an `inset` panel; then
  * Buy | Sell, the one action as a pill, and the Alpaca credit. Every blocked action is
  * DISABLED with its reason beside it (PRODUCT_RULES "Nothing tappable does nothing"), never
  * silently missing. W4 defect (a): a buy that costs more than the budget left is refused here,
@@ -39,6 +39,7 @@ import { useSession } from '@/lib/SessionProvider';
 import { buyingPower, type PreviewSource } from '@/lib/money/buyingPower';
 import { SalePicker } from '@/components/money/SalePicker';
 import { StockChart } from '@/components/money/StockChart';
+import { seasonStartOf } from '@/lib/money/seasonStart';
 import { defaultSourceId } from '@/lib/money/salePicker';
 import { budgetAfterBuy, budgetAfterSell, budgetLeftOf, effectiveBudgetCap, userCashSpentFromLedger } from '@/lib/money/budgetFigures';
 import { cleanCompanyName } from '@/lib/money/cleanCompanyName';
@@ -197,6 +198,9 @@ export function StockSheetBody({
     return fromCalendar.length ? fromCalendar : standardWeekSessions(`${mondayOf(todayEt || new Date().toISOString().slice(0, 10))}T16:00:00Z`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marketCalendar, todayEt]);
+  // Season on this stock's chart: since THIS league's draft (null before the draft, or with no league).
+  const draftDone = activeLeague ? activeLeague.draft_status === 'completed' : !!(MONEY_FIXTURE_CONFIG || SEAM_ON);
+  const seasonStart = useMemo(() => seasonStartOf(draftDone, ledgerState.ledger?.activity), [draftDone, ledgerState.ledger]);
   const [choice, setChoice] = useState<'buy' | 'sell' | null>(null);
   const [open, setOpen] = useState<OpenReview | null>(null);
   // "Which sale pays for this?": the sales a per-slot buy can be paid from, and the one chosen.
@@ -507,7 +511,6 @@ export function StockSheetBody({
   const action = selected === 'buy' ? model.buy : model.sell;
   const canReview = selected === 'sell' ? model.sell.enabled : model.buy.enabled;
   const reviewLabel = selected === 'sell' ? COPY.reviewSell : COPY.reviewBuy;
-  const todayTone = model.todayChange ? (model.todayChange.perShare > 0.004 ? colors.gain : model.todayChange.perShare < -0.004 ? colors.loss : colors.zero) : colors.text2;
   const ownerLine = `${model.ownershipLine}${model.ownerBadge ? ` · ${model.ownerBadge}` : ''}`;
   // The pre-review blocks that get the warn panel (the board: owned by another manager; W4:
   // over the budget, a full roster). Every other reason is the caption beside the button.
@@ -557,7 +560,7 @@ export function StockSheetBody({
         {/* The company line, or none: never the ticker repeated under itself. */}
         <SheetHeader symbol={symbol} company={companyLine(model.name || cleanCompanyName(data.companyName), symbol)} onClose={onDone} />
 
-        {/* The price: the sheet's standout, in `money` (44/500, §9C rule 5), and today. */}
+        {/* The price: the sheet's standout, in `money` (44/500, §9C rule 5). */}
         <View style={styles.priceBlock}>
           {data.price != null ? (
             <View accessible accessibilityLabel={`Price, ${formatMoney(data.price)}`}>
@@ -572,16 +575,10 @@ export function StockSheetBody({
               </Pressable>
             </View>
           )}
-          {model.todayChange ? (
-            <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} color={todayTone} style={styles.bold}>
-              {keepMoney(`${formatMoney(model.todayChange.perShare, { sign: 'always' })} · ${formatPercent(model.todayChange.pct, { sign: 'always' })}`)}
-              <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary" style={styles.regular}> today</Text>
-            </Text>
-          ) : null}
         </View>
 
-        {/* M2: the line, edge to edge, on its labelled axis; the range pills under it. */}
-        <StockChart symbol={symbol} price={data.price} live={gate.open} now={chartNow} sessions={sessions} bleed={SHEET_GUTTER} />
+        {/* M2: the range's gain, the line edge to edge on its labelled axis, the six range pills under it. (No "today" line under the price: today's move is 1W's last point, Giorgio 2026-11-17.) */}
+        <StockChart symbol={symbol} price={data.price} live={gate.open} now={chartNow} sessions={sessions} bleed={SHEET_GUTTER} seasonStart={seasonStart} />
 
         {position ? (
           // C-4 (Design Lead gate, key screen 5): shares, avg entry, value and gain -- the

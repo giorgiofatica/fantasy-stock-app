@@ -22,15 +22,15 @@ import {
 // this-week charts "Mon…Fri").
 //
 // One line, 2.5pt, in `gain` / `loss` by the window's sign (flat: `zero`), EDGE TO EDGE:
-// pass the screen gutter as `bleed` and the line runs past it to the screen's edges. A
-// dashed base line (zero gain, or the start price) in `borderStrong`. No fill, no grid, no
-// Y axis. The line stops at the last real point; the end dot is `live` with a 9pt
+// pass the screen gutter as `bleed` and the line runs past it to the screen's edges. No dashed
+// base line on ANY chart (Giorgio, 2026-11-16/17: "it sometimes looks like a y-axis or an
+// x-axis"): `base` only sets the line's gain/loss tone. No fill, no grid, no Y axis. The line stops at the last real point; the end dot is `live` with a 9pt
 // `liveGlow` halo, and breathes (LiveDot) only while `live` — the market open and the value
 // live. Under it, the X axis: labels only (caption, `text2`, tabular), 6pt below the plot,
 // laid out by logic/chartAxis.ts (week: Mon…Fri; dated: start → now). The labels keep to
 // the screen gutter even though the line bleeds past it.
 //
-// Short states are designed, never blank: 0 points → the base line and the full axis;
+// Short states are designed, never blank: 0 points → the full axis;
 // 1 point → the dot alone (a week on Monday morning: a dot at Monday's open).
 //
 // Motion (§9C): the line draws left to right once per `drawKey` (lib/chart/useDrawIn);
@@ -39,11 +39,9 @@ import {
 
 export interface ChartProps {
   points: LinePointIn[];
-  /** The dashed base line's value (0 for a gain series; the start price for a price line). */
+  /** The value the line is measured from (0 for a gain series; the range's first price for a
+   * price line). Never drawn: it sets the line's gain/loss tone and where the line sits. */
   base: number;
-  /** Draw the dashed base line (default). The stock sheet turns it off (Giorgio, 2026-11-16:
-   * "it sometimes looks like a y-axis or an x-axis"); `base` still sets the line's gain/loss tone. */
-  showBase?: boolean;
   axis: AxisSpec;
   /** The plot's height (the axis row adds below it). */
   height?: number;
@@ -102,7 +100,7 @@ const LABEL_SLACK = 12;
  * (Design Lead, W4 gate, 2026-10-13: uncapped, XL dates outgrew everything around them). */
 export const AXIS_MAX_SCALE = 1.3;
 
-export function Chart({ points, base, showBase = true, axis, height = 124, bleed = 0, live = false, drawKey = 'chart', formatValue, accessibilityLabel, under, underPlacement = 'afterAxis', underHeight, skipEntrance = false, onScrubIndex, captureScrubAction }: ChartProps) {
+export function Chart({ points, base, axis, height = 124, bleed = 0, live = false, drawKey = 'chart', formatValue, accessibilityLabel, under, underPlacement = 'afterAxis', underHeight, skipEntrance = false, onScrubIndex, captureScrubAction }: ChartProps) {
   const { colors } = useTheme();
   const { reduced, duration } = useMotion();
   const { fontScale: deviceScale } = useWindowDimensions();
@@ -168,7 +166,6 @@ export function Chart({ points, base, showBase = true, axis, height = 124, bleed
         <GestureDetector gesture={pan}>
           <View style={{ height }}>
             <Svg width={width} height={height}>
-              {showBase ? <Line x1={0} x2={width} y1={geometry.baseY} y2={geometry.baseY} stroke={colors.borderStrong} strokeWidth={1} strokeDasharray="3 5" /> : null}
               {path ? <Path testID="chart-line" d={path} stroke={lineColor} strokeWidth={STROKE} fill="none" strokeLinejoin="round" strokeLinecap="round" /> : null}
               {endVisible && !live ? (
                 <>

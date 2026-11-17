@@ -207,15 +207,12 @@ Deno.test('mid-week buy (sold V Tue, bought MSFT Thu): the card\'s week figures 
   const card = playerCardData({
     symbol: 'MSFT', company: 'Microsoft', userId: 'me', activity: fixtureLedger('bought', 'me', 'g').activity,
     snapshots: snaps(ROBERTO_HOLDINGS), trades, weekGain: msftRow.cents / 100, price: MSFT_BUY.live,
-    bars: [{ date: '2026-09-23', close: MSFT_BUY.prevClose }], seasonBars: [], sessions, now: new Date('2026-09-24T17:37:00Z'),
+    bars: [{ date: '2026-09-23', close: MSFT_BUY.prevClose }], now: new Date('2026-09-24T17:37:00Z'),
   })!;
   assertEquals(card.weekGain, msftRow.cents / 100);
   assertEquals(card.weekPct, rowPct);
   assertEquals(Math.round(card.weekGain * 100), Math.round(trades[1].quantity * (MSFT_BUY.live - MSFT_BUY.price) * 100), 'scored from the buy, not Monday');
   assertEquals(card.acquisition, { kind: 'bought', date: 'Sep 24', price: MSFT_BUY.price });
-  assertEquals(card.week.points[0].value, MSFT_BUY.price, 'the week line starts at the buy price');
-  assert(card.week.points[0].t > 3 && card.week.points[0].t < 4, '…on Thursday, at the buy\'s time');
-  assertEquals(card.week.base, MSFT_BUY.price);
   // V, sold Tuesday, still on this week's roster with its realized gain.
   assert(rows.some((r) => r.symbol === 'V'));
 });

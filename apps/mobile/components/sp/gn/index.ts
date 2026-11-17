@@ -16,6 +16,7 @@ export type { DraftTileProps } from './DraftTile';
 export { ManagerRow, MANAGER_ROW_GAP } from './ManagerRow';
 export type { ManagerRowProps } from './ManagerRow';
 export { RangePills } from './RangePills';
+export { RangeGainLine } from './RangeGainLine';
 export type { RangePillsProps } from './RangePills';
 export { Chart } from './Chart';
 export type { ChartProps, UnderRow } from './Chart';
