@@ -23,6 +23,33 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-17
+
+(Times are UTC. The Orchestrator's account throughout, unless marked; I did not run any of the checks.)
+
+**Shipped**
+- **The week-start ask-price bug is FIXED, DEPLOYED and REPAIRED.** #505 merged 18:18:40Z (`5115ea19`); Giorgio deployed `snapshot-week-start`, `snapshot-week-end` and `process-week-results` at about 18:19Z from the deploy checkout at `5115ea19`; the Orchestrator verified the bundles byte-identical to `main` (with `_shared/week-price.ts` and the reprice mode) and a no-credential POST gets 401. The repair: dry run (request 200047) 25 rows, all `bar_open`, `no_bar` 0, `conflict` 0, `price_errors` []; real run (request 200050) repriced 25, conflict 0, write_error 0 (TM 247.75 → 214.59, AVAL 4.66 → 3.975, BCH 44.27 → 38.66, KB → 118.80 everywhere). Effect, by Giorgio's re-run read-only audit: TM gone from the outliers, KB one price; the largest remaining ratios, KEP 1.077 and TSM 0.954, match Monday's real open and were left unchanged, so they are real moves. Detail in STATUS §1.
+- **Build 16 in-app checks so far (corrected the same day):** AAPL search PASS; Create league › Price tiers: Giorgio TAPPED the manual "Check availability" button on build 16 (his 09:48 screen recording; the time zone was not given): a spinner, then no message, which in that build means every slot had enough stocks. That PASS shows the S1 reader functions (`count_slot_matches`, `symbols_enrichment_progress`) work for build 16 after the CONTRACT. **Build 16 does NOT have the automatic check: it still has the manual button; the automatic check is #498's ruling, not yet built.** (My first version of this line called it "the automatic check", on the Orchestrator's first wording; the Orchestrator corrected it.) The draft board's category lines in League C's room are pending tonight, about 6:30 PM ET.
+
+**Merged, not confirmed live**
+- **Today's rulings and boards, all merged, none built:** rulings #495, #498, #501, #503; boards #496, #497, #499, #500, #502, #504. Detail in STATUS §1 (2026-11-17). Three chips were building when I was told: the six-range charts, the Create league close plus the automatic slot check, and the week-start fix (now done, above). **Build 17 is not cut.**
+
+**Decided** (Giorgio; the words are in `docs/PRODUCT_RULES.md`)
+- **Every chart has the same six ranges** (1W, 1M, 3M, 6M, Season, YTD); the player card has one chart; ranges longer than the league has existed, or than a stock's history, are greyed, never hidden ("B and D"); Season is greyed before the draft.
+- **The gain beside a chart follows the range**, "+$54.60 (+41.42%) past 6 months" (both numbers, percent in brackets; "past week", "past month", "past 3 months", "past 6 months", "this year", "since the draft" approved as copy); your team and the player card open on Season, a stock you are shopping for on 1W ("go with B"); on the card for a stock on a team, Price and Week gain on top and the range gain above the chart ("B").
+- **Create league:** the slot check runs by itself (no "Check availability" button); a × at the top right of every step closes the flow at once ("A"); a slot that cannot be filled blocks Create league and Save ("B"); a failed lookup never blocks.
+
+**Found**
+- **A real defect, now fixed:** week-start prices came from the IEX ask when a symbol had no bar yet (TM 247.75 against about 212; KB three different prices in three leagues); the same ask-first fallback was in `snapshot-week-end` and `process-week-results`. Affected, the week of 2026-11-16: League B (week 1), Uhhhh_1105 (week 1), autopick-test-1006 and test_autostart_clear (week 6).
+- **The fix fails closed, by design:** a held symbol with no IEX trade all session now leaves that league-week unscoreable instead of carrying a guess. Follow-ups, not done: `fetchFillPrice` still has bid-then-ask stages; `process-week-results`' fallback uses an unbounded last trade.
+
+**Waiting on Giorgio**
+- A decision before Mon 2026-11-23, routed to the Planner: what to do when the week-price rule leaves a held symbol unpriced (a previous-close fallback, an admin override, an alert). STATUS §4 item 31.
+- The draft board's category lines in League C's room, tonight about 6:30 PM ET.
+
+**Next**
+- The six-range charts and the Create league close plus automatic slot check (two chips building), then build 17; the db-snapshot re-capture after the S1 CONTRACT is still to come; the build-16 re-check and Part D at the next draft.
+
 ## 2026-11-16
 
 (Times are UTC. The Orchestrator's account throughout; statuses, counts and prefixes only, no key value.)
