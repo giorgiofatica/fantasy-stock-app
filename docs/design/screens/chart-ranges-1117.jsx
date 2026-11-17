@@ -46,7 +46,7 @@
 
   // Line shapes (0..1 y, top = 0) per range, evenly spaced.
   const SHAPES = {
-    '1W': [0.55, 0.42, 0.35, 0.18, 0.62],
+    '1W': [0.62, 0.5, 0.56, 0.34, 0.22], // up on the week and up today (Mon above Fri), as every 1W label says
     Season: [0.7, 0.66, 0.72, 0.6, 0.52, 0.56, 0.44, 0.38, 0.41, 0.3, 0.26, 0.22],
     long: [0.8, 0.74, 0.77, 0.69, 0.71, 0.6, 0.63, 0.55, 0.5, 0.52, 0.44, 0.47, 0.39, 0.35, 0.3, 0.33, 0.24, 0.2],
     sinceDraft: [0.7, 0.66, 0.72, 0.6, 0.52, 0.56, 0.44, 0.38],
@@ -287,10 +287,10 @@
         <Grid>{[
           fig('ca1', 'Card A · Season', <PlayerCard card="A" range="Season" label="Player card A, Season" />, 'The third figure is the range\u2019s gain.'),
           fig('ca2', 'Card A · 1W', <PlayerCard card="A" range="1W" label="Player card A, 1W" />, 'Its label and number change with the tap.'),
-          fig('cb1', 'Card B · Season (recommended)', <PlayerCard card="B" range="Season" label="Player card B, Season" />, 'Two figures; the gain above the chart.'),
-          fig('cb2', 'Card B · 1W', <PlayerCard card="B" range="1W" label="Player card B, 1W" />),
-          fig('cbd', 'Card B · Dark', <PlayerCard t="dark" card="B" range="Season" label="Player card B, Dark" />),
-          fig('cbx', 'Card B · your size (AX5, approximate)', <PlayerCard x={AX5} card="B" range="6M" label="Player card B, 6M, AX5" />, '"past 6 months" at your size.'),
+          fig('cb1', 'Card B · Season (recommended)', <PlayerCard card="B" fmt="paren" range="Season" label="Player card B, Season" />, 'Two figures; the gain above the chart.'),
+          fig('cb2', 'Card B · 1W', <PlayerCard card="B" fmt="paren" range="1W" label="Player card B, 1W" />),
+          fig('cbd', 'Card B · Dark', <PlayerCard t="dark" card="B" fmt="paren" range="Season" label="Player card B, Dark" />),
+          fig('cbx', 'Card B · your size (AX5, approximate)', <PlayerCard x={AX5} card="B" fmt="paren" range="6M" label="Player card B, 6M, AX5" />, '"past 6 months" at your size.'),
         ]}</Grid>
       </section>
     );
