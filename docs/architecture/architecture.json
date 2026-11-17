@@ -2,54 +2,30 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "56ce18002bfbc474c8b608db5fb2fddf19f33792",
-    "commitShort": "56ce1800",
+    "commit": "5115ea197241b223a1611bc75614e15e196957b3",
+    "commitShort": "5115ea19",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/snapshot-price-fallback",
+    "branch": "chore/db-snapshot-2026-11-17",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "AM",
-        "path": "supabase/functions/_shared/week-price.test.ts"
-      },
-      {
-        "code": "AM",
-        "path": "supabase/functions/_shared/week-price.ts"
-      },
-      {
         "code": "M",
-        "path": "supabase/functions/process-week-results/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/snapshot-week-end/index.ts"
-      },
-      {
-        "code": "MM",
-        "path": "supabase/functions/snapshot-week-start/index.ts"
-      },
-      {
-        "code": "AM",
-        "path": "supabase/functions/snapshot-week-start/reprice.test.ts"
-      },
-      {
-        "code": "AM",
-        "path": "supabase/functions/snapshot-week-start/reprice.ts"
+        "path": "docs/architecture/db-snapshot.json"
       }
     ],
-    "timestamp": "2026-11-17T18:13:43Z",
-    "sourceHash": "sha256:5f5055ef5d8ce93ca2fa30c8b259acf1dfca9d5e61313b6920724b75adafcb88",
+    "timestamp": "2026-11-17T18:28:33Z",
+    "sourceHash": "sha256:ab45b4f155d21629c0e6c50c4dde0a15ad3a6fbe67197cd6d51d5b653036c4f9",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-11-16T21:40:11Z",
-    "ageHours": 20.6,
-    "ageDays": 0.9,
+    "capturedAt": "2026-11-17T18:27:48Z",
+    "ageHours": 0,
+    "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:6e7a92b9130df74c981c933c5b636c82a38b9ed9fc7251c9d85358a9e8df17d4",
+    "hash": "sha256:b93ec4366be3917ada8d243c72b1572c2b97c750942ef1e8f4705408db87c7d9",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
@@ -24764,6 +24740,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=false"
     ],
-    "dbSnapshot": "sha256:6e7a92b9130df74c981c933c5b636c82a38b9ed9fc7251c9d85358a9e8df17d4"
+    "dbSnapshot": "sha256:b93ec4366be3917ada8d243c72b1572c2b97c750942ef1e8f4705408db87c7d9"
   }
 }
