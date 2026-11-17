@@ -268,7 +268,7 @@
           <li><b>Recommended: words A, card B.</b> A reads like the "today" and "since the draft" lines you already have; B puts the number in the same place on every chart, beside the line it describes.</li>
           <li><b>One thing that goes:</b> a stock's sheet showed today's move ("+1.70% today"); with the number following the range, today's move shows only as the last point of 1W. On the player card it stays in the Price figure.</li>
           <li><b>New words, for your OK as written (words A):</b> "past week", "past month", "past 3 months", "past 6 months", "this year".</li>
-          <li>{archived ? decidedNote : <><b>Answer with:</b> words A or B, and card A or B.</>}</li>
+          <li>{archived ? decidedNote : <><b>Words: decided A</b> (Giorgio, 2026-11-17: "i like the past 6 months"), in the bracket format of the next call. <b>Still open, answer with:</b> card A or B.</>}</li>
         </ul>
         <h3 className="b-sub">The words, on a stock's sheet</h3>
         <Grid>{[
@@ -307,7 +307,7 @@
           <li><b>No new words.</b> The period words are the ones you liked ("past 6 months", "since the draft").</li>
           <li>{archived ? decidedNote : <><b>Answer with:</b> A or B.</>}</li>
         </ul>
-        <h3 className="b-sub">A · both, the percent in brackets (recommended)</h3>
+        <h3 className="b-sub">A · both, the percent in brackets {archived ? '(decided)' : '(recommended)'}</h3>
         <Grid>{[
           fig('fa1', 'A · Portfolio', <Portfolio fmt="paren" range="Season" label="Portfolio, gain with percent in brackets, option A" />),
           fig('fa2', 'A · a stock you\u2019re shopping for', <StockSheet fmt="paren" range="6M" label="Stock sheet, 6M, gain with percent in brackets, option A" />),
@@ -335,5 +335,11 @@
     />
   );
   window.KSRangeGain = () => <CallRangeGain />;
-  window.KSGainFormat = () => <CallGainFormat />;
+  window.KSGainFormat = () => null; // decided 2026-11-17: A; it lives in the Archive
+  window.KSGainFormatArchived = () => (
+    <CallGainFormat
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "A".</b> Both numbers, the percent in brackets: "+$54.60 (+41.42%) past 6 months", on every chart. He had asked "explain the logic of keeping the two numbers?" (dollars decide matchups; percent compares stocks of different prices) and then picked A. Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
 })();
