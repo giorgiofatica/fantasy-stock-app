@@ -10,31 +10,35 @@ import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { formatMoney, formatPercent } from '@/components/sp/logic/money';
 import {
-  acquisitionLine, cardAction, howTitle, sinceLabel, toneOf, type Acquisition, type Category, type PlayerCardOwnership,
+  acquisitionLine, cardAction, howTitle, toneOf, type Acquisition, type Category, type PlayerCardOwnership,
 } from '@/components/sp/logic/gameNight';
 
 export type { PlayerCardOwnership, PlayerCardOwnerInfo } from '@/components/sp/logic/gameNight';
 import { Avatar } from '@/components/sp/Avatar';
 import { CategoryPill } from '@/components/sp/gn/CategoryPill';
-import type { AxisSpec } from '@/components/sp/logic/chartAxis';
-import type { LinePointIn } from '@/components/sp/logic/lineChart';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
-import { Chart } from '@/components/sp/gn/Chart';
-import { useLargeText } from '@/components/sp/useLargeText';
+import { StockChart } from '@/components/money/StockChart';
+import { SEASON_DEFAULT_RANGE } from '@/lib/chart/chartRanges';
+import type { MarketCalendarSession } from '@/lib/time/marketWeek';
+import type { HoldingLot } from '@/lib/game/playerCardModel';
 
 // Stockpile — <PlayerCard>, Game Night (§9C "PlayerCard", in the order of Giorgio's review on
 // ESPN's player card, 2026-10-12): tapping ANY stock, yours or theirs, on Matchup or
 // Portfolio opens it as a sheet (`surface`, radius 20, over `scrim`; the sheet rises on
 // spring.snappy and fades under Reduce Motion — components/sp/Sheet).
 //   1. Header: ticker, company, "Yours" / "Owned by …", the slot pill in slotted leagues.
-//   2. THREE key figures on `inset`: Price · Week gain · Since the draft ("Since {date}" for
-//      a stock bought or claimed later). No position figure ("a little cluttered").
-//   3. The season line, with its date axis. NO acquisition marker: block 6 says how.
-//   4. This week's line, with its Mon…Fri axis.
-//   5. The one action: your stock → Sell while the market is open, disabled with the
-//      reason while closed, NEVER Save; a stock you don't own → Save / Saved.
-//   6. "How you got it" at the BOTTOM ("How they got it" on theirs).
-//   7. The Alpaca credit.
+//   2. TWO key figures on `inset`: Price (with today's change) · Week gain (Giorgio, 2026-11-17,
+//      "B": the matchup week, Monday to now, which is not 1W). They keep their two columns at the
+//      largest text size. "Since the draft" is no longer a figure: it is what Season's gain line says.
+//   3. ONE chart, the same one a stock's sheet has (components/money/StockChart): the range's gain
+//      directly above the line (the HOLDING's P/L over the range, e.g. "+$195 (+9.74%) since the draft"),
+//      the six ranges under it, opening on Season; a range longer than the stock's history is grey; no dotted line, and NO acquisition
+//      marker: block 5 says how. This replaces the two stacked charts (a Season chart over a This
+//      week chart).
+//   4. The one action: your stock → Sell while the market is open, disabled with the reason while
+//      closed, NEVER Save; a stock you don't own → Save / Saved.
+//   5. "How you got it" at the BOTTOM ("How they got it" on theirs).
+//   6. The Alpaca credit.
 // Giorgio, 2026-10-12: the owner's avatar (a 20pt `opp` disc, `onOpp` initials) sits in "Owned by …"; no game log.
 // No new copy: every string is the spec's or the app's own (moneyCopy).
 
@@ -51,15 +55,19 @@ interface PlayerCardBase {
   slot?: string;
   category?: Category;
   price: number;
-  /** Today's change, percent. */
+  /** Today's change, percent: inside the Price figure. */
   todayPct: number;
+  /** The matchup week (Monday to now), not 1W. */
   weekGain: number;
   weekPct: number;
-  sinceGain: number;
-  sincePct: number;
   acquisition: Acquisition;
-  season: { points: LinePointIn[]; base: number; axis: Extract<AxisSpec, { kind: 'dated' }> };
-  week: { points: LinePointIn[]; base: number };
+  /** The lots held now: the chart's gain line is their P/L, not a per-share move. */
+  lots: readonly HoldingLot[];
+  /** The league's draft day (ET): Season's first day on the chart. Null: Season is grey. */
+  seasonStart: string | null;
+  /** This week's sessions and the clock: 1W's window (whether today has opened). */
+  sessions: readonly MarketCalendarSession[];
+  now: Date;
   marketOpen: boolean;
   /** The next open, for the closed note ("Mon 9:30 AM ET"); null when it isn't known. */
   opens: string | null;
@@ -71,6 +79,7 @@ const SHEET_GUTTER = space[6];
 /** The card's small text (callout, caption, body) caps at 1.6× — the app's row ceiling — so a
  * sheet at XL keeps its three figures and its lines readable instead of ballooning. */
 const CARD_TEXT_MAX_SCALE = 1.6;
+const CHART_HEIGHT = 128;
 
 export function PlayerCard(props: PlayerCardProps) {
   const { visible, onClose, onClosed } = props;
@@ -84,13 +93,11 @@ export function PlayerCard(props: PlayerCardProps) {
 /** The card's content, without the sheet — the design gallery renders it inline. */
 export function PlayerCardBody(props: PlayerCardProps) {
   const {
-    onClose, ticker, company, owner, slot, category, price, todayPct, weekGain, weekPct, sinceGain, sincePct, acquisition,
-    season, week, marketOpen, opens,
+    onClose, ticker, company, owner, slot, category, price, todayPct, weekGain, weekPct, acquisition,
+    lots, seasonStart, sessions, now, marketOpen, opens,
   } = props;
   const { colors } = useTheme();
   const action = cardAction(props);
-  // At the large text sizes the three figures stack (side by side they truncated to "+5.8…").
-  const stacked = useLargeText();
   const weekTone = colors[toneOf(weekGain)];
   const money = (n: number) => formatMoney(n, { sign: 'always' });
   const pct = (n: number) => formatPercent(n, { sign: 'always' });
@@ -124,33 +131,27 @@ export function PlayerCardBody(props: PlayerCardProps) {
         {category ? <CategoryPill category={category} /> : slot ? <View style={[styles.pill, { backgroundColor: colors.inset }]}><Text variant="callout" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} style={styles.pillText}>{slot}</Text></View> : null}
       </View>
 
-      {/* 2. Three key figures */}
-      <View style={[styles.strip, stacked ? styles.stripStacked : null, { backgroundColor: colors.inset }]}>
-        <Figure stacked={stacked} label="Price" value={formatMoney(price)} sub={`${pct(todayPct)} today`} subColor={colors[toneOf(todayPct)]} />
-        <Figure stacked={stacked} label="Week gain" value={money(weekGain)} valueColor={weekTone} sub={pct(weekPct)} subColor={weekTone} />
-        <Figure stacked={stacked} label={sinceLabel(acquisition)} value={money(sinceGain)} valueColor={colors[toneOf(sinceGain)]} sub={pct(sincePct)} subColor={colors[toneOf(sinceGain)]} />
+      {/* 2. Two key figures: Price (and today) · Week gain. Two columns at every text size. */}
+      <View style={[styles.strip, { backgroundColor: colors.inset }]}>
+        <Figure label="Price" value={formatMoney(price)} sub={`${pct(todayPct)} today`} subColor={colors[toneOf(todayPct)]} />
+        <Figure label="Week gain" value={money(weekGain)} valueColor={weekTone} sub={pct(weekPct)} subColor={weekTone} />
       </View>
 
-      {/* 3. The season line, dated axis, no acquisition marker */}
-      <View style={styles.section}>
-        <View style={styles.titleRow}>
-          <Text variant="headline" style={styles.title}>Season</Text>
-          {/* The board's caption: the entry price per share → the price now. */}
-          <Text variant="caption" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} tone="secondary" style={styles.tabular} testID="player-card-season-caption">{keepMoney(`${formatMoney(acquisition.price)} → ${formatMoney(price)}`)}</Text>
-        </View>
-        <Chart points={season.points} base={season.base} axis={season.axis} height={128} bleed={SHEET_GUTTER} drawKey={`${ticker}-season`} formatValue={(v) => formatMoney(v)} accessibilityLabel={`${ticker} this season`} />
-      </View>
+      {/* 3. ONE chart: the range's gain above it, the six ranges under it, opening on Season */}
+      <StockChart
+        symbol={ticker}
+        price={price}
+        live={marketOpen}
+        now={now}
+        sessions={sessions}
+        bleed={SHEET_GUTTER}
+        seasonStart={seasonStart}
+        lots={lots}
+        defaultRange={SEASON_DEFAULT_RANGE}
+        height={CHART_HEIGHT}
+      />
 
-      {/* 4. This week, Mon…Fri */}
-      <View style={styles.section}>
-        <View style={styles.titleRow}>
-          <Text variant="headline" style={styles.title}>This week</Text>
-          <Text variant="callout" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} color={weekTone} style={styles.titleFigure}>{`${money(weekGain)} · ${pct(weekPct)}`}</Text>
-        </View>
-        <Chart points={week.points} base={week.base} axis={{ kind: 'week' }} height={70} bleed={SHEET_GUTTER} live={marketOpen} drawKey={`${ticker}-week`} formatValue={(v) => formatMoney(v)} accessibilityLabel={`${ticker} this week`} />
-      </View>
-
-      {/* 5. The one action (none for a stock you sold this week, or with no watchlist to save to) */}
+      {/* 4. The one action (none for a stock you sold this week, or with no watchlist to save to) */}
       {action ? (
         <View style={styles.actionWrap}>
           <PressableScale
@@ -172,21 +173,21 @@ export function PlayerCardBody(props: PlayerCardProps) {
         </View>
       ) : null}
 
-      {/* 6. How you got it — at the bottom, in its inset panel (the board: radius 14, 12 / 14) */}
+      {/* 5. How you got it — at the bottom, in its inset panel (the board: radius 14, 12 / 14) */}
       <View style={[styles.how, { backgroundColor: colors.inset }]} accessible accessibilityLabel={`${howTitle(owner === 'you' ? 'you' : 'other')}: ${acquisitionLine(acquisition)}`}>
         <CardLabel text={howTitle(owner === 'you' ? 'you' : 'other')} />
         <Text variant="body" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} style={styles.howLine}>{keepMoney(acquisitionLine(acquisition))}</Text>
       </View>
 
-      {/* 7. The Alpaca credit */}
+      {/* 6. The Alpaca credit */}
       <Text variant="caption" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{MONEY_COPY.alpacaCredit}</Text>
     </ScrollView>
   );
 }
 
-function Figure({ stacked, label, value, sub, valueColor, subColor }: { stacked: boolean; label: string; value: string; sub: string; valueColor?: string; subColor?: string }) {
+function Figure({ label, value, sub, valueColor, subColor }: { label: string; value: string; sub: string; valueColor?: string; subColor?: string }) {
   return (
-    <View style={[styles.figure, stacked ? styles.figureStacked : null]} accessible accessibilityLabel={`${label}, ${value}, ${sub}`}>
+    <View style={styles.figure} accessible accessibilityLabel={`${label}, ${value}, ${sub}`}>
       <CardLabel text={label} />
       <Text variant="score.md" color={valueColor} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
       <Text variant="caption" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} color={subColor} style={styles.figureSub} numberOfLines={1}>{sub}</Text>
@@ -253,19 +254,11 @@ const styles = StyleSheet.create({
     gap: space[3],
     paddingLeft: space[2],
   },
-  stripStacked: {
-    flexDirection: 'column',
-    gap: space[4],
-  },
   strip: {
     flexDirection: 'row',
     borderRadius: radius.lg,
     paddingVertical: space[4],
     paddingHorizontal: space[3],
-  },
-  // A column of auto height: no flex share, or the figures collapse.
-  figureStacked: {
-    flex: 0,
   },
   figure: {
     flex: 1,
@@ -280,23 +273,6 @@ const styles = StyleSheet.create({
   },
   figureSub: {
     fontWeight: '700',
-  },
-  section: {
-    gap: space[2],
-  },
-  titleRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    columnGap: space[3],
-  },
-  title: {
-    fontWeight: '800',
-  },
-  titleFigure: {
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
   },
   actionWrap: {
     gap: space[3],
@@ -322,9 +298,6 @@ const styles = StyleSheet.create({
   // The board: 15/700, tabular.
   howLine: {
     fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  tabular: {
     fontVariant: ['tabular-nums'],
   },
   center: {

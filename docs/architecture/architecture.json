@@ -2,50 +2,142 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "98b3d39d7c3323a757932f0b9069db909f6ba0b5",
-    "commitShort": "98b3d39d",
+    "commit": "5ef58efb98da497dac2ffea4ff495b053567c96d",
+    "commitShort": "5ef58efb",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/create-close-slotcheck",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seamCalls.ts"
+        "path": "apps/mobile/app/(tabs)/matchup.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/slotCheck.ts"
+        "path": "apps/mobile/app/design-gallery.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/slotFixture.ts"
+        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/slotSetupCheck.ts"
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/shell/devFixture.ts"
+        "path": "apps/mobile/components/money/StockChart.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/slot-check.test.ts"
+        "path": "apps/mobile/components/money/StockSheetBody.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/slot-fixture.test.ts"
+        "path": "apps/mobile/components/sp/gn/Chart.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/index.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/PlayerCard.tsx"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/components/sp/gn/RangeGainLine.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/RangePills.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/gameNight.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/chart/chartRanges.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/playerCardModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/devFixture.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/portfolioChart.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/portfolioSeam.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/money/seasonStart.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stockChartSeries.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/useStockChartData.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-night-primitives.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/keep-money.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-calls.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c6-rolling.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-portfolio-chart.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-stock-chart-series.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/rolling-money-large-text.test.ts"
+      },
+      {
+        "code": "MM",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-17T19:09:21Z",
-    "sourceHash": "sha256:7c1a1b945b96f96baa102fcd6a1627bfb3fb1b6baf7e39833a653bfef80f7798",
+    "timestamp": "2026-11-17T19:17:42Z",
+    "sourceHash": "sha256:12ef5bce28328510c84249f9e1085f7da09ac9ebce810b3bb8e5a4ea1d488d0d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 0.7,
+    "ageHours": 0.8,
     "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
@@ -20883,7 +20975,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -20901,7 +20993,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -20919,7 +21011,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -20937,7 +21029,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -21027,7 +21119,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:90"
+        "apps/mobile/components/money/PortfolioScreen.tsx:92"
       ],
       "via": [
         "useRosterData"
@@ -21045,7 +21137,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:90"
+        "apps/mobile/components/money/PortfolioScreen.tsx:92"
       ],
       "via": [
         "useRosterData"
@@ -21063,7 +21155,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:90"
+        "apps/mobile/components/money/PortfolioScreen.tsx:92"
       ],
       "via": [
         "useRosterData"
@@ -21081,7 +21173,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:90"
+        "apps/mobile/components/money/PortfolioScreen.tsx:92"
       ],
       "via": [
         "useRosterData"
@@ -21145,7 +21237,7 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('historical-bars')",
       "callSites": [
-        "apps/mobile/lib/money/useStockChartData.ts:46"
+        "apps/mobile/lib/money/useStockChartData.ts:53"
       ]
     },
     {
@@ -22868,7 +22960,7 @@
           "files": [
             "apps/mobile/lib/home/useHomeLeague.ts:702",
             "apps/mobile/lib/money/priceReads.ts:52",
-            "apps/mobile/lib/money/useStockChartData.ts:46"
+            "apps/mobile/lib/money/useStockChartData.ts:53"
           ]
         }
       ],
@@ -24171,7 +24263,7 @@
       "apps/mobile/lib/money/priceReads.ts:52 -> historical-bars",
       "apps/mobile/lib/money/recordTrade.ts:33 -> record-trade",
       "apps/mobile/lib/money/recordTrade.ts:73 -> record-trade",
-      "apps/mobile/lib/money/useStockChartData.ts:46 -> historical-bars",
+      "apps/mobile/lib/money/useStockChartData.ts:53 -> historical-bars",
       "apps/mobile/lib/money/useStockSheetData.ts:139 -> ticker-quotes",
       "apps/mobile/lib/money/useStockSheetData.ts:155 -> symbol-name",
       "apps/mobile/lib/money/useTradeSubmit.ts:35 -> record-trade (via callRecordTrade)",
@@ -24301,10 +24393,10 @@
       "supabase/functions/validate-and-record-pick/index.ts:131 -> check_and_bump_rate_limit"
     ],
     "tableOps": [
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> categories.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> drafts.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> trades.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> categories.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> drafts.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> trades.select (via useRosterData)",
       "apps/mobile/app/create-league.tsx:208 -> leagues.insert (via seamInsertLeague)",
       "apps/mobile/app/create-league.tsx:235 -> league_members.insert (via seamInsertMember)",
       "apps/mobile/app/create-league.tsx:245 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
@@ -24316,10 +24408,10 @@
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113 -> drafts.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113 -> league_draft_slots.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:113 -> trades.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> categories.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> drafts.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:90 -> trades.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:92 -> categories.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:92 -> drafts.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:92 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:92 -> trades.select (via useRosterData)",
       "apps/mobile/lib/LeagueContext.tsx:178 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:180 -> league_seasons.select",
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",

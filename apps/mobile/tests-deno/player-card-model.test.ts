@@ -8,9 +8,10 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { cardAction, type PlayerCardOwnership } from '../components/sp/logic/gameNight.ts';
-import { openingOf, playerCardData, prevCloseOf, seasonLine, sinceFigures, stockWeek, weekLine } from '../lib/game/playerCardModel.ts';
-import { fixtureLedger, fixtureSeasonBars } from '../lib/game/matchupFixture.ts';
-import { standardWeekSessions } from '../lib/time/marketWeek.ts';
+import { holdingRangeGain, openLots, openingOf, playerCardData, prevCloseOf, stockWeek, type HoldingLot } from '../lib/game/playerCardModel.ts';
+import { fixtureLedger } from '../lib/game/matchupFixture.ts';
+import { rangeGain } from '../lib/chart/chartRanges.ts';
+import { stockLineSeries } from '../lib/money/stockChartSeries.ts';
 import { ROBERTO_HOLDINGS, fixtureQty } from '../lib/home/homeFixtureData.ts';
 import type { LedgerActivityRow } from '../lib/money/portfolioLedger.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
@@ -134,68 +135,125 @@ Deno.test('stockWeek: the row\'s own number (liveWeekScore over this one stock)'
   assertEquals(Math.round(w.pct * 100) / 100, Math.round(((nvda.thu - nvda.mon) / nvda.mon) * 10000) / 100);
 });
 
-Deno.test('since and today', () => {
-  const o = openingOf('u', 'NVDA', [row({ quantity: 2 })])!;
-  const s = sinceFigures(318.37, o);
-  assertEquals(Math.round(s.gain * 100) / 100, Math.round((318.37 - 290.1) * 2 * 100) / 100);
+Deno.test('today: the last close before today (never today\'s own bar)', () => {
   assertEquals(prevCloseOf([{ date: '2026-09-23', close: 1 }, { date: '2026-09-24', close: 2 }], '2026-09-24'), 1);
   assertEquals(prevCloseOf([{ date: '2026-09-24', close: 2 }], '2026-09-24'), null);
 });
 
-// ── The lines ─────────────────────────────────────────────────────────────────────
-
-Deno.test('seasonLine: from the entry price on the acquisition date to the live price today, dated axis', () => {
-  const o = openingOf('me', 'NVDA', fixtureLedger('unslotted', 'me', 'g').activity)!;
-  const s = seasonLine({ opening: o, bars: fixtureSeasonBars('NVDA'), todayEt: '2026-09-24', price: nvda.thu });
-  assertEquals(s.points[0], { t: 0, value: nvda.draft });
-  assertEquals(s.points[s.points.length - 1].value, nvda.thu);
-  assertEquals(s.axis, { kind: 'dated', start: o.dateIso, end: '2026-09-24' });
-  assertEquals(s.base, nvda.draft);
-  assert(s.points.every((p, i) => i === 0 || p.t > s.points[i - 1].t), 'ascending, one point per day');
-});
-
-Deno.test('seasonLine: a stock bought today is ONE point on its full (same-day) axis', () => {
-  const o = openingOf('me', 'MSFT', fixtureLedger('bought', 'me', 'g').activity)!;
-  assertEquals([o.acquisition.kind, o.dateIso], ['bought', '2026-09-24']);
-  const s = seasonLine({ opening: o, bars: fixtureSeasonBars('MSFT'), todayEt: '2026-09-24', price: 418.92 });
-  assertEquals(s.points, [{ t: 0, value: 418.92 }]);
-  assertEquals(s.axis, { kind: 'dated', start: '2026-09-24', end: '2026-09-24' });
-  assertEquals(s.base, 412.3, 'the dashed base is the buy price');
-});
-
-const week = standardWeekSessions('2026-09-25T20:00:00Z');
 const weekBars = [{ date: '2026-09-21', close: 301 }, { date: '2026-09-22', close: 303 }, { date: '2026-09-23', close: 306.68 }, { date: '2026-09-24', close: 318 }];
-
-Deno.test('weekLine: Mon open at 0, each closed day at its end, now mid-Thursday; the days to come empty', () => {
-  const w = weekLine({ sessions: week, start: { t: 0, value: 300.2 }, bars: weekBars, price: 318.37, now: new Date('2026-09-24T17:37:00Z') });
-  assertEquals(w.points.slice(0, 4), [{ t: 0, value: 300.2 }, { t: 1, value: 301 }, { t: 2, value: 303 }, { t: 3, value: 306.68 }]);
-  const last = w.points[w.points.length - 1];
-  assertEquals(last.value, 318.37);
-  assert(last.t > 3 && last.t < 4, 'Thursday, part-way');
-  assertEquals(w.base, 300.2);
-});
-
-Deno.test('weekLine: Monday before the open is the one point at the open (the 0/1-point state)', () => {
-  const w = weekLine({ sessions: week, start: { t: 0, value: 300.2 }, bars: [], price: 300.2, now: new Date('2026-09-21T12:00:00Z') });
-  assertEquals(w.points, [{ t: 0, value: 300.2 }]);
-});
-
-Deno.test('weekLine: a holiday leaves its own day\'s slot empty (slots by weekday, not by session count)', () => {
-  const noTue = week.filter((s) => s.sessionDate !== '2026-09-22');
-  const w = weekLine({ sessions: noTue, start: { t: 0, value: 300 }, bars: weekBars, price: 310, now: new Date('2026-09-25T00:00:00Z') });
-  assertEquals(w.points.map((p) => p.t), [0, 1, 3, 4]);
-});
 
 Deno.test('playerCardData: the card agrees with the row and says how it was got', () => {
   const ledger = fixtureLedger('unslotted', 'me', 'g');
   const d = playerCardData({
     symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
-    weekGain: 62.4, price: nvda.thu, bars: weekBars, seasonBars: null, sessions: week, now: new Date('2026-09-24T17:37:00Z'),
+    weekGain: 62.4, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
   })!;
-  assertEquals(d.weekGain, 62.4, 'the row\'s own cents, so card and row never disagree');
+  assertEquals(d.weekGain, 62.4, "the row's own cents, so card and row never disagree");
   assertEquals(d.acquisition.kind, 'drafted');
-  assertEquals(d.season.points, [], 'season bars still loading: the base and the axis, never a made-up segment');
   assertEquals(d.held, fixtureQty(nvda));
+  // TWO figures' worth of numbers (Price with today, Week gain) and no "since" figures: "Since the
+  // draft" is Season's gain line now (Giorgio 2026-11-17, "B").
+  assertEquals(Object.keys(d).sort(), ['acquisition', 'company', 'held', 'lots', 'price', 'seasonStart', 'ticker', 'todayPct', 'weekGain', 'weekPct']);
+  assertEquals(Math.round(d.todayPct * 100) / 100, Math.round(((nvda.thu - 306.68) / 306.68) * 10000) / 100, "today's percent is from the last close before today");
+  // Season's first day on the card is the league's draft day (ET), the same for any stock.
+  assert(d.seasonStart !== null && /^\d{4}-\d{2}-\d{2}$/.test(d.seasonStart));
+});
+
+Deno.test('playerCardData: Week gain is the matchup week and is NOT the 1W range gain (Monday-to-now, not five sessions)', () => {
+  const ledger = fixtureLedger('unslotted', 'me', 'g');
+  const now = new Date('2026-09-24T17:37:00Z');
+  const d = playerCardData({
+    symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
+    weekGain: 62.4, price: nvda.thu, bars: weekBars, now,
+  })!;
+  // The 1W gain is per share over the past five sessions; the card's Week gain is the row's own number.
+  const one = stockLineSeries({ range: '1W', bars: [{ date: '2026-09-17', close: 250 }, ...weekBars], price: nvda.thu, todayEt: '2026-09-24', now, sessions: [], seasonStart: null });
+  const oneWeek = rangeGain(one.points, one.base)!;
+  assert(Math.abs(d.weekGain - oneWeek.money) > 0.01, 'the week gain and the 1W gain are different numbers');
+  assertEquals(d.weekGain, 62.4);
+});
+
+// ── The card's range gain is the HOLDING's P/L, not per share (Design Lead gate P1, 2026-11-17) ──
+
+const near = (a: number, b: number, eps = 1e-6) => assert(Math.abs(a - b) < eps, `${a} vs ${b}`);
+
+Deno.test('P/L: Season on a DRAFTED stock = (price now − draft price) × shares, the figure "How you got it" implies', () => {
+  // NVDA drafted Aug 31 at $290.10 (6.8942 sh); the draft-day CLOSE was $293.93 — the basis is the entry, not the close.
+  const lots: HoldingLot[] = [{ date: '2026-08-31', quantity: 6.8942, price: 290.1 }];
+  const g = holdingRangeGain({ lots, start: '2026-08-31', base: 293.93, price: 318.37 })!;
+  near(g.money, 6.8942 * (318.37 - 290.1));
+  near(g.pct, ((318.37 - 290.1) / 290.1) * 100);
+  assertEquals(g.tone, 'gain');
+  // …which is NOT the per-share move from the draft-day close.
+  assert(Math.abs(g.money - (318.37 - 293.93)) > 1);
+});
+
+Deno.test('P/L: a lot opened inside the range is measured from its OWN entry price, an older lot from the range start', () => {
+  // 4 sh drafted at $290.10 (older than 1M's start Oct 16), 2 sh bought Oct 20 at $320. Price now $318.37, price at the range start $300.
+  const lots: HoldingLot[] = [{ date: '2026-08-31', quantity: 4, price: 290.1 }, { date: '2026-10-20', quantity: 2, price: 320 }];
+  const g = holdingRangeGain({ lots, start: '2026-10-16', base: 300, price: 318.37 })!;
+  near(g.money, 4 * (318.37 - 300) + 2 * (318.37 - 320));
+  near(g.pct, (g.money / (4 * 300 + 2 * 320)) * 100);
+});
+
+Deno.test('P/L: a stock bought mid-season — Season (the range starts BEFORE the buy) is its gain since the buy', () => {
+  const lots: HoldingLot[] = [{ date: '2026-09-10', quantity: 3, price: 330 }]; // entry ABOVE the draft-day close
+  const season = holdingRangeGain({ lots, start: '2026-08-31', base: 293.93, price: 318.37 })!;
+  near(season.money, 3 * (318.37 - 330));
+  assertEquals(season.tone, 'loss', 'the stock is up since the draft but this buy is under water');
+  near(season.pct, ((318.37 - 330) / 330) * 100);
+});
+
+Deno.test('P/L: a range starting AFTER the buy measures from the price at the range start (the lot is older than the window)', () => {
+  const lots: HoldingLot[] = [{ date: '2026-09-10', quantity: 3, price: 330 }];
+  const g = holdingRangeGain({ lots, start: '2026-09-17', base: 305, price: 318.37 })!;
+  near(g.money, 3 * (318.37 - 305));
+  assertEquals(g.tone, 'gain');
+});
+
+Deno.test('P/L: the tone is the P/L\'s sign, not the drawn line\'s (a stock up on the range, a lot bought above it)', () => {
+  const lots: HoldingLot[] = [{ date: '2026-11-10', quantity: 1, price: 120 }];
+  const g = holdingRangeGain({ lots, start: '2026-11-01', base: 100, price: 110 })!;
+  assertEquals(g.tone, 'loss');
+  assertEquals(holdingRangeGain({ lots: [{ date: '2026-11-10', quantity: 1, price: 110 }], start: '2026-11-01', base: 100, price: 110 })!.tone, 'zero');
+});
+
+Deno.test('P/L: nothing to measure → null (no lots, no live price, no range)', () => {
+  const lot: HoldingLot = { date: '2026-09-10', quantity: 1, price: 10 };
+  assertEquals(holdingRangeGain({ lots: [], start: '2026-09-01', base: 1, price: 2 }), null);
+  assertEquals(holdingRangeGain({ lots: [lot], start: '2026-09-01', base: 1, price: null }), null);
+  assertEquals(holdingRangeGain({ lots: [lot], start: null, base: 1, price: 2 }), null);
+});
+
+Deno.test('openLots: every buy is a lot at its own price; a sale shrinks every open lot in proportion; a full sale closes them', () => {
+  const act = (o: Partial<LedgerActivityRow>) => row({ user_id: 'u', symbol: 'NVDA', ...o });
+  const rows = [
+    act({ kind: 'draft', action: 'buy', quantity: 4, price: 100, occurred_at: '2026-09-01T00:30:00Z' }),
+    act({ kind: 'trade', action: 'buy', quantity: 2, price: 110, occurred_at: '2026-10-05T15:00:00Z' }),
+    act({ kind: 'trade', action: 'sell', quantity: 3, price: 120, occurred_at: '2026-10-07T15:00:00Z' }),
+    row({ user_id: 'someone-else', symbol: 'NVDA', kind: 'trade', action: 'buy', quantity: 99, price: 1, occurred_at: '2026-10-01T15:00:00Z' }),
+  ];
+  const lots = openLots('u', 'nvda', rows);
+  assertEquals(lots.length, 2);
+  assertEquals(lots[0].date, '2026-08-31', 'the draft instant in ET');
+  near(lots[0].quantity, 2); near(lots[1].quantity, 1); // 6 sh, 3 sold: half of each
+  assertEquals([lots[0].price, lots[1].price], [100, 110]);
+  assertEquals(openLots('u', 'NVDA', [...rows, act({ kind: 'trade', action: 'sell', quantity: 3, price: 130, occurred_at: '2026-10-08T15:00:00Z' })]), []);
+  assertEquals(openLots('u', 'AAPL', rows), []);
+  // A buy with no price is never a guessed basis.
+  assertEquals(openLots('u', 'NVDA', [act({ kind: 'draft', action: 'buy', quantity: 1, price: null, occurred_at: '2026-09-01T00:30:00Z' })]), []);
+});
+
+Deno.test('playerCardData carries the lots held now (the card\'s gain line is their P/L)', () => {
+  const ledger = fixtureLedger('unslotted', 'me', 'g');
+  const d = playerCardData({
+    symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
+    weekGain: 62.4, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
+  })!;
+  assertEquals(d.lots, openLots('me', 'NVDA', ledger.activity));
+  near(d.lots.reduce((n, l) => n + l.quantity, 0), d.held, 1e-4);
+  const g = holdingRangeGain({ lots: d.lots, start: d.seasonStart, base: 1, price: nvda.thu })!;
+  near(g.money, d.held * (nvda.thu - nvda.draft), 1e-3); // Season on the drafted stock: (price − draft price) × shares
 });
 
 // ── The card as drawn (the W3 gate's carried items) ───────────────────────────────
@@ -207,15 +265,15 @@ Deno.test('PlayerCard: "How you got it" in its inset panel (radius 14, 12 / 14) 
   assert(src.includes("<CardLabel text={howTitle(owner === 'you' ? 'you' : 'other')} />"));
   assert(/howLine: \{\s*fontWeight: '700',\s*fontVariant: \['tabular-nums'\],/.test(src));
   // The block is the LAST section before the credit.
-  assert(src.indexOf('6. How you got it') > src.indexOf('5. The one action'));
-  assert(src.indexOf('6. How you got it') < src.indexOf('7. The Alpaca credit'));
+  assert(src.indexOf('5. How you got it') > src.indexOf('4. The one action'));
+  assert(src.indexOf('5. How you got it') < src.indexOf('6. The Alpaca credit'));
 });
 
-Deno.test('PlayerCard: Save carries the drawn star; the Season row carries "{entry} → {now}"', () => {
+Deno.test('PlayerCard: Save carries the drawn star; no "{entry} → {now}" caption (the chart is the stock chart now)', () => {
   const src = strip(SOURCES['components/sp/gn/PlayerCard.tsx']);
   assert(src.includes('{action.star ? <Icon name={action.star} size="body" tone="text" /> : null}'));
   assert(!/backgroundColor: colors\.accent/.test(src), 'Saved has no accent fill');
-  assert(src.includes('{keepMoney(`${formatMoney(acquisition.price)} → ${formatMoney(price)}`)}'));
+  assert(!src.includes('→'), 'the Season title row and its caption went with the two stacked charts');
 });
 
 Deno.test('PlayerCard: the action is drawn only from cardAction (never a handler-less button), and the X closes', () => {
@@ -255,11 +313,9 @@ Deno.test('Matchup: Sell hands off to the stock sheet only once the card has lef
 
 // ── Found in the W4 capture pass (17e, XL) ────────────────────────────────────────
 
-Deno.test('XL: the card stacks its three figures and caps its small text; the scoreboard names never break mid-word', () => {
+Deno.test('XL: the card keeps its TWO figure columns at every size and caps its small text; the scoreboard names never break mid-word', () => {
   const card = strip(SOURCES['components/sp/gn/PlayerCard.tsx']);
-  assert(card.includes('const stacked = useLargeText();'));
-  assert(card.includes('stacked ? styles.stripStacked : null'));
-  assert(/figureStacked: \{\s*flex: 0,/.test(card), 'a stacked figure takes no flex share, or it collapses');
+  assert(!/useLargeText|stacked/.test(card), "two columns at AX5 too (Giorgio's phone is the largest accessibility size): no stacking");
   assert(card.includes('const CARD_TEXT_MAX_SCALE = 1.6;'));
   const sb = strip(SOURCES['components/sp/gn/Scoreboard.tsx']);
   assert(sb.includes('maxFontSizeMultiplier={NAME_MAX_SCALE}'));

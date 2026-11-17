@@ -128,7 +128,6 @@ const SURFACES: { surface: string; file: string; pin: string; strings: string[] 
   { surface: 'Draft room strip caption', file: 'components/game/DraftRoom.tsx', pin: 'caption={keepMoney(keepDots(caption))}', strings: [keepDots(rosterCaption(1, 6, { stakeMode: 'fixed_notional', notionalPerSlot: 2000 })), keepDots(rosterCaption(2, 6, { stakeMode: 'budget_cap', budgetLeft: 1240.5 }))] },
   { surface: 'Draft complete caption', file: 'components/game/DraftComplete.tsx', pin: '{keepMoney(keepDots(rosterPickCaption(r)))}', strings: [keepDots(rosterPickCaption({ round: 2, pick: 11 }))] },
   { surface: 'This week lead', file: 'components/home/ThisWeekCard.tsx', pin: '{keepMoney(formatMoney(gap))}', strings: [`You lead by ${formatMoney(123.15)}`, `You lead by ${formatMoney(1234567.89)}`] },
-  { surface: 'Player card season caption', file: 'components/sp/gn/PlayerCard.tsx', pin: 'keepMoney(`${formatMoney(acquisition.price)} → ${formatMoney(price)}`)', strings: [`${formatMoney(290.1)} → ${formatMoney(318.37)}`] },
   { surface: 'Scoreboard lead line', file: 'components/sp/gn/Scoreboard.tsx', pin: '{keepMoney(line)}', strings: [scoreboardModel({ name: 'Roberto B.', gain: 1284.6 }, { name: 'Gianluigi B.', gain: -1038.25 }, false).line, scoreboardModel({ name: 'Roberto B.', gain: 213.6 }, { name: 'Gianluigi B.', gain: 90.45 }, true).line] },
   { surface: 'Player card acquisition line', file: 'components/sp/gn/PlayerCard.tsx', pin: '{keepMoney(acquisitionLine(acquisition))}', strings: [acquisitionLine({ kind: 'drafted', pick: 2, date: 'Aug 31', price: 290.1 }), acquisitionLine({ kind: 'bought', date: 'Oct 2', price: 1214.8 })] },
   { surface: 'Standings gains', file: 'components/sp/gn/ManagerRow.tsx', pin: '{keepMoney(gainText)}', strings: [formatMoney(512.4, { sign: 'always' }), formatMoney(-1234567.89, { sign: 'always' })] },
@@ -192,8 +191,8 @@ const SITE_COUNTS: Record<string, number> = {
   'app/create-league.tsx': 1, 'app/join-league.tsx': 2, 'components/game/DraftComplete.tsx': 1, 'components/game/DraftRoom.tsx': 2,
   'components/game/RenewalReview.tsx': 1, 'components/game/ScheduleList.tsx': 2, 'components/home/ThisWeekCard.tsx': 1, 'components/home/YourSeason.tsx': 1,
   'components/money/PortfolioScreen.tsx': 3, 'components/money/SalePicker.tsx': 1, 'components/money/StockSearchScreen.tsx': 1,
-  'components/money/StockSheetBody.tsx': 5, 'components/money/TradeHistoryScreen.tsx': 2, 'components/money/TradeReviewPanel.tsx': 5,
-  'components/sp/gn/ManagerRow.tsx': 4, 'components/sp/gn/PlayerCard.tsx': 2, 'components/sp/gn/Scoreboard.tsx': 1,
+  'components/money/StockSheetBody.tsx': 4, 'components/money/TradeHistoryScreen.tsx': 2, 'components/money/TradeReviewPanel.tsx': 5,
+  'components/sp/gn/ManagerRow.tsx': 4, 'components/sp/gn/PlayerCard.tsx': 1, 'components/sp/gn/Scoreboard.tsx': 1,
 };
 
 Deno.test('every wrapping site is wired: the exact keepMoney( count per file, and no other file uses it', () => {

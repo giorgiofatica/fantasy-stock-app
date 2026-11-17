@@ -258,12 +258,6 @@ export function acquisitionLine(a: Acquisition): string {
 }
 
 
-/** The third key figure's label: "Since the draft" (Giorgio, 2026-10-12), or "Since {date}"
- * for a stock bought or claimed later. */
-export function sinceLabel(a: Acquisition): string {
-  return a.kind === 'drafted' ? 'Since the draft' : `Since ${a.date}`;
-}
-
 export type PlayerAction =
   | { kind: 'sell'; enabled: true }
   | { kind: 'sell'; enabled: false; note: string }

@@ -147,15 +147,13 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
       weekGain: stockWeek(shown, snapshots, trades, price).gain,
       price,
       bars: data.bars[shown] ?? raw.bars[shown] ?? [],
-      seasonBars: data.bars[shown] ?? null,
-      sessions,
       now,
     });
     if (!cardData) return null;
     const slotId = roster.slots.bySide[userId]?.[shown] ?? null;
     return { data: cardData, pill: cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, window, sessions, roster.slots, userId]);
+  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, window, roster.slots, userId]);
 
   function pillFor(symbol: string) {
     const slotId = roster.slots.bySide[userId]?.[symbol] ?? null;
@@ -255,6 +253,8 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
           visible={selected !== null}
           onClose={() => setSelected(null)}
           onClosed={() => setShown(null)}
+          sessions={sessions}
+          now={now}
           marketOpen={SEAM_ON ? false : gate.open}
           opens={marketOpensLabel(market?.next_open_at ?? null)}
         />
