@@ -2,24 +2,12 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "729aa8ef4c21f5ed745638498069ed87eb06726f",
-    "commitShort": "729aa8ef",
+    "commit": "9582a30fa03f493fa5fc699016af1865778203c1",
+    "commitShort": "9582a30f",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/app/design-gallery.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
-      },
       {
         "code": "M",
         "path": "apps/mobile/components/money/PortfolioScreen.tsx"
@@ -30,90 +18,18 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/money/StockSheetBody.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/Chart.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/PlayerCard.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/components/sp/gn/RangeGainLine.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/RangePills.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/logic/gameNight.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/chart/chartRanges.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/playerCardModel.ts"
-      },
-      {
-        "code": "M",
         "path": "apps/mobile/lib/money/portfolioChart.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/money/seasonStart.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/lib/money/stockChartSeries.ts"
       },
       {
-        "code": "A",
+        "code": "M",
         "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-night-primitives.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/keep-money.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/matchup-calls.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-c6-rolling.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-portfolio-chart.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-stock-chart-series.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-17T18:44:21Z",
+    "timestamp": "2026-11-17T18:44:25Z",
     "sourceHash": "sha256:dc885f7de6aeaadbefa0498f64b556219918d6825ea47a56fd13b588cb4e6fdb",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1

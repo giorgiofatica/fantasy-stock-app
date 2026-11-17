@@ -27,9 +27,9 @@ import { RangePills } from '@/components/sp/gn/RangePills';
 import type { AxisSpec } from '@/components/sp/logic/chartAxis';
 import { formatMoney } from '@/components/sp/logic/money';
 import {
-  asChartRange, CHART_RANGES, greyedRanges, rangeGain, selectableRange, SHEET_DEFAULT_RANGE, type ChartRange,
+  asChartRange, CHART_RANGES, rangeGain, selectableRange, SHEET_DEFAULT_RANGE, type ChartRange,
 } from '@/lib/chart/chartRanges';
-import { historyStartOf, stockLineSeries } from '@/lib/money/stockChartSeries';
+import { stockGreyedRanges, stockLineSeries } from '@/lib/money/stockChartSeries';
 import { useStockChartData } from '@/lib/money/useStockChartData';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { etDateOf } from '@/lib/game/matchupRoster';
@@ -68,8 +68,8 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
   const ready = data.status === 'ready';
   // A range longer than the stock's own history is grey (and never the selected one).
   const greyed = useMemo(
-    () => greyedRanges({ todayEt, historyStart: ready ? historyStartOf(data.bars) : null, seasonStart }),
-    [todayEt, ready, data.bars, seasonStart],
+    () => stockGreyedRanges({ bars: data.bars, ready, todayEt, seasonStart }),
+    [data.bars, ready, todayEt, seasonStart],
   );
   const range = selectableRange(picked, greyed);
   const series = useMemo(

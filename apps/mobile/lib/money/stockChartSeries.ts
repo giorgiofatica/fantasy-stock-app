@@ -12,7 +12,7 @@
 import { formatMoney, formatPercent } from '../../components/sp/logic/money';
 import type { AxisSpec } from '../../components/sp/logic/chartAxis';
 import type { LinePointIn } from '../../components/sp/logic/lineChart';
-import { rangeSeries, todaySessionOpen, type ChartRange } from '../chart/chartRanges';
+import { greyedRanges, rangeSeries, todaySessionOpen, type ChartRange } from '../chart/chartRanges';
 import type { MarketCalendarSession } from '../time/marketWeek';
 
 export type { ChartRange } from '../chart/chartRanges';
@@ -74,6 +74,15 @@ export function historyStartOf(bars: readonly DailyBar[]): string | null {
   let first: string | null = null;
   for (const b of bars) if (b.close > 0 && (first == null || b.date < first)) first = b.date;
   return first;
+}
+
+/**
+ * The ranges that are grey on a stock's chart: those longer than the stock's own trading history
+ * (its first bar; not known yet while the bars load, so nothing is compared then), and Season when
+ * there is no season yet (the league has not drafted, or there is no league). 1W never is.
+ */
+export function stockGreyedRanges(input: { bars: readonly DailyBar[]; ready: boolean; todayEt: string; seasonStart: string | null }): ChartRange[] {
+  return greyedRanges({ todayEt: input.todayEt, historyStart: input.ready ? historyStartOf(input.bars) : null, seasonStart: input.seasonStart });
 }
 
 /**

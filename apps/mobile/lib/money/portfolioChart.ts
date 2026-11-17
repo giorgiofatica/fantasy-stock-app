@@ -20,7 +20,7 @@
 import { teamValue, type StakeMode } from '../home/teamValue';
 import { etDateOf } from '../game/matchupRoster';
 import type { MarketCalendarSession } from '../time/marketWeek';
-import { CHART_RANGES, SEASON_DEFAULT_RANGE, rangeSeries, todaySessionOpen, type ChartRange, type RangeSeries } from '../chart/chartRanges';
+import { CHART_RANGES, SEASON_DEFAULT_RANGE, greyedRanges, rangeSeries, todaySessionOpen, type ChartRange, type RangeSeries } from '../chart/chartRanges';
 
 export type PortfolioRange = ChartRange;
 /** The pills' order, left to right: the same six on every chart. */
@@ -124,6 +124,13 @@ export type PortfolioSeries = RangeSeries;
  * here, and no range reaching back before it can be drawn (it is grey). */
 export function portfolioHistoryStart(daily: readonly DailyValue[]): string | null {
   return daily[0]?.date ?? null;
+}
+
+/** The ranges that are grey on Portfolio: those longer than the league has existed (history = the
+ * league's age, from the draft). Season never is (its first day IS the draft day); 1W never is. */
+export function portfolioGreyedRanges(daily: readonly DailyValue[], todayEt: string): ChartRange[] {
+  const start = portfolioHistoryStart(daily);
+  return greyedRanges({ todayEt, historyStart: start, seasonStart: start });
 }
 
 /** The Monday of `iso`'s week (Saturday and Sunday belong to the week just ended). */

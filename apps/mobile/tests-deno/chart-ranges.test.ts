@@ -19,8 +19,8 @@ import {
   CHART_RANGES, FALLBACK_RANGE, RANGE_WORDS, SEASON_DEFAULT_RANGE, SHEET_DEFAULT_RANGE, asChartRange, greyedRanges, isRangeGrey,
   rangeGain, rangeGainText, rangeSeries, rangeStartDate, selectableRange, todaySessionOpen, type ChartRange, type GreyContext,
 } from '../lib/chart/chartRanges.ts';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, PORTFOLIO_RANGES, portfolioHistoryStart, portfolioSeries } from '../lib/money/portfolioChart.ts';
-import { historyStartOf, stockLineSeries } from '../lib/money/stockChartSeries.ts';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioHistoryStart, portfolioSeries } from '../lib/money/portfolioChart.ts';
+import { historyStartOf, stockGreyedRanges, stockLineSeries } from '../lib/money/stockChartSeries.ts';
 import { seasonStartOf } from '../lib/money/seasonStart.ts';
 import { lineTone } from '../components/sp/logic/lineChart.ts';
 import { NBSP, WORD_JOINER } from '../lib/game/keepDots.ts';
@@ -135,6 +135,25 @@ Deno.test('(c) the helper decides both histories: Portfolio\'s from its daily va
   assertEquals(historyStartOf([{ date: '2026-10-01', close: 5 }, { date: '2026-10-02', close: 6 }]), '2026-10-01');
   const portfolioGrey = greyedRanges({ todayEt: '2026-11-16', historyStart: portfolioHistoryStart(daily), seasonStart: portfolioHistoryStart(daily) });
   assertEquals(portfolioGrey, ['1M', '3M', '6M', 'YTD']);
+});
+
+Deno.test('(c) the two screens\' own greying: Portfolio from the league\'s age, a stock from its bars and the draft', () => {
+  const young = [{ date: '2026-11-02', value: 150 }, { date: '2026-11-03', value: 152 }];
+  assertEquals(portfolioGreyedRanges(young, '2026-11-16'), ['1M', '3M', '6M', 'YTD'], 'a two-week-old league: Season and 1W stay lit');
+  assertEquals(portfolioGreyedRanges([{ date: '2025-12-20', value: 1 }], '2026-11-16'), [], 'older than the year: nothing grey');
+  assertEquals(portfolioGreyedRanges([], '2026-11-16'), ['Season'], 'nothing drafted: no season');
+  // A stock: bars from 2024, the league drafted on Nov 2 → everything lit; before the draft → Season grey.
+  const old = [{ date: '2024-03-01', close: 10 }, { date: '2026-11-13', close: 12 }];
+  assertEquals(stockGreyedRanges({ bars: old, ready: true, todayEt: '2026-11-16', seasonStart: '2026-11-02' }), []);
+  assertEquals(stockGreyedRanges({ bars: old, ready: true, todayEt: '2026-11-16', seasonStart: null }), ['Season']);
+  // A recent listing (first bar Oct 1): 3M, 6M and YTD are grey, 1W and 1M are not.
+  const ipo = [{ date: '2026-10-01', close: 10 }, { date: '2026-11-13', close: 12 }];
+  assertEquals(stockGreyedRanges({ bars: ipo, ready: true, todayEt: '2026-11-16', seasonStart: '2026-11-02' }), ['3M', '6M', 'YTD']);
+  assertEquals(stockGreyedRanges({ bars: ipo, ready: true, todayEt: '2026-11-16', seasonStart: null }), ['3M', '6M', 'Season', 'YTD']);
+  // Still loading: no history to compare, so only a Season that cannot exist is grey.
+  assertEquals(stockGreyedRanges({ bars: [], ready: false, todayEt: '2026-11-16', seasonStart: '2026-11-02' }), []);
+  // A stock under a week old: every range but 1W is grey, and 1W draws what exists.
+  assertEquals(stockGreyedRanges({ bars: [{ date: '2026-11-13', close: 5 }], ready: true, todayEt: '2026-11-16', seasonStart: '2026-11-02' }), ['1M', '3M', '6M', 'Season', 'YTD']);
 });
 
 Deno.test('(c) a grey range is never the selected one: it falls back to 1W, which never greys', () => {

@@ -38,8 +38,8 @@ import { RollingMoney } from '@/components/home/RollingMoney';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioHistoryStart, portfolioSeries, type PortfolioRange } from '@/lib/money/portfolioChart';
-import { asChartRange, greyedRanges, rangeGain, selectableRange } from '@/lib/chart/chartRanges';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioSeries, type PortfolioRange } from '@/lib/money/portfolioChart';
+import { asChartRange, rangeGain, selectableRange } from '@/lib/chart/chartRanges';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
 import { FIXTURE_LEAGUE_ID } from '@/lib/money/fixtureMode';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -119,10 +119,7 @@ export function PortfolioScreen() {
   const daily = useMemo(() => (chart ? dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt }) : []), [chart, todayEt]);
   // A range longer than the league has existed is grey (history = the league's age: the line
   // starts at the draft); Season never is, 1W never is. A grey range is never the selected one.
-  const greyed = useMemo(
-    () => greyedRanges({ todayEt, historyStart: portfolioHistoryStart(daily), seasonStart: portfolioHistoryStart(daily) }),
-    [todayEt, daily],
-  );
+  const greyed = useMemo(() => portfolioGreyedRanges(daily, todayEt), [todayEt, daily]);
   const shownRange = selectableRange(range, greyed);
   const series = useMemo(
     () => (chart ? portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions }) : null),
