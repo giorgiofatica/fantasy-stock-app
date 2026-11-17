@@ -135,11 +135,12 @@ export default function LeagueSettingsScreen() {
       // Until the slots arrive again, the baseline keeps the slots it had (the form's own slots are still those), so a refresh never flashes Save on.
       setLoaded((prev) => ({ ...f, slots: prev?.slots ?? [] }));
       // The slots arrive a moment later: they are part of what was loaded, so the form and its baseline take them together.
+      // DEV captures only (lib/game/slotFixture.ts): the form holds the fixture's slots (an edit) at once, while the baseline keeps what was loaded, so it reads as changed.
+      if (SLOT_FIXTURE) setSlots(FIXTURE_SLOTS.map((s) => ({ ...s })));
       let stale = false;
       loadLeagueSlots(league.id).then((rows) => {
         if (stale) return;
-        // DEV captures only (lib/game/slotFixture.ts): the form holds the fixture's slots (an edit) while the baseline keeps what was loaded, so it reads as changed.
-        setSlots(SLOT_FIXTURE ? FIXTURE_SLOTS.map((s) => ({ ...s })) : rows);
+        if (!SLOT_FIXTURE) setSlots(rows);
         setLoaded((prev) => (prev ? { ...prev, slots: rows } : prev));
       });
       return () => { stale = true; };

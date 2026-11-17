@@ -25,9 +25,15 @@ export function useFixtureInitialRoute(): void {
  * to its end once, after the content loads, so the bottom of a long screen (the bracket's
  * champion row, League settings' last rows) can be shot without a swipe. */
 export const FIXTURE_SCROLL_END: boolean = __DEV__ ? process.env.EXPO_PUBLIC_SHELL_SCROLL_END === '1' : false;
+/** A number instead of 1 scrolls to that offset (pt) rather than the end (a long screen at the largest text size). */
+export const FIXTURE_SCROLL_Y: number | null = __DEV__ && /^\d+$/.test(process.env.EXPO_PUBLIC_SHELL_SCROLL_END ?? '') && process.env.EXPO_PUBLIC_SHELL_SCROLL_END !== '1' ? Number(process.env.EXPO_PUBLIC_SHELL_SCROLL_END) : null;
 
-export function useFixtureScrollEnd(ref: { current: { scrollToEnd?: (o?: { animated?: boolean }) => void } | null }): void {
+export function useFixtureScrollEnd(ref: { current: { scrollToEnd?: (o?: { animated?: boolean }) => void; scrollTo?: (o: { y: number; animated?: boolean }) => void } | null }): void {
   useEffect(() => {
+    if (FIXTURE_SCROLL_Y !== null) {
+      const t = setTimeout(() => ref.current?.scrollTo?.({ y: FIXTURE_SCROLL_Y, animated: false }), 4000);
+      return () => clearTimeout(t);
+    }
     if (!FIXTURE_SCROLL_END) return;
     // After the fixture network delay (900 ms) and the reads behind it.
     const t = setTimeout(() => ref.current?.scrollToEnd?.({ animated: false }), 4000);
