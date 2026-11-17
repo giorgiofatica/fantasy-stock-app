@@ -277,6 +277,9 @@ building anything, and don't reopen a rule without him.
     the chart: "there should be a, some sort of X axis with like dates on it. Also, if at the
     bottom, like we don't need to say drafted on that chart, like A player can see from this
     pop-up card if they were drafted or picked up on waivers."
+  - (2026-11-17: the two stacked charts below are replaced by ONE chart with six ranges; see
+    "Every chart has the same six ranges" under Home and Portfolio. The date-axis and
+    realistic-movement points still describe what he expects of a chart.)
   - **The this-week chart shows the days of the week on its X axis** (Mon … Fri) and the
     mockup must use realistic movement: "why is there just like a flat line for half the
     chart and then like a slight pop-up? Like, that's not how it should be."
@@ -589,7 +592,63 @@ building anything, and don't reopen a rule without him.
   the only primary). Nothing is removed from Home; repeats are.
 - **Portfolio's gain is "since the draft"** (value − cost). It's deliberately a different
   label from "season gain"; never reuse one for the other.
-- **Stock chart ranges** (2026-10-05, option A): 1W / 1M / 3M / 1Y, with 1W the default.
+- **Every chart has the same six ranges: 1W, 1M, 3M, 6M, Season, YTD** (2026-11-17, build 14
+  era; this replaces "Stock chart ranges" below). Giorgio's words, after seeing the sheet for
+  a stock he owns: "this double graph look when you open a stocks window is awful", and then:
+  "every chart like that, whether its the portfolio graph or the specific stock view, there
+  should be 1 week, 1 month, 3 months, 6 months, Season, and YTD".
+  - It applies to the Portfolio graph (1W / 1M / Season today), the stock sheet's chart (1W /
+    1M / 3M / 1Y today) and the sheet for a stock you own or someone else owns (the player
+    card).
+  - The player card stops stacking two charts (a Season chart over a This week chart, his own
+    ruling of 2026-10-12). It has one chart with these ranges. He had been shown A (one chart
+    with a Week / Season switch) and B (one chart, season only) the same hour; his answer was
+    this rule, which is A with six ranges.
+  - 1Y is not in his list, so it goes; YTD and 6M take its place. 1W is the past five trading
+    days and no chart has a dotted line (both ruled 2026-11-16, below). There is still no 1D.
+  - **Ranges longer than the league has existed are greyed out** (2026-11-17, the same
+    conversation, shown a Portfolio mockup for a one-week-old league where 1M, 3M, 6M and YTD
+    would all draw the Season line). His words: "grey out the ranges longer than the league
+    has existed." Said of the Portfolio graph, whose line starts at the draft. Whether a
+    stock's own chart ever greys a range (a stock has price history from before the league)
+    was not asked and is not ruled.
+  - **The gain or loss shown with a chart follows the selected range** (2026-11-17, same
+    message). His words: "we need to make sure the P/L number changes with each click to a
+    different time frame". So choosing 1M shows the gain over that month, choosing Season
+    shows the gain over the season, and so on, on every chart that has the ranges. Today the
+    stock sheet's line under the price always says the day's change ("−$17.04 · −2.53%
+    today") and Portfolio's says the season's. Not decided: the words that name each period
+    beside the number, and where that number sits on the card for a stock you own, which
+    already has three fixed figures (Price, Week gain, Since the draft). The Design Lead
+    boards both; any new words come to him first.
+  - **The range gain shows both numbers, the percent in brackets, then the period in words**
+    (2026-11-17, boards `#call-gain-format` and `#call-range-gain`, PR #496; typed in the
+    Design Lead's chat). His words, in order: "ok i like the past 6 months but i dont like the
+    fact that there are two numbers only separated by a dot" (17:31Z); shown the two formats
+    as mockups, "A" (17:41Z), "for both" (17:41Z), and, clarifying what "both" meant, "A both
+    numbers and A with past 6 months word example" (17:43Z).
+    - Format (A): the dollars, the percent in brackets, then the period, on every chart:
+      **"+$54.60 (+41.42%) past 6 months"**. No dot between the two numbers. B (one number
+      per chart: dollars on Portfolio and a manager's stock, percent on a stock you are
+      looking at) was not picked. The reason given to him for keeping both: dollars decide
+      matchups, and the percent is what compares stocks at different prices.
+    - Words (A), approved copy by this pick: **"past week"**, **"past month"**, **"past 3
+      months"**, **"past 6 months"**, **"this year"**, and for Season the existing **"since
+      the draft"**. B (repeating the range label, "· 6M") was not picked; he had first leaned
+      to it for fit ("might be hard to fit all those words in option A on one screen"), then
+      chose the words once shown they fit on one line at his text size. A line that has to
+      wrap never breaks inside a number; where exactly the bracket format breaks is the
+      Design Lead's to set.
+    - Not ruled: where the range gain sits on the card for a stock you own (A: three figures,
+      the third follows the range; B: Price and Week gain, with the gain above the chart). The
+      Design Lead first recorded his "for both" as covering this and withdrew it when he
+      clarified. This ruling is about the gain beside a chart; other lines that pair dollars
+      and a percent with a dot (a matchup's "This week" line, for one) were not asked about.
+  - Not decided, for the Design Lead to board and him to pick: which range each chart opens
+    on; and what "Season" means on a stock sheet opened in a league that has not drafted, or
+    for a stock nobody in the league owns.
+- **Stock chart ranges** (2026-10-05, option A; SUPERSEDED 2026-11-17 by the rule above): 1W /
+  1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
 - **The stock chart has no dotted line** (2026-11-16, build 1.3.0 (14), the stock sheet).
   Giorgio's words: "I don't understand what this dotted line is because on some it's up. I
