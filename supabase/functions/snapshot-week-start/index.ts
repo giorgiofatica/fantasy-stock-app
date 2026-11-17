@@ -14,6 +14,18 @@ import { classifyCloseCoverage } from '../snapshot-week-end/close.ts';
 import { instantAtOrBefore, instantBefore, instantMs, isScoredWeek, selectTargetWeeks, type WeekMatchupRow } from '../_shared/week-select.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
 import { runJob, type JobOutcome, type JobRun } from '../_shared/run-job.ts';
+import { CLOCK_SKEW_MS, describeWeekPrices, fetchWeekPrices, liveWindowFor } from '../_shared/week-price.ts';
+import {
+  applyReprice,
+  barOpensOnly,
+  gateLeagueWeek,
+  parseRepriceBody,
+  planRepriceRows,
+  type ParsedRepriceBody,
+  type RepriceItem,
+  type RepriceRequest,
+  type SnapshotPriceRow,
+} from './reprice.ts';
 
 /**
  * Snapshot Week Start Prices
@@ -55,7 +67,6 @@ import { runJob, type JobOutcome, type JobRun } from '../_shared/run-job.ts';
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-const ALPACA_BASE = 'https://data.alpaca.markets/v2';
 const MAX_RETRIES = 3;
 
 const json = (b: unknown, s = 200) =>
@@ -159,95 +170,12 @@ async function scheduleRetry(supabase: any, jobName: string, attemptNumber: numb
   }
 }
 
-/**
- * Fetch official opening prices from Alpaca bars, for `sessionDate` — the
- * cut's OWN openSessionDate (planWeekWindow), never "today". A Tuesday heal
- * run for a week that opened Monday must price at MONDAY's bar, not
- * Tuesday's — using "today" here was exactly S3's defect (the Tuesday heal
- * re-based an all-cash Monday buyer at Tuesday's open instead of Monday's).
- *
- * The latest-quote FALLBACK is only meaningful for the current day (a "latest
- * quote" reflects right now, not `sessionDate`), so it is skipped entirely
- * when `sessionDate` isn't today — a missing historical bar stays missing
- * (this league aborts and retries) rather than being silently mislabeled
- * with today's price.
- */
-async function fetchOpenPrices(
-  symbols: string[],
-  alpacaKey: string,
-  alpacaSecret: string,
-  sessionDate: string,
-): Promise<Map<string, number>> {
-  const prices = new Map<string, number>();
-
-  if (symbols.length === 0) return prices;
-
-  const symbolsParam = symbols.join(',');
-
-  // Use bars endpoint to get official OHLCV data
-  const url = `${ALPACA_BASE}/stocks/bars?symbols=${encodeURIComponent(symbolsParam)}&timeframe=1Day&start=${sessionDate}&end=${sessionDate}&feed=iex`;
-
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'APCA-API-KEY-ID': alpacaKey,
-        'APCA-API-SECRET-KEY': alpacaSecret,
-        'Accept': 'application/json',
-      },
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.bars) {
-        for (const [sym, bars] of Object.entries(data.bars as Record<string, any[]>)) {
-          // Get the most recent bar's open price
-          const latestBar = Array.isArray(bars) && bars.length > 0 ? bars[bars.length - 1] : null;
-          const openPrice = latestBar?.o ? Number(latestBar.o) : 0;
-          if (openPrice > 0) prices.set(sym.toUpperCase(), openPrice);
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Failed to fetch bar prices:', e);
-  }
-
-  // Fallback to quotes for any missing symbols — ONLY when sessionDate is
-  // today (see the function doc). A missing bar for a PAST session date must
-  // stay missing, not be silently filled with a live quote mislabeled as that
-  // day's open.
-  const isToday = sessionDate === new Date().toISOString().split('T')[0];
-  const missingSymbols = isToday ? symbols.filter(s => !prices.has(s.toUpperCase())) : [];
-  if (missingSymbols.length > 0) {
-    console.log(`Falling back to quotes for ${missingSymbols.length} symbols:`, missingSymbols);
-    const quotesUrl = `${ALPACA_BASE}/stocks/quotes/latest?symbols=${encodeURIComponent(missingSymbols.join(','))}&feed=iex`;
-
-    try {
-      const res = await fetch(quotesUrl, {
-        headers: {
-          'APCA-API-KEY-ID': alpacaKey,
-          'APCA-API-SECRET-KEY': alpacaSecret,
-          'Accept': 'application/json',
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.quotes) {
-          for (const [sym, quote] of Object.entries(data.quotes as Record<string, any>)) {
-            const price = Number(quote?.ap) || Number(quote?.bp) || 0;
-            if (price > 0 && !prices.has(sym.toUpperCase())) {
-              prices.set(sym.toUpperCase(), price);
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.error('Failed to fetch fallback quotes:', e);
-    }
-  }
-
-  return prices;
-}
+// fetchOpenPrices was REPLACED by ../_shared/week-price.ts (2026-11-17). Its
+// quote fallback took `quote.ap || quote.bp` — the ASK first — and stored it as
+// the week's open for any symbol with no IEX bar at 14:35Z (TM +16.6%, AVAL
+// +14.6% on 2026-11-16). The shared rule is bar open, else a trade inside this
+// session, else a sane two-sided midpoint, else no price (the league aborts and
+// retries, and Tuesday's run prices it from Monday's completed bar).
 
 /**
  * A league's trade ledger grows across the whole season, so one read would hit
@@ -322,6 +250,148 @@ async function readLeagueMatchupRows(supabase: any, leagueId: string): Promise<W
   return rows;
 }
 
+/**
+ * The re-price mode (./reprice.ts has the why and every safety property).
+ * Reached only past the cron-key gate and only for `mode: "reprice_week_start"`.
+ * Never writes cron_job_status. Dry run unless `dry_run` is the boolean false.
+ */
+async function handleReprice(
+  supabase: any,
+  request: RepriceRequest,
+  alpacaKey: string,
+  alpacaSecret: string,
+): Promise<Response> {
+  if (!alpacaKey || !alpacaSecret) return json({ error: 'Alpaca credentials not configured' }, 500);
+  const { sessions, coverage, error: calendarErr } = await fetchMarketCalendar(supabase);
+  if (calendarErr) return json({ error: 'market_calendar read failed' }, 500);
+
+  let leaguesQuery = supabase
+    .from('leagues')
+    .select('id, name, current_week, num_weeks, season_status, draft_status')
+    .eq('league_type', 'matchup')
+    .in('season_status', [...IN_SEASON_STATUSES])
+    .eq('draft_status', SNAPSHOT_DRAFT_STATUS)
+    .not('current_week', 'is', null);
+  if (request.leagueIds) leaguesQuery = leaguesQuery.in('id', request.leagueIds);
+  const { data: leaguesRaw, error: leaguesErr } = await leaguesQuery;
+  if (leaguesErr) return json({ error: 'leagues read failed' }, 500);
+  const leagues = (leaguesRaw ?? []).filter((l: any) => isInSeasonLeague(l));
+
+  const now = new Date();
+  const leagueWeeks: any[] = [];
+  const eligible: Array<{ leagueId: string; name: string; week: number; rows: SnapshotPriceRow[] }> = [];
+
+  for (const league of leagues) {
+    let rows: WeekMatchupRow[];
+    try {
+      rows = await readLeagueMatchupRows(supabase, league.id);
+    } catch (e) {
+      leagueWeeks.push({ league_id: league.id, name: league.name, status: 'read_failed', detail: String(e).slice(0, 200) });
+      continue;
+    }
+    const weeks = selectTargetWeeks(rows, (anchor, floor, storedStart, storedEnd) =>
+      planWeekWindow(now, anchor, floor, sessions, coverage, storedStart, storedEnd, 0));
+    for (const week of weeks) {
+      const weekRows = rows.filter((r) => r.week_number === week && r.team1_user_id);
+      if (weekRows.length === 0) continue;
+      const floorMs = Math.min(...weekRows.map((r) => instantMs(r.created_at)));
+      const plan = planWeekWindow(
+        now, new Date(instantMs(weekRows[0].week_start)), Number.isFinite(floorMs) ? new Date(floorMs) : null,
+        sessions, coverage, weekRows[0].week_start, weekRows[0].week_end, 1,
+      );
+      if (plan.action !== 'proceed') {
+        leagueWeeks.push({ league_id: league.id, name: league.name, week, status: `window_${plan.action}` });
+        continue;
+      }
+      // Only the week that OPENED on the requested session. Any other week is
+      // reported and left alone.
+      if (plan.openSessionDate !== request.sessionDate) {
+        leagueWeeks.push({ league_id: league.id, name: league.name, week, status: 'other_session', open_session: plan.openSessionDate });
+        continue;
+      }
+      if (now.getTime() >= plan.close.getTime()) {
+        leagueWeeks.push({ league_id: league.id, name: league.name, week, status: 'week_closed' });
+        continue;
+      }
+      const { data: snapRows, error: snapErr, count } = await supabase
+        .from('week_snapshots')
+        .select('id, league_id, user_id, symbol, week_number, week_start_price, entered_mid_week, week_end_price', { count: 'exact' })
+        .eq('league_id', league.id)
+        .eq('week_number', week);
+      if (snapErr || (typeof count === 'number' && (snapRows ?? []).length < count)) {
+        leagueWeeks.push({ league_id: league.id, name: league.name, week, status: 'read_failed', detail: snapErr ? String(snapErr.message ?? snapErr).slice(0, 200) : 'truncated' });
+        continue;
+      }
+      const gate = gateLeagueWeek(snapRows ?? []);
+      if (!gate.ok) {
+        leagueWeeks.push({ league_id: league.id, name: league.name, week, status: gate.reason });
+        continue;
+      }
+      eligible.push({ leagueId: league.id, name: league.name, week, rows: snapRows ?? [] });
+    }
+  }
+
+  // ONE bar fetch for every symbol, bar OPEN only (`live: null`: never a trade
+  // or a quote), so every new price is the session's official IEX open.
+  const symbols = new Set<string>();
+  for (const e of eligible) for (const r of e.rows) if (r.entered_mid_week !== true) symbols.add(String(r.symbol).toUpperCase());
+  const priced = symbols.size > 0
+    ? await fetchWeekPrices({ symbols: [...symbols], bar: { sessionDate: request.sessionDate, field: 'o' }, live: null }, alpacaKey, alpacaSecret)
+    : null;
+  const opens = priced ? barOpensOnly(priced) : new Map<string, number>();
+
+  const items: Array<RepriceItem & { name: string; result?: string }> = [];
+  for (const e of eligible) {
+    const planned = planRepriceRows(e.rows, opens);
+    const counts = { reprice: 0, unchanged: 0, no_bar: 0 };
+    for (const it of planned) counts[it.action]++;
+    let results = new Map<string, string>();
+    if (!request.dryRun) {
+      results = await applyReprice(planned, async (it) => {
+        // Guarded on the row still being what was planned from: same old price,
+        // still a Monday row, still no end price. 0 rows back = it changed.
+        const { data, error } = await supabase
+          .from('week_snapshots')
+          .update({ week_start_price: it.new_price })
+          .eq('id', it.id)
+          .eq('entered_mid_week', false)
+          .is('week_end_price', null)
+          .eq('week_start_price', it.old_price)
+          .select('id');
+        if (error) return 'write_error';
+        return (data ?? []).length === 1 ? 'repriced' : 'conflict';
+      });
+    }
+    leagueWeeks.push({ league_id: e.leagueId, name: e.name, week: e.week, status: 'eligible', ...counts });
+    for (const it of planned) {
+      if (it.action === 'unchanged') continue;
+      items.push({ ...it, name: e.name, ...(results.has(it.id) ? { result: results.get(it.id) } : {}) });
+    }
+  }
+
+  const totals = { reprice: 0, no_bar: 0, repriced: 0, conflict: 0, write_error: 0 };
+  for (const it of items) {
+    if (it.action === 'reprice') totals.reprice++;
+    if (it.action === 'no_bar') totals.no_bar++;
+    if (it.result === 'repriced' || it.result === 'conflict' || it.result === 'write_error') totals[it.result]++;
+  }
+  const body = {
+    mode: 'reprice_week_start',
+    session_date: request.sessionDate,
+    dry_run: request.dryRun,
+    totals,
+    price_errors: priced?.errors ?? [],
+    league_weeks: leagueWeeks,
+    rows: items.map((it) => ({
+      league: it.name, week: it.week_number, user_id: it.user_id, symbol: it.symbol,
+      old: it.old_price, new: it.new_price, ratio: it.new_price ? Math.round((it.old_price / it.new_price) * 1000) / 1000 : null,
+      action: it.action, source: it.source, ...(it.result ? { result: it.result } : {}), id: it.id,
+    })),
+  };
+  console.log(`reprice_week_start ${JSON.stringify({ session_date: request.sessionDate, dry_run: request.dryRun, totals })}`);
+  return json(body);
+}
+
 // Holdings come from ../_shared/snapshot-holdings.ts (shared with
 // snapshot-week-end). The local copy this replaced coerced the SKIP sentinel's
 // quantity 0 to a 1-share 'SKIP' holding (`quantity || 1`), which no price could
@@ -348,6 +418,14 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SECRET_KEY);
+
+  // Re-price mode (./reprice.ts). The cron and its retries post `{}`, which
+  // parses to 'none' and runs the normal job below. Any other body that is not a
+  // valid re-price request is refused (400), never run as the normal job. Read
+  // AFTER the cron-key gate above.
+  const parsedBody: ParsedRepriceBody = parseRepriceBody(req.method === 'POST' ? await req.text().catch(() => '') : '');
+  if (parsedBody.kind === 'invalid') return json({ error: parsedBody.error }, 400);
+  if (parsedBody.kind === 'reprice') return await handleReprice(supabase, parsedBody.request, ALPACA_KEY, ALPACA_SECRET);
 
   // Get retry attempt from header (set by retry mechanism)
   const retryAttempt = parseInt(req.headers.get('X-Retry-Attempt') || '1');
@@ -722,7 +800,17 @@ Deno.serve(async (req) => {
 
       let prices = new Map<string, number>();
       if (ALPACA_KEY && ALPACA_SECRET && symbolsToPrice.size > 0) {
-        prices = await fetchOpenPrices(Array.from(symbolsToPrice), ALPACA_KEY, ALPACA_SECRET, windowPlan.openSessionDate);
+        // The session's 1Day bar OPEN; for a symbol with no bar yet, only a trade
+        // or a sane midpoint from THIS session (open .. now), and only when the
+        // session is today. Never an ask or a bid alone (../_shared/week-price.ts).
+        const priceNow = new Date();
+        const priced = await fetchWeekPrices({
+          symbols: Array.from(symbolsToPrice),
+          bar: { sessionDate: windowPlan.openSessionDate, field: 'o' },
+          live: liveWindowFor(windowPlan.openSessionDate, priceNow, windowPlan.open.getTime(), priceNow.getTime() + CLOCK_SKEW_MS),
+        }, ALPACA_KEY, ALPACA_SECRET);
+        prices = priced.prices;
+        console.log(`League ${leagueId} week ${currentWeek} open prices: ${describeWeekPrices(priced)}`);
       }
 
       // 7. Build the snapshot rows for the missing participants — all-or-nothing
