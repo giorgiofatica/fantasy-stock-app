@@ -37,6 +37,7 @@ import {
   type ExistingSnapshot,
 } from './close.ts';
 import { matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
+import { fetchWeekPrices, prevCloseRange, type FetchFn } from '../_shared/week-price.ts';
 import type { CalendarSession, Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
 
 // Small builders to keep the intent of each case legible (mirrors plan.test.ts).
@@ -731,4 +732,74 @@ Deno.test('planCloseWindow FIXPOINT: re-deriving from an already-canonical ancho
   if (again.action !== 'proceed') throw new Error('expected proceed');
   assertEquals(again.close.getTime(), real.close.getTime());
   assertEquals(again.open.getTime(), real.open.getTime());
+});
+
+// --- step 5 (prev_close) at the week end ------------------------------------
+// Week Mon 2026-09-28 .. Fri 2026-10-02. On the last attempt the close may fall
+// back to the most recent real close from THIS week, never from before it.
+
+const WEEK_SESSIONS = ['2026-09-24', '2026-09-25', '2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02']
+  .map((sessionDate) => ({ sessionDate }));
+
+function fridayAlpaca(prevBars: Record<string, unknown[]>): { fetchFn: FetchFn; ranges: string[] } {
+  const ranges: string[] = [];
+  const fetchFn: FetchFn = (url) => {
+    const u = new URL(url);
+    const syms = (u.searchParams.get('symbols') ?? '').split(',');
+    if (u.pathname.endsWith('/stocks/bars')) {
+      const start = u.searchParams.get('start')!, end = u.searchParams.get('end')!;
+      if (start === end) return Promise.resolve(Response.json({ bars: syms.includes('AAPL') ? { AAPL: [{ t: `${end}T04:00:00Z`, o: 100, c: 110 }] } : {} }));
+      ranges.push(`${start}..${end}`);
+      const out: Record<string, unknown[]> = {};
+      for (const s of syms) if (prevBars[s]) out[s] = prevBars[s];
+      return Promise.resolve(Response.json({ bars: out, next_page_token: null }));
+    }
+    // After the close, no in-window trade and no quote for TM.
+    if (u.pathname.endsWith('/trades/latest')) return Promise.resolve(Response.json({ trades: {} }));
+    return Promise.resolve(Response.json({ quotes: {} }));
+  };
+  return { fetchFn, ranges };
+}
+
+const fridayRange = () => prevCloseRange(WEEK_SESSIONS, '2026-10-02', { notBeforeDate: WINDOW_OPEN.slice(0, 10) });
+
+Deno.test('week end step 5: the range is this week only (Mon..Thu), never last week', () => {
+  assertEquals(fridayRange(), { fromDate: '2026-09-28', toDate: '2026-10-01' });
+});
+
+Deno.test('week end step 5: no Friday bar -> Thursday\'s real close, and the league closes complete', async () => {
+  const { fetchFn, ranges } = fridayAlpaca({ TM: [{ t: '2026-09-30T04:00:00Z', c: 205 }, { t: '2026-10-01T04:00:00Z', c: 207.5 }] });
+  const priced = await fetchWeekPrices(
+    { symbols: ['AAPL', 'TM'], bar: { sessionDate: '2026-10-02', field: 'c' }, live: null, prevClose: fridayRange() },
+    'k', 's', fetchFn,
+  );
+  assertEquals(ranges, ['2026-09-28..2026-10-01']);
+  assertEquals(priced.sources.get('TM'), 'prev_close');
+  assertEquals(priced.closeDates.get('TM'), '2026-10-01');
+  const work = buildCloseWork(
+    'lg1', 4,
+    userHoldings({ u1: holdings(['AAPL', 1]), u2: holdings(['TM', 2]) }),
+    [row('r1', 'u1', 'AAPL', 1, 100, null), row('r2', 'u2', 'TM', 2, 200, null)],
+    priced.prices, [], WINDOW_OPEN,
+  );
+  assertEquals(work.missingSymbols, []);
+  assertEquals(work.updates.find((u) => u.id === 'r2')?.week_end_price, 207.5);
+});
+
+Deno.test('week end step 5: a close only from BEFORE the week is not a week-end price -> unpriced, the league writes nothing', async () => {
+  // TM's last IEX print was last Thursday (2026-09-24): outside this week's range.
+  const { fetchFn } = fridayAlpaca({ TM: [{ t: '2026-09-24T04:00:00Z', c: 199 }] });
+  const priced = await fetchWeekPrices(
+    { symbols: ['AAPL', 'TM'], bar: { sessionDate: '2026-10-02', field: 'c' }, live: null, prevClose: fridayRange() },
+    'k', 's', fetchFn,
+  );
+  assertEquals(priced.unpriced.get('TM'), 'no_recent_close');
+  const work = buildCloseWork(
+    'lg1', 4,
+    userHoldings({ u1: holdings(['AAPL', 1]), u2: holdings(['TM', 2]) }),
+    [row('r1', 'u1', 'AAPL', 1, 100, null), row('r2', 'u2', 'TM', 2, 200, null)],
+    priced.prices, [], WINDOW_OPEN,
+  );
+  assertEquals(work.missingSymbols, ['TM']);
+  assertEquals(work.updates, [], 'all-or-nothing: AAPL is not closed alone either');
 });

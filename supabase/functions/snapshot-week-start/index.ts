@@ -14,7 +14,9 @@ import { classifyCloseCoverage } from '../snapshot-week-end/close.ts';
 import { instantAtOrBefore, instantBefore, instantMs, isScoredWeek, selectTargetWeeks, type WeekMatchupRow } from '../_shared/week-select.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
 import { runJob, type JobOutcome, type JobRun } from '../_shared/run-job.ts';
-import { CLOCK_SKEW_MS, describeWeekPrices, fetchWeekPrices, liveWindowFor } from '../_shared/week-price.ts';
+import {
+  CLOCK_SKEW_MS, describeWeekPrices, fetchWeekPrices, liveWindowFor, prevCloseAllowed, prevCloseRange,
+} from '../_shared/week-price.ts';
 import {
   applyReprice,
   barOpensOnly,
@@ -803,11 +805,17 @@ Deno.serve(async (req) => {
         // The session's 1Day bar OPEN; for a symbol with no bar yet, only a trade
         // or a sane midpoint from THIS session (open .. now), and only when the
         // session is today. Never an ask or a bid alone (../_shared/week-price.ts).
+        // Then, on the last attempt or for a past session only, step 5: the most
+        // recent real close in the PREV_CLOSE_MAX_SESSIONS sessions before the open.
         const priceNow = new Date();
+        const live = liveWindowFor(windowPlan.openSessionDate, priceNow, windowPlan.open.getTime(), priceNow.getTime() + CLOCK_SKEW_MS);
         const priced = await fetchWeekPrices({
           symbols: Array.from(symbolsToPrice),
           bar: { sessionDate: windowPlan.openSessionDate, field: 'o' },
-          live: liveWindowFor(windowPlan.openSessionDate, priceNow, windowPlan.open.getTime(), priceNow.getTime() + CLOCK_SKEW_MS),
+          live,
+          prevClose: prevCloseAllowed(retryAttempt, MAX_RETRIES, live)
+            ? prevCloseRange(marketCalendarSessions, windowPlan.openSessionDate)
+            : null,
         }, ALPACA_KEY, ALPACA_SECRET);
         prices = priced.prices;
         console.log(`League ${leagueId} week ${currentWeek} open prices: ${describeWeekPrices(priced)}`);

@@ -3,7 +3,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { classifyCloseCoverage, buildCloseWork, planCloseWindow, type Holding } from './close.ts';
 import { checkSnapshotReads, matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
 import { etWallClockToUtc, type CalendarSession, type Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
-import { describeWeekPrices, fetchWeekPrices, liveWindowFor } from '../_shared/week-price.ts';
+import { describeWeekPrices, fetchWeekPrices, liveWindowFor, prevCloseAllowed, prevCloseRange } from '../_shared/week-price.ts';
 import { IN_SEASON_STATUSES, SNAPSHOT_DRAFT_STATUS, isInSeasonLeague } from '../_shared/snapshot-league-scope.ts';
 import { instantAtOrBefore, instantBefore, instantMs, isScoredWeek, selectTargetWeeks, type WeekMatchupRow } from '../_shared/week-select.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
@@ -549,11 +549,20 @@ Deno.serve(async (req) => {
         // trade or a sane midpoint from inside that session (its open .. its
         // close), and only when the session is today. Never an ask or a bid
         // alone (../_shared/week-price.ts).
+        // Then, on the last attempt (the Friday 21:15Z retry and both Mon/Tue
+        // heals run as attempt 3) or for a past session, step 5: the most recent
+        // real close from THIS week's sessions before the close session. Never a
+        // close from before the week's open session: that is last week's price.
+        // The open is an ET daytime instant, so its UTC date is its session date.
         const openMs = sessionOpenMs(marketCalendarSessions, windowPlan.closeSessionDate);
+        const live = openMs === null ? null : liveWindowFor(windowPlan.closeSessionDate, new Date(), openMs, windowPlan.close.getTime());
         const priced = await fetchWeekPrices({
           symbols: Array.from(allSymbols),
           bar: { sessionDate: windowPlan.closeSessionDate, field: 'c' },
-          live: openMs === null ? null : liveWindowFor(windowPlan.closeSessionDate, new Date(), openMs, windowPlan.close.getTime()),
+          live,
+          prevClose: prevCloseAllowed(retryAttempt, MAX_RETRIES, live)
+            ? prevCloseRange(marketCalendarSessions, windowPlan.closeSessionDate, { notBeforeDate: windowPlan.open.toISOString().slice(0, 10) })
+            : null,
         }, ALPACA_KEY, ALPACA_SECRET);
         prices = priced.prices;
         console.log(`League ${leagueId} week ${currentWeek} close prices: ${describeWeekPrices(priced)}`);
