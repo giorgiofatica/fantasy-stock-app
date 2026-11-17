@@ -129,7 +129,7 @@
           fig('sad', 'A · Dark', <Stakes t="dark" v="A" label="Roster slots, option A, Dark" />),
           fig('sax', 'A · your size (AX5, approximate)', <Stakes x={AX5} v="A" scroll={330} label="Roster slots, option A, AX5" />, 'Scrolled down to the line.'),
         ]}</Grid>
-        <h3 className="b-sub">B · Block (recommended)</h3>
+        <h3 className="b-sub">{archived ? 'B · Block (decided)' : 'B · Block (recommended)'}</h3>
         <Grid>{[
           fig('sb1', 'B', <Stakes v="B" label="Roster slots, option B" />, 'Create league grey until slot 1 can be filled.'),
           fig('sbd', 'B · Dark', <Stakes t="dark" v="B" label="Roster slots, option B, Dark" />),
@@ -139,5 +139,11 @@
     );
   }
 
-  window.KSSlotCheck = () => <CallSlotCheck />;
+  window.KSSlotCheck = () => null; // decided 2026-11-17: B; it lives in the Archive
+  window.KSSlotCheckArchived = () => (
+    <CallSlotCheck
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "B".</b> The check runs by itself ("should be done by us automatically ... and then notify the user if something cannot work"); "Check availability" goes. A slot that can't be filled shows its line in red on the slot, and Create league (and Save in League settings) stays grey until it can be filled. A failed check never blocks. Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
 })();
