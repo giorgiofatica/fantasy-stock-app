@@ -28,9 +28,11 @@ export const SUBTITLE_MAX_SCALE = 2;
 export const TOP_ROW_MAX_SCALE = 1.6;
 
 export interface SetupScaffoldProps {
-  /** Omitted on a screen with nowhere to go back to (Create league's done screen), and in a sheet (`sheet`). */
-  /** `modal`: an iOS modal's text-only "Cancel", no back chevron (G-7; Create league's first step). */
-  back?: { label: string; onPress: () => void; modal?: boolean };
+  /** Omitted on a screen with nowhere to go back to (Create league's first step and done screen), and in a sheet (`sheet`). */
+  back?: { label: string; onPress: () => void };
+  /** The × at the top right (Create league, every step): closes the whole flow at once, no prompt (PRODUCT_RULES, 2026-11-17, "A").
+   * `disabled` while the create request is in flight. Omitted on the done screen and in a sheet (the sheet bar has its own). */
+  close?: { onPress: () => void; disabled?: boolean };
   /** A page sheet (League settings): the shared top bar replaces the back row and the big title; no step, no subtitle. */
   sheet?: SheetBarConfig & {
     /** A problem with what the bar holds (the league's name), right under the bar, in today's words. */
@@ -46,7 +48,7 @@ export interface SetupScaffoldProps {
   footer?: ReactNode;
 }
 
-export function SetupScaffold({ back, sheet, step, title, subtitle, children, footer }: SetupScaffoldProps) {
+export function SetupScaffold({ back, close, sheet, step, title, subtitle, children, footer }: SetupScaffoldProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   // None inside an iOS page sheet (League settings), which already starts below the status bar.
@@ -91,22 +93,41 @@ export function SetupScaffold({ back, sheet, step, title, subtitle, children, fo
       ) : (
         <>
           <View style={{ height: topInset }} />
+          {/* Three columns, so "Step N of 4" sits at the true centre: Back (or nothing) | Step | × (flex 1 | auto | flex 1). */}
           <View style={styles.topRow}>
-            {back ? (
-              <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={[styles.back, back.modal ? styles.backModal : null]} hitSlop={8}>
-                {back.modal ? null : <Icon name="chevronLeft" size="callout" tone="text2" />}
-                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE}>
-                  {back.label}
-                </Text>
-              </Pressable>
-            ) : (
-              <View style={styles.back} />
-            )}
+            <View style={styles.topSide}>
+              {back ? (
+                <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={styles.back} hitSlop={8}>
+                  <Icon name="chevronLeft" size="callout" tone="text2" />
+                  <Text variant="callout" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE}>
+                    {back.label}
+                  </Text>
+                </Pressable>
+              ) : (
+                <View style={styles.back} />
+              )}
+            </View>
             {step ? (
               <Text variant="caption" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE} style={styles.tabular}>
                 {`Step ${step.number} of ${step.total}`}
               </Text>
             ) : null}
+            <View style={[styles.topSide, styles.topSideRight]}>
+              {close ? (
+                <Pressable
+                  onPress={close.disabled ? undefined : close.onPress}
+                  disabled={close.disabled}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close"
+                  accessibilityState={{ disabled: !!close.disabled }}
+                  style={styles.close}
+                  testID="setup-close"
+                >
+                  {/* Never grows with the text size ('tab' is the icon role that does not scale), in the text colour. */}
+                  <Icon name="close" size="tab" tone="text" />
+                </Pressable>
+              ) : null}
+            </View>
           </View>
         </>
       )}
@@ -134,8 +155,22 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingRight: space[6],
+    paddingRight: space[3],
+  },
+  topSide: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  topSideRight: {
+    justifyContent: 'flex-end',
+  },
+  close: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   back: {
     flexDirection: 'row',
@@ -143,10 +178,6 @@ const styles = StyleSheet.create({
     gap: space[1],
     minHeight: 44,
     paddingHorizontal: space[5],
-  },
-  // A text-only Cancel sits on the content gutter (the chevron's glyph inset no longer offsets it).
-  backModal: {
-    paddingHorizontal: space[6],
   },
   barError: {
     paddingHorizontal: space[6],

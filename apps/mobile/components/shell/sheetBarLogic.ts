@@ -87,8 +87,10 @@ export type SaveState = 'off' | 'on' | 'saving';
 /** Save is on only while the form differs from what was loaded and nothing is being saved. `dirty` is derived by comparing
  * against the loaded values (lib/game/settingsDirty.ts), never a "touched" flag, so changing a value back to its original
  * turns Save grey again. */
-export function saveState(a: { dirty: boolean; saving: boolean }): SaveState {
+export function saveState(a: { dirty: boolean; saving: boolean; blocked?: boolean }): SaveState {
   if (a.saving) return 'saving';
+  // A slot the check found short (League settings, 2026-11-17 "B") keeps Save grey; its red line is the reason.
+  if (a.blocked) return 'off';
   return a.dirty ? 'on' : 'off';
 }
 

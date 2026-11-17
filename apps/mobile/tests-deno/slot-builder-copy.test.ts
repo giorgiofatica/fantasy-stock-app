@@ -14,7 +14,7 @@ import {
   slotIssueAway,
   slotIssueOnSlot,
   SLOT_CHECK_FAILED,
-  SLOT_PARTIAL_NOTE,
+  SLOT_CHECK_RETRY,
   categoryLabel,
   countInput,
   priceInput,
@@ -24,6 +24,7 @@ import {
   slotTitle,
 } from '../lib/game/slotBuilderCopy.ts';
 // categoryData pulls in supabase, so it is read as text (raw-imports) for the guards below.
+import slotBuilderCopySrc from '../lib/game/slotBuilderCopy.ts' with { type: 'text' };
 import categoryDataSrc from '../lib/categoryData.ts' with { type: 'text' };
 
 const CATS = [{ id: 'c1', name: 'Tech' }, { id: 'c2', name: 'Energy' }];
@@ -49,19 +50,19 @@ Deno.test('count keeps digits only; prices keep digits and the point', () => {
   assertEquals(priceInput('$12.50x'), '12.50');
 });
 
-Deno.test('shortfall copy is the old wording, plural and singular', () => {
-  assertEquals(
-    slotShortfallCopy(0, 5, 8, '2'),
-    'Slot 1: only 5 draftable stocks match — the league needs at least 16 (8 teams × 2).',
-  );
-  assertEquals(
-    slotShortfallCopy(1, 1, 4, '1'),
-    'Slot 2: only 1 draftable stock match — the league needs at least 4 (4 teams × 1).',
-  );
+Deno.test('shortfall copy is the old wording minus "Slot N: " and the "(T teams × C)" bracket (the line sits in the slot\'s card), plural and singular', () => {
+  assertEquals(slotShortfallCopy(9, 8, '2'), 'Only 9 draftable stocks match\u00A0— the league needs at least 16.');
+  assertEquals(slotShortfallCopy(1, 4, '1'), 'Only 1 draftable stock match\u00A0— the league needs at least 4.');
+  // A no-break space before the em dash (never a plain one), no slot prefix, no bracket.
+  const line = slotShortfallCopy(9, 8, '2');
+  assertEquals(line.includes('match\u00A0—'), true);
+  assertEquals(line.includes('match —'), false);
+  assertEquals(line.startsWith('Slot'), false);
+  assertEquals(line.includes('teams'), false);
 });
 
 Deno.test('an empty or zero count needs one per team, as the old check did', () => {
-  assertEquals(slotShortfallCopy(0, 3, 6, ''), 'Slot 1: only 3 draftable stocks match — the league needs at least 6 (6 teams × ).');
+  assertEquals(slotShortfallCopy(3, 6, ''), 'Only 3 draftable stocks match\u00A0— the league needs at least 6.');
   assertEquals(slotShort(5, 6, ''), true);
   assertEquals(slotShort(6, 6, '0'), false);
 });
@@ -71,10 +72,11 @@ Deno.test('short only when matches fall below teams × count', () => {
   assertEquals(slotShort(16, 8, '2'), false);
 });
 
-Deno.test('the failure and partial-data lines are the old ones', () => {
-  assertEquals(SLOT_CHECK_FAILED, "Couldn't check availability. Try again.");
-  assertEquals(SLOT_PARTIAL_NOTE.startsWith('Stock data is still loading (takes ~2 days after launch)'), true);
-  assertEquals(SLOT_PARTIAL_NOTE.endsWith('Slot count math is still enforced.'), true);
+Deno.test('the failure line is today\'s words split into the note and its button; the partial-data note is gone', () => {
+  assertEquals(SLOT_CHECK_FAILED, "Couldn't check availability.");
+  assertEquals(SLOT_CHECK_RETRY, 'Try again');
+  assertEquals(`${SLOT_CHECK_FAILED} ${SLOT_CHECK_RETRY}.`, "Couldn't check availability. Try again.");
+  assertEquals(slotBuilderCopySrc.includes('SLOT_PARTIAL_NOTE'), false);
 });
 
 // ── Design Lead copy rulings (3c-2 round 3) ─────────────────────────────

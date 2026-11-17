@@ -65,12 +65,19 @@ export function leagueNameError(
 /** Creating from the Stakes step. Only price tiers need slots (they are the
  * anti-skew mechanism); the other modes go straight through, as before. With
  * price tiers: no slot shows PRICE_TIERS_NEED_A_SLOT under Roster slots; slot
- * errors show on the slots themselves (SlotBuilder). */
-export function stakesStepError(stakeMode: string, slotCount: number, slotErrors: readonly string[]): string | null {
+ * errors show on the slots themselves (SlotBuilder). A slot the automatic check found
+ * short (`shortReason`, that slot's own red line) blocks too (2026-11-17, "B"); a failed
+ * or partial check has no reason, so it never does. */
+export function stakesStepError(
+  stakeMode: string,
+  slotCount: number,
+  slotErrors: readonly string[],
+  shortReason: string | null = null,
+): string | null {
   if (stakeMode !== 'price_tiers') return null;
   if (slotCount === 0) return PRICE_TIERS_NEED_A_SLOT;
   if (slotErrors.length > 0) return slotErrors[0];
-  return null;
+  return shortReason;
 }
 
 /**

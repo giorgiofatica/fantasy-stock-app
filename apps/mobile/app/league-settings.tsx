@@ -28,7 +28,7 @@ import {
   loadLeagueSlots,
   validateSlotConfig,
 } from '@/lib/categoryData';
-import { seamSaveLeagueSlots, seamUpdateLeague } from '@/lib/game/seamCalls';
+import { seamInvoke, seamSaveLeagueSlots, seamUpdateLeague } from '@/lib/game/seamCalls';
 import { settingsSaveOutcome } from '@/lib/game/settingsSave';
 import {
   COMMISSIONER_ROW, COMMISSIONER_YOU, commissionerRowView, knownMemberCount, leaveLeagueEnabled, leaveRowView, leaveSheetCopy, leaveWindow, transferCandidates, type LeaveWindow,
@@ -43,6 +43,8 @@ import { leagueNameError, stepWithin } from '@/lib/game/createLeagueSteps';
 import { settingsDirty, type SettingsForm } from '@/lib/game/settingsDirty';
 import { saveState } from '@/components/shell/sheetBarLogic';
 import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
+import { useSlotCheck } from '@/lib/game/useSlotCheck';
+import { checkSetupOnServer } from '@/lib/game/slotSetupCheck';
 import { SETTINGS_LOCKED, inviteShareMessage, inviteShareShown } from '@/lib/game/leagueSettingsEntry';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { keepDots } from '@/lib/game/keepDots';
@@ -165,6 +167,9 @@ export default function LeagueSettingsScreen() {
   // Check if settings are locked (draft started or completed)
   const isLocked = league?.draft_status === 'in_progress' || league?.draft_status === 'completed';
 
+  // The slot availability check runs by itself (commissioner, settings still open): a short slot shows its line and keeps Save grey.
+  const slotCheck = useSlotCheck({ slots, leagueSize: numParticipants, numRounds, enabled: !!league && isCommissioner && !isLocked });
+
   // Auto-start: the draft time can't change once the room opens (T−1h), until
   // the draft starts, except when postponed. From the server's start_state.
   const draftStatus = useDraftStatus(league?.id ?? null, !!league && isCommissioner && !isLocked, 0);
@@ -281,6 +286,18 @@ export default function LeagueSettingsScreen() {
         setSaving(false);
         return;
       }
+      if (!isLocked) {
+        // One more client check, awaited, when the last result is stale (never silently skipped): a short slot shows its own line and stops here.
+        if (await slotCheck.ensureFresh()) return;
+        // Then the server's exact check of the PROPOSED slots (overlaps and the budget reserve too). It fails OPEN: only a real verdict blocks.
+        if (slots.length > 0) {
+          const verdict = await checkSetupOnServer((body) => seamInvoke('draft-control', { body }), league.id, slots);
+          if (verdict.blocked) {
+            setSlotsError(verdict.line);
+            return;
+          }
+        }
+      }
 
       // stake_mode written only when chosen — '' (legacy NULL league) leaves
       // the column untouched rather than writing a default the commissioner
@@ -393,7 +410,7 @@ export default function LeagueSettingsScreen() {
         // The league's name; the commissioner renames it in the bar until the settings lock, and Save sits at its right.
         title: loaded ? name : league.name,
         onClose: handleClose,
-        save: !isLocked ? { state: saveState({ dirty, saving }), onPress: handleSave } : undefined,
+        save: !isLocked ? { state: saveState({ dirty, saving, blocked: slotCheck.blockReason != null }), onPress: handleSave } : undefined,
         rename: !isLocked
           ? {
               editing: editingName,
@@ -549,8 +566,8 @@ export default function LeagueSettingsScreen() {
             setSlotsError(null);
           }}
           categories={categories}
-          leagueSize={numParticipants}
           numRounds={numRounds}
+          check={slotCheck}
           disabled={isLocked}
         />
       </View>

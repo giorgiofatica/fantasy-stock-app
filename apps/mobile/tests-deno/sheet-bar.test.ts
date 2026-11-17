@@ -129,7 +129,7 @@ Deno.test('League settings: no "League settings" heading, no "League name" field
   // A good save closes the sheet right after the refresh.
   assert(/await refresh\(\);\s*\n\s*\/\/[^\n]*\n\s*router\.dismiss\(\);/.test(s));
   // Save is driven by the derived dirty state, never a touched flag.
-  assert(/saveState\(\{ dirty, saving \}\)/.test(s));
+  assert(/saveState\(\{ dirty, saving, blocked: slotCheck\.blockReason != null \}\)/.test(s));
   assert(!/\btouched\b/i.test(s));
 });
 
