@@ -12,6 +12,8 @@ Deno.test('the slot fixture knob is dead in a release bundle and ignores unknown
   assertEquals(parseSlotFixture(false, 'short'), null);
   assertEquals(parseSlotFixture(true, 'short'), 'short');
   assertEquals(parseSlotFixture(true, 'failed'), 'failed');
+  assertEquals(parseSlotFixture(true, 'refuse'), 'refuse');
+  assertEquals(fixtureCountMatches('refuse', { priceMin: 100 }), 999, 'refuse: the client check passes; only the fixture server refuses');
   assertEquals(parseSlotFixture(true, 'nope'), null);
   assertEquals(parseSlotFixture(true, undefined), null);
   assert(SOURCES['lib/shell/captureDev.ts'].includes('parseSlotFixture(__DEV__, process.env.EXPO_PUBLIC_SLOT_FIXTURE)'));

@@ -63,6 +63,9 @@ function parse(raw: string | undefined): ShellFixture | null {
   return raw && (FIXTURES as readonly string[]).includes(raw) ? (raw as ShellFixture) : null;
 }
 
+/** DEV captures only: Serie A Traders is a budget-cap league (EXPO_PUBLIC_SLOT_FIXTURE=refuse). */
+const SLOT_REFUSE_LEAGUE: boolean = __DEV__ ? process.env.EXPO_PUBLIC_SLOT_FIXTURE === 'refuse' : false;
+
 export const SHELL_FIXTURE: ShellFixture | null = __DEV__ ? parse(process.env.EXPO_PUBLIC_SHELL_FIXTURE) : null;
 
 if (SHELL_FIXTURE) {
@@ -185,6 +188,8 @@ export function fixtureLeagues(fixture: ShellFixture, renewalCaller: RenewalCall
       // The board's at-risk sample (autoStartFixture PLAYOFF_8_OF_7: "8 playoff teams, but 7
       // teams are in"): the lobby's stepper reads this, so it says 8 too (W4 Draft gate).
       playoff_teams: 8,
+      // DEV captures (lib/game/slotFixture.ts, SLOT_FIXTURE=refuse): a budget-cap league, for the League settings Save stills.
+      ...(SLOT_REFUSE_LEAGUE ? { stake_mode: 'budget_cap' as const, budget_amount: 2500 } : {}),
       ...memberOver,
     }),
     league({

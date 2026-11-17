@@ -14,6 +14,18 @@ import { slotConfigIssues, slotShort, slotShortfallCopy } from './slotBuilderCop
 /** The check runs this long after the last slot edit settles. */
 export const SLOT_CHECK_DEBOUNCE_MS = 600;
 
+/** A lookup that has not answered by now counts as failed (never blocks): Create league / Save must not hang on a dead connection. */
+export const SLOT_CHECK_TIMEOUT_MS = 10000;
+
+/** The promise's answer, or a rejection when it has not answered within `ms`. */
+export function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('slot check timed out')), ms);
+  });
+  return Promise.race([p, late]).finally(() => clearTimeout(timer));
+}
+
 export interface CheckSlot {
   slotCount: string;
   priceMin: string;
@@ -58,19 +70,23 @@ export async function runSlotCheck(
   leagueSize: number,
   numRounds: number,
   deps: SlotCheckDeps,
+  timeoutMs: number = SLOT_CHECK_TIMEOUT_MS,
 ): Promise<SlotCheckResult> {
   const result = EMPTY(slots.length);
   const todo = checkableSlots(slots, numRounds);
   if (todo.length === 0) return result;
   try {
-    if (await deps.isPartial()) return result;
+    if (await withTimeout(deps.isPartial(), timeoutMs)) return result;
     for (const i of todo) {
       const s = slots[i];
-      const matches = await deps.countMatches({
-        priceMin: s.priceMin === '' ? null : Number(s.priceMin),
-        priceMax: s.priceMax === '' ? null : Number(s.priceMax),
-        categoryId: s.categoryId || null,
-      });
+      const matches = await withTimeout(
+        deps.countMatches({
+          priceMin: s.priceMin === '' ? null : Number(s.priceMin),
+          priceMax: s.priceMax === '' ? null : Number(s.priceMax),
+          categoryId: s.categoryId || null,
+        }),
+        timeoutMs,
+      );
       result.sigs[i] = slotSig(s, leagueSize);
       if (slotShort(matches, leagueSize, s.slotCount)) result.lines[i] = slotShortfallCopy(matches, leagueSize, s.slotCount);
     }

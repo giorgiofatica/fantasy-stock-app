@@ -7,6 +7,7 @@
  * start check stays the backstop). Only the server's two real verdicts block, in the words the draft blockers card already uses.
  */
 import { blockerTitle } from './autoStart';
+import { SLOT_CHECK_TIMEOUT_MS, withTimeout } from './slotCheck';
 
 export interface ProposedSlot {
   slotCount: string;
@@ -43,10 +44,16 @@ export function setupCheckVerdict(res: { data?: unknown; error?: unknown } | nul
 /** The caller makes the call (`seamInvoke('draft-control', { body })`), so its function name stays a literal at the call site. */
 type Invoke = (body: Record<string, unknown>) => Promise<{ data?: unknown; error?: unknown }>;
 
-/** One check_setup call. Never throws; a transport error is an open verdict. */
-export async function checkSetupOnServer(invoke: Invoke, leagueId: string, slots: readonly ProposedSlot[]): Promise<SetupVerdict> {
+/** One check_setup call. Never throws; a transport error, or a call that never answers (a dead connection, so Save cannot hang on it),
+ * is an open verdict. */
+export async function checkSetupOnServer(
+  invoke: Invoke,
+  leagueId: string,
+  slots: readonly ProposedSlot[],
+  timeoutMs: number = SLOT_CHECK_TIMEOUT_MS,
+): Promise<SetupVerdict> {
   try {
-    return setupCheckVerdict(await invoke({ league_id: leagueId, action: 'check_setup', slots: proposedSlotsBody(slots) }));
+    return setupCheckVerdict(await withTimeout(invoke({ league_id: leagueId, action: 'check_setup', slots: proposedSlotsBody(slots) }), timeoutMs));
   } catch {
     return OPEN;
   }

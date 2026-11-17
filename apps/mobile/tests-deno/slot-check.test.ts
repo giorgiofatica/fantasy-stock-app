@@ -16,6 +16,7 @@ import {
   slotCheckIsStale,
   slotSig,
   visibleSlotLines,
+  withTimeout,
 } from '../lib/game/slotCheck.ts';
 import { createNextDisabled, stakesStepError } from '../lib/game/createLeagueSteps.ts';
 import { saveState } from '../components/shell/sheetBarLogic.ts';
@@ -266,4 +267,25 @@ Deno.test('P1: with the rules unchanged the server is asked, and a real refusal 
   assertEquals(await checkSetupForSave(invoke, 'L1', [], SAVED, { ...SAVED }), { blocked: false });
   assertEquals(await checkSetupForSave(invoke, 'L1', [slot()], null, { ...SAVED }), { blocked: false });
   assertEquals(calls, 1);
+});
+
+const NEVER = () => new Promise<never>(() => {});
+
+Deno.test('a lookup that never answers counts as FAILED (never blocks), so Create league / Save cannot hang on a dead connection', async () => {
+  const r = await runSlotCheck(TWO, SIZE, 4, { isPartial: async () => false, countMatches: NEVER }, 20);
+  assertEquals(r.failed, true);
+  assertEquals(slotCheckBlockReason(visibleSlotLines(r, TWO, SIZE)), null);
+  const r2 = await runSlotCheck(TWO, SIZE, 4, { isPartial: NEVER, countMatches: async () => 0 }, 20);
+  assertEquals(r2.failed, true);
+});
+
+Deno.test('a check_setup call that never answers is an OPEN verdict, so Save cannot hang on it', async () => {
+  assertEquals(await checkSetupOnServer(() => NEVER(), 'L1', [slot()], 20), { blocked: false });
+});
+
+Deno.test('withTimeout: an answer in time passes through; a late one rejects', async () => {
+  assertEquals(await withTimeout(Promise.resolve(7), 50), 7);
+  let rejected = false;
+  await withTimeout(NEVER(), 10).catch(() => { rejected = true; });
+  assertEquals(rejected, true);
 });
