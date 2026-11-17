@@ -269,6 +269,8 @@ building anything, and don't reopen a rule without him.
     amount that it was drafted at, or you show like the waiver wire, the date, and then …
     the price." So the "How you got it" block is the LAST section of the card: the date,
     then Draft (with the pick) or Waiver claim or Buy, then the price.
+  - (2026-11-17: now TWO figures, Price and Week gain; see "On the card for a stock on a
+    team" under "Every chart has the same six ranges".)
   - **Three key figures, not four.** "I like the kind of initial top card with like the price,
     the week gain since draft their position. I don't love the their position. In that, I
     think it does seem a little cluttered. Maybe we just go with three." So the strip is
@@ -638,11 +640,18 @@ building anything, and don't reopen a rule without him.
       chose the words once shown they fit on one line at his text size. A line that has to
       wrap never breaks inside a number; where exactly the bracket format breaks is the
       Design Lead's to set.
-    - Not ruled: where the range gain sits on the card for a stock you own (A: three figures,
-      the third follows the range; B: Price and Week gain, with the gain above the chart). The
-      Design Lead first recorded his "for both" as covering this and withdrew it when he
-      clarified. This ruling is about the gain beside a chart; other lines that pair dollars
-      and a percent with a dot (a matchup's "This week" line, for one) were not asked about.
+    - **On the card for a stock on a team: two figures at the top, and the range gain above
+      the chart** (2026-11-17, the player-card half of `#call-range-gain`, PR #496; typed in
+      the Orchestrator's chat, 18:06Z: "B and merged 499"). The top strip is Price and Week
+      gain. The range's gain sits right above the chart, in the format above, the same place
+      as on Portfolio and the stock sheet, so every chart reads the same way. A (three
+      figures, the third following the range) was not picked. Week gain stays because it is
+      the matchup week, Monday to now, which is not the same as 1W, the past five trading
+      days. "Since the draft" is no longer a third figure; it is what the range gain says on
+      Season. This replaces "Three key figures, not four" (2026-10-12). The Design Lead first
+      recorded his earlier "for both" as covering this and withdrew it when he clarified.
+    - This ruling is about the gain beside a chart; other lines that pair dollars and a
+      percent with a dot (a matchup's "This week" line, for one) were not asked about.
   - **Which range a chart opens on: your team on Season, a stock you are shopping for on 1W**
     (2026-11-17, board `#call-chart-default`, PR #496; typed in the Orchestrator's chat,
     18:00Z: "go with B"). The Portfolio graph and the card for a stock on a team open on
