@@ -140,8 +140,8 @@ Deno.test('every engaged cap also stops the roll, so the digit path never meets 
 
 Deno.test('wiring: Portfolio HeroLine keeps its 1.3× cap as a prop; the primitive turns it into a size', () => {
   const heroLine = portfolioSrc.slice(portfolioSrc.indexOf('function HeroLine'), portfolioSrc.indexOf('const styles = StyleSheet.create'));
-  // Four capped pieces: two RollingMoney (maxScale) and the "·" and the words (maxFontSizeMultiplier).
+  // Five capped pieces: two RollingMoney (maxScale), the two brackets and the words (maxFontSizeMultiplier).
   assertEquals((heroLine.match(/maxScale=\{HERO_LINE_MAX_SCALE\}/g) ?? []).length, 2);
-  assertEquals((heroLine.match(/maxFontSizeMultiplier=\{HERO_LINE_MAX_SCALE\}/g) ?? []).length, 2);
+  assertEquals((heroLine.match(/maxFontSizeMultiplier=\{HERO_LINE_MAX_SCALE\}/g) ?? []).length, 3);
   assertEquals(heroLine.includes('cappedTextProps'), false);
 });

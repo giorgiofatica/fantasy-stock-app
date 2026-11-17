@@ -7,7 +7,7 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import { color } from '../constants/tokens/color.ts';
 import {
   acquisitionLine, actionLabel, CATEGORIES, categoryPillLook, chipLook, draftTileLook, howTitle, movement, playerAction,
-  rangeLook, scoreboardModel, SECTOR_LINE, SHADED_SIDE, sinceLabel, toneOf, type Category,
+  rangeLook, scoreboardModel, SECTOR_LINE, SHADED_SIDE, toneOf, type Category,
 } from '../components/sp/logic/gameNight.ts';
 import categoriesSeed from '../../../supabase/seed/categories.json' with { type: 'json' };
 import { SOURCES } from './sourceManifest.generated.ts';
@@ -174,20 +174,18 @@ Deno.test('PlayerCard: your stock → Sell (disabled with the reason while close
   assertEquals(actionLabel(playerAction('other', false, true, 'x')), 'Saved');
 });
 
-Deno.test('PlayerCard: "How you got it" lines in Giorgio\'s words; "Since the draft" or "Since {date}"', () => {
+Deno.test('PlayerCard: "How you got it" lines in Giorgio\'s words', () => {
   // Giorgio's words; the spaces that must not break (before each "·", inside the date) are
   // non-breaking — read as plain spaces here.
   const plain = (x: string) => x.replace(/\u00a0/g, ' ');
   assertEquals(plain(acquisitionLine({ kind: 'drafted', pick: 2, date: 'Sep 29', price: 290.1 })), 'Drafted 2nd overall · Sep 29 · $290.10');
   assertEquals(plain(acquisitionLine({ kind: 'claimed', date: 'Oct 7', price: 187.2 })), 'Claimed off waivers · Oct 7 · $187.20');
   assertEquals(plain(acquisitionLine({ kind: 'bought', date: 'Oct 2', price: 214.8 })), 'Bought · Oct 2 · $214.80');
-  assertEquals(sinceLabel({ kind: 'drafted', pick: 1, date: 'Sep 29', price: 1 }), 'Since the draft');
-  assertEquals(sinceLabel({ kind: 'bought', date: 'Oct 2', price: 1 }), 'Since Oct 2');
   assertEquals(howTitle('you'), 'How you got it');
   assertEquals(howTitle('other'), 'How they got it');
 });
 
-Deno.test('PlayerCard: the order — header, three figures, season (dated), this week (Mon…Fri), action, How you got it, credit', () => {
+Deno.test('PlayerCard: the order — header, two figures (Price, Week gain), ONE chart, action, How you got it, credit', () => {
   const src = strip(SOURCES['components/sp/gn/PlayerCard.tsx']);
   const at = (s: string) => {
     const i = src.indexOf(s);
@@ -198,15 +196,17 @@ Deno.test('PlayerCard: the order — header, three figures, season (dated), this
     at('variant="ticker.card"'),
     at('label="Price"'),
     at('label="Week gain"'),
-    at('label={sinceLabel('),
-    at('axis={season.axis}'),
-    at("axis={{ kind: 'week' }}"),
+    at('<StockChart'),
     at('testID="player-card-action"'),
     at('howTitle('),
     at('MONEY_COPY.alpacaCredit'),
   ];
   assertEquals(order, [...order].sort((a, b) => a - b));
-  assertEquals((src.match(/<Figure /g) ?? []).length, 3, 'three key figures, no position');
+  assertEquals((src.match(/<Figure /g) ?? []).length, 2, 'two key figures (Giorgio 2026-11-17, "B"): Price and Week gain; no position, no "Since the draft"');
+  assertEquals((src.match(/<StockChart/g) ?? []).length, 1, 'ONE chart, not a Season chart stacked over a This week chart');
+  assert(!/<Chart\b/.test(src), 'the card draws no chart of its own: it is the stock chart, the same component as the stock sheet');
+  assert(src.includes('defaultRange={SEASON_DEFAULT_RANGE}'), 'the card opens on Season');
+  assert(!/sinceLabel|Since the draft/.test(src), '"Since the draft" is no longer a figure: it is Season\'s gain line');
   assert(!/position/i.test(src.replace(/position: 'absolute'/g, '')), 'no position figure');
   assert(!/marks=|<Circle|'Drafted'/.test(src), 'no acquisition marker on the chart');
   assert(src.includes('<Avatar name={owner.name} uri={owner.avatarUri} size={20} tone="opp" />'), 'the owner\'s avatar: a 20pt opp disc in "Owned by …"');
@@ -216,10 +216,10 @@ Deno.test('PlayerCard: the order — header, three figures, season (dated), this
 
 // ── Chart ────────────────────────────────────────────────────────────────────────
 
-Deno.test('Chart: one 2.5pt line coloured by the window, a dashed borderStrong base, no fill, no grid, an X axis', () => {
+Deno.test('Chart: one 2.5pt line coloured by the window, NO dashed base (Giorgio 2026-11-16/17), no fill, no grid, an X axis', () => {
   const src = strip(SOURCES['components/sp/gn/Chart.tsx']);
   assert(src.includes('const STROKE = 2.5;'));
-  assert(src.includes('stroke={colors.borderStrong} strokeWidth={1} strokeDasharray="3 5"'));
+  assert(!/strokeDasharray|showBase|borderStrong/.test(src), 'no dotted or base line on any chart');
   assert(src.includes('const lineColor = colors[tone];'));
   assert(src.includes('fill={colors.liveGlow}') && src.includes('const HALO_R = 9;'));
   assert(!/areaPath|ClipPath|fillOpacity|LinearGradient/.test(src), 'no fill');

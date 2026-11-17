@@ -4,11 +4,12 @@
  * and nothing else: every figure comes from portfolioView, the line from portfolioChart.
  *
  * Game Night (§9C, the board's Portfolio frame, A): the money page (`moneyBg`); the hero is
- * "Portfolio value" over the value in `money` (44/500, rule 5: money numbers regular), the
- * gain since the draft and today; then the value line edge to edge on its dated axis, with
- * the range pills (1W · 1M · Season; Giorgio, 2026-10-12: "the Portfolio chart with range
- * pills: yes"). Then the cash, "Buy a stock", the holdings as roster rows (no sparklines,
- * no rules between them), Trade history and the Alpaca credit. 24pt between blocks.
+ * "Portfolio value" over the value in `money` (44/500, rule 5: money numbers regular) and
+ * today; then the range's gain ("+$343.50 (+2.86%) since the draft", RangeGainLine, the same
+ * line every chart has), the value line edge to edge on its axis, and the six range pills
+ * (1W · 1M · 3M · 6M · Season · YTD, Giorgio 2026-11-17), opening on Season. A range longer than
+ * the league has existed is grey. Then the cash, "Buy a stock", the holdings as roster rows (no
+ * sparklines, no rules between them), Trade history and the Alpaca credit. 24pt between blocks.
  *
  * Tapping a holding opens its PLAYER CARD (deferred from the Matchup gate), exactly as on
  * Matchup; the card's Sell closes it and opens the stock sheet on Sell. A row whose card
@@ -25,7 +26,7 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import type { ThemeColors } from '@/constants/tokens/color';
 import { Card } from '@/components/sp/Card';
 import { Icon } from '@/components/sp/Icon';
-import { Chart, PlayerCard, RangePills, type PlayerCardOwnership } from '@/components/sp/gn';
+import { Chart, PlayerCard, RangeGainLine, RangePills, type PlayerCardOwnership } from '@/components/sp/gn';
 import { formatMoney } from '@/components/sp/logic/money';
 import { ShellHeader } from '@/components/shell/ShellHeader';
 import { BarsRefresh } from '@/components/shell/BarsRefresh';
@@ -37,7 +38,8 @@ import { RollingMoney } from '@/components/home/RollingMoney';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioSeries, type PortfolioRange } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioSeries, type PortfolioRange } from '@/lib/money/portfolioChart';
+import { asChartRange, rangeGain, selectableRange } from '@/lib/chart/chartRanges';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
 import { FIXTURE_LEAGUE_ID } from '@/lib/money/fixtureMode';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -115,11 +117,16 @@ export function PortfolioScreen() {
 
   const chart = data.chart;
   const daily = useMemo(() => (chart ? dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt }) : []), [chart, todayEt]);
+  // A range longer than the league has existed is grey (history = the league's age: the line
+  // starts at the draft); Season never is, 1W never is. A grey range is never the selected one.
+  const greyed = useMemo(() => portfolioGreyedRanges(daily, todayEt), [todayEt, daily]);
+  const shownRange = selectableRange(range, greyed);
   const series = useMemo(
-    () => (chart ? portfolioSeries({ range, daily, liveValue: chart.liveValue, todayEt, now, sessions, draftAt: chart.draftAt }) : null),
+    () => (chart ? portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions }) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chart, range, daily, todayEt, sessions],
+    [chart, shownRange, daily, todayEt, sessions],
   );
+  const gain = series ? rangeGain(series.points, series.base) : null;
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
   const card = useMemo(() => {
@@ -141,8 +148,6 @@ export function PortfolioScreen() {
       // The capture seam: the fixture's own daily path through Wednesday, then Home's bars
       // after it (as Matchup's card reads it), so the week moves every day.
       bars: SEAM_ON ? seamCardBars(chart?.bars[shown] ?? [], raw.bars[shown] ?? []) : raw.bars[shown] ?? chart?.bars[shown] ?? [],
-      seasonBars: chart?.bars[shown] ?? null,
-      sessions,
       now,
     });
     if (!cardData) return null;
@@ -170,7 +175,7 @@ export function PortfolioScreen() {
   }
 
   // DEV capture only (captureScript): the same handlers a tap runs.
-  useCaptureAction('range', (r) => { if (r === '1W' || r === '1M' || r === 'Season') setRange(r); });
+  useCaptureAction('range', (r) => { const next = asChartRange(r ?? undefined); if (next && !greyed.includes(next)) setRange(next); });
   useCaptureAction('card', (sym) => { if (sym) openRow(sym, ledgerState.ledger?.symbol_names[sym] ?? sym); });
   useCaptureAction('sell', () => {
     if (!card || card.data.held <= 0) return;
@@ -222,19 +227,9 @@ export function PortfolioScreen() {
             <View accessible accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${v.valueText}`}>
               <RollingMoney text={v.valueText} size="money" rollKey={rollKey} />
             </View>
-            {v.gainMoneyText && v.gainPctText ? (
-              <HeroLine
-                label={`${v.gainText} ${v.sinceDraftLabel}`}
-                money={v.gainMoneyText}
-                pct={v.gainPctText}
-                words={v.sinceDraftLabel}
-                color={toneColor(colors, v.gainTone)}
-                rollKey={rollKey}
-              />
-            ) : null}
             {v.todayMoneyText && v.todayPctText ? (
               <HeroLine
-                label={`${v.todayText} today`}
+                label={`${v.todayMoneyText} (${v.todayPctText}) today`}
                 money={v.todayMoneyText}
                 pct={v.todayPctText}
                 words="today"
@@ -245,6 +240,9 @@ export function PortfolioScreen() {
             {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
           </View>
           {series ? (
+            <RangeGainLine range={shownRange} gain={gain} rollKey={`${rollKey}-${shownRange}`} />
+          ) : null}
+          {series ? (
             <Chart
               points={series.points}
               base={series.base}
@@ -252,7 +250,7 @@ export function PortfolioScreen() {
               height={CHART_HEIGHT}
               bleed={space[6]}
               live={marketOpen}
-              drawKey={range}
+              drawKey={shownRange}
               formatValue={(n) => formatMoney(n)}
               accessibilityLabel="Portfolio value"
               captureScrubAction="scrub"
@@ -263,7 +261,7 @@ export function PortfolioScreen() {
               dates and the 24pt block gap is measured from the pill, glyph to glyph. Each pill
               keeps its 44pt target (32pt fill + its hit slop). */}
           <View style={styles.pillsRow}>
-            <RangePills options={PORTFOLIO_RANGES} value={range} onChange={setRange} variant="pills" />
+            <RangePills options={PORTFOLIO_RANGES} value={shownRange} onChange={setRange} variant="pills" disabled={greyed} />
           </View>
         </View>
 
@@ -367,6 +365,8 @@ export function PortfolioScreen() {
             pendingSell.current = null;
             if (sell) stockSheet.open(sell.symbol, { name: sell.name });
           }}
+          sessions={sessions}
+          now={now}
           marketOpen={marketOpen}
           opens={opens}
         />
@@ -375,24 +375,24 @@ export function PortfolioScreen() {
   );
 }
 
-/** A hero sub-line: "+$X · +Y% since the draft". The money and the percent roll as two units
- * (C-6/M3: one string misaligns mid-roll), each "·" stays glued to the figure before it, so a
- * wrapped line never starts with "·" (§5 "Wrapping at XL"), and everything caps at 1.3× so the
- * value stays the screen's loudest text at XL (§5 "The standout stays loudest"). Above 1.3× the
- * sp Text primitive (and RollingMoney) turn that cap into an explicit size (cappedType.ts): Home
- * draws the same " · " and figures uncapped in the same face, and iOS gave the capped copies those
- * uncapped boxes (P2, 2026-10-16/19). */
+/** A hero sub-line: "+$X (+Y%) today" (Design Lead gate, 2026-11-17: the bracket format of every gain
+ * line, and the WHOLE line in the gain colour, "today" included; zero stays the neutral grey). The
+ * money and the percent roll as two units (C-6/M3: one string misaligns mid-roll). The figures are one
+ * non-wrapping run, so a wrapped line breaks only before the word (§5 "Wrapping at XL"), and everything
+ * caps at 1.3x so the value stays the screen's loudest text at XL (§5 "The standout stays loudest").
+ * Above 1.3x the sp Text primitive (and RollingMoney) turn that cap into an explicit size
+ * (cappedType.ts): Home draws the same figures uncapped in the same face, and iOS gave the capped copies
+ * those uncapped boxes (P2, 2026-10-16/19). */
 function HeroLine({ label, money, pct, words, color, rollKey }: { label: string; money: string; pct: string; words: string; color: string; rollKey: string }) {
   return (
     <View accessible accessibilityLabel={label} style={styles.rollRow}>
       <View style={styles.nowrap}>
         <RollingMoney text={money} size="callout" fontWeight="700" color={color} rollKey={rollKey} maxScale={HERO_LINE_MAX_SCALE} />
-        <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>{' · '}</Text>
-      </View>
-      <View style={styles.nowrap}>
+        <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>{'\u00a0('}</Text>
         <RollingMoney text={pct} size="callout" fontWeight="700" color={color} rollKey={rollKey} maxScale={HERO_LINE_MAX_SCALE} />
-        <Text variant="callout" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{`\u00a0${words}`}</Text>
+        <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>)</Text>
       </View>
+      <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{`\u00a0${words}`}</Text>
     </View>
   );
 }

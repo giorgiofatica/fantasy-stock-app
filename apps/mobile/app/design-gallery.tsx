@@ -30,6 +30,7 @@ import { CATEGORIES, type Category } from '@/components/sp/logic/gameNight';
 import { formatMoney } from '@/components/sp/logic/money';
 import { byResult } from '@/lib/game/weekResult';
 import { SalePicker } from '@/components/money/SalePicker';
+import type { MarketCalendarSession } from '@/lib/time/marketWeek';
 
 // Stockpile — dev-only design gallery (§9A, "One design, two themes",
 // 2026-09-29). SOURCE OF TRUTH: the Phase 2 brief, build item 7: "renders
@@ -339,25 +340,23 @@ const WEEK_THU = [{ t: 0, value: 0 }, { t: 1, value: 96.4 }, { t: 2, value: 151.
 const SEASON = [[0, 290.1], [1, 292.4], [2, 296.8], [3, 288.9], [4, 295.6], [6, 299.1], [8, 306.68], [9, 318.37]].map(([t, value]) => ({ t, value }));
 const SEASON_AXIS = { kind: 'dated' as const, start: '2026-09-29', end: '2026-10-08' };
 const ranges = ['Season', '1M', '1W'] as const;
-const stockRanges = ['1W', '1M', '3M', '1Y'] as const;
+const stockRanges = ['1W', '1M', '3M', '6M', 'Season', 'YTD'] as const;
 
 // The card's data; each use adds its ownership (owner + its REQUIRED handler) at the call site.
 const CARD_YOURS = {
   visible: true, onClose: () => {}, ticker: 'NVDA', company: 'NVIDIA', owner: 'you' as const, price: 318.37, todayPct: 3.81,
-  // 3.434 sh: week (318.37 − 300.20) × qty = +$62.40; since the draft (318.37 − 290.10) × qty = +$97.09.
-  weekGain: 62.4, weekPct: 6.05, sinceGain: 97.09, sincePct: 9.74, acquisition: { kind: 'drafted' as const, pick: 2, date: 'Sep 29', price: 290.1 },
-  season: { points: SEASON, base: 290.1, axis: SEASON_AXIS },
-  // Mon open, the Mon–Wed closes (Wed = Oct 7's 306.68), Thu now (+3.81% today).
-  week: { points: [{ t: 0, value: 300.2 }, { t: 1, value: 302.9 }, { t: 2, value: 304.1 }, { t: 3, value: 306.68 }, { t: 3.6, value: 318.37 }], base: 300.2 },
+  // 3.434 sh: week (318.37 − 300.20) × qty = +$62.40 (the matchup week, not 1W).
+  weekGain: 62.4, weekPct: 6.05, acquisition: { kind: 'drafted' as const, pick: 2, date: 'Sep 29', price: 290.1 },
+  lots: [{ date: '2026-09-29', quantity: 3.434, price: 290.1 }],
+  // The card's one chart reads its own bars (the DEV fixtures there); Season starts at the draft.
+  seasonStart: '2026-09-29', sessions: [] as MarketCalendarSession[], now: new Date('2026-10-08T17:00:00Z'),
   marketOpen: false, opens: 'Mon 9:30 AM ET',
 };
 const CARD_THEIRS = {
   // Claimed Mon Oct 5 at the open ($79.60), 12.58 sh: since the claim = this week = +$21.38 (+2.14%);
   // today from Wednesday's $80.40 close, +1.12%. The price, the lines and the figures all rise.
   ...CARD_YOURS, ticker: 'NKE', company: 'Nike', owner: { name: 'Gianluigi B.' }, category: 'retail' as const, price: 81.3, todayPct: 1.12,
-  weekGain: 21.38, weekPct: 2.14, sinceGain: 21.38, sincePct: 2.14, acquisition: { kind: 'claimed' as const, date: 'Oct 5', price: 79.6 },
-  season: { points: [{ t: 0, value: 79.6 }, { t: 1, value: 79.71 }, { t: 2, value: 80.4 }, { t: 3, value: 81.3 }], base: 79.6, axis: { kind: 'dated' as const, start: '2026-10-05', end: '2026-10-08' } },
-  week: { points: [{ t: 0, value: 79.6 }, { t: 1, value: 79.71 }, { t: 2, value: 79.95 }, { t: 3, value: 80.4 }, { t: 3.6, value: 81.3 }], base: 79.6 },
+  weekGain: 21.38, weekPct: 2.14, acquisition: { kind: 'claimed' as const, date: 'Oct 5', price: 79.6 },
   marketOpen: true,
 };
 
@@ -464,7 +463,7 @@ function GameNightGallery() {
       <Section title="GN · RangePills">
         <RangePills variant="tabs" options={ranges} value={range} onChange={setRange} />
         <View style={[styles.moneyStrip, { backgroundColor: colors.moneyBg }]}>
-          <RangePills variant="pills" options={stockRanges} value={stockRange} onChange={setStockRange} />
+          <RangePills variant="pills" options={stockRanges} value={stockRange} onChange={setStockRange} disabled={['3M', '6M']} />
         </View>
       </Section>
 
@@ -472,15 +471,13 @@ function GameNightGallery() {
         <Text variant="caption" tone="secondary">Week, Thursday, live</Text>
         <Chart points={WEEK_THU} base={0} axis={{ kind: 'week' }} bleed={space[6]} live drawKey="g-week" formatValue={money} accessibilityLabel="This week" />
         <Text variant="caption" tone="secondary">Season to now (dated), market closed</Text>
-        <Chart points={CARD_YOURS.season.points} base={290.1} axis={SEASON_AXIS} bleed={space[6]} drawKey="g-season" formatValue={(v) => formatMoney(v)} accessibilityLabel="NVDA this season" />
+        <Chart points={SEASON} base={290.1} axis={SEASON_AXIS} bleed={space[6]} drawKey="g-season" formatValue={(v) => formatMoney(v)} accessibilityLabel="NVDA this season" />
         <Text variant="caption" tone="secondary">Home: the W/L marks, then the two end dates (start, today) under them</Text>
         <Chart points={[{ t: 0, value: 0 }, { t: 7, value: 120 }, { t: 14, value: 80 }, { t: 21, value: 210 }, { t: 28, value: 300 }, { t: 35, value: 280 }, { t: 37, value: 343.59 }]} base={0} axis={{ kind: 'dated', start: '2026-09-01', end: '2026-10-08', maxLabels: 2 }} bleed={space[6]} drawKey="g-home" formatValue={money} accessibilityLabel="Season gain"
           underPlacement="beforeAxis"
           under={<View style={styles.marks}>{(['W', 'W', 'L', 'W', 'L', 'W'] as const).map((r, i) => <Text key={i} variant="callout" color={byResult(r, { W: colors.gain, L: colors.loss, T: colors.text2 })} style={styles.mark}>{r}</Text>)}</View>} />
         <Text variant="caption" tone="secondary">Down window (loss)</Text>
         <Chart points={[{ t: 0, value: 0 }, { t: 1, value: -12 }, { t: 2, value: -48.2 }]} base={0} axis={{ kind: 'week' }} bleed={space[6]} height={80} drawKey="g-loss" formatValue={money} accessibilityLabel="This week" />
-        <Text variant="caption" tone="secondary">1Y, months</Text>
-        <Chart points={[{ t: 0, value: 100 }, { t: 120, value: 130 }, { t: 250, value: 118 }, { t: 365, value: 160 }]} base={100} axis={{ kind: 'dated', start: '2025-10-08', end: '2026-10-08', months: true }} bleed={space[6]} height={80} drawKey="g-1y" formatValue={(v) => formatMoney(v)} accessibilityLabel="1Y" />
         <Text variant="caption" tone="secondary">Monday morning: one point</Text>
         <Chart points={[{ t: 0, value: 0 }]} base={0} axis={{ kind: 'week' }} bleed={space[6]} height={60} drawKey="g-one" formatValue={money} accessibilityLabel="This week" />
         <Text variant="caption" tone="secondary">No points yet</Text>

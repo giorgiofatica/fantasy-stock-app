@@ -132,6 +132,23 @@ export function seamBars(symbol: string, variant: MatchupFixtureVariant, clock: 
   return clock.loss && draft != null ? bars.map((b) => ({ date: b.date, close: mirror(b.close, draft) })) : bars;
 }
 
+/**
+ * DEV capture only (the stock chart's seam read): a seam stock's chart history as the real 400-day
+ * historical-bars read would give it, not just "since the draft": the held stock's seeded path from
+ * the draft on, preceded by a year of the fixture's own deterministic walk (sampleBars), scaled to
+ * meet the first seeded close. Without it a held stock would have no bar before the draft, so every
+ * range reaching back past it, Season included, would read as "longer than the history" and grey.
+ */
+export function seamChartBars(symbol: string, variant: MatchupFixtureVariant, clock: SeamClock = {}): { date: string; close: number }[] {
+  const seeded = seamBars(symbol, variant, clock);
+  if (!seeded.length) return seeded;
+  const first = seeded[0];
+  const before = sampleBars(symbol.toUpperCase(), first.close).filter((b) => b.date < first.date);
+  if (!before.length) return seeded;
+  const k = first.close / before[before.length - 1].close;
+  return [...before.map((b) => ({ date: b.date, close: Math.round(b.close * k * 100) / 100 })), ...seeded];
+}
+
 
 
 /** fixed_notional's open sale proceeds: each sale not followed by a buy (the seam has at most

@@ -10,8 +10,13 @@ import { rangeLook, rangeTabWidth, type RangeVariant } from '@/components/sp/log
 // Stockpile — <RangePills>, Game Night (§9C "RangePills"): the chart's range picker.
 //   - `tabs` (Home): text tabs, the selected one in `text` with a 2pt `accent` underline;
 //   - `pills` (money screens): the selected one a filled `accent` pill with `onAccent` ink.
-// The ranges are the caller's (Home: Season / 1M / 1W; a stock: 1W / 1M / 3M / 1Y). Every
-// option is a 44pt target; the selected one doesn't re-fire.
+// The ranges are the caller's (Home: Season / 1M / 1W; every money chart: the six of
+// lib/chart/chartRanges, 1W · 1M · 3M · 6M · Season · YTD, on ONE row at every text size: the
+// pills keep their 44pt target but the fill hugs the label, the row caps at 1.3x and a label
+// that still would not fit shrinks, never wraps). Every option is a 44pt target; the selected
+// one doesn't re-fire. A GREY option (`disabled`: a range longer than the history behind the
+// chart) keeps its place, drawn dimmed: a tap does nothing, VoiceOver reads it as dimmed
+// (accessibilityState.disabled), and it is never selected, even if `value` names it.
 
 export interface RangePillsProps<R extends string> {
   options: readonly R[];
@@ -20,13 +25,15 @@ export interface RangePillsProps<R extends string> {
   variant: RangeVariant;
   /** Where the row sits: Home's tabs sit at the end of the line; money pills at the start. */
   align?: 'start' | 'end';
+  /** Options drawn grey and inert: they keep their place in the row, never selected. */
+  disabled?: readonly R[];
 }
 
 const UNDERLINE = 2;
 // The tab bar's and SegmentedControl's Dynamic Type ceiling (GS-3), so range labels never truncate.
 const LABEL_MAX_SCALE = 1.3;
 
-export function RangePills<R extends string>({ options, value, onChange, variant, align = variant === 'tabs' ? 'end' : 'start' }: RangePillsProps<R>) {
+export function RangePills<R extends string>({ options, value, onChange, variant, align = variant === 'tabs' ? 'end' : 'start', disabled = [] }: RangePillsProps<R>) {
   const { colors } = useTheme();
   const { fontScale } = useWindowDimensions();
   // `tabs`: every box the same width (the widest label + 16, at least 44), the label centred,
@@ -35,20 +42,22 @@ export function RangePills<R extends string>({ options, value, onChange, variant
   return (
     <View accessibilityRole="tablist" style={[styles.row, variant === 'tabs' ? styles.rowTabs : styles.rowPills, { justifyContent: align === 'end' ? 'flex-end' : 'flex-start' }]}>
       {options.map((option) => {
-        const selected = option === value;
+        const dead = disabled.includes(option);
+        const selected = option === value && !dead;
         const look = rangeLook(variant, selected, colors);
         return (
           <Pressable
             key={option}
             accessibilityRole="tab"
-            accessibilityState={{ selected }}
+            accessibilityState={{ selected, disabled: dead }}
+            disabled={dead}
             hitSlop={variant === 'tabs' ? undefined : 8}
             onPress={() => {
-              if (selected) return;
+              if (selected || dead) return;
               Haptics.selectionAsync().catch(() => {});
               onChange(option);
             }}
-            style={[styles.option, variant === 'pills' ? styles.pill : [styles.tab, { width: tabWidth }], look.fill ? { backgroundColor: look.fill } : null]}
+            style={[styles.option, variant === 'pills' ? styles.pill : [styles.tab, { width: tabWidth }], look.fill ? { backgroundColor: look.fill } : null, dead ? styles.dead : null]}
           >
             {variant === 'tabs' ? (
               // The underline spans the LABEL, not the box: this view hugs the text.
@@ -57,7 +66,7 @@ export function RangePills<R extends string>({ options, value, onChange, variant
                 <View style={[styles.underline, { backgroundColor: look.underline ?? 'transparent' }]} />
               </View>
             ) : (
-              <Text variant="callout" color={look.ink} maxFontSizeMultiplier={LABEL_MAX_SCALE} style={selected ? styles.selected : styles.idle}>{option}</Text>
+              <Text variant="callout" color={look.ink} maxFontSizeMultiplier={LABEL_MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={selected ? styles.selected : styles.idle}>{option}</Text>
             )}
           </Pressable>
         );
@@ -76,7 +85,7 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   rowPills: {
-    gap: 6,
+    gap: space[2],
   },
   option: {
     minHeight: 44,
@@ -89,12 +98,19 @@ const styles = StyleSheet.create({
     paddingTop: space[2],
     alignItems: 'center',
   },
+  // Six pills on one row at every text size: 8pt of fill each side (the 44pt target is the
+  // minWidth and the hit slop), and a pill may shrink before the row would wrap.
   pill: {
     minWidth: 44,
-    paddingHorizontal: space[4],
+    flexShrink: 1,
+    paddingHorizontal: space[3],
     borderRadius: radius.pill,
     minHeight: 32,
     marginVertical: 6,
+  },
+  // A grey range is the app's one disabled look: 50% (Stepper.tsx, SetupRows.tsx), Design Lead gate 2026-11-17.
+  dead: {
+    opacity: 0.5,
   },
   underline: {
     marginTop: space[1],

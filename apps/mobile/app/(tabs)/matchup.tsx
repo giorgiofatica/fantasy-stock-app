@@ -45,7 +45,6 @@ import { useRosterData, type RosterData } from '@/lib/game/useRosterData';
 import { openingOf, playerCardData } from '@/lib/game/playerCardModel';
 import { fixtureSeasonBars, fixtureWeekBars } from '@/lib/game/matchupFixture';
 import { MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '@/lib/game/devSeam';
-import { useStockChartData } from '@/lib/money/useStockChartData';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { decideTradeGate } from '@/lib/money/tradeGate';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
@@ -364,7 +363,6 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
   // The card stays mounted while it leaves, with the stock it was showing.
   const [shown, setShown] = useState<{ side: 'me' | 'opp'; symbol: string } | null>(null);
   const pendingSell = useRef<{ symbol: string; name: string } | null>(null);
-  const seasonBars = useStockChartData(shown?.symbol ?? '', !!shown && !SEAM_ON);
 
   const cw = raw.data.current_week;
   const sides = useMemo(() => {
@@ -428,8 +426,6 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
       // Under the capture seam the fixture's own daily bars (a real move every day); MSFT, bought
       // this week in the 'bought' fixture, has its bars in Home's raw inputs.
       bars: SEAM_ON ? seamBars(shown.symbol, raw.bars[shown.symbol] ?? []) : raw.bars[shown.symbol] ?? [],
-      seasonBars: SEAM_ON ? seamBars(shown.symbol, raw.bars[shown.symbol] ?? []) : seasonBars.status === 'ready' ? seasonBars.bars : null,
-      sessions,
       now,
     });
     if (!data) return null;
@@ -437,7 +433,7 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
     const pill = cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null);
     return { data, pill };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, roster.ledger, roster.slots, sides, seasonBars, sessions, now, raw, final]);
+  }, [shown, roster.ledger, roster.slots, sides, now, raw, final]);
 
   // Sell is live only while the market is open (the trade gate fails closed); the capture
   // seam plays the Home fixture's own market.
@@ -517,6 +513,8 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
             pendingSell.current = null;
             if (sell) stockSheet.open(sell.symbol, { name: sell.name });
           }}
+          sessions={sessions}
+          now={now}
           marketOpen={marketOpen}
           opens={opens}
         />
