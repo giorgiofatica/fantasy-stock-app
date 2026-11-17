@@ -662,8 +662,9 @@ building anything, and don't reopen a rule without him.
       stock yesterday greys nothing on its chart.
     - This extends his grey-out ruling for the Portfolio graph (above) to stock charts, which
       that ruling had left open.
-  - Not asked: what Season shows for a stock nobody in the league owns, in a league that has
-    drafted.
+  - The Design Lead's spec, shown to him on that board under both options and not objected
+    to (not his own ruling): after the draft, Season runs from the league's draft day to now
+    for ANY stock, owned or not. It is the same window for everyone in the league.
 - **Stock chart ranges** (2026-10-05, option A; SUPERSEDED 2026-11-17 by the rule above): 1W /
   1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
