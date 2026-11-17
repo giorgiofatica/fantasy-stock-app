@@ -277,6 +277,9 @@ building anything, and don't reopen a rule without him.
     the chart: "there should be a, some sort of X axis with like dates on it. Also, if at the
     bottom, like we don't need to say drafted on that chart, like A player can see from this
     pop-up card if they were drafted or picked up on waivers."
+  - (2026-11-17: the two stacked charts below are replaced by ONE chart with six ranges; see
+    "Every chart has the same six ranges" under Home and Portfolio. The date-axis and
+    realistic-movement points still describe what he expects of a chart.)
   - **The this-week chart shows the days of the week on its X axis** (Mon … Fri) and the
     mockup must use realistic movement: "why is there just like a flat line for half the
     chart and then like a slight pop-up? Like, that's not how it should be."
@@ -589,7 +592,27 @@ building anything, and don't reopen a rule without him.
   the only primary). Nothing is removed from Home; repeats are.
 - **Portfolio's gain is "since the draft"** (value − cost). It's deliberately a different
   label from "season gain"; never reuse one for the other.
-- **Stock chart ranges** (2026-10-05, option A): 1W / 1M / 3M / 1Y, with 1W the default.
+- **Every chart has the same six ranges: 1W, 1M, 3M, 6M, Season, YTD** (2026-11-17, build 14
+  era; this replaces "Stock chart ranges" below). Giorgio's words, after seeing the sheet for
+  a stock he owns: "this double graph look when you open a stocks window is awful", and then:
+  "every chart like that, whether its the portfolio graph or the specific stock view, there
+  should be 1 week, 1 month, 3 months, 6 months, Season, and YTD".
+  - It applies to the Portfolio graph (1W / 1M / Season today), the stock sheet's chart (1W /
+    1M / 3M / 1Y today) and the sheet for a stock you own or someone else owns (the player
+    card).
+  - The player card stops stacking two charts (a Season chart over a This week chart, his own
+    ruling of 2026-10-12). It has one chart with these ranges. He had been shown A (one chart
+    with a Week / Season switch) and B (one chart, season only) the same hour; his answer was
+    this rule, which is A with six ranges.
+  - 1Y is not in his list, so it goes; YTD and 6M take its place. 1W is the past five trading
+    days and no chart has a dotted line (both ruled 2026-11-16, below). There is still no 1D.
+  - Not decided, for the Design Lead to board and him to pick: which range each chart opens
+    on; what "Season" means on a stock sheet opened in a league that has not drafted, or for a
+    stock nobody in the league owns; and what the Portfolio graph does with a range longer
+    than the league has existed (a portfolio has no value before its draft, so 6M or YTD on a
+    two-week-old league is the same line as Season).
+- **Stock chart ranges** (2026-10-05, option A; SUPERSEDED 2026-11-17 by the rule above): 1W /
+  1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
 - **The stock chart has no dotted line** (2026-11-16, build 1.3.0 (14), the stock sheet).
   Giorgio's words: "I don't understand what this dotted line is because on some it's up. I
