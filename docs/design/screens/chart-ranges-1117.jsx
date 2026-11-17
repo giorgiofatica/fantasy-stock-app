@@ -57,7 +57,7 @@
     long: ['Jun 16', 'Aug 16', 'Oct 16'],
     sinceDraft: ['Nov 2', 'Nov 9', 'Nov 16'],
   };
-  function Chart({ x = 1, shape = 'Season', up = true, h = 120 }) {
+  function Chart({ x = 1, shape = 'Season', up = true, h = 120, axis }) {
     const pts = SHAPES[shape];
     const W = 362; const step = W / (pts.length - 1);
     const d = pts.map((y, i) => `${i ? 'L' : 'M'}${(i * step).toFixed(1)},${(y * h).toFixed(1)}`).join(' ');
@@ -69,7 +69,7 @@
           <path d={d} fill="none" stroke={col} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
           <circle cx={W} cy={last * h} r="4.5" fill="var(--c-accent)" />
         </svg>
-        <div style={{ display: 'flex', justifyContent: 'space-between', ...fs(12, x, 1.3), color: 'var(--c-text-2)' }}>{AXES[shape].map((a) => <span key={a}>{a}</span>)}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', ...fs(12, x, 1.3), color: 'var(--c-text-2)' }}>{(axis || AXES[shape]).map((a) => <span key={a}>{a}</span>)}</div>
       </div>
     );
   }
@@ -107,7 +107,14 @@
       </Phone>
     );
   }
-  function StockSheet({ t = 'light', x = 1, range = '1W', off = [], hide = [], label, shape }) {
+  // The gain beside each chart, per range (drawing values), and the two ways to name the period.
+  const GAINS = { '1W': ['+$7.40', '+4.13%'], '1M': ['+$12.85', '+7.40%'], '3M': ['+$31.20', '+20.10%'], '6M': ['+$54.60', '+41.42%'], Season: ['+$9.18', '+5.18%'], YTD: ['+$61.07', '+48.71%'] };
+  const WORDS_A = { '1W': 'past week', '1M': 'past month', '3M': 'past 3 months', '6M': 'past 6 months', Season: 'since the draft', YTD: 'this year' };
+  const gainLine = (range, words) => `${GAINS[range][0]} · ${GAINS[range][1]} ${words === 'B' ? `· ${range}` : WORDS_A[range]}`;
+  const AXIS_FOR = { '1W': AXES['1W'], '1M': ['Oct 16', 'Nov 1', 'Nov 16'], '3M': ['Aug 18', 'Oct 1', 'Nov 16'], '6M': ['May 18', 'Aug 18', 'Nov 16'], Season: AXES.Season, YTD: ['Jan 2', 'Jun 2', 'Nov 16'] };
+  const shapeFor = (range) => (range === '1W' ? '1W' : range === 'Season' || range === '1M' ? 'Season' : 'long');
+
+  function StockSheet({ t = 'light', x = 1, range = '1W', off = [], hide = [], label, shape, words }) {
     return (
       <Phone t={t} sheet label={label}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -116,14 +123,14 @@
           <Icon d={ICON.close} size={18} width={2.4} />
         </div>
         <Big x={x} v="$186.42" />
-        <Small x={x} color="var(--c-gain)">+$3.11 · +1.70% today</Small>
-        <Chart x={x} shape={shape || (range === '1W' ? '1W' : 'Season')} />
+        <Small x={x} color="var(--c-gain)">{words ? gainLine(range, words) : '+$3.11 · +1.70% today'}</Small>
+        <Chart x={x} shape={shape || (words ? shapeFor(range) : range === '1W' ? '1W' : 'Season')} axis={words ? AXIS_FOR[range] : undefined} />
         <Pills x={x} on={range} off={off} hide={hide} />
         <span style={{ display: 'grid', placeItems: 'center', minHeight: 50, borderRadius: 26, background: 'var(--c-accent)', color: 'var(--c-on-accent)', ...fs(17, x, 1.6), fontWeight: 700 }}>Buy NVDA</span>
       </Phone>
     );
   }
-  function PlayerCard({ t = 'light', x = 1, range = 'Season', label }) {
+  function PlayerCard({ t = 'light', x = 1, range = 'Season', label, card, words = 'A' }) {
     const fig = (l, v, s, c) => (
       <span style={{ display: 'grid', gap: 2 }}>
         <span style={{ ...fs(11, x, 1.3), fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--c-text-2)' }}>{l}</span>
@@ -137,12 +144,13 @@
           <span style={{ display: 'grid' }}><b style={{ ...fs(22, x, 1.3), color: 'var(--c-text)' }}>NVDA</b><span style={{ ...fs(13, x, 1.3), color: 'var(--c-text-2)' }}>NVIDIA Corp · Paolo M.</span></span>
           <Icon d={ICON.close} size={18} width={2.4} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: card === 'B' ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 8 }}>
           {fig('Price', '$186.42', '+1.70% today', 'var(--c-gain)')}
           {fig('Week gain', '+$41.20', '+2.11%', 'var(--c-gain)')}
-          {fig('Since the draft', '+$93.80', '+4.92%', 'var(--c-gain)')}
+          {card === 'B' ? null : card === 'A' ? fig(words === 'B' ? range : WORDS_A[range], GAINS[range][0], GAINS[range][1], 'var(--c-gain)') : fig('Since the draft', '+$93.80', '+4.92%', 'var(--c-gain)')}
         </div>
-        <Chart x={x} shape={range === '1W' ? '1W' : 'Season'} />
+        {card === 'B' ? <Small x={x} color="var(--c-gain)">{gainLine(range, words)}</Small> : null}
+        <Chart x={x} shape={card ? shapeFor(range) : range === '1W' ? '1W' : 'Season'} axis={card ? AXIS_FOR[range] : undefined} />
         <Pills x={x} on={range} />
       </Phone>
     );
@@ -221,7 +229,7 @@
         </ul>
         <Grid>{[
           fig('ra', 'A · a two-week-old league, 6M selected', <Portfolio range="6M" shape="Season" label="Portfolio, two-week-old league, 6M selected, option A" />, 'Same line as Season.'),
-          fig('rb', 'B · a two-week-old league (recommended)', <Portfolio range="Season" off={longer} label="Portfolio, two-week-old league, longer ranges greyed, option B" />, '1M, 3M, 6M and YTD grey until the league is old enough.'),
+          fig('rb', archived ? 'B · a two-week-old league (decided)' : 'B · a two-week-old league (recommended)', <Portfolio range="Season" off={longer} label="Portfolio, two-week-old league, longer ranges greyed, option B" />, '1M, 3M, 6M and YTD grey until the league is old enough.'),
           fig('rbd', 'B · Dark', <Portfolio t="dark" range="Season" off={longer} label="Portfolio, option B, Dark" />),
           fig('rbx', 'B · your size (AX5, approximate)', <Portfolio x={AX5} range="Season" off={longer} label="Portfolio, option B, AX5" />),
         ]}</Grid>
@@ -229,7 +237,50 @@
     );
   }
 
+  function CallRangeGain({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-range-gain" aria-labelledby="call-range-gain-h">
+        <Head id="call-range-gain" code="Charts" title={archived ? 'Decided: the gain beside each chart' : 'Your call: the gain beside each chart'} job={'You ruled that the gain or loss shown with a chart changes with the range you tap. Two things to settle: the words that name the period after the number, and where that number sits on a manager\u2019s stock (the player card), which today has three fixed figures: Price, Week gain and Since the draft.'} />
+        <ul className="b-inv__notes">
+          <li><b>The words, A · say the period.</b> "+$7.40 · +4.13% past week", then "past month", "past 3 months", "past 6 months", "since the draft" (today's words) and "this year". New words: "past week", "past month", "past 3 months", "past 6 months", "this year".</li>
+          <li><b>The words, B · repeat the range.</b> "+$7.40 · +4.13% · 1W", "· Season", "· YTD". No new words, but it reads as a code, not a sentence.</li>
+          <li><b>The player card, A · the third figure follows the range.</b> Price and Week gain stay; the third figure's label becomes the period ("Past week", "Since the draft"…) and its number changes as you tap.</li>
+          <li><b>The player card, B · two figures and the number by the chart.</b> Price and Week gain stay; the gain sits right above the chart, the same place as on Portfolio and a stock's sheet.</li>
+          <li><b>Week gain stays in both:</b> it's the matchup week (Monday to now, what the matchup scores), not 1W (the past five trading days), so it can't be one of the ranges.</li>
+          <li><b>Recommended: words A, card B.</b> A reads like the "today" and "since the draft" lines you already have; B puts the number in the same place on every chart, beside the line it describes.</li>
+          <li><b>One thing that goes:</b> a stock's sheet showed today's move ("+1.70% today"); with the number following the range, today's move shows only as the last point of 1W. On the player card it stays in the Price figure.</li>
+          <li><b>New words, for your OK as written (words A):</b> "past week", "past month", "past 3 months", "past 6 months", "this year".</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> words A or B, and card A or B.</>}</li>
+        </ul>
+        <h3 className="b-sub">The words, on a stock's sheet</h3>
+        <Grid>{[
+          fig('wa1', 'Words A · 1W', <StockSheet range="1W" words="A" label="Stock sheet, 1W, words A" />, '"past week".'),
+          fig('wa2', 'Words A · Season', <StockSheet range="Season" words="A" label="Stock sheet, Season, words A" />, '"since the draft", as on Portfolio today.'),
+          fig('wa3', 'Words A · YTD', <StockSheet range="YTD" words="A" label="Stock sheet, YTD, words A" />, '"this year".'),
+          fig('wb1', 'Words B · 1W', <StockSheet range="1W" words="B" label="Stock sheet, 1W, words B" />, 'The range\u2019s own label.'),
+          fig('wb3', 'Words B · YTD', <StockSheet range="YTD" words="B" label="Stock sheet, YTD, words B" />),
+        ]}</Grid>
+        <h3 className="b-sub">The player card</h3>
+        <Grid>{[
+          fig('ca1', 'Card A · Season', <PlayerCard card="A" range="Season" label="Player card A, Season" />, 'The third figure is the range\u2019s gain.'),
+          fig('ca2', 'Card A · 1W', <PlayerCard card="A" range="1W" label="Player card A, 1W" />, 'Its label and number change with the tap.'),
+          fig('cb1', 'Card B · Season (recommended)', <PlayerCard card="B" range="Season" label="Player card B, Season" />, 'Two figures; the gain above the chart.'),
+          fig('cb2', 'Card B · 1W', <PlayerCard card="B" range="1W" label="Player card B, 1W" />),
+          fig('cbd', 'Card B · Dark', <PlayerCard t="dark" card="B" range="Season" label="Player card B, Dark" />),
+          fig('cbx', 'Card B · your size (AX5, approximate)', <PlayerCard x={AX5} card="B" range="6M" label="Player card B, 6M, AX5" />, '"past 6 months" at your size.'),
+        ]}</Grid>
+      </section>
+    );
+  }
+
   window.KSChartDefault = () => <CallChartDefault />;
   window.KSSeasonPredraft = () => <CallSeasonPredraft />;
-  window.KSRangeTooLong = () => <CallRangeTooLong />;
+  window.KSRangeTooLong = () => null; // decided 2026-11-17: B; it lives in the Archive
+  window.KSRangeTooLongArchived = () => (
+    <CallRangeTooLong
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17), before the board reached him: "grey out the ranges longer than the league has existed".</b> That is B, for the Portfolio graph. Whether a stock chart ever greys a range was not asked. Recorded in PRODUCT_RULES by the Planner (#495).</>}
+    />
+  );
+  window.KSRangeGain = () => <CallRangeGain />;
 })();
