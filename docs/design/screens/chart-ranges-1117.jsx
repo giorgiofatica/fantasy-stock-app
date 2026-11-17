@@ -287,7 +287,7 @@
         <Grid>{[
           fig('ca1', 'Card A · Season', <PlayerCard card="A" range="Season" label="Player card A, Season" />, 'The third figure is the range\u2019s gain.'),
           fig('ca2', 'Card A · 1W', <PlayerCard card="A" range="1W" label="Player card A, 1W" />, 'Its label and number change with the tap.'),
-          fig('cb1', 'Card B · Season (recommended)', <PlayerCard card="B" fmt="paren" range="Season" label="Player card B, Season" />, 'Two figures; the gain above the chart.'),
+          fig('cb1', archived ? 'Card B · Season (decided)' : 'Card B · Season (recommended)', <PlayerCard card="B" fmt="paren" range="Season" label="Player card B, Season" />, 'Two figures; the gain above the chart.'),
           fig('cb2', 'Card B · 1W', <PlayerCard card="B" fmt="paren" range="1W" label="Player card B, 1W" />),
           fig('cbd', 'Card B · Dark', <PlayerCard t="dark" card="B" fmt="paren" range="Season" label="Player card B, Dark" />),
           fig('cbx', 'Card B · your size (AX5, approximate)', <PlayerCard x={AX5} card="B" fmt="paren" range="6M" label="Player card B, 6M, AX5" />, '"past 6 months" at your size.'),
@@ -346,7 +346,13 @@
       decidedNote={<><b>Decided by Giorgio (2026-11-17), before the board reached him: "grey out the ranges longer than the league has existed".</b> That is B, for the Portfolio graph. Whether a stock chart ever greys a range was not asked. Recorded in PRODUCT_RULES by the Planner (#495).</>}
     />
   );
-  window.KSRangeGain = () => <CallRangeGain />;
+  window.KSRangeGain = () => null; // decided 2026-11-17: words A, card B; it lives in the Archive
+  window.KSRangeGainArchived = () => (
+    <CallRangeGain
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17).</b> Words A ("i like the past 6 months"), in the bracket format of #call-gain-format. Card B ("B"): the player card's top keeps two figures, Price and Week gain, and the range's gain sits above the chart, "+$54.60 (+41.42%) past 6 months", in the same place as on Portfolio and a stock's sheet. Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
   window.KSGainFormat = () => null; // decided 2026-11-17: A; it lives in the Archive
   window.KSGainFormatArchived = () => (
     <CallGainFormat
