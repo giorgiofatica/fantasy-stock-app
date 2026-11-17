@@ -51,3 +51,45 @@ export async function checkSetupOnServer(invoke: Invoke, leagueId: string, slots
     return OPEN;
   }
 }
+
+/** The league rules check_setup judges the proposed slots against: the SAVED league row, not the ones being edited. */
+export interface CheckedRules {
+  numParticipants: number;
+  numRounds: number;
+  stakeMode: string;
+  notionalPerSlot: string;
+  budgetCap: string;
+  /** Widens the pool the server judges against, so it counts too. */
+  allowUndraftable: boolean;
+}
+
+const asInt = (s: string): number => parseInt(s, 10) || 0;
+
+/** True when any rule the server would judge differs from the saved league. check_setup reads those from the saved row, so
+ * its verdict would be about numbers the commissioner is in the middle of changing (a budget raised to fix budget_infeasible
+ * is judged on the old budget; Teams lowered to fix a short slot is judged at the old Teams): a trap, not a check. */
+export function rulesChangedSinceSaved(saved: CheckedRules | null, proposed: CheckedRules): boolean {
+  if (!saved) return true; // not loaded yet: nothing trustworthy to compare, so no server verdict
+  return (
+    saved.numParticipants !== proposed.numParticipants ||
+    saved.numRounds !== proposed.numRounds ||
+    saved.stakeMode !== proposed.stakeMode ||
+    asInt(saved.notionalPerSlot) !== asInt(proposed.notionalPerSlot) ||
+    asInt(saved.budgetCap) !== asInt(proposed.budgetCap) ||
+    saved.allowUndraftable !== proposed.allowUndraftable
+  );
+}
+
+/** The Save gate: the server's check of the proposed slots, but ONLY while the rules it judges by are unchanged. When any differ
+ * it makes no call and fails OPEN, like feasibility_unavailable (the client per-slot check, at the proposed league size, still
+ * runs, and the draft's own start check stays the backstop). */
+export async function checkSetupForSave(
+  invoke: Invoke,
+  leagueId: string,
+  slots: readonly ProposedSlot[],
+  saved: CheckedRules | null,
+  proposed: CheckedRules,
+): Promise<SetupVerdict> {
+  if (slots.length === 0 || rulesChangedSinceSaved(saved, proposed)) return OPEN;
+  return checkSetupOnServer(invoke, leagueId, slots);
+}

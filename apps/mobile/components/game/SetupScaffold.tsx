@@ -120,7 +120,7 @@ export function SetupScaffold({ back, close, sheet, step, title, subtitle, child
                   accessibilityRole="button"
                   accessibilityLabel="Close"
                   accessibilityState={{ disabled: !!close.disabled }}
-                  style={styles.close}
+                  style={[styles.close, close.disabled ? styles.closeDisabled : null]}
                   testID="setup-close"
                 >
                   {/* Never grows with the text size ('tab' is the icon role that does not scale), in the text colour. */}
@@ -152,10 +152,10 @@ const styles = StyleSheet.create({
   fill: {
     flex: 1,
   },
+  // No padding on the row itself: it would make the two flex columns unequal and pull "Step N of 4" off the true centre.
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: space[3],
   },
   topSide: {
     flex: 1,
@@ -166,11 +166,17 @@ const styles = StyleSheet.create({
   topSideRight: {
     justifyContent: 'flex-end',
   },
+  // The × keeps its right inset as a margin INSIDE its column, so the columns stay equal.
   close: {
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: space[3],
+  },
+  // While creating: the app's disabled look.
+  closeDisabled: {
+    opacity: 0.5,
   },
   back: {
     flexDirection: 'row',

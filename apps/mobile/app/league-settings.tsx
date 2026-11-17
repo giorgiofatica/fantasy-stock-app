@@ -46,7 +46,7 @@ import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
 import { useSlotCheck } from '@/lib/game/useSlotCheck';
 import { SLOT_FIXTURE } from '@/lib/shell/captureDev';
 import { FIXTURE_SLOTS } from '@/lib/game/slotFixture';
-import { checkSetupOnServer } from '@/lib/game/slotSetupCheck';
+import { checkSetupForSave } from '@/lib/game/slotSetupCheck';
 import { SETTINGS_LOCKED, inviteShareMessage, inviteShareShown } from '@/lib/game/leagueSettingsEntry';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { keepDots } from '@/lib/game/keepDots';
@@ -293,13 +293,14 @@ export default function LeagueSettingsScreen() {
       if (!isLocked) {
         // One more client check, awaited, when the last result is stale (never silently skipped): a short slot shows its own line and stops here.
         if (await slotCheck.ensureFresh()) return;
-        // Then the server's exact check of the PROPOSED slots (overlaps and the budget reserve too). It fails OPEN: only a real verdict blocks.
-        if (slots.length > 0) {
-          const verdict = await checkSetupOnServer((body) => seamInvoke('draft-control', { body }), league.id, slots);
-          if (verdict.blocked) {
-            setSlotsError(verdict.line);
-            return;
-          }
+        // Then the server's exact check of the PROPOSED slots (overlaps and the budget reserve too). It judges them against the SAVED
+        // league row, so it runs only while the rules in this form (Teams, rounds, stakes, budget, non-draftable) still equal the
+        // saved ones; any change skips it and fails OPEN. It also fails open on anything but a real verdict.
+        const rules = { numParticipants, numRounds, stakeMode, notionalPerSlot, budgetCap, allowUndraftable };
+        const verdict = await checkSetupForSave((body) => seamInvoke('draft-control', { body }), league.id, slots, loaded, rules);
+        if (verdict.blocked) {
+          setSlotsError(verdict.line);
+          return;
         }
       }
 

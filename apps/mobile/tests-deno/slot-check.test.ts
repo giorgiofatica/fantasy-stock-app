@@ -19,7 +19,7 @@ import {
 } from '../lib/game/slotCheck.ts';
 import { createNextDisabled, stakesStepError } from '../lib/game/createLeagueSteps.ts';
 import { saveState } from '../components/shell/sheetBarLogic.ts';
-import { checkSetupOnServer, proposedSlotsBody, setupCheckVerdict } from '../lib/game/slotSetupCheck.ts';
+import { type CheckedRules, checkSetupForSave, checkSetupOnServer, proposedSlotsBody, rulesChangedSinceSaved, setupCheckVerdict } from '../lib/game/slotSetupCheck.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
 const slot = (o: Partial<CheckSlot> = {}): CheckSlot => ({ slotCount: '2', priceMin: '', priceMax: '', categoryId: '', ...o });
@@ -187,13 +187,14 @@ Deno.test('League settings: Save is grey while a slot is short, and handleSave a
   const s = SOURCES['app/league-settings.tsx'];
   assert(s.includes('blocked: slotCheck.blockReason != null'));
   const fresh = s.indexOf('if (await slotCheck.ensureFresh()) return;');
-  const server = s.indexOf("checkSetupOnServer((body) => seamInvoke('draft-control', { body }), league.id, slots)");
+  const server = s.indexOf("checkSetupForSave((body) => seamInvoke('draft-control', { body }), league.id, slots, loaded, rules)");
   const write = s.indexOf('await seamUpdateLeague(league.id, patch)');
   assert(fresh > 0 && server > fresh && write > server, 'client re-check, then check_setup, then the first write');
   assert(s.includes('enabled: !!league && isCommissioner && !isLocked'));
   // The server check runs whenever slots exist, and a blocked verdict stops the save (the red line under Roster slots).
-  assert(s.includes('if (slots.length > 0) {\n          const verdict = await checkSetupOnServer('));
-  assert(s.includes('if (verdict.blocked) {\n            setSlotsError(verdict.line);\n            return;'));
+  // The rules passed are the form's own five (plus non-draftable); the baseline is `loaded`, the saved league.
+  assert(s.includes('const rules = { numParticipants, numRounds, stakeMode, notionalPerSlot, budgetCap, allowUndraftable };'));
+  assert(s.includes('if (verdict.blocked) {\n          setSlotsError(verdict.line);\n          return;'));
 });
 
 Deno.test("check_setup: only the two real verdicts block, in the draft blockers card's words; everything else fails OPEN", () => {
@@ -232,4 +233,37 @@ Deno.test('check_setup request: league_id, action, and the proposed slots in the
     { blocked: false },
   );
   assertEquals(proposedSlotsBody([slot({ slotCount: '' })])[0].slot_count, 1);
+});
+
+const SAVED: CheckedRules = { numParticipants: 12, numRounds: 6, stakeMode: 'budget_cap', notionalPerSlot: '1000', budgetCap: '2500', allowUndraftable: false };
+const refusing = async () => ({ data: { ok: false, reason: 'budget_infeasible' } });
+
+Deno.test('P1: a changed budget, Teams, rounds, stakes, per-slot stake or non-draftable switch makes NO server call and fails OPEN', async () => {
+  const changes: Partial<CheckedRules>[] = [
+    { budgetCap: '5000' },
+    { numParticipants: 8 },
+    { numRounds: 5 },
+    { stakeMode: 'price_tiers' },
+    { notionalPerSlot: '2000' },
+    { allowUndraftable: true },
+  ];
+  for (const change of changes) {
+    let calls = 0;
+    const v = await checkSetupForSave(async (b) => { calls++; return refusing(b); }, 'L1', [slot()], SAVED, { ...SAVED, ...change });
+    assertEquals(calls, 0, JSON.stringify(change));
+    assertEquals(v, { blocked: false }, JSON.stringify(change));
+    assertEquals(rulesChangedSinceSaved(SAVED, { ...SAVED, ...change }), true);
+  }
+});
+
+Deno.test('P1: with the rules unchanged the server is asked, and a real refusal blocks; no slots or no loaded league: no call, open', async () => {
+  let calls = 0;
+  const invoke = async (b: Record<string, unknown>) => { calls++; return refusing(b); };
+  assertEquals((await checkSetupForSave(invoke, 'L1', [slot()], SAVED, { ...SAVED })).blocked, true);
+  assertEquals(calls, 1);
+  // The same numbers typed differently (a leading zero, a trailing space) are not a change.
+  assertEquals(rulesChangedSinceSaved(SAVED, { ...SAVED, budgetCap: '02500' }), false);
+  assertEquals(await checkSetupForSave(invoke, 'L1', [], SAVED, { ...SAVED }), { blocked: false });
+  assertEquals(await checkSetupForSave(invoke, 'L1', [slot()], null, { ...SAVED }), { blocked: false });
+  assertEquals(calls, 1);
 });

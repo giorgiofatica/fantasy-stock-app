@@ -63,6 +63,19 @@ Deno.test('C1/C4/C5: the scaffold draws a 44x44 "Close" button in the text colou
   assertEquals(c.match(/maxFontSizeMultiplier=\{TOP_ROW_MAX_SCALE\}/g)?.length, 2);
 });
 
+Deno.test('P2: the top row has no padding of its own, so Step N of 4 is the true centre; the × keeps its inset as a margin inside its column', () => {
+  const c = SOURCES['components/game/SetupScaffold.tsx'];
+  const row = c.slice(c.indexOf('  topRow: {'), c.indexOf('  topSide: {'));
+  assertEquals(/padding/.test(row.replace(/\/\/[^\n]*\n/g, '')), false);
+  assert(/close: \{[^}]*marginRight: space\[3\],/.test(c));
+});
+
+Deno.test('P3: the × is drawn at 0.5 opacity while it is disabled (creating)', () => {
+  const c = SOURCES['components/game/SetupScaffold.tsx'];
+  assert(c.includes('style={[styles.close, close.disabled ? styles.closeDisabled : null]}'));
+  assert(/closeDisabled: \{\n    opacity: 0\.5,/.test(c));
+});
+
 Deno.test('C7: League settings is untouched (sheet bar), and the done screen passes no ×', () => {
   const s = SOURCES['app/league-settings.tsx'];
   assertEquals(s.includes('close={{'), false);
