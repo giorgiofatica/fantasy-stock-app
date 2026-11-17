@@ -1215,6 +1215,26 @@ building anything, and don't reopen a rule without him.
   managers (never more). The bracket is derived (weeks = ceil(log2 P); byes to the top
   seeds). Rounds are named by teams left: Final / Semifinals / Quarterfinals / Round of
   16; a first round with byes is "Wild card".
+- **The slot availability check runs by itself; there is no "Check availability" button**
+  (2026-11-17, build 1.3.0 (16), Create league › Stakes › Price tiers; typed in the
+  Orchestrator's chat, 17:54–17:55Z). He asked "what is the purpose of check availability?"
+  and, once told, said: "how will a user, especially a new user, understand or know what that
+  means? that should be done by us automatically imo and then notify the user if something
+  cannot work".
+  - The app checks whether enough stocks fit each slot without being asked. The button goes.
+  - The player is told only when something cannot work: the existing shortfall words for a
+    slot that cannot be filled, or the existing "Couldn't check availability. Try again." if
+    the lookup itself fails. When every slot works, nothing is shown.
+  - Not decided, and the Design Lead specs it, bringing it to him only if it is a real
+    choice: when the check runs (after edits settle, on leaving the step, or both), and
+    whether "Create league" stays enabled while a slot is short. Today a shortfall does not
+    block creating the league; the draft's own start check is the backstop.
+- **Create league needs an easier way out** (2026-11-17, same sitting, 17:47Z, the
+  Orchestrator's chat). His words: "one thing when creating the league, i need to hit back a
+  bunch before i can get back to the cancel button. should be a bit easier of a way to x
+  out". Not ruled how. Related, already ruled: a sheet's close never asks and drops edits at
+  once (2026-11-12, "B and no"), and a tall sheet's close is a floating round button
+  (2026-11-12, "b").
 - **The Season step in Create league** (2026-11-10, build 12; Giorgio picked B, board
   #call-season-step). His words: "B for the season step, the one with a strip". The note that
   started it: "I really don't like this style of mainline like managers and then this like
