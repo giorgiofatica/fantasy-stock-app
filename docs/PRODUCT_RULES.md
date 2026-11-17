@@ -269,6 +269,8 @@ building anything, and don't reopen a rule without him.
     amount that it was drafted at, or you show like the waiver wire, the date, and then …
     the price." So the "How you got it" block is the LAST section of the card: the date,
     then Draft (with the pick) or Waiver claim or Buy, then the price.
+  - (2026-11-17: now TWO figures, Price and Week gain; see "On the card for a stock on a
+    team" under "Every chart has the same six ranges".)
   - **Three key figures, not four.** "I like the kind of initial top card with like the price,
     the week gain since draft their position. I don't love the their position. In that, I
     think it does seem a little cluttered. Maybe we just go with three." So the strip is
@@ -609,9 +611,8 @@ building anything, and don't reopen a rule without him.
   - **Ranges longer than the league has existed are greyed out** (2026-11-17, the same
     conversation, shown a Portfolio mockup for a one-week-old league where 1M, 3M, 6M and YTD
     would all draw the Season line). His words: "grey out the ranges longer than the league
-    has existed." Said of the Portfolio graph, whose line starts at the draft. Whether a
-    stock's own chart ever greys a range (a stock has price history from before the league)
-    was not asked and is not ruled.
+    has existed." Said of the Portfolio graph, whose line starts at the draft. Stock charts
+    were ruled later the same day (see "A range a chart cannot draw yet", below).
   - **The gain or loss shown with a chart follows the selected range** (2026-11-17, same
     message). His words: "we need to make sure the P/L number changes with each click to a
     different time frame". So choosing 1M shows the gain over that month, choosing Season
@@ -639,14 +640,45 @@ building anything, and don't reopen a rule without him.
       chose the words once shown they fit on one line at his text size. A line that has to
       wrap never breaks inside a number; where exactly the bracket format breaks is the
       Design Lead's to set.
-    - Not ruled: where the range gain sits on the card for a stock you own (A: three figures,
-      the third follows the range; B: Price and Week gain, with the gain above the chart). The
-      Design Lead first recorded his "for both" as covering this and withdrew it when he
-      clarified. This ruling is about the gain beside a chart; other lines that pair dollars
-      and a percent with a dot (a matchup's "This week" line, for one) were not asked about.
-  - Not decided, for the Design Lead to board and him to pick: which range each chart opens
-    on; and what "Season" means on a stock sheet opened in a league that has not drafted, or
-    for a stock nobody in the league owns.
+    - **On the card for a stock on a team: two figures at the top, and the range gain above
+      the chart** (2026-11-17, the player-card half of `#call-range-gain`, PR #496; typed in
+      the Orchestrator's chat, 18:06Z: "B and merged 499"). The top strip is Price and Week
+      gain. The range's gain sits right above the chart, in the format above, the same place
+      as on Portfolio and the stock sheet, so every chart reads the same way. A (three
+      figures, the third following the range) was not picked. Week gain stays because it is
+      the matchup week, Monday to now, which is not the same as 1W, the past five trading
+      days. "Since the draft" is no longer a third figure; it is what the range gain says on
+      Season. This replaces "Three key figures, not four" (2026-10-12). The Design Lead first
+      recorded his earlier "for both" as covering this and withdrew it when he clarified.
+    - This ruling is about the gain beside a chart; other lines that pair dollars and a
+      percent with a dot (a matchup's "This week" line, for one) were not asked about.
+  - **Which range a chart opens on: your team on Season, a stock you are shopping for on 1W**
+    (2026-11-17, board `#call-chart-default`, PR #496; typed in the Orchestrator's chat,
+    18:00Z: "go with B"). The Portfolio graph and the card for a stock on a team open on
+    Season. The stock sheet in Buy a stock opens on 1W. A (every chart opens on Season) was
+    not picked. The reason given to him: each chart opens on what you most likely came to
+    check, your team's whole run or a stock's recent move.
+  - **A range a chart cannot draw yet is greyed in its place, never hidden** (2026-11-17, board
+    `#call-season-predraft`, PR #496; typed in the Orchestrator's chat, 18:04Z: "B and D").
+    - B: before the league has drafted there is no season, so the stock sheet's Season button
+      shows greyed out in its usual place. The row keeps its six buttons. A (hide Season, five
+      buttons) was not picked.
+    - D: on a stock's chart, a range longer than the stock's own trading history is greyed out
+      until the stock is old enough: a recent listing shows 3M, 6M and YTD greyed. C (those
+      ranges still work and show the shorter history) was not picked. Before picking he asked
+      "when you say new stock, you mean a recent ipo? or new stock to the portfolio?" and was
+      told a recent IPO: a stock's chart is its market history, whoever owns it. So buying a
+      stock yesterday greys nothing on its chart.
+    - This extends his grey-out ruling for the Portfolio graph (above) to stock charts, which
+      that ruling had left open.
+  - The Design Lead's spec, NOT asked of him (2026-11-17): on a stock's chart the shortest
+    range, 1W, never greys. A stock listed less than a week ago would otherwise have every
+    range greyed and nothing to open on, since the stock sheet opens on 1W; so 1W stays
+    available and draws only the days that exist. Treated as what his rule needs to work, and
+    to be raised with him if he ever questions it.
+  - The Design Lead's spec, shown to him on that board under both options and not objected
+    to (not his own ruling): after the draft, Season runs from the league's draft day to now
+    for ANY stock, owned or not. It is the same window for everyone in the league.
 - **Stock chart ranges** (2026-10-05, option A; SUPERSEDED 2026-11-17 by the rule above): 1W /
   1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
