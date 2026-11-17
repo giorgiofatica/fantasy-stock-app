@@ -606,11 +606,24 @@ building anything, and don't reopen a rule without him.
     this rule, which is A with six ranges.
   - 1Y is not in his list, so it goes; YTD and 6M take its place. 1W is the past five trading
     days and no chart has a dotted line (both ruled 2026-11-16, below). There is still no 1D.
+  - **Ranges longer than the league has existed are greyed out** (2026-11-17, the same
+    conversation, shown a Portfolio mockup for a one-week-old league where 1M, 3M, 6M and YTD
+    would all draw the Season line). His words: "grey out the ranges longer than the league
+    has existed." Said of the Portfolio graph, whose line starts at the draft. Whether a
+    stock's own chart ever greys a range (a stock has price history from before the league)
+    was not asked and is not ruled.
+  - **The gain or loss shown with a chart follows the selected range** (2026-11-17, same
+    message). His words: "we need to make sure the P/L number changes with each click to a
+    different time frame". So choosing 1M shows the gain over that month, choosing Season
+    shows the gain over the season, and so on, on every chart that has the ranges. Today the
+    stock sheet's line under the price always says the day's change ("−$17.04 · −2.53%
+    today") and Portfolio's says the season's. Not decided: the words that name each period
+    beside the number, and where that number sits on the card for a stock you own, which
+    already has three fixed figures (Price, Week gain, Since the draft). The Design Lead
+    boards both; any new words come to him first.
   - Not decided, for the Design Lead to board and him to pick: which range each chart opens
-    on; what "Season" means on a stock sheet opened in a league that has not drafted, or for a
-    stock nobody in the league owns; and what the Portfolio graph does with a range longer
-    than the league has existed (a portfolio has no value before its draft, so 6M or YTD on a
-    two-week-old league is the same line as Season).
+    on; and what "Season" means on a stock sheet opened in a league that has not drafted, or
+    for a stock nobody in the league owns.
 - **Stock chart ranges** (2026-10-05, option A; SUPERSEDED 2026-11-17 by the rule above): 1W /
   1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
