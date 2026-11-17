@@ -609,9 +609,8 @@ building anything, and don't reopen a rule without him.
   - **Ranges longer than the league has existed are greyed out** (2026-11-17, the same
     conversation, shown a Portfolio mockup for a one-week-old league where 1M, 3M, 6M and YTD
     would all draw the Season line). His words: "grey out the ranges longer than the league
-    has existed." Said of the Portfolio graph, whose line starts at the draft. Whether a
-    stock's own chart ever greys a range (a stock has price history from before the league)
-    was not asked and is not ruled.
+    has existed." Said of the Portfolio graph, whose line starts at the draft. Stock charts
+    were ruled later the same day (see "A range a chart cannot draw yet", below).
   - **The gain or loss shown with a chart follows the selected range** (2026-11-17, same
     message). His words: "we need to make sure the P/L number changes with each click to a
     different time frame". So choosing 1M shows the gain over that month, choosing Season
@@ -650,9 +649,21 @@ building anything, and don't reopen a rule without him.
     Season. The stock sheet in Buy a stock opens on 1W. A (every chart opens on Season) was
     not picked. The reason given to him: each chart opens on what you most likely came to
     check, your team's whole run or a stock's recent move.
-  - Not decided, for the Design Lead to board and him to pick: what "Season" means on a
-    stock sheet opened in a league that has not drafted, or for a stock nobody in the league
-    owns.
+  - **A range a chart cannot draw yet is greyed in its place, never hidden** (2026-11-17, board
+    `#call-season-predraft`, PR #496; typed in the Orchestrator's chat, 18:04Z: "B and D").
+    - B: before the league has drafted there is no season, so the stock sheet's Season button
+      shows greyed out in its usual place. The row keeps its six buttons. A (hide Season, five
+      buttons) was not picked.
+    - D: on a stock's chart, a range longer than the stock's own trading history is greyed out
+      until the stock is old enough: a recent listing shows 3M, 6M and YTD greyed. C (those
+      ranges still work and show the shorter history) was not picked. Before picking he asked
+      "when you say new stock, you mean a recent ipo? or new stock to the portfolio?" and was
+      told a recent IPO: a stock's chart is its market history, whoever owns it. So buying a
+      stock yesterday greys nothing on its chart.
+    - This extends his grey-out ruling for the Portfolio graph (above) to stock charts, which
+      that ruling had left open.
+  - Not asked: what Season shows for a stock nobody in the league owns, in a league that has
+    drafted.
 - **Stock chart ranges** (2026-10-05, option A; SUPERSEDED 2026-11-17 by the rule above): 1W /
   1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
