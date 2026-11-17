@@ -1264,9 +1264,16 @@ building anything, and don't reopen a rule without him.
 - **Create league needs an easier way out** (2026-11-17, same sitting, 17:47Z, the
   Orchestrator's chat). His words: "one thing when creating the league, i need to hit back a
   bunch before i can get back to the cancel button. should be a bit easier of a way to x
-  out". Not ruled how. Related, already ruled: a sheet's close never asks and drops edits at
+  out". Ruled the same day (below). Related, already ruled: a sheet's close never asks and drops edits at
   once (2026-11-12, "B and no"), and a tall sheet's close is a floating round button
   (2026-11-12, "b").
+  - **Ruled: "A"** (board `#call-create-close`, PRs #497 and #499; typed in the Orchestrator's
+    chat, 2026-11-17 18:08Z: "A, and merged 500 and 501"). Every step of Create league has a ×
+    at the top right that closes the whole flow at once and drops the half-made league, with
+    no prompt, as he ruled for sheets on 2026-11-12. "‹ Back" stays at the top left, and
+    "Step N of 4" moves to the centre. Step 1's "Cancel" becomes the ×, read by VoiceOver as
+    "Close". No new words. B (the × at the top left, Back as a button beside Next) was not
+    picked.
 - **The Season step in Create league** (2026-11-10, build 12; Giorgio picked B, board
   #call-season-step). His words: "B for the season step, the one with a strip". The note that
   started it: "I really don't like this style of mainline like managers and then this like
