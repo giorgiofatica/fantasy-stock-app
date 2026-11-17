@@ -621,6 +621,29 @@ building anything, and don't reopen a rule without him.
     beside the number, and where that number sits on the card for a stock you own, which
     already has three fixed figures (Price, Week gain, Since the draft). The Design Lead
     boards both; any new words come to him first.
+  - **The range gain shows both numbers, the percent in brackets, then the period in words**
+    (2026-11-17, boards `#call-gain-format` and `#call-range-gain`, PR #496; typed in the
+    Design Lead's chat). His words, in order: "ok i like the past 6 months but i dont like the
+    fact that there are two numbers only separated by a dot" (17:31Z); shown the two formats
+    as mockups, "A" (17:41Z), "for both" (17:41Z), and, clarifying what "both" meant, "A both
+    numbers and A with past 6 months word example" (17:43Z).
+    - Format (A): the dollars, the percent in brackets, then the period, on every chart:
+      **"+$54.60 (+41.42%) past 6 months"**. No dot between the two numbers. B (one number
+      per chart: dollars on Portfolio and a manager's stock, percent on a stock you are
+      looking at) was not picked. The reason given to him for keeping both: dollars decide
+      matchups, and the percent is what compares stocks at different prices.
+    - Words (A), approved copy by this pick: **"past week"**, **"past month"**, **"past 3
+      months"**, **"past 6 months"**, **"this year"**, and for Season the existing **"since
+      the draft"**. B (repeating the range label, "· 6M") was not picked; he had first leaned
+      to it for fit ("might be hard to fit all those words in option A on one screen"), then
+      chose the words once shown they fit on one line at his text size. A line that has to
+      wrap never breaks inside a number; where exactly the bracket format breaks is the
+      Design Lead's to set.
+    - Not ruled: where the range gain sits on the card for a stock you own (A: three figures,
+      the third follows the range; B: Price and Week gain, with the gain above the chart). The
+      Design Lead first recorded his "for both" as covering this and withdrew it when he
+      clarified. This ruling is about the gain beside a chart; other lines that pair dollars
+      and a percent with a dot (a matchup's "This week" line, for one) were not asked about.
   - Not decided, for the Design Lead to board and him to pick: which range each chart opens
     on; and what "Season" means on a stock sheet opened in a league that has not drafted, or
     for a stock nobody in the league owns.
