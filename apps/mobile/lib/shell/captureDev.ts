@@ -3,6 +3,7 @@
  * parser and the list). Same safety model as lib/shell/devFixture.ts: read only under
  * `__DEV__`, so a release bundle never consults the env vars and every knob is dead code there.
  */
+import { LogBox } from 'react-native';
 import { parseCaptureKnobs } from './captureKnobs';
 
 export const CAPTURE = parseCaptureKnobs(__DEV__, {
@@ -28,6 +29,13 @@ export const DELETED_NOTICE_FIXTURE = __DEV__ && process.env.EXPO_PUBLIC_DELETED
 import { parseSignupCapture } from '../auth/signupCapture';
 
 export const SIGNUP_CAPTURE = parseSignupCapture(__DEV__, { error: process.env.EXPO_PUBLIC_SIGNUP_ERROR, prefill: process.env.EXPO_PUBLIC_SIGNUP_PREFILL });
+
+// The slot check's stills (lib/game/slotFixture.ts): seeds price-tier slots and feeds the check's count read. Dev builds only.
+import { parseSlotFixture } from '../game/slotFixture';
+
+export const SLOT_FIXTURE = parseSlotFixture(__DEV__, process.env.EXPO_PUBLIC_SLOT_FIXTURE);
+// A capture runs against a dead server, whose unhandled fetch rejections raise a dev LogBox toast over the footer (Create league): hide them.
+if (SLOT_FIXTURE) LogBox.ignoreAllLogs();
 
 // The "i" popup (UX rule 13): EXPO_PUBLIC_INFO_FIXTURE=<key>[:<page>] opens it once on launch (lib/game/infoPopups.ts). Dev builds only.
 import { parseInfoFixture } from '../game/infoPopups';

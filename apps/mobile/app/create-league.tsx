@@ -5,7 +5,7 @@
 // its gates live in lib/game/createLeagueSteps.ts; handleCreate and every
 // write below are unchanged from the nine-step screen this replaces.
 import { Alert, Share, StyleSheet, View } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { useAuth } from '@/lib/useAuth';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -48,6 +48,8 @@ import {
   weeksShown,
 } from '@/lib/game/createLeagueSteps';
 import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
+import { useSlotCheck } from '@/lib/game/useSlotCheck';
+import { closeCreateLeague, closeDisabled } from '@/lib/game/createLeagueClose';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { draftDateForSave } from '@/lib/game/draftDateSave';
 import { draftTimeRefusal } from '@/lib/game/autoStart';
@@ -74,7 +76,8 @@ import { Stepper } from '@/components/game/Stepper';
 import { SeasonStrip } from '@/components/game/SeasonStrip';
 import { WEEKS_UNIT_SHOWN, WEEKS_UNIT_SPOKEN, seasonByeLine } from '@/lib/game/seasonStep';
 import { DraftDateSheet } from '@/components/game/DraftDateSheet';
-import { CAPTURE } from '@/lib/shell/captureDev';
+import { CAPTURE, SLOT_FIXTURE } from '@/lib/shell/captureDev';
+import { FIXTURE_SLOTS } from '@/lib/game/slotFixture';
 import { createFixtureStep } from '@/lib/shell/captureKnobs';
 import { keepDots, keepHyphens, keepMoney } from '@/lib/game/keepDots';
 import { pushAskRouteFor } from '@/lib/shell/pushAsk';
@@ -123,6 +126,11 @@ export default function CreateLeagueWizard() {
   // DEV captures only (lib/shell/captureKnobs.ts): open on a step, or on the done screen.
   const [step, setStep] = useState<CreateStep>(createFixtureStep(CAPTURE.create));
   const [creating, setCreating] = useState(false);
+  // The awaited slot re-check before Create league (useSlotCheck.ensureFresh): the button shows its loading state meanwhile.
+  const [verifying, setVerifying] = useState(false);
+  // A ×, or a swipe down, can close the screen while that check is awaited; a closed screen never goes on to create.
+  const open = useRef(true);
+  useEffect(() => () => { open.current = false; }, []);
   const [showDatePicker, setShowDatePicker] = useState(false);
   // The done screen (Design Lead ruling), in place of the old "League Created!" Alert.
   const [created, setCreated] = useState<{ name: string; inviteCode: string; noDate: boolean } | null>(
@@ -147,7 +155,8 @@ export default function CreateLeagueWizard() {
     notionalPerSlot: String(DEFAULT_NOTIONAL_PER_SLOT),
     budgetCap: String(DEFAULT_BUDGET_CAP),
     allowUndraftable: false,
-    slots: [],
+    // DEV captures only (lib/game/slotFixture.ts): the Stakes step's price tiers open with slots.
+    slots: CAPTURE.create === 'tiers' && SLOT_FIXTURE ? FIXTURE_SLOTS.map((s) => ({ ...s })) : [],
     numWeeks: CAPTURE.createSeason?.weeks ?? 11,
     playoffTeams: CAPTURE.createSeason?.playoffTeams ?? 4,
     numRounds: 6,
@@ -266,6 +275,13 @@ export default function CreateLeagueWizard() {
   };
 
   const slotErrors = validateSlotConfig(state.slots, state.numRounds);
+  // The slot availability check runs by itself (only while the slots are on screen: Stakes step, price tiers).
+  const slotCheck = useSlotCheck({
+    slots: state.slots,
+    leagueSize: state.size,
+    numRounds: state.numRounds,
+    enabled: step === 'stakes' && state.stakeMode === 'price_tiers',
+  });
 
   const goNext = () => {
     if (step === 'league') {
@@ -282,8 +298,15 @@ export default function CreateLeagueWizard() {
       // Price tiers NEED slot price ranges (they are the anti-skew mechanism);
       // other modes go straight on — category slots stay optional via
       // league settings. The reasons show inline (Roster slots, the slots).
-      if (stakesStepError(state.stakeMode, state.slots.length, slotErrors)) return;
-      handleCreate();
+      if (stakesStepError(state.stakeMode, state.slots.length, slotErrors, slotCheck.blockReason)) return;
+      // One more check, awaited, when the last result is stale: never silently skipped. A short slot stops here, its line on the slot.
+      void (async () => {
+        setVerifying(true);
+        const short = await slotCheck.ensureFresh();
+        setVerifying(false);
+        if (short || !open.current) return;
+        handleCreate();
+      })();
       return;
     }
     const next = nextStep(step);
@@ -529,8 +552,8 @@ export default function CreateLeagueWizard() {
             slots={state.slots}
             onChange={(slots) => patch({ slots })}
             categories={categories}
-            leagueSize={state.size}
             numRounds={state.numRounds}
+            check={slotCheck}
           />
         </View>
       ) : null}
@@ -603,12 +626,14 @@ export default function CreateLeagueWizard() {
   }
 
   const last = step === 'stakes';
-  const blocked = createNextDisabled(step, stakesStepError(state.stakeMode, state.slots.length, slotErrors));
+  const blocked = createNextDisabled(step, stakesStepError(state.stakeMode, state.slots.length, slotErrors, slotCheck.blockReason));
 
   return (
     <SetupScaffold
-      // G-13: step 1's Cancel closes the modal (text only, as G-7); later steps go Back (chevron).
-      back={{ label: step === 'league' ? 'Cancel' : 'Back', onPress: goBack, modal: step === 'league' }}
+      // Steps 2-4 go back one step ("‹ Back"); step 1 has nowhere to go back to. Every step's × at the top right closes the
+      // whole flow at once, no prompt (PRODUCT_RULES, 2026-11-17, "A"); it is dead while the create request is in flight.
+      back={step === 'league' ? undefined : { label: 'Back', onPress: goBack }}
+      close={{ onPress: () => closeCreateLeague(creating, () => router.dismiss()), disabled: closeDisabled(creating) }}
       step={{ number: stepNumber(step), total: CREATE_STEPS.length }}
       title={CREATE_STEP_COPY[step].title}
       subtitle={CREATE_STEP_COPY[step].subtitle}
@@ -617,7 +642,7 @@ export default function CreateLeagueWizard() {
           label={last ? 'Create league' : 'Next'}
           onPress={goNext}
           disabled={blocked}
-          status={creating ? 'loading' : 'idle'}
+          status={creating || verifying ? 'loading' : 'idle'}
         />
       }
     >

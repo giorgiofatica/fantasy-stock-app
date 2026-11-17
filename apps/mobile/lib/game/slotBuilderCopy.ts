@@ -95,11 +95,12 @@ export function priceInput(text: string): string {
   return text.replace(/[^0-9.]/g, '');
 }
 
-/** A feasibility warning, the old wording verbatim. `needed` counts an empty
- * or zero count as one, as the old check did. */
-export function slotShortfallCopy(index: number, matches: number, leagueSize: number, slotCount: string): string {
+/** A short slot's line, inside that slot's card (so no "Slot N: " and no "(T teams × C)" bracket: the card
+ * says which slot, the fields say the count). Existing words, cut; a no-break space before the em dash keeps
+ * it from starting a line. `needed` counts an empty or zero count as one, as the old check did. */
+export function slotShortfallCopy(matches: number, leagueSize: number, slotCount: string): string {
   const needed = leagueSize * (Number(slotCount) || 1);
-  return `Slot ${index + 1}: only ${matches} draftable stock${matches === 1 ? '' : 's'} match — the league needs at least ${needed} (${leagueSize} teams × ${slotCount}).`;
+  return `Only ${matches} draftable stock${matches === 1 ? '' : 's'} match\u00A0— the league needs at least ${needed}.`;
 }
 
 /** True when this slot's matches can't fill every team's copies of it. */
@@ -107,7 +108,6 @@ export function slotShort(matches: number, leagueSize: number, slotCount: string
   return matches < leagueSize * (Number(slotCount) || 1);
 }
 
-export const SLOT_CHECK_FAILED = "Couldn't check availability. Try again.";
-
-export const SLOT_PARTIAL_NOTE =
-  'Stock data is still loading (takes ~2 days after launch) — per-slot availability checks are paused until it completes. Slot count math is still enforced.';
+/** A failed lookup (S4): today's "Couldn't check availability. Try again." split in two, the note and its button. It never blocks. */
+export const SLOT_CHECK_FAILED = "Couldn't check availability.";
+export const SLOT_CHECK_RETRY = 'Try again';

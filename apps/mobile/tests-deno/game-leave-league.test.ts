@@ -333,11 +333,10 @@ Deno.test('League settings is a sheet: the shared bar replaces the text-only Can
   // The three League settings views all draw the sheet bar; none keeps the old Cancel.
   assertEquals(s.includes("label: 'Cancel'"), false);
   assertEquals((s.match(/<SetupScaffold\s+sheet=\{/g) ?? []).length, 3);
-  // Create league's first step keeps its text-only modal Cancel.
-  assertEquals(SOURCES['app/create-league.tsx'].includes("modal: step === 'league'"), true);
-  assertEquals(SOURCES['components/game/SetupScaffold.tsx'].includes('{back.modal ? null : <Icon name="chevronLeft" size="callout" tone="text2" />}'), true);
-  // Text only, it aligns to the 24 pt content gutter.
-  assertEquals(SOURCES['components/game/SetupScaffold.tsx'].includes('style={[styles.back, back.modal ? styles.backModal : null]}'), true);
+  // Create league's first step has no Cancel any more: its × (2026-11-17, "A") closes it; the text-only modal variant is gone.
+  assertEquals(SOURCES['app/create-league.tsx'].includes("modal: step === 'league'"), false);
+  assertEquals(SOURCES['components/game/SetupScaffold.tsx'].includes('back.modal'), false);
+  assertEquals(SOURCES['components/game/SetupScaffold.tsx'].includes('backModal'), false);
 });
 
 Deno.test('the transfer rows carry only the name (G-8; source guard)', () => {
@@ -346,6 +345,7 @@ Deno.test('the transfer rows carry only the name (G-8; source guard)', () => {
   assertEquals(v.includes('help={'), false);
 });
 
-Deno.test('Create league step 1\'s Cancel is the modal\'s, text only; later steps keep Back with a chevron (G-13; source guard)', () => {
-  assertEquals(SOURCES['app/create-league.tsx'].includes("back={{ label: step === 'league' ? 'Cancel' : 'Back', onPress: goBack, modal: step === 'league' }}"), true);
+Deno.test('Create league: step 1 has no Back or Cancel (its × closes); steps 2-4 keep "‹ Back" with a chevron (2026-11-17, "A"; source guard)', () => {
+  assertEquals(SOURCES['app/create-league.tsx'].includes("back={step === 'league' ? undefined : { label: 'Back', onPress: goBack }}"), true);
+  assertEquals(SOURCES['app/create-league.tsx'].includes("'Cancel'"), false);
 });

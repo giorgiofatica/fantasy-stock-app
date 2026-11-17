@@ -28,7 +28,7 @@ import {
   loadLeagueSlots,
   validateSlotConfig,
 } from '@/lib/categoryData';
-import { seamSaveLeagueSlots, seamUpdateLeague } from '@/lib/game/seamCalls';
+import { seamInvoke, seamSaveLeagueSlots, seamUpdateLeague } from '@/lib/game/seamCalls';
 import { settingsSaveOutcome } from '@/lib/game/settingsSave';
 import {
   COMMISSIONER_ROW, COMMISSIONER_YOU, commissionerRowView, knownMemberCount, leaveLeagueEnabled, leaveRowView, leaveSheetCopy, leaveWindow, transferCandidates, type LeaveWindow,
@@ -43,6 +43,10 @@ import { leagueNameError, stepWithin } from '@/lib/game/createLeagueSteps';
 import { settingsDirty, type SettingsForm } from '@/lib/game/settingsDirty';
 import { saveState } from '@/components/shell/sheetBarLogic';
 import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
+import { useSlotCheck } from '@/lib/game/useSlotCheck';
+import { SLOT_FIXTURE } from '@/lib/shell/captureDev';
+import { FIXTURE_SLOTS } from '@/lib/game/slotFixture';
+import { checkSetupForSave } from '@/lib/game/slotSetupCheck';
 import { SETTINGS_LOCKED, inviteShareMessage, inviteShareShown } from '@/lib/game/leagueSettingsEntry';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
 import { keepDots } from '@/lib/game/keepDots';
@@ -131,10 +135,12 @@ export default function LeagueSettingsScreen() {
       // Until the slots arrive again, the baseline keeps the slots it had (the form's own slots are still those), so a refresh never flashes Save on.
       setLoaded((prev) => ({ ...f, slots: prev?.slots ?? [] }));
       // The slots arrive a moment later: they are part of what was loaded, so the form and its baseline take them together.
+      // DEV captures only (lib/game/slotFixture.ts): the form holds the fixture's slots (an edit) at once, while the baseline keeps what was loaded, so it reads as changed.
+      if (SLOT_FIXTURE) setSlots(FIXTURE_SLOTS.map((s) => ({ ...s })));
       let stale = false;
       loadLeagueSlots(league.id).then((rows) => {
         if (stale) return;
-        setSlots(rows);
+        if (!SLOT_FIXTURE) setSlots(rows);
         setLoaded((prev) => (prev ? { ...prev, slots: rows } : prev));
       });
       return () => { stale = true; };
@@ -164,6 +170,9 @@ export default function LeagueSettingsScreen() {
 
   // Check if settings are locked (draft started or completed)
   const isLocked = league?.draft_status === 'in_progress' || league?.draft_status === 'completed';
+
+  // The slot availability check runs by itself (commissioner, settings still open): a short slot shows its line and keeps Save grey.
+  const slotCheck = useSlotCheck({ slots, leagueSize: numParticipants, numRounds, enabled: !!league && isCommissioner && !isLocked });
 
   // Auto-start: the draft time can't change once the room opens (T−1h), until
   // the draft starts, except when postponed. From the server's start_state.
@@ -281,6 +290,19 @@ export default function LeagueSettingsScreen() {
         setSaving(false);
         return;
       }
+      if (!isLocked) {
+        // One more client check, awaited, when the last result is stale (never silently skipped): a short slot shows its own line and stops here.
+        if (await slotCheck.ensureFresh()) return;
+        // Then the server's exact check of the PROPOSED slots (overlaps and the budget reserve too). It judges them against the SAVED
+        // league row, so it runs only while the rules in this form (Teams, rounds, stakes, budget, non-draftable) still equal the
+        // saved ones; any change skips it and fails OPEN. It also fails open on anything but a real verdict.
+        const rules = { numParticipants, numRounds, stakeMode, notionalPerSlot, budgetCap, allowUndraftable };
+        const verdict = await checkSetupForSave((body) => seamInvoke('draft-control', { body }), league.id, slots, loaded, rules);
+        if (verdict.blocked) {
+          setSlotsError(verdict.line);
+          return;
+        }
+      }
 
       // stake_mode written only when chosen — '' (legacy NULL league) leaves
       // the column untouched rather than writing a default the commissioner
@@ -393,7 +415,7 @@ export default function LeagueSettingsScreen() {
         // The league's name; the commissioner renames it in the bar until the settings lock, and Save sits at its right.
         title: loaded ? name : league.name,
         onClose: handleClose,
-        save: !isLocked ? { state: saveState({ dirty, saving }), onPress: handleSave } : undefined,
+        save: !isLocked ? { state: saveState({ dirty, saving, blocked: slotCheck.blockReason != null }), onPress: handleSave } : undefined,
         rename: !isLocked
           ? {
               editing: editingName,
@@ -549,8 +571,8 @@ export default function LeagueSettingsScreen() {
             setSlotsError(null);
           }}
           categories={categories}
-          leagueSize={numParticipants}
           numRounds={numRounds}
+          check={slotCheck}
           disabled={isLocked}
         />
       </View>

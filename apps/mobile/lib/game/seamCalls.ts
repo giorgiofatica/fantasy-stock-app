@@ -26,6 +26,9 @@ if (TAKEOVER_FIXTURE) pendingTakeover.capture(FIXTURE_TAKEOVER_CODE, TAKEOVER_FI
 const DRAFT_ROOM_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_DRAFT_ROOM_FIXTURE : undefined;
 let roomVariant = parseDraftRoomVariant(DRAFT_ROOM_FIXTURE);
 
+/** DEV captures (lib/game/slotFixture.ts): EXPO_PUBLIC_SLOT_FIXTURE=refuse makes the fixture server refuse check_setup (budget_infeasible). Seam only. */
+const SLOT_REFUSE = SEAM_ON ? process.env.EXPO_PUBLIC_SLOT_FIXTURE === 'refuse' : false;
+
 /** The other capture knobs the seam's fixtures read. Seam only: a release build never consults the env. */
 const DRAFT_START_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_DRAFT_START_FIXTURE : undefined;
 const LEAVE_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_LEAVE_FIXTURE : undefined;
@@ -67,6 +70,7 @@ export async function seamInvoke(fn: string, opts: { body: Record<string, unknow
       const t = takeoverFixtureFor(opts.body, TAKEOVER_FIXTURE);
       if (t) return t as { data: unknown; error: null };
     }
+    if (SLOT_REFUSE && fn === 'draft-control' && opts.body.action === 'check_setup') return { data: { ok: false, reason: 'budget_infeasible' }, error: null };
     const f = invokeFixtureFor(fn, opts.body, DRAFT_START_FIXTURE, LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL, CAPTURE_DRAFT_REFUSAL);
     if (f) return seatify(f, DELETED_SEAT);
   }

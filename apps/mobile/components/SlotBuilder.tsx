@@ -1,27 +1,25 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles`/`cardShadow` are declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 // SlotBuilder (mobile) — commissioner roster-slot editor (Phase 4 item 4,
 // DR-001 draft constraint system). RN mirror of the web SlotBuilder: a slot =
-// {count, price bracket?, category?}; no filters = flex. Feasibility is a
-// WARNING, never a gate; partial enrichment shows a lower-bound caveat.
+// {count, price bracket?, category?}; no filters = flex. Availability is checked
+// by itself (lib/game/useSlotCheck.ts, rules in slotCheck.ts): a slot that cannot
+// be filled shows its own red line in its card and blocks Create league / Save
+// (the parent reads `check.blockReason`); a failed lookup never blocks.
 //
 // 3c-2: rewritten on the sp primitives (no board frame; composed from the
 // setup vocabulary). The props, the state and every rule are unchanged — the
 // copy and input sanitising moved to lib/game/slotBuilderCopy.ts verbatim.
-// Hard errors are field errors (danger text, instant, no icon, §9B): a slot's
-// own errors inside its card, the capacity line under the list;
-// availability warnings use the warn-tint note; the category opens a sheet.
-import { useEffect, useState } from 'react';
+// Hard errors and a short slot are field errors (danger text, instant, no icon,
+// §9B): a slot's own lines inside its card, the capacity line under the list;
+// the category opens a sheet.
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
-import {
-  type Category,
-  type SlotDraft,
-  countSlotMatches,
-  fetchEnrichmentProgress,
-} from '@/lib/categoryData';
+import { type Category, type SlotDraft } from '@/lib/categoryData';
+import type { SlotCheck } from '@/lib/game/useSlotCheck';
 import {
   EMPTY_SLOT,
   SLOT_CHECK_FAILED,
-  SLOT_PARTIAL_NOTE,
+  SLOT_CHECK_RETRY,
   capacityLine,
   categoryLabel,
   countInput,
@@ -31,8 +29,6 @@ import {
   slotConfigIssues,
   slotFieldA11y,
   slotIssueOnSlot,
-  slotShort,
-  slotShortfallCopy,
   slotTitle,
 } from '@/lib/game/slotBuilderCopy';
 import { space } from '@/constants/tokens';
@@ -43,29 +39,27 @@ import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { Field } from '@/components/shell/Field';
 import { useRowRemountKey } from '@/components/game/useRowRemountKey';
-import { ChoiceRow, RowDivider, RowWrap, SettingRow, SetupCard, WarnNote } from '@/components/game/SetupRows';
+import { ChoiceRow, RowDivider, RowWrap, SettingRow, SetupCard } from '@/components/game/SetupRows';
 
 interface SlotBuilderProps {
   slots: SlotDraft[];
   onChange: (slots: SlotDraft[]) => void;
   categories: Category[];
-  leagueSize: number;
   numRounds: number;
+  /** The automatic availability check (useSlotCheck), owned by the screen so Create league / Save can read it. */
+  check: SlotCheck;
   disabled?: boolean;
 }
 
 /** At accessibility sizes the three fields stack instead of squeezing side by side. */
 const STACK_FONT_SCALE = 1.35;
 
-export default function SlotBuilder({ slots, onChange, categories, leagueSize, numRounds, disabled }: SlotBuilderProps) {
+export default function SlotBuilder({ slots, onChange, categories, numRounds, check, disabled }: SlotBuilderProps) {
   const { colors } = useTheme();
   const { fontScale } = useWindowDimensions();
   const stacked = fontScale >= STACK_FONT_SCALE;
   // The fields row starts its layout over after a text-size change (useRowRemountKey); frozen while one is focused.
   const rowKey = useRowRemountKey();
-  const [warnings, setWarnings] = useState<string[]>([]);
-  const [checking, setChecking] = useState(false);
-  const [partialNote, setPartialNote] = useState(false);
   const [categoryPickerFor, setCategoryPickerFor] = useState<number | null>(null);
 
   const setSlot = (i: number, patch: Partial<SlotDraft>) => {
@@ -78,45 +72,11 @@ export default function SlotBuilder({ slots, onChange, categories, leagueSize, n
   // (validateSlotConfig) to disable Next/save; this component shows the reasons:
   // each slot's own issue inside its card, the capacity line under the list.
   const issues = slotConfigIssues(slots, numRounds);
-  const onSlot = (i: number) => issues.slots.filter((x) => x.slot === i).map((x) => slotIssueOnSlot(x.kind));
-
-  const checkFeasibility = async () => {
-    setChecking(true);
-    const found: string[] = [];
-    try {
-      const progress = await fetchEnrichmentProgress();
-      setPartialNote(progress.partial);
-      // Per-slot availability counts query is_draftable / last_price /
-      // gics_industry — ALL populated only by the enrichment cron. Below
-      // coverage the counts are near-zero noise (not "lower bounds"), so
-      // they are SUPPRESSED entirely; the hard capacity math above is local
-      // and stays enforced.
-      if (progress.partial) {
-        setWarnings([]);
-        setChecking(false);
-        return;
-      }
-      for (let i = 0; i < slots.length; i++) {
-        const s = slots[i];
-        const matches = await countSlotMatches({
-          priceMin: s.priceMin === '' ? null : Number(s.priceMin),
-          priceMax: s.priceMax === '' ? null : Number(s.priceMax),
-          categoryId: s.categoryId || null,
-        });
-        if (slotShort(matches, leagueSize, s.slotCount)) {
-          found.push(slotShortfallCopy(i, matches, leagueSize, s.slotCount));
-        }
-      }
-    } catch {
-      found.push(SLOT_CHECK_FAILED);
-    }
-    setWarnings(found);
-    setChecking(false);
-  };
-
-  useEffect(() => {
-    setWarnings([]);
-  }, [JSON.stringify(slots)]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A slot's lines: its hard errors, then (once checked) that it is short. Editing the slot clears its own short line.
+  const onSlot = (i: number) => [
+    ...issues.slots.filter((x) => x.slot === i).map((x) => slotIssueOnSlot(x.kind)),
+    ...(check.lines[i] ? [check.lines[i] as string] : []),
+  ];
 
   const picking = categoryPickerFor !== null ? slots[categoryPickerFor] : undefined;
   const pick = (categoryId: string) => {
@@ -209,27 +169,17 @@ export default function SlotBuilder({ slots, onChange, categories, leagueSize, n
           </Text>
         </View>
       ) : null}
-      {warnings.map((w, i) => (
-        <WarnNote key={i} title={w} />
-      ))}
-      {partialNote && slots.length > 0 ? (
-        <Text variant="caption" tone="secondary">
-          {SLOT_PARTIAL_NOTE}
-        </Text>
+      {check.failed && slots.length > 0 ? (
+        <View style={styles.failed}>
+          <Text variant="callout" tone="secondary">
+            {SLOT_CHECK_FAILED}
+          </Text>
+          <Button label={SLOT_CHECK_RETRY} variant="secondary" size="sm" onPress={check.retry} disabled={disabled} />
+        </View>
       ) : null}
 
       <RowWrap>
         <Button label="Add slot" variant="secondary" size="sm" onPress={addSlot} disabled={disabled} />
-        {slots.length > 0 ? (
-          <Button
-            label="Check availability"
-            variant="secondary"
-            size="sm"
-            onPress={checkFeasibility}
-            disabled={disabled}
-            status={checking ? 'loading' : 'idle'}
-          />
-        ) : null}
       </RowWrap>
 
       <Sheet visible={categoryPickerFor !== null} onClose={() => setCategoryPickerFor(null)}>
@@ -289,6 +239,12 @@ const styles = StyleSheet.create({
   },
   errors: {
     gap: space[2],
+  },
+  failed: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: space[3],
   },
   slotErrors: {
     gap: space[1],

@@ -45,7 +45,11 @@ Deno.test('the availability reads go through the count RPCs and unwrap their res
   assert(!/const \{ (count|data)[:\s}]/.test(body), 'a resolved error would read as zero or empty');
 });
 
-Deno.test('SlotBuilder still shows the "couldn\'t check" line from its catch', () => {
+Deno.test('the automatic check still says "couldn\'t check" from its catch: a failed run is `failed`, never a block (2026-11-17)', () => {
+  const check = SOURCES['lib/game/slotCheck.ts'];
+  assert(check.includes('} catch {\n    return { ...EMPTY(slots.length), failed: true };'));
+  // The note + "Try again" are drawn from that flag, not from an inline string pushed into a warnings list.
   const comp = SOURCES['components/SlotBuilder.tsx'];
-  assert(comp.includes('} catch {\n      found.push(SLOT_CHECK_FAILED);'));
+  assert(comp.includes('check.failed && slots.length > 0') && comp.includes('{SLOT_CHECK_FAILED}'));
+  assert(!comp.includes('found.push'));
 });
