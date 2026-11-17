@@ -383,16 +383,17 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-chart-default', 'Which range each chart opens on', () => window.KSChartDefault],
-    ['call-season-predraft', 'Season on a stock before the draft', () => window.KSSeasonPredraft],
     ['call-range-gain', 'The gain beside each chart: the player card', () => window.KSRangeGain],
     ['call-create-close', 'Closing Create league from any step', () => window.KSCreateClose],
+    ['call-slot-check', "A slot that can't be filled", () => window.KSSlotCheck],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-season-predraft', title: 'Season on a stock before the draft', decision: 'B and D: before the draft Season is greyed in its place on the stock sheet (not hidden); a stock chart greys any range longer than its trading history (a recent IPO\u2019s 3M, 6M, YTD).', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSSeasonPredraftArchived },
+    { id: 'call-chart-default', title: 'Which range each chart opens on', decision: 'B: "go with B". Portfolio and the player card open on Season; the stock sheet (a stock you\u2019re shopping for) opens on 1W.', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSChartDefaultArchived },
     { id: 'call-gain-format', title: 'One number or two beside a chart', decision: 'A: both, the percent in brackets, "+$54.60 (+41.42%) past 6 months", on every chart; with the period words he liked (Words A of #call-range-gain).', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSGainFormatArchived },
     { id: 'call-range-too-long', title: 'Portfolio ranges longer than the league', decision: 'B, ruled before the board reached him: "grey out the ranges longer than the league has existed". The Portfolio graph only; stock charts were not asked.', date: '2026-11-17', rec: 'PRODUCT_RULES (#495, the Planner)', render: () => window.KSRangeTooLongArchived },
     { id: 'call-dead-links', title: 'The dead password link and the “Nothing here” page', decision: 'B: both in the dead-end family\u2019s form with one short line each: "This link didn\u2019t work." + "It may have been opened on a different device." (new words, approved), and "Nothing here." + "This link is old or incomplete."', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDeadLinksArchived },
@@ -563,6 +564,7 @@
           {window.KSRangeGain ? <window.KSRangeGain /> : null}
           {window.KSGainFormat ? <window.KSGainFormat /> : null}
           {window.KSCreateClose ? <window.KSCreateClose /> : null}
+          {window.KSSlotCheck ? <window.KSSlotCheck /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
