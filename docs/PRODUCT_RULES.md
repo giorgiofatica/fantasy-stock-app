@@ -1257,10 +1257,20 @@ building anything, and don't reopen a rule without him.
   - The player is told only when something cannot work: the existing shortfall words for a
     slot that cannot be filled, or the existing "Couldn't check availability. Try again." if
     the lookup itself fails. When every slot works, nothing is shown.
-  - Not decided, and the Design Lead specs it, bringing it to him only if it is a real
-    choice: when the check runs (after edits settle, on leaving the step, or both), and
-    whether "Create league" stays enabled while a slot is short. Today a shortfall does not
-    block creating the league; the draft's own start check is the backstop.
+  - **A slot that cannot be filled blocks creating the league** (board `#call-slot-check`, PR
+    #499; typed in the Orchestrator's chat, 2026-11-17 18:10Z: "B, and merged 502"). When the
+    automatic check finds a slot with too few matching stocks, that slot's line shows in red
+    with the slot's other errors ("Only 9 draftable stocks match — the league needs at least
+    16."; a cut of existing words, no new ones), and "Create league", and "Save" in League
+    settings, grey out until the slot can be filled. A lookup that FAILS never blocks: it
+    shows "Couldn't check availability." with a small "Try again". A (a yellow warning that
+    still lets you create, with the draft postponed if the slot is still short at draft time)
+    was not picked. The reason given to him: a slot that is short can never be drafted, and
+    the fix is one field away. This changes today's behaviour, where a shortfall did not block
+    creating the league and the draft's own start check was the only backstop; that check
+    stays as the backstop.
+  - Not decided, the Design Lead's to spec: when the check runs (after edits settle, on
+    leaving the step, or both).
 - **Create league needs an easier way out** (2026-11-17, same sitting, 17:47Z, the
   Orchestrator's chat). His words: "one thing when creating the league, i need to hit back a
   bunch before i can get back to the cancel button. should be a bit easier of a way to x
