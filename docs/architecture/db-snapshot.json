@@ -1151,7 +1151,6 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
-                "authenticated=r/postgres",
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "symbols",
@@ -1169,6 +1168,15 @@
             ],
             "rlsForced": false,
             "columnAcls": {
+                "name": [
+                    "authenticated=r/postgres"
+                ],
+                "symbol": [
+                    "authenticated=r/postgres"
+                ],
+                "is_draftable": [
+                    "authenticated=r/postgres"
+                ]
             },
             "rlsEnabled": true,
             "checkConstraints": [
@@ -3459,7 +3467,7 @@
             "securityDefiner": false
         }
     ],
-    "capturedAt": "2026-11-16T21:40:11Z",
+    "capturedAt": "2026-11-17T18:27:48Z",
     "publications": [
         {
             "table": "drafts",
@@ -3595,24 +3603,6 @@
             "publication": "supabase_realtime"
         },
         {
-            "table": "messages_2026_11_13",
-            "schema": "realtime",
-            "columns": [
-                "topic",
-                "extension",
-                "payload",
-                "event",
-                "private",
-                "updated_at",
-                "inserted_at",
-                "id",
-                "binary_payload",
-                "skip_broadcast",
-                "expires_at"
-            ],
-            "publication": "supabase_realtime_messages_publication"
-        },
-        {
             "table": "messages_2026_11_14",
             "schema": "realtime",
             "columns": [
@@ -3704,6 +3694,24 @@
         },
         {
             "table": "messages_2026_11_19",
+            "schema": "realtime",
+            "columns": [
+                "topic",
+                "extension",
+                "payload",
+                "event",
+                "private",
+                "updated_at",
+                "inserted_at",
+                "id",
+                "binary_payload",
+                "skip_broadcast",
+                "expires_at"
+            ],
+            "publication": "supabase_realtime_messages_publication"
+        },
+        {
+            "table": "messages_2026_11_20",
             "schema": "realtime",
             "columns": [
                 "topic",
