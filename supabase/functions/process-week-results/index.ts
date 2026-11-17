@@ -37,6 +37,7 @@ import { noPendingMessage, scoredMessage } from './job-status.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
 import { runJob, type JobRun } from '../_shared/run-job.ts';
 import { completeLeagueSeason, healUncompletedSeasons } from './season-completion.ts';
+import { describeWeekPrices, fetchWeekPrices } from '../_shared/week-price.ts';
 import {
   buildPlayoffBracket,
   decidePlayoffSeeds,
@@ -63,7 +64,6 @@ import {
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-const ALPACA_BASE = 'https://data.alpaca.markets/v2';
 
 // Max age of an ENDED week that may still be scored WITHOUT week_snapshots,
 // using current prices. Beyond this we refuse rather than fabricate results.
@@ -102,41 +102,10 @@ function isAuthorized(req: Request): boolean {
   return constantTimeEqual(providedKey, expectedKey);
 }
 
-// Fetch latest prices from Alpaca (using service credentials)
-async function fetchPrices(symbols: string[], alpacaKey: string, alpacaSecret: string): Promise<Map<string, number>> {
-  const prices = new Map<string, number>();
-
-  if (symbols.length === 0) return prices;
-
-  // Use multi-quote endpoint
-  const symbolsParam = symbols.join(',');
-  const url = `${ALPACA_BASE}/stocks/quotes/latest?symbols=${encodeURIComponent(symbolsParam)}&feed=iex`;
-
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'APCA-API-KEY-ID': alpacaKey,
-        'APCA-API-SECRET-KEY': alpacaSecret,
-        'Accept': 'application/json',
-      },
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      // Response format: { quotes: { AAPL: { ap: 150.25, ... }, ... } }
-      if (data.quotes) {
-        for (const [sym, quote] of Object.entries(data.quotes as Record<string, any>)) {
-          const price = Number(quote?.ap) || Number(quote?.bp) || 0;
-          if (price > 0) prices.set(sym.toUpperCase(), price);
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Failed to fetch prices:', e);
-  }
-
-  return prices;
-}
+// fetchPrices (latest quote, `quote.ap || quote.bp`: the ASK first) was REPLACED
+// by ../_shared/week-price.ts (2026-11-17). These prices feed ONLY the
+// snapshot-less fallback scorer (calculatePortfolio), which wants the price now:
+// so no bar, the last trade, else a sane two-sided midpoint, else no price.
 
 // calculateWeeklyGainLegacy (scored a snapshotted-but-unclosed user from LIVE
 // prices, ignoring every mid-week trade) was REMOVED here — it wrote an
@@ -830,7 +799,9 @@ Deno.serve(async (req) => {
       // Fetch current prices
       let prices = new Map<string, number>();
       if (ALPACA_KEY && ALPACA_SECRET && symbols.size > 0) {
-        prices = await fetchPrices(Array.from(symbols), ALPACA_KEY, ALPACA_SECRET);
+        const priced = await fetchWeekPrices({ symbols: Array.from(symbols), bar: null, live: {} }, ALPACA_KEY, ALPACA_SECRET);
+        prices = priced.prices;
+        console.log(`League ${leagueId} week ${weekNumber} current prices: ${describeWeekPrices(priced)}`);
       }
 
       // ---- GUARD 3a: per-user gate — the residual of the cumulative-vs-delta bug

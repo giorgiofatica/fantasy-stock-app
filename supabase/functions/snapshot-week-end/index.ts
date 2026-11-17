@@ -2,7 +2,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { classifyCloseCoverage, buildCloseWork, planCloseWindow, type Holding } from './close.ts';
 import { checkSnapshotReads, matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
-import type { CalendarSession, Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
+import { etWallClockToUtc, type CalendarSession, type Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
+import { describeWeekPrices, fetchWeekPrices, liveWindowFor } from '../_shared/week-price.ts';
 import { IN_SEASON_STATUSES, SNAPSHOT_DRAFT_STATUS, isInSeasonLeague } from '../_shared/snapshot-league-scope.ts';
 import { instantAtOrBefore, instantBefore, instantMs, isScoredWeek, selectTargetWeeks, type WeekMatchupRow } from '../_shared/week-select.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
@@ -43,7 +44,6 @@ import { weekEndBaselineGate } from '../_shared/baseline.ts';
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-const ALPACA_BASE = 'https://data.alpaca.markets/v2';
 const MAX_RETRIES = 3;
 
 const json = (b: unknown, s = 200) =>
@@ -85,7 +85,7 @@ function isAuthorized(req: Request): boolean {
 // row, ONCE per invocation (not per league). Same shape and rationale as
 // snapshot-week-start's own copy — kept local rather than shared, matching
 // this codebase's existing convention for small per-function IO helpers
-// (fetchOpenPrices/fetchClosePrices are likewise not shared).
+// (the price fetch, by contrast, IS shared: ../_shared/week-price.ts).
 async function fetchMarketCalendar(
   supabase: any,
 ): Promise<{ sessions: CalendarSession[]; coverage: MarketCalendarCoverage | null; error: unknown }> {
@@ -142,92 +142,18 @@ async function scheduleRetry(supabase: any, jobName: string, attemptNumber: numb
   }
 }
 
-/**
- * Fetch official closing prices from Alpaca bars, for `sessionDate` — the
- * cut's OWN closeSessionDate (planCloseWindow), never "today". A holiday
- * Friday's real close session is Thursday; a retried run must still price
- * the same session the on-time run would have, never "whatever day this
- * retry happens to run on" (S6 in the audit).
- *
- * The latest-quote FALLBACK is only meaningful for the current day, so it is
- * skipped entirely when `sessionDate` isn't today — same reasoning as
- * snapshot-week-start's fetchOpenPrices.
- */
-async function fetchClosePrices(
-  symbols: string[],
-  alpacaKey: string,
-  alpacaSecret: string,
-  sessionDate: string,
-): Promise<Map<string, number>> {
-  const prices = new Map<string, number>();
+// fetchClosePrices was REPLACED by ../_shared/week-price.ts (2026-11-17). Its
+// quote fallback took `quote.ap || quote.bp` (the ASK first) as the week's close
+// for any symbol with no IEX bar. The shared rule is bar close, else a trade
+// inside the close session, else a sane two-sided midpoint, else no price (the
+// league aborts and the retry / Monday-Tuesday heal prices it from the bar).
 
-  if (symbols.length === 0) return prices;
-
-  const symbolsParam = symbols.join(',');
-
-  // Use bars endpoint to get official OHLCV data
-  const url = `${ALPACA_BASE}/stocks/bars?symbols=${encodeURIComponent(symbolsParam)}&timeframe=1Day&start=${sessionDate}&end=${sessionDate}&feed=iex`;
-
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'APCA-API-KEY-ID': alpacaKey,
-        'APCA-API-SECRET-KEY': alpacaSecret,
-        'Accept': 'application/json',
-      },
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.bars) {
-        for (const [sym, bars] of Object.entries(data.bars as Record<string, any[]>)) {
-          // Get the most recent bar's close price
-          const latestBar = Array.isArray(bars) && bars.length > 0 ? bars[bars.length - 1] : null;
-          const closePrice = latestBar?.c ? Number(latestBar.c) : 0;
-          if (closePrice > 0) prices.set(sym.toUpperCase(), closePrice);
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Failed to fetch bar prices:', e);
-  }
-
-  // Fallback to quotes for any missing symbols — ONLY when sessionDate is
-  // today. A missing bar for a PAST session date (e.g. a delayed retry for a
-  // holiday-Friday week whose real close was Thursday) must stay missing,
-  // not be silently filled with a live quote mislabeled as that day's close.
-  const isToday = sessionDate === new Date().toISOString().split('T')[0];
-  const missingSymbols = isToday ? symbols.filter(s => !prices.has(s.toUpperCase())) : [];
-  if (missingSymbols.length > 0) {
-    console.log(`Falling back to quotes for ${missingSymbols.length} symbols:`, missingSymbols);
-    const quotesUrl = `${ALPACA_BASE}/stocks/quotes/latest?symbols=${encodeURIComponent(missingSymbols.join(','))}&feed=iex`;
-
-    try {
-      const res = await fetch(quotesUrl, {
-        headers: {
-          'APCA-API-KEY-ID': alpacaKey,
-          'APCA-API-SECRET-KEY': alpacaSecret,
-          'Accept': 'application/json',
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.quotes) {
-          for (const [sym, quote] of Object.entries(data.quotes as Record<string, any>)) {
-            const price = Number(quote?.ap) || Number(quote?.bp) || 0;
-            if (price > 0 && !prices.has(sym.toUpperCase())) {
-              prices.set(sym.toUpperCase(), price);
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.error('Failed to fetch fallback quotes:', e);
-    }
-  }
-
-  return prices;
+/** The close session's own open instant (the live window's lower bound), or null. PURE. */
+function sessionOpenMs(sessions: ReadonlyArray<CalendarSession>, sessionDate: string): number | null {
+  const s = sessions.find((x) => x.sessionDate === sessionDate);
+  if (!s) return null;
+  const ms = etWallClockToUtc(s.sessionDate, s.openEt).getTime();
+  return Number.isFinite(ms) ? ms : null;
 }
 
 // Holdings come from ../_shared/snapshot-holdings.ts (shared with
@@ -619,7 +545,18 @@ Deno.serve(async (req) => {
       // 6. Fetch official closing prices for all symbols
       let prices = new Map<string, number>();
       if (ALPACA_KEY && ALPACA_SECRET && allSymbols.size > 0) {
-        prices = await fetchClosePrices(Array.from(allSymbols), ALPACA_KEY, ALPACA_SECRET, windowPlan.closeSessionDate);
+        // The close session's 1Day bar CLOSE; for a symbol with no bar, only a
+        // trade or a sane midpoint from inside that session (its open .. its
+        // close), and only when the session is today. Never an ask or a bid
+        // alone (../_shared/week-price.ts).
+        const openMs = sessionOpenMs(marketCalendarSessions, windowPlan.closeSessionDate);
+        const priced = await fetchWeekPrices({
+          symbols: Array.from(allSymbols),
+          bar: { sessionDate: windowPlan.closeSessionDate, field: 'c' },
+          live: openMs === null ? null : liveWindowFor(windowPlan.closeSessionDate, new Date(), openMs, windowPlan.close.getTime()),
+        }, ALPACA_KEY, ALPACA_SECRET);
+        prices = priced.prices;
+        console.log(`League ${leagueId} week ${currentWeek} close prices: ${describeWeekPrices(priced)}`);
       }
 
       // 7. Build ALL the writes for this league, all-or-nothing.
