@@ -566,8 +566,9 @@ building anything, and don't reopen a rule without him.
 
 - **Home shows only the selected league**, with the league pill ("+N" hint) to switch.
   There's no "your other leagues" row.
-- **Home hero:** team value is the big number; under it "+$X · +Y% season gain · +$Z today".
-  Home has no chart (below).
+- **Home hero:** team value is the big number; under it "+$X (+Y%) season gain · +$Z today"
+  (the percent in brackets since 2026-11-17, "Dollars and their percent" below; before that
+  "+$X · +Y% season gain · +$Z today"). Home has no chart (below).
 - **No chart on Home; the matchup comes first** (2026-11-03, option A, board
   `#call-home-chart`). Giorgio on 1.3.0 (8): "I don't love the chart on the home screen... I
   don't love the dashed line up top. ...you don't really get a sense of what's going on,
@@ -650,8 +651,30 @@ building anything, and don't reopen a rule without him.
       days. "Since the draft" is no longer a third figure; it is what the range gain says on
       Season. This replaces "Three key figures, not four" (2026-10-12). The Design Lead first
       recorded his earlier "for both" as covering this and withdrew it when he clarified.
-    - This ruling is about the gain beside a chart; other lines that pair dollars and a
-      percent with a dot (a matchup's "This week" line, for one) were not asked about.
+    - This ruling was about the gain beside a chart. The other lines that pair dollars and
+      a percent were asked about later the same day; see the next rule.
+  - **Dollars and their percent: the percent goes in brackets, everywhere, not only beside a
+    chart** (2026-11-17, A/B mockup in the Planner's chat; typed there, 23:23Z: "A"). The
+    question put to him: brackets wherever a dollar figure sits beside its own percent (A),
+    or beside charts only, with every other line keeping the dot (B). Before picking he
+    asked what the UX rules point to ("What does all of those UI, UX laws we were reviewing,
+    we talked about, what does that say?"); the Planner's answer was A, from UX rules 5 (the
+    same kind of thing looks the same on every screen), 1 (money surfaces follow Robinhood)
+    and 4 (the pair reads as one number in two forms), with the caveat that the rulebook
+    never names brackets.
+    - The rule: where a dollar gain and its percent sit together, it is **"+$X (+Y%)"**. No
+      dot between the two.
+    - The dot stays where it separates two different facts. The two lines he was shown:
+      - Portfolio's line under the value: **"+$121.27 (+0.99%) today"**. This is already on
+        main (#508), changed during a Design Lead review before he had been asked; his pick
+        keeps it. B would have put back "+$121.27 · +0.99% today".
+      - Home's line under the team value: **"+$343.59 (+2.86%) season gain · +$121.27
+        today"**. Only the first pair takes brackets; the dot before "today" stays. The
+        label "season gain" does not change.
+    - Not shown to him, and covered by the rule's wording: every other line that pairs a
+      dollar gain with its percent (a matchup's "This week" line, a roster row, the stock
+      sheet's day change). The Design Lead lists them and applies the same format; if the
+      brackets change how one of those lines fits or wraps, that still comes to him first.
   - **Which range a chart opens on: your team on Season, a stock you are shopping for on 1W**
     (2026-11-17, board `#call-chart-default`, PR #496; typed in the Orchestrator's chat,
     18:00Z: "go with B"). The Portfolio graph and the card for a stock on a team open on
