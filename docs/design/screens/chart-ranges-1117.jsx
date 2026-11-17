@@ -216,7 +216,7 @@
         </ul>
         <Grid>{[
           fig('sa', 'A · before the draft', <StockSheet range="1W" hide={['Season']} label="Stock sheet before the draft, option A, no Season" />, 'Five ranges.'),
-          fig('sb', 'B · before the draft (recommended)', <StockSheet range="1W" off={['Season']} label="Stock sheet before the draft, option B, Season greyed" />, 'Season greyed, in its place.'),
+          fig('sb', archived ? 'B · before the draft (decided)' : 'B · before the draft (recommended)', <StockSheet range="1W" off={['Season']} label="Stock sheet before the draft, option B, Season greyed" />, 'Season greyed, in its place.'),
           fig('sc', 'After the draft (both) · Season', <StockSheet range="Season" shape="sinceDraft" label="Stock sheet after the draft on Season" />, 'Draft day to now, for any stock.'),
           fig('sbd', 'B · before the draft · Dark', <StockSheet t="dark" range="1W" off={['Season']} label="Stock sheet before the draft, option B, Dark" />),
           fig('sbx', 'B · before the draft · your size (AX5, approximate)', <StockSheet x={AX5} range="1W" off={['Season']} label="Stock sheet before the draft, option B, AX5" />, 'All six on one row at your size, Season grey.'),
@@ -224,7 +224,7 @@
         <h3 className="b-sub">A stock that started trading on October 1</h3>
         <Grid>{[
           fig('sgc', 'C · 6M selected (shows what it has)', <StockSheet sym="NEWC" co="Newco Inc." range="6M" shape="sinceDraft" words="A" label="A newly listed stock, 6M, option C" />, 'Its whole life, the same line as 3M and YTD.'),
-          fig('sgd', 'D · 3M, 6M, YTD grey (recommended)', <StockSheet sym="NEWC" co="Newco Inc." range="1M" off={['3M', '6M', 'YTD']} words="A" label="A newly listed stock, 3M 6M YTD greyed, option D" />, 'Grey until it has that much history.'),
+          fig('sgd', archived ? 'D · 3M, 6M, YTD grey (decided)' : 'D · 3M, 6M, YTD grey (recommended)', <StockSheet sym="NEWC" co="Newco Inc." range="1M" off={['3M', '6M', 'YTD']} words="A" label="A newly listed stock, 3M 6M YTD greyed, option D" />, 'Grey until it has that much history.'),
           fig('sgx', 'D · your size (AX5, approximate)', <StockSheet sym="NEWC" co="Newco Inc." x={AX5} range="1M" off={['3M', '6M', 'YTD']} words="A" label="A newly listed stock, option D, AX5" />),
         ]}</Grid>
       </section>
@@ -332,7 +332,13 @@
       decidedNote={<><b>Decided by Giorgio (2026-11-17): "go with B".</b> Portfolio and the player card open on Season; the stock sheet (a stock you're shopping for) opens on 1W. Recorded in PRODUCT_RULES by the Planner.</>}
     />
   );
-  window.KSSeasonPredraft = () => <CallSeasonPredraft />;
+  window.KSSeasonPredraft = () => null; // decided 2026-11-17: B and D; it lives in the Archive
+  window.KSSeasonPredraftArchived = () => (
+    <CallSeasonPredraft
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "B and D".</b> Before the draft, Season stays in its place, greyed, on the stock sheet. A stock chart greys any range longer than the stock's trading history: a recent IPO's 3M, 6M and YTD stay grey until it is old enough. He first asked whether "new stock" meant a recent IPO or a stock new to his portfolio; it means a recent IPO, since a stock's chart is its market history whoever owns it. Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
   window.KSRangeTooLong = () => null; // decided 2026-11-17: B; it lives in the Archive
   window.KSRangeTooLongArchived = () => (
     <CallRangeTooLong
