@@ -14668,13 +14668,13 @@ window.KS_REFS = {
   const Big = ({ x = 1, v }) => <span className="dr-num" style={{ ...fs(40, x, 1.3, 1.1), fontWeight: 800, color: 'var(--c-text)' }}>{v}</span>;
   const Small = ({ x = 1, children, color }) => <span className="dr-num" style={{ ...fs(14, x, 1.3), color: color || 'var(--c-text-2)', fontWeight: 600 }}>{children}</span>;
 
-  function Portfolio({ t = 'light', x = 1, range = 'Season', off = [], label, shape }) {
+  function Portfolio({ t = 'light', x = 1, range = 'Season', off = [], label, shape, fmt }) {
     return (
       <Phone t={t} tab="portfolio" label={label}>
         <Pill />
         <span style={{ ...fs(13, x, 1.3), color: 'var(--c-text-2)' }}>Portfolio value · includes cash</span>
         <Big x={x} v="$12,343.58" />
-        <Small x={x} color="var(--c-gain)">+$343.50 · +2.86% since the draft</Small>
+        <Small x={x} color="var(--c-gain)">{fmt ? fmtLine('+$343.50', '+2.86%', 'since the draft', fmt === 'one' ? 'dollars' : fmt) : '+$343.50 · +2.86% since the draft'}</Small>
         <Chart x={x} shape={shape || (range === '1W' ? '1W' : 'Season')} />
         <Pills x={x} on={range} off={off} />
       </Phone>
@@ -14685,9 +14685,10 @@ window.KS_REFS = {
   const WORDS_A = { '1W': 'past week', '1M': 'past month', '3M': 'past 3 months', '6M': 'past 6 months', Season: 'since the draft', YTD: 'this year' };
   const gainLine = (range, words, big) => { const g = big ? ['\u2212$1,234.56', '\u221212.34%'] : GAINS[range]; return `${g[0]} · ${g[1]} ${words === 'B' ? `· ${range}` : WORDS_A[range]}`; };
   const AXIS_FOR = { '1W': AXES['1W'], '1M': ['Oct 16', 'Nov 1', 'Nov 16'], '3M': ['Aug 18', 'Oct 1', 'Nov 16'], '6M': ['May 18', 'Aug 18', 'Nov 16'], Season: AXES.Season, YTD: ['Jan 2', 'Jun 2', 'Nov 16'] };
+  const fmtLine = (d, p, words, fmt) => (fmt === 'paren' ? `${d} (${p}) ${words}` : fmt === 'dollars' ? `${d} ${words}` : `${p} ${words}`);
   const shapeFor = (range) => (range === '1W' ? '1W' : range === 'Season' || range === '1M' ? 'Season' : 'long');
 
-  function StockSheet({ t = 'light', x = 1, range = '1W', off = [], hide = [], label, shape, words, sym = 'NVDA', co = 'NVIDIA Corp', big }) {
+  function StockSheet({ t = 'light', x = 1, range = '1W', off = [], hide = [], label, shape, words, sym = 'NVDA', co = 'NVIDIA Corp', big, fmt }) {
     return (
       <Phone t={t} sheet label={label}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -14696,14 +14697,14 @@ window.KS_REFS = {
           <Icon d={ICON.close} size={18} width={2.4} />
         </div>
         <Big x={x} v="$186.42" />
-        <Small x={x} color={big ? 'var(--c-loss)' : 'var(--c-gain)'}>{words ? gainLine(range, words, big) : '+$3.11 · +1.70% today'}</Small>
-        <Chart x={x} up={!big} shape={big ? 'fall' : shape || (words ? shapeFor(range) : range === '1W' ? '1W' : 'Season')} axis={words ? AXIS_FOR[range] : undefined} />
+        <Small x={x} color={big ? 'var(--c-loss)' : 'var(--c-gain)'}>{fmt ? fmtLine(GAINS[range][0], GAINS[range][1], WORDS_A[range], fmt === 'one' ? 'percent' : fmt) : words ? gainLine(range, words, big) : '+$3.11 · +1.70% today'}</Small>
+        <Chart x={x} up={!big} shape={big ? 'fall' : shape || (words || fmt ? shapeFor(range) : range === '1W' ? '1W' : 'Season')} axis={words || fmt ? AXIS_FOR[range] : undefined} />
         <Pills x={x} on={range} off={off} hide={hide} />
         <span style={{ display: 'grid', placeItems: 'center', minHeight: 50, borderRadius: 26, background: 'var(--c-accent)', color: 'var(--c-on-accent)', ...fs(17, x, 1.6), fontWeight: 700 }}>Buy {sym}</span>
       </Phone>
     );
   }
-  function PlayerCard({ t = 'light', x = 1, range = 'Season', label, card, words = 'A' }) {
+  function PlayerCard({ t = 'light', x = 1, range = 'Season', label, card, words = 'A', fmt }) {
     const fig = (l, v, s, c) => (
       <span style={{ display: 'grid', gap: 2 }}>
         <span style={{ ...fs(11, x, 1.3), fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--c-text-2)' }}>{l}</span>
@@ -14722,7 +14723,7 @@ window.KS_REFS = {
           {fig('Week gain', '+$41.20', '+2.11%', 'var(--c-gain)')}
           {card === 'B' ? null : card === 'A' ? fig(words === 'B' ? range : WORDS_A[range], GAINS[range][0], GAINS[range][1], 'var(--c-gain)') : fig('Since the draft', '+$93.80', '+4.92%', 'var(--c-gain)')}
         </div>
-        {card === 'B' ? <Small x={x} color="var(--c-gain)">{gainLine(range, words)}</Small> : null}
+        {card === 'B' ? <Small x={x} color="var(--c-gain)">{fmt ? fmtLine(GAINS[range][0], GAINS[range][1], WORDS_A[range], fmt === 'one' ? 'dollars' : fmt) : gainLine(range, words)}</Small> : null}
         <Chart x={x} shape={card ? shapeFor(range) : range === '1W' ? '1W' : 'Season'} axis={card ? AXIS_FOR[range] : undefined} />
         <Pills x={x} on={range} />
       </Phone>
@@ -14866,6 +14867,35 @@ window.KS_REFS = {
     );
   }
 
+  function CallGainFormat({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-gain-format" aria-labelledby="call-gain-format-h">
+        <Head id="call-gain-format" code="Charts" title={archived ? 'Decided: one number or two beside a chart' : 'Your call: one number or two beside a chart'} job={'You liked "past 6 months" but not two numbers separated only by a dot. Dollars decide matchups; percent compares stocks of different prices. Two ways to show the gain, drawn on all three charts.'} />
+        <ul className="b-inv__notes">
+          <li><b>A · Both, the brokerage way:</b> "+$54.60 (+41.42%) past 6 months". The percent sits in brackets after the dollars, as in Robinhood and Apple Stocks, so it reads as one figure with its percent.</li>
+          <li><b>B · One number, the one that matters on that chart:</b> dollars on your team (Portfolio and a manager's stock, where dollars decide), percent on a stock you're shopping for (where it compares stocks of different prices).</li>
+          <li><b>Recommended: A.</b> Nothing is lost, it's the format people know from their own brokerage app, and the brackets fix the dot. B is the cleaner line if you'd rather each chart say one thing.</li>
+          <li><b>No new words.</b> The period words are the ones you liked ("past 6 months", "since the draft").</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B.</>}</li>
+        </ul>
+        <h3 className="b-sub">A · both, the percent in brackets (recommended)</h3>
+        <Grid>{[
+          fig('fa1', 'A · Portfolio', <Portfolio fmt="paren" range="Season" label="Portfolio, gain with percent in brackets, option A" />),
+          fig('fa2', 'A · a stock you\u2019re shopping for', <StockSheet fmt="paren" range="6M" label="Stock sheet, 6M, gain with percent in brackets, option A" />),
+          fig('fa3', 'A · a manager\u2019s stock', <PlayerCard card="B" fmt="paren" range="6M" label="Player card, 6M, gain with percent in brackets, option A" />),
+          fig('fax', 'A · a stock · your size (AX5, approximate)', <StockSheet x={AX5} fmt="paren" range="6M" label="Stock sheet, 6M, option A, AX5" />),
+        ]}</Grid>
+        <h3 className="b-sub">B · one number per chart</h3>
+        <Grid>{[
+          fig('fb1', 'B · Portfolio (dollars)', <Portfolio fmt="one" range="Season" label="Portfolio, dollars only, option B" />),
+          fig('fb2', 'B · a stock you\u2019re shopping for (percent)', <StockSheet fmt="one" range="6M" label="Stock sheet, 6M, percent only, option B" />),
+          fig('fb3', 'B · a manager\u2019s stock (dollars)', <PlayerCard card="B" fmt="one" range="6M" label="Player card, 6M, dollars only, option B" />),
+          fig('fbx', 'B · a stock · your size (AX5, approximate)', <StockSheet x={AX5} fmt="one" range="6M" label="Stock sheet, 6M, option B, AX5" />),
+        ]}</Grid>
+      </section>
+    );
+  }
+
   window.KSChartDefault = () => <CallChartDefault />;
   window.KSSeasonPredraft = () => <CallSeasonPredraft />;
   window.KSRangeTooLong = () => null; // decided 2026-11-17: B; it lives in the Archive
@@ -14876,6 +14906,7 @@ window.KS_REFS = {
     />
   );
   window.KSRangeGain = () => <CallRangeGain />;
+  window.KSGainFormat = () => <CallGainFormat />;
 })();
 
 </script>
@@ -15268,6 +15299,7 @@ window.KS_REFS = {
     ['call-chart-default', 'Which range each chart opens on', () => window.KSChartDefault],
     ['call-season-predraft', 'Season on a stock before the draft', () => window.KSSeasonPredraft],
     ['call-range-gain', 'The gain beside each chart', () => window.KSRangeGain],
+    ['call-gain-format', 'One number or two beside a chart', () => window.KSGainFormat],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
@@ -15441,6 +15473,7 @@ window.KS_REFS = {
           {window.KSSeasonPredraft ? <window.KSSeasonPredraft /> : null}
           {window.KSRangeTooLong ? <window.KSRangeTooLong /> : null}
           {window.KSRangeGain ? <window.KSRangeGain /> : null}
+          {window.KSGainFormat ? <window.KSGainFormat /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}

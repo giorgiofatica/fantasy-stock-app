@@ -386,6 +386,7 @@
     ['call-chart-default', 'Which range each chart opens on', () => window.KSChartDefault],
     ['call-season-predraft', 'Season on a stock before the draft', () => window.KSSeasonPredraft],
     ['call-range-gain', 'The gain beside each chart', () => window.KSRangeGain],
+    ['call-gain-format', 'One number or two beside a chart', () => window.KSGainFormat],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
@@ -559,6 +560,7 @@
           {window.KSSeasonPredraft ? <window.KSSeasonPredraft /> : null}
           {window.KSRangeTooLong ? <window.KSRangeTooLong /> : null}
           {window.KSRangeGain ? <window.KSRangeGain /> : null}
+          {window.KSGainFormat ? <window.KSGainFormat /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
