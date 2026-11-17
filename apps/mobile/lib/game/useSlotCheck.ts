@@ -8,6 +8,8 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { countSlotMatches, fetchEnrichmentProgress } from '@/lib/categoryData';
+import { SLOT_FIXTURE } from '@/lib/shell/captureDev';
+import { fixtureCountMatches } from './slotFixture';
 import {
   type CheckSlot,
   type SlotCheckDeps,
@@ -22,10 +24,14 @@ import {
   visibleSlotLines,
 } from './slotCheck';
 
-const LIVE_DEPS: SlotCheckDeps = {
-  isPartial: async () => (await fetchEnrichmentProgress()).partial,
-  countMatches: countSlotMatches,
-};
+const FIXTURE = SLOT_FIXTURE;
+const LIVE_DEPS: SlotCheckDeps = FIXTURE
+  ? // DEV captures only (lib/game/slotFixture.ts): the count read is the fixture's; the check itself is the real one.
+    { isPartial: async () => false, countMatches: async (q) => fixtureCountMatches(FIXTURE, q) }
+  : {
+      isPartial: async () => (await fetchEnrichmentProgress()).partial,
+      countMatches: countSlotMatches,
+    };
 
 export interface SlotCheck {
   /** Per slot: its short line, or null. */

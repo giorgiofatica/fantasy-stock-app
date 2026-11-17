@@ -32,31 +32,31 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/create-account.tsx:133` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:135` | Button | onPress | `handleCreate` | fn handleCreate |  |
 | `app/create-account.tsx:140` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
-| `app/create-league.tsx:346` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
-| `app/create-league.tsx:426` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
-| `app/create-league.tsx:435` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
-| `app/create-league.tsx:447` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
-| `app/create-league.tsx:492` | ChoiceRow | onPress | `inline: () => patch({ stakeMode: opt.value })` | fn patch |  |
-| `app/create-league.tsx:525` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
-| `app/create-league.tsx:537` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
-| `app/create-league.tsx:551` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
-| `app/create-league.tsx:609` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
-| `app/create-league.tsx:617` | Button | onPress | `inline: () => void share()` | fn share |  |
-| `app/create-league.tsx:641` | Button | onPress | `goNext` | fn goNext | `blocked` |
+| `app/create-league.tsx:348` | ChoiceRow | onPress | `inline: () => patch({ type: t.value })` | fn patch |  |
+| `app/create-league.tsx:428` | SegmentedControl | onChange | `inline: (v) => patch({ pickSeconds: Number(v) })` | fn patch |  |
+| `app/create-league.tsx:437` | SettingRow | onPress | `inline: () => { setDateError(null); setShowDatePicker(true); }` | sheet setShowDatePicker(true) |  |
+| `app/create-league.tsx:449` | SegmentedControl | onChange | `inline: (v) => patch({ draftOrder: v as DraftOrderMode })` | fn patch |  |
+| `app/create-league.tsx:494` | ChoiceRow | onPress | `inline: () => patch({ stakeMode: opt.value })` | fn patch |  |
+| `app/create-league.tsx:527` | Chip | onPress | `inline: () => patch({ budgetCap: amount })` | fn patch |  |
+| `app/create-league.tsx:539` | SwitchRow | onValueChange | `inline: (value) => patch({ allowUndraftable: value })` | fn patch |  |
+| `app/create-league.tsx:553` | SlotBuilder | onChange | `inline: (slots) => patch({ slots })` | fn patch |  |
+| `app/create-league.tsx:611` | Button | onPress | `inline: () => void pushAskRouteFor('/(tabs)/league').then((to) => ro` | route replace(to as never) |  |
+| `app/create-league.tsx:619` | Button | onPress | `inline: () => void share()` | fn share |  |
+| `app/create-league.tsx:643` | Button | onPress | `goNext` | fn goNext | `blocked` |
 | `app/forgot-password.tsx:138` | EmptyState | onAction | `backToSignIn` | route replace('/login') |  |
 | `app/forgot-password.tsx:140` | EmptyState | onSecondaryAction | `inline: () => { setSent(false); handleResetPassword(); }` | state setSent |  |
 | `app/forgot-password.tsx:171` | Button | onPress | `handleResetPassword` | fn handleResetPassword |  |
 | `app/join-league.tsx:496` | Button | onPress | `primary.onPress` | prop primary.onPress | `view.action === 'join_disabled'` |
 | `app/join-league.tsx:505` | Button | onPress | `find` | fn find | `!trimmed` |
 | `app/join-league.tsx:571` | Button | onPress | `onContinue` | prop onContinue (the caller's) |  |
-| `app/league-settings.tsx:230` | LeaveLeagueRow | onPress | `inline: () => { setLeaveError(null); setLeaveOpen(true); }` | sheet setLeaveOpen(true) |  |
-| `app/league-settings.tsx:445` | SegmentedControl | onChange | `inline: (v) => setPickSeconds(Number(v))` | state setPickSeconds |  |
-| `app/league-settings.tsx:457` | SettingRow | onPress | `inline: isLocked \|\| dateLocked ? undefined : () => { setDateError(nu` | sheet setShowDatePicker(true) | `isLocked \|\| dateLocked` |
-| `app/league-settings.tsx:509` | ChoiceRow | onPress | `inline: () => { if (isLocked) return; setStakeMode(opt.value); setSl` | state setStakeMode | `isLocked` |
-| `app/league-settings.tsx:548` | SwitchRow | onValueChange | `setAllowUndraftable` | state setAllowUndraftable | `isLocked` |
-| `app/league-settings.tsx:564` | SlotBuilder | onChange | `inline: (next) => { setSlots(next); setSlotsError(null); }` | state setSlots | `isLocked` |
-| `app/league-settings.tsx:603` | SettingRow | onPress | `inline: commissionerRow.pressable ? () => { setLeaveError(null); set` | sheet setTransferOpen(true) |  |
-| `app/league-settings.tsx:666` | Button | onPress | `inline: () => void Share.share({ message: inviteShareMessage(code) }` | share sheet |  |
+| `app/league-settings.tsx:233` | LeaveLeagueRow | onPress | `inline: () => { setLeaveError(null); setLeaveOpen(true); }` | sheet setLeaveOpen(true) |  |
+| `app/league-settings.tsx:448` | SegmentedControl | onChange | `inline: (v) => setPickSeconds(Number(v))` | state setPickSeconds |  |
+| `app/league-settings.tsx:460` | SettingRow | onPress | `inline: isLocked \|\| dateLocked ? undefined : () => { setDateError(nu` | sheet setShowDatePicker(true) | `isLocked \|\| dateLocked` |
+| `app/league-settings.tsx:512` | ChoiceRow | onPress | `inline: () => { if (isLocked) return; setStakeMode(opt.value); setSl` | state setStakeMode | `isLocked` |
+| `app/league-settings.tsx:551` | SwitchRow | onValueChange | `setAllowUndraftable` | state setAllowUndraftable | `isLocked` |
+| `app/league-settings.tsx:567` | SlotBuilder | onChange | `inline: (next) => { setSlots(next); setSlotsError(null); }` | state setSlots | `isLocked` |
+| `app/league-settings.tsx:606` | SettingRow | onPress | `inline: commissionerRow.pressable ? () => { setLeaveError(null); set` | sheet setTransferOpen(true) |  |
+| `app/league-settings.tsx:669` | Button | onPress | `inline: () => void Share.share({ message: inviteShareMessage(code) }` | share sheet |  |
 | `app/login.tsx:175` | Pressable | onPress | `handleResend` | fn handleResend |  |
 | `app/login.tsx:182` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
 | `app/login.tsx:191` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |

@@ -29,6 +29,11 @@ import { parseSignupCapture } from '../auth/signupCapture';
 
 export const SIGNUP_CAPTURE = parseSignupCapture(__DEV__, { error: process.env.EXPO_PUBLIC_SIGNUP_ERROR, prefill: process.env.EXPO_PUBLIC_SIGNUP_PREFILL });
 
+// The slot check's stills (lib/game/slotFixture.ts): seeds price-tier slots and feeds the check's count read. Dev builds only.
+import { parseSlotFixture } from '../game/slotFixture';
+
+export const SLOT_FIXTURE = parseSlotFixture(__DEV__, process.env.EXPO_PUBLIC_SLOT_FIXTURE);
+
 // The "i" popup (UX rule 13): EXPO_PUBLIC_INFO_FIXTURE=<key>[:<page>] opens it once on launch (lib/game/infoPopups.ts). Dev builds only.
 import { parseInfoFixture } from '../game/infoPopups';
 

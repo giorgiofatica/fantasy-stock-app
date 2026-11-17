@@ -44,6 +44,8 @@ import { settingsDirty, type SettingsForm } from '@/lib/game/settingsDirty';
 import { saveState } from '@/components/shell/sheetBarLogic';
 import { PRICE_TIERS_NEED_A_SLOT } from '@/lib/game/slotBuilderCopy';
 import { useSlotCheck } from '@/lib/game/useSlotCheck';
+import { SLOT_FIXTURE } from '@/lib/shell/captureDev';
+import { FIXTURE_SLOTS } from '@/lib/game/slotFixture';
 import { checkSetupOnServer } from '@/lib/game/slotSetupCheck';
 import { SETTINGS_LOCKED, inviteShareMessage, inviteShareShown } from '@/lib/game/leagueSettingsEntry';
 import { draftDateTimeLabel } from '@/lib/home/draftCountdown';
@@ -136,7 +138,8 @@ export default function LeagueSettingsScreen() {
       let stale = false;
       loadLeagueSlots(league.id).then((rows) => {
         if (stale) return;
-        setSlots(rows);
+        // DEV captures only (lib/game/slotFixture.ts): the form holds the fixture's slots (an edit) while the baseline keeps what was loaded, so it reads as changed.
+        setSlots(SLOT_FIXTURE ? FIXTURE_SLOTS.map((s) => ({ ...s })) : rows);
         setLoaded((prev) => (prev ? { ...prev, slots: rows } : prev));
       });
       return () => { stale = true; };

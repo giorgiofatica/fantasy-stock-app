@@ -76,7 +76,8 @@ import { Stepper } from '@/components/game/Stepper';
 import { SeasonStrip } from '@/components/game/SeasonStrip';
 import { WEEKS_UNIT_SHOWN, WEEKS_UNIT_SPOKEN, seasonByeLine } from '@/lib/game/seasonStep';
 import { DraftDateSheet } from '@/components/game/DraftDateSheet';
-import { CAPTURE } from '@/lib/shell/captureDev';
+import { CAPTURE, SLOT_FIXTURE } from '@/lib/shell/captureDev';
+import { FIXTURE_SLOTS } from '@/lib/game/slotFixture';
 import { createFixtureStep } from '@/lib/shell/captureKnobs';
 import { keepDots, keepHyphens, keepMoney } from '@/lib/game/keepDots';
 import { pushAskRouteFor } from '@/lib/shell/pushAsk';
@@ -154,7 +155,8 @@ export default function CreateLeagueWizard() {
     notionalPerSlot: String(DEFAULT_NOTIONAL_PER_SLOT),
     budgetCap: String(DEFAULT_BUDGET_CAP),
     allowUndraftable: false,
-    slots: [],
+    // DEV captures only (lib/game/slotFixture.ts): the Stakes step's price tiers open with slots.
+    slots: CAPTURE.create === 'tiers' && SLOT_FIXTURE ? FIXTURE_SLOTS.map((s) => ({ ...s })) : [],
     numWeeks: CAPTURE.createSeason?.weeks ?? 11,
     playoffTeams: CAPTURE.createSeason?.playoffTeams ?? 4,
     numRounds: 6,

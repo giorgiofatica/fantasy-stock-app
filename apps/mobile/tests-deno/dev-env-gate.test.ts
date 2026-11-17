@@ -20,6 +20,7 @@ import { NO_KNOBS, parseCaptureKnobs } from '../lib/shell/captureKnobs.ts';
 import { DELETE_FIXTURES, parseDeleteFixture } from '../lib/account/deleteCapture.ts';
 import { NO_SIGNUP_CAPTURE, parseSignupCapture } from '../lib/auth/signupCapture.ts';
 import { INFO_KEYS, parseInfoFixture } from '../lib/game/infoPopups.ts';
+import { parseSlotFixture } from '../lib/game/slotFixture.ts';
 import { resolveMoneyFixture } from '../lib/money/fixtureMode.ts';
 import { JOIN_FIXTURES, resolveJoinFixture } from '../lib/join/joinFixtureGate.ts';
 import { parseResetCaptureView } from '../lib/shell/resetCaptureView.ts';
@@ -37,7 +38,7 @@ const PRODUCT = new Set([
 
 /** Parsers that take the gate and return their "off" value without it (each is checked in the last test). */
 const GATED_PARSERS = [
-  'parseCaptureKnobs', 'parseDeleteFixture', 'parseSignupCapture', 'parseInfoFixture', 'resolveMoneyFixture',
+  'parseCaptureKnobs', 'parseDeleteFixture', 'parseSignupCapture', 'parseInfoFixture', 'parseSlotFixture', 'resolveMoneyFixture',
   'resolveJoinFixture', 'parseResetCaptureView', 'seamActive', 'createFailOnce',
 ];
 const GATE = String.raw`(?:__DEV__|SEAM_ON|typeof __DEV__ !== 'undefined' \? __DEV__ : false)`;
@@ -154,6 +155,7 @@ Deno.test('dev env gate: every GATED_PARSERS entry returns its off value when th
   for (const f of DELETE_FIXTURES) assertEquals(parseDeleteFixture(false, f), null);
   assertEquals(parseSignupCapture(false, { error: 'network', prefill: '1' }), NO_SIGNUP_CAPTURE);
   for (const k of INFO_KEYS) assertEquals(parseInfoFixture(false, `${k}:1`), null);
+  for (const k of ['short', 'failed']) assertEquals(parseSlotFixture(false, k), null);
   assertEquals(resolveMoneyFixture(false, { stress: 'stress', scenario: 'ok', stake: 'price_tiers' }), null);
   for (const j of JOIN_FIXTURES) assertEquals(resolveJoinFixture(false, j), null);
   assertEquals([parseResetCaptureView('form', false), parseResetCaptureView('success', false)], [null, null]);
@@ -162,6 +164,6 @@ Deno.test('dev env gate: every GATED_PARSERS entry returns its off value when th
   // and each one is ON with the gate, so the checks above are not vacuous
   assert(parseDeleteFixture(true, DELETE_FIXTURES[0]) !== null && resolveJoinFixture(true, JOIN_FIXTURES[0]) !== null);
   assert(seamActive(true, '1') && parseResetCaptureView('form', true) === 'form');
-  assert(resolveMoneyFixture(true, { stress: 'stress' }) !== null && parseInfoFixture(true, `${INFO_KEYS[0]}:1`) !== null);
+  assert(resolveMoneyFixture(true, { stress: 'stress' }) !== null && parseInfoFixture(true, `${INFO_KEYS[0]}:1`) !== null && parseSlotFixture(true, 'short') !== null);
   assert(createFailOnce(true, 'get_league_history')('get_league_history'));
 });
