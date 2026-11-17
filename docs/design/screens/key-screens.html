@@ -14621,12 +14621,14 @@ window.KS_REFS = {
     Season: [0.7, 0.66, 0.72, 0.6, 0.52, 0.56, 0.44, 0.38, 0.41, 0.3, 0.26, 0.22],
     long: [0.8, 0.74, 0.77, 0.69, 0.71, 0.6, 0.63, 0.55, 0.5, 0.52, 0.44, 0.47, 0.39, 0.35, 0.3, 0.33, 0.24, 0.2],
     sinceDraft: [0.7, 0.66, 0.72, 0.6, 0.52, 0.56, 0.44, 0.38],
+    fall: [0.2, 0.24, 0.33, 0.3, 0.35, 0.39, 0.47, 0.44, 0.52, 0.5, 0.55, 0.63, 0.6, 0.69, 0.71, 0.77, 0.74, 0.8],
   };
   const AXES = {
     '1W': ['Tue', 'Wed', 'Thu', 'Fri', 'Mon'],
     Season: ['Nov 2', 'Nov 9', 'Nov 16'],
     long: ['Jun 16', 'Aug 16', 'Oct 16'],
     sinceDraft: ['Nov 2', 'Nov 9', 'Nov 16'],
+    fall: ['May 18', 'Aug 18', 'Nov 16'],
   };
   function Chart({ x = 1, shape = 'Season', up = true, h = 120, axis }) {
     const pts = SHAPES[shape];
@@ -14681,23 +14683,23 @@ window.KS_REFS = {
   // The gain beside each chart, per range (drawing values), and the two ways to name the period.
   const GAINS = { '1W': ['+$7.40', '+4.13%'], '1M': ['+$12.85', '+7.40%'], '3M': ['+$31.20', '+20.10%'], '6M': ['+$54.60', '+41.42%'], Season: ['+$9.18', '+5.18%'], YTD: ['+$61.07', '+48.71%'] };
   const WORDS_A = { '1W': 'past week', '1M': 'past month', '3M': 'past 3 months', '6M': 'past 6 months', Season: 'since the draft', YTD: 'this year' };
-  const gainLine = (range, words) => `${GAINS[range][0]} · ${GAINS[range][1]} ${words === 'B' ? `· ${range}` : WORDS_A[range]}`;
+  const gainLine = (range, words, big) => { const g = big ? ['\u2212$1,234.56', '\u221212.34%'] : GAINS[range]; return `${g[0]} · ${g[1]} ${words === 'B' ? `· ${range}` : WORDS_A[range]}`; };
   const AXIS_FOR = { '1W': AXES['1W'], '1M': ['Oct 16', 'Nov 1', 'Nov 16'], '3M': ['Aug 18', 'Oct 1', 'Nov 16'], '6M': ['May 18', 'Aug 18', 'Nov 16'], Season: AXES.Season, YTD: ['Jan 2', 'Jun 2', 'Nov 16'] };
   const shapeFor = (range) => (range === '1W' ? '1W' : range === 'Season' || range === '1M' ? 'Season' : 'long');
 
-  function StockSheet({ t = 'light', x = 1, range = '1W', off = [], hide = [], label, shape, words }) {
+  function StockSheet({ t = 'light', x = 1, range = '1W', off = [], hide = [], label, shape, words, sym = 'NVDA', co = 'NVIDIA Corp', big }) {
     return (
       <Phone t={t} sheet label={label}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ width: 44, height: 44, borderRadius: 22, background: 'var(--c-inset)', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 800, color: 'var(--c-text)' }}>NVDA</span>
-          <span style={{ display: 'grid', flex: 1 }}><b style={{ ...fs(20, x, 1.3), color: 'var(--c-text)' }}>NVDA</b><span style={{ ...fs(13, x, 1.3), color: 'var(--c-text-2)' }}>NVIDIA Corp</span></span>
+          <span style={{ width: 44, height: 44, borderRadius: 22, background: 'var(--c-inset)', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 800, color: 'var(--c-text)' }}>{sym}</span>
+          <span style={{ display: 'grid', flex: 1 }}><b style={{ ...fs(20, x, 1.3), color: 'var(--c-text)' }}>{sym}</b><span style={{ ...fs(13, x, 1.3), color: 'var(--c-text-2)' }}>{co}</span></span>
           <Icon d={ICON.close} size={18} width={2.4} />
         </div>
         <Big x={x} v="$186.42" />
-        <Small x={x} color="var(--c-gain)">{words ? gainLine(range, words) : '+$3.11 · +1.70% today'}</Small>
-        <Chart x={x} shape={shape || (words ? shapeFor(range) : range === '1W' ? '1W' : 'Season')} axis={words ? AXIS_FOR[range] : undefined} />
+        <Small x={x} color={big ? 'var(--c-loss)' : 'var(--c-gain)'}>{words ? gainLine(range, words, big) : '+$3.11 · +1.70% today'}</Small>
+        <Chart x={x} up={!big} shape={big ? 'fall' : shape || (words ? shapeFor(range) : range === '1W' ? '1W' : 'Season')} axis={words ? AXIS_FOR[range] : undefined} />
         <Pills x={x} on={range} off={off} hide={hide} />
-        <span style={{ display: 'grid', placeItems: 'center', minHeight: 50, borderRadius: 26, background: 'var(--c-accent)', color: 'var(--c-on-accent)', ...fs(17, x, 1.6), fontWeight: 700 }}>Buy NVDA</span>
+        <span style={{ display: 'grid', placeItems: 'center', minHeight: 50, borderRadius: 26, background: 'var(--c-accent)', color: 'var(--c-on-accent)', ...fs(17, x, 1.6), fontWeight: 700 }}>Buy {sym}</span>
       </Phone>
     );
   }
@@ -14759,6 +14761,8 @@ window.KS_REFS = {
           fig('db3', 'B · a manager’s stock (player card)', <PlayerCard range="Season" label="Player card opening on Season, option B" />, 'One chart now, not two.'),
           fig('db4', 'B · a stock’s sheet · Dark', <StockSheet t="dark" range="1W" label="Stock sheet on 1W, option B, Dark" />),
           fig('db5', 'B · a stock’s sheet · your size (AX5, approximate)', <StockSheet x={AX5} range="1W" label="Stock sheet on 1W, option B, AX5" />, 'The six ranges still fit one row at your size (they stop growing at 1.3x, like the other pills).'),
+          fig('db6', 'B · Portfolio · your size (AX5, approximate)', <Portfolio x={AX5} range="Season" label="Portfolio on Season, option B, AX5" />),
+          fig('db7', 'B · player card · your size (AX5, approximate)', <PlayerCard x={AX5} range="Season" label="Player card on Season, option B, AX5" />),
         ]}</Grid>
       </section>
     );
@@ -14772,15 +14776,26 @@ window.KS_REFS = {
           <li><b>After the draft (both options):</b> Season shows the stock from draft day to now, whether you, someone else, or nobody owns it.</li>
           <li><b>A · Before the draft, no Season.</b> The sheet shows 1W, 1M, 3M, 6M and YTD; Season appears once the league has drafted.</li>
           <li><b>B · Before the draft, Season is grey.</b> It's in its place but greyed out and does nothing until the draft, like a stepper at its end.</li>
-          <li><b>Recommended: B.</b> The row of ranges never changes shape, and the grey matches how the app shows anything that isn't available yet. It also matches the recommendation in the next call.</li>
+          <li><b>Recommended: B.</b> The row of ranges never changes shape, and the grey matches how the app shows anything that isn't available yet, including the Portfolio ranges you've already ruled grey.</li>
+          <li><b>A second question: does a stock chart ever grey a range?</b> You ruled grey for the Portfolio graph. A stock can have the same gap: one that started trading on October 1 has no 3M, 6M or YTD yet.</li>
+          <li><b>C · A stock shows what it has.</b> 3M, 6M and YTD on that stock draw its whole life, October 1 to now, the same line three times.</li>
+          <li><b>D · A stock greys them too.</b> The same rule as your Portfolio: a range longer than the stock has existed is grey until it's long enough.</li>
+          <li><b>Recommended: D.</b> One rule for every chart: a range with nothing behind it is grey. Three ranges drawing the same line would look broken, as on Portfolio.</li>
           <li><b>No new words.</b></li>
-          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B.</>}</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B, and C or D.</>}</li>
         </ul>
         <Grid>{[
           fig('sa', 'A · before the draft', <StockSheet range="1W" hide={['Season']} label="Stock sheet before the draft, option A, no Season" />, 'Five ranges.'),
           fig('sb', 'B · before the draft (recommended)', <StockSheet range="1W" off={['Season']} label="Stock sheet before the draft, option B, Season greyed" />, 'Season greyed, in its place.'),
           fig('sc', 'After the draft (both) · Season', <StockSheet range="Season" shape="sinceDraft" label="Stock sheet after the draft on Season" />, 'Draft day to now, for any stock.'),
           fig('sbd', 'B · before the draft · Dark', <StockSheet t="dark" range="1W" off={['Season']} label="Stock sheet before the draft, option B, Dark" />),
+          fig('sbx', 'B · before the draft · your size (AX5, approximate)', <StockSheet x={AX5} range="1W" off={['Season']} label="Stock sheet before the draft, option B, AX5" />, 'All six on one row at your size, Season grey.'),
+        ]}</Grid>
+        <h3 className="b-sub">A stock that started trading on October 1</h3>
+        <Grid>{[
+          fig('sgc', 'C · 6M selected (shows what it has)', <StockSheet sym="NEWC" co="Newco Inc." range="6M" shape="sinceDraft" words="A" label="A newly listed stock, 6M, option C" />, 'Its whole life, the same line as 3M and YTD.'),
+          fig('sgd', 'D · 3M, 6M, YTD grey (recommended)', <StockSheet sym="NEWC" co="Newco Inc." range="1M" off={['3M', '6M', 'YTD']} words="A" label="A newly listed stock, 3M 6M YTD greyed, option D" />, 'Grey until it has that much history.'),
+          fig('sgx', 'D · your size (AX5, approximate)', <StockSheet sym="NEWC" co="Newco Inc." x={AX5} range="1M" off={['3M', '6M', 'YTD']} words="A" label="A newly listed stock, option D, AX5" />),
         ]}</Grid>
       </section>
     );
@@ -14813,7 +14828,9 @@ window.KS_REFS = {
       <section className="b-sec" id="call-range-gain" aria-labelledby="call-range-gain-h">
         <Head id="call-range-gain" code="Charts" title={archived ? 'Decided: the gain beside each chart' : 'Your call: the gain beside each chart'} job={'You ruled that the gain or loss shown with a chart changes with the range you tap. Two things to settle: the words that name the period after the number, and where that number sits on a manager\u2019s stock (the player card), which today has three fixed figures: Price, Week gain and Since the draft.'} />
         <ul className="b-inv__notes">
-          <li><b>The words, A · say the period.</b> "+$7.40 · +4.13% past week", then "past month", "past 3 months", "past 6 months", "since the draft" (today's words) and "this year". New words: "past week", "past month", "past 3 months", "past 6 months", "this year".</li>
+          <li><b>The words, A · say the period.</b> "+$7.40 · +4.13% past week", then "past month", "past 3 months", "past 6 months", "since the draft" and "this year". New words: "past week", "past month", "past 3 months", "past 6 months", "this year".</li>
+          <li><b>Season says "since the draft", not "this season".</b> It's the phrase Portfolio already uses under its value, and it says exactly where the line starts. "This season" would be a sixth new phrase for the same thing.</li>
+          <li><b>Why the words matter:</b> a stock can be up on 3M and down on Season one tap apart. With the period named beside the number, green then red reads as two periods; without it, it reads as a glitch.</li>
           <li><b>The words, B · repeat the range.</b> "+$7.40 · +4.13% · 1W", "· Season", "· YTD". No new words, but it reads as a code, not a sentence.</li>
           <li><b>The player card, A · the third figure follows the range.</b> Price and Week gain stay; the third figure's label becomes the period ("Past week", "Since the draft"…) and its number changes as you tap.</li>
           <li><b>The player card, B · two figures and the number by the chart.</b> Price and Week gain stay; the gain sits right above the chart, the same place as on Portfolio and a stock's sheet.</li>
@@ -14830,6 +14847,11 @@ window.KS_REFS = {
           fig('wa3', 'Words A · YTD', <StockSheet range="YTD" words="A" label="Stock sheet, YTD, words A" />, '"this year".'),
           fig('wb1', 'Words B · 1W', <StockSheet range="1W" words="B" label="Stock sheet, 1W, words B" />, 'The range\u2019s own label.'),
           fig('wb3', 'Words B · YTD', <StockSheet range="YTD" words="B" label="Stock sheet, YTD, words B" />),
+        ]}</Grid>
+        <h3 className="b-sub">The longest case at your size: a big loss on 6M</h3>
+        <Grid>{[
+          fig('wax', 'Words A · 6M · your size (AX5, approximate)', <StockSheet x={AX5} range="6M" words="A" big label="Stock sheet, 6M, a large loss, words A, AX5" />, 'If it can\u2019t fit one line, it wraps after the \u201c\u00b7\u201d, never inside a number.'),
+          fig('wbx', 'Words B · 6M · your size (AX5, approximate)', <StockSheet x={AX5} range="6M" words="B" big label="Stock sheet, 6M, a large loss, words B, AX5" />),
         ]}</Grid>
         <h3 className="b-sub">The player card</h3>
         <Grid>{[
