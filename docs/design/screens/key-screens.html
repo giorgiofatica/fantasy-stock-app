@@ -14755,7 +14755,7 @@ window.KS_REFS = {
           fig('da2', 'A · a stock’s sheet', <StockSheet range="Season" label="Stock sheet opening on Season, option A" />),
           fig('da3', 'A · a manager’s stock (player card)', <PlayerCard range="Season" label="Player card opening on Season, option A" />),
         ]}</Grid>
-        <h3 className="b-sub">B · your team on Season, a stock you're buying on 1W (recommended)</h3>
+        <h3 className="b-sub">B · your team on Season, a stock you're buying on 1W {archived ? '(decided)' : '(recommended)'}</h3>
         <Grid>{[
           fig('db1', 'B · Portfolio', <Portfolio range="Season" label="Portfolio opening on Season, option B" />),
           fig('db2', 'B · a stock’s sheet', <StockSheet range="1W" label="Stock sheet opening on 1W, option B" />, 'The past five trading days, as ruled.'),
@@ -14896,7 +14896,13 @@ window.KS_REFS = {
     );
   }
 
-  window.KSChartDefault = () => <CallChartDefault />;
+  window.KSChartDefault = () => null; // decided 2026-11-17: B; it lives in the Archive
+  window.KSChartDefaultArchived = () => (
+    <CallChartDefault
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "go with B".</b> Portfolio and the player card open on Season; the stock sheet (a stock you're shopping for) opens on 1W. Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
   window.KSSeasonPredraft = () => <CallSeasonPredraft />;
   window.KSRangeTooLong = () => null; // decided 2026-11-17: B; it lives in the Archive
   window.KSRangeTooLongArchived = () => (
@@ -15572,7 +15578,6 @@ window.KS_REFS = {
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-chart-default', 'Which range each chart opens on', () => window.KSChartDefault],
     ['call-season-predraft', 'Season on a stock before the draft', () => window.KSSeasonPredraft],
     ['call-range-gain', 'The gain beside each chart: the player card', () => window.KSRangeGain],
     ['call-create-close', 'Closing Create league from any step', () => window.KSCreateClose],
@@ -15583,6 +15588,7 @@ window.KS_REFS = {
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-chart-default', title: 'Which range each chart opens on', decision: 'B: "go with B". Portfolio and the player card open on Season; the stock sheet (a stock you\u2019re shopping for) opens on 1W.', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSChartDefaultArchived },
     { id: 'call-gain-format', title: 'One number or two beside a chart', decision: 'A: both, the percent in brackets, "+$54.60 (+41.42%) past 6 months", on every chart; with the period words he liked (Words A of #call-range-gain).', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSGainFormatArchived },
     { id: 'call-range-too-long', title: 'Portfolio ranges longer than the league', decision: 'B, ruled before the board reached him: "grey out the ranges longer than the league has existed". The Portfolio graph only; stock charts were not asked.', date: '2026-11-17', rec: 'PRODUCT_RULES (#495, the Planner)', render: () => window.KSRangeTooLongArchived },
     { id: 'call-dead-links', title: 'The dead password link and the “Nothing here” page', decision: 'B: both in the dead-end family\u2019s form with one short line each: "This link didn\u2019t work." + "It may have been opened on a different device." (new words, approved), and "Nothing here." + "This link is old or incomplete."', date: '2026-11-16', rec: 'PRODUCT_RULES (the Planner\u2019s 11-16 batch)', render: () => window.KSDeadLinksArchived },

@@ -184,7 +184,7 @@
           fig('da2', 'A · a stock’s sheet', <StockSheet range="Season" label="Stock sheet opening on Season, option A" />),
           fig('da3', 'A · a manager’s stock (player card)', <PlayerCard range="Season" label="Player card opening on Season, option A" />),
         ]}</Grid>
-        <h3 className="b-sub">B · your team on Season, a stock you're buying on 1W (recommended)</h3>
+        <h3 className="b-sub">B · your team on Season, a stock you're buying on 1W {archived ? '(decided)' : '(recommended)'}</h3>
         <Grid>{[
           fig('db1', 'B · Portfolio', <Portfolio range="Season" label="Portfolio opening on Season, option B" />),
           fig('db2', 'B · a stock’s sheet', <StockSheet range="1W" label="Stock sheet opening on 1W, option B" />, 'The past five trading days, as ruled.'),
@@ -325,7 +325,13 @@
     );
   }
 
-  window.KSChartDefault = () => <CallChartDefault />;
+  window.KSChartDefault = () => null; // decided 2026-11-17: B; it lives in the Archive
+  window.KSChartDefaultArchived = () => (
+    <CallChartDefault
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-17): "go with B".</b> Portfolio and the player card open on Season; the stock sheet (a stock you're shopping for) opens on 1W. Recorded in PRODUCT_RULES by the Planner.</>}
+    />
+  );
   window.KSSeasonPredraft = () => <CallSeasonPredraft />;
   window.KSRangeTooLong = () => null; // decided 2026-11-17: B; it lives in the Archive
   window.KSRangeTooLongArchived = () => (
