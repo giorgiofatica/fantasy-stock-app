@@ -644,9 +644,15 @@ building anything, and don't reopen a rule without him.
       Design Lead first recorded his "for both" as covering this and withdrew it when he
       clarified. This ruling is about the gain beside a chart; other lines that pair dollars
       and a percent with a dot (a matchup's "This week" line, for one) were not asked about.
-  - Not decided, for the Design Lead to board and him to pick: which range each chart opens
-    on; and what "Season" means on a stock sheet opened in a league that has not drafted, or
-    for a stock nobody in the league owns.
+  - **Which range a chart opens on: your team on Season, a stock you are shopping for on 1W**
+    (2026-11-17, board `#call-chart-default`, PR #496; typed in the Orchestrator's chat,
+    18:00Z: "go with B"). The Portfolio graph and the card for a stock on a team open on
+    Season. The stock sheet in Buy a stock opens on 1W. A (every chart opens on Season) was
+    not picked. The reason given to him: each chart opens on what you most likely came to
+    check, your team's whole run or a stock's recent move.
+  - Not decided, for the Design Lead to board and him to pick: what "Season" means on a
+    stock sheet opened in a league that has not drafted, or for a stock nobody in the league
+    owns.
 - **Stock chart ranges** (2026-10-05, option A; SUPERSEDED 2026-11-17 by the rule above): 1W /
   1M / 3M / 1Y, with 1W the default.
   There's no 1D, because the price history (historical-bars) is daily bars only.
