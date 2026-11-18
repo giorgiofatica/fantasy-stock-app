@@ -733,10 +733,23 @@ building anything, and don't reopen a rule without him.
     have all those six options if most of those don't even apply."
     - Decided by his words: in a league whose season is over, the Portfolio graph draws the
       season from the draft to its last day, and the six range buttons are not offered.
-    - Not decided, going to him as mockups: what the finished view looks like, and whether
-      the value and its "today" line stop at the season's last day. On build 17 a finished
-      league's Portfolio still moves with today's market ("+$8.49 (+0.47%) today" on a
-      league marked Final).
+    - **The look: the season line alone (A)** (2026-11-18, A/B mockup in the Planner's chat).
+      Shown A (the season line alone) beside B (the line with the week-by-week results under
+      it, the "Your season" strip from Home), his words: "No, I think just the chart, because
+      that week by week thing is going to appear on the homepage. Like, that's where that
+      lives. I don't think we need to clutter it. So just option A."
+    - What A showed, and so what the pick covers on the Portfolio screen of a finished
+      league: the label "Portfolio value" with the existing "Final" chip, the value, the
+      gain "since the draft", the line from the draft to the season's last day, then
+      Holdings. No range buttons, no "today" line, no "Buy a stock".
+    - **The value stops at the season's last day.** This was drawn in both mockups and put to
+      him in words ("the value stops at the season's last day... check that you agree"); he
+      picked A without objecting. It is not a sentence of his own. On build 17 a finished
+      league's Portfolio still moved with that day's market ("+$8.49 (+0.47%) today" on a
+      league marked Final); that goes.
+    - Not shown to him, so not covered: the card for a stock from a finished season, and a
+      manager's portfolio viewed from a finished league. The Design Lead specs both to
+      match and shows him if either needs a look of its own.
     - This is an exception to the grey-in-place rule below, which is about a range a chart
       cannot draw YET.
   - **A range a chart cannot draw yet is greyed in its place, never hidden** (2026-11-17, board
