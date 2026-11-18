@@ -74,12 +74,27 @@ export function toneOf(n: number): Tone {
   return n > 0 ? 'gain' : n < 0 ? 'loss' : 'zero';
 }
 
-/** The player card's Week gain figure ("+$62.40" over "+6.05%"), or null when there is none: a
- * league without weeks, or a week that has nothing for the stock. Then the card leaves the figure
- * out (no stand-in, no new words): a missing number never shows as zero (Giorgio, 2026-11-18). */
-export function cardWeekFigure(weekGain: number | null, weekPct: number | null): { value: string; sub: string; tone: Tone } | null {
-  if (weekGain === null || weekPct === null) return null;
-  return { value: formatMoney(weekGain, { sign: 'always' }), sub: formatPercent(weekPct, { sign: 'always' }), tone: toneOf(weekGain) };
+/** The app's existing mark for a number that isn't there yet: League › Schedule's unscored week
+ * (homeCopy SEASON_TILE_UNSCORED). Repeated here, not imported, so this primitive's logic does not
+ * pull in homeCopy's import graph; tests-deno/league-weeks.test.ts pins the two equal. */
+export const WEEK_UNKNOWN = '\u2013';
+
+export type CardWeekFigure =
+  | { kind: 'figure'; value: string; sub: string; tone: Tone }
+  /** A league with weeks, but the week has nothing for this stock: Schedule's "–", alone. */
+  | { kind: 'unknown'; value: string };
+
+/**
+ * The player card's Week gain figure (Giorgio, 2026-11-18: a missing number never shows as zero):
+ *  - a league without weeks (Duration) -> null: the card leaves the figure out, nothing in its place;
+ *  - a week that has nothing for the stock (no week-start row) -> 'unknown': the "–" the Schedule
+ *    uses for an unscored week, no percent, no words (unknown is a state, not copy);
+ *  - otherwise the figure ("+$62.40" over "+6.05%"). A real flat week still reads $0.00.
+ */
+export function cardWeekFigure(weekGain: number | null, weekPct: number | null, hasWeeks = true): CardWeekFigure | null {
+  if (!hasWeeks) return null;
+  if (weekGain === null || weekPct === null) return { kind: 'unknown', value: WEEK_UNKNOWN };
+  return { kind: 'figure', value: formatMoney(weekGain, { sign: 'always' }), sub: formatPercent(weekPct, { sign: 'always' }), tone: toneOf(weekGain) };
 }
 
 // ── Categories (DraftTile, CategoryPill) ─────────────────────────────────────────

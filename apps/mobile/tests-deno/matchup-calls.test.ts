@@ -208,7 +208,7 @@ Deno.test('mid-week buy (sold V Tue, bought MSFT Thu): the card\'s week figures 
   const rowPct = weekPctOf(msftRow.cents / 100, stockBasis('MSFT', snaps(ROBERTO_HOLDINGS), trades));
   const card = playerCardData({
     symbol: 'MSFT', company: 'Microsoft', userId: 'me', activity: fixtureLedger('bought', 'me', 'g').activity,
-    snapshots: snaps(ROBERTO_HOLDINGS), trades, weekGain: msftRow.cents / 100, price: MSFT_BUY.live,
+    snapshots: snaps(ROBERTO_HOLDINGS), trades, weekGain: msftRow.cents / 100, hasWeeks: true, price: MSFT_BUY.live,
     bars: [{ date: '2026-09-23', close: MSFT_BUY.prevClose }], now: new Date('2026-09-24T17:37:00Z'),
   })!;
   assertEquals(card.weekGain, msftRow.cents / 100);

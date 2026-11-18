@@ -146,14 +146,14 @@ Deno.test('playerCardData: the card agrees with the row and says how it was got'
   const ledger = fixtureLedger('unslotted', 'me', 'g');
   const d = playerCardData({
     symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
-    weekGain: 62.4, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
+    weekGain: 62.4, hasWeeks: true, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
   })!;
   assertEquals(d.weekGain, 62.4, "the row's own cents, so card and row never disagree");
   assertEquals(d.acquisition.kind, 'drafted');
   assertEquals(d.held, fixtureQty(nvda));
   // TWO figures' worth of numbers (Price with today, Week gain) and no "since" figures: "Since the
   // draft" is Season's gain line now (Giorgio 2026-11-17, "B").
-  assertEquals(Object.keys(d).sort(), ['acquisition', 'company', 'held', 'lots', 'price', 'seasonStart', 'ticker', 'todayPct', 'weekGain', 'weekPct']);
+  assertEquals(Object.keys(d).sort(), ['acquisition', 'company', 'hasWeeks', 'held', 'lots', 'price', 'seasonStart', 'ticker', 'todayPct', 'weekGain', 'weekPct']);
   assertEquals(Math.round(d.todayPct * 100) / 100, Math.round(((nvda.thu - 306.68) / 306.68) * 10000) / 100, "today's percent is from the last close before today");
   // Season's first day on the card is the league's draft day (ET), the same for any stock.
   assert(d.seasonStart !== null && /^\d{4}-\d{2}-\d{2}$/.test(d.seasonStart));
@@ -164,7 +164,7 @@ Deno.test('playerCardData: Week gain is the matchup week and is NOT the 1W range
   const now = new Date('2026-09-24T17:37:00Z');
   const d = playerCardData({
     symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
-    weekGain: 62.4, price: nvda.thu, bars: weekBars, now,
+    weekGain: 62.4, hasWeeks: true, price: nvda.thu, bars: weekBars, now,
   })!;
   // The 1W gain is per share over the past five sessions; the card's Week gain is the row's own number.
   const one = stockLineSeries({ range: '1W', bars: [{ date: '2026-09-17', close: 250 }, ...weekBars], price: nvda.thu, todayEt: '2026-09-24', now, sessions: [], seasonStart: null });
@@ -248,7 +248,7 @@ Deno.test('playerCardData carries the lots held now (the card\'s gain line is th
   const ledger = fixtureLedger('unslotted', 'me', 'g');
   const d = playerCardData({
     symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
-    weekGain: 62.4, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
+    weekGain: 62.4, hasWeeks: true, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
   })!;
   assertEquals(d.lots, openLots('me', 'NVDA', ledger.activity));
   near(d.lots.reduce((n, l) => n + l.quantity, 0), d.held, 1e-4);

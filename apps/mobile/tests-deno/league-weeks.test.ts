@@ -7,8 +7,9 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { leagueHasWeeks } from '../lib/game/leagueWeeks.ts';
-import { cardWeekGain, playerCardData, stockWeek, weekPctOf } from '../lib/game/playerCardModel.ts';
-import { cardWeekFigure, rosterHalfFigures, rosterHalfLabel } from '../components/sp/logic/gameNight.ts';
+import { playerCardData, stockWeek, weekPctOf } from '../lib/game/playerCardModel.ts';
+import { WEEK_UNKNOWN, cardWeekFigure, rosterHalfFigures, rosterHalfLabel } from '../components/sp/logic/gameNight.ts';
+import { SEASON_TILE_UNSCORED } from '../lib/home/homeCopy.ts';
 import { accessibleLeagueRow, sheetChipShown, type SheetLeague } from '../lib/shell/leagueSheet.ts';
 import { getMatchupScreenState } from '../lib/matchupScreenState.ts';
 import { fixtureLedger } from '../lib/game/matchupFixture.ts';
@@ -68,61 +69,78 @@ Deno.test('weekPctOf: no basis -> unknown (null), not 0%', () => {
 
 // ── The player card ──────────────────────────────────────────────────────────────
 
-Deno.test('cardWeekGain: a Duration league has no week figure, even with a row', () => {
-  const input = { symbol: 'NVDA', snapshots: snap, trades: [], price: nvda.thu };
-  assertEquals(cardWeekGain({ ...input, leagueType: 'duration' }), null);
-  assertEquals(cardWeekGain({ ...input, leagueType: null }), null);
-  const m = cardWeekGain({ ...input, leagueType: 'matchup' });
-  assertEquals(Math.round(m! * 100), Math.round(fixtureQty(nvda) * (nvda.thu - nvda.mon) * 100));
-  // A Matchup league, a holding with no row: unknown.
-  assertEquals(cardWeekGain({ ...input, symbol: 'NVTS', leagueType: 'matchup' }), null);
+const cardIn = (over: { snapshots?: typeof snap; weekGain: number | null; hasWeeks: boolean }) => ({
+  symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: fixtureLedger('unslotted', 'me', 'g').activity,
+  snapshots: over.snapshots ?? snap, trades: [], weekGain: over.weekGain, hasWeeks: over.hasWeeks, price: nvda.thu,
+  bars: [{ date: '2026-09-23', close: nvda.prev }], now: new Date('2026-09-24T17:37:00Z'),
 });
 
-Deno.test('playerCardData: an unknown week stays unknown (gain AND percent null)', () => {
-  const d = playerCardData({
-    symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: fixtureLedger('unslotted', 'me', 'g').activity,
-    snapshots: [], trades: [], weekGain: null, price: nvda.thu,
-    bars: [{ date: '2026-09-23', close: nvda.prev }], now: new Date('2026-09-24T17:37:00Z'),
-  })!;
+Deno.test('playerCardData: a Duration league has no week number, even when one is passed', () => {
+  const d = playerCardData(cardIn({ weekGain: 62.4, hasWeeks: false }))!;
   assert(d, 'the card still opens (Price, the chart, how it was got)');
-  assertEquals(d.weekGain, null);
-  assertEquals(d.weekPct, null);
+  assertEquals([d.weekGain, d.weekPct, d.hasWeeks], [null, null, false]);
+  assertEquals(cardWeekFigure(d.weekGain, d.weekPct, d.hasWeeks), null, 'the figure is left out');
 });
 
-Deno.test('cardWeekFigure: null when either half is unknown; the figure when both are known', () => {
-  assertEquals(cardWeekFigure(null, null), null);
-  assertEquals(cardWeekFigure(null, 1), null);
-  assertEquals(cardWeekFigure(62.4, null), null);
-  assertEquals(cardWeekFigure(62.4, 6.05), { value: '+$62.40', sub: '+6.05%', tone: 'gain' });
-  // A REAL zero week (a row, flat price) still reads $0.00: only a missing number is hidden.
-  assertEquals(cardWeekFigure(0, 0)?.value, '$0.00');
+Deno.test('playerCardData: a Matchup league with no week-start row stays unknown -> the card\'s "–"', () => {
+  const d = playerCardData(cardIn({ snapshots: [], weekGain: stockWeek('NVDA', [], [], nvda.thu).gain, hasWeeks: true }))!;
+  assertEquals([d.weekGain, d.weekPct, d.hasWeeks], [null, null, true]);
+  assertEquals(cardWeekFigure(d.weekGain, d.weekPct, d.hasWeeks), { kind: 'unknown', value: '–' });
 });
 
-Deno.test('PlayerCard draws Week gain only from cardWeekFigure, and leaves it out when null', () => {
+Deno.test('playerCardData: a Matchup league with a row -> the figure', () => {
+  const gain = stockWeek('NVDA', snap, [], nvda.thu).gain!;
+  const d = playerCardData(cardIn({ weekGain: gain, hasWeeks: true }))!;
+  const f = cardWeekFigure(d.weekGain, d.weekPct, d.hasWeeks);
+  assertEquals(f?.kind, 'figure');
+  assertEquals(d.weekGain, gain);
+});
+
+Deno.test('cardWeekFigure: absent without weeks; the Schedule dash when unknown; the figure when known', () => {
+  assertEquals(WEEK_UNKNOWN, SEASON_TILE_UNSCORED, 'the same mark League › Schedule uses for an unscored week');
+  assertEquals(cardWeekFigure(62.4, 6.05, false), null);
+  assertEquals(cardWeekFigure(null, null, false), null);
+  assertEquals(cardWeekFigure(null, null), { kind: 'unknown', value: '–' });
+  assertEquals(cardWeekFigure(null, 1), { kind: 'unknown', value: '–' });
+  assertEquals(cardWeekFigure(62.4, null), { kind: 'unknown', value: '–' });
+  assertEquals(cardWeekFigure(62.4, 6.05), { kind: 'figure', value: '+$62.40', sub: '+6.05%', tone: 'gain' });
+  // A REAL zero week (a row, flat price) still reads $0.00: only a missing number is a dash.
+  const zero = cardWeekFigure(0, 0);
+  assertEquals(zero?.kind === 'figure' ? zero.value : null, '$0.00');
+});
+
+Deno.test('PlayerCard: Week gain from cardWeekFigure; the dash alone (no percent, no words); absent without weeks', () => {
   const src = strip(SOURCES['components/sp/gn/PlayerCard.tsx']);
-  assert(src.includes('const week = cardWeekFigure(weekGain, weekPct);'));
-  assert(src.includes('{week ? <Figure label="Week gain" value={week.value}'));
+  assert(src.includes('const week = cardWeekFigure(weekGain, weekPct, hasWeeks);'));
+  assert(src.includes('{week ? (\n          <Figure label="Week gain"\n            value={week.value}'), 'one Week gain figure, drawn only when cardWeekFigure gives one');
+  assert(src.includes("sub={week.kind === 'figure' ? week.sub : undefined}"), 'the dash has no percent line');
+  assert(src.includes("valueColor={week.kind === 'figure' ? colors[week.tone] : colors.text2}"), 'the dash is secondary, as on Schedule');
+  assert(src.includes("a11yLabel={week.kind === 'unknown' ? 'Week gain' : undefined}"), 'VoiceOver says the label alone');
+  assert(src.includes('{sub !== undefined ?'), 'a figure with no sub draws no sub line');
   assert(!/money\(weekGain\)|pct\(weekPct\)/.test(src), 'no path formats a raw week figure');
 });
 
-Deno.test('Portfolio and the manager portfolio feed the card through cardWeekGain, keyed on the league type', () => {
+Deno.test('Portfolio and the manager portfolio key the card on the league type', () => {
   for (const f of ['components/money/PortfolioScreen.tsx', 'components/money/PlayerPortfolioScreen.tsx']) {
     const src = strip(SOURCES[f]);
-    assert(src.includes('weekGain: cardWeekGain({ leagueType: activeLeague?.league_type, symbol: shown, snapshots, trades, price }),'), f);
-    assert(!src.includes('stockWeek('), `${f}: no direct stockWeek (it would skip the league gate)`);
+    assert(src.includes('weekGain: stockWeek(shown, snapshots, trades, price).gain,'), f);
+    assert(src.includes('hasWeeks: leagueHasWeeks(activeLeague?.league_type),'), f);
   }
 });
 
 // ── The guard: no week figure renders "$0.00" for a missing row ──────────────────
 
 Deno.test('guard: a missing row never renders "$0.00" / "0.00%" on the card or a roster half', () => {
-  for (const leagueType of ['matchup', 'duration', null]) {
-    const gain = cardWeekGain({ leagueType, symbol: 'NVTS', snapshots: snap, trades: [], price: 7.5 });
-    const fig = cardWeekFigure(gain, gain === null ? null : weekPctOf(gain, 0));
-    assertEquals(fig, null, `${leagueType}: no figure`);
+  for (const hasWeeks of [true, false]) {
+    const gain = stockWeek('NVTS', snap, [], 7.5).gain;
+    const d = playerCardData({ ...cardIn({ weekGain: gain, hasWeeks }) })!;
+    const fig = cardWeekFigure(d.weekGain, d.weekPct, d.hasWeeks);
+    const shown = fig === null ? '' : fig.kind === 'figure' ? `${fig.value} ${fig.sub}` : fig.value;
+    assert(!NO_ZERO.test(shown), `hasWeeks=${hasWeeks}: ${shown}`);
+    assertEquals(fig, hasWeeks ? { kind: 'unknown', value: '–' } : null);
   }
-  // A Duration league with the stock's own row: still no figure.
-  assertEquals(cardWeekFigure(cardWeekGain({ leagueType: 'duration', symbol: 'NVDA', snapshots: snap, trades: [], price: nvda.thu }), 1), null);
+  // A no-basis percent is unknown too, so a known gain over nothing is a dash, never "0.00%".
+  assertEquals(cardWeekFigure(5, weekPctOf(5, 0)), { kind: 'unknown', value: '–' });
   // A roster half with an unknown week: no figures, and VoiceOver says no number.
   const half = { ticker: 'NVTS', company: 'Navitas', weekGain: null, weekPct: null };
   assertEquals(rosterHalfFigures(half), null);

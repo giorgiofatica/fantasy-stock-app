@@ -24,7 +24,6 @@ import { liveWeekScore, type LiveSnapshot, type LiveTrade } from '../home/liveWe
 import type { LedgerActivityRow } from '../money/portfolioLedger';
 import { seasonStartOf } from '../money/seasonStart';
 import { etDateOf } from './matchupRoster';
-import { leagueHasWeeks } from './leagueWeeks';
 import type { Acquisition } from '../../components/sp/logic/gameNight';
 import { formatAxisDate } from '../../components/sp/logic/chartAxis';
 import type { RangeGain } from '../chart/chartRanges';
@@ -81,19 +80,6 @@ export function stockWeek(symbol: string, snapshots: readonly LiveSnapshot[], tr
   );
   const gain = sym in r.bySymbol ? r.bySymbol[sym] : null;
   return { gain, pct: gain === null ? null : weekPctOf(gain, r.startValue) };
-}
-
-/** The card's week gain in a league: null in a league without weeks (leagueHasWeeks), else this
- * stock's week (null when the week has nothing for it). */
-export function cardWeekGain(input: {
-  leagueType: string | null | undefined;
-  symbol: string;
-  snapshots: readonly LiveSnapshot[];
-  trades: readonly LiveTrade[];
-  price: number | null;
-}): number | null {
-  if (!leagueHasWeeks(input.leagueType)) return null;
-  return stockWeek(input.symbol, input.snapshots, input.trades, input.price).gain;
 }
 
 /** This stock's week basis: what its lots cost at the week's start (a Monday open, or a mid-
@@ -178,9 +164,12 @@ export interface PlayerCardData {
   /** Today's change, percent: the Price figure's own line ("+1.70% today"). */
   todayPct: number;
   /** Week gain: the matchup week (Monday to now), NOT 1W (the past five sessions). Null = no
-   * week figure (a league without weeks, or a week that has nothing for this stock). */
+   * week figure: unknown (a week that has nothing for this stock: the card shows "–"), or a
+   * league without weeks (then `hasWeeks` is false and the figure is left out). */
   weekGain: number | null;
   weekPct: number | null;
+  /** The league plays in weeks (leagueHasWeeks). False: no Week gain figure at all. */
+  hasWeeks: boolean;
   acquisition: Acquisition;
   /** The lots held now (the range gain is their P/L). */
   lots: HoldingLot[];
@@ -200,13 +189,17 @@ export function playerCardData(input: {
   trades: readonly LiveTrade[];
   /** The row's own week gain (its whole cents), so the card and the row agree. Null = unknown. */
   weekGain: number | null;
+  /** leagueHasWeeks(league_type): false drops the week figure whatever `weekGain` says. */
+  hasWeeks: boolean;
   price: number;
   /** Home's bars for the symbol (the week and the day before it): today's percent is
    * measured from the last close before today. */
   bars: readonly { date: string; close: number }[];
   now: Date;
 }): PlayerCardData | null {
-  const { symbol, company, userId, activity, snapshots, trades, weekGain, price, bars, now } = input;
+  const { symbol, company, userId, activity, snapshots, trades, price, bars, now, hasWeeks } = input;
+  // No weeks (a Duration league: the server runs no weekly jobs for it): no week number at all.
+  const weekGain = hasWeeks ? input.weekGain : null;
   const opening = openingOf(userId, symbol, activity);
   if (!opening) return null;
   const todayEt = etDateOf(now) ?? '';
@@ -219,6 +212,7 @@ export function playerCardData(input: {
     weekGain,
     // The row's own gain over the stock's week basis: the card says what the row scores.
     weekPct: weekGain === null ? null : weekPctOf(weekGain, stockBasis(symbol, snapshots, trades)),
+    hasWeeks,
     acquisition: opening.acquisition,
     lots: openLots(userId, symbol, activity),
     seasonStart: seasonStartOf(true, activity),

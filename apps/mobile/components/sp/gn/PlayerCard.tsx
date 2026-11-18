@@ -30,8 +30,9 @@ import type { HoldingLot } from '@/lib/game/playerCardModel';
 //   2. TWO key figures on `inset`: Price (with today's change) · Week gain (Giorgio, 2026-11-17,
 //      "B": the matchup week, Monday to now, which is not 1W). They keep their two columns at the
 //      largest text size. "Since the draft" is no longer a figure: it is what Season's gain line says.
-//      A league without weeks (Duration), or a week with nothing for the stock, has no Week gain:
-//      the figure is left out and Price stands alone (2026-11-18: never a stand-in zero).
+//      A league without weeks (Duration) has no Week gain: the figure is left out and Price stands
+//      alone. A week with nothing for the stock shows Schedule's "–" alone (2026-11-18: never a
+//      stand-in zero, and no new words).
 //   3. ONE chart, the same one a stock's sheet has (components/money/StockChart): the range's gain
 //      directly above the line (the HOLDING's P/L over the range, e.g. "+$195 (+9.74%) since the draft"),
 //      the six ranges under it, opening on Season; a range longer than the stock's history is grey; no dotted line, and NO acquisition
@@ -59,10 +60,11 @@ interface PlayerCardBase {
   price: number;
   /** Today's change, percent: inside the Price figure. */
   todayPct: number;
-  /** The matchup week (Monday to now), not 1W. Null = no Week gain figure (a league without
-   * weeks, or a week with nothing for this stock): the strip shows Price alone. */
+  /** The matchup week (Monday to now), not 1W. Null = unknown: the figure reads "–". */
   weekGain: number | null;
   weekPct: number | null;
+  /** The league plays in weeks. False (Duration): no Week gain figure; Price stands alone. Default true. */
+  hasWeeks?: boolean;
   acquisition: Acquisition;
   /** The lots held now: the chart's gain line is their P/L, not a per-share move. */
   lots: readonly HoldingLot[];
@@ -96,12 +98,12 @@ export function PlayerCard(props: PlayerCardProps) {
 /** The card's content, without the sheet — the design gallery renders it inline. */
 export function PlayerCardBody(props: PlayerCardProps) {
   const {
-    onClose, ticker, company, owner, slot, category, price, todayPct, weekGain, weekPct, acquisition,
+    onClose, ticker, company, owner, slot, category, price, todayPct, weekGain, weekPct, hasWeeks = true, acquisition,
     lots, seasonStart, sessions, now, marketOpen, opens,
   } = props;
   const { colors } = useTheme();
   const action = cardAction(props);
-  const week = cardWeekFigure(weekGain, weekPct);
+  const week = cardWeekFigure(weekGain, weekPct, hasWeeks);
   const pct = (n: number) => formatPercent(n, { sign: 'always' });
   const ownerLabel = owner === 'you' ? 'Yours' : MONEY_COPY.ownedBy(owner.name);
 
@@ -136,7 +138,16 @@ export function PlayerCardBody(props: PlayerCardProps) {
       {/* 2. Two key figures: Price (and today) · Week gain. Two columns at every text size. */}
       <View style={[styles.strip, { backgroundColor: colors.inset }]}>
         <Figure label="Price" value={formatMoney(price)} sub={`${pct(todayPct)} today`} subColor={colors[toneOf(todayPct)]} />
-        {week ? <Figure label="Week gain" value={week.value} valueColor={colors[week.tone]} sub={week.sub} subColor={colors[week.tone]} /> : null}
+        {/* Unknown: Schedule's dash in text2, no percent; VoiceOver says the label alone (as Schedule does). */}
+        {week ? (
+          <Figure label="Week gain"
+            value={week.value}
+            valueColor={week.kind === 'figure' ? colors[week.tone] : colors.text2}
+            sub={week.kind === 'figure' ? week.sub : undefined}
+            subColor={week.kind === 'figure' ? colors[week.tone] : undefined}
+            a11yLabel={week.kind === 'unknown' ? 'Week gain' : undefined}
+          />
+        ) : null}
       </View>
 
       {/* 3. ONE chart: the range's gain above it, the six ranges under it, opening on Season */}
@@ -187,12 +198,12 @@ export function PlayerCardBody(props: PlayerCardProps) {
   );
 }
 
-function Figure({ label, value, sub, valueColor, subColor }: { label: string; value: string; sub: string; valueColor?: string; subColor?: string }) {
+function Figure({ label, value, sub, valueColor, subColor, a11yLabel }: { label: string; value: string; sub?: string; valueColor?: string; subColor?: string; a11yLabel?: string }) {
   return (
-    <View style={styles.figure} accessible accessibilityLabel={`${label}, ${value}, ${sub}`}>
+    <View style={styles.figure} accessible accessibilityLabel={a11yLabel ?? `${label}, ${value}, ${sub ?? ''}`}>
       <CardLabel text={label} />
       <Text variant="score.md" color={valueColor} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
-      <Text variant="caption" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} color={subColor} style={styles.figureSub} numberOfLines={1}>{sub}</Text>
+      {sub !== undefined ? <Text variant="caption" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} color={subColor} style={styles.figureSub} numberOfLines={1}>{sub}</Text> : null}
     </View>
   );
 }

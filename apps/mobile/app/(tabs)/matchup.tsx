@@ -422,6 +422,8 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
       snapshots: side.snapshots,
       trades: side.trades,
       weekGain: row.cents / 100,
+      // The roster draws only in a league with weeks (matchupScreenState: leagueHasWeeks).
+      hasWeeks: true,
       price,
       // Under the capture seam the fixture's own daily bars (a real move every day); MSFT, bought
       // this week in the 'bought' fixture, has its bars in Home's raw inputs.

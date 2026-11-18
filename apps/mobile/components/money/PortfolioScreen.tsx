@@ -48,7 +48,8 @@ import { useHomeLeague } from '@/lib/home/useHomeLeague';
 import { toLiveSnapshots, toLiveTrades } from '@/lib/home/buildHomeViewModel';
 import { useRosterData } from '@/lib/game/useRosterData';
 import { cardSlotPill, etDateOf, weekSessions } from '@/lib/game/matchupRoster';
-import { cardWeekGain, playerCardData } from '@/lib/game/playerCardModel';
+import { playerCardData, stockWeek } from '@/lib/game/playerCardModel';
+import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
 import { SEAM_ON } from '@/lib/game/devSeam';
 import { decideTradeGate } from '@/lib/money/tradeGate';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
@@ -150,8 +151,10 @@ export function PortfolioScreen() {
       activity: ledgerState.ledger.activity,
       snapshots,
       trades,
-      // No weeks in a Duration league; an unknown week is null too: never a stand-in $0.00.
-      weekGain: cardWeekGain({ leagueType: activeLeague?.league_type, symbol: shown, snapshots, trades, price }),
+      // An unknown week is null (the card's "–"), never a stand-in $0.00; a league without weeks
+      // (Duration) has no week figure at all.
+      weekGain: stockWeek(shown, snapshots, trades, price).gain,
+      hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
       // The capture seam: the fixture's own daily path through Wednesday, then Home's bars
       // after it (as Matchup's card reads it), so the week moves every day.
