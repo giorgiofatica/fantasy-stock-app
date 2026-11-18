@@ -2,59 +2,14 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "28cc8826a09758d1b320ba24405af576cffa0641",
-    "commitShort": "28cc8826",
+    "commit": "eea6d1337492591cce40bbc6722705fc8d309611",
+    "commitShort": "eea6d133",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/StockChart.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/PlayerCard.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/stockChartSeries.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/useStockChartData.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/league-weeks.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/money-finished-card.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
-      }
-    ],
-    "timestamp": "2026-11-18T23:13:35Z",
-    "sourceHash": "sha256:9bbb68d4bd5ac79a5f814bac1d002ef999e6db144f0c7606d1dfea567afe13ca",
+    "branch": "feat/finished-season-portfolio",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-18T23:14:15Z",
+    "sourceHash": "sha256:861f38dff8a863a55ec78ef009797d6790fd0205d191a182a942b8bc52b48d2a",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -20991,7 +20946,7 @@
       ],
       "callSites": [
         "apps/mobile/lib/LeagueContext.tsx:178",
-        "apps/mobile/lib/LeagueContext.tsx:328"
+        "apps/mobile/lib/LeagueContext.tsx:329"
       ]
     },
     {
@@ -21021,7 +20976,7 @@
         "*"
       ],
       "callSites": [
-        "apps/mobile/lib/LeagueContext.tsx:340"
+        "apps/mobile/lib/LeagueContext.tsx:341"
       ]
     },
     {
@@ -24522,8 +24477,8 @@
       "apps/mobile/lib/LeagueContext.tsx:178 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:180 -> league_seasons.select",
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",
-      "apps/mobile/lib/LeagueContext.tsx:328 -> league_members.select",
-      "apps/mobile/lib/LeagueContext.tsx:340 -> leagues.select",
+      "apps/mobile/lib/LeagueContext.tsx:329 -> league_members.select",
+      "apps/mobile/lib/LeagueContext.tsx:341 -> leagues.select",
       "apps/mobile/lib/SessionProvider.tsx:206 -> user_profiles.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:33 -> league_members.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:38 -> leagues.select",
