@@ -1,12 +1,26 @@
 /**
  * App-key latest-price fetch for simulator fills (Phase 3, DR-001).
  *
- * Same three-stage IEX fallback chain as the quote function (trade → bar →
- * quote), same app-wide ALPACA_API_KEY — no per-user credentials. Extracted
- * here so validate-and-record-pick and record-trade share ONE fill-price
- * implementation instead of each re-implementing quote's chain. quote/index.ts
- * still carries its own copy (it additionally computes prevClose/changePercent
- * and caches); unifying it onto this module is a follow-up, not Phase 3.
+ * One fallback chain on the app-wide ALPACA_API_KEY (no per-user credentials),
+ * shared by every place a player PAYS a price (record-trade, validate-and-record-
+ * pick, the draft auto-pick) and every place the in-app quote is SHOWN (quote,
+ * ticker-quotes; 2026-11-17, so the number a player sees is the number a fill
+ * would use). quote / ticker-quotes keep their own prevClose / changePercent and
+ * caches; only the price chain is this module's.
+ *
+ * THE CHAIN. The first stage that yields a price wins:
+ *   1. the latest trade ('trade.p')
+ *   2. the latest bar's close ('bar.c')
+ *   3. the bid/ask MIDPOINT ('quote.mid'), only when it is sane: both sides with
+ *      size, not crossed, spread at most MAX_MID_SPREAD_FRACTION. The same test
+ *      as week-price.ts midpointPrice (imported, not copied).
+ *   4. the most recent real daily close ('bar1d.c'): the latest 1Day bar's `c`
+ *      within FILL_CLOSE_LOOKBACK_DAYS.
+ *   Otherwise price null: the callers' existing "no_price" refusal.
+ * A bid alone or an ask alone is NEVER a price (2026-11-17: the week-start
+ * snapshot stored TM's lone IEX ask, 247.75 against ~212; an offer nobody
+ * traded at). Stages 1 and 2 have no time window: that is HELD for a Giorgio
+ * ruling, so stage 3 passes an open window too.
  *
  * "Market-hours handling can be 'last available quote' for launch" (spec):
  * outside market hours the latest trade/bar is simply the last session's —
@@ -16,6 +30,8 @@
  * exercised only by preview, which has no gate. This function's own
  * contract is unchanged.)
  */
+
+import { MAX_MID_SPREAD_FRACTION, midpointPrice } from './week-price.ts';
 
 const BASE = 'https://data.alpaca.markets/v2';
 const FEED_QS = '?feed=iex';
@@ -65,11 +81,43 @@ async function stage(url: string, key: string, secret: string) {
   }
 }
 
-/** Latest usable price for one symbol, or price:null if all three stages fail. */
+/** How far back stage 4 looks for a daily close, in calendar days: two trading
+ * weeks' worth of calendar, so a long weekend plus a holiday still leaves a
+ * week of sessions (the same reach as the mobile price reads' bars). */
+export const FILL_CLOSE_LOOKBACK_DAYS = 10;
+
+/** The look-back's first date (YYYY-MM-DD, UTC) for `now`. PURE. */
+export function fillCloseStart(now: Date): string {
+  return new Date(now.getTime() - FILL_CLOSE_LOOKBACK_DAYS * 86_400_000).toISOString().slice(0, 10);
+}
+
+/**
+ * Stage 4: the close of the LATEST-dated 1Day bar on or after `startDate`, or
+ * null. A bar with no readable date, a date before the look-back, or no positive
+ * close is skipped, never guessed; the order Alpaca returns them in does not
+ * matter. PURE.
+ */
+export function latestDailyClose(bars: unknown, startDate: string): number | null {
+  if (!Array.isArray(bars)) return null;
+  let best: { ms: number; c: number } | null = null;
+  for (const b of bars) {
+    if (!b || typeof b !== 'object') continue;
+    const bar = b as Record<string, unknown>;
+    const ms = typeof bar.t === 'string' ? Date.parse(bar.t) : NaN;
+    const c = Number(bar.c);
+    if (!Number.isFinite(ms) || !Number.isFinite(c) || c <= 0) continue;
+    if (new Date(ms).toISOString().slice(0, 10) < startDate) continue;
+    if (best === null || ms > best.ms) best = { ms, c };
+  }
+  return best ? best.c : null;
+}
+
+/** Latest usable price for one symbol (the chain in the file doc), or price:null. */
 export async function fetchFillPrice(
   symbol: string,
   key: string,
   secret: string,
+  now: Date = new Date(),
 ): Promise<FillPrice> {
   const sym = encodeURIComponent(symbol.toUpperCase());
   let lastErr: { step: string; status: number } | null = null;
@@ -96,17 +144,26 @@ export async function fetchFillPrice(
     }
   }
 
-  // 3) latest quote (bid preferred; IEX quotes can be stale, so last resort)
+  // 3) a sane two-sided midpoint. Never one side alone (file doc).
   {
     const r = await stage(`${BASE}/stocks/${sym}/quotes/latest${FEED_QS}`, key, secret);
     if (r.ok) {
-      const q = r.body?.quote as Record<string, unknown> | undefined;
-      const bp = Number(q?.bp);
-      const ap = Number(q?.ap);
-      if (Number.isFinite(bp) && bp > 0) return { price: bp, source: 'quote.bp' };
-      if (Number.isFinite(ap) && ap > 0) return { price: ap, source: 'quote.ap' };
+      const m = midpointPrice(r.body?.quote, {}, MAX_MID_SPREAD_FRACTION);
+      if (m && 'price' in m) return { price: m.price, source: 'quote.mid' };
     } else {
       lastErr = { step: 'quote', status: r.status };
+    }
+  }
+
+  // 4) the most recent real daily close
+  {
+    const start = fillCloseStart(now);
+    const r = await stage(`${BASE}/stocks/${sym}/bars${FEED_QS}&timeframe=1Day&start=${start}`, key, secret);
+    if (r.ok) {
+      const c = latestDailyClose(r.body?.bars, start);
+      if (c !== null) return { price: c, source: 'bar1d.c' };
+    } else {
+      lastErr = { step: 'close', status: r.status };
     }
   }
 
