@@ -41,6 +41,7 @@ import {
 } from '@/lib/home/homeCopy';
 import { BRACKET_HREF, seasonOverPrimary } from '@/lib/home/calmHome';
 import { seasonStripShown } from '@/lib/home/yourSeason';
+import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
 
 /** Run it back stays off until its backend (PR #94) is live: see runItBackEnabled. */
 const RUN_IT_BACK_ON = runItBackEnabled(process.env.EXPO_PUBLIC_RUN_IT_BACK);
@@ -250,7 +251,12 @@ function HomeBody({
   // modifiers of state 10 — spec: "No score and no tug" for a bye; the
   // same holds for these).
   let middleCard: ReactElement | null = null;
-  if (phase.kind === 'pre_season') {
+  // A league without weeks (Duration: no matchups, no week snapshots) has no This week card at
+  // all, and nothing in its place (2026-11-18: never a stand-in "$0.00 vs $0.00" week).
+  const hasWeeks = leagueHasWeeks(league?.league_type);
+  if (!hasWeeks) {
+    middleCard = null;
+  } else if (phase.kind === 'pre_season') {
     // B3 (Design Lead, 2026-09-30): the board's HomePreSeason is a real
     // scoreboard PREVIEW -- both team names, $0.00/$0.00 in zero grey --
     // not a plain message card with no opponent shown at all.

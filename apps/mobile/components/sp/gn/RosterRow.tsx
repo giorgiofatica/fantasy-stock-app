@@ -8,7 +8,7 @@ import { PressableScale } from '@/components/sp/PressableScale';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { formatMoney, formatPercent } from '@/components/sp/logic/money';
-import { rosterHalfLabel, rosterHalfParts, toneOf } from '@/components/sp/logic/gameNight';
+import { rosterHalfFigures, rosterHalfLabel, rosterHalfParts, toneOf } from '@/components/sp/logic/gameNight';
 import { useLargeText } from '@/components/sp/useLargeText';
 import { estimateMoneyWidth, fitScale } from '@/components/sp/logic/fitScale';
 
@@ -30,9 +30,10 @@ import { estimateMoneyWidth, fitScale } from '@/components/sp/logic/fitScale';
 export interface RosterHalf {
   ticker: string;
   company: string;
-  weekGain: number;
-  /** Week change in percent (2.5 = +2.50%). */
-  weekPct: number;
+  /** Null = unknown: the half carries no figures (never a stand-in $0.00). */
+  weekGain: number | null;
+  /** Week change in percent (2.5 = +2.50%); null = unknown, as above. */
+  weekPct: number | null;
   onPress?: () => void;
   /** false = who held what, without figures (a final week whose per-stock results can't be
    * reconciled — Giorgio, #call-mx-withheld, B). */
@@ -120,9 +121,11 @@ function Half({ half, mirror, shaded, gutter, whose, single = false, markEmpty =
     );
   }
 
-  const gainText = formatMoney(half.weekGain, { sign: 'always' });
+  // No figures (a withheld final, or an unknown week): the half is the stock alone.
+  const figs = rosterHalfFigures(half);
+  const gainText = figs ? formatMoney(figs.gain, { sign: 'always' }) : '';
   const stackedScale = fitScale(numWidth, estimateMoneyWidth(gainText, SCORE_MD_PT * Math.min(fontScale, SCORE_MD_MAX)));
-  const tone = toneOf(half.weekGain);
+  const tone = figs ? toneOf(figs.gain) : 'zero';
   const toneColor = colors[tone];
   const name = (
     <View style={[styles.name, mirror ? styles.alignEnd : null]}>
@@ -147,12 +150,11 @@ function Half({ half, mirror, shaded, gutter, whose, single = false, markEmpty =
         <Text variant="score.md" color={toneColor} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{gainText}</Text>
       )}
       {/* The percent caps at 1.3× — the gain (score.md, 1.3×) is never the smaller of the two. */}
-      <Text variant="caption" color={toneColor} style={styles.pct} numberOfLines={1} maxFontSizeMultiplier={PCT_MAX_SCALE}>{formatPercent(half.weekPct, { sign: 'always' })}</Text>
+      <Text variant="caption" color={toneColor} style={styles.pct} numberOfLines={1} maxFontSizeMultiplier={PCT_MAX_SCALE}>{figs ? formatPercent(figs.pct, { sign: 'always' }) : ''}</Text>
     </View>
   );
   const a11y = rosterHalfLabel(whose, half);
-  // Without figures (a withheld final) the half is the stock alone.
-  const content = rosterHalfParts({ figures: half.figures, stacked, mirror }).map((p) => (p === 'name' ? name : num));
+  const content = rosterHalfParts({ figures: figs !== null, stacked, mirror }).map((p) => (p === 'name' ? name : num));
   const layout = stacked ? styles.contentStacked : styles.content;
 
   if (!half.onPress) {

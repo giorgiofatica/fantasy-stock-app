@@ -161,7 +161,7 @@ export function fixtureLeagues(fixture: ShellFixture, renewalCaller: RenewalCall
       sheet: [
         {
           marketOpen: true, ties: 0, isChampion: false, seasonLabel: '',
-          currentWeek: l.current_week, numWeeks: l.num_weeks, playoffTeams: l.playoff_teams, draftDate: l.draft_date,
+          leagueType: l.league_type, currentWeek: l.current_week, numWeeks: l.num_weeks, playoffTeams: l.playoff_teams, draftDate: l.draft_date,
           id: l.id, name: l.name, seasonPhase: 'drafting', rank: null, rankCount: null, wins: 0, losses: 0, membersJoined: 8, capacity: 8,
         },
       ],
@@ -208,7 +208,7 @@ export function fixtureLeagues(fixture: ShellFixture, renewalCaller: RenewalCall
   const byId = new Map(leagues.map((l) => [l.id, l]));
   const facts = (id: string) => {
     const l = byId.get(id)!;
-    return { currentWeek: l.current_week, numWeeks: l.num_weeks, playoffTeams: l.playoff_teams, draftDate: l.draft_date };
+    return { leagueType: l.league_type, currentWeek: l.current_week, numWeeks: l.num_weeks, playoffTeams: l.playoff_teams, draftDate: l.draft_date };
   };
   const base = { marketOpen: true, ties: 0, isChampion: false, seasonLabel: '' };
   const sheet: SheetLeague[] = [

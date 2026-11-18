@@ -23,8 +23,9 @@ export interface RosterSideInput {
 export interface RosterCell {
   symbol: string;
   company: string;
-  weekGain: number;
-  weekPct: number;
+  /** Null = unknown (no row in the lineup, or no week basis): the half shows no figures. */
+  weekGain: number | null;
+  weekPct: number | null;
 }
 
 export interface RosterView {
@@ -94,12 +95,14 @@ export function buildRosterView(input: {
   const cents = (side: RosterSideInput) => new Map(side.lineup.map((r) => [r.symbol.toUpperCase(), r.cents]));
   const cell = (side: RosterSideInput, centsBy: Map<string, number>) => (e: RosterEntry | null): RosterCell | null => {
     if (!e) return null;
+    const c = centsBy.get(e.symbol);
+    const weekGain = c === undefined ? null : c / 100;
     return {
       symbol: e.symbol,
       company: names[e.symbol] ?? '',
-      weekGain: (centsBy.get(e.symbol) ?? 0) / 100,
+      weekGain,
       // The row's own gain over the stock's week basis: agrees with the scored number.
-      weekPct: weekPctOf((centsBy.get(e.symbol) ?? 0) / 100, stockBasis(e.symbol, side.snapshots, side.trades)),
+      weekPct: weekGain === null ? null : weekPctOf(weekGain, stockBasis(e.symbol, side.snapshots, side.trades)),
     };
   };
   const mineCell = cell(me, cents(me));
@@ -137,7 +140,7 @@ export function buildWithheldView(input: {
     return uniq
       .map((sym, i) => ({ sym, seq: seqs.get(sym) ?? 1e15 + i }))
       .sort((a, b) => a.seq - b.seq || (a.sym < b.sym ? -1 : 1))
-      .map(({ sym }) => ({ symbol: sym, company: input.names[sym] ?? '', weekGain: 0, weekPct: 0 }));
+      .map(({ sym }) => ({ symbol: sym, company: input.names[sym] ?? '', weekGain: null, weekPct: null }));
   };
   const mine = side(input.me);
   const theirs = side(input.opp);

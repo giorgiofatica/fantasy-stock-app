@@ -59,15 +59,27 @@ export function openingOf(userId: string, symbol: string, activity: readonly Led
   return { acquisition, dateIso, price: open.price, quantity: Math.max(0, Math.round(quantity * 1e6) / 1e6) };
 }
 
-/** This one stock's week: the row's own gain and percent (liveWeekScore over its lots). */
-export function stockWeek(symbol: string, snapshots: readonly LiveSnapshot[], trades: readonly LiveTrade[], price: number | null): { gain: number; pct: number } {
+/** A week percent: the gain over the week basis. Null when there is no basis (nothing cost
+ * anything at the week's start): a percent of nothing is unknown, not 0%. */
+export function weekPctOf(gain: number, basis: number): number | null {
+  return basis > 0 ? (gain / basis) * 100 : null;
+}
+
+/**
+ * This one stock's week: the row's own gain and percent (liveWeekScore over its lots). Null when the
+ * week has nothing for it: no week-start row and no trade this week (or no live price), so
+ * liveWeekScore has no number for it. That is UNKNOWN, never $0.00 (Giorgio, 2026-11-18: a missing
+ * number never shows as zero); the percent is null with it, or when the lots cost nothing.
+ */
+export function stockWeek(symbol: string, snapshots: readonly LiveSnapshot[], trades: readonly LiveTrade[], price: number | null): { gain: number | null; pct: number | null } {
   const sym = symbol.toUpperCase();
   const r = liveWeekScore(
     snapshots.filter((s) => s.symbol.toUpperCase() === sym),
     trades.filter((t) => t.symbol.toUpperCase() === sym),
     () => price,
   );
-  return { gain: r.bySymbol[sym] ?? 0, pct: r.pct };
+  const gain = sym in r.bySymbol ? r.bySymbol[sym] : null;
+  return { gain, pct: gain === null ? null : weekPctOf(gain, r.startValue) };
 }
 
 /** This stock's week basis: what its lots cost at the week's start (a Monday open, or a mid-
@@ -81,10 +93,6 @@ export function stockBasis(symbol: string, snapshots: readonly LiveSnapshot[], t
     trades.filter((t) => t.symbol.toUpperCase() === sym),
     () => 0, // any non-null price: startValue counts every lot at its own entry
   ).startValue;
-}
-
-export function weekPctOf(gain: number, basis: number): number {
-  return basis > 0 ? (gain / basis) * 100 : 0;
 }
 
 /** The last close strictly before today (ET): today's percent is measured from it. */
@@ -155,9 +163,13 @@ export interface PlayerCardData {
   price: number;
   /** Today's change, percent: the Price figure's own line ("+1.70% today"). */
   todayPct: number;
-  /** Week gain: the matchup week (Monday to now), NOT 1W (the past five sessions). */
-  weekGain: number;
-  weekPct: number;
+  /** Week gain: the matchup week (Monday to now), NOT 1W (the past five sessions). Null = no
+   * week figure: unknown (a week that has nothing for this stock: the card shows "–"), or a
+   * league without weeks (then `hasWeeks` is false and the figure is left out). */
+  weekGain: number | null;
+  weekPct: number | null;
+  /** The league plays in weeks (leagueHasWeeks). False: no Week gain figure at all. */
+  hasWeeks: boolean;
   acquisition: Acquisition;
   /** The lots held now (the range gain is their P/L). */
   lots: HoldingLot[];
@@ -175,15 +187,19 @@ export function playerCardData(input: {
   activity: readonly LedgerActivityRow[];
   snapshots: readonly LiveSnapshot[];
   trades: readonly LiveTrade[];
-  /** The row's own week gain (its whole cents), so the card and the row agree. */
-  weekGain: number;
+  /** The row's own week gain (its whole cents), so the card and the row agree. Null = unknown. */
+  weekGain: number | null;
+  /** leagueHasWeeks(league_type): false drops the week figure whatever `weekGain` says. */
+  hasWeeks: boolean;
   price: number;
   /** Home's bars for the symbol (the week and the day before it): today's percent is
    * measured from the last close before today. */
   bars: readonly { date: string; close: number }[];
   now: Date;
 }): PlayerCardData | null {
-  const { symbol, company, userId, activity, snapshots, trades, weekGain, price, bars, now } = input;
+  const { symbol, company, userId, activity, snapshots, trades, price, bars, now, hasWeeks } = input;
+  // No weeks (a Duration league: the server runs no weekly jobs for it): no week number at all.
+  const weekGain = hasWeeks ? input.weekGain : null;
   const opening = openingOf(userId, symbol, activity);
   if (!opening) return null;
   const todayEt = etDateOf(now) ?? '';
@@ -195,7 +211,8 @@ export function playerCardData(input: {
     todayPct: prev ? ((price - prev) / prev) * 100 : 0,
     weekGain,
     // The row's own gain over the stock's week basis: the card says what the row scores.
-    weekPct: weekPctOf(weekGain, stockBasis(symbol, snapshots, trades)),
+    weekPct: weekGain === null ? null : weekPctOf(weekGain, stockBasis(symbol, snapshots, trades)),
+    hasWeeks,
     acquisition: opening.acquisition,
     lots: openLots(userId, symbol, activity),
     seasonStart: seasonStartOf(true, activity),

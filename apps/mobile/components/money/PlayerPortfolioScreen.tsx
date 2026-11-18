@@ -37,6 +37,7 @@ import { useMemberSnapshots } from '@/lib/game/useMemberSnapshots';
 import { memberSnapshots, memberTrades } from '@/lib/game/memberWeek';
 import { cardSlotPill, etDateOf, weekSessions } from '@/lib/game/matchupRoster';
 import { openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
+import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
 import { mondayOf } from '@/lib/money/portfolioChart';
 import { decideTradeGate } from '@/lib/money/tradeGate';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
@@ -144,7 +145,10 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
       activity: ledger.activity,
       snapshots,
       trades,
+      // An unknown week is null (the card's "–"), never a stand-in $0.00; a league without weeks
+      // (Duration) has no week figure at all.
       weekGain: stockWeek(shown, snapshots, trades, price).gain,
+      hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
       bars: data.bars[shown] ?? raw.bars[shown] ?? [],
       now,
@@ -153,7 +157,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
     const slotId = roster.slots.bySide[userId]?.[shown] ?? null;
     return { data: cardData, pill: cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, window, roster.slots, userId]);
+  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, window, roster.slots, userId, activeLeague?.league_type]);
 
   function pillFor(symbol: string) {
     const slotId = roster.slots.bySide[userId]?.[symbol] ?? null;
