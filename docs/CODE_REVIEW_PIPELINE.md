@@ -64,7 +64,7 @@ A Copilot finding is checked before it is acted on. If it is right, it is fixed 
 
 ## When Copilot reviews
 
-Automatic review is **off** in Giorgio's account (2026-11-17), on purpose. GitHub's automatic review is all or nothing: neither the account setting nor a repository ruleset can skip a docs-only pull request, and two thirds of this repo's pull requests are docs-only. The effort level is an account setting too (now **Lite**); there is no documented way to pick it for one review.
+Automatic review is **off** in Giorgio's account (2026-11-17), on purpose. GitHub's automatic review is all or nothing: neither the account setting nor a repository ruleset can skip a docs-only pull request, and two thirds of this repo's pull requests are docs-only.
 
 So the session that opens a pull request asks for the review, with one command:
 
@@ -73,22 +73,22 @@ node scripts/request-copilot-review.mjs <pr-number>
 ```
 
 - It requests a review only when the pull request changes something other than docs (`docs/**` and `.md` files) and is not a draft.
-- It uses `gh pr edit --add-reviewer @copilot`, the documented per-pull-request way to ask, under Giorgio's own GitHub sign-in. No token is stored anywhere.
+- It asks through GitHub's own `requestCopilotCodeReview` call, under Giorgio's GitHub sign-in. No token is stored anywhere.
+- **It states the effort in every request: Lite.** `--balanced` asks for a deeper, dearer review, for a change that deserves it (auth, RLS, money, a migration that drops something). The script prints a note when a pull request touches migrations, edge functions or workflows. Nobody has to change an account setting.
 - Copilot reviews once. A follow-up push is **not** reviewed by itself. After fixes are pushed, `--again` asks for one more review.
-- It refuses a third review on the same pull request. By then the pull request goes to Giorgio.
-- It reports "requested" only when the pull request's timeline shows the request. GitHub does not list Copilot among a pull request's requested reviewers, so the timeline is the only place to look.
-- Run it again with `--dry-run` to see where a review stands: "ALREADY REQUESTED" means Copilot is still reading, "ALREADY REVIEWED" means the review of the current commit is in.
+- It refuses a third review on the same pull request. `--owner-asked` lifts that, and is only for a review Giorgio asked for in his own words.
+- It reports "requested" only when GitHub's answer contains the request. If GitHub refuses, it gives GitHub's reason, for example that no credit is left this month.
 
-**The effort level needs checking.** The account is set to Lite, yet the review requested on #516 on 2026-11-18 says "Review effort: Balanced" in its footer. Until a review footer says Lite, assume reviews cost the Balanced price.
+`--status` shows where things stand without asking for anything: each review, the commit it read, **the effort GitHub recorded for it**, and every finding with whether it is resolved, outdated or still open.
 
-For a change that deserves a deeper read (auth, RLS, money, a migration that drops something), Giorgio switches his account's effort level to Balanced, the review is requested, and he switches it back. That is the one manual step left, and it is rare. The script prints a note when a pull request touches migrations, edge functions or workflows.
+Why the effort is stated each time: the account is set to Lite and the repository reports Lite as its effective level (its own setting is empty, so it inherits), yet the second review of #516 on 2026-11-18, asked for without an explicit effort, was recorded by GitHub as Balanced. Either a pull request keeps the effort of its first review or the plain request ignores the setting; GitHub's documentation does not say. A request that names its effort does not depend on the answer.
 
 ## Daily use
 
 1. A session opens a pull request, as now, and runs the review command above.
 2. CI runs by itself on every push. Copilot reviews once, if the pull request has code in it.
 3. If CI is red, the app wakes the Orchestrator, and the fix is pushed (see "The fix loop"). CI runs again.
-4. The Orchestrator reads Copilot's review itself when it lands. Do not wait to be woken for it: in the pilot the app did relay the review, but about 11 minutes after it was posted.
+4. The Orchestrator reads Copilot's review itself when it lands, with `--status`. Do not wait to be woken for it: in the pilot the app did relay the review, but about 11 minutes after it was posted.
 5. When **All checks** is green, Copilot's review of the requested commit is in and each of its threads has an answer, the pull request is ready for Giorgio. He merges.
 
 ## Owner settings
@@ -97,7 +97,7 @@ These are Giorgio's to change; nothing in the repo can set them.
 
 1. **Require CI before merging (recommended, free on a public repository).** Do this once this pull request is merged and `All checks` has been seen green on `main`. Settings › Rules › Rulesets › New ruleset › New branch ruleset. Name it, set Enforcement status to Active, and under Target branches add "Include default branch". Tick "Require status checks to pass", choose "Add checks" and add `All checks`. Leave "Require a pull request before merging" unticked or with 0 approvals, so nothing asks for a second human. Under Bypass list, add "Repository admin" if you want an emergency way through.
 2. **Dependency alerts (optional, free, no workflow).** Settings › Advanced Security › turn on Dependency graph and Dependabot alerts. Both are off today, which is why CI has no dependency job.
-3. **Copilot (done 2026-11-17):** automatic review off, draft review off, effort Lite; an AI-credits budget of $20 a month with "stop usage when budget limit is reached" on.
+3. **Copilot (done 2026-11-17):** automatic review off, draft review off, effort Lite; an AI-credits budget of $20 a month with "stop usage when budget limit is reached" on. The repository has no effort setting of its own (Settings › Copilot › Code review); leave it empty.
 
 ## Cost
 
@@ -122,15 +122,19 @@ The Claude desktop app can watch a pull request and wake a session when CI fails
 
 ### The two-try limit
 
-The app has no setting for a number of tries, so it cannot enforce the limit itself. The limit is kept by three things, the last two of which do not depend on a session remembering anything:
+The app has no setting for a number of tries, so it cannot enforce the limit itself. What bounds the loop:
 
-1. **The rule.** A session makes at most two automated fix attempts on one pull request. Each attempt is one commit whose message ends with the line `Autofix-Attempt: 1` or `Autofix-Attempt: 2`.
-2. **The count is on the pull request, not in a session's memory.** Before any automated fix, count them: `git log origin/main..HEAD --grep='^Autofix-Attempt:' --oneline | wc -l`. At 2, stop: turn Auto-fix off for that pull request and write a summary for Giorgio (what failed, what was tried, what is left).
-3. **The review script refuses a third Copilot review**, and GitHub stops reviews when the budget is reached. A loop cannot run up a bill.
+1. **A review-driven loop is bounded by code.** A fix that answers a Copilot finding only leads to another round if Copilot is asked again, and the script refuses a third review.
+2. **A CI-driven loop is bounded by a rule.** A session makes at most two automated fix attempts on one pull request. Each attempt is one commit whose message ends with the line `Autofix-Attempt: 1` or `Autofix-Attempt: 2`. Before any automated fix, count them: `git log origin/main..HEAD --grep='^Autofix-Attempt:' --oneline | wc -l`. The count lives on the pull request, so a restart or a summarised session cannot lose it.
+3. **At two, the trigger is removed.** The session turns Auto-fix off for that pull request, so the app stops waking it, and writes Giorgio a summary: what failed, what was tried, what is left.
+
+Nothing in GitHub or the app stops a session that ignores the rule in 2. That was weighed and left as it is: the only thing a runaway CI loop can do is push more commits to a branch that Giorgio has not merged, it cannot merge, and it cannot spend Copilot credit. A hard stop would need a second workflow that counts commits and a way for Giorgio to clear it, which is more machinery than the risk is worth.
 
 ### Rules for every automated fix
 
 - Act only on a finding about the pull request's current commit. Ignore a comment on a commit that has since been replaced.
+- **A wake-up from the app is a backstop, and usually late.** Before acting on one, run `--status` and match the comment ids it relays. A finding shown as resolved has been dealt with: do nothing and do not reply again. A finding shown as outdated points at code that has since changed: check whether the change answered it, then resolve it. Only a finding shown as OPEN is work.
+- A CI failure reported for a commit that is no longer the head is stale. Check the head's own run before fixing anything.
 - Check a Copilot finding against the code before changing anything. If it is right, fix it and add a test. If it is wrong, reply on the thread saying why, and change nothing.
 - Never loosen or delete a test, raise a number in `.github/ci-baselines.json`, add `--no-check`, or skip a check to get a green run.
 - Never edit `.github/`, `.claude/`, or a migration that is already applied.
@@ -160,7 +164,8 @@ What is enforced by code, and what is a rule a session follows:
 |---|---|
 | CI fails on a failing test, type error, new lint error or stale map or manifest | Code (the workflow) |
 | A red run blocks the merge | Code, once the ruleset in "Owner settings" is on. Until then, nothing. |
-| No more than two Copilot reviews per pull request | Code (the script refuses) |
+| No more than two Copilot reviews per pull request | Code (the script refuses), unless `--owner-asked` is passed |
+| Every review is asked for at a stated effort | Code (the script names it in the request) |
 | No overspending | Code (GitHub's budget stop) |
 | No more than two automated fixes per pull request | Rule. The count is written into commit messages so it survives a restart, but nothing stops a third. |
 | Check a finding before acting; never loosen a test; never touch `.github/` in an automated fix; send security and money changes to Giorgio | Rule |
