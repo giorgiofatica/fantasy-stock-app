@@ -1274,7 +1274,29 @@ building anything, and don't reopen a rule without him.
       used only to order the list and is not shown.
     - This is the order the list OPENS in. Whether a manager can re-sort it (by price, for
       one) is part of the layout and is not decided.
-  - Not decided: the layout of that list (rows, filters, any re-sorting), and what else
+  - **The list's layout, modelled on ESPN's Players tab: a plus on each row, and search as
+    an icon** (2026-11-18, the Design Lead's board `design/stocks-list-1118`, PR #534, drawn
+    from his own screen recording of ESPN's Players tab; shown to him in the Planner's chat).
+    The board asked two things, "A or B, and C or D"; his answer: "A+C".
+    - **A:** each row has a round plus at its left edge. It opens the review; it never
+      trades in one tap. It is teal while the market is open (a buy) and brown after the
+      close (a claim), as ESPN's is green for an add and orange for a waiver claim. B (no
+      button; tap the row) was not picked.
+    - **C:** search is the first icon in the row of category chips; tapping it swaps that
+      row for a search field with Cancel and shows a plain list of results. D (a search
+      field always visible above the chips) was not picked.
+    - A row, as drawn: the stock's logo, ticker, "name · category", and its price. The chips
+      are "All" then our categories, scrolling sideways; a chip filters the list.
+    - Copy: **"All"** is new and was marked as the one new word on the board and in the
+      question put to him ("is 'All' approved?"). His answer named only the letters; it is
+      treated as approved with the pick, as board copy has been before, and goes in the next
+      copy summary for him to strike if he disagrees.
+    - Told to him with the board, and not objected to: the star (the watchlist) and the
+      brown after-hours plus (a claim) belong to the October watchlist and claims plan and
+      are not built; in the first version the plus after hours opens the stock's sheet, which
+      already says when the market reopens, and the star arrives with the watchlist. ESPN's
+      "Trending and recommended" section is left out until the app has the data for it.
+  - Not decided: whether a manager can re-sort the list, and what else
     browsing offers ("look around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup

@@ -51,16 +51,17 @@ search gets its own tab").
 | 5 | Which stocks are in the list | Only stocks nobody in the league owns. An owned stock is still found by searching | Same mockup, "A" |
 | 6 | What a row carries | The stock's price ("A"). Revised the same day: the price is a current one from the live lookup, never the stored one. The list itself returns no price, so the exception to "nothing scrapable" shrinks to names and categories | A/B mockup, 2026-11-18, "A"; his later ruling on old prices |
 | 7 | The order it opens in | Largest companies first; the size figure orders the list and is never shown | A/B mockup, 2026-11-18, "A" |
+| 8 | The action on a row | A round plus at the row's left edge; it opens the review, never a one-tap trade; teal while the market is open, brown after the close | Board `design/stocks-list-1118` (#534), 2026-11-18, "A+C" |
+| 9 | Where search sits | The first icon in the chip row; tapping it swaps the row for a field with Cancel and a plain results list | Same board, "A+C" |
+| 10 | The filter chips | "All" (new copy, approved with the pick), then our categories, scrolling sideways | Same board |
 
 ## Open questions
 
 None blocks part 1. Open for the later parts:
 
-- **The layout of the list** (rows, how filters are presented, whether a manager can re-sort,
-  the action on a row). Waits for Giorgio's screenshots of the three apps' Players tabs; the
-  research could not confirm the mobile layouts
-  ([`../research/2026-11-18-players-tab-and-waiver-wire-ui.md`](../research/2026-11-18-players-tab-and-waiver-wire-ui.md)).
-- **The tab's icon** (the Design Lead's).
+- ~~The layout of the list.~~ Decided 2026-11-18 from his ESPN recording (decisions 8 to 10).
+  Still open inside it: whether a manager can re-sort the list.
+- **The tab's icon** (the Design Lead's; the board draws a magnifying glass).
 - **Any trending or "most added" list.** "Most added" needs our own cross-league counts;
   movers need live prices and wait on the price-supplier decision.
 - **Where the watchlist and claims sit on this screen.** Their rules are approved in the
@@ -175,6 +176,56 @@ without duplicating the rules; that is the one design point left to them.
 - The architecture map is regenerated and current.
 - By hand, with Giorgio: after `db push`, one read-only check that an account outside a
   league is refused and a member gets rows; recorded in `STATUS.md` by the Recorder.
+
+## Part 2: the screen
+
+Status of this part: Draft (awaiting Giorgio's approval). It is what a manager sees; it
+depends on part 1's read.
+
+**In.**
+- A fifth tab, "Stocks", last in the bar, in every league phase where the other tabs show.
+- The list as board `design/stocks-list-1118` draws it (A + C): the league pill; a row of
+  controls (search icon, then the chips "All" and our categories); rows of logo, ticker,
+  "name · category", price, with the plus at the left edge.
+- Prices on the rows from the existing live lookup, for the rows on screen only; a row
+  whose price has not arrived shows "–".
+- More rows load as the manager scrolls, 25 at a time, until the server says no more follow.
+- A chip narrows the list to that category.
+- Search: the icon swaps the control row for a field and Cancel; results are the existing
+  search's, with price. A result somebody owns says so with the existing words ("You own
+  this", "Owned by {name}"), and "Not in this league's list" stays as it is.
+- The plus, and a tap on a row, open the stock's existing sheet and its existing review. No
+  buy happens without the review.
+- "Buy a stock" comes off Portfolio. A holding's card keeps Sell.
+
+**Out, and why.**
+- The star and the watchlist, and claims after the close: the October plan, not built. Until
+  they are, the star is not drawn, and after the close the plus opens the stock's sheet,
+  which already says "Market's closed. Opens {day} {time} ET."
+- "Trending and recommended": no data for it yet.
+- A filters sheet (ESPN's Availability, Playing, Pro Team): nothing of ours maps to it yet.
+- Re-sorting the list: not decided.
+
+**States the Design Lead specs from existing copy, shown to Giorgio only if one needs new
+words or a look of its own:** before the draft (the list is browsable; buying is not open);
+during a draft; a finished season (no buying, 2026-11-18); a full roster or no free slot
+(the existing reason on the sheet); the list still loading; the list failing to load; a
+category with no stocks left; the largest text size.
+
+**Done means, for this part.**
+- On a phone, in a matchup league mid-season: Stocks is the fifth tab; the list opens with
+  large companies nobody in the league owns; each shows a current price; a category chip
+  narrows it; scrolling loads more; the plus opens the review and a buy completes as it does
+  today from search; the bought stock is gone from the list afterwards.
+- A stock another manager owns is not in the list and is found by search, marked.
+- Portfolio no longer shows "Buy a stock"; tapping a holding still offers Sell.
+- After the close the plus opens the sheet with the existing closed-market line; nothing
+  claims.
+- In a finished league nothing on the tab can start a buy.
+- Giorgio walks it on a build at his text size; the Design Lead gates it at L and AX5.
+
+**Workstreams.** Mobile, on Sonnet, after part 1 is merged and applied; the Design Lead
+specs the states above first.
 
 ## Suggested workstreams
 
