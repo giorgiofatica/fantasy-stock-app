@@ -1,7 +1,7 @@
 # Pre-draft Home's Members card at XXXL, on `fix/predraft-members-xxxl`
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** The stills and drivers (`fx.sh`, `shot.sh`, `gate.sh`) are in
-**`~/fantasy-stock-design-review/fix-predraft-members-xxxl/`** (`base-*` before, `after/` and `L/` after); this file is the index.
+**`~/fantasy-stock/local/design-review/fix-predraft-members-xxxl/`** (`base-*` before, `after/` and `L/` after); this file is the index.
 
 **The bug (Design Lead P2, 2026-10-19).** At XXXL the Members card's header ran "Members" into "6 of 8 joined" and clipped it at the card's right edge
 ("6 of 8 joine…"), and the dashed "+2" disc clipped its text (`base-predraft-xxxl-light-end.png`).

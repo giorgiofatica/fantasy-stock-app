@@ -1069,7 +1069,7 @@ longer block flipping the Run it back switch; GS-12 and GS-13 (P2) remain.
 Home's blocks on main, 20 pt (`space[6]`) on the fix; the board's section gap is 16 px. Only Home has the shape (a
 gap on a scroll container whose one child is a non-gap wrapper around several sections), and
 every Home phase goes through that wrapper, so the one fix covers them all. Captures:
-`~/fantasy-stock-design-review/home-calm/task1/`. The miss and the new gate check: see
+`~/fantasy-stock/local/design-review/home-calm/task1/`. The miss and the new gate check: see
 UI-UX-PROGRAM.md, "Block rhythm, measured".
 
 ### P3

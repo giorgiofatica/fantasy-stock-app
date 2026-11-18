@@ -46,7 +46,7 @@ Nothing ships to TestFlight until every screen is on Game Night in both themes
   longest ticker and company names in the universe, 16 managers where a list allows it.
 - **Where the evidence lives** (Giorgio, 2026-10-14: the repo stays small; `docs/design/captures/`
   had reached 216 MB and every retake adds to history):
-  - **Stills and recordings stay OUT of the repo**, in `~/fantasy-stock-design-review/<branch>/`.
+  - **Stills and recordings stay OUT of the repo**, in `~/fantasy-stock/local/design-review/<branch>/`.
     Never `git add` a PNG, MOV or frame sheet under `docs/design/captures/`.
   - **The repo keeps only `docs/design/captures/<set>/README.md`**, pointing at that folder. It
     carries the build SHA every frame was taken on (one build per set: the gate checks
@@ -90,7 +90,7 @@ asks, even with unsaved changes, so a discard question there is the finding.
 | Tokens only | grep the branch's changed files for `#[0-9A-Fa-f]{3,8}` and `rgba(` outside `constants/tokens/` | any colour literal in a component |
 | Every fill has its own ink | for each fill on the screen (accent, you, loss-fill, your-side tint, clock cell, category pills, the band of a chip), name the `on*` token its text reads | text on a fill reads page text (`text`/`text2`) |
 | Contrast | the worker's `contrastPairs.ts` test green in both themes (110 checks per theme as of W3); the board's `TOKEN_ROWS`/`PAIRS` and `themes.css` updated in the same change | a red test, the two lists differ, or `themes.css` differs from `color.ts` |
-| Accent by area | `python3 ~/fantasy-stock-design-review/tools/game-night/app_accent_area.py <capture> <dark\|light> docs/design/tokens-v3-game-night.json` on every capture; the README gives two numbers per frame, with and without the screen's one primary action | accent > 5% of a frame NOT counting the screen's single primary action (Design Lead, W4 Home gate 2026-10-13: the primary is what the accent is for; it is a full-width pill, §9C). Data colours are reported apart. A second accent-filled control counts. |
+| Accent by area | `python3 ~/fantasy-stock/local/design-review/tools/game-night/app_accent_area.py <capture> <dark\|light> docs/design/tokens-v3-game-night.json` on every capture; the README gives two numbers per frame, with and without the screen's one primary action | accent > 5% of a frame NOT counting the screen's single primary action (Design Lead, W4 Home gate 2026-10-13: the primary is what the accent is for; it is a full-width pill, §9C). Data colours are reported apart. A second accent-filled control counts. |
 | No rule lines between rows | inspect the row stack in the capture at 1:1 | a divider line between list rows (separation is space, surface or your side's tint) |
 | Depth | Dark: page / card / inset are lightness steps, no shadows; Light: white cards with the rim on the tinted page, the sheet's shadow only | a drop shadow on Dark; a card without its rim |
 | Numbers | game numbers ExtraBold (800); the Portfolio value Medium (500); everything tabular | a condensed Black number in the app; proportional digits in a column |
@@ -149,7 +149,7 @@ asks, even with unsaved changes, so a discard question there is the finding.
   axis with no acquisition marker; this week on a Mon…Fri axis (days to come empty); a stock
   bought today (a 1-point season line, the full axis); XL; Reduce Motion (the sheet fades);
   VoiceOver reads the three figures with their labels.
-- **Reference notes from Giorgio's own screenshots** (`~/fantasy-stock-design-review/
+- **Reference notes from Giorgio's own screenshots** (`~/fantasy-stock/local/design-review/
   references/espn-player-card-{1,2,3}.webp`): the owner's avatar is now drawn (approved); the
   week-by-week game log is "later" (not in this build); the gate does not flag its absence.
 - **Carried from the W3 gate (2026-10-12): fixed before this gate is sent, each one checked.**

@@ -32,7 +32,7 @@ You are the UI worker for **Phase 3c: the competitive screens**. Your branch is 
   - §3 (IA; the League tab becomes the draft-room entry while pre-draft/drafting);
   - §4/§5 (motion law, `motion.stagger`, Reduce Motion);
   - §9 and **§9A** (one design, two themes; `<Card variant="scoreboard">`; `spring.lively` only on scoreboard components).
-- The merged 3b-2 prompt (`phase3b2-mobile-home.md`), and its review log `~/fantasy-stock-design-review/ui-mobile-home/DESIGN-REVIEW.md`. **Every finding there is a rule here.**
+- The merged 3b-2 prompt (`phase3b2-mobile-home.md`), and its review log `~/fantasy-stock/local/design-review/ui-mobile-home/DESIGN-REVIEW.md`. **Every finding there is a rule here.**
 - Memory-backed rules, also restated below: `product-rules-2026-09-29`, `hermes-intl-formattoparts`, `week-window-scoring-2026-09-30`.
 
 ## Rulings in force (don't reopen them without Giorgio)
@@ -253,7 +253,7 @@ The header chip reads "Paused". No auto-pick and no skip while paused; show the 
   - draft cells read "Round 2, pick 11, Roberto B., NVDA, auto-picked from queue".
 - Contrast test passes in both themes; report any new pair.
 
-## Verify, then report DONE (captures in `~/fantasy-stock-design-review/ui-mobile-game/`)
+## Verify, then report DONE (captures in `~/fantasy-stock/local/design-review/ui-mobile-game/`)
 
 - **Checks:**
   - `npx tsc --noEmit` (baseline 1);

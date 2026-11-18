@@ -1,7 +1,7 @@
 # keepMoney: a money amount never breaks inside itself (`chore/keep-money`)
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** The stills are in
-**`~/fantasy-stock-design-review/chore-keep-money/`**; this file is the index.
+**`~/fantasy-stock/local/design-review/chore-keep-money/`**; this file is the index.
 
 **Ruling (Design Lead, 2026-10-16), the gate rule "a money amount never breaks inside itself".** At XXXL the Renewal
 review's Stakes value broke as "$1,000. / 00 a / slot". `keepMoney` (in the `keepDots` family, `lib/game/keepDots.ts`)

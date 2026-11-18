@@ -56,10 +56,10 @@ The re-price mode cannot fix such a symbol either. It reports the symbol as `no_
 ### 0. Deploy (after the PR merges)
 
 ```bash
-git -C /Users/giorgio/fantasy-stock-deploy fetch origin && git -C /Users/giorgio/fantasy-stock-deploy checkout --detach origin/main
+git -C /Users/giorgio/fantasy-stock/local/deploy fetch origin && git -C /Users/giorgio/fantasy-stock/local/deploy checkout --detach origin/main
 ```
 
-From `/Users/giorgio/fantasy-stock-deploy`:
+From `/Users/giorgio/fantasy-stock/local/deploy`:
 
 ```bash
 supabase functions deploy snapshot-week-start --project-ref haiaaifjcclsvmkfqgmd

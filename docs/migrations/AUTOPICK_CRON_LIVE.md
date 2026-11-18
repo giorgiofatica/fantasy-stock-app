@@ -199,11 +199,11 @@ There is deliberately **no `DELETE`**: no delete-league path exists, several leg
 2. Refresh the deploy checkout and confirm it is linked:
 
 ```bash
-git -C /Users/giorgio/fantasy-stock-deploy fetch origin && git -C /Users/giorgio/fantasy-stock-deploy checkout --detach origin/main
-cat /Users/giorgio/fantasy-stock-deploy/supabase/.temp/project-ref   # must print haiaaifjcclsvmkfqgmd
+git -C /Users/giorgio/fantasy-stock/local/deploy fetch origin && git -C /Users/giorgio/fantasy-stock/local/deploy checkout --detach origin/main
+cat /Users/giorgio/fantasy-stock/local/deploy/supabase/.temp/project-ref   # must print haiaaifjcclsvmkfqgmd
 ```
 
-3. **Re-run §1c** one more time (the only overdue row allowed is the test league, or none), then preview and apply (both from `/Users/giorgio/fantasy-stock-deploy`):
+3. **Re-run §1c** one more time (the only overdue row allowed is the test league, or none), then preview and apply (both from `/Users/giorgio/fantasy-stock/local/deploy`):
 
 ```bash
 supabase db push --dry-run   # must list EXACTLY: 20261106000000, 20261106000001, 20261106000002 (and nothing else; 20261104/05 are other workstreams' and may appear if they merged first, which is fine)

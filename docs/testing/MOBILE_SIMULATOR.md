@@ -25,14 +25,14 @@ run the SDK 54 build of Expo Go. For a real phone, use an EAS build.
    On 2026-09-25 it was
    `https://github.com/expo/expo-go-releases/releases/download/Expo-Go-54.0.7/Expo-Go-54.0.7.tar.gz`
    (~66 MB, bundle id `host.exp.Exponent`). A copy is kept at
-   `~/fantasy-stock-design-review/tools/ExpoGo.app`. The tarball extracts the
+   `~/fantasy-stock/local/design-review/tools/ExpoGo.app`. The tarball extracts the
    bundle's *contents*, so put them in a folder named `ExpoGo.app`.
 
 ## Each session
 ```bash
 xcrun simctl list devices available            # pick an iPhone, note its UDID
 xcrun simctl boot <UDID>
-xcrun simctl install <UDID> ~/fantasy-stock-design-review/tools/ExpoGo.app   # once per device
+xcrun simctl install <UDID> ~/fantasy-stock/local/design-review/tools/ExpoGo.app   # once per device
 ```
 Run the app from a **clean checkout of the code you want to test**, not the main
 checkout (it's often on a feature branch). For example, a detached worktree at
@@ -187,7 +187,7 @@ panels too.
 - **Recordings are variable-frame-rate, and H.264 samples arrive in decode
   order.** Sort sample timestamps before measuring frame gaps, or B-frames
   produce negative gaps and a meaningless frame rate.
-  `~/fantasy-stock-design-review/tools/vidtool.swift` (`info` / `gaps` /
+  `~/fantasy-stock/local/design-review/tools/vidtool.swift` (`info` / `gaps` /
   `frames`) does this: it reports late frames (>25 ms) during continuous
   motion and ignores idle stretches (the recorder writes frames only when
   something changes). Synthetic touches (typing, swipes) inject input at an

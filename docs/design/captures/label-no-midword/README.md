@@ -1,7 +1,7 @@
 # A label never breaks mid-word (`fix/label-no-midword`)
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** The stills are in
-**`~/fantasy-stock-design-review/fix-label-no-midword/`**; this file is the index.
+**`~/fantasy-stock/local/design-review/fix-label-no-midword/`**; this file is the index.
 
 **Ruling (Design Lead, 2026-10-19).** League settings at XXXL broke "Commissioner" into "Com / missi / oner". Rule: no word
 in a label ever breaks mid-letter at any size; the label's column does not shrink below its longest word, and whatever does

@@ -176,7 +176,7 @@ Simulator method: `docs/testing/MOBILE_SIMULATOR.md`. The traps that cost time t
   Standings row at the 17e fold; never compress the chart, the gaps or the type to win it back.
   It is a finding only if This week is cut, or if anything above Standings scrolls on the 17 Pro.
 - **Hand-offs:** SendMessage to "Orchestrator", giving SHAs and capture paths. Review captures
-  live in `~/fantasy-stock-design-review/<topic>/`; the calm-Home ones are in `home-calm/`.
+  live in `~/fantasy-stock/local/design-review/<topic>/`; the calm-Home ones are in `home-calm/`.
 - **Git:**
   - a fresh branch off `origin/main` for each piece of work (merged branches are dead);
   - board and docs only;

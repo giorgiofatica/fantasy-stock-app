@@ -106,7 +106,7 @@ Motion lives in `constants/tokens` and `useMotion()` only: no raw durations, eas
   - avatar initials don't scale.
 - VoiceOver: headers are headings; the pill announces "{league}, {N} more leagues, button"; sheet rows announce name, rank, record and phase.
 
-## Verify, then report DONE (captures go to `~/fantasy-stock-design-review/ui-mobile-shell/`)
+## Verify, then report DONE (captures go to `~/fantasy-stock/local/design-review/ui-mobile-shell/`)
 
 - **Checks:** `npx tsc --noEmit`, `npm run lint`, deno and unit tests (plus new tests for the league persistence store, phase grouping and username error mapping) and the **contrast test**. Report the counts.
 - **Captures, Light AND Dark at standard size:** every screen in the table (1–15), including the sign-ups-paused state, the username taken state, and the league sheet open with all three groups populated.

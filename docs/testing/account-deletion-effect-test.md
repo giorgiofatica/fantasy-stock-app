@@ -78,8 +78,8 @@ session could otherwise "prove" a Google account by password and delete it.
 Refresh the deploy checkout to a `main` that CONTAINS this branch, then deploy the functions (nothing is pushed yet):
 
 ```bash
-git -C /Users/giorgio/fantasy-stock-deploy fetch origin && git -C /Users/giorgio/fantasy-stock-deploy checkout --detach origin/main
-cd /Users/giorgio/fantasy-stock-deploy
+git -C /Users/giorgio/fantasy-stock/local/deploy fetch origin && git -C /Users/giorgio/fantasy-stock/local/deploy checkout --detach origin/main
+cd /Users/giorgio/fantasy-stock/local/deploy
 supabase functions deploy delete-account --project-ref haiaaifjcclsvmkfqgmd
 supabase functions deploy heal-account-deletions --project-ref haiaaifjcclsvmkfqgmd
 supabase functions deploy join-league --project-ref haiaaifjcclsvmkfqgmd

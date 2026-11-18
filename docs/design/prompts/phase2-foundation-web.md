@@ -102,7 +102,7 @@ the landing once already (fixed in PR #24).
 - **Landing unchanged**: before/after screenshots of `/` at 1440 and 375
   (browser pane; headless Chrome fakes overflow under ~500px) must be
   identical. Report any diff.
-- Screenshots to `~/fantasy-stock-design-review/ui-foundation-web/` (absolute
+- Screenshots to `~/fantasy-stock/local/design-review/ui-foundation-web/` (absolute
   paths in the report): the gallery on both surfaces at 1440 and 375; keyboard
   focus on Button, SegmentedControl and Sheet; a **screen recording** of the
   Scoreboard lead change with reduced motion off and on (browser-pane colour

@@ -88,4 +88,4 @@ DESIGN_DIRECTION §7, with #9–#11 added here.
 - **Name-agnostic**: `brand.name` everywhere; no hard-coded product name in
   new code or assets.
 - **After merging `origin/main`: restart Metro with `--clear`** (mobile).
-- **Evidence** goes in `~/fantasy-stock-design-review/<branch>/`, absolute paths in the report.
+- **Evidence** goes in `~/fantasy-stock/local/design-review/<branch>/`, absolute paths in the report.

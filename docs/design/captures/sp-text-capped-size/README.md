@@ -8,7 +8,7 @@ size is explicit** (`fontSize`/`lineHeight` × cap, `allowFontScaling={false}`).
 nothing changes: native scaling under `maxFontSizeMultiplier`, as before.
 
 All frames, scripts and recordings are outside the repo, in
-`~/fantasy-stock-design-review/fix-sp-text-capped-size/`.
+`~/fantasy-stock/local/design-review/fix-sp-text-capped-size/`.
 
 ## What changed
 

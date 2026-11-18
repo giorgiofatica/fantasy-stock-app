@@ -1,7 +1,7 @@
 # Sheets: the content scrolls, the action stays pinned, on `fix/sheet-scroll-pinned-action`
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** The stills, the drivers (`fx.sh`, `shot.sh`, `ldiff.sh`, `pxdiff.py`) and
-the L pixel diffs are in **`~/fantasy-stock-design-review/fix-sheet-scroll-pinned-action/`**; this file is the index and the audit.
+the L pixel diffs are in **`~/fantasy-stock/local/design-review/fix-sheet-scroll-pinned-action/`**; this file is the index and the audit.
 
 **The bug (P1, Design Lead, 2026-10-16).** The stock sheet (`StockSheetBody` inside `Sheet`, `maxHeight: 90%`) had no scroll view.
 At XXXL Dynamic Type its lower half was clipped, so Review buy / Review sell could not be reached and a large-text user could not

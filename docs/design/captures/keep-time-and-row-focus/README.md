@@ -1,7 +1,7 @@
 # keepTime, and the row-focus P3 (Design Lead, 2026-11-03)
 
 Branch `fix/keep-time-and-row-focus`, from main `7f765999` (not stacked on #326 or #327). Device: iPhone 17e, `large` (L), `extra-extra-extra-large`
-(XXXL) and `accessibility-extra-extra-extra-large` (AX5). Frames: `~/fantasy-stock-design-review/fix/keep-time-and-row-focus/`
+(XXXL) and `accessibility-extra-extra-extra-large` (AX5). Frames: `~/fantasy-stock/local/design-review/fix/keep-time-and-row-focus/`
 (outside the repo; `index.html` there).
 
 ## P3-1: "the row remount key can drop the keyboard when focus moves to a sibling" — does NOT reproduce. Nothing changed.

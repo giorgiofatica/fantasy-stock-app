@@ -2,7 +2,7 @@
 
 Branch `fix/focus-roundtrip-and-oppname`, from main `d2b7a3bf` (after #327 and #328; not stacked on the keepTime branch, #329).
 Device: iPhone 17e, light only. Sizes: `large` (L), `extra-extra-extra-large` (XXXL), `accessibility-extra-extra-extra-large` (AX5).
-Frames: `~/fantasy-stock-design-review/fix/focus-roundtrip-and-oppname/` (`index.html`, `frames/`).
+Frames: `~/fantasy-stock/local/design-review/fix/focus-roundtrip-and-oppname/` (`index.html`, `frames/`).
 
 ## P3-A: remount once at blur if the size changed at any point during focus
 

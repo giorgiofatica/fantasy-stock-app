@@ -4,7 +4,7 @@ P2 from the Design Lead (2026-11-02). After a LIVE text-size change from AX5 (`a
 down to Large, League settings' Draft time row stayed wrapped ("Sat, Oct 3 · / 7:00 PM ET", a tall row). A cold launch at
 Large lays it out on one line. In season, the Commissioner row lost its "You" the same way.
 
-Stills are outside the repo, in `~/fantasy-stock-design-review/fix/setting-row-scale-reset/`; `index.html` there pairs main with branch.
+Stills are outside the repo, in `~/fantasy-stock/local/design-review/fix/setting-row-scale-reset/`; `index.html` there pairs main with branch.
 
 ## Cause (measured, iPhone 17e, Expo Go)
 

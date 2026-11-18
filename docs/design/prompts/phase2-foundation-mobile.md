@@ -120,7 +120,7 @@ the old tokens were bypassed; your job is to make bypassing harder than using.
 
 - `npx tsc --noEmit`, `npm run lint`, the new deno tests: all passing, with
   the counts in your report.
-- Screenshots to `~/fantasy-stock-design-review/ui-foundation-mobile/`
+- Screenshots to `~/fantasy-stock/local/design-review/ui-foundation-mobile/`
   (absolute paths in the report): the gallery top-to-bottom on money and game
   surfaces; the gallery at Dynamic Type accessibility-extra-large (nothing
   clips, money never wraps); a **screen recording** of the Scoreboard lead

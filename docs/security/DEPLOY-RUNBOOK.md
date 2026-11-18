@@ -27,7 +27,7 @@ is being worked on (currently `ui/design-system-pass-v2`), and it has already sh
 stale function code once. Every deploy runs from a folder whose files are exactly
 the code meant to ship:
 
-- **After the merge (this runbook):** `/Users/giorgio/fantasy-stock-deploy`, refreshed to
+- **After the merge (this runbook):** `/Users/giorgio/fantasy-stock/local/deploy`, refreshed to
   `origin/main` and **detached at the merge commit**.
 - **Before a merge** (not needed here; see below): the PR branch's own worktree at the
   reviewed commit, with an explicit `--project-ref haiaaifjcclsvmkfqgmd`.
@@ -166,9 +166,9 @@ nothing (see CLAUDE.md). The evidence is the Vercel deployment of the merge comm
 ## Step 4 — Prepare the deploy checkout
 
 ```bash
-git -C /Users/giorgio/fantasy-stock-deploy fetch origin
-git -C /Users/giorgio/fantasy-stock-deploy checkout --detach origin/main
-git -C /Users/giorgio/fantasy-stock-deploy log --oneline -1
+git -C /Users/giorgio/fantasy-stock/local/deploy fetch origin
+git -C /Users/giorgio/fantasy-stock/local/deploy checkout --detach origin/main
+git -C /Users/giorgio/fantasy-stock/local/deploy log --oneline -1
 ```
 The last line must show `<MERGE>`. If `main` moved again, stop and decide whether to ship
 the newer commit too.
@@ -178,7 +178,7 @@ the newer commit too.
 content before deploying. Each count must be **≥ 1**. All four are 0 on the pre-merge
 `main` (`a324395`), so a 0 here means the checkout is stale:
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy
+cd /Users/giorgio/fantasy-stock/local/deploy
 grep -c "SB_SECRET_KEY_CRON" supabase/functions/refresh-symbols/index.ts
 grep -c "invalid_start" supabase/functions/historical-bars/index.ts
 grep -c "expo_ticket_error" supabase/functions/send-notification/index.ts
@@ -198,8 +198,8 @@ read -rs SUPABASE_DB_PASSWORD && export SUPABASE_DB_PASSWORD   # value not echoe
 ```
 Then:
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy
-git -C /Users/giorgio/fantasy-stock-deploy rev-parse --short HEAD   # must print <MERGE>
+cd /Users/giorgio/fantasy-stock/local/deploy
+git -C /Users/giorgio/fantasy-stock/local/deploy rev-parse --short HEAD   # must print <MERGE>
 supabase link --project-ref haiaaifjcclsvmkfqgmd
 cat supabase/.temp/project-ref
 supabase migration list
@@ -208,7 +208,7 @@ supabase migration list
 local-only rows, `20260925000000` and `20260925000001`, with remote at
 `20260816000000`. **Anything else pending → stop.** `db push` applies EVERY pending file.
 
-## Step 5 — Edge functions  *(from `/Users/giorgio/fantasy-stock-deploy` @ `<MERGE>`)*
+## Step 5 — Edge functions  *(from `/Users/giorgio/fantasy-stock/local/deploy` @ `<MERGE>`)*
 
 All three are backward-compatible with 1.0.0 clients; any order. **5.1 and 5.2 are
 reconciliation:** prod already runs this code (from `2dd699f`, which differs from the merge
@@ -221,8 +221,8 @@ No function in this PR imports `supabase/functions/_shared/` or any other local 
 All imports are `jsr:` packages, so each deploy's asset list is exactly one `index.ts`.
 Any additional or missing local asset means the wrong code: stop.
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy
-git -C /Users/giorgio/fantasy-stock-deploy rev-parse --short HEAD   # must print <MERGE>
+cd /Users/giorgio/fantasy-stock/local/deploy
+git -C /Users/giorgio/fantasy-stock/local/deploy rev-parse --short HEAD   # must print <MERGE>
 supabase functions deploy historical-bars --project-ref haiaaifjcclsvmkfqgmd
 ```
 Expect **Uploading asset (historical-bars): supabase/functions/historical-bars/index.ts**
@@ -231,7 +231,7 @@ Verify (unchanged before and after): a bad date such as `"start":"2020-01-01&fee
 returns **our** HTTP 400 `invalid_start`, and a normal `YYYY-MM-DD` request still returns
 bars. Then prove prod equals the merge commit:
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy
+cd /Users/giorgio/fantasy-stock/local/deploy
 supabase functions download historical-bars --project-ref haiaaifjcclsvmkfqgmd   # writes into supabase/functions/historical-bars/
 git status --porcelain -- supabase/functions/historical-bars/   # must print NOTHING (modified or extra file = mismatch)
 git checkout -- supabase/functions/   # restore tracked files either way; delete any extra file it listed
@@ -240,7 +240,7 @@ git checkout -- supabase/functions/   # restore tracked files either way; delete
 
 **5.2 — F5**
 ```bash
-git -C /Users/giorgio/fantasy-stock-deploy rev-parse --short HEAD   # must print <MERGE>
+git -C /Users/giorgio/fantasy-stock/local/deploy rev-parse --short HEAD   # must print <MERGE>
 supabase functions deploy refresh-symbols --project-ref haiaaifjcclsvmkfqgmd
 ```
 Expect **Uploading asset (refresh-symbols): supabase/functions/refresh-symbols/index.ts**
@@ -257,7 +257,7 @@ deploy **re-enabled** `verify_jwt`. That is a regression: the cron would start f
 Redeploy, and fix the dashboard's Verify-JWT toggle. Then prove prod equals the merge
 commit:
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy
+cd /Users/giorgio/fantasy-stock/local/deploy
 supabase functions download refresh-symbols --project-ref haiaaifjcclsvmkfqgmd   # writes into supabase/functions/refresh-symbols/
 git status --porcelain -- supabase/functions/refresh-symbols/   # must print NOTHING (modified or extra file = mismatch)
 git checkout -- supabase/functions/   # restore tracked files either way; delete any extra file it listed
@@ -268,14 +268,14 @@ Don't use `cron.job_run_details`: it reports `succeeded` on enqueue.
 
 **5.3 — F7 (server half)**
 ```bash
-git -C /Users/giorgio/fantasy-stock-deploy rev-parse --short HEAD   # must print <MERGE>
+git -C /Users/giorgio/fantasy-stock/local/deploy rev-parse --short HEAD   # must print <MERGE>
 supabase functions deploy send-notification --project-ref haiaaifjcclsvmkfqgmd
 ```
 Expect **Uploading asset (send-notification): supabase/functions/send-notification/index.ts**
 and nothing else. This is a **new** function (a `download` before this step fails),
 so also confirm it appears in the dashboard's function list with Verify JWT **on**, and:
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy
+cd /Users/giorgio/fantasy-stock/local/deploy
 supabase functions download send-notification --project-ref haiaaifjcclsvmkfqgmd   # writes into supabase/functions/send-notification/
 git status --porcelain -- supabase/functions/send-notification/   # must print NOTHING (modified or extra file = mismatch)
 git checkout -- supabase/functions/   # restore tracked files either way; delete any extra file it listed
@@ -294,11 +294,11 @@ Verify:
 Nothing calls this function until step 7. 1.0.0 builds still send directly to `exp.host`
 (that is F8's exposure, unchanged here).
 
-## Step 6 — Migrations (F1, F6)  *(from `/Users/giorgio/fantasy-stock-deploy` @ `<MERGE>`, linked in step 4)*
+## Step 6 — Migrations (F1, F6)  *(from `/Users/giorgio/fantasy-stock/local/deploy` @ `<MERGE>`, linked in step 4)*
 
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy
-git -C /Users/giorgio/fantasy-stock-deploy rev-parse --short HEAD   # must print <MERGE>
+cd /Users/giorgio/fantasy-stock/local/deploy
+git -C /Users/giorgio/fantasy-stock/local/deploy rev-parse --short HEAD   # must print <MERGE>
 cat supabase/.temp/project-ref                                     # must print haiaaifjcclsvmkfqgmd
 supabase db push --dry-run
 supabase db push
@@ -345,12 +345,12 @@ stop and report it. *(This script has not been run yet; no local Postgres was av
 when it was written. If it errors before printing results, e.g. on a fixture insert,
 that is a bug in the script, not the trigger. Report it.)*
 
-## Step 7 — Mobile release  *(EAS **build** from `/Users/giorgio/fantasy-stock-deploy/apps/mobile` @ `<MERGE>`; NOT `eas update`)*
+## Step 7 — Mobile release  *(EAS **build** from `/Users/giorgio/fantasy-stock/local/deploy/apps/mobile` @ `<MERGE>`; NOT `eas update`)*
 
 Preconditions: step 2 (redirect allowlist) and step 5.3 (`send-notification` live).
 ```bash
-cd /Users/giorgio/fantasy-stock-deploy/apps/mobile
-git -C /Users/giorgio/fantasy-stock-deploy rev-parse --short HEAD   # must print <MERGE>
+cd /Users/giorgio/fantasy-stock/local/deploy/apps/mobile
+git -C /Users/giorgio/fantasy-stock/local/deploy rev-parse --short HEAD   # must print <MERGE>
 eas build --profile production --platform all
 ```
 Run it from `apps/mobile/`, never from the repo root, which offers to create a duplicate

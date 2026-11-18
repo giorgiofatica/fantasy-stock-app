@@ -2,7 +2,7 @@
 
 PRODUCT_RULES "Your queue saves as you go" (2026-11-11); board `#call-queue-save` (frames B and B-fails).
 Simulator "queue-autosave 17" (iPhone 17, 402×874 pt), iOS 27.0, Expo Go SDK 54, status bar 9:41, light.
-Stills live outside the repo (Giorgio, 2026-10-14): `~/fantasy-stock-design-review/feat-queue-autosave/`.
+Stills live outside the repo (Giorgio, 2026-10-14): `~/fantasy-stock/local/design-review/feat-queue-autosave/`.
 Every frame is a cold launch (Metro restarted with `--clear`, bundle pre-fetched over HTTP, then the app opened at `/--/league`).
 
 The add is the capture script's `queueadd:NVDA` (QueueEditor's DEV capture action: the same add a search result's tap

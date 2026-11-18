@@ -10,7 +10,7 @@ Stills were shot headless (`simctl io screenshot`); everything that needs a tap 
 shot with the simulator panel's device access (17e).
 
 **Recordings** live outside the repo (one is 68 MB), in
-`~/fantasy-stock-design-review/gn-w4-home/`; their frame sheets are here.
+`~/fantasy-stock/local/design-review/gn-w4-home/`; their frame sheets are here.
 
 ## Measurements (from pixels, 3× → pt)
 
@@ -56,7 +56,7 @@ shot with the simulator panel's device access (17e).
 | 12 | `12-stress-scrolled-17e-*` | **your 5th-place row, −$1,234,567.80**, on your tint | same, scrolled (panel) |
 | 13 | `13-range-1W-17e-*`, `13-range-1M-17e-*` | the 1W and 1M tabs selected (1M now carries the past weeks) | `live_open`, `GAME_SEAM=1`, tapped |
 
-## Recordings (frame sheets here, files in `~/fantasy-stock-design-review/gn-w4-home/`)
+## Recordings (frame sheets here, files in `~/fantasy-stock/local/design-review/gn-w4-home/`)
 
 | File | Shows |
 |---|---|

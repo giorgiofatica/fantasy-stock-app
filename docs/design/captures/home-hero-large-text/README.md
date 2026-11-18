@@ -5,7 +5,7 @@ line ("Your team" / "2nd of 4 · 2–0 · Week 3 of 11") showed only the tops of
 line lost "season gain", "today" and its "·"s; once a "·" started a line, against the keepDots
 rule. One launch at the same size rendered correctly.
 
-The stills are outside the repo, in `~/fantasy-stock-design-review/fix/home-hero-large-text/`.
+The stills are outside the repo, in `~/fantasy-stock/local/design-review/fix/home-hero-large-text/`.
 `index.html` there pairs every before with its after. `phone-frames/` has two frames from
 Giorgio's recordings.
 

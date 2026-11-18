@@ -145,7 +145,7 @@ ORDER BY e.league_id, e.u, s.slot_index;
 ## Release steps (Giorgio only)
 1. #113's `20261102000000` is applied (live in prod as of 2026-10-06, record-trade at `e49df95`); this migration replaces the function it created. The CLI-splitter guard (#115) already covers this file.
 2. Confirm `20261102000000` is applied: `SELECT version FROM supabase_migrations.schema_migrations WHERE version IN ('20261102000000','20261103000000');` (only the first should be present).
-3. `supabase db push --dry-run` from `/Users/giorgio/fantasy-stock-deploy` (refreshed first; merging to `main` auto-deploys the web app, so the merge is itself a prod deploy), confirm it lists only `20261103000000`, then `supabase db push`.
+3. `supabase db push --dry-run` from `/Users/giorgio/fantasy-stock/local/deploy` (refreshed first; merging to `main` auto-deploys the web app, so the merge is itself a prod deploy), confirm it lists only `20261103000000`, then `supabase db push`.
 4. Verify by proacl, never by the push output. Expect exactly ONE row: `pronargs = 13`, `service_role=X` and no anon/authenticated/bare `=X`, `prosecdef = false`, `provolatile = 'v'`, `proconfig = {"search_path=public, pg_temp",lock_timeout=5s}`:
    ```sql
    SELECT proname, pronargs, proacl, prosecdef, provolatile, proconfig
