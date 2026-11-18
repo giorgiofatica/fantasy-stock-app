@@ -174,7 +174,7 @@ Deno.test('guard: a missing row never renders "$0.00" / "0.00%" on the card or a
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: null }), null);
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: 2, figures: false }), null);
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: 2 }), { gain: 1, pct: 2 });
-  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const figs = rosterHalfFigures(half);'));
+  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const show = rosterHalfShow(half);'));
 });
 
 // ── Home ─────────────────────────────────────────────────────────────────────────

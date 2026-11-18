@@ -259,6 +259,6 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/sp/gn/PlayerCard.tsx:121` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/sp/gn/PlayerCard.tsx:173` | PressableScale | onPress | `action.onPress` | prop action.onPress | `action.disabled` |
 | `components/sp/gn/RangePills.tsx:55` | Pressable | onPress | `inline: () => { if (selected \|\| dead) return; Haptics.selectionAsync` | fn onChange | `dead` |
-| `components/sp/gn/RosterRow.tsx:169` | PressableScale | onPress | `half.onPress` | prop half.onPress |  |
+| `components/sp/gn/RosterRow.tsx:173` | PressableScale | onPress | `half.onPress` | prop half.onPress |  |
 | `components/sp/gn/Scoreboard.tsx:119` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
 | `components/sp/gn/SegmentTabs.tsx:41` | Pressable | onPress | `inline: () => { if (selected) return; Haptics.selectionAsync().catch` | fn onChange |  |

@@ -2,26 +2,38 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "8cb4f10b4168c83f9e798ffbca2632a28160f3c5",
-    "commitShort": "8cb4f10b",
+    "commit": "b1456a1924aae139913cfd2d14e53f53acaa48c5",
+    "commitShort": "b1456a19",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/matchup-no-stand-ins",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/matchupFixture.ts"
+        "path": "apps/mobile/components/sp/gn/RosterRow.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/home/useHomeLeague.ts"
+        "path": "apps/mobile/components/sp/logic/gameNight.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/league-weeks.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-calls.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-roster.test.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/matchup-unpriced.test.ts"
       }
     ],
-    "timestamp": "2026-11-18T23:20:28Z",
+    "timestamp": "2026-11-18T23:29:00Z",
     "sourceHash": "sha256:a7d81165f71b4372a46d72730f68aed6c5d79b2084c4d192c38f9847f9caf1d9",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -29,7 +41,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 28.9,
+    "ageHours": 29,
     "ageDays": 1.2,
     "staleAfterDays": 14,
     "stale": false,

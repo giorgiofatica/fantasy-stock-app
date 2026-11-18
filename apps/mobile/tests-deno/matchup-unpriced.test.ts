@@ -8,7 +8,7 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { buildMatchupLive, sideTotal, type MatchupInput } from '../lib/game/buildMatchupViewModel.ts';
 import { buildAllMatchups, type AllMatchupsInput } from '../lib/game/allMatchups.ts';
-import { scoreHalfLabel, scoreTotalText, scoreboardModel, WEEK_UNKNOWN } from '../components/sp/logic/gameNight.ts';
+import { rosterHalfLabel, rosterHalfParts, rosterHalfShow, scoreHalfLabel, scoreTotalText, scoreboardModel, WEEK_UNKNOWN } from '../components/sp/logic/gameNight.ts';
 import { knownWithoutWeeks } from '../lib/game/leagueWeeks.ts';
 import { matchupWeekExtras, parseMatchupFixture, UNPRICED_FIXTURE_SYMBOLS } from '../lib/game/matchupFixture.ts';
 import { GIANLUIGI_HOLDINGS, ROBERTO_HOLDINGS } from '../lib/home/homeFixtureData.ts';
@@ -119,6 +119,26 @@ Deno.test('Matchup tab: live totals are SideView.total; the at-cost note is gone
   assert(src.includes('<Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null}'), 'the bye half too');
   assert(src.includes('{raw && (live.me.lineup.length || live.me.unpriced.length) ? ('));
   assert(!src.includes('unpricedNote'));
+});
+
+// ── The roster half's number slot ──────────────────────────────────────────────────
+
+Deno.test('roster half: the week; the "–" (number slot kept, no percent) for an unknown week; nothing for a withheld final', () => {
+  const h = { ticker: 'AAPL', company: 'Apple' };
+  assertEquals(rosterHalfShow({ ...h, weekGain: 62.4, weekPct: 6.05 }), { kind: 'figures', gain: 62.4, pct: 6.05 });
+  assertEquals(rosterHalfShow({ ...h, weekGain: null, weekPct: null }), { kind: 'unknown', text: WEEK_UNKNOWN });
+  assertEquals(rosterHalfShow({ ...h, weekGain: 1, weekPct: null }), { kind: 'unknown', text: WEEK_UNKNOWN });
+  assertEquals(rosterHalfShow({ ...h, weekGain: 62.4, weekPct: 6.05, figures: false }), { kind: 'none' }, 'withheld stays the stock alone');
+  assertEquals(rosterHalfShow({ ...h, weekGain: 0, weekPct: 0 }).kind, 'figures', 'a real flat week is $0.00, not the dash');
+  // The unknown half keeps its number slot (so the "–" is drawn); the withheld one drops it.
+  assert(rosterHalfParts({ figures: true, stacked: false, mirror: false }).includes('num'));
+  assertEquals(rosterHalfParts({ figures: false, stacked: false, mirror: false }), ['name']);
+  assertEquals(rosterHalfLabel('Yours', { ...h, weekGain: null, weekPct: null }), 'Yours, AAPL, Apple', 'VoiceOver: no dash, no $0.00');
+  const row = strip(SOURCES['components/sp/gn/RosterRow.tsx']);
+  assert(row.includes("rosterHalfParts({ figures: show.kind !== 'none', stacked, mirror })"), 'an unknown half keeps its slot');
+  assert(row.includes("show.kind === 'unknown' ? show.text : ''"), 'the slot draws the dash');
+  assert(row.includes('const toneColor = figs ? colors[toneOf(figs.gain)] : colors.text2;'), 'secondary, as everywhere else');
+  assert(row.includes('{figs ? (\n        <Text variant="caption" color={toneColor} style={styles.pct}'), 'no percent line for the dash');
 });
 
 // ── Duration ─────────────────────────────────────────────────────────────────────

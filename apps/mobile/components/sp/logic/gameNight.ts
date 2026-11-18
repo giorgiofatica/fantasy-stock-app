@@ -88,6 +88,20 @@ export function scoreTotalText(gain: number | null): string {
   return gain === null ? WEEK_UNKNOWN : formatMoney(gain, { sign: 'always' });
 }
 
+/**
+ * What a roster half's number slot shows:
+ *  - 'figures': the week ("+$62.40" over "+6.05%");
+ *  - 'unknown': a live week with no figure for the stock (no live price for it): the app's "–"
+ *    in the number slot, no percent, no words (2026-11-18), the same mark as the card and Schedule;
+ *  - 'none': a withheld final (`figures: false`, #call-mx-withheld, B): the stock alone, no slot.
+ */
+export type RosterHalfShow = { kind: 'figures'; gain: number; pct: number } | { kind: 'unknown'; text: string } | { kind: 'none' };
+export function rosterHalfShow(half: { weekGain: number | null; weekPct: number | null; figures?: boolean }): RosterHalfShow {
+  if (half.figures === false) return { kind: 'none' };
+  if (half.weekGain === null || half.weekPct === null) return { kind: 'unknown', text: WEEK_UNKNOWN };
+  return { kind: 'figures', gain: half.weekGain, pct: half.weekPct };
+}
+
 /** VoiceOver's reading of one Scoreboard half: "Paolo M., +$12.40" / "Roberto B., you, …", and
  * the name alone when the total is unknown (as Schedule reads an unscored week: no dash read out). */
 export function scoreHalfLabel(name: string, you: boolean, gain: number | null): string {

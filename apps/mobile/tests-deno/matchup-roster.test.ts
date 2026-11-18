@@ -6,7 +6,7 @@
  * first close, the draft/slot order. Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { rosterHalfFigures } from '../components/sp/logic/gameNight.ts';
+import { rosterHalfFigures, rosterHalfShow } from '../components/sp/logic/gameNight.ts';
 import {
   barCloseAt, cardSlotPill, closesBefore, gainsAtClose, isSlotted, lastWeekClose, orderBarsAt, orderSide, orderingClose, pairRows, recordedSlots, settlesAt,
   rosterGroups, slotGroupLabel,
@@ -143,7 +143,8 @@ Deno.test('a partly unpriced stock (sold half this week, no live price for the r
   const partial = cells(view(thu, noNvda, 'unslotted', { myTrades: [sell] }));
   const n = partial.find((c) => c!.symbol === 'NVDA')!;
   assertEquals([n.weekGain, n.weekPct], [null, null], 'the sale alone is a part, not the week');
-  assertEquals(rosterHalfFigures({ weekGain: n.weekGain, weekPct: n.weekPct }), null, 'the half is the stock alone');
+  assertEquals(rosterHalfFigures({ weekGain: n.weekGain, weekPct: n.weekPct }), null, 'no week figures');
+  assertEquals(rosterHalfShow({ weekGain: n.weekGain, weekPct: n.weekPct }), { kind: 'unknown', text: '\u2013' }, 'the "–" in its slot');
   for (const c of partial.filter((c) => c!.symbol !== 'NVDA')) assert(c!.weekGain !== null, `${c!.symbol} keeps its figure`);
   // With its live price back, the same week has the whole figure.
   const whole = cells(view(thu, thuQuote, 'unslotted', { myTrades: [sell] })).find((c) => c!.symbol === 'NVDA')!;
@@ -163,6 +164,7 @@ Deno.test('a FULLY unpriced holding (no sale) stays on its half with no figures,
   const m = lefts.find((c) => c!.symbol === mineGone)!;
   const t = rights.find((c) => c!.symbol === theirsGone)!;
   assertEquals([m.weekGain, m.weekPct, t.weekGain, t.weekPct], [null, null, null, null]);
+  for (const c of [m, t]) assertEquals(rosterHalfShow({ weekGain: c.weekGain, weekPct: c.weekPct }).kind, 'unknown', `${c.symbol}: "–", not left blank`);
   for (const c of [...lefts, ...rights].filter((c) => c!.symbol !== mineGone && c!.symbol !== theirsGone)) assert(c!.weekGain !== null, c!.symbol);
 });
 

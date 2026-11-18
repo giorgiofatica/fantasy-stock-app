@@ -111,8 +111,8 @@ Deno.test('withheld: the line, then who held what — draft order, no figures', 
   assert(src.includes('weekGain: null, weekPct: null, figures: false'), 'the halves carry no numbers (null, never a stand-in 0)');
   assertEquals(g.rows.map((r) => [r.left!.weekGain, r.left!.weekPct]), g.rows.map(() => [null, null]), 'the view carries no numbers either');
   assert(src.includes('<Withheld raw={raw} roster={roster} me={user.id} opp={live.opp} />'));
-  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes("rosterHalfParts({ figures: figs !== null, stacked, mirror })"), 'the primitive draws by rosterHalfParts');
-  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const figs = rosterHalfFigures(half);'), 'figures come from rosterHalfFigures (figures:false or an unknown week = none)');
+  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes("rosterHalfParts({ figures: show.kind !== 'none', stacked, mirror })"), 'the primitive draws by rosterHalfParts');
+  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const show = rosterHalfShow(half);'), "the slot comes from rosterHalfShow (figures:false = none; an unknown week = the '–')");
 });
 
 Deno.test('withheld: a `figures: false` half draws the stock and NO number, in every layout', () => {
