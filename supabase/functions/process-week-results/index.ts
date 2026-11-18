@@ -37,7 +37,7 @@ import { noPendingMessage, scoredMessage } from './job-status.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
 import { runJob, type JobRun } from '../_shared/run-job.ts';
 import { completeLeagueSeason, healUncompletedSeasons } from './season-completion.ts';
-import { describeWeekPrices, fetchWeekPrices } from '../_shared/week-price.ts';
+import { describeWeekPrices, fetchWeekPrices, scoringPriceRequest } from '../_shared/week-price.ts';
 import {
   buildPlayoffBracket,
   decidePlayoffSeeds,
@@ -105,7 +105,8 @@ function isAuthorized(req: Request): boolean {
 // fetchPrices (latest quote, `quote.ap || quote.bp`: the ASK first) was REPLACED
 // by ../_shared/week-price.ts (2026-11-17). These prices feed ONLY the
 // snapshot-less fallback scorer (calculatePortfolio), which wants the price now:
-// so no bar, the last trade, else a sane two-sided midpoint, else no price.
+// so no bar, the last trade, else a sane two-sided midpoint, both from the week
+// onward, else the week's most recent real close (step 5), else no price.
 
 // calculateWeeklyGainLegacy (scored a snapshotted-but-unclosed user from LIVE
 // prices, ignoring every mid-week trade) was REMOVED here — it wrote an
@@ -799,7 +800,10 @@ Deno.serve(async (req) => {
       // Fetch current prices
       let prices = new Map<string, number>();
       if (ALPACA_KEY && ALPACA_SECRET && symbols.size > 0) {
-        const priced = await fetchWeekPrices({ symbols: Array.from(symbols), bar: null, live: {} }, ALPACA_KEY, ALPACA_SECRET);
+        // A trade or sane midpoint from this week onward, else step 5: the most
+        // recent real close from this week's sessions (never one from before it).
+        // All in ../_shared/week-price.ts scoringPriceRequest (pure, tested).
+        const priced = await fetchWeekPrices(scoringPriceRequest(symbols, weekStart, new Date()), ALPACA_KEY, ALPACA_SECRET);
         prices = priced.prices;
         console.log(`League ${leagueId} week ${weekNumber} current prices: ${describeWeekPrices(priced)}`);
       }

@@ -53,6 +53,17 @@ The key never leaves the database: the request is sent from the SQL editor with 
 
 The re-price mode cannot fix such a symbol either. It reports the symbol as `no_bar` and leaves the row as it is.
 
+### Step 5: the previous close (branch `fix/always-a-price`, 2026-11-17)
+
+Giorgio's ruling: "There always needs to be a price for a stock." So the rule now has a step 5. When steps 1-4 answer cleanly that there is no price, the job uses the stock's most recent real daily close (an IEX 1Day bar's `c`, fetched from Alpaca). Its source is `prev_close`.
+
+- **When:** only on a job's last attempt (week start 14:45Z; week end 21:15Z and the Mon/Tue heals), or for a past session (Tuesday's week-start run). Earlier attempts still wait for the real open or close.
+- **How far back:** week start, the 5 market sessions before the open. Week end and scoring, only this week's sessions, never a close from before the week opened.
+- **Never on a failure:** if any request fails (bar, trade, quote, or step 5's own), the symbol stays unpriced and the league retries, exactly as before. Reasons: `bar_fetch_failed`, `trade_fetch_failed`, `quote_fetch_failed`, `prev_close_fetch_failed`.
+- **No close in range:** the symbol stays unpriced as `no_recent_close` and is logged (a delisted or long-halted stock).
+- **Log:** `... open prices:` / `close prices:` now show `TM=prev_close@212.1(2026-11-13)` in `nonBar`, a `prev_close` count, and `prevClose` (the range, or `off`).
+- The re-price mode is unchanged: it writes the session's bar open only, never a previous close.
+
 ### 0. Deploy (after the PR merges)
 
 ```bash

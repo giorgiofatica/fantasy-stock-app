@@ -5,8 +5,11 @@ import {
   selectMissingHoldings,
   buildPricedRows,
   planWeekWindow,
+  weekStartPriceRequest,
+  WEEK_START_MAX_ATTEMPTS,
   type Holding,
 } from './plan.ts';
+import { retryAttemptFrom } from '../_shared/retry-attempt.ts';
 import { checkSnapshotReads, matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
 import type { CalendarSession, Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
 import { IN_SEASON_STATUSES, SNAPSHOT_DRAFT_STATUS, isInSeasonLeague } from '../_shared/snapshot-league-scope.ts';
@@ -14,7 +17,7 @@ import { classifyCloseCoverage } from '../snapshot-week-end/close.ts';
 import { instantAtOrBefore, instantBefore, instantMs, isScoredWeek, selectTargetWeeks, type WeekMatchupRow } from '../_shared/week-select.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
 import { runJob, type JobOutcome, type JobRun } from '../_shared/run-job.ts';
-import { CLOCK_SKEW_MS, describeWeekPrices, fetchWeekPrices, liveWindowFor } from '../_shared/week-price.ts';
+import { describeWeekPrices, fetchWeekPrices } from '../_shared/week-price.ts';
 import {
   applyReprice,
   barOpensOnly,
@@ -67,7 +70,7 @@ import {
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = WEEK_START_MAX_ATTEMPTS;
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), {
@@ -428,7 +431,7 @@ Deno.serve(async (req) => {
   if (parsedBody.kind === 'reprice') return await handleReprice(supabase, parsedBody.request, ALPACA_KEY, ALPACA_SECRET);
 
   // Get retry attempt from header (set by retry mechanism)
-  const retryAttempt = parseInt(req.headers.get('X-Retry-Attempt') || '1');
+  const retryAttempt = retryAttemptFrom(req.headers.get('X-Retry-Attempt'));
 
   // INVARIANT: every run is bracketed by exactly one 'running' write and exactly
   // one terminal write, and runJob (../_shared/run-job.ts) is the only place either
@@ -800,15 +803,17 @@ Deno.serve(async (req) => {
 
       let prices = new Map<string, number>();
       if (ALPACA_KEY && ALPACA_SECRET && symbolsToPrice.size > 0) {
-        // The session's 1Day bar OPEN; for a symbol with no bar yet, only a trade
-        // or a sane midpoint from THIS session (open .. now), and only when the
-        // session is today. Never an ask or a bid alone (../_shared/week-price.ts).
-        const priceNow = new Date();
-        const priced = await fetchWeekPrices({
-          symbols: Array.from(symbolsToPrice),
-          bar: { sessionDate: windowPlan.openSessionDate, field: 'o' },
-          live: liveWindowFor(windowPlan.openSessionDate, priceNow, windowPlan.open.getTime(), priceNow.getTime() + CLOCK_SKEW_MS),
-        }, ALPACA_KEY, ALPACA_SECRET);
+        // The open bar, a live trade or midpoint from this session, then step 5
+        // on the last attempt or for a past session: all in ./plan.ts
+        // weekStartPriceRequest (pure, tested). Never an ask or a bid alone.
+        const priced = await fetchWeekPrices(weekStartPriceRequest({
+          symbols: symbolsToPrice,
+          window: windowPlan,
+          sessions: marketCalendarSessions,
+          attempt: retryAttempt,
+          maxAttempts: MAX_RETRIES,
+          now: new Date(),
+        }), ALPACA_KEY, ALPACA_SECRET);
         prices = priced.prices;
         console.log(`League ${leagueId} week ${currentWeek} open prices: ${describeWeekPrices(priced)}`);
       }

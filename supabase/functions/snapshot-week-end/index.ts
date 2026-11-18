@@ -1,9 +1,12 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { classifyCloseCoverage, buildCloseWork, planCloseWindow, type Holding } from './close.ts';
+import {
+  classifyCloseCoverage, buildCloseWork, planCloseWindow, weekEndPriceRequest, WEEK_END_MAX_ATTEMPTS, type Holding,
+} from './close.ts';
+import { retryAttemptFrom } from '../_shared/retry-attempt.ts';
 import { checkSnapshotReads, matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
-import { etWallClockToUtc, type CalendarSession, type Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
-import { describeWeekPrices, fetchWeekPrices, liveWindowFor } from '../_shared/week-price.ts';
+import type { CalendarSession, Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
+import { describeWeekPrices, fetchWeekPrices } from '../_shared/week-price.ts';
 import { IN_SEASON_STATUSES, SNAPSHOT_DRAFT_STATUS, isInSeasonLeague } from '../_shared/snapshot-league-scope.ts';
 import { instantAtOrBefore, instantBefore, instantMs, isScoredWeek, selectTargetWeeks, type WeekMatchupRow } from '../_shared/week-select.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
@@ -44,7 +47,7 @@ import { weekEndBaselineGate } from '../_shared/baseline.ts';
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = WEEK_END_MAX_ATTEMPTS;
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), {
@@ -148,13 +151,7 @@ async function scheduleRetry(supabase: any, jobName: string, attemptNumber: numb
 // inside the close session, else a sane two-sided midpoint, else no price (the
 // league aborts and the retry / Monday-Tuesday heal prices it from the bar).
 
-/** The close session's own open instant (the live window's lower bound), or null. PURE. */
-function sessionOpenMs(sessions: ReadonlyArray<CalendarSession>, sessionDate: string): number | null {
-  const s = sessions.find((x) => x.sessionDate === sessionDate);
-  if (!s) return null;
-  const ms = etWallClockToUtc(s.sessionDate, s.openEt).getTime();
-  return Number.isFinite(ms) ? ms : null;
-}
+// sessionOpenMs moved to ./close.ts with weekEndPriceRequest (both tested there).
 
 // Holdings come from ../_shared/snapshot-holdings.ts (shared with
 // snapshot-week-start). The local copy this replaced coerced the SKIP sentinel's
@@ -261,7 +258,7 @@ Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SECRET_KEY);
 
   // Get retry attempt from header (set by retry mechanism)
-  const retryAttempt = parseInt(req.headers.get('X-Retry-Attempt') || '1');
+  const retryAttempt = retryAttemptFrom(req.headers.get('X-Retry-Attempt'));
 
   // INVARIANT: every run is bracketed by exactly one 'running' write and exactly
   // one terminal write, and runJob (../_shared/run-job.ts) is the only place either
@@ -545,16 +542,18 @@ Deno.serve(async (req) => {
       // 6. Fetch official closing prices for all symbols
       let prices = new Map<string, number>();
       if (ALPACA_KEY && ALPACA_SECRET && allSymbols.size > 0) {
-        // The close session's 1Day bar CLOSE; for a symbol with no bar, only a
-        // trade or a sane midpoint from inside that session (its open .. its
-        // close), and only when the session is today. Never an ask or a bid
-        // alone (../_shared/week-price.ts).
-        const openMs = sessionOpenMs(marketCalendarSessions, windowPlan.closeSessionDate);
-        const priced = await fetchWeekPrices({
-          symbols: Array.from(allSymbols),
-          bar: { sessionDate: windowPlan.closeSessionDate, field: 'c' },
-          live: openMs === null ? null : liveWindowFor(windowPlan.closeSessionDate, new Date(), openMs, windowPlan.close.getTime()),
-        }, ALPACA_KEY, ALPACA_SECRET);
+        // The close bar, a live trade or midpoint from the close session, then
+        // step 5 (this week's sessions only, never last week's close) on the last
+        // attempt or for a past session: all in ./close.ts weekEndPriceRequest
+        // (pure, tested). Never an ask or a bid alone.
+        const priced = await fetchWeekPrices(weekEndPriceRequest({
+          symbols: allSymbols,
+          window: windowPlan,
+          sessions: marketCalendarSessions,
+          attempt: retryAttempt,
+          maxAttempts: MAX_RETRIES,
+          now: new Date(),
+        }), ALPACA_KEY, ALPACA_SECRET);
         prices = priced.prices;
         console.log(`League ${leagueId} week ${currentWeek} close prices: ${describeWeekPrices(priced)}`);
       }

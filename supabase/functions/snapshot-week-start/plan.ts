@@ -183,6 +183,9 @@ export function buildPricedRows(
 // ---------------------------------------------------------------------------
 
 import { weekCut, type CalendarSession, type Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
+import {
+  CLOCK_SKEW_MS, liveWindowFor, prevCloseAllowed, prevCloseRange, type WeekPriceRequest,
+} from '../_shared/week-price.ts';
 
 export type WeekWindowPlan =
   | { action: 'not_due' }
@@ -251,5 +254,44 @@ export function planWeekWindow(
     openSessionDate: cut.openSessionDate,
     closeSessionDate: cut.closeSessionDate,
     rewrite: existingSnapshotCount === 0 && !matchesStored,
+  };
+}
+
+/**
+ * snapshot-week-start's attempts per run day: the 14:35Z cron (attempt 1), then
+ * retries at 14:40Z and 14:45Z. The LAST one is where step 5 may run on the open
+ * session's own day (prevCloseAllowed), so this number and the retry chain that
+ * reaches it are pinned by supabase/tests/step5_final_attempts.test.ts.
+ */
+export const WEEK_START_MAX_ATTEMPTS = 3;
+
+// ---------------------------------------------------------------------------
+// weekStartPriceRequest: the ONE price request snapshot-week-start sends
+// (index.ts makes a single call; no price logic lives there). PURE.
+//
+// The session's 1Day bar OPEN; for a symbol with no bar yet, a trade or a sane
+// midpoint from THIS session (open .. now + skew), and only when the session is
+// today (../_shared/week-price.ts liveWindowFor). Then, on the LAST attempt or
+// for a past session only (prevCloseAllowed), step 5: the most recent real
+// close in the PREV_CLOSE_MAX_SESSIONS calendar sessions before the open.
+// ---------------------------------------------------------------------------
+
+export function weekStartPriceRequest(input: {
+  symbols: Iterable<string>;
+  window: { open: Date; openSessionDate: string };
+  sessions: ReadonlyArray<{ sessionDate: string }>;
+  attempt: number;
+  maxAttempts: number;
+  now: Date;
+}): WeekPriceRequest {
+  const { window, now } = input;
+  const live = liveWindowFor(window.openSessionDate, now, window.open.getTime(), now.getTime() + CLOCK_SKEW_MS);
+  return {
+    symbols: Array.from(input.symbols),
+    bar: { sessionDate: window.openSessionDate, field: 'o' },
+    live,
+    prevClose: prevCloseAllowed(input.attempt, input.maxAttempts, live)
+      ? prevCloseRange(input.sessions, window.openSessionDate)
+      : null,
   };
 }
