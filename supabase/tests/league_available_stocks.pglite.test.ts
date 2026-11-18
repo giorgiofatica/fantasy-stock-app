@@ -11,10 +11,12 @@
  *   - owned stocks are excluded by NET quantity per manager (drafted; bought; drafted
  *     and partly sold), a stock drafted-then-fully-sold or bought-then-fully-sold is
  *     back, one manager's sell never offsets another's holding, another league's picks
- *     change nothing, lowercase trade symbols count;
- *   - order = market cap desc, no size last, ticker tie-break; the cursor walks the
+ *     change nothing, lowercase trade symbols count, a fractional residue under 1e-9 is
+ *     free and one over it is held; the fixture's owned set equals leagueOwnedSymbols;
+ *   - order = market cap desc, no size last, ticker tie-break (collate "C", pinned in the
+ *     function source because PGlite's C locale cannot show it); the cursor walks the
  *     whole list without gaps or duplicates (page sizes 25 and 7, across ties and the
- *     no-size tail); an unknown cursor is refused;
+ *     no-size tail); a cursor that is not a listable stock is refused, an owned one pages on;
  *   - at most 25 rows whatever is asked (1000 -> 25), has_more from one extra row, no
  *     total count;
  *   - the category filter equals the server's own resolution
@@ -24,7 +26,9 @@
  *   - the limiter refuses past each of its three windows on its own, the daily counter
  *     equals the pages served, and a refusal adds nothing;
  *   - proacl = postgres + authenticated only, SECURITY DEFINER, search_path pinned;
- *   - the symbols table and column ACLs are byte-identical before and after.
+ *   - the symbols table and column ACLs are byte-identical before and after;
+ *   - docs/security/2026-11-18-stocks-list-checks.sql (the post-push checks) runs here
+ *     and its effect block says PASS, rolling its counter bumps back.
  *
  * Run: deno test --allow-read --allow-env supabase/tests/league_available_stocks.pglite.test.ts
  */
@@ -32,10 +36,12 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
 import { applyFrom, loadChain } from './full_chain.ts';
 import { fetchEligibleCategoryIdsBatch } from '../functions/_shared/category-eligibility.ts';
+import { leagueOwnedSymbols } from '../functions/_shared/draft-validation.ts';
 
 const VERSION = '20261207000100';
 const FN = 'public.get_league_available_stocks';
 const SIG = 'uuid, uuid, text, integer';
+const CHECKS_URL = new URL('../../docs/security/2026-11-18-stocks-list-checks.sql', import.meta.url);
 
 const C = '00000000-0000-4000-8000-0000000000d1'; // commissioner of L
 const M = '00000000-0000-4000-8000-0000000000d2'; // member of L
@@ -63,6 +69,12 @@ const NAMED: Sym[] = [
   { symbol: 'QUNC', cap: 8.0e10, price: 33, draftable: true, industry: null }, // unclassified
   { symbol: 'QNOP', cap: 1.0e12, price: null, draftable: true, industry: 'ZZ Technology' }, // no stored price: never listed
   { symbol: 'QTNY', cap: 1.0e9, price: 2, draftable: false, industry: 'ZZ Technology' }, // not draftable: never listed
+  { symbol: 'QFR5', cap: 2.0e10, price: 12, draftable: true, industry: 'ZZ Energy' }, // fractional residue 5e-10: free
+  { symbol: 'QFR2', cap: 2.0e10, price: 12, draftable: true, industry: 'ZZ Energy' }, // fractional residue 2e-9: owned
+  // A tie pair whose order depends on the collation: byte order (collate "C") puts '.' before 'A';
+  // a linguistic locale (en_US) ignores the dot and puts FCA first.
+  { symbol: 'FC.B', cap: 1.5e10, price: 21, draftable: true, industry: 'ZZ Banking' },
+  { symbol: 'FCA', cap: 1.5e10, price: 22, draftable: true, industry: 'ZZ Banking' },
 ];
 // Filler: 40 stocks with TIES (pairs share a cap) and a no-size tail of 5, so pages cross both.
 const FILLER: Sym[] = Array.from({ length: 45 }, (_, i) => {
@@ -73,7 +85,7 @@ const FILLER: Sym[] = Array.from({ length: 45 }, (_, i) => {
   return { symbol: `F${i % 2 === 0 ? 'B' : 'A'}${n}`, cap, price: 10 + i, draftable: true, industry };
 });
 const SYMS = [...NAMED, ...FILLER];
-const OWNED_IN_L = new Set(['QAPL', 'QJPM', 'QNVD', 'QXOM', 'QLOW']);
+const OWNED_IN_L = new Set(['QAPL', 'QJPM', 'QNVD', 'QXOM', 'QLOW', 'QFR2']);
 const INDUSTRY_CAT: Record<string, 'tech' | 'fin'> = {
   'ZZ Technology': 'tech', 'ZZ Semiconductors': 'tech', 'ZZ Banking': 'fin',
 }; // ZZ Energy has no rule: unclassified unless overridden
@@ -130,6 +142,10 @@ Deno.test({
     const [tech] = await q(`insert into categories (slug, name, display_order) values ('zz-tech', 'ZZ Tech', 901) returning id`);
     const [fin] = await q(`insert into categories (slug, name, display_order) values ('zz-fin', 'ZZ Finance', 902) returning id`);
     const catId = { tech: tech.id as string, fin: fin.id as string };
+    // Make display order DISAGREE with uuid order, so category_ids ordered by id would fail.
+    const [lo, hi] = [tech.id, fin.id].sort();
+    await q(`update categories set display_order = 902 where id = $1`, [lo]);
+    await q(`update categories set display_order = 901 where id = $1`, [hi]);
     for (const [g, c] of Object.entries(INDUSTRY_CAT)) {
       await q(`insert into category_rules (gics_industry, category_id) values ($1, $2)`, [g, catId[c]]);
     }
@@ -147,7 +163,9 @@ Deno.test({
                ($1, $2, 'QAPL', 200, 5, 1, 1), ($1, $3, 'QNVD', 120, 5, 1, 2), ($1, $2, 'QBAC', 40, 10, 2, 3),
                ($1, $3, 'QXOM', 110, 3, 2, 4),
                ($4, $5, 'QMSF', 400, 2, 1, 1)`, [L, C, M, L2, X]);
-    // A legacy SKIP pick (new ones are refused since 2026-10-05; old rows may remain): inserted with triggers off.
+    // A legacy SKIP pick (new ones are refused since 2026-10-05; old rows may remain), inserted with triggers off.
+    // It only proves old rows do not break the read: SKIP rows carry quantity 0 and no symbols row, so the
+    // function's SKIP filter is parity with leagueOwnedSymbols, not something a test can observe.
     await db.exec(`set session_replication_role = replica;
       insert into drafts (league_id, user_id, symbol, entry_price, quantity, round, pick_number) values ('${L}', '${C}', 'SKIP', 0, 0, 3, 5);
       set session_replication_role = origin;`);
@@ -161,6 +179,16 @@ Deno.test({
     await trade(M, 'QPYP', 'sell', 3, 70); // bought then fully sold: free again
     await trade(C, 'QXOM', 'sell', 3, 110); // C never held it: must NOT offset M's 3
     await trade(M, 'qlow', 'buy', 1, 15); // lowercase symbol still counts
+    await trade(M, 'QFR5', 'buy', 0.3333333333, 12);
+    await trade(M, 'QFR5', 'sell', 0.3333333328, 12); // net 5e-10: under the 1e-9 threshold, free
+    await trade(C, 'QFR2', 'buy', 0.3333333333, 12);
+    await trade(C, 'QFR2', 'sell', 0.3333333313, 12); // net 2e-9: held
+
+    // The buy path's own rule (leagueOwnedSymbols) over the same rows gives the same owned set.
+    const pickRows = await q(`select user_id, symbol, quantity, entry_price from drafts where league_id = $1`, [L]);
+    const tradeRows = await q(`select user_id, symbol, action, quantity, price from trades where league_id = $1`, [L]);
+    const tsOwned = leagueOwnedSymbols(pickRows, tradeRows);
+    assertEquals([...tsOwned].sort(), [...OWNED_IN_L].sort(), 'fixture owned set = leagueOwnedSymbols');
 
     const call = (sub: string | null, league: string, opts: { cat?: string | null; after?: string | null; limit?: number | null } = {},
       role: 'anon' | 'authenticated' | 'service_role' = 'authenticated') =>
@@ -232,7 +260,6 @@ Deno.test({
       for (const s of ['QBAC', 'QPYP']) assert(all.includes(s), `${s} was fully sold and is listed again`);
       assert(all.includes('QMSF'), 'a stock drafted only in another league is listed');
       assert(!all.includes('QNOP') && !all.includes('QTNY'), 'no stored price / not draftable: never listed');
-      assert(!all.includes('SKIP'));
       assertEquals(all, expectedOrder((s) => !OWNED_IN_L.has(s.symbol)), 'the whole list, in order');
       // The same caller in a pre-draft league sees the whole draftable universe.
       assertEquals(await walk(M, LEMPTY, 25), expectedOrder(() => true));
@@ -275,6 +302,16 @@ Deno.test({
       await clearCounters();
       const r = await refusal(() => call(M, L, { after: 'NOPE' }));
       assertEquals(r.code, '22023');
+      // Nor is a stock the list never shows (it would rank it): not draftable, no stored price.
+      for (const bad of ['QTNY', 'QNOP']) {
+        await clearCounters();
+        assertEquals((await refusal(() => call(M, L, { after: bad }))).code, '22023', `cursor ${bad}`);
+      }
+      // An owned stock is still a cursor (bought between pages): paging continues after its size.
+      await clearCounters();
+      const afterOwned = await call(M, L, { after: 'QXOM', limit: 2 });
+      const exp = expectedOrder((s) => !OWNED_IN_L.has(s.symbol));
+      assertEquals(afterOwned.map((x: Row) => x.symbol), exp.filter((s) => SYMS.find((y) => y.symbol === s)!.cap! < 4.0e11).slice(0, 2));
     });
 
     await t.step('at most 25 rows whatever is asked; has_more from one extra row', async () => {
@@ -313,7 +350,8 @@ Deno.test({
         }),
       };
       const eligible = await fetchEligibleCategoryIdsBatch(admin, SYMS.map((s) => s.symbol));
-      const order = new Map([[catId.tech, 901], [catId.fin, 902]]);
+      const order = new Map((await q(`select id, display_order from categories where id = any($1)`, [[catId.tech, catId.fin]])).map((r: Row) => [r.id, r.display_order]));
+      assert(order.get([catId.tech, catId.fin].sort()[0])! > order.get([catId.tech, catId.fin].sort()[1])!, 'display order disagrees with uuid order');
       for (const cat of [catId.tech, catId.fin]) {
         const got = await walk(M, L, 25, cat);
         const want = expectedOrder((s) => !OWNED_IN_L.has(s.symbol) && eligible.get(s.symbol)!.has(cat));
@@ -394,6 +432,12 @@ Deno.test({
       assertEquals(p.cfg, '{"search_path=public, pg_temp"}');
       assertEquals(p.acl, '{postgres=X/postgres,authenticated=X/postgres}');
       assertEquals(p.provolatile, 'v', 'volatile: it writes the counters');
+      // PGlite runs in the C locale, so ordering alone cannot show a missing collate "C"; pin it in the source:
+      // the inner ORDER BY, the outer ORDER BY, and both cursor comparisons.
+      const [def] = await q(`select pg_get_functiondef('${FN}(${SIG})'::regprocedure) as d`);
+      assertEquals((def.d.match(/s\.symbol collate "C" > v_after collate "C"/g) ?? []).length, 2, 'both cursor comparisons are collate "C"');
+      assertEquals((def.d.match(/nulls last, s\.symbol collate "C"/g) ?? []).length, 1, 'inner ORDER BY collate "C"');
+      assertEquals((def.d.match(/nulls last, p\.sym collate "C"/g) ?? []).length, 1, 'outer ORDER BY collate "C"');
       const [n] = await q(`select count(*)::int n from pg_proc where proname = 'get_league_available_stocks'`);
       assertEquals(n.n, 1, 'one overload only');
       assertEquals(await symAcl(), aclBefore, 'symbols table and column ACLs byte-identical');
@@ -401,6 +445,23 @@ Deno.test({
                                   has_column_privilege('authenticated','public.symbols','market_cap','SELECT') mc,
                                   has_column_privilege('authenticated','public.symbols','name','SELECT') nm`);
       assertEquals([g.lp, g.mc, g.nm], [false, false, true]);
+    });
+
+    await t.step('the post-push checks file reads as documented and its effect block says PASS', async () => {
+      const checks = await Deno.readTextFile(CHECKS_URL);
+      const grantsAt = checks.indexOf('SELECT prosecdef');
+      const grants = checks.slice(grantsAt, checks.indexOf(';', grantsAt) + 1);
+      const [a] = await q(grants);
+      assertEquals(a.prosecdef, true);
+      assertEquals(a.proconfig, ['search_path=public, pg_temp']);
+      const start = checks.indexOf('do $$');
+      const block = checks.slice(start, checks.indexOf('end $$;', start) + 'end $$;'.length);
+      await clearCounters();
+      const r = await refusal(() => db.exec(block));
+      assert(r.message.startsWith('STOCKS LIST EFFECT TEST: PASS'), r.message);
+      assert(r.message.includes(`outsider ${X} refused`), r.message);
+      const [n] = await q(`select count(*)::int n from rate_limit_counters where bucket like 'stocks-list-%'`);
+      assertEquals(n.n, 0, 'the effect block rolled back its counter bumps');
     });
 
     await db.close();

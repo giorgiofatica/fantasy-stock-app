@@ -45,8 +45,9 @@
 -- ORDER AND PAGING: market_cap desc, no size last, then the ticker (collate "C", so the
 --   order is the same everywhere). Keyset, by position: p_after_symbol is the LAST
 --   ticker of the previous page and the server looks its size up itself, so the size
---   never travels to the client. No page numbers. An unknown cursor ticker is refused
---   (22023). Sizes refresh in the background, so a stock can move between pages; the
+--   never travels to the client. No page numbers. A cursor that is not a listable stock
+--   (unknown, not draftable, or unpriced) is refused (22023), so it cannot rank a stock the
+--   list never shows; an owned one is accepted (it may have been bought between pages). Sizes refresh in the background, so a stock can move between pages; the
 --   app drops repeats by ticker (the plan's "order shifting between pages").
 --
 -- ORDER OF CHECKS: signed in -> member -> limiter -> cursor. A refusal raises, and a
@@ -109,7 +110,12 @@ begin
   end if;
 
   if v_after is not null then
-    select s.market_cap into v_after_cap from public.symbols s where s.symbol = v_after;
+    -- Only a stock that CAN be listed (draftable, priced) is a cursor, so the cursor
+    -- cannot rank a stock the list never shows. Owned is allowed: the cursor stock may
+    -- have been bought between pages.
+    select s.market_cap into v_after_cap
+      from public.symbols s
+     where s.symbol = v_after and s.is_draftable = true and s.last_price is not null;
     if not found then
       raise exception 'get_league_available_stocks: unknown cursor' using errcode = '22023';
     end if;
@@ -137,9 +143,9 @@ begin
       having sum(h.q) > 0.000000001
     ),
     page as (
+      -- ind and mc stay inside the function: they order and classify, never returned.
       select s.symbol as sym, s.name as nm, s.last_price as px, s.last_price_at as px_at,
-             s.gics_industry as ind,
-             row_number() over (order by s.market_cap desc nulls last, s.symbol collate "C") as rn
+             s.gics_industry as ind, s.market_cap as mc
         from public.symbols s
        where s.is_draftable = true
          and s.last_price is not null
@@ -177,8 +183,8 @@ begin
              '{}'::uuid[]),
            (select count(*) from page) > v_limit
       from page p
-     where p.rn <= v_limit
-     order by p.rn;
+     order by p.mc desc nulls last, p.sym collate "C"
+     limit v_limit;
 end;
 $$;
 
