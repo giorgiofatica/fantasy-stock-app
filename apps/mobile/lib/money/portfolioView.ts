@@ -12,7 +12,7 @@
  *  - rows are sorted by value, largest first. A row with no live price shows its
  *    cost and is counted in the caption, never shown as $0.
  */
-import { formatMoney, formatPercent } from '../../components/sp/logic/money';
+import { formatGainPair, formatMoney, formatPercent } from '../../components/sp/logic/money';
 import { cleanCompanyName } from './cleanCompanyName';
 import { formatShares } from './formatShares';
 import { COPY } from './moneyCopy';
@@ -100,9 +100,10 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
   if (i.stake > 0) {
     const gain = cents(i.value - i.stake);
     const pct = (gain / i.stake) * 100;
-    gainMoneyText = formatMoney(gain, { sign: 'always' });
-    gainPctText = formatPercent(pct, { sign: 'always' });
-    gainText = `${gainMoneyText} · ${gainPctText}`;
+    const pair = formatGainPair(gain, pct);
+    gainMoneyText = pair.money;
+    gainPctText = pair.pct;
+    gainText = pair.text;
     gainTone = toneOf(gain);
   }
 
@@ -115,13 +116,14 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
   if (held.length > 0 && held.every((h) => h.price != null && h.prevClose != null && h.prevClose > 0)) {
     const change = held.reduce((a, h) => a + h.quantity * (h.price! - h.prevClose!), 0);
     // The whole account's previous close (W4 DL gate): the holdings at their last close PLUS the
-    // cash, so "+$X · +Y% today" is a percent of the value the header shows (cash earns nothing
+    // cash, so "+$X (+Y%) today" is a percent of the value the header shows (cash earns nothing
     // today but is part of what the percent is of).
     const base = held.reduce((a, h) => a + h.quantity * h.prevClose!, 0) + Math.max(0, i.cash);
     const pct = base > 0 ? (change / base) * 100 : 0;
-    todayMoneyText = formatMoney(cents(change), { sign: 'always' });
-    todayPctText = formatPercent(pct, { sign: 'always' });
-    todayText = `${todayMoneyText} · ${todayPctText}`;
+    const pair = formatGainPair(cents(change), pct);
+    todayMoneyText = pair.money;
+    todayPctText = pair.pct;
+    todayText = pair.text;
     todayTone = toneOf(change);
   }
 

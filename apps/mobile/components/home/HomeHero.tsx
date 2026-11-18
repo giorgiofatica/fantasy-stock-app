@@ -9,7 +9,7 @@ import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useMotion } from '@/components/sp/motion';
 import { Icon } from '@/components/sp/Icon';
-import { formatMoney, formatPercent, isZeroMoney } from '@/components/sp/logic/money';
+import { formatMoney, formatPercent, GAIN_PAIR_CLOSE, GAIN_PAIR_OPEN, isZeroMoney } from '@/components/sp/logic/money';
 import { RollingMoney } from '@/components/home/RollingMoney';
 import { HERO_SEASON_GAIN_LABEL, HERO_TODAY_LABEL, heroAccessibilityLabel, heroUnpricedCaption } from '@/lib/home/homeCopy';
 import { ordinal } from '@/lib/home/ordinal';
@@ -31,8 +31,8 @@ import { heroLines, heroMetaLine } from '@/lib/home/calmHome';
 // the app-wide "money flat" rule (§9A).
 //
 // Game Night (§9C, the board's HeroText): the value in `hero` (46/800, the screen's one
-// standout); the sub-line's numbers at 700 in their sign's colour, its words ("season
-// gain", "today") and the middle dot at 500 in `text2`; the meta line a `caption`.
+// standout); the sub-line's numbers (and the percent's brackets) at 700 in their sign's colour, its
+// words ("season gain", "today") and the dot before "today" at 500 in `text2`; the meta line a `caption`.
 
 export interface HomeHeroProps {
   leagueId: string;
@@ -165,8 +165,14 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
         ) : (
           <View style={styles.gainRow}>
             <RollingMoney text={gainDollarsText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />
-            <Text variant="callout" style={{ color: gainColor, fontWeight: '700' }}> · </Text>
-            <RollingMoney text={gainPctText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />
+            {/* The percent in brackets (Giorgio, 2026-11-17, pick A): "(" and ")" travel with the percent as
+                ONE non-wrapping unit, so a wrapped line never strands a bracket. Only the numbers and
+                their brackets take the gain colour; the words stay grey (2026-11-18, pick A). */}
+            <View style={styles.pctUnit}>
+              <Text variant="callout" style={{ color: gainColor, fontWeight: '700' }}> {GAIN_PAIR_OPEN}</Text>
+              <RollingMoney text={gainPctText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />
+              <Text variant="callout" style={{ color: gainColor, fontWeight: '700' }}>{GAIN_PAIR_CLOSE}</Text>
+            </View>
             <Text variant="callout" tone="secondary"> {HERO_SEASON_GAIN_LABEL}</Text>
             {todayText ? (
               <>
@@ -208,6 +214,10 @@ const styles = StyleSheet.create({
   },
   heroBody: {
     gap: space[2],
+  },
+  pctUnit: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   gainRow: {
     flexDirection: 'row',

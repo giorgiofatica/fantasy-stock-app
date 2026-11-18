@@ -149,3 +149,27 @@ export function formatPercent(value: number, options: { sign?: MoneySign } = {})
   const frac = String(hundredths % 100).padStart(2, '0');
   return `${signChar}${whole}.${frac}%`;
 }
+
+/** The brackets of a gain pair, one definition for every screen (Giorgio, 2026-11-17, pick A: a dollar
+ * gain beside its own percent reads "+$X (+Y%)"). Wrapping layouts that draw the pair as separate units
+ * (Home's hero) take the glyphs from here so the format cannot drift from the string builders. */
+export const GAIN_PAIR_OPEN = '(';
+export const GAIN_PAIR_CLOSE = ')';
+
+export interface GainPair {
+  /** The signed dollars, e.g. "+$343.59". */
+  money: string;
+  /** The signed percent, e.g. "+2.86%". */
+  pct: string;
+  /** Both, the percent in brackets: "+$343.59 (+2.86%)". Never a dot between them. */
+  text: string;
+}
+
+/** A dollar gain and its own percent, the percent in brackets. The ONE formatter every gain line builds
+ * its figures from (the range gain, the portfolio views, the stock sheet's Gain). Stacked figures (a
+ * roster row, the player card's Week gain) are not pairs and do not use it. */
+export function formatGainPair(money: number, pct: number): GainPair {
+  const m = formatMoney(money, { sign: 'always' });
+  const p = formatPercent(pct, { sign: 'always' });
+  return { money: m, pct: p, text: `${m} ${GAIN_PAIR_OPEN}${p}${GAIN_PAIR_CLOSE}` };
+}
