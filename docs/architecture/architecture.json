@@ -2,43 +2,39 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "61c2bb116b2512af02de3d68a75fdf7e4e44dead",
-    "commitShort": "61c2bb11",
+    "commit": "b380a8110d63e24a7bcb477aab4c93937a3e9a1c",
+    "commitShort": "b380a811",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/always-a-price",
+    "branch": "fix/trade-gate-by-season-end",
     "dirty": true,
     "dirtyPaths": [
       {
+        "code": "M",
+        "path": "supabase/functions/record-trade/gate.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/record-trade/gate.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/record-trade/index.ts"
+      },
+      {
         "code": "??",
-        "path": "supabase/functions/_shared/retry-attempt.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/snapshot-week-end/close.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/snapshot-week-end/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/snapshot-week-start/index.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/snapshot-week-start/plan.ts"
+        "path": "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql"
       }
     ],
-    "timestamp": "2026-11-18T01:26:22Z",
-    "sourceHash": "sha256:de2c2769d38db7ab9a0d7b4c03056dbff4cd7e65e20381029d2fdd6be7542133",
+    "timestamp": "2026-11-18T22:17:59Z",
+    "sourceHash": "sha256:54f6e23265521ef2807bf4c36f5397cb8437468dc097a4ad0c671c49e80e172a",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 7,
-    "ageDays": 0.3,
+    "ageHours": 27.8,
+    "ageDays": 1.2,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:b93ec4366be3917ada8d243c72b1572c2b97c750942ef1e8f4705408db87c7d9",
@@ -988,7 +984,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 392
+        "lines": 301
       },
       "db": null,
       "declared": null,
@@ -1001,7 +997,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/quote/index.ts",
-        "line": 206
+        "line": 156
       }
     },
     {
@@ -1026,7 +1022,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 489
+        "lines": 515
       },
       "db": null,
       "declared": null,
@@ -1039,7 +1035,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/record-trade/index.ts",
-        "line": 254
+        "line": 280
       }
     },
     {
@@ -1264,7 +1260,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 274
+        "lines": 236
       },
       "db": null,
       "declared": null,
@@ -1277,7 +1273,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/ticker-quotes/index.ts",
-        "line": 106
+        "line": 109
       }
     },
     {
@@ -6931,10 +6927,11 @@
         "definedIn": [
           "supabase/migrations/20261102000000_record_trade_atomic.sql:157",
           "supabase/migrations/20261103000000_trades_slot_id.sql:101",
-          "supabase/migrations/20261115000006_record_trade_season_guard.sql:24"
+          "supabase/migrations/20261115000006_record_trade_season_guard.sql:24",
+          "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:51"
         ],
-        "latestDefinition": "supabase/migrations/20261115000006_record_trade_season_guard.sql",
-        "redefinitions": 3
+        "latestDefinition": "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql",
+        "redefinitions": 4
       },
       "drift": [],
       "annotation": null,
@@ -6944,8 +6941,8 @@
       "sublabel": "service_role",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261115000006_record_trade_season_guard.sql",
-        "line": 24
+        "path": "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql",
+        "line": 51
       }
     },
     {
@@ -12574,7 +12571,7 @@
       "protocol": "vendor-https",
       "payload": "https://data.alpaca.markets/v2",
       "callSites": [
-        "supabase/functions/quote/index.ts:43"
+        "supabase/functions/quote/index.ts:46"
       ]
     },
     {
@@ -12623,7 +12620,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('record_trade_atomic')",
       "callSites": [
-        "supabase/functions/record-trade/index.ts:463"
+        "supabase/functions/record-trade/index.ts:489"
       ]
     },
     {
@@ -12638,7 +12635,7 @@
         "id, user_id, symbol, entry_price, quantity, pick_number, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:208"
+        "supabase/functions/record-trade/index.ts:234"
       ]
     },
     {
@@ -12653,7 +12650,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:233"
+        "supabase/functions/record-trade/index.ts:259"
       ]
     },
     {
@@ -12668,7 +12665,7 @@
         "user_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:345"
+        "supabase/functions/record-trade/index.ts:371"
       ]
     },
     {
@@ -12681,8 +12678,8 @@
       "payload": ".from('leagues').select()",
       "columns": [],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:195",
-        "supabase/functions/record-trade/index.ts:329"
+        "supabase/functions/record-trade/index.ts:223",
+        "supabase/functions/record-trade/index.ts:355"
       ]
     },
     {
@@ -12718,6 +12715,21 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.fn.record-trade->tbl.matchups",
+      "from": "fn.record-trade",
+      "to": "tbl.matchups",
+      "protocol": "postgrest-select",
+      "payload": ".from('matchups').select('week_end, is_playoff')",
+      "columns": [
+        "week_end, is_playoff"
+      ],
+      "callSites": [
+        "supabase/functions/record-trade/index.ts:192"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.fn.record-trade->tbl.symbols",
       "from": "fn.record-trade",
       "to": "tbl.symbols",
@@ -12727,7 +12739,7 @@
         "is_draftable"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:422"
+        "supabase/functions/record-trade/index.ts:448"
       ]
     },
     {
@@ -12742,7 +12754,7 @@
         "id, user_id, symbol, action, quantity, price, total_value, created_at, funded_by_trade_id, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:217"
+        "supabase/functions/record-trade/index.ts:243"
       ]
     },
     {
@@ -13340,7 +13352,7 @@
       "protocol": "vendor-https",
       "payload": "https://data.alpaca.markets/v2",
       "callSites": [
-        "supabase/functions/ticker-quotes/index.ts:62"
+        "supabase/functions/ticker-quotes/index.ts:65"
       ]
     },
     {
@@ -17266,7 +17278,9 @@
         "supabase/migrations/20261103000000_trades_slot_id.sql:202",
         "supabase/migrations/20261103000000_trades_slot_id.sql:204",
         "supabase/migrations/20261115000006_record_trade_season_guard.sql:130",
-        "supabase/migrations/20261115000006_record_trade_season_guard.sql:132"
+        "supabase/migrations/20261115000006_record_trade_season_guard.sql:132",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:173",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:175"
       ]
     },
     {
@@ -17285,7 +17299,10 @@
         "supabase/migrations/20261103000000_trades_slot_id.sql:264",
         "supabase/migrations/20261115000006_record_trade_season_guard.sql:160",
         "supabase/migrations/20261115000006_record_trade_season_guard.sql:186",
-        "supabase/migrations/20261115000006_record_trade_season_guard.sql:192"
+        "supabase/migrations/20261115000006_record_trade_season_guard.sql:192",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:203",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:229",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:235"
       ]
     },
     {
@@ -17300,7 +17317,8 @@
       "callSites": [
         "supabase/migrations/20261102000000_record_trade_atomic.sql:223",
         "supabase/migrations/20261103000000_trades_slot_id.sql:173",
-        "supabase/migrations/20261115000006_record_trade_season_guard.sql:101"
+        "supabase/migrations/20261115000006_record_trade_season_guard.sql:101",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:144"
       ]
     },
     {
@@ -17315,7 +17333,21 @@
       "callSites": [
         "supabase/migrations/20261102000000_record_trade_atomic.sql:214",
         "supabase/migrations/20261103000000_trades_slot_id.sql:164",
-        "supabase/migrations/20261115000006_record_trade_season_guard.sql:87"
+        "supabase/migrations/20261115000006_record_trade_season_guard.sql:87",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:117"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.record_trade_atomic->tbl.matchups",
+      "from": "pg.record_trade_atomic",
+      "to": "tbl.matchups",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT matchups (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:137"
       ]
     },
     {
@@ -17333,7 +17365,9 @@
         "supabase/migrations/20261103000000_trades_slot_id.sql:187",
         "supabase/migrations/20261103000000_trades_slot_id.sql:189",
         "supabase/migrations/20261115000006_record_trade_season_guard.sql:115",
-        "supabase/migrations/20261115000006_record_trade_season_guard.sql:117"
+        "supabase/migrations/20261115000006_record_trade_season_guard.sql:117",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:158",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:160"
       ]
     },
     {
@@ -17348,7 +17382,8 @@
       "callSites": [
         "supabase/migrations/20261102000000_record_trade_atomic.sql:300",
         "supabase/migrations/20261103000000_trades_slot_id.sql:270",
-        "supabase/migrations/20261115000006_record_trade_season_guard.sql:198"
+        "supabase/migrations/20261115000006_record_trade_season_guard.sql:198",
+        "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql:241"
       ]
     },
     {
@@ -22679,7 +22714,7 @@
           "edge": "e.fn.record-trade->tbl.symbols",
           "detail": "is_draftable gate for buys (bypassed only when the commissioner set allow_undraftable).",
           "files": [
-            "supabase/functions/record-trade/index.ts:422"
+            "supabase/functions/record-trade/index.ts:448"
           ]
         },
         {
@@ -24109,7 +24144,7 @@
   "orphanAnnotations": [],
   "stats": {
     "nodes": 323,
-    "edges": 777,
+    "edges": 779,
     "flows": 7,
     "drift": 34,
     "driftHigh": 0,
@@ -24285,7 +24320,7 @@
       "supabase/functions/process-week-results/season-completion.ts:134 -> complete_league_season",
       "supabase/functions/record-trade/index.ts:164 -> check_and_bump_rate_limit",
       "supabase/functions/record-trade/index.ts:167 -> check_and_bump_rate_limit",
-      "supabase/functions/record-trade/index.ts:463 -> record_trade_atomic",
+      "supabase/functions/record-trade/index.ts:489 -> record_trade_atomic",
       "supabase/functions/refresh-market-calendar/index.ts:166 -> apply_market_calendar",
       "supabase/functions/snapshot-week-end/index.ts:129 -> schedule_snapshot_retry",
       "supabase/functions/snapshot-week-start/index.ts:157 -> schedule_snapshot_retry",
@@ -24507,13 +24542,14 @@
       "supabase/functions/process-week-results/season-completion.ts:192 -> matchups.select",
       "supabase/functions/record-trade/index.ts:143 -> market_calendar_coverage.select",
       "supabase/functions/record-trade/index.ts:144 -> market_calendar.select",
-      "supabase/functions/record-trade/index.ts:195 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:208 -> drafts.select",
-      "supabase/functions/record-trade/index.ts:217 -> trades.select",
-      "supabase/functions/record-trade/index.ts:233 -> league_draft_slots.select",
-      "supabase/functions/record-trade/index.ts:329 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:345 -> league_members.select",
-      "supabase/functions/record-trade/index.ts:422 -> symbols.select",
+      "supabase/functions/record-trade/index.ts:192 -> matchups.select",
+      "supabase/functions/record-trade/index.ts:223 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:234 -> drafts.select",
+      "supabase/functions/record-trade/index.ts:243 -> trades.select",
+      "supabase/functions/record-trade/index.ts:259 -> league_draft_slots.select",
+      "supabase/functions/record-trade/index.ts:355 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:371 -> league_members.select",
+      "supabase/functions/record-trade/index.ts:448 -> symbols.select",
       "supabase/functions/refresh-symbols/index.ts:171 -> symbols.upsert",
       "supabase/functions/snapshot-week-end/index.ts:193 -> trades.select",
       "supabase/functions/snapshot-week-end/index.ts:220 -> matchups.select",
@@ -24746,7 +24782,8 @@
       "20261205000100_commissioner_direct_writes.sql",
       "20261205000200_revoke_api_table_ddl_privileges.sql",
       "20261205000300_symbols_readers_functions.sql",
-      "20261206000000_symbols_column_grant.sql"
+      "20261206000000_symbols_column_grant.sql",
+      "20261207000000_record_trade_season_end_by_date.sql"
     ],
     "config": [
       "delete-account=false",

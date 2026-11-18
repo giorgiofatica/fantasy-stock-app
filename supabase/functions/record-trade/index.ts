@@ -63,7 +63,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchFillPrice } from '../_shared/alpaca-price.ts';
 import { fetchEligibleCategoryIds, fetchEligibleCategoryIdsBatch } from '../_shared/category-eligibility.ts';
-import { tradeRefusalReason } from './gate.ts';
+import { seasonEndFromMatchups, type SeasonMatchupRow, tradeRefusalReason } from './gate.ts';
 import {
   fixedNotionalFunding,
   type TradeRow,
@@ -173,6 +173,34 @@ async function rateLimitOk(admin: any, userId: string, ip: string): Promise<bool
   }
 }
 
+// The league gate (gate.ts): draft done, season not finished by flag OR by date.
+// The status-only check runs first so a refused league costs no matchups read.
+// The matchups read is PAGINATED (readAllPages): a truncated read would be a
+// season end drawn from a subset of the schedule. A read error is a 500, never
+// "no season end": that would silently skip the date check. record_trade_atomic
+// re-checks both facts under its lock, so this is the early refusal, not the
+// guarantee.
+async function leagueRefusal(
+  // deno-lint-ignore no-explicit-any
+  admin: any,
+  leagueId: string,
+  league: { draft_status: string | null; season_status: string | null },
+): Promise<Step<null>> {
+  const byStatus = tradeRefusalReason(league, null, new Date());
+  if (byStatus) return { ok: false, reply: { status: 200, body: { ok: false, reason: byStatus } } };
+  const res = await readAllPages<SeasonMatchupRow>((from, to) =>
+    admin.from('matchups')
+      .select('week_end, is_playoff', { count: 'exact' })
+      .eq('league_id', leagueId)
+      .order('id', { ascending: true })
+      .range(from, to)
+  );
+  if (!res.ok) return { ok: false, reply: unhandled() };
+  const refusal = tradeRefusalReason(league, seasonEndFromMatchups(res.rows), new Date());
+  if (refusal) return { ok: false, reply: { status: 200, body: { ok: false, reason: refusal } } };
+  return { ok: true, value: null };
+}
+
 const LEAGUE_COLUMNS = 'id, num_rounds, draft_status, season_status, stake_mode, budget_amount, notional_per_slot, allow_undraftable';
 
 // Reads the league-scoped state the validator (and the CAS) work from. Every
@@ -195,12 +223,10 @@ async function readLedger(
     const { data, error } = await admin.from('leagues').select(LEAGUE_COLUMNS).eq('id', leagueId).maybeSingle();
     if (error) return { ok: false, reply: unhandled() };
     if (!data) return { ok: false, reply: { status: 404, body: { ok: false, reason: 'league_not_found' } } };
-    // Trading opens once the draft is done and closes with the season: the pure
-    // gate (gate.ts). record_trade_atomic re-checks both under its lock.
-    const refusal = tradeRefusalReason(data);
-    if (refusal) {
-      return { ok: false, reply: { status: 200, body: { ok: false, reason: refusal } } };
-    }
+    // Trading opens once the draft is done and closes with the season (by flag
+    // or by date): leagueRefusal / gate.ts. record_trade_atomic re-checks under its lock.
+    const gated = await leagueRefusal(admin, leagueId, data);
+    if (!gated.ok) return gated;
     league = data as LeagueRow;
   }
 
@@ -336,10 +362,10 @@ Deno.serve(async (req: Request) => {
     // acquisition path.
     // 200: game-flow refusal (join-league pattern). season_completed: Run it back
     // (record-trade/gate.ts): a finished season is frozen, and trading closes with it.
-    const refusal = tradeRefusalReason(league);
-    if (refusal) {
-      return json({ ok: false, reason: refusal });
-    }
+    // A season also finishes BY DATE once its last scoring window closes, before
+    // process-week-results sets the flag (gate.ts seasonEndFromMatchups).
+    const gated = await leagueRefusal(admin, leagueId, league);
+    if (!gated.ok) return json(gated.reply.body, gated.reply.status);
 
     const { data: member, error: memErr } = await admin
       .from('league_members')
