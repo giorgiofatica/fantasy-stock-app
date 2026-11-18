@@ -6,6 +6,7 @@
  * first close, the draft/slot order. Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
+import { rosterHalfFigures } from '../components/sp/logic/gameNight.ts';
 import {
   barCloseAt, cardSlotPill, closesBefore, gainsAtClose, isSlotted, lastWeekClose, orderBarsAt, orderSide, orderingClose, pairRows, recordedSlots, settlesAt,
   rosterGroups, slotGroupLabel,
@@ -121,6 +122,16 @@ function viewFull(now: Date, quote: (s: string) => number | null, variant: 'unsl
 const thuQuote = (s: string) => [...ROBERTO_HOLDINGS, ...GIANLUIGI_HOLDINGS].find((h) => h.symbol === s)?.thu ?? null;
 const left = (g: ReturnType<typeof view>) => g.flatMap((x) => x.rows.map((r) => r.left?.symbol ?? null));
 const right = (g: ReturnType<typeof view>) => g.flatMap((x) => x.rows.map((r) => r.right?.symbol ?? null));
+
+Deno.test('a REAL zero week on the roster (every price flat) is $0.00 / 0.00%, with figures, never unknown', () => {
+  const flat = (s: string) => [...ROBERTO_HOLDINGS, ...GIANLUIGI_HOLDINGS].find((h) => h.symbol === s)?.mon ?? null;
+  const cells = view(new Date('2026-09-24T17:37:00Z'), flat).flatMap((g) => g.rows.flatMap((r) => [r.left, r.right])).filter((c) => c !== null);
+  assert(cells.length >= 12, 'both sides drawn');
+  for (const c of cells) {
+    assertEquals([c!.weekGain, c!.weekPct], [0, 0], c!.symbol);
+    assertEquals(rosterHalfFigures({ weekGain: c!.weekGain, weekPct: c!.weekPct }), { gain: 0, pct: 0 }, `${c!.symbol}: the half keeps its figures`);
+  }
+});
 
 Deno.test('a live update moves the numbers, never the rows (the order holds until the next close)', () => {
   const thu = new Date('2026-09-24T17:37:00Z');

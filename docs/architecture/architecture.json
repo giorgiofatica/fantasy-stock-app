@@ -2,35 +2,15 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "5836b4b3ebc1e38c27e15b36160d10ae527a75ad",
-    "commitShort": "5836b4b3",
+    "commit": "4eccfae2e4466c67fbade9b28fcd3fa3266d5c9e",
+    "commitShort": "4eccfae2",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/PlayerCard.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/logic/gameNight.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/playerCardModel.ts"
+        "path": "apps/mobile/app/(tabs)/index.tsx"
       },
       {
         "code": "M",
@@ -38,14 +18,10 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/matchup-calls.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
+        "path": "apps/mobile/tests-deno/matchup-roster.test.ts"
       }
     ],
-    "timestamp": "2026-11-18T22:29:25Z",
+    "timestamp": "2026-11-18T22:29:33Z",
     "sourceHash": "sha256:b2a0255570d4fdf00f77b946794cab5df155156d8dfeca5c9e4ef35f16704bb4",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1

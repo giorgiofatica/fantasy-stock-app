@@ -40,6 +40,12 @@ Deno.test('matchupScreenState decides Matchup vs Duration by the same helper', (
   assert(strip(SOURCES['lib/matchupScreenState.ts']).includes('leagueHasWeeks(activeLeague.league_type)'));
 });
 
+const cardIn = (over: { snapshots?: typeof snap; weekGain: number | null; hasWeeks: boolean }) => ({
+  symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: fixtureLedger('unslotted', 'me', 'g').activity,
+  snapshots: over.snapshots ?? snap, trades: [], weekGain: over.weekGain, hasWeeks: over.hasWeeks, price: nvda.thu,
+  bars: [{ date: '2026-09-23', close: nvda.prev }], now: new Date('2026-09-24T17:37:00Z'),
+});
+
 // ── stockWeek: a missing row is unknown, not 0 ────────────────────────────────────
 
 Deno.test('stockWeek: no week-start row and no trade -> unknown (null), never 0', () => {
@@ -56,6 +62,15 @@ Deno.test('stockWeek: with a row -> the row\'s own number', () => {
   assertEquals(Math.round(w.pct! * 100) / 100, Math.round(((nvda.thu - nvda.mon) / nvda.mon) * 10000) / 100);
 });
 
+Deno.test('stockWeek: a REAL zero week (row present, price flat) is 0 and 0%, never unknown', () => {
+  const w = stockWeek('NVDA', snap, [], nvda.mon);
+  assertEquals(w, { gain: 0, pct: 0 });
+  // …and the card shows the Week gain FIGURE for it ($0.00, 0.00%), not the unknown dash.
+  const d = playerCardData(cardIn({ weekGain: w.gain, hasWeeks: true }))!;
+  assertEquals([d.weekGain, d.weekPct], [0, 0]);
+  assertEquals(cardWeekFigure(d.weekGain, d.weekPct, d.hasWeeks), { kind: 'figure', value: '$0.00', sub: '0.00%', tone: 'zero' });
+});
+
 Deno.test('stockWeek: a row with no live price -> unknown (liveWeekScore leaves it unpriced)', () => {
   assertEquals(stockWeek('NVDA', snap, [], null), { gain: null, pct: null });
 });
@@ -68,12 +83,6 @@ Deno.test('weekPctOf: no basis -> unknown (null), not 0%', () => {
 });
 
 // ── The player card ──────────────────────────────────────────────────────────────
-
-const cardIn = (over: { snapshots?: typeof snap; weekGain: number | null; hasWeeks: boolean }) => ({
-  symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: fixtureLedger('unslotted', 'me', 'g').activity,
-  snapshots: over.snapshots ?? snap, trades: [], weekGain: over.weekGain, hasWeeks: over.hasWeeks, price: nvda.thu,
-  bars: [{ date: '2026-09-23', close: nvda.prev }], now: new Date('2026-09-24T17:37:00Z'),
-});
 
 Deno.test('playerCardData: a Duration league has no week number, even when one is passed', () => {
   const d = playerCardData(cardIn({ weekGain: 62.4, hasWeeks: false }))!;
@@ -149,6 +158,17 @@ Deno.test('guard: a missing row never renders "$0.00" / "0.00%" on the card or a
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: 2, figures: false }), null);
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: 2 }), { gain: 1, pct: 2 });
   assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const figs = rosterHalfFigures(half);'));
+});
+
+// ── Home ─────────────────────────────────────────────────────────────────────────
+
+Deno.test('Home: a league without weeks has no This week card, gated before every phase branch', () => {
+  const src = strip(SOURCES['app/(tabs)/index.tsx']);
+  const gate = src.indexOf('const hasWeeks = leagueHasWeeks(league?.league_type);');
+  assert(gate > 0, 'Home keys the card on leagueHasWeeks');
+  const chain = src.slice(gate, src.indexOf('const showSeason ='));
+  assert(chain.startsWith("const hasWeeks = leagueHasWeeks(league?.league_type);\n  if (!hasWeeks) {\n    middleCard = null;\n  } else if (phase.kind === 'pre_season') {"), 'the gate is the first branch: no phase can draw the card without weeks');
+  assertEquals((chain.match(/<ThisWeekCard/g) ?? []).length, (src.match(/<ThisWeekCard/g) ?? []).length, 'every This week card is behind the gate');
 });
 
 // ── The league list ──────────────────────────────────────────────────────────────

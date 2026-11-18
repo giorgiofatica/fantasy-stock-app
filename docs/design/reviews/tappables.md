@@ -15,7 +15,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 
 | Where | Element | Prop | Handler | Destination | Disabled when |
 |---|---|---|---|---|---|
-| `app/(tabs)/index.tsx:278` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
+| `app/(tabs)/index.tsx:284` | PhaseMessageCard | onAction | `inline: () => router.push(BRACKET_HREF)` | route push(BRACKET_HREF) |  |
 | `app/(tabs)/league.tsx:197` | Button | onPress | `inline: () => void runItBack()` | fn runItBack |  |
 | `app/(tabs)/league.tsx:215` | SegmentTabs | onChange | `inline: (v) => setSegment(v)` | state setSegment |  |
 | `app/(tabs)/league.tsx:220` | LoadFailed | onRetry | `retry` | fn retry |  |
