@@ -1223,8 +1223,18 @@ building anything, and don't reopen a rule without him.
       are delayed ones; only stocks nobody in that league owns are listed.
     - This is a knowing exception to "nothing scrapable" for this one list, not a change to
       that rule. Nothing else about the stock table opens up.
-  - Not decided: the layout of that list, its order, and what else browsing offers ("look
-    around, see different markets"). Browsing by our own categories needs nothing new; lists
+  - **The list opens with the largest companies first** (2026-11-18, A/B mockup in the
+    Planner's chat). Shown A (largest companies first) beside B (A to Z by ticker), he
+    picked **A**. The reason given to him: ESPN opens its list on the most widely rostered
+    players so the names you know come first; a stock has one owner per league here, so that
+    measure does not exist, and company size is the nearest stand-in that needs no new data.
+    - Told to him: the company-size figures come from the current data supplier and are
+      refreshed in the background, so the order can lag the market a little; the figure is
+      used only to order the list and is not shown.
+    - This is the order the list OPENS in. Whether a manager can re-sort it (by price, for
+      one) is part of the layout and is not decided.
+  - Not decided: the layout of that list (rows, filters, any re-sorting), and what else
+    browsing offers ("look around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup
     ("Stocks", "Watching") were placeholders.
