@@ -55,6 +55,7 @@ Entries begin with the Recorder's first pass.
 - **Review selection stays as it is until there is real usage data.** Giorgio, 2026-11-18, as written in `docs/CODE_REVIEW_PIPELINE.md` (#518): "Don't change our review-selection rules until we have enough real usage data to make an informed decision." Balanced reviews cost about 142 credits each (his billing page, per the doc); a Lite review's cost is not measured yet.
 
 **Found**
+- **Apple's SDK deadline: April 2027 (the Orchestrator's account of notice ITMS-90725 on build 17, forwarded by Giorgio; I did not see the email).** Not an error; delivery succeeded. The build used the iOS 26.0 SDK; from April 2027 uploads need the iOS 27 SDK or later (Xcode 27 or later). No action for build 18. The Researcher has the question of what it takes (a build-image setting or an Expo SDK upgrade; the app is on Expo SDK 54 per `package.json`); no answer yet. STATUS §4 (launch prep) carries the dated item.
 - **The pipeline does its first job on its own pull request.** CI caught three type errors the mobile tests had carried on `main`; Copilot found a stale-source-manifest gap and a script blind spot (a pending request it could not see), both since fixed; one Copilot finding was shown wrong by the run log. Nothing here was loosened to get a green run (the Orchestrator's account; the pipeline doc has the table).
 
 **Waiting on Giorgio**
