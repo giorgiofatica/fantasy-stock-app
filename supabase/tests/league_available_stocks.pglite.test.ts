@@ -22,7 +22,10 @@
  *   - the category filter equals the server's own resolution
  *     (_shared/category-eligibility.ts fetchEligibleCategoryIdsBatch, run against the
  *     same rows), and each row's category_ids equals it too;
- *   - the result columns are exactly the six; market_cap / gics_industry never appear;
+ *   - the result columns are exactly the four (symbol, name, category_ids, has_more): NO
+ *     price column of any kind (Giorgio, #533: "we can't be showing a stock price that is
+ *     a day old"), checked in the declared result type, the OUT arguments and the row keys;
+ *     market_cap / gics_industry never appear;
  *   - the limiter refuses past each of its three windows on its own, the daily counter
  *     equals the pages served, and a refusal adds nothing;
  *   - proacl = postgres + authenticated only, SECURITY DEFINER, search_path pinned;
@@ -220,16 +223,46 @@ Deno.test({
       return seen;
     }
 
-    await t.step('a member gets rows; the result columns are exactly the six', async () => {
+    await t.step('a member gets rows; the result columns are exactly the four', async () => {
       await clearCounters();
       const res = await as('authenticated', M, () => db.query<Row>(`select * from ${FN}($1)`, [L]));
       assert(res.rows.length > 0, 'a member gets rows');
-      assertEquals(res.fields.map((f) => f.name), ['symbol', 'name', 'last_price', 'last_price_at', 'category_ids', 'has_more']);
+      assertEquals(res.fields.map((f) => f.name), ['symbol', 'name', 'category_ids', 'has_more']);
       const [sig] = await q(`select pg_get_function_result('${FN}(${SIG})'::regprocedure) as r`);
-      assertEquals(sig.r, 'TABLE(symbol text, name text, last_price numeric, last_price_at timestamp with time zone, category_ids uuid[], has_more boolean)');
+      assertEquals(sig.r, 'TABLE(symbol text, name text, category_ids uuid[], has_more boolean)');
       for (const r of res.rows) {
-        assert(r.last_price != null && r.last_price_at != null, `${r.symbol} carries a stored price and its time`);
+        assertEquals(Object.keys(r), ['symbol', 'name', 'category_ids', 'has_more']);
         assert(!('market_cap' in r) && !('gics_industry' in r));
+      }
+    });
+
+    await t.step('NO price comes back: not in the result type, the OUT arguments, or any row', async () => {
+      // Giorgio, #533: "we can't be showing a stock price that is a day old". Any column whose name
+      // or type smells of a price fails here, whatever it is called.
+      const PRICEY = /price|px|quote|close|open|bid|ask|last_|cap|numeric|money/i;
+      const [sig] = await q(`select pg_get_function_result('${FN}(${SIG})'::regprocedure) as r`);
+      assert(!PRICEY.test(sig.r), `result type carries no price: ${sig.r}`);
+      const [args] = await q(`select proargnames, proargmodes::text[] as modes,
+                                     (select array_agg(format_type(t, null) order by o)
+                                        from unnest(proallargtypes) with ordinality as x(t, o)) as types
+                                from pg_proc where oid = '${FN}(${SIG})'::regprocedure`);
+      const out = (args.proargnames as string[]).filter((_, i) => args.modes[i] === 't');
+      const outTypes = (args.types as string[]).filter((_, i) => args.modes[i] === 't');
+      assertEquals(out, ['symbol', 'name', 'category_ids', 'has_more']);
+      assert(!out.some((n) => PRICEY.test(n)) && !outTypes.some((t) => PRICEY.test(t)), `OUT ${out} ${outTypes}`);
+      // And the rows themselves, over the whole list: no key and no value that is a number.
+      let after: string | null = null;
+      for (let i = 0; i < 10; i++) {
+        await clearCounters();
+        const rows = await call(M, L, { after });
+        for (const r of rows) {
+          assert(!Object.keys(r).some((k) => PRICEY.test(k)), `${r.symbol}: ${Object.keys(r)}`);
+          assert(!Object.values(r).some((v) => typeof v === 'number'), `${r.symbol} carries no number`);
+          // Nor inside a text field: the name is the stored name, byte for byte.
+          assertEquals(r.name, `${r.symbol} Inc.`, `${r.symbol} name is the stored name`);
+        }
+        if (!rows.length || !rows[0].has_more) break;
+        after = rows[rows.length - 1].symbol;
       }
     });
 

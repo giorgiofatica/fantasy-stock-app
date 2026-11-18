@@ -1,5 +1,7 @@
 -- The Stocks tab, part 1: the one server read behind its list
--- (docs/plans/2026-11-18-stocks-tab.md, approved by Giorgio 2026-11-18, "part 1 approved").
+-- (docs/plans/2026-11-18-stocks-tab.md, approved by Giorgio 2026-11-18, "part 1 approved";
+-- revised the same day, #533: the list returns NO price. Giorgio: "we can't be showing a
+-- stock price that is a day old").
 --
 -- WHAT IT IS
 --   get_league_available_stocks(league, category, after_symbol, limit) returns one page
@@ -9,8 +11,8 @@
 -- WHY A FUNCTION, AND WHY IT IS NARROW
 --   The 2026-11-16 lockdown (20261206000000) left authenticated with SELECT on
 --   symbols(symbol, name, is_draftable) only, because Giorgio "doesn't want people to be
---   able to scrape anything" (2026-10-08). The plan re-opens the stored price, on purpose
---   and narrowly (decision 6), so this function is the ONLY new path and it is:
+--   able to scrape anything" (2026-10-08). This function returns names and categories of
+--   the league's unowned stocks and nothing else; it is the ONLY new path and it is:
 --     member-only  auth.uid() and is_member, checked inside; anyone else is REFUSED
 --                  (42501), never handed an empty list that reads as "no stocks";
 --     capped       at most 25 rows a call whatever is asked, plus a has_more flag from
@@ -20,8 +22,12 @@
 --                  20 a minute, 120 an hour, 600 a day (PT429 past any). The daily
 --                  counter row ('stocks-list-day', 'user:<uid>') is the record of who
 --                  read how much; purge_rate_limit_counters keeps it two days;
---     minimal      six columns: symbol, name, last_price, last_price_at, category_ids,
---                  has_more. market_cap ORDERS the list and is never returned, nor is
+--     minimal      four columns: symbol, name, category_ids, has_more. NO price: the stored
+--                  last_price can be about two trading days old, so it only decides
+--                  which stocks are listable (draftable with a stored price, the plan's
+--                  "Which stocks") and is never returned; the screen gets the rows' prices
+--                  from the existing live quote lookup, under that lookup's own limits.
+--                  market_cap ORDERS the list and is never returned, nor is
 --                  gics_industry or anything else from the table.
 --   No privilege on symbols changes here (the PGlite test pins the column grant).
 --
@@ -47,8 +53,9 @@
 --   ticker of the previous page and the server looks its size up itself, so the size
 --   never travels to the client. No page numbers. A cursor that is not a listable stock
 --   (unknown, not draftable, or unpriced) is refused (22023), so it cannot rank a stock the
---   list never shows; an owned one is accepted (it may have been bought between pages). Sizes refresh in the background, so a stock can move between pages; the
---   app drops repeats by ticker (the plan's "order shifting between pages").
+--   list never shows; an owned one is accepted (it may have been bought between pages).
+--   Sizes refresh in the background, so a stock can move between pages; the app drops
+--   repeats by ticker (the plan's "order shifting between pages").
 --
 -- ORDER OF CHECKS: signed in -> member -> limiter -> cursor. A refusal raises, and a
 --   raise rolls back the statement, including that call's counter bumps: the counters
@@ -74,8 +81,6 @@ create or replace function public.get_league_available_stocks(
 ) returns table (
   symbol text,
   name text,
-  last_price numeric,
-  last_price_at timestamptz,
   category_ids uuid[],
   has_more boolean
 )
@@ -144,8 +149,7 @@ begin
     ),
     page as (
       -- ind and mc stay inside the function: they order and classify, never returned.
-      select s.symbol as sym, s.name as nm, s.last_price as px, s.last_price_at as px_at,
-             s.gics_industry as ind, s.market_cap as mc
+      select s.symbol as sym, s.name as nm, s.gics_industry as ind, s.market_cap as mc
         from public.symbols s
        where s.is_draftable = true
          and s.last_price is not null
@@ -173,7 +177,7 @@ begin
        order by s.market_cap desc nulls last, s.symbol collate "C"
        limit v_limit + 1
     )
-    select p.sym, p.nm, p.px, p.px_at,
+    select p.sym, p.nm,
            coalesce(
              (select array_agg(o.category_id order by c.display_order, o.category_id)
                 from public.symbol_category_overrides o

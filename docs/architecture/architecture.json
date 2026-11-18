@@ -2,13 +2,18 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "521120d8a8906221591788f9aa9a2e5818aa575d",
-    "commitShort": "521120d8",
+    "commit": "90d9005566e610774972dfd3da118ad032e75d26",
+    "commitShort": "90d90055",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-11-18T23:01:10Z",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "supabase/migrations/20261207000100_league_available_stocks.sql"
+      }
+    ],
+    "timestamp": "2026-11-18T23:01:26Z",
     "sourceHash": "sha256:594ae1c7bf17350ccc419d62aeec2bf484cd5ae1471b7f9278274e2cc060f6b5",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -5229,7 +5234,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261207000100_league_available_stocks.sql:69"
+          "supabase/migrations/20261207000100_league_available_stocks.sql:76"
         ],
         "latestDefinition": "supabase/migrations/20261207000100_league_available_stocks.sql",
         "redefinitions": 1
@@ -5251,7 +5256,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261207000100_league_available_stocks.sql",
-        "line": 69
+        "line": 76
       }
     },
     {
@@ -15792,7 +15797,7 @@
       "payload": "SELECT categories (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261207000100_league_available_stocks.sql:164"
+        "supabase/migrations/20261207000100_league_available_stocks.sql:170"
       ]
     },
     {
@@ -15805,8 +15810,8 @@
       "payload": "SELECT category_rules (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261207000100_league_available_stocks.sql:146",
-        "supabase/migrations/20261207000100_league_available_stocks.sql:166"
+        "supabase/migrations/20261207000100_league_available_stocks.sql:152",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:172"
       ]
     },
     {
@@ -15819,7 +15824,7 @@
       "payload": "SELECT drafts (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261207000100_league_available_stocks.sql:114"
+        "supabase/migrations/20261207000100_league_available_stocks.sql:121"
       ]
     },
     {
@@ -15832,9 +15837,9 @@
       "payload": "SELECT symbol_category_overrides (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261207000100_league_available_stocks.sql:140",
-        "supabase/migrations/20261207000100_league_available_stocks.sql:144",
-        "supabase/migrations/20261207000100_league_available_stocks.sql:163"
+        "supabase/migrations/20261207000100_league_available_stocks.sql:146",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:150",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:169"
       ]
     },
     {
@@ -15847,8 +15852,8 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261207000100_league_available_stocks.sql:101",
-        "supabase/migrations/20261207000100_league_available_stocks.sql:133"
+        "supabase/migrations/20261207000100_league_available_stocks.sql:108",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:139"
       ]
     },
     {
@@ -15861,7 +15866,7 @@
       "payload": "SELECT trades (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261207000100_league_available_stocks.sql:122"
+        "supabase/migrations/20261207000100_league_available_stocks.sql:129"
       ]
     },
     {
@@ -23751,7 +23756,7 @@
       "node": "pg.get_league_available_stocks",
       "label": "get_league_available_stocks()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261207000100_league_available_stocks.sql:69",
+      "source": "supabase/migrations/20261207000100_league_available_stocks.sql:76",
       "outbound": [
         "tbl.categories",
         "tbl.category_rules",

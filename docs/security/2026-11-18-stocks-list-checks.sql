@@ -10,10 +10,10 @@ SELECT prosecdef, proconfig, proacl
   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
  WHERE n.nspname = 'public' AND proname = 'get_league_available_stocks';
 
--- B. EFFECT, as real signed-in accounts: a member of a league gets rows (at most 25,
---    only the six fields, none held in that league), a signed-in account outside the
---    league is refused with "not a member", anon is refused by the grant. The verdict is
---    the error text: 'STOCKS LIST EFFECT TEST: PASS ...'.
+-- B. EFFECT, as real signed-in accounts: a member of a league gets rows (at most 25; only
+--    symbol, name, category_ids and has_more, no price; none held in that league), a
+--    signed-in account outside the league is refused with "not a member", anon is refused
+--    by the grant. The verdict is the error text: 'STOCKS LIST EFFECT TEST: PASS ...'.
 do $$
 declare
   v_member   text;
@@ -53,7 +53,12 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_member, 'role', 'authenticated')::text, true);
   perform set_config('request.jwt.claim.sub', v_member, true);
 
-  -- a. A member gets rows, at most 25, none held in the league.
+  -- a. A member gets rows, at most 25, none held in the league, and no price column
+  --    (#533: the list never shows the stored price).
+  if pg_get_function_result('public.get_league_available_stocks(uuid, uuid, text, integer)'::regprocedure)
+     <> 'TABLE(symbol text, name text, category_ids uuid[], has_more boolean)' then
+    v_fail := v_fail || ' a:result-columns-changed';
+  end if;
   select count(*) into v_n from public.get_league_available_stocks(v_league, null, null, 1000);
   if v_n = 0 then v_fail := v_fail || ' a:member-got-0-rows'; end if;
   if v_n > 25 then v_fail := v_fail || ' a:cap-exceeded(' || v_n || ')'; end if;
