@@ -17,6 +17,10 @@ where it belongs (`STATUS.md`, a plan, `PRODUCT_RULES.md`, a PR); nothing lives 
 verified by query, build number with its commit).
 - **#529 APPLIED and DEPLOYED, about 22:3xZ (the Orchestrator's verified account; I ran none of it).** Giorgio, from the deploy checkout at `main` `44ba4e34`: migration `20261207000000` (the dry run listed only that file), and `record-trade`. His read-only check: `record_trade_atomic`'s ACL is `postgres` and `service_role` only; the `schema_migrations` row is there; the function body has the date check. The deployed `record-trade` is byte-identical to `main` (9 files); a no-credential POST returns 401. **Not shown:** a real trade refused for a season finished by date; the proof is the PGlite test (13 steps), not a prod trade. Copilot's one finding (a narrow race with a bracket inserted with its final already past) was answered and is an optional follow-up. STATUS §4 item 33 is closed.
 
+- **Evening, 22:29Z to 22:44Z (I read each on GitHub):** #530 (`9bb09710`, the Stocks tab plan), #532 (`410deb27`, no week figures without weeks; mobile only, in no build), #531 (`13df83aa`, my record, in full), #534 (`afc8ef6c`, the Design Lead's Stocks list board), #533 (`2c84a644`, rules and the plan revision). `main` is `2c84a644`. #535 (the test-only flake fix) merged afterwards (`2f6c2be9`). Open at the time: #279 (draft) and #536.
+- **The first red All checks to stop a merge (read by me):** #531's run: attempt 1 failed (Backend job; 22:33:15Z), attempt 2 passed with no change (22:38:55Z), merged 22:40:35Z. The Orchestrator saw the block; I did not see the blocked button. The cause is the Orchestrator's account (an `invite_preview` minute-boundary flake; #535's title agrees); I did not confirm the failing test.
+
+- **Two more merges, 22:47Z and 22:51Z (I read each on GitHub):** #536 (`8cb4af52`, the Stocks list layout ruling) and #537 (`2c73aea6`, the Home hero drops its week and gain lines in a league without weeks; mobile, in no build). `main` is `2c73aea6`. Open: #538 (the plan's Part 2 approval line), #539 (this record's first part), #279.
 **Merged, not confirmed live** — on `main`, no evidence of the effect yet.
 **Decided** — Giorgio's rulings that day, one line each, pointing at `PRODUCT_RULES.md`.
 **Waiting on Giorgio** — his own steps and open decisions.
@@ -38,7 +42,7 @@ Entries begin with the Recorder's first pass.
 
 - **#513 and #514 are DEPLOYED and byte-verified (the Orchestrator's account; I did not run it).** Giorgio deployed ten functions from `/Users/giorgio/fantasy-stock/local/deploy` at `main` `6bc490db`, at about 19:4xZ, with the Homebrew `supabase` 2.67.1. The Orchestrator compared every file of all ten against `main`: 58 compared, 0 differ; a no-credential POST to four of them returned 401. I read the import chain that explains the ten (STATUS §1, 2026-11-18). **Shown:** the byte match and the four 401s. **Not shown:** that the always-a-price step prices anything in a real week (it has not run) or that fills and quotes behave differently; #514's two mobile files are in no build.
 
-- **#518 merged 19:36:14Z (`bd1dcfc5`, by Giorgio; the Planner's pull request).** The pipeline doc now reads "live", marks the ruleset step done, and records the review cost so far. I read the diff. A red All checks blocking a merge is still not observed; six no-run pull requests reading BLOCKED is.
+- **#518 merged 19:36:14Z (`bd1dcfc5`, by Giorgio; the Planner's pull request).** The pipeline doc now reads "live", marks the ruleset step done, and records the review cost so far. I read the diff. A red All checks blocking a merge is still not observed; six no-run pull requests reading BLOCKED is. **Superseded the same evening: a red All checks did block a merge (#531); see the evening block.**
 
 - **#517, my record, merged 19:45:40Z (`837e5fcd`).** It landed at its head `d4b5bb0f`, so my last commit (the #518 facts, the cost figures and Giorgio's review-selection ruling) was NOT in it; those are in this record. The Orchestrator says no deploys happened that day beyond #513 and #514.
 
@@ -48,7 +52,7 @@ Entries begin with the Recorder's first pass.
 
 - **Five more merges, 21:54Z to 22:03Z (I read each on GitHub):** #521 (`49044e06`), #524 (`aca89649`, the Researcher's Xcode 27 document), #523 (`b380a811`, my record), #522 (`9e2a2ab4`, the build 17 rulings), #525 (`2bb15e63`, the Researcher's Players-tab research; I have not read it). `main` is `2bb15e63`. No CI result is recorded for them (the run on `2bb15e63` was unfinished, the one on `9e2a2ab4` was cancelled by a newer push). The only open pull request is #279.
 
-- **Four more merges, 22:12Z to 22:27Z (I read each on GitHub):** #526 (`484f7c07`, a ruling), #527 (`851d1035`, my record, in full), #528 (`2971b7c0`, a ruling), #529 (`44ba4e34`, code). `main` is `44ba4e34`; its CI was unfinished when I looked. Open: #530, the Stocks tab plan, part 1 (approved per the Orchestrator).
+- **Four more merges, 22:12Z to 22:27Z (I read each on GitHub):** #526 (`484f7c07`, a ruling), #527 (`851d1035`, my record, in full), #528 (`2971b7c0`, a ruling), #529 (`44ba4e34`, code). `main` is `44ba4e34`; its CI was unfinished when I looked. #530 (the Stocks tab plan, part 1) merged soon after; see the evening block.
 
 **Merged, not confirmed live**
 - **#521** (the Portfolio range reset fix), merged 21:54:16Z (`49044e06`, by Giorgio; I read it on GitHub): mobile only, in no build; build 17 was cut from `6bc490db` and does not carry it.
@@ -65,6 +69,10 @@ Entries begin with the Recorder's first pass.
 
 - **The Stocks list (Giorgio, 2026-11-18, in `docs/PRODUCT_RULES.md` via #526 and #528; none built):** it opens on a list of the stocks you can get, not an empty search (pick A); each row shows the stock's price, under tight limits (pick A); the list opens with the largest companies first (pick A). Not decided: the layout itself, which waits on his screenshots of the real apps.
 
+- **Accurate prices (Giorgio, 2026-11-18, #533; none built):** a price shown to a manager is the current one, never old and never missing, however rarely the stock trades. The Planner's reading is that the current data cannot meet it and that it needs a full-market price feed (a supplier decision; the Researcher is on the options); until then the buy path stays as it is.
+- **Gain lines: only the numbers are coloured, the words stay grey (pick A; #533).**
+- **The Stocks list layout (Giorgio, "A+C" on the board, #534; in `docs/PRODUCT_RULES.md` via #536, merged 22:47:27Z):** a round plus at each row's left edge that opens the review, teal while the market is open and brown after the close (A); search as the first icon in the chip row, swapping the row for a field with Cancel (C); "All" is approved new copy. **Part 2 of the plan, the screen, is approved by Giorgio** ("part 2 approved", the Planner's relay; the line recording it is in #538, open). Nothing built; the build waits on Part 1 merged and applied and on the Design Lead's edge-state spec.
+
 **Found**
 - **NVTS, diagnosed (the Orchestrator's account; I did not check the data):** the $0.00 was a leftover duration test league (`test_081126`); the weekly jobs are matchup-only by design, and the app showed week figures anyway. The rule text was then updated by #528 (merged 22:20:38Z) to name this cause, found from a read-only query Giorgio ran (I did not see it).
 - **Build 17 on his phone: a first look (the Planner's account of an 81-second screen recording, 2026-11-18, reviewed frame by frame; relayed by the Orchestrator; I did not see it).** **PASS:** the six range pills with league-age greying on Portfolio in four leagues, on the player card and on the stock sheet; the gain words and the bracket format; the Create league × on steps 1 and 2; the Buy-a-stock top row. **Not shown:** the slot-check block and the buy price (the market was closed). **Found:** the Portfolio range did not reset on a league switch (fix #521, merged 21:54:16Z, `49044e06`, in no build yet); NVTS read "Week gain $0.00" while the stock was down 4.21% that day, a stand-in zero (Giorgio's rule is in #522, since merged). The cause was diagnosed later; see the 2026-11-18 Found block below. The other rulings from the recording are under Decided.
@@ -77,8 +85,8 @@ Entries begin with the Recorder's first pass.
 
 **Next**
 - **Build 18, not started; in progress, none merged (the Orchestrator's list):** the finished-season Portfolio and stock card (pick A); no week figures where there are no weeks; a server refusal of trades after the season ends, since merged as #529 (applied and deployed the same evening; STATUS §4 item 33, closed).
+- **Giorgio's decisions waiting:** his picks on the Stocks list board (A/B and C/D, not made); the full-market price feed (the Researcher is on it); and the January SDK start.
 - **Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.** The Orchestrator will check its logs; I record what it finds, not that the run happened.
-- The first red pull request under the ruleset will show whether All checks really blocks the merge; until then STATUS says "not yet observed".
 
 ## 2026-11-17
 
