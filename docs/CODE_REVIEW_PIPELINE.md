@@ -88,7 +88,7 @@ For a change that deserves a deeper read (auth, RLS, money, a migration that dro
 1. A session opens a pull request, as now, and runs the review command above.
 2. CI runs by itself on every push. Copilot reviews once, if the pull request has code in it.
 3. If CI is red, the app wakes the Orchestrator, and the fix is pushed (see "The fix loop"). CI runs again.
-4. The Orchestrator reads Copilot's review itself when it lands. Do not wait to be woken for it: in the pilot, new review comments did not wake the session.
+4. The Orchestrator reads Copilot's review itself when it lands. Do not wait to be woken for it: in the pilot the app did relay the review, but about 11 minutes after it was posted.
 5. When **All checks** is green, Copilot's review of the requested commit is in and each of its threads has an answer, the pull request is ready for Giorgio. He merges.
 
 ## Owner settings
@@ -150,7 +150,7 @@ The test case was real: the mobile tests failed type-checking on `main` (three e
 | Docs-only pull requests are skipped, repeats refused | Yes, on #511 and #512 (skipped), #513 and #514 (already reviewed), and #516 after its second review (refused). |
 | Copilot finds something real | Yes, twice. A stale source manifest could let a new screen pass CI without being declared behind the sign-in guards; CI now checks the manifest. And this script could not see a pending Copilot request; it now reads the timeline. |
 | A Copilot suggestion is checked, not just applied | Yes. For the second finding Copilot said to read the REST "requested reviewers" list. That list had been seen empty while the review was pending, so the fix uses the timeline instead. |
-| New review comments wake the session | **No.** Copilot's two comments did not produce a wake-up. The Orchestrator has to read the review itself. |
+| New review comments wake the session | **Yes, but late.** One message arrived about 11 minutes after Copilot posted, carrying its summary and both comments together. By then the Orchestrator had read the review itself, pushed the fix and answered both threads. Treat the wake-up as a backstop, not the trigger. |
 | Reviews run at Lite | **No.** The footer says Balanced. |
 | The loop runs unattended overnight | **No.** The Mac slept from about 9 PM to 9:30 AM and nothing moved in between. |
 
