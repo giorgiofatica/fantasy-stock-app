@@ -12,7 +12,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  DISC_MIN_SCALE, DISC_PADDING, DISC_SIZE, DISC_TEXT_ROOM, discTickerScale, flooredFitScale, TRAIL_SHARE, VALUE_MIN_SCALE, valueScale,
+  DISC_MIN_SCALE, DISC_PADDING, DISC_PT, DISC_SIZE, DISC_TEXT_ROOM, discTickerScale, flooredFitScale, tickerWidth, TRAIL_SHARE, VALUE_MIN_SCALE, valueScale,
 } from '../components/sp/logic/holdingFit.ts';
 import { space } from '../constants/tokens/space.ts';
 
@@ -30,16 +30,25 @@ Deno.test('a fit is clamped to [floor, 1]: never under its own floor, never enla
   assertEquals(flooredFitScale(1, 100, DISC_MIN_SCALE), DISC_MIN_SCALE);
 });
 
-Deno.test('the disc: a constant room, so a long ticker floors at 11pt and a short one is full size', () => {
+Deno.test('the disc: real glyph widths (Archivo ExtraBold at 13pt), a constant room, the 0.85 floor', () => {
   assertEquals(DISC_TEXT_ROOM, 36);
-  assertEquals(discTickerScale('V'), 1);
-  assertEquals(discTickerScale('KO'), 1);
-  for (const t of ['NVDA', 'AMZN', 'GOOGL', 'BRK.B', 'XOMX']) {
-    const s = discTickerScale(t);
-    assert(s >= DISC_MIN_SCALE && s <= 1, `${t}: ${s}`);
-  }
-  assertEquals(discTickerScale('GOOGL'), DISC_MIN_SCALE, 'five capitals do not fit at full size');
+  // Widths measured from assets/fonts/archivo/Archivo-ExtraBold.ttf (fontTools hmtx): pin them to a tenth of a point.
+  const measured: Record<string, number> = { V: 9.5, KO: 20.5, XOM: 32.0, WMT: 33.4, MMM: 35.6, AAPL: 36.6, TSLA: 35.6, NFLX: 36.2, PLTR: 35.7, NVDA: 39.2, AMZN: 40.7, MSFT: 38.1, GOOGL: 50.3, 'BRK.B': 43.3 };
+  for (const [t, w] of Object.entries(measured)) assert(Math.abs(tickerWidth(t, DISC_PT) - w) < 0.1, `${t}: ${tickerWidth(t, DISC_PT)} vs ${w}`);
+  // A ticker that fits the room keeps its full 13pt: short ones and the narrow-letter 4-letter ones (L, T, F, S).
+  for (const t of ['V', 'KO', 'AMD', 'XOM', 'JPM', 'TSLA', 'PLTR', 'WMT', 'MMM']) assertEquals(discTickerScale(t), 1, t);
+  // AAPL and NFLX are 0.6pt and 0.2pt over the room: within 2% of full size, not the ~8% a generic capital-width
+  // estimate gave (the DL's P3).
+  assert(discTickerScale('AAPL') > 0.97 && discTickerScale('AAPL') < 1, String(discTickerScale('AAPL')));
+  assert(discTickerScale('NFLX') > 0.99 && discTickerScale('NFLX') < 1, String(discTickerScale('NFLX')));
+  // NVDA, AMZN, MSFT are WIDER than the room at 13pt (iOS's own fit shrank them before this change too).
+  assertEquals(Math.round(discTickerScale('NVDA') * 1000) / 1000, 0.918);
+  assertEquals(Math.round(discTickerScale('AMZN') * 1000) / 1000, 0.885);
+  assertEquals(Math.round(discTickerScale('MSFT') * 1000) / 1000, 0.946);
+  // Five letters hit the floor (11pt, §9B): never smaller.
+  for (const t of ['GOOGL', 'BRK.B']) assertEquals(discTickerScale(t), DISC_MIN_SCALE, t);
   assertEquals(Math.round(13 * DISC_MIN_SCALE * 100) / 100, 11.05, 'the floor is the §9B 11pt');
+  assertEquals(discTickerScale('ZZZZZZZZ'), DISC_MIN_SCALE, 'a very long ticker is the floor, never below');
 });
 
 Deno.test('the disc room matches HoldingRow\'s styles (40pt circle, space[1] padding)', () => {

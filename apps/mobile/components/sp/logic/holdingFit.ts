@@ -13,7 +13,6 @@
 // (components/sp/logic/fitScale's rule) with the element's OWN floor, and an unmeasured row renders at full
 // size (never shrinks on a guess).
 import { fitScale, estimateMoneyWidth } from './fitScale';
-import { estimateNameWidth } from './gameNight';
 
 /** The disc's ticker: 13pt, never scaled by Dynamic Type, floored at 11pt (13 × 0.85, §9B). */
 export const DISC_PT = 13;
@@ -36,9 +35,36 @@ export function flooredFitScale(room: number | null, natural: number | null, flo
   return Math.min(1, Math.max(floor, room / natural));
 }
 
+/**
+ * Archivo ExtraBold's advance widths in em (unitsPerEm 1000), for the characters a ticker holds, read
+ * from assets/fonts/archivo/Archivo-ExtraBold.ttf (fontTools, hmtx). `ticker.tile` has no letter-spacing, so a
+ * ticker's width is the sum at DISC_PT. A generic capital-letter estimate over-stated narrow letters (L, T, F,
+ * S) and shrank AAPL ~1.7pt more than iOS's own fit did (Design Lead P3, 2026-11-18); the real widths do not.
+ * Measured at 13pt: NVDA 39.2pt, AMZN 40.7pt and MSFT 38.1pt are WIDER than the 36pt room (they shrink to
+ * ~0.92 / 0.88 / 0.94, as iOS's fit already did); AAPL 36.6, TSLA 35.6, NFLX 36.2 and PLTR 35.7 are at or
+ * within it (≥ 0.98); GOOGL 50.3 and BRK.B 43.3 hit the 0.85 floor.
+ */
+export const TICKER_EM: Readonly<Record<string, number>> = {
+  A: 0.746, B: 0.745, C: 0.752, D: 0.755, E: 0.699, F: 0.641, G: 0.815,
+  H: 0.787, I: 0.329, J: 0.63, K: 0.77, L: 0.623, M: 0.914, N: 0.787,
+  O: 0.81, P: 0.698, Q: 0.81, R: 0.75, S: 0.697, T: 0.675, U: 0.783,
+  V: 0.729, W: 0.979, X: 0.736, Y: 0.732, Z: 0.682, '0': 0.625, '1': 0.625,
+  '2': 0.625, '3': 0.625, '4': 0.626, '5': 0.625, '6': 0.625, '7': 0.625, '8': 0.625,
+  '9': 0.625, '.': 0.318, '-': 0.333,
+};
+/** A character not in the table (a ticker never holds one) is a wide capital, so it shrinks sooner, never clips. */
+const TICKER_EM_FALLBACK = 0.8;
+
+/** The width of `symbol` at `fontPt`, from the real glyph advances. */
+export function tickerWidth(symbol: string, fontPt: number): number {
+  let em = 0;
+  for (const ch of symbol.toUpperCase()) em += TICKER_EM[ch] ?? TICKER_EM_FALLBACK;
+  return em * fontPt;
+}
+
 /** The scale of the disc's ticker (its room is constant: no measuring, so no first-pass guess). */
 export function discTickerScale(symbol: string): number {
-  return flooredFitScale(DISC_TEXT_ROOM, estimateNameWidth(symbol, DISC_PT), DISC_MIN_SCALE);
+  return flooredFitScale(DISC_TEXT_ROOM, tickerWidth(symbol, DISC_PT), DISC_MIN_SCALE);
 }
 
 /** The scale of the value for a row `rowWidth` wide (null: not laid out yet, so full size). */
