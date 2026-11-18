@@ -37,7 +37,7 @@ import { noPendingMessage, scoredMessage } from './job-status.ts';
 import { writeJobStatus, type JobStatusRwClient } from '../_shared/job-status-io.ts';
 import { runJob, type JobRun } from '../_shared/run-job.ts';
 import { completeLeagueSeason, healUncompletedSeasons } from './season-completion.ts';
-import { describeWeekPrices, fetchWeekPrices, scoringPriceBounds } from '../_shared/week-price.ts';
+import { describeWeekPrices, fetchWeekPrices, scoringPriceRequest } from '../_shared/week-price.ts';
 import {
   buildPlayoffBracket,
   decidePlayoffSeeds,
@@ -802,8 +802,8 @@ Deno.serve(async (req) => {
       if (ALPACA_KEY && ALPACA_SECRET && symbols.size > 0) {
         // A trade or sane midpoint from this week onward, else step 5: the most
         // recent real close from this week's sessions (never one from before it).
-        const bounds = scoringPriceBounds(weekStart, new Date());
-        const priced = await fetchWeekPrices({ symbols: Array.from(symbols), bar: null, ...bounds }, ALPACA_KEY, ALPACA_SECRET);
+        // All in ../_shared/week-price.ts scoringPriceRequest (pure, tested).
+        const priced = await fetchWeekPrices(scoringPriceRequest(symbols, weekStart, new Date()), ALPACA_KEY, ALPACA_SECRET);
         prices = priced.prices;
         console.log(`League ${leagueId} week ${weekNumber} current prices: ${describeWeekPrices(priced)}`);
       }

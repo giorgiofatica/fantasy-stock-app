@@ -33,6 +33,8 @@ import {
   midWeekEntryPrice,
   buildCloseWork,
   planCloseWindow,
+  sessionOpenMs,
+  weekEndPriceRequest,
   type Holding,
   type ExistingSnapshot,
 } from './close.ts';
@@ -802,4 +804,76 @@ Deno.test('week end step 5: a close only from BEFORE the week is not a week-end 
   );
   assertEquals(work.missingSymbols, ['TM']);
   assertEquals(work.updates, [], 'all-or-nothing: AAPL is not closed alone either');
+});
+
+// ---------------------------------------------------------------------------
+// weekEndPriceRequest: the one price request index.ts sends. These kill the
+// call-site mutants the Orchestrator ran against the old inline code (M4: the
+// notBeforeDate floor deleted; M8: prevCloseAllowed(...) -> true).
+// ---------------------------------------------------------------------------
+
+const TWO_WEEKS: CalendarSession[] = [
+  { sessionDate: '2026-09-21', openEt: '09:30', closeEt: '16:00' }, // last week, Mon
+  { sessionDate: '2026-09-22', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-23', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-24', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-25', openEt: '09:30', closeEt: '16:00' }, // last week, Fri
+  { sessionDate: '2026-09-28', openEt: '09:30', closeEt: '16:00' }, // this week, Mon (13:30Z, EDT)
+  { sessionDate: '2026-09-29', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-30', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-10-01', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-10-02', openEt: '09:30', closeEt: '16:00' }, // this week, Fri (20:00Z close)
+];
+
+const WE_OPEN = new Date('2026-09-28T13:30:00Z');
+const WE_CLOSE = new Date('2026-10-02T20:00:00Z');
+const WE_WINDOW = { open: WE_OPEN, close: WE_CLOSE, closeSessionDate: '2026-10-02' };
+const weReq = (attempt: number, now: string, window = WE_WINDOW, sessions = TWO_WEEKS) => weekEndPriceRequest({
+  symbols: new Set(['AAPL', 'TM']), window, sessions, attempt, maxAttempts: 3, now: new Date(now),
+});
+
+Deno.test('sessionOpenMs: the session\'s own ET open as a UTC instant; null for a date not on the calendar', () => {
+  assertEquals(sessionOpenMs(TWO_WEEKS, '2026-10-02'), Date.parse('2026-10-02T13:30:00Z'));
+  assertEquals(sessionOpenMs(TWO_WEEKS, '2026-10-03'), null);
+});
+
+Deno.test('weekEndPriceRequest: attempt 1 of 3 on Friday -> the close bar, the close-session live window, and NO step 5 (kills M8)', () => {
+  assertEquals(weReq(1, '2026-10-02T21:05:00Z'), {
+    symbols: ['AAPL', 'TM'],
+    bar: { sessionDate: '2026-10-02', field: 'c' },
+    live: { fromMs: Date.parse('2026-10-02T13:30:00Z'), toMs: WE_CLOSE.getTime() },
+    prevClose: null,
+  });
+  assertEquals(weReq(2, '2026-10-02T21:10:00Z').prevClose, null, 'attempt 2 of 3: still no step 5');
+});
+
+Deno.test('weekEndPriceRequest: the LAST attempt adds step 5 over THIS week only, never last week\'s sessions (kills M4)', () => {
+  // Without the floor the 5 sessions before Friday would be 09-25 .. 10-01,
+  // reaching into last week.
+  assertEquals(weReq(3, '2026-10-02T21:15:00Z').prevClose, { fromDate: '2026-09-28', toDate: '2026-10-01' });
+});
+
+Deno.test('weekEndPriceRequest: a Monday heal of Friday -> no live window, step 5 still floored at the week\'s open', () => {
+  const r = weReq(3, '2026-10-05T15:30:00Z');
+  assertEquals(r.live, null);
+  assertEquals(r.bar, { sessionDate: '2026-10-02', field: 'c' });
+  assertEquals(r.prevClose, { fromDate: '2026-09-28', toDate: '2026-10-01' });
+});
+
+Deno.test('weekEndPriceRequest: a one-session week (open and close the same day) -> step 5 OFF, not last week\'s close (kills M4)', () => {
+  const oneDay = { open: new Date('2026-10-02T13:30:00Z'), close: WE_CLOSE, closeSessionDate: '2026-10-02' };
+  const r = weReq(3, '2026-10-02T21:15:00Z', oneDay);
+  assertEquals(r.prevClose, null, 'the only earlier sessions are before the week opened');
+});
+
+Deno.test('weekEndPriceRequest: a holiday-shortened week opening Tuesday -> step 5 starts Tuesday, not the prior Friday', () => {
+  const noMonday = TWO_WEEKS.filter((s) => s.sessionDate !== '2026-09-28');
+  const tue = { open: new Date('2026-09-29T13:30:00Z'), close: WE_CLOSE, closeSessionDate: '2026-10-02' };
+  assertEquals(weReq(3, '2026-10-02T21:15:00Z', tue, noMonday).prevClose, { fromDate: '2026-09-29', toDate: '2026-10-01' });
+});
+
+Deno.test('weekEndPriceRequest: the close session missing from the calendar -> no live window (bar or nothing), step 5 by the floor', () => {
+  const r = weReq(1, '2026-10-02T21:05:00Z', WE_WINDOW, TWO_WEEKS.slice(0, -1));
+  assertEquals(r.live, null);
+  assertEquals(r.prevClose, { fromDate: '2026-09-28', toDate: '2026-10-01' }, 'live === null counts as a past session');
 });

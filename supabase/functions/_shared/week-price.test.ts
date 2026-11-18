@@ -23,6 +23,7 @@ import {
   prevCloseRange,
   resolvePrice,
   scoringPriceBounds,
+  scoringPriceRequest,
   tradePrice,
   type FetchFn,
   type UnpricedReason,
@@ -547,4 +548,42 @@ Deno.test('week start, end to end: the last attempt baselines the ask-only name 
   assertEquals(run.missingSymbols, []);
   assertEquals(run.rows.find((r) => r.symbol === 'TM')!.week_start_price, 212.1);
   assertEquals(run.rows.length, 2);
+});
+
+// ---------------------------------------------------------------------------
+// scoringPriceRequest: the one price request process-week-results sends. Kills
+// the Orchestrator's M9 (`...bounds` -> `live: bounds.live`, which takes step 5
+// out of scoring entirely).
+// ---------------------------------------------------------------------------
+
+Deno.test('scoringPriceRequest: no bar, a live window from the week start, and step 5 over the week (kills M9)', () => {
+  assertEquals(scoringPriceRequest(new Set(['AAPL', 'TM']), '2026-11-16T14:30:00Z', new Date('2026-11-20T21:15:00Z')), {
+    symbols: ['AAPL', 'TM'],
+    bar: null,
+    live: { fromMs: Date.parse('2026-11-16T14:30:00Z') },
+    prevClose: { fromDate: '2026-11-16', toDate: '2026-11-20' },
+  });
+});
+
+Deno.test('scoringPriceRequest: an unreadable week start -> the open window, step 5 off', () => {
+  assertEquals(scoringPriceRequest(['AAPL'], null, new Date('2026-11-20T21:15:00Z')), {
+    symbols: ['AAPL'], bar: null, live: {}, prevClose: null,
+  });
+});
+
+Deno.test('scoringPriceRequest end to end: a held stock with no trade and no midpoint this week is scored from this week\'s close, never last week\'s', async () => {
+  const { fetchFn } = fakeAlpaca5({
+    bars: {},
+    trades: {},
+    quotes: {},
+    prevBars: { TM: [dayBar('2026-11-13', 199), dayBar('2026-11-18', 212.1)], OLD: [dayBar('2026-11-13', 50)] },
+  });
+  const p = await fetchWeekPrices(
+    scoringPriceRequest(['TM', 'OLD'], '2026-11-16T14:30:00Z', new Date('2026-11-20T21:15:00Z')), 'k', 's', fetchFn,
+  );
+  assertEquals(p.prices.get('TM'), 212.1);
+  assertEquals(p.sources.get('TM'), 'prev_close');
+  assertEquals(p.closeDates.get('TM'), '2026-11-18');
+  assertEquals(p.prices.has('OLD'), false, 'a close from before the week is never used');
+  assertEquals(p.unpriced.get('OLD'), 'no_recent_close');
 });

@@ -192,6 +192,21 @@ export function scoringPriceBounds(
   return { live: { fromMs }, prevClose: toDate >= fromDate ? { fromDate, toDate } : null };
 }
 
+/**
+ * The ONE price request process-week-results sends (index.ts makes a single
+ * call): no session bar, a trade or sane midpoint from the week onward, and
+ * step 5 over the week's sessions (scoringPriceBounds). Dropping `prevClose`
+ * here would take step 5 out of scoring entirely. PURE.
+ */
+export function scoringPriceRequest(
+  symbols: Iterable<string>,
+  weekStartIso: string | null | undefined,
+  now: Date,
+): WeekPriceRequest {
+  const bounds = scoringPriceBounds(weekStartIso, now);
+  return { symbols: Array.from(symbols), bar: null, ...bounds };
+}
+
 export type ResolvedPrice =
   | { price: number; source: PriceSource; closeDate?: string }
   | { price: null; reason: UnpricedReason };
