@@ -519,10 +519,15 @@ building anything, and don't reopen a rule without him.
     stock that's down a certain percentage, it's just to be a zero. That's one of the things
     where we need to have a fallback to where it can still figure out what the amount is or
     something like that, because that's going to be an integral part of this app."
-    - What the zero was, by the code and not yet checked against that league's data: the card
-      shows $0.00 and 0.00% when the league-week has no starting price recorded for the stock
+    - What the zero was, by the code: the card shows $0.00 and 0.00% when the league-week
+      has no starting price recorded for the stock
       (`apps/mobile/lib/game/playerCardModel.ts`, `stockWeek`: a missing entry becomes 0). The
       Portfolio and manager-portfolio week rows read the same value.
+    - Why the entry was missing here, found the same day from a read-only query he ran:
+      test_081126 is an old Duration league. A Duration league has no weeks, so the server
+      records no weekly prices for it by design, and the app showed week figures anyway.
+      Matchup leagues are not hit by this cause. The fix: a league with no weeks shows no
+      week figures, and a matchup holding with no recorded start shows "–", never zero.
     - Ruled out by his words: any figure that reads as "flat" or "zero" because the app has
       nothing to compute it from.
     - The Planner's reading, not his words: where the week's starting price was not recorded,
@@ -1187,9 +1192,38 @@ building anything, and don't reopen a rule without him.
     - This narrows his earlier "true home of the buy and sell" (above): the tab is the home
       of search and buying; selling lives on Portfolio, on a stock you own. A stock you hold
       can still be sold from its sheet wherever that opens.
-    - What the tab opens on is NOT decided: he did not pick between the two mockups. It
-      waits for the research, then comes back to him as mockups modelled on those apps.
-  - Not decided: what the tab opens on and what browsing offers ("look
+    - He did not pick between those two mockups (search alone, or search plus categories);
+      the research came first.
+  - **The Stocks tab opens on a list of the stocks you can get** (2026-11-18, after the
+    research in `docs/research/2026-11-18-players-tab-and-waiver-wire-ui.md`; A/B mockup in
+    the Planner's chat). The research found that the three apps' Players screens are one
+    list that search and filters narrow, never an empty search field (ESPN's site opens on
+    "all available players"). Shown that layout with A (only stocks nobody in the league
+    owns) beside B (every stock, with owned ones marked "You own this" or "Owned by {name}"),
+    he picked **A**.
+    - So, decided: the tab opens on a list, not an empty search; search narrows that same
+      list; a stock owned by you or by another manager is not in the default list.
+    - Told to him with the options and not objected to: an owned stock can still be found by
+      searching for it; our categories stand in for positions as the filters.
+    - The mockup was a first draft from descriptions, and he was told so. NOT decided, and
+      not to be built from the mockup: the layout itself (rows, the filter presentation, the
+      "All" chip and the plus button were placeholders), which waits for his screenshots of
+      the real apps; the order of the list (the Planner's proposal, largest companies first,
+      was mentioned and not asked); and any trending or "most added" list.
+  - **Each row of that list shows the stock's price, under tight limits** (2026-11-18, A/B
+    mockup in the Planner's chat). Put to him as a conflict with his own ruling ("I don't
+    want people to be able to scrape anything", 2026-10-08, the reason the stock table was
+    locked down on 2026-11-16): a list of every available stock is a way to walk the stock
+    universe, and with prices on the rows it is a way to collect our stored price for each;
+    limits make that slow, members-only and logged, not impossible. Shown A (the price on
+    every row) beside B (name and category on the row, the price only when a stock is
+    opened), he picked **A**.
+    - What he was told A comes with, and so what the build owes: the list is for signed-in
+      members of that league only, paced per person, capped per page, and logged; the prices
+      are delayed ones; only stocks nobody in that league owns are listed.
+    - This is a knowing exception to "nothing scrapable" for this one list, not a change to
+      that rule. Nothing else about the stock table opens up.
+  - Not decided: the layout of that list, its order, and what else browsing offers ("look
     around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup
