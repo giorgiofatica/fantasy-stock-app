@@ -2,7 +2,7 @@
 
 P1 from the live font-scale sweep 2 (2026-11-03): after a live AX5 → L change the unfocused "Search by ticker or name..." field drew
 its placeholder at AX5 size inside the L-size field (only "Search..." showed). Stills are outside the repo, in
-`~/fantasy-stock-design-review/fix/search-placeholder-font-scale/` (`index.html` pairs main with the branch; `frames/` every PNG; `crops/`).
+`~/fantasy-stock/local/design-review/fix/search-placeholder-font-scale/` (`index.html` pairs main with the branch; `frames/` every PNG; `crops/`).
 Base: main `91bdea5f`. Sim: iPhone 17e, iOS 27.0, Expo Go 54.0.7, light. L = `large`, AX5 = `accessibility-extra-extra-extra-large`.
 
 ## Cause

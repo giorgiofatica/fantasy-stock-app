@@ -1,7 +1,7 @@
 # Live text-size sweep: live change vs cold launch (`audit/live-font-scale-sweep`)
 
 An audit, not a fix. No code changed. Stills are outside the repo, in
-`~/fantasy-stock-design-review/audit/live-font-scale-sweep/` (`index.html` there has the table with
+`~/fantasy-stock/local/design-review/audit/live-font-scale-sweep/` (`index.html` there has the table with
 thumbnails; `frames/` every PNG and `*.diff.json`; `sheets/` six-up contact sheets per case; `crops/` the
 evidence below; `case.sh`, `end.sh`, `script.sh`, `metro.sh`, `step.sh`, `diff.py` the harness; `frames2/` the heal-check frames).
 
@@ -202,7 +202,7 @@ not findings.
 
 ## Files outside the repo
 
-`~/fantasy-stock-design-review/audit/live-font-scale-sweep/`: `index.html`; `frames/<case>-{cold-L,cold-XXXL,cold-AX5,live-AX5toL,live-AX5toXXXL,live-LtoAX5}.png`
+`~/fantasy-stock/local/design-review/audit/live-font-scale-sweep/`: `index.html`; `frames/<case>-{cold-L,cold-XXXL,cold-AX5,live-AX5toL,live-AX5toXXXL,live-LtoAX5}.png`
 (cases: `home`, `home-s`, `home-end`, `home-live-open`, `matchup`, `mx-s`, `matchup-stress`, `league-standings`,
 `league-standings-end`, `league-schedule`, `league-schedule-end`, `portfolio`, `pf-s`, `settings-predraft`,
 `settings-predraft-end`, `settings-season`, `ss-s`, `settings-season-end`, `create-league`, `create-season`,

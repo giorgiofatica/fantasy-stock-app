@@ -67,10 +67,10 @@ Giorgio's ruling: "There always needs to be a price for a stock." So the rule no
 ### 0. Deploy (after the PR merges)
 
 ```bash
-git -C /Users/giorgio/fantasy-stock-deploy fetch origin && git -C /Users/giorgio/fantasy-stock-deploy checkout --detach origin/main
+git -C /Users/giorgio/fantasy-stock/local/deploy fetch origin && git -C /Users/giorgio/fantasy-stock/local/deploy checkout --detach origin/main
 ```
 
-From `/Users/giorgio/fantasy-stock-deploy`:
+From `/Users/giorgio/fantasy-stock/local/deploy`:
 
 ```bash
 supabase functions deploy snapshot-week-start --project-ref haiaaifjcclsvmkfqgmd

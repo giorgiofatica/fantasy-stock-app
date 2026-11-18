@@ -249,7 +249,7 @@ building anything, and don't reopen a rule without him.
   price that you bought it at Uh, I would want to show that kind of line chart of its
   progression throughout the season in that kind of pop-up window." Reference: ESPN's
   player card (Giorgio's three screenshots, 2026-10-12, kept locally at
-  `~/fantasy-stock-design-review/references/espn-player-card-{1,2,3}.webp`, not in the repo, per the
+  `~/fantasy-stock/local/design-review/references/espn-player-card-{1,2,3}.webp`, not in the repo, per the
   references policy): header
   with name/team/position and the owning team, a key-figures strip, an Overview tab with
   this week's line, recent news, a game log, and a **Latest transaction** block ("Drafted

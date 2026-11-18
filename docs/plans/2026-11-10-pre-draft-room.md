@@ -159,7 +159,7 @@ shows where each phone tab lands so the two read as one room.
   AX5 is part of the board, with stills, not a later fix. The pinned clock rule from
   2026-11-06 stands.
 - **Familiar, not copied.** Structure from the references; colours, tiles and type are Game
-  Night. Third-party screenshots stay in `~/fantasy-stock-design-review/references/`.
+  Night. Third-party screenshots stay in `~/fantasy-stock/local/design-review/references/`.
 - **The surprise leaking.** The order is on the server from T−1h and `get_draft_order`
   returns it; the surprise is a presentation rule, not a secret. The cards and the push must
   not print it before the first entry, and the leaguemate team view and any other surface

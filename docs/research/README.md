@@ -21,7 +21,7 @@ legal or policy reading. One file per task. Roles are in
   takes anything that needs a decision to Giorgio.
 - **What it never does.** Decide product or write to `PRODUCT_RULES.md`. Write app code,
   migrations or functions. Start workers, push, open PRs, merge, or touch prod. Commit a
-  third-party screenshot (they stay in `~/fantasy-stock-design-review/references/`; the file
+  third-party screenshot (they stay in `~/fantasy-stock/local/design-review/references/`; the file
   links to the source instead). Put repo code, keys, user data, or Giorgio's name, email or
   project details into an outside service, search queries included.
 

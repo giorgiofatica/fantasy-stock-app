@@ -2,9 +2,9 @@
 
 **The bug (Design Lead, P2, 2026-10-16).** At the largest Dynamic Type size, Portfolio's hero
 sub-lines rendered one character spread across the line, e.g. `+ $ 3 4 3 . 5 1 ·`, with the lines
-far apart. Reference still: `~/fantasy-stock-design-review/feat-leaguemate-team-view/main-portfolio-baseline-after-xxxl-light-17e.png`.
+far apart. Reference still: `~/fantasy-stock/local/design-review/feat-leaguemate-team-view/main-portfolio-baseline-after-xxxl-light-17e.png`.
 
-All frames are outside the repo, in `~/fantasy-stock-design-review/fix-portfolio-xxxl-digits/`.
+All frames are outside the repo, in `~/fantasy-stock/local/design-review/fix-portfolio-xxxl-digits/`.
 
 ## How it was captured (headless)
 

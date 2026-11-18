@@ -1,7 +1,7 @@
 # Setup rows and "Week N" at AX5 (Design Lead P1 + P2, 2026-11-03)
 
 Branch `fix/setup-rows-scale-reset`, from main `137e158b` (not stacked on #326). Device: iPhone 17e, `large` (L) and
-`accessibility-extra-extra-extra-large` (AX5). Frames: `~/fantasy-stock-design-review/fix/setup-rows-scale-reset/` (outside the repo).
+`accessibility-extra-extra-extra-large` (AX5). Frames: `~/fantasy-stock/local/design-review/fix/setup-rows-scale-reset/` (outside the repo).
 
 ## P1: Create league › Price tiers › Add slot, Stocks / Min / Max row
 

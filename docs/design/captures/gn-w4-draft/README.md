@@ -5,7 +5,7 @@ SDK 54, status bar 9:41, Large text unless the row says otherwise. All DEV fixtu
 (`apps/mobile/.env.local`, every fixture var written explicitly, Metro restarted with `--clear`
 and the app reloaded per fixture). Every still exists in `-light` and `-dark` (theme set with
 `simctl ui appearance`, shot with `simctl io screenshot`). Recordings live outside the repo in
-`~/fantasy-stock-design-review/gn-w4-draft/`; their frame sheets are here.
+`~/fantasy-stock/local/design-review/gn-w4-draft/`; their frame sheets are here.
 
 **Giorgio's rulings (2026-10-13, in PRODUCT_RULES):** the clock card shows only the headline and
 "Round X of Y · Pick N" (no ", then N", no "60-second picks"), on both cards; the ring, its digits
@@ -106,7 +106,7 @@ categories, real states from the server's own rules (item 2). Earned: nothing de
 slab marks you. Variety: the same rimmed cards, `youTint` slab, ManagerRow and pills as Home and
 Matchup. Nothing under 3.
 
-## §4 Tappables (element → what it does; the recordings are in `~/fantasy-stock-design-review/gn-w4-draft/`)
+## §4 Tappables (element → what it does; the recordings are in `~/fantasy-stock/local/design-review/gn-w4-draft/`)
 
 | Element | What it does | Evidence |
 |---|---|---|

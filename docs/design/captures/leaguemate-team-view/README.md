@@ -5,7 +5,7 @@ from the standings and the matchup"): wire the orphaned `player-portfolio` route
 Sleeper / Yahoo open another manager's team. Design Lead rulings the same day: the Home header is
 the Standings link, rows open teams, the WHOLE Matchup half is the button.
 
-**Frames live outside the repo**, in `~/fantasy-stock-design-review/feat-leaguemate-team-view/`
+**Frames live outside the repo**, in `~/fantasy-stock/local/design-review/feat-leaguemate-team-view/`
 (PNGs, three `.mov`, and the scripts `fx.sh`, `run.sh`, `all.sh`, `rest.sh`, `rec.sh`). One build
 for all of them: the branch tip this README ships in. File names:
 `<state>-{before,after}-{l,xxxl}-{dark,light}-{17e,17pro}.png` (L = `large`, XXXL =
@@ -52,7 +52,7 @@ for all of them: the branch tip this README ships in. File names:
 Driven through the iOS Simulator control tool (`tap`, duration 0.1, points on a 390×844 screen),
 with `EXPO_PUBLIC_CAPTURE_TEAMS=1` (a capture-only knob: Paolo M. and Luca V. hold the fixture's
 opponent roster so Home's excerpt rows open a team that loads). Each tap has a before and an
-after still in `~/fantasy-stock-design-review/feat-leaguemate-team-view/`. All seven passed.
+after still in `~/fantasy-stock/local/design-review/feat-leaguemate-team-view/`. All seven passed.
 
 | # | Tap (point) | Result | Frames |
 |---|---|---|---|
