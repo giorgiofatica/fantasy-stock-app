@@ -28,6 +28,27 @@ export const PORTFOLIO_RANGES: readonly PortfolioRange[] = CHART_RANGES;
 /** Portfolio opens on Season (Giorgio, 2026-11-17: your team's whole run). */
 export const DEFAULT_PORTFOLIO_RANGE: PortfolioRange = SEASON_DEFAULT_RANGE;
 
+/** The picked range and the league it was picked in. */
+export interface PortfolioRangePick {
+  leagueId: string | null;
+  range: PortfolioRange;
+}
+
+/**
+ * The pick for the league on screen: the same object while the league is the one it was picked
+ * in; a fresh Season pick once the league changes. A team chart opens on Season in every league
+ * (Giorgio 2026-11-17); a range picked in one league never carries into another (build 17: YTD
+ * in one league became 1W in a younger one).
+ */
+export function portfolioRangePick(pick: PortfolioRangePick, leagueId: string | null): PortfolioRangePick {
+  return pick.leagueId === leagueId ? pick : { leagueId, range: DEFAULT_PORTFOLIO_RANGE };
+}
+
+/** A pill tap: the range, recorded against the league on screen (so portfolioRangePick keeps it). */
+export function portfolioRangeChoice(leagueId: string | null, range: PortfolioRange): PortfolioRangePick {
+  return { leagueId, range };
+}
+
 export interface ChartActivityRow {
   kind: 'draft' | 'trade';
   action: 'buy' | 'sell';

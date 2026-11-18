@@ -19,7 +19,7 @@ import {
   CHART_RANGES, FALLBACK_RANGE, RANGE_WORDS, SEASON_DEFAULT_RANGE, SHEET_DEFAULT_RANGE, asChartRange, greyedRanges, isRangeGrey,
   rangeGain, rangeGainText, rangeSeries, rangeStartDate, selectableRange, todaySessionOpen, type ChartRange, type GreyContext,
 } from '../lib/chart/chartRanges.ts';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioHistoryStart, portfolioSeries } from '../lib/money/portfolioChart.ts';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioHistoryStart, portfolioRangeChoice, portfolioRangePick, portfolioSeries } from '../lib/money/portfolioChart.ts';
 import { historyStartOf, stockGreyedRanges, stockLineSeries } from '../lib/money/stockChartSeries.ts';
 import { seasonStartOf } from '../lib/money/seasonStart.ts';
 import { lineTone } from '../components/sp/logic/lineChart.ts';
@@ -71,7 +71,7 @@ Deno.test('(b) defaults: Portfolio and the card open on Season, the stock sheet 
   assertEquals(SHEET_DEFAULT_RANGE, '1W');
   assert(stockChartSrc.includes('defaultRange = SHEET_DEFAULT_RANGE'), 'the sheet: no prop = 1W');
   assert(strip(cardSrc).includes('defaultRange={SEASON_DEFAULT_RANGE}'), 'the card: Season');
-  assert(portfolioSrc.includes('useState<PortfolioRange>(DEFAULT_PORTFOLIO_RANGE)'), 'Portfolio: Season');
+  assert(portfolioSrc.includes('useState<PortfolioRangePick>({ leagueId: activeLeagueId, range: DEFAULT_PORTFOLIO_RANGE })'), 'Portfolio: Season');
 });
 
 Deno.test('(b) nothing is remembered between opens: the range is plain component state, never stored', () => {
@@ -165,6 +165,47 @@ Deno.test('(c) a grey range is never the selected one: it falls back to 1W, whic
   assertEquals(asChartRange('6M'), '6M');
   assertEquals(asChartRange('1Y'), null);
   assertEquals(asChartRange(undefined), null);
+});
+
+Deno.test('(c) a TEAM chart falls back to Season, never 1W; the stock sheet still falls back to 1W', () => {
+  // build 17: YTD picked in an older league, then a younger league where YTD is grey.
+  const young = portfolioGreyedRanges([{ date: '2026-11-11', value: 1000 }, { date: '2026-11-17', value: 1010 }], '2026-11-18');
+  assert(young.includes('YTD') && !young.includes('Season'), 'YTD grey, Season never');
+  assertEquals(selectableRange('YTD', young, DEFAULT_PORTFOLIO_RANGE), 'Season');
+  assertEquals(selectableRange('6M', ['3M', '6M', 'YTD'], 'Season'), 'Season');
+  assertEquals(selectableRange('1M', ['3M', '6M', 'YTD'], 'Season'), '1M', 'a live pick stays');
+  // The stock sheet passes no fallback: 1W, as before.
+  assertEquals(selectableRange('YTD', ['3M', '6M', 'YTD']), '1W');
+  // A fallback that is itself grey (the player card's Season on a stock younger than the
+  // league) drops to 1W, which never greys.
+  assertEquals(selectableRange('Season', ['1M', '3M', '6M', 'Season', 'YTD'], 'Season'), '1W');
+  // Wiring: Portfolio passes its Season fallback; StockChart passes none.
+  assert(strip(portfolioSrc).includes('selectableRange(range, greyed, DEFAULT_PORTFOLIO_RANGE)'), 'Portfolio falls back to Season');
+  assert(strip(stockChartSrc).includes('selectableRange(picked, greyed)'), 'the sheet falls back to 1W');
+});
+
+Deno.test('(c) switching league reopens the team chart on Season; the pick never carries over', () => {
+  const inA = { leagueId: 'league-a', range: 'YTD' as const };
+  // Same league: the same object (so the screen sets no state and does not loop).
+  assert(portfolioRangePick(inA, 'league-a') === inA);
+  // Another league: a fresh Season pick.
+  assertEquals(portfolioRangePick(inA, 'league-b'), { leagueId: 'league-b', range: 'Season' });
+  // Back to the first league: still Season (the pick was reset, not remembered per league).
+  const inB = portfolioRangePick(inA, 'league-b');
+  assertEquals(portfolioRangePick(inB, 'league-a'), { leagueId: 'league-a', range: 'Season' });
+  // The write side: a pill tap in league L survives the next render's read in L (the pills are
+  // never dead), and still resets once the league changes.
+  for (const r of ['1W', '1M', '3M', '6M', 'YTD'] as const) {
+    const chosen = portfolioRangeChoice('league-a', r);
+    assertEquals(portfolioRangePick(chosen, 'league-a').range, r);
+    assertEquals(portfolioRangePick(chosen, 'league-b').range, 'Season');
+  }
+  // The screen derives its range from the pick for the league on screen and resets during render.
+  const src = strip(portfolioSrc);
+  assert(src.includes('setRangePick(portfolioRangeChoice(activeLeagueId, next))'), 'a tap is recorded against the league on screen');
+  assert(src.includes('const currentPick = portfolioRangePick(rangePick, activeLeagueId);'));
+  assert(src.includes('if (currentPick !== rangePick) setRangePick(currentPick);'));
+  assert(src.includes('const range = currentPick.range;'));
 });
 
 Deno.test('(c) a grey pill keeps its place, is dimmed and inert: disabled, never selected, a tap does nothing', () => {

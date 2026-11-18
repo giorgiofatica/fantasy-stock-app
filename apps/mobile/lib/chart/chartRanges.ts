@@ -104,9 +104,15 @@ export function greyedRanges(ctx: GreyContext): ChartRange[] {
   return CHART_RANGES.filter((r) => isRangeGrey(r, ctx));
 }
 
-/** The range a chart actually shows: a grey one is never selected, it falls back to 1W. */
-export function selectableRange(range: ChartRange, greyed: readonly ChartRange[]): ChartRange {
-  return greyed.includes(range) ? FALLBACK_RANGE : range;
+/**
+ * The range a chart actually shows: a grey one is never selected. It falls back to the chart's
+ * own `fallback` (a TEAM chart passes Season, its default, which never greys there: Giorgio
+ * 2026-11-17, "B"), or to 1W when that is grey too or none is given (the stock sheet: 1W, which
+ * never greys anywhere).
+ */
+export function selectableRange(range: ChartRange, greyed: readonly ChartRange[], fallback: ChartRange = FALLBACK_RANGE): ChartRange {
+  if (!greyed.includes(range)) return range;
+  return greyed.includes(fallback) ? FALLBACK_RANGE : fallback;
 }
 
 /** Narrow a capture/DEV string to a range (the capture script's `range` action). */
