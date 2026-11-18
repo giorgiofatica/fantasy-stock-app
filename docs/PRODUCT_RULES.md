@@ -1187,9 +1187,25 @@ building anything, and don't reopen a rule without him.
     - This narrows his earlier "true home of the buy and sell" (above): the tab is the home
       of search and buying; selling lives on Portfolio, on a stock you own. A stock you hold
       can still be sold from its sheet wherever that opens.
-    - What the tab opens on is NOT decided: he did not pick between the two mockups. It
-      waits for the research, then comes back to him as mockups modelled on those apps.
-  - Not decided: what the tab opens on and what browsing offers ("look
+    - He did not pick between those two mockups (search alone, or search plus categories);
+      the research came first.
+  - **The Stocks tab opens on a list of the stocks you can get** (2026-11-18, after the
+    research in `docs/research/2026-11-18-players-tab-and-waiver-wire-ui.md`; A/B mockup in
+    the Planner's chat). The research found that the three apps' Players screens are one
+    list that search and filters narrow, never an empty search field (ESPN's site opens on
+    "all available players"). Shown that layout with A (only stocks nobody in the league
+    owns) beside B (every stock, with owned ones marked "You own this" or "Owned by {name}"),
+    he picked **A**.
+    - So, decided: the tab opens on a list, not an empty search; search narrows that same
+      list; a stock owned by you or by another manager is not in the default list.
+    - Told to him with the options and not objected to: an owned stock can still be found by
+      searching for it; our categories stand in for positions as the filters.
+    - The mockup was a first draft from descriptions, and he was told so. NOT decided, and
+      not to be built from the mockup: the layout itself (rows, the filter presentation, the
+      "All" chip and the plus button were placeholders), which waits for his screenshots of
+      the real apps; the order of the list (the Planner's proposal, largest companies first,
+      was mentioned and not asked); and any trending or "most added" list.
+  - Not decided: the layout of that list, its order, and what else browsing offers ("look
     around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup
