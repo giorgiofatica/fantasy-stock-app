@@ -2,42 +2,21 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "26ee640713bf9075e42a44b48a89cc8259156769",
-    "commitShort": "26ee6407",
+    "commit": "521120d8a8906221591788f9aa9a2e5818aa575d",
+    "commitShort": "521120d8",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/home-hero-no-weeks",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/matchupRosterView.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/playerCardModel.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/league-weeks.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/matchup-roster.test.ts"
-      }
-    ],
-    "timestamp": "2026-11-18T22:47:00Z",
-    "sourceHash": "sha256:451e9a2171f22a8e3c822bc1c65813dfc8b038a5840a7d54fbe2abf89090413f",
+    "branch": "",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-18T23:01:10Z",
+    "sourceHash": "sha256:594ae1c7bf17350ccc419d62aeec2bf484cd5ae1471b7f9278274e2cc060f6b5",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 28.3,
+    "ageHours": 28.6,
     "ageDays": 1.2,
     "staleAfterDays": 14,
     "stale": false,
@@ -5242,6 +5221,37 @@
       "source": {
         "path": "supabase/migrations/20261119000001_frozen_leaver_names_callers.sql",
         "line": 108
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261207000100_league_available_stocks.sql:69"
+        ],
+        "latestDefinition": "supabase/migrations/20261207000100_league_available_stocks.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.get_league_available_stocks",
+      "label": "get_league_available_stocks()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261207000100_league_available_stocks.sql",
+        "line": 69
       }
     },
     {
@@ -15775,6 +15785,88 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.get_league_available_stocks->tbl.categories",
+      "from": "pg.get_league_available_stocks",
+      "to": "tbl.categories",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT categories (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261207000100_league_available_stocks.sql:164"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_available_stocks->tbl.category_rules",
+      "from": "pg.get_league_available_stocks",
+      "to": "tbl.category_rules",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT category_rules (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261207000100_league_available_stocks.sql:146",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:166"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_available_stocks->tbl.drafts",
+      "from": "pg.get_league_available_stocks",
+      "to": "tbl.drafts",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT drafts (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261207000100_league_available_stocks.sql:114"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_available_stocks->tbl.symbol_category_overrides",
+      "from": "pg.get_league_available_stocks",
+      "to": "tbl.symbol_category_overrides",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbol_category_overrides (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261207000100_league_available_stocks.sql:140",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:144",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:163"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_available_stocks->tbl.symbols",
+      "from": "pg.get_league_available_stocks",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261207000100_league_available_stocks.sql:101",
+        "supabase/migrations/20261207000100_league_available_stocks.sql:133"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_available_stocks->tbl.trades",
+      "from": "pg.get_league_available_stocks",
+      "to": "tbl.trades",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT trades (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261207000100_league_available_stocks.sql:122"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.get_league_display_names->tbl.drafts",
       "from": "pg.get_league_display_names",
       "to": "tbl.drafts",
@@ -22909,6 +23001,16 @@
   ],
   "drift": [
     {
+      "node": "pg.get_league_available_stocks",
+      "label": "get_league_available_stocks()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -23646,6 +23748,21 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg.get_league_available_stocks",
+      "label": "get_league_available_stocks()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261207000100_league_available_stocks.sql:69",
+      "outbound": [
+        "tbl.categories",
+        "tbl.category_rules",
+        "tbl.drafts",
+        "tbl.symbol_category_overrides",
+        "tbl.symbols",
+        "tbl.trades"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.heal_account_deletions",
       "label": "heal_account_deletions(p_min_age interval, p_limit integer)",
       "kind": "pg-function",
@@ -24049,6 +24166,12 @@
   },
   "unverified": [
     {
+      "scope": "pg.get_league_available_stocks",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -24147,13 +24270,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 323,
-    "edges": 779,
+    "nodes": 324,
+    "edges": 785,
     "flows": 7,
-    "drift": 34,
-    "driftHigh": 0,
-    "deadCode": 62,
-    "unverified": 16
+    "drift": 35,
+    "driftHigh": 1,
+    "deadCode": 63,
+    "unverified": 17
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -24787,7 +24910,8 @@
       "20261205000200_revoke_api_table_ddl_privileges.sql",
       "20261205000300_symbols_readers_functions.sql",
       "20261206000000_symbols_column_grant.sql",
-      "20261207000000_record_trade_season_end_by_date.sql"
+      "20261207000000_record_trade_season_end_by_date.sql",
+      "20261207000100_league_available_stocks.sql"
     ],
     "config": [
       "delete-account=false",
