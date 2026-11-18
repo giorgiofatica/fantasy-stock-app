@@ -18,7 +18,13 @@
 //   - At most MAX_REVIEWS Copilot reviews per pull request. The first is the
 //     default; a second needs --again. A third is refused: by then the pull
 //     request goes to the owner, not back round the loop.
-//   - It never reports "requested" unless GitHub shows the request or a review.
+//   - It never reports "requested" unless GitHub's timeline shows the request.
+//
+// Where the request is read from matters. GitHub does NOT list Copilot under a
+// pull request's requested reviewers (`gh pr view --json reviewRequests` and the
+// REST `requested_reviewers` endpoint both stay empty while Copilot is reviewing;
+// seen on #516, 2026-11-18). The pull request's timeline does record it, as a
+// `review_requested` event for "Copilot", so that is what this script trusts.
 import { spawnSync } from 'node:child_process';
 
 const MAX_REVIEWS = 2;
@@ -41,15 +47,35 @@ if (!pr) {
 
 const gh = (...a) => spawnSync('gh', a, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 const view = () => {
-  const r = gh('pr', 'view', pr, '--json', 'number,state,isDraft,headRefOid,files,reviews,reviewRequests,url');
+  const r = gh('pr', 'view', pr, '--json', 'number,state,isDraft,headRefOid,files,url');
   if (r.status !== 0) {
     console.error(`could not read pull request ${pr}: ${r.stderr || r.error?.message}`);
     process.exit(2);
   }
   return JSON.parse(r.stdout);
 };
-const copilotReviews = (d) => d.reviews.filter((v) => COPILOT.test(v.author?.login ?? ''));
-const copilotRequested = (d) => d.reviewRequests.some((q) => COPILOT.test(q.login ?? q.name ?? q.slug ?? ''));
+// Copilot's review events on the pull request, oldest first: { event, at, commit }.
+const copilotEvents = () => {
+  const r = gh('api', `repos/{owner}/{repo}/issues/${pr}/timeline`, '--paginate', '--jq',
+    '.[] | select(.event=="review_requested" or .event=="reviewed") | [.event, (.requested_reviewer.login // .user.login // ""), (.created_at // .submitted_at // ""), (.commit_id // "")] | @tsv');
+  if (r.status !== 0) {
+    console.error(`could not read the timeline of pull request ${pr}: ${r.stderr || r.error?.message}`);
+    process.exit(2);
+  }
+  return r.stdout.split('\n').filter(Boolean).map((l) => l.split('\t'))
+    .filter(([, who]) => COPILOT.test(who))
+    .map(([event, , at, commit]) => ({ event, at, commit }))
+    .sort((a, b) => a.at.localeCompare(b.at));
+};
+const requests = (ev) => ev.filter((e) => e.event === 'review_requested');
+const reviews = (ev) => ev.filter((e) => e.event === 'reviewed');
+// A request with no review after it is still running.
+const pending = (ev) => {
+  const q = requests(ev).at(-1);
+  const v = reviews(ev).at(-1);
+  return Boolean(q) && (!v || q.at > v.at);
+};
+const pause = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
 const d = view();
 const say = (verdict, why) => console.log(`#${d.number} ${verdict}: ${why}`);
@@ -64,9 +90,10 @@ if (files.length < 100 && code.length === 0) {
   process.exit(0);
 }
 
-const done = copilotReviews(d);
-const onHead = done.some((v) => v.commit?.oid === d.headRefOid);
-if (copilotRequested(d)) { say('ALREADY REQUESTED', 'Copilot has a review pending'); process.exit(0); }
+const before = copilotEvents();
+const done = reviews(before);
+const onHead = done.some((v) => v.commit === d.headRefOid);
+if (pending(before)) { say('ALREADY REQUESTED', `Copilot has had a review pending since ${requests(before).at(-1).at}`); process.exit(0); }
 if (onHead) { say('ALREADY REVIEWED', `Copilot reviewed the current commit ${d.headRefOid.slice(0, 8)}`); process.exit(0); }
 if (done.length >= MAX_REVIEWS) {
   say('REFUSED', `${done.length} Copilot reviews already; the limit is ${MAX_REVIEWS}. This pull request goes to the owner.`);
@@ -88,11 +115,14 @@ if (r.status !== 0) {
   console.error(`#${d.number} FAILED: gh could not request the review.\n${r.stderr}`);
   process.exit(1);
 }
-// Verify the effect, not the exit code: the request (or an instant review) must show on the pull request.
-const after = view();
-if (copilotRequested(after) || copilotReviews(after).length > done.length) {
-  say('REQUESTED', `${code.length} code files of ${files.length}; review ${done.length + 1} of ${MAX_REVIEWS}`);
-  process.exit(0);
+// Verify the effect, not the exit code: a NEW request must appear on the timeline.
+// It shows within a second or two; allow twenty.
+for (let i = 0; i < 10; i++) {
+  if (requests(copilotEvents()).length > requests(before).length) {
+    say('REQUESTED', `${code.length} code files of ${files.length}; review ${done.length + 1} of ${MAX_REVIEWS}`);
+    process.exit(0);
+  }
+  pause(2000);
 }
-console.error(`#${d.number} FAILED: gh reported success but no Copilot review request shows on the pull request. The monthly AI-credit budget may be used up; check Settings > Billing and licensing.`);
+console.error(`#${d.number} FAILED: gh reported success but no new Copilot review request appeared on the pull request's timeline in 20 seconds. Do not run this again straight away: check the pull request page first. If the monthly AI-credit budget is used up, GitHub will not start the review; see Settings > Billing and licensing.`);
 process.exit(1);

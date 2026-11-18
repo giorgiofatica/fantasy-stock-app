@@ -88,6 +88,12 @@ jobs:
         run: npm run lint
       - name: Type-check
         run: npx tsc --noEmit
+      # The Deno tests read the list of source files from a generated manifest
+      # (they run without file access). A screen added without regenerating it is
+      # invisible to them, including to the test that every route is declared
+      # behind the sign-in guards. Stale manifest = failure.
+      - name: Source manifest is current
+        run: node tests-deno/gen-source-manifest.mjs --check
       - name: Logic, copy and layout tests
         working-directory: apps/mobile/tests-deno
         run: deno test --frozen --allow-read --allow-env --allow-sys --allow-run .

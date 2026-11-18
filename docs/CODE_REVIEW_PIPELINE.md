@@ -1,6 +1,6 @@
 # Independent review and CI for pull requests
 
-**Status (2026-11-17):** Stage 1 is built: `.github/workflows/ci.yml`, the Copilot instruction files, `scripts/request-copilot-review.mjs` and this file. For Stage 2, Giorgio chose Option A (the desktop app's Auto-fix) on 2026-11-17; its pilot is described below and nothing is switched on by this file. Option B (a fixer hosted in GitHub) is not to be enabled.
+**Status (2026-11-18):** Stage 1 is built and was verified on pull request #516: `.github/workflows/ci.yml`, the Copilot instruction files, `scripts/request-copilot-review.mjs` and this file. For the fix loop, Giorgio chose Option A (the desktop app's Auto-fix) on 2026-11-17 and it was piloted on #516; what worked and what did not is under "Pilot on #516". Option B (a fixer hosted in GitHub) is not to be enabled.
 
 Why this exists: the code is written by Claude Code, and until now the same agent family was also the only reviewer. Two independent checks now run on every pull request before Giorgio merges it:
 
@@ -20,6 +20,7 @@ Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). It runs on 
 | | Edge functions type-check, no new errors | `node scripts/ci-ratchet.mjs edge-typecheck` |
 | **Mobile** | Lint | `(cd apps/mobile && npm run lint)` |
 | | Type-check | `(cd apps/mobile && npx tsc --noEmit)` |
+| | The generated source manifest is current (a new screen cannot hide from the tests) | `(cd apps/mobile && node tests-deno/gen-source-manifest.mjs --check)` |
 | | Logic, copy and layout tests | `(cd apps/mobile/tests-deno && deno test --frozen --allow-read --allow-env --allow-sys --allow-run .)` |
 | **Web** | Lint, no new errors | `node scripts/ci-ratchet.mjs web-lint` |
 | | Tests, type-check, build | `npm run test`, `typecheck`, `build` with `--workspace=apps/web` |
@@ -75,7 +76,10 @@ node scripts/request-copilot-review.mjs <pr-number>
 - It uses `gh pr edit --add-reviewer @copilot`, the documented per-pull-request way to ask, under Giorgio's own GitHub sign-in. No token is stored anywhere.
 - Copilot reviews once. A follow-up push is **not** reviewed by itself. After fixes are pushed, `--again` asks for one more review.
 - It refuses a third review on the same pull request. By then the pull request goes to Giorgio.
-- It reports "requested" only when GitHub shows the request. If the monthly budget is used up, it says so and fails.
+- It reports "requested" only when the pull request's timeline shows the request. GitHub does not list Copilot among a pull request's requested reviewers, so the timeline is the only place to look.
+- Run it again with `--dry-run` to see where a review stands: "ALREADY REQUESTED" means Copilot is still reading, "ALREADY REVIEWED" means the review of the current commit is in.
+
+**The effort level needs checking.** The account is set to Lite, yet the review requested on #516 on 2026-11-18 says "Review effort: Balanced" in its footer. Until a review footer says Lite, assume reviews cost the Balanced price.
 
 For a change that deserves a deeper read (auth, RLS, money, a migration that drops something), Giorgio switches his account's effort level to Balanced, the review is requested, and he switches it back. That is the one manual step left, and it is rare. The script prints a note when a pull request touches migrations, edge functions or workflows.
 
@@ -83,8 +87,9 @@ For a change that deserves a deeper read (auth, RLS, money, a migration that dro
 
 1. A session opens a pull request, as now, and runs the review command above.
 2. CI runs by itself on every push. Copilot reviews once, if the pull request has code in it.
-3. If CI is red or Copilot raised something real, it is fixed and pushed (see "The fix loop"). CI runs again.
-4. When **All checks** is green and the open comments are answered, the pull request is ready for Giorgio. He merges.
+3. If CI is red, the app wakes the Orchestrator, and the fix is pushed (see "The fix loop"). CI runs again.
+4. The Orchestrator reads Copilot's review itself when it lands. Do not wait to be woken for it: in the pilot, new review comments did not wake the session.
+5. When **All checks** is green, Copilot's review of the requested commit is in and each of its threads has an answer, the pull request is ready for Giorgio. He merges.
 
 ## Owner settings
 
@@ -108,9 +113,12 @@ Goal: when CI fails or a reviewer comments, the fix is made and pushed to the sa
 
 The Claude desktop app can watch a pull request and wake a session when CI fails, a merge conflict appears or a review comment arrives ("Auto-fix"). The switch is per session and per pull request.
 
-- **Which session is woken:** the one the app has bound to the pull request. In this repo the **Orchestrator** opens every pull request, and the app shows each one bound to the Orchestrator's session, not to the worker that wrote the code. So feedback arrives at the Orchestrator, which already decides who does what: it fixes a small thing itself or sends it to the worker that owns the branch.
-- **Turning it on:** the Orchestrator turns Auto-fix on for a pull request after opening it. The app asks Giorgio to approve the switch. It is off by default and stays off for docs-only pull requests.
-- **New accounts, secrets, bills:** none. It runs under the existing Claude plan, on Giorgio's Mac, with the GitHub sign-in already there. The Mac must be awake with the app open.
+- **Which session is woken:** the **Orchestrator**. It opens every pull request, and the app binds each one to the Orchestrator's session, not to the worker that wrote the code. The Orchestrator fixes a small thing itself or sends it to the worker that owns the branch.
+- **What turning it on means:** the app's own wording is that switching Auto-fix on is a standing go-ahead to fix a CI failure and push to that pull request's branch without asking first. The rules below are narrower than that, and they are this repo's rules, kept by the session, not by the app.
+- **Turning it on:** the Orchestrator turns Auto-fix on for a code pull request after opening it. The app may or may not ask Giorgio first, depending on the session's permission mode. It stays off for docs-only pull requests.
+- **New accounts, secrets, bills:** none. It runs under the existing Claude plan, on Giorgio's Mac, with the GitHub sign-in already there.
+- **The Mac must be awake with the app open.** While it sleeps, nothing is woken and nothing is fixed; the loop picks up when it wakes.
+- **Before Giorgio merges:** the app's "archive this session when the pull request closes" switch is on by default and would archive the Orchestrator's session. Turn it off in the pull request bar first.
 
 ### The two-try limit
 
@@ -129,14 +137,34 @@ The app has no setting for a number of tries, so it cannot enforce the limit its
 - Go straight to Giorgio, without trying, for anything that touches grants, RLS, secrets, a destructive migration, money or scoring results, and for two findings that contradict each other.
 - Never merge, approve, or turn on auto-merge.
 
-### Pilot
+### Pilot on #516 (2026-11-17 and 18)
 
-On one code pull request:
+The test case was real: the mobile tests failed type-checking on `main` (three errors in two test files).
 
-1. The Orchestrator turns Auto-fix on (Giorgio approves the switch).
-2. A CI failure occurs. Expect: the Orchestrator is woken once, the fix is pushed as `Autofix-Attempt: 1`, CI goes green, nothing merges.
-3. A Copilot review is requested. Expect: if Copilot comments, the Orchestrator is woken; record whether comments arrive one at a time or together.
-4. Record what did not behave as described here, and correct this section.
+| Step | What happened |
+|---|---|
+| CI catches a real failure | Yes. First push: Backend and Web green, Mobile red on the three errors, **All checks** red. |
+| Auto-fix wakes a session | Yes, the Orchestrator, within about 10 seconds of the switch going on. One message carried the failing checks and, with them, two older bot comments that needed nothing. |
+| The fix is pushed and CI re-runs by itself | Yes. The fix (types only, no assertion changed) was pushed about 30 seconds later; the next run was green on all four checks. |
+| Copilot reviews only when asked | Yes. The two follow-up pushes were not reviewed. The script's request produced one review, on the newest commit. |
+| Docs-only pull requests are skipped, repeats refused | Yes, on #511 and #512 (skipped), #513 and #514 (already reviewed), and #516 after its second review (refused). |
+| Copilot finds something real | Yes, twice. A stale source manifest could let a new screen pass CI without being declared behind the sign-in guards; CI now checks the manifest. And this script could not see a pending Copilot request; it now reads the timeline. |
+| A Copilot suggestion is checked, not just applied | Yes. For the second finding Copilot said to read the REST "requested reviewers" list. That list had been seen empty while the review was pending, so the fix uses the timeline instead. |
+| New review comments wake the session | **No.** Copilot's two comments did not produce a wake-up. The Orchestrator has to read the review itself. |
+| Reviews run at Lite | **No.** The footer says Balanced. |
+| The loop runs unattended overnight | **No.** The Mac slept from about 9 PM to 9:30 AM and nothing moved in between. |
+
+What is enforced by code, and what is a rule a session follows:
+
+| Safeguard | Kept by |
+|---|---|
+| CI fails on a failing test, type error, new lint error or stale map or manifest | Code (the workflow) |
+| A red run blocks the merge | Code, once the ruleset in "Owner settings" is on. Until then, nothing. |
+| No more than two Copilot reviews per pull request | Code (the script refuses) |
+| No overspending | Code (GitHub's budget stop) |
+| No more than two automated fixes per pull request | Rule. The count is written into commit messages so it survives a restart, but nothing stops a third. |
+| Check a finding before acting; never loosen a test; never touch `.github/` in an automated fix; send security and money changes to Giorgio | Rule |
+| Only Giorgio merges | Rule today (no session merges). Auto-merge is off and no workflow can merge. |
 
 ### Not chosen: a fixer hosted in GitHub (Option B)
 
