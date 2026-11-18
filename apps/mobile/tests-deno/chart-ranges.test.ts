@@ -415,7 +415,9 @@ Deno.test('the card passes its lots to the chart (P/L gain, the line coloured by
   assert(strip(cardSrc).includes('lots={lots}'));
   assert(!/lots=/.test(strip(stockSheetSrc)), 'the sheet draws per share');
   const src = strip(stockChartSrc);
-  assert(src.includes('holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, todayEt, seasonStart), base: series.base, price })'));
+  // A live season measures to today's price (todayEt, `price`); a finished one to its frozen end price (gainPrice).
+  assert(src.includes('holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, frozen ? endEt! : todayEt, seasonStart), base: series.base, price: gainPrice })'));
+  assert(src.includes('const gainPrice = frozen ? frozen.endPrice : price;'));
   assert(src.includes('const gain = ready ? holding ?? rangeGain(series.points, series.base) : null;'));
   assert(src.includes('tone={holding ? holding.tone : undefined}'), 'the colour follows the gain line when it is the holding\'s P/L');
 });

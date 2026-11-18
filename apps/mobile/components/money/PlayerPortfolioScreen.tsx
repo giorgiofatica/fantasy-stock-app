@@ -42,6 +42,7 @@ import { memberSnapshots, memberTrades } from '@/lib/game/memberWeek';
 import { cardSlotPill, etDateOf, weekSessions } from '@/lib/game/matchupRoster';
 import { openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
 import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
+import { seasonEndCloses } from '@/lib/money/portfolioChart';
 import { mondayOf } from '@/lib/money/portfolioChart';
 import { decideTradeGate } from '@/lib/money/tradeGate';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
@@ -142,12 +143,17 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   // A card can be whole when the ledger names how they got the stock, the stock has a price,
   // and the week's reads are in. Otherwise the row is information only.
   const cardReady = !!ledger && !!raw && snaps.status === 'ready';
-  const priceOf = (symbol: string) => data.prices[symbol] ?? raw?.quote(symbol) ?? null;
+  // A season that is over: the close on or before its last day (never today's quote), else the position's own entry.
+  const frozenPriceOf = (symbol: string) => {
+    if (!finished || !endEt || !ledger) return null;
+    return seasonEndCloses(data.bars, [symbol], endEt)[symbol.toUpperCase()] ?? openingOf(userId, symbol, ledger.activity)?.price ?? null;
+  };
+  const priceOf = (symbol: string) => (finished ? frozenPriceOf(symbol) : data.prices[symbol] ?? raw?.quote(symbol) ?? null);
   const canOpen = (symbol: string) => cardReady && openingOf(userId, symbol, ledger!.activity) !== null && priceOf(symbol) != null;
 
   const card = useMemo(() => {
     if (!shown || !ledger || !raw || snaps.status !== 'ready') return null;
-    const price = data.prices[shown] ?? raw.quote(shown);
+    const price = priceOf(shown);
     if (price == null) return null;
     const snapshots = memberSnapshots(snaps.rows);
     const trades = window ? memberTrades(ledger.activity, userId, window.weekStart, window.weekEnd) : [];
@@ -159,18 +165,18 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
       snapshots,
       trades,
       // An unknown week is null (the card's "–"), never a stand-in $0.00; a league without weeks
-      // (Duration) has no week figure at all.
-      weekGain: stockWeek(shown, snapshots, trades, price).gain,
+      // (Duration) has no week figure at all. A season that is over draws no week figure (the card hides it).
+      weekGain: finished ? 0 : stockWeek(shown, snapshots, trades, price).gain,
       hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
-      bars: data.bars[shown] ?? raw.bars[shown] ?? [],
+      bars: finished ? [] : data.bars[shown] ?? raw.bars[shown] ?? [],
       now,
     });
     if (!cardData) return null;
     const slotId = roster.slots.bySide[userId]?.[shown] ?? null;
     return { data: cardData, pill: cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, window, roster.slots, userId, activeLeague?.league_type]);
+  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, finished, endEt, window, roster.slots, userId, activeLeague?.league_type]);
 
   function pillFor(symbol: string) {
     const slotId = roster.slots.bySide[userId]?.[symbol] ?? null;
@@ -284,6 +290,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
           now={now}
           marketOpen={SEAM_ON ? false : gate.open}
           opens={marketOpensLabel(market?.next_open_at ?? null)}
+          seasonEnd={finished ? endEt : null}
         />
       ) : null}
     </View>

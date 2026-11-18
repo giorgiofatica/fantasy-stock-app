@@ -44,7 +44,7 @@ import { RollingMoney } from '@/components/home/RollingMoney';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, finishedPortfolioSeries, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, finishedPortfolioSeries, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
 import { seasonEndEt } from '@/lib/money/seasonEnd';
 import { isSeasonOver } from '@/lib/weekStatus';
 import { PhaseChip } from '@/components/sp/PhaseChip';
@@ -57,7 +57,7 @@ import { useHomeLeague } from '@/lib/home/useHomeLeague';
 import { toLiveSnapshots, toLiveTrades } from '@/lib/home/buildHomeViewModel';
 import { useRosterData } from '@/lib/game/useRosterData';
 import { cardSlotPill, etDateOf, weekSessions } from '@/lib/game/matchupRoster';
-import { playerCardData, stockWeek } from '@/lib/game/playerCardModel';
+import { openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
 import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
 import { SEAM_ON } from '@/lib/game/devSeam';
 import { decideTradeGate } from '@/lib/money/tradeGate';
@@ -166,7 +166,13 @@ export function PortfolioScreen() {
   const card = useMemo(() => {
     if (!shown || !ledgerState.ledger || !user || !raw) return null;
     const me = user.id;
-    const price = data.prices[shown] ?? raw.quote(shown);
+    // A season that is over: the card never reads today's quote. Its price is the close on or before the
+    // season's last day (or the position's own entry when no bar reaches that far); the Price and Week
+    // gain figures are not drawn then, and the chart reads its own season-end bars.
+    const frozenPrice = chartEnd && chart ? seasonEndCloses(chart.bars, [shown], chartEnd)[shown.toUpperCase()] ?? null : null;
+    const price = chartEnd
+      ? frozenPrice ?? openingOf(me, shown, ledgerState.ledger.activity)?.price ?? null
+      : data.prices[shown] ?? raw.quote(shown);
     if (price == null) return null;
     const snapshots = toLiveSnapshots(raw.data.current_week.my_snapshots);
     const trades = toLiveTrades(raw.data.current_week.my_trades);
@@ -178,13 +184,13 @@ export function PortfolioScreen() {
       snapshots,
       trades,
       // An unknown week is null (the card's "–"), never a stand-in $0.00; a league without weeks
-      // (Duration) has no week figure at all.
-      weekGain: stockWeek(shown, snapshots, trades, price).gain,
+      // (Duration) has no week figure at all. A season that is over draws no week figure (the card hides it).
+      weekGain: chartEnd ? 0 : stockWeek(shown, snapshots, trades, price).gain,
       hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
       // The capture seam: the fixture's own daily path through Wednesday, then Home's bars
       // after it (as Matchup's card reads it), so the week moves every day.
-      bars: SEAM_ON ? seamCardBars(chart?.bars[shown] ?? [], raw.bars[shown] ?? []) : raw.bars[shown] ?? chart?.bars[shown] ?? [],
+      bars: chartEnd ? [] : SEAM_ON ? seamCardBars(chart?.bars[shown] ?? [], raw.bars[shown] ?? []) : raw.bars[shown] ?? chart?.bars[shown] ?? [],
       now,
     });
     if (!cardData) return null;
@@ -192,7 +198,7 @@ export function PortfolioScreen() {
     const pill = cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null);
     return { data: cardData, pill };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, ledgerState.ledger, user, raw, data.prices, chart, sessions, roster.slots, activeLeague?.league_type]);
+  }, [shown, ledgerState.ledger, user, raw, data.prices, chart, chartEnd, sessions, roster.slots, activeLeague?.league_type]);
 
   function pillFor(symbol: string) {
     if (!user) return null;
@@ -395,7 +401,8 @@ export function PortfolioScreen() {
 
   let ownership: PlayerCardOwnership | null = null;
   if (card) {
-    ownership = card.data.held > 0
+    // A season that is over is closed to trading: the card has no Sell (the server refuses it too).
+    ownership = card.data.held > 0 && !chartEnd
       ? {
         owner: 'you',
         onSell: () => {
@@ -428,6 +435,7 @@ export function PortfolioScreen() {
           now={now}
           marketOpen={marketOpen}
           opens={opens}
+          seasonEnd={chartEnd}
         />
       ) : null}
     </View>
