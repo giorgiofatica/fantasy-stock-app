@@ -1,6 +1,6 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
-Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved"); the tab's layout is a later part and is not approved or drafted
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved"); Building: the part 1 server read is built and is being reworked to drop its price columns (the accurate-prices rule, #533), not merged, and it will need a `db push`; the tab's layout is a later part and is not approved or drafted
 Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: 5021a5bb
 
 **Revised 2026-11-18, the same day, after a later ruling.** Giorgio: "we can't be showing a
