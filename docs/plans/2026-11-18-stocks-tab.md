@@ -1,7 +1,13 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
 Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved"); the tab's layout is a later part and is not approved or drafted
-Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: —
+Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: 5021a5bb
+
+**Revised 2026-11-18, the same day, after a later ruling.** Giorgio: "we can't be showing a
+stock price that is a day old... it needs to show an accurate representation of what that
+price is." The list no longer returns the stored price, which can be up to about two
+trading days old. Rows get their price from the same live lookup the stock sheet uses.
+Changed below: decision 6, "What a row returns", the stale-price risk, and Done means.
 
 This is the revision of decision 12 of
 [`2026-10-08-trading-window-and-watchlist.md`](2026-10-08-trading-window-and-watchlist.md)
@@ -43,7 +49,7 @@ search gets its own tab").
 | 3 | Where buying lives | In the Stocks tab. "Buy a stock" leaves Portfolio. Selling stays on a holding's card | His words, 2026-11-18 |
 | 4 | What the tab opens on | A list of stocks, which search narrows; not an empty search field | A/B mockup after the research, 2026-11-18, "A" |
 | 5 | Which stocks are in the list | Only stocks nobody in the league owns. An owned stock is still found by searching | Same mockup, "A" |
-| 6 | What a row carries | The stock's price, under tight limits, as a knowing exception to "nothing scrapable" | A/B mockup, 2026-11-18, "A" |
+| 6 | What a row carries | The stock's price ("A"). Revised the same day: the price is a current one from the live lookup, never the stored one. The list itself returns no price, so the exception to "nothing scrapable" shrinks to names and categories | A/B mockup, 2026-11-18, "A"; his later ruling on old prices |
 | 7 | The order it opens in | Largest companies first; the size figure orders the list and is never shown | A/B mockup, 2026-11-18, "A" |
 
 ## Open questions
@@ -94,9 +100,11 @@ replaced direct `symbols` reads (`supabase/migrations/20261205000300_symbols_rea
    two tables type the manager id and the quantity differently (`CLAUDE.md`, "Cross-table
    position queries need explicit casts"). "Draftable" is what the app already calls "this league's list": a stock that fails
    it shows "Not in this league's list" in search today, and is simply absent here.
-3. **What a row returns.** Ticker, name, the stored price (`symbols.last_price`) and when it
-   was stored (`last_price_at`), and the stock's category. Not the company-size figure, the
-   industry, or anything else from the table.
+3. **What a row returns.** Ticker, name and the stock's category. No price, and not the
+   company-size figure, the industry, or anything else from the table. The screen asks the
+   existing live price lookup for the prices of the rows it is showing (at most 25), under
+   that lookup's own per-person limits. So a row shows the same price, from the same
+   source, that the stock's sheet shows when it is opened.
 4. **Order.** Company size, largest first, with the ticker as the tie-break so the order is
    stable. Stocks with no size figure come last.
 5. **Category filter.** Optional, one of our categories (`supabase/seed/categories.json`),
@@ -131,10 +139,12 @@ without duplicating the rules; that is the one design point left to them.
 - **Partial state.** A stock with trades but no draft row, or a draft row and a later full
   sale, must be judged by its net quantity, per stock, never by "does any row exist"
   (`CLAUDE.md`, the all-or-nothing family).
-- **A stale stored price.** `last_price` can be up to about two trading days old. It is a
-  real price and is shown as the list's price; the sheet shows the price a buy would fill
-  at. A stock with no stored price is not draftable and is not listed. The row never shows a
-  made-up number (2026-11-17, "always a price"; 2026-11-18, "never a stand-in zero").
+- **Old prices.** The stored `last_price` can be up to about two trading days old, so it is
+  never shown (his ruling, 2026-11-18); it is used only to decide that a stock is draftable.
+  The live lookup is better but not yet enough: on the current feed a rarely traded stock's
+  newest real trade can itself be a day old. That gap is the price-supplier decision and is
+  not something this plan can close; the list must not hide it with a stand-in. A row whose
+  live price has not arrived shows the app's "–", never a number from somewhere else.
 - **The order shifting between pages.** Company sizes refresh in the background, so a stock
   can move while someone scrolls and appear twice or be missed. The app drops repeats by
   ticker; a missed stock is found by search. Acceptable for a browse list.
@@ -144,15 +154,14 @@ without duplicating the rules; that is the one design point left to them.
 - **Leagues before the draft, and finished leagues.** Before the draft nobody owns anything:
   the list is the draftable universe. In a finished season there is no buying (2026-11-18);
   the function still answers a member, and the screen decides what to show.
-- **Licensing.** Prices on the rows are the same stored prices the app already shows in
-  search results. The company-size figure comes from the second supplier and is used only to
+- **Licensing.** Prices on the rows come from the live lookup the app already uses. The company-size figure comes from the second supplier and is used only to
   order, never returned. Neither changes the open price-supplier question.
 
 ## Done means
 
 - A member gets a page of at most 25 rows, largest first, none of them owned by anyone in
-  that league, each with ticker, name, price, price time and category, and a "more follow"
-  flag.
+  that league, each with ticker, name and category, and a "more follow" flag. No price
+  field is returned, shown by test.
 - A stock bought and fully sold in the league is listed again; a stock held by any manager
   is not, whichever of draft or trade put it there.
 - A signed-in non-member, and a signed-out caller, are refused, in tests that run the real
