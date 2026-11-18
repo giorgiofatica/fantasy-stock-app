@@ -138,11 +138,13 @@ Deno.test('round4 matches numeric(12,4)', () => {
   assertEquals(round4(212.44445), 212.4445);
 });
 
-Deno.test('barOpensOnly keeps only bar_open sources', () => {
+Deno.test('barOpensOnly keeps only bar_open sources (never a prev_close: the repair writes the session open only)', () => {
   const opens = barOpensOnly({
-    prices: new Map([['A', 1], ['B', 2], ['C', 3]]),
-    sources: new Map([['A', 'bar_open'], ['B', 'last_trade'], ['C', 'midpoint']]),
+    prices: new Map([['A', 1], ['B', 2], ['C', 3], ['D', 4]]),
+    sources: new Map([['A', 'bar_open'], ['B', 'last_trade'], ['C', 'midpoint'], ['D', 'prev_close']]),
     unpriced: new Map(),
+    closeDates: new Map([['D', '2026-11-13']]),
+    prevCloseRange: { fromDate: '2026-11-06', toDate: '2026-11-13' },
     errors: [],
   });
   assertEquals([...opens.keys()], ['A']);

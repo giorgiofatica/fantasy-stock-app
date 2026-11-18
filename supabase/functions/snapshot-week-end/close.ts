@@ -74,7 +74,8 @@
  * no runtime dependencies, so it is trivially and hermetically testable.
  */
 
-import { weekCut, type CalendarSession, type Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
+import { etWallClockToUtc, weekCut, type CalendarSession, type Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
+import { liveWindowFor, prevCloseAllowed, prevCloseRange, type WeekPriceRequest } from '../_shared/week-price.ts';
 
 /** A holding derived from drafts + trades for one participant. */
 export interface Holding {
@@ -366,4 +367,57 @@ export function planCloseWindow(
   if (now.getTime() < cut.close.getTime()) return { action: 'not_due' };
 
   return { action: 'proceed', open: cut.open, close: cut.close, closeSessionDate: cut.closeSessionDate };
+}
+
+/**
+ * snapshot-week-end's attempts on Friday: the 21:05Z cron (attempt 1), then
+ * retries at 21:10Z and 21:15Z; the Mon/Tue 15:30Z heal runs as attempt 3. The
+ * LAST attempt is where step 5 may run on the close session's own day
+ * (prevCloseAllowed), so this number, the retry chain and the heal's header are
+ * pinned by supabase/tests/step5_final_attempts.test.ts.
+ */
+export const WEEK_END_MAX_ATTEMPTS = 3;
+
+// ---------------------------------------------------------------------------
+// weekEndPriceRequest: the ONE price request snapshot-week-end sends (index.ts
+// makes a single call; no price logic lives there). PURE.
+//
+// The close session's 1Day bar CLOSE; for a symbol with no bar yet, a trade or
+// a sane midpoint from inside the close session (its open .. the week's
+// close), and only when that session is today. Then, on the LAST attempt (the
+// Friday 21:15Z retry and both Mon/Tue heals run as attempt 3) or for a past
+// session, step 5: the most recent real close from THIS week's sessions before
+// the close session. NEVER a close from before the week's open session: that
+// is last week's price, and a week-end priced from it would score a held stock
+// as flat for the week it did not trade. The open is an ET daytime instant, so
+// its UTC date is its session date.
+// ---------------------------------------------------------------------------
+
+/** The close session's own open instant (the live window's lower bound), or null. PURE. */
+export function sessionOpenMs(sessions: ReadonlyArray<CalendarSession>, sessionDate: string): number | null {
+  const s = sessions.find((x) => x.sessionDate === sessionDate);
+  if (!s) return null;
+  const ms = etWallClockToUtc(s.sessionDate, s.openEt).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+export function weekEndPriceRequest(input: {
+  symbols: Iterable<string>;
+  window: { open: Date; close: Date; closeSessionDate: string };
+  sessions: ReadonlyArray<CalendarSession>;
+  attempt: number;
+  maxAttempts: number;
+  now: Date;
+}): WeekPriceRequest {
+  const { window, now } = input;
+  const openMs = sessionOpenMs(input.sessions, window.closeSessionDate);
+  const live = openMs === null ? null : liveWindowFor(window.closeSessionDate, now, openMs, window.close.getTime());
+  return {
+    symbols: Array.from(input.symbols),
+    bar: { sessionDate: window.closeSessionDate, field: 'c' },
+    live,
+    prevClose: prevCloseAllowed(input.attempt, input.maxAttempts, live)
+      ? prevCloseRange(input.sessions, window.closeSessionDate, { notBeforeDate: window.open.toISOString().slice(0, 10) })
+      : null,
+  };
 }

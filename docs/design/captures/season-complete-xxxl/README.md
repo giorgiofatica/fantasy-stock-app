@@ -1,7 +1,7 @@
 # Home's season-complete card at XXXL, on `fix/season-complete-xxxl`
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** The stills and drivers (`fx.sh`, `shot.sh`, `lh.sh`, `lx.sh`) are in
-**`~/fantasy-stock-design-review/fix-season-complete-xxxl/`** (`base-*` before, `after/` and `L/` after); this file is the index.
+**`~/fantasy-stock/local/design-review/fix-season-complete-xxxl/`** (`base-*` before, `after/` and `L/` after); this file is the index.
 
 **The bug (Design Lead P2, 2026-10-19).** At XXXL, Home's season-complete card truncated: the "See the final standings" row read "See the fi…" and the
 hero line "Champion" read "Champ…" (`base-complete-xxxl-light-top.png`). Two different causes:

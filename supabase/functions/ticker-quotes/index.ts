@@ -16,6 +16,9 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { checkRateLimits, clientIp, refusalFor, REFUSAL, resolveUser } from '../_shared/market-guard.ts';
+// The ONE price chain (trade -> bar -> sane midpoint -> last daily close, never a
+// lone bid or ask), shared with quote and every fill.
+import { fetchFillPrice } from '../_shared/alpaca-price.ts';
 
 /** EXACTLY the web ticker tape's SYMBOLS (apps/web/src/Ticker.jsx); a test
  * fails if the two drift. The only symbols an anonymous caller can quote. */
@@ -158,48 +161,7 @@ Deno.serve(async (req) => {
     // Always request the free IEX feed
     const feedQS = `?feed=iex`;
 
-    let price: number | null = null;
-    let source = '';
-    let lastErr: any = null;
-
-    // 1) latest trade - most reliable source in IEX feed
-    {
-      const url = `${BASE}/stocks/${encodeURIComponent(symbol)}/trades/latest${feedQS}`;
-      const r = await alpacaGet(url, ALPACA_KEY, ALPACA_SECRET);
-      if (r.ok) {
-        const p = Number(r.body?.trade?.p);
-        if (Number.isFinite(p) && p > 0) { price = p; source = 'trade.p'; }
-      } else {
-        lastErr = { step: 'trade', status: r.status };
-      }
-    }
-
-    // 2) latest bar close
-    if (price == null) {
-      const url = `${BASE}/stocks/${encodeURIComponent(symbol)}/bars/latest${feedQS}`;
-      const r = await alpacaGet(url, ALPACA_KEY, ALPACA_SECRET);
-      if (r.ok) {
-        const c = Number(r.body?.bar?.c);
-        if (Number.isFinite(c) && c > 0) { price = c; source = 'bar.c'; }
-      } else {
-        lastErr = { step: 'bar', status: r.status };
-      }
-    }
-
-    // 3) latest quote (bid/ask) - only as fallback since IEX quotes can be stale
-    if (price == null) {
-      const url = `${BASE}/stocks/${encodeURIComponent(symbol)}/quotes/latest${feedQS}`;
-      const r = await alpacaGet(url, ALPACA_KEY, ALPACA_SECRET);
-      if (r.ok) {
-        const ap = Number(r.body?.quote?.ap);
-        const bp = Number(r.body?.quote?.bp);
-        // Use bid price as it's typically more reliable than ask in IEX
-        if (Number.isFinite(bp) && bp > 0) { price = bp; source = 'quote.bp'; }
-        else if (Number.isFinite(ap) && ap > 0) { price = ap; source = 'quote.ap'; }
-      } else {
-        lastErr = { step: 'quote', status: r.status };
-      }
-    }
+    const { price, source, error: lastErr } = await fetchFillPrice(symbol, ALPACA_KEY, ALPACA_SECRET);
 
     if (price == null) return json({ error: 'no_price', symbol, lastErr }, 404);
 

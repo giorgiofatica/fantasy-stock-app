@@ -11,7 +11,8 @@
  */
 
 /** Shape of a `quote` edge-function response — only the fields the fallback
- * chain reads. */
+ * chain reads. `quote` (the bid/ask) is listed only so a response carrying one
+ * still type-checks: it is never read as a price. */
 export interface RawQuoteResponse {
   price?: unknown;
   quote?: { ap?: unknown; bp?: unknown } | null;
@@ -21,17 +22,16 @@ export interface RawQuoteResponse {
 }
 
 /**
- * The three-stage IEX fallback chain (price -> quote.ap/bp -> trade.p ->
- * bar.c) — previously duplicated twice in TradeModal (initial-symbol load and
- * fetchQuoteForSymbol). Returns null when nothing in the response is a usable
- * positive price, matching both call sites' existing "quote is unusable"
- * behaviour (they cleared quote/companyName rather than showing 0 or NaN).
+ * The fallback chain (price -> trade.p -> bar.c), previously duplicated twice
+ * in TradeModal. A lone ask (`quote.ap`) or bid (`quote.bp`) is NEVER a price
+ * (2026-11-17): the server never fills at one, so Review buy must not show one.
+ * Returns null when nothing in the response is a usable positive price, matching
+ * the call sites' "quote is unusable" behaviour (they cleared quote/companyName
+ * rather than showing 0 or NaN).
  */
 export function parseQuotePrice(data: RawQuoteResponse | null | undefined): number | null {
   const price = Number(
     data?.price ??
-      data?.quote?.ap ??
-      data?.quote?.bp ??
       data?.trade?.p ??
       data?.bar?.c,
   );

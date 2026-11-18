@@ -124,7 +124,7 @@ start from a **visible** resting state (transform only); nothing sits at
   committed), the app pages still load and look exactly as before
   (screenshots of `/login` and one app page, before and after). Flip it back.
 - **Screenshots** at **320, 375, 414, 768, 1024, 1280, 1440** (browser pane;
-  headless Chrome fakes overflow under ~500px) → `~/fantasy-stock-design-review/ui-landing-gameday/`.
+  headless Chrome fakes overflow under ~500px) → `~/fantasy-stock/local/design-review/ui-landing-gameday/`.
 - **Recordings** (a frame sequence is fine) of the hero sequence, the section-3
   scrub, and a standings re-sort, **each with reduced motion off and on**.
 - **Lighthouse** JSON/HTML for mobile and desktop.

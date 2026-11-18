@@ -1,7 +1,7 @@
 # Create league › Season, the strip (B): gate stills
 
 **The 16 PNGs are not in the repo** (review screenshots live outside it, Giorgio 2026-10-14; `.gitignore`): they are in
-`~/fantasy-stock-design-review/feat-season-step-strip/`, named as the table below lists them.
+`~/fantasy-stock/local/design-review/feat-season-step-strip/`, named as the table below lists them.
 
 Stills for the Design Lead's gate on `feat/season-step-strip` (spec: PRODUCT_RULES, "The Season step in Create
 league", Giorgio picked B on board #call-season-step, 2026-11-10; the limit lines dropped on #call-limit-lines B,

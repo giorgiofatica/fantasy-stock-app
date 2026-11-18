@@ -1,6 +1,6 @@
 # Account deletion W4 on the app: gate captures (`feat/account-deletion-app`)
 
-**Screenshots stay out of the repo.** Every still is in **`~/fantasy-stock-design-review/feat-account-deletion-app/`**
+**Screenshots stay out of the repo.** Every still is in **`~/fantasy-stock/local/design-review/feat-account-deletion-app/`**
 (248 stills, 31 frame ids, plus `diffs/` and `not-reachable/`). This file is the index.
 
 **Build.** Branch `feat/account-deletion-app`. Captured on `1c82faa4` (F06-F27, F29-later and the F20-F23 re-shoot), `4260fee3` (F29-moment and the baseline diffs) and

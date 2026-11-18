@@ -69,7 +69,7 @@ tapping in the simulator.
 | `create-league-shared-rows` | 17e-l-dark, 17e-l-light | Create league (gate 6's screen, NOT edited): the shared SetupRows now divide by space (RowDivider is space) |
 | `create-league-shared-rows-bottom` | 17e-l-dark, 17e-l-light | The same, scrolled to the end |
 
-**Recordings** (device access; the `.mov`s are in `~/fantasy-stock-design-review/gn-w4-league/`, their de-duplicated frame sheets here):
+**Recordings** (device access; the `.mov`s are in `~/fantasy-stock/local/design-review/gn-w4-league/`, their de-duplicated frame sheets here):
 
 | Frame sheet | Flow (both themes: `-light` / `-dark`) |
 |---|---|

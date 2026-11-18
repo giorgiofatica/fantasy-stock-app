@@ -1,7 +1,7 @@
 # W8 follow-up: F3 (Profile's back link), F4 (Renewal review's Schedule), P3 copy, on `chore/w8-f3-f4`
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** The stills are in
-**`~/fantasy-stock-design-review/chore-w8-f3-f4/`**; this file is the index. Rulings are the Orchestrator's of
+**`~/fantasy-stock/local/design-review/chore-w8-f3-f4/`**; this file is the index. Rulings are the Orchestrator's of
 2026-10-16 (the Design Lead's F3 / F4 calls from the W8 tap-through).
 
 **Build.** Branch `chore/w8-f3-f4`, on top of `4abacfbc` (#287). Every still was taken on the working tree of this

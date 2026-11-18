@@ -1,7 +1,7 @@
 # Onboarding W4 on Game Night: gate captures (`feat/onboarding-w4`)
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** Every still, recording and frame
-sheet is in **`~/fantasy-stock-design-review/feat-onboarding-w4/`** (180 stills, 13 recordings
+sheet is in **`~/fantasy-stock/local/design-review/feat-onboarding-w4/`** (180 stills, 13 recordings
 with a de-duplicated frame sheet each, `accent-split.txt` + the script). This file is the index.
 A preliminary set from the middle of the build is in `…/feat-onboarding-w4-prelim/`; it is
 superseded and not part of the review.

@@ -205,7 +205,7 @@ the carve-out: **merging `origin/main` INTO your own branch locally is allowed
 
 1. **Screenshots are the proof.** DONE reports include before/after
    screenshots (and a short screen recording for anything animated), saved to
-   `~/fantasy-stock-design-review/<branch>/` (outside the repo — never
+   `~/fantasy-stock/local/design-review/<branch>/` (outside the repo — never
    committed), with absolute paths in the report. Typecheck/lint passing is
    necessary, not sufficient. Web: the browser pane. Mobile: the iOS Simulator.
 2. **The `APP_PAUSED` trap:** to see any web page other than the landing page,
@@ -264,7 +264,7 @@ the carve-out: **merging `origin/main` INTO your own branch locally is allowed
 > from `origin/main`; `git branch --show-current` before every commit; merging
 > `origin/main` INTO your own branch locally is allowed — it prompts Giorgio via
 > the ask tier). No feature code, no migrations, no pushes. Screenshots go in
-> `~/fantasy-stock-design-review/audit/`. To see non-landing web pages, flip
+> `~/fantasy-stock/local/design-review/audit/`. To see non-landing web pages, flip
 > `APP_PAUSED` to `false` locally only and never commit it.
 >
 > **Turn 1:** read, then send the Orchestrator your audit plan (which screens,

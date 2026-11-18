@@ -29,7 +29,7 @@ You are the UI worker for **Phase 3e: the money screens**. Your branch is `ui/mo
 - `docs/STATUS.md`.
 - `docs/audits/2026-09-30-week-window-audit.md`: **U2 is yours** (below).
 - `docs/design/DESIGN_DIRECTION.md`: §3 (the stock-detail sheet, Sell pre-selected), §4/§5, §9 and **§9A**.
-- The merged 3b-2 prompt and its review log `~/fantasy-stock-design-review/ui-mobile-home/DESIGN-REVIEW.md`. **Every finding there is a rule here.**
+- The merged 3b-2 prompt and its review log `~/fantasy-stock/local/design-review/ui-mobile-home/DESIGN-REVIEW.md`. **Every finding there is a rule here.**
 - `supabase/functions/record-trade/index.ts` and `_shared/draft-validation.ts` (`fixedNotionalFunding`, `resolveFunding`, `leagueOwnedSymbols`, `userCashSpent`, `fillQuantity`): the server is the authority on every trade.
 
 ## Rulings in force (don't reopen them without Giorgio)
@@ -178,7 +178,7 @@ A refusal appears **instantly** and never looks like success. Check `{ error }` 
   - disabled Buy/Sell announce their reason.
 - Contrast test passes in both themes; report any new pair.
 
-## Verify, then report DONE (captures in `~/fantasy-stock-design-review/ui-mobile-money/`)
+## Verify, then report DONE (captures in `~/fantasy-stock/local/design-review/ui-mobile-money/`)
 
 - **Checks:**
   - `npx tsc --noEmit` (baseline 1);

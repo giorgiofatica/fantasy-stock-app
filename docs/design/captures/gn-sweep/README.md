@@ -10,7 +10,7 @@ The before-frames are `origin/main` `0fa519bf` itself, plus the same DEV-only ca
 patched into a throwaway checkout (the `type`/`typeq` search actions, `scrollto`, and the gallery's
 gn-sweep section), so each pair is driven the same way. Nothing else differs.
 
-**Where the files are:** `~/fantasy-stock-design-review/feat-gn-sweep/` (checklist §1: captures
+**Where the files are:** `~/fantasy-stock/local/design-review/feat-gn-sweep/` (checklist §1: captures
 stay out of the repo). 112 stills (96 after, 16 before), 4 recordings, 1 frame sheet.
 
 **Capture times (2026-10-14, local):** after A 12:51–12:55 · B 12:18–12:21 · D1/D2 12:22–12:26 ·
@@ -67,7 +67,7 @@ E 12:26 · Q 12:27 · C 12:28; before 12:37–12:41.
 ## §2 Reference check
 
 **What I could and couldn't check.** The references for these screens are the checklist's (Dark:
-Sleeper / ESPN / Robinhood; Light: E*TRADE / Yahoo), but `~/fantasy-stock-design-review/references/`
+Sleeper / ESPN / Robinhood; Light: E*TRADE / Yahoo), but `~/fantasy-stock/local/design-review/references/`
 holds only ESPN's player card, and none of these screens has a reference capture there. So the
 borrowed traits below are checked against the **board frame**, and the squint test against the
 reference itself is left to the Design Lead (not claimed here).

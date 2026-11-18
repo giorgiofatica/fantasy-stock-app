@@ -249,7 +249,7 @@ building anything, and don't reopen a rule without him.
   price that you bought it at Uh, I would want to show that kind of line chart of its
   progression throughout the season in that kind of pop-up window." Reference: ESPN's
   player card (Giorgio's three screenshots, 2026-10-12, kept locally at
-  `~/fantasy-stock-design-review/references/espn-player-card-{1,2,3}.webp`, not in the repo, per the
+  `~/fantasy-stock/local/design-review/references/espn-player-card-{1,2,3}.webp`, not in the repo, per the
   references policy): header
   with name/team/position and the owning team, a key-figures strip, an Overview tab with
   this week's line, recent news, a game log, and a **Latest transaction** block ("Drafted
@@ -491,6 +491,25 @@ building anything, and don't reopen a rule without him.
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
   only the tiebreak. The UI shows the metric that decides the winner, via one shared helper.
+- **There is always a price for a stock, and no person ever types one in** (2026-11-17).
+  Asked what the app should do when a held stock has no trade for a whole day (the case the
+  2026-11-17 week-price fix leaves with no price), and shown three options (A: use the
+  stock's last closing price, automatically; B: wait for a person to enter a price; C: alert
+  the owner and leave the week unscored), Giorgio's words: "No. I'm sorry. There should
+  always be a price for a stock. We cannot be building an app that will have a human type in
+  the price. There needs to be, like, that cannot happen. There always needs to be a price
+  for a stock."
+  - Ruled out by his words: a person entering a price (B), and any state where a week stays
+    unscored because a stock has no price (C).
+  - The Planner's reading, not his words: the way to meet it is A, the stock's last real sale
+    price (its most recent close) used automatically when a day has no trade. That is a real
+    price, not an ask or a guess. He was told this is what A does and was not asked to pick a
+    letter again.
+  - Why the case exists at all, for whoever builds it: prices come from one small exchange's
+    feed, where a thinly traded stock can go a day with no trade even though it traded
+    elsewhere. Fuller market coverage is part of the price-supplier decision. A stock that
+    has stopped trading for good (delisted) is a separate case that this rule makes
+    necessary to design: its last price cannot be used for ever.
 - **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
   DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
   biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
@@ -566,8 +585,9 @@ building anything, and don't reopen a rule without him.
 
 - **Home shows only the selected league**, with the league pill ("+N" hint) to switch.
   There's no "your other leagues" row.
-- **Home hero:** team value is the big number; under it "+$X · +Y% season gain · +$Z today".
-  Home has no chart (below).
+- **Home hero:** team value is the big number; under it "+$X (+Y%) season gain · +$Z today"
+  (the percent in brackets since 2026-11-17, "Dollars and their percent" below; before that
+  "+$X · +Y% season gain · +$Z today"). Home has no chart (below).
 - **No chart on Home; the matchup comes first** (2026-11-03, option A, board
   `#call-home-chart`). Giorgio on 1.3.0 (8): "I don't love the chart on the home screen... I
   don't love the dashed line up top. ...you don't really get a sense of what's going on,
@@ -650,8 +670,30 @@ building anything, and don't reopen a rule without him.
       days. "Since the draft" is no longer a third figure; it is what the range gain says on
       Season. This replaces "Three key figures, not four" (2026-10-12). The Design Lead first
       recorded his earlier "for both" as covering this and withdrew it when he clarified.
-    - This ruling is about the gain beside a chart; other lines that pair dollars and a
-      percent with a dot (a matchup's "This week" line, for one) were not asked about.
+    - This ruling was about the gain beside a chart. The other lines that pair dollars and
+      a percent were asked about later the same day; see the next rule.
+  - **Dollars and their percent: the percent goes in brackets, everywhere, not only beside a
+    chart** (2026-11-17, A/B mockup in the Planner's chat; typed there, 23:23Z: "A"). The
+    question put to him: brackets wherever a dollar figure sits beside its own percent (A),
+    or beside charts only, with every other line keeping the dot (B). Before picking he
+    asked what the UX rules point to ("What does all of those UI, UX laws we were reviewing,
+    we talked about, what does that say?"); the Planner's answer was A, from UX rules 5 (the
+    same kind of thing looks the same on every screen), 1 (money surfaces follow Robinhood)
+    and 4 (the pair reads as one number in two forms), with the caveat that the rulebook
+    never names brackets.
+    - The rule: where a dollar gain and its percent sit together, it is **"+$X (+Y%)"**. No
+      dot between the two.
+    - The dot stays where it separates two different facts. The two lines he was shown:
+      - Portfolio's line under the value: **"+$121.27 (+0.99%) today"**. This is already on
+        main (#508), changed during a Design Lead review before he had been asked; his pick
+        keeps it. B would have put back "+$121.27 · +0.99% today".
+      - Home's line under the team value: **"+$343.59 (+2.86%) season gain · +$121.27
+        today"**. Only the first pair takes brackets; the dot before "today" stays. The
+        label "season gain" does not change.
+    - Not shown to him, and covered by the rule's wording: every other line that pairs a
+      dollar gain with its percent (a matchup's "This week" line, a roster row, the stock
+      sheet's day change). The Design Lead lists them and applies the same format; if the
+      brackets change how one of those lines fits or wraps, that still comes to him first.
   - **Which range a chart opens on: your team on Season, a stock you are shopping for on 1W**
     (2026-11-17, board `#call-chart-default`, PR #496; typed in the Orchestrator's chat,
     18:00Z: "go with B"). The Portfolio graph and the card for a stock on a team open on

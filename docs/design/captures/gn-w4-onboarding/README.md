@@ -1,7 +1,7 @@
 # W4 Onboarding, create, join and invite on Game Night: gate captures (`feat/gn-w4-onboarding`)
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** Every still, recording and frame
-sheet is in **`~/fantasy-stock-design-review/feat-gn-w4-onboarding/`**; this file is the index.
+sheet is in **`~/fantasy-stock/local/design-review/feat-gn-w4-onboarding/`**; this file is the index.
 
 **Builds.** The set was shot on **`fa420806`** (2026-10-14, 09:44–10:47 PDT, 121 files) and the
 Design Lead's pre-merge pass **`b61d1508`** (11:21–12:00 PDT, 68 files), both on `origin/main`

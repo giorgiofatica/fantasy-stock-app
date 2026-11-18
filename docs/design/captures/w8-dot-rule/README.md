@@ -1,7 +1,7 @@
 # W8: the one dot rule, "You're in" (X07), on `chore/w8-tap-through`
 
 **Screenshots stay out of the repo (Giorgio, 2026-10-14).** The four stills are in
-**`~/fantasy-stock-design-review/chore-w8-tap-through/`**; this file is the index.
+**`~/fantasy-stock/local/design-review/chore-w8-tap-through/`**; this file is the index.
 
 **Ruling (Design Lead, 2026-10-15): ONE rule app-wide, keepDots. A "·" may END a line and NEVER starts one.**
 W4's `12599265` had put the opposite rule on this one sentence (a no-break space AFTER the dot, so the dot started the

@@ -27,6 +27,7 @@ import {
   selectMissingHoldings,
   buildPricedRows,
   planWeekWindow,
+  weekStartPriceRequest,
   type Holding,
 } from './plan.ts';
 import { matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
@@ -477,4 +478,65 @@ Deno.test('planWeekWindow S4: a stored window in PostgREST +00:00 form that equa
   );
   assert(r.action === 'proceed');
   assertEquals(r.rewrite, false);
+});
+
+// ---------------------------------------------------------------------------
+// weekStartPriceRequest: the one price request index.ts sends. These kill the
+// call-site mutants the Orchestrator ran against the old inline code (M7:
+// prevCloseAllowed(...) -> true), now that the logic lives here.
+// ---------------------------------------------------------------------------
+
+const TWO_WEEKS: CalendarSession[] = [
+  { sessionDate: '2026-09-21', openEt: '09:30', closeEt: '16:00' }, // last week, Mon
+  { sessionDate: '2026-09-22', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-23', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-24', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-25', openEt: '09:30', closeEt: '16:00' }, // last week, Fri
+  { sessionDate: '2026-09-28', openEt: '09:30', closeEt: '16:00' }, // this week, Mon (13:30Z, EDT)
+  { sessionDate: '2026-09-29', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-09-30', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-10-01', openEt: '09:30', closeEt: '16:00' },
+  { sessionDate: '2026-10-02', openEt: '09:30', closeEt: '16:00' }, // this week, Fri (20:00Z close)
+];
+
+const WS_OPEN = new Date('2026-09-28T13:30:00Z');
+const WS_WINDOW = { open: WS_OPEN, openSessionDate: '2026-09-28' };
+const wsReq = (attempt: number, now: string) => weekStartPriceRequest({
+  symbols: new Set(['AAPL', 'TM']),
+  window: WS_WINDOW,
+  sessions: TWO_WEEKS,
+  attempt,
+  maxAttempts: 3,
+  now: new Date(now),
+});
+
+Deno.test('weekStartPriceRequest: attempt 1 of 3 on the open session -> the open bar, the live window, and NO step 5 (kills M7)', () => {
+  assertEquals(wsReq(1, '2026-09-28T13:35:00Z'), {
+    symbols: ['AAPL', 'TM'],
+    bar: { sessionDate: '2026-09-28', field: 'o' },
+    live: { fromMs: WS_OPEN.getTime(), toMs: Date.parse('2026-09-28T13:35:05Z') }, // now + CLOCK_SKEW_MS
+    prevClose: null,
+  });
+  assertEquals(wsReq(2, '2026-09-28T13:40:00Z').prevClose, null, 'attempt 2 of 3: still no step 5');
+});
+
+Deno.test('weekStartPriceRequest: the LAST attempt adds step 5 over the 5 sessions before the open', () => {
+  const r = wsReq(3, '2026-09-28T13:45:00Z');
+  assertEquals(r.prevClose, { fromDate: '2026-09-21', toDate: '2026-09-25' });
+  assertEquals(r.live, { fromMs: WS_OPEN.getTime(), toMs: Date.parse('2026-09-28T13:45:05Z') }, 'the live window stays on');
+});
+
+Deno.test('weekStartPriceRequest: a heal of a past open session -> no live window, step 5 on any attempt', () => {
+  const r = wsReq(1, '2026-09-29T14:35:00Z');
+  assertEquals(r.live, null);
+  assertEquals(r.bar, { sessionDate: '2026-09-28', field: 'o' });
+  assertEquals(r.prevClose, { fromDate: '2026-09-21', toDate: '2026-09-25' });
+});
+
+Deno.test('weekStartPriceRequest: a calendar that does not reach back before the open -> step 5 off even on the last attempt', () => {
+  const r = weekStartPriceRequest({
+    symbols: ['AAPL'], window: WS_WINDOW, sessions: TWO_WEEKS.slice(5),
+    attempt: 3, maxAttempts: 3, now: new Date('2026-09-28T13:45:00Z'),
+  });
+  assertEquals(r.prevClose, null);
 });

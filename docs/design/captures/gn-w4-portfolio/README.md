@@ -79,7 +79,7 @@ Fixture artifact: the fixture's fractional share counts make the per-slot notion
 
 ## Recordings (videos outside the repo, frame sheets here)
 
-`~/fantasy-stock-design-review/feat-gn-w4-portfolio/`: `rec-scrub-{light,dark}.mov`,
+`~/fantasy-stock/local/design-review/feat-gn-w4-portfolio/`: `rec-scrub-{light,dark}.mov`,
 `rec-row-card-sell-sheet-review-{light,dark}.mov`, `rec-search-buy-{light,dark}.mov`,
 `rec-card-reduce-motion-{light,dark}.mov`.
 

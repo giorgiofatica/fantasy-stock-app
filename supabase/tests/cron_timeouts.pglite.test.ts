@@ -21,6 +21,7 @@
  */
 import { assert, assertEquals, assertRejects, assertStringIncludes } from 'jsr:@std/assert';
 import { PGlite } from 'npm:@electric-sql/pglite@0.2';
+import { migrationFiles, scheduledJobs, type ScheduledJob } from './cron_jobs.ts';
 
 const ROOT = new URL('../../', import.meta.url);
 const MIGRATIONS_DIR = new URL('supabase/migrations/', ROOT);
@@ -32,35 +33,9 @@ const norm = (cmd: string) => cmd.replace(STRIP_TIMEOUT, '').replace(/\s+/g, ' '
 
 // ---------------------------------------------------------------------------
 // Pure: which cron jobs are still scheduled after the migrations, and with what
+// (scheduledJobs and migrationFiles live in ./cron_jobs.ts, shared with
+// step5_final_attempts.test.ts)
 // ---------------------------------------------------------------------------
-
-export interface ScheduledJob { name: string; schedule: string; command: string; file: string }
-
-/**
- * Replay cron.schedule / cron.unschedule over migration files in order. A job whose
- * LAST event is an unschedule (sync-alpaca-orders) is gone and ignored. Only literal
- * names are tracked; names built at runtime (the retry jobs) are covered by the
- * function-body check instead.
- */
-export function scheduledJobs(files: Array<{ name: string; sql: string }>): ScheduledJob[] {
-  const live = new Map<string, ScheduledJob>();
-  const ev = /cron\.(un)?schedule\(\s*'([^']+)'(?:\s*,\s*'([^']+)'\s*,\s*\$(\w*)\$([\s\S]*?)\$\4\$)?/dgi;
-  for (const f of [...files].sort((a, b) => a.name.localeCompare(b.name))) {
-    // Blank comment lines IN PLACE (same length) so a commented-out schedule is not
-    // seen, while match offsets still index the original text, whose command keeps
-    // its inline comments (the live row stores them verbatim).
-    const blanked = f.sql.replace(/^[ \t]*--.*$/gm, (c) => ' '.repeat(c.length));
-    for (const m of blanked.matchAll(ev)) {
-      const [, un, name, schedule] = m;
-      if (un) live.delete(name);
-      else if (schedule !== undefined) {
-        const [a, b] = m.indices![5]!;
-        live.set(name, { name, schedule, command: f.sql.slice(a, b), file: f.name });
-      }
-    }
-  }
-  return [...live.values()];
-}
 
 /**
  * Jobs that POST over pg_net without an explicit timeout above the platform's 150 s
@@ -73,16 +48,6 @@ export function jobsWithoutTimeout(jobs: ScheduledJob[]): string[] {
     const m = /timeout_milliseconds\s*:=\s*(\d+)/i.exec(j.command);
     return !m || Number(m[1]) <= 150_000;
   }).map((j) => `${j.name} (${j.file})`);
-}
-
-async function migrationFiles() {
-  const out: Array<{ name: string; sql: string }> = [];
-  // readDir is NOT recursive: deferred/ is never read, as `supabase db push` ignores it.
-  // A deferred cron joins the guard the moment it is promoted into migrations/.
-  for await (const e of Deno.readDir(MIGRATIONS_DIR)) {
-    if (e.isFile && e.name.endsWith('.sql')) out.push({ name: e.name, sql: await mig(e.name) });
-  }
-  return out;
 }
 
 Deno.test('GUARD: every cron job still scheduled after all migrations has an explicit timeout above 150 s', async () => {

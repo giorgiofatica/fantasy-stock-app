@@ -1,6 +1,6 @@
 # Design Lead handoff (2026-10-06)
 
-From the outgoing Design Lead session to the fresh one chartered on `docs/design/UX_RULES.md` (plan: `docs/plans/2026-10-06-ux-rulebook.md`, PR #137). Review logs and captures live outside the repo, in `~/fantasy-stock-design-review/<branch>/DESIGN-REVIEW.md`.
+From the outgoing Design Lead session to the fresh one chartered on `docs/design/UX_RULES.md` (plan: `docs/plans/2026-10-06-ux-rulebook.md`, PR #137). Review logs and captures live outside the repo, in `~/fantasy-stock/local/design-review/<branch>/DESIGN-REVIEW.md`.
 
 ## 1. DESIGN-APPROVED
 

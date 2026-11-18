@@ -143,7 +143,7 @@ Keep the hero's labels in one string module (e.g. `homeCopy.ts`), so copy review
   - the chart has an accessible summary plus an adjustable action that steps through the weeks.
 - The contrast test passes in both themes (including the carry-over chip pair).
 
-## Verify, then report DONE (captures go to `~/fantasy-stock-design-review/ui-mobile-home/`)
+## Verify, then report DONE (captures go to `~/fantasy-stock/local/design-review/ui-mobile-home/`)
 
 - **Checks:** `npx tsc --noEmit`, `npm run lint`, and the deno tests: `homePhase` (all ten states, including the boundaries Fri 4:00 PM, results posted, Mon 9:30 AM and a holiday), `liveWeekScore` (including partial mid-week buys) and `buildSeasonGainSeries` (no deposit jump, flat weekends, Friday pinning, endpoint = hero). Also the contrast test and the architecture map (`node scripts/gen-architecture.mjs`; you touch `.rpc` / `.from`). Report the counts.
 - **Captures, Light + Dark, standard size:** states 1–10 (use the dev fixture for states you can't reach live, and say which), the chart mid-scrub, and each window.

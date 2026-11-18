@@ -1,7 +1,7 @@
 # Onboarding W2 (auth): captures
 
 Branch `feat/onboarding-w2-auth`. Plan: [`docs/plans/2026-10-14-onboarding.md`](../../../plans/2026-10-14-onboarding.md).
-Capture folder (out of the repo, per the contract): `~/fantasy-stock-design-review/feat-onboarding-w2-auth/`.
+Capture folder (out of the repo, per the contract): `~/fantasy-stock/local/design-review/feat-onboarding-w2-auth/`.
 
 ## Status: no screenshots were taken in this pass
 
