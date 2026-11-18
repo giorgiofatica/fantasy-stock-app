@@ -120,6 +120,8 @@ node scripts/gen-architecture.mjs --check
 (cd apps/mobile && npm run lint && npx tsc --noEmit)
 ```
 
+Every pull request runs these checks in GitHub Actions and gets an independent Copilot review; see the [review and CI guide](docs/CODE_REVIEW_PIPELINE.md).
+
 See the [SQL test guide](supabase/tests/README.md) for individual database suites and their permissions, and the [1.3 device walkthrough](docs/testing/WALKTHROUGH_1.3.md) for release checks. Season simulations use a configured backend and are documented separately in the [simulation guide](docs/testing/SEASON_SIMULATION_TEST.md).
 
 ## Further reading

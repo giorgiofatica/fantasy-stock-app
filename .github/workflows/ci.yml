@@ -1,0 +1,140 @@
+# CI for every pull request into main, and for main itself after a merge.
+#
+# What it is for: objective, repeatable checks that do not depend on the author
+# of a change judging their own work. What it is not: proof the change is right.
+# See docs/CODE_REVIEW_PIPELINE.md for what each job covers and what is left out.
+#
+# Rules this file keeps (do not loosen without the owner's say-so):
+#   - `pull_request`, never `pull_request_target`: a fork's code runs with a
+#     read-only token and no secrets.
+#   - No secrets and no production access anywhere. Every test here is hermetic.
+#   - Read-only token. No job pushes, comments, approves or merges.
+#   - Actions are pinned to a commit, with the release in a comment.
+#   - No path filters. "All checks" is meant to be a required check, and a
+#     required check that is skipped by a path filter never reports, which
+#     blocks the merge. Docs-only PRs run everything; it takes a few minutes
+#     and standard runners are free for a public repository.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DENO_VERSION: "2.9.4"
+  NODE_VERSION: "24"
+
+jobs:
+  backend:
+    name: Backend (edge functions, SQL, architecture map)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+          cache: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+      # Edge-function logic plus the PGlite suites that run the real migrations.
+      # --frozen: a stale deno.lock is a failure, not a silent re-resolve.
+      - name: Backend and SQL tests
+        run: deno test --frozen --allow-read --allow-env supabase/
+      - name: Architecture map is current
+        run: node scripts/gen-architecture.mjs --check
+      - name: Edge functions type-check (no new errors)
+        run: node scripts/ci-ratchet.mjs edge-typecheck
+
+  mobile:
+    name: Mobile (lint, types, logic tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+          cache: true
+      # Installed BEFORE the Deno tests on purpose: without node_modules seven of
+      # those tests mark themselves "ignored" and the run still reports ok.
+      - name: Install (locked)
+        run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Type-check
+        run: npx tsc --noEmit
+      - name: Logic, copy and layout tests
+        working-directory: apps/mobile/tests-deno
+        run: deno test --frozen --allow-read --allow-env --allow-sys --allow-run .
+
+  web:
+    name: Web (lint, tests, types, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install (locked)
+        run: npm ci --no-audit --no-fund
+      - name: Lint (no new errors)
+        run: node scripts/ci-ratchet.mjs web-lint
+      - name: Tests
+        run: npm run test --workspace=apps/web
+      - name: Type-check
+        run: npm run typecheck --workspace=apps/web
+      # Builds with no env file and no secrets. With APP_PAUSED on, the build
+      # tree-shakes the gated pages, so this proves the bundle builds, not that
+      # those pages work.
+      - name: Build
+        run: npm run build --workspace=apps/web
+
+  # One stable name to require in a branch rule, whatever jobs exist above.
+  all-checks:
+    name: All checks
+    if: always()
+    needs: [backend, mobile, web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Every job must have succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for r in $RESULTS; do
+            if [ "$r" != "success" ]; then
+              echo "::error::a job finished as '$r'; this is not a pass"
+              exit 1
+            fi
+          done
