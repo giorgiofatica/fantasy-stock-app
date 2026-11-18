@@ -1150,8 +1150,17 @@ building anything, and don't reopen a rule without him.
     words: "I'm thinking we should name it something like market or something where it also
     indicates that it's not only a search, but also where you could buy or sell your
     portfolio." So "Discover" (his working word until now, used in the mockup) and "Search"
-    are out. The exact name is going back to him as a mockup; "Market" is his own suggestion.
-  - Not decided: the tab's exact name, and what browsing offers ("look
+    are out.
+  - **The tab is called "Stocks"** (2026-11-18, three-way mockup in the Planner's chat: A
+    "Market", B "Trade", C "Stocks"). His words: "That's actually a really good stocks is
+    actually a really good suggestion, seeing as though it kind of let's not do trade. Let's
+    do C, option C, stocks." What he was told with the options: "Stocks" is the direct match
+    for the "Players" tab in ESPN, Yahoo and Sleeper; "Market" already means the stock
+    market's hours elsewhere in the app ("Market closed"); "Trade" in fantasy football means
+    swapping with another manager, which this app does not have. "Stocks" is approved copy
+    for the tab's label. The icon is the Design Lead's to choose; the magnifying glass in
+    the mockup was a stand-in.
+  - Not decided: what browsing offers ("look
     around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup
