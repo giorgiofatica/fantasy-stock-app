@@ -510,6 +510,27 @@ building anything, and don't reopen a rule without him.
     elsewhere. Fuller market coverage is part of the price-supplier decision. A stock that
     has stopped trading for good (delisted) is a separate case that this rule makes
     necessary to design: its last price cannot be used for ever.
+  - **A missing number never shows as zero** (2026-11-18, on build 1.3.0 (17); typed in the
+    Planner's chat). On his phone, the card for NVTS in the league test_081126 read "Week
+    gain $0.00 / 0.00%" while the same card showed the stock down 4.21% that day. His words:
+    "That Navitas thing is an issue because, as I mentioned, this app is going to be basing
+    people's performances based off of the real market data. We can't have instances where we
+    just don't have anything for something. We can't allow there to be, when there's a real
+    stock that's down a certain percentage, it's just to be a zero. That's one of the things
+    where we need to have a fallback to where it can still figure out what the amount is or
+    something like that, because that's going to be an integral part of this app."
+    - What the zero was, by the code and not yet checked against that league's data: the card
+      shows $0.00 and 0.00% when the league-week has no starting price recorded for the stock
+      (`apps/mobile/lib/game/playerCardModel.ts`, `stockWeek`: a missing entry becomes 0). The
+      Portfolio and manager-portfolio week rows read the same value.
+    - Ruled out by his words: any figure that reads as "flat" or "zero" because the app has
+      nothing to compute it from.
+    - The Planner's reading, not his words: where the week's starting price was not recorded,
+      the app works the figure out from market data (the week's first real price, and failing
+      that the last real close), on the server, the same for every manager. For a stock that
+      has stopped trading, its last real price stands for as long as it takes; that also
+      answers the delisted case above for what a manager sees. He was told this in plain
+      words and not asked to choose a mechanism.
 - **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
   DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
   biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
@@ -700,6 +721,24 @@ building anything, and don't reopen a rule without him.
     Season. The stock sheet in Buy a stock opens on 1W. A (every chart opens on Season) was
     not picked. The reason given to him: each chart opens on what you most likely came to
     check, your team's whole run or a stock's recent move.
+  - **A finished season's chart shows the whole season, without the six ranges** (2026-11-18,
+    on build 1.3.0 (17); typed in the Planner's chat). His words: "once a season is over, I
+    think that some of those options of like the viewing and the portfolio thing should be
+    kind of grayed out or not an option, right? If a season's already completed, I think the
+    graph should just show only it should there should be a bit different of a view, right?
+    There shouldn't be the six options because let's say it's a season that's concluded like
+    a year ago and I press 1 week, that doesn't really make sense. So if a season's over, that
+    chart should just show the full season progression of how the portfolio was. And maybe
+    you can give me some mock-ups of what that'll look like because I don't think it should
+    have all those six options if most of those don't even apply."
+    - Decided by his words: in a league whose season is over, the Portfolio graph draws the
+      season from the draft to its last day, and the six range buttons are not offered.
+    - Not decided, going to him as mockups: what the finished view looks like, and whether
+      the value and its "today" line stop at the season's last day. On build 17 a finished
+      league's Portfolio still moves with today's market ("+$8.49 (+0.47%) today" on a
+      league marked Final).
+    - This is an exception to the grey-in-place rule below, which is about a range a chart
+      cannot draw YET.
   - **A range a chart cannot draw yet is greyed in its place, never hidden** (2026-11-17, board
     `#call-season-predraft`, PR #496; typed in the Orchestrator's chat, 18:04Z: "B and D").
     - B: before the league has drafted there is no season, so the stock sheet's Season button
@@ -1078,11 +1117,23 @@ building anything, and don't reopen a rule without him.
     in a tab of their own in the bottom bar, five tabs), he picked **B**. This replaces
     decision 12 of the watchlist and claims plan for where it lives. Everything else in that
     plan stands: search any time, the per-league watchlist, daily claims, the waiver order.
-  - Not decided: the tab's name and its place in the bar, what happens to "Buy a stock" on
-    Portfolio, and what browsing offers ("look around, see different markets"). Browsing by
-    our own categories needs nothing new; lists that depend on live market data (movers,
-    most active) wait on the price-supplier decision. These go to him as mockups in the
-    plan's revision. The names in the mockup ("Stocks", "Watching") were placeholders.
+  - **Buying lives in the new tab; selling stays on a stock you own** (2026-11-18; typed in
+    the Planner's chat). His words: "Now, for the discover, I think then the buy stock should
+    live in that new tab. I think if I go to my portfolio and I click on on a stock that I
+    own, I still have the option to do the selling from there. But this new discover tab
+    should be the true home of the buy and sell and the search function when it comes to
+    stocks."
+    - So "Buy a stock" leaves Portfolio and the new tab is where a manager searches and buys.
+      Tapping a holding on Portfolio still opens its card with Sell. A stock you hold can
+      still be sold from wherever its sheet opens, search included (2026-10-10, board
+      `#call-sell-from-search`).
+    - He called it "discover" here, as he did on 2026-11-16. The tab's name is still not
+      decided.
+  - Not decided: the tab's name and its place in the bar, and what browsing offers ("look
+    around, see different markets"). Browsing by our own categories needs nothing new; lists
+    that depend on live market data (movers, most active) wait on the price-supplier
+    decision. These go to him as mockups in the plan's revision. The names in the mockup
+    ("Stocks", "Watching") were placeholders.
 - **The watchlist is per league** (2026-10-08): "by league. if im in multiple fantasy football
   leagues, each one has its own waiver wire. if i want to buy apple in one league, i may not
   be able to in another if another player has it, i already have it, or it doesnt fit my
