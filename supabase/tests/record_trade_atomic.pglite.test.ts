@@ -54,6 +54,9 @@ const MIGRATIONS = [
   // Run it back: the completed-season refusal, under the lock (CREATE OR REPLACE
   // of the 13-argument function; loaded after the function it replaces).
   '20261115000006_record_trade_season_guard.sql',
+  // The season-end-BY-DATE refusal (reads matchups under the lock). Its own
+  // scenarios: record_trade_season_end.pglite.test.ts.
+  '20261207000000_record_trade_season_end_by_date.sql',
 ].map((f) => new URL(`supabase/migrations/${f}`, ROOT));
 const SIG13 = 'uuid,uuid,text,text,numeric,numeric,numeric,uuid,uuid[],text[],jsonb,jsonb,uuid';
 const SIG12 = 'uuid,uuid,text,text,numeric,numeric,numeric,uuid,uuid[],text[],jsonb,jsonb';
@@ -81,6 +84,9 @@ create table league_draft_slots (id uuid primary key default gen_random_uuid(),
   league_id uuid not null references leagues(id) on delete cascade, slot_index integer not null,
   slot_count integer not null default 1, price_min numeric, price_max numeric, category_id uuid,
   unique (league_id, slot_index));
+create table matchups (id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references leagues(id) on delete cascade, week_number int not null,
+  week_end timestamptz null, is_playoff boolean default false);
 `;
 
 // deno-lint-ignore no-explicit-any
