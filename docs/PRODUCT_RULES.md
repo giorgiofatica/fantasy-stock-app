@@ -536,6 +536,32 @@ building anything, and don't reopen a rule without him.
       has stopped trading, its last real price stands for as long as it takes; that also
       answers the delisted case above for what a manager sees. He was told this in plain
       words and not asked to choose a mechanism.
+  - **A price shown to a manager is the stock's current price, never an old one and never
+    missing, however rarely the stock trades** (2026-11-18; typed in the Planner's chat).
+    Asked what a buy should do for a thinly traded stock whose most recent trade on our data
+    source is from an earlier day (A: refuse the buy until it trades today; B: fill at that
+    last price, as the app does now), he picked neither. His words: "So this is another area
+    why we can't be showing a stock price that is a day old. If someone, it doesn't matter
+    how rare the stock is, if someone searches up a stock and they look for it and they want
+    to buy it, it needs to show an accurate representation of what that price is. So
+    question one is this repeated thing of, we cannot be showing incorrect numbers on stock
+    prices. We cannot be showing old, or we cannot be showing, just have nothing for a stock
+    price. That just can't happen."
+    - Ruled out by his words: a displayed or filled price that is a day old; a refusal or a
+      blank because the app has no price; any stand-in.
+    - What this means, and it is the Planner's reading: the rule cannot be met by code on
+      the current data. Prices come from one small exchange's feed, on which a rarely traded
+      stock can go a day or more with no trade while it trades elsewhere. The fixes of
+      2026-11-17 and 18 (#505, #513, #514) made the app use only real prices, but for such a
+      stock the newest real price it can see is still old. Meeting his rule needs a
+      full-market price feed. That is the price-supplier decision, with a monthly cost and
+      display terms, and this ruling makes it the next thing to bring him.
+    - Until a full-market feed is in place, the buy path stays as it is (no lone bid or ask,
+      the last real trade). That is known not to meet this rule for rarely traded stocks,
+      and nothing should be built that papers over it.
+    - It reaches the Stocks list he approved the same day: a row may not show the stored
+      price, which can be up to about two trading days old. The plan is revised so rows show
+      a current price or the list waits for the feed (see the plan).
 - **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
   DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
   biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
@@ -720,6 +746,21 @@ building anything, and don't reopen a rule without him.
       dollar gain with its percent (a matchup's "This week" line, a roster row, the stock
       sheet's day change). The Design Lead lists them and applies the same format; if the
       brackets change how one of those lines fits or wraps, that still comes to him first.
+  - **On a gain line only the numbers are coloured; the words stay grey** (2026-11-18, A/B
+    mockup in the Planner's chat). The app was inconsistent: on Home the words after a
+    figure ("season gain", "today") were grey, and on Portfolio they took the green or red
+    of the figure ("today" since #508; the whole "since the draft" line). Shown A (words
+    grey everywhere, only the numbers coloured) beside B (the words take the gain colour
+    everywhere), on Home's line and Portfolio's two lines, he picked **A**.
+    - So on Home and Portfolio the figure is green or red and the words that say what it is
+      ("season gain", "today", "since the draft", and the period words of a chart's range
+      gain) are the app's grey. Portfolio changes; Home already looks this way.
+    - Shown to him: Home's line and Portfolio's two lines. Covered by the same pick because
+      it is the same line: the range gain above any chart (the stock sheet, the player
+      card, a manager's portfolio). Any other place a word follows a coloured figure is the
+      Design Lead's to list, and comes to him only if it would look different from these.
+    - Not asked: the weight of the words. They are regular weight in A as drawn; the figures
+      keep theirs.
   - **Which range a chart opens on: your team on Season, a stock you are shopping for on 1W**
     (2026-11-17, board `#call-chart-default`, PR #496; typed in the Orchestrator's chat,
     18:00Z: "go with B"). The Portfolio graph and the card for a stock on a team open on
