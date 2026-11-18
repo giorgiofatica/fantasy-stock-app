@@ -10,11 +10,20 @@ Deno.test('parseQuotePrice: prefers data.price', () => {
   assertEquals(parseQuotePrice({ price: 123.45 }), 123.45);
 });
 
-Deno.test('parseQuotePrice: falls back through quote.ap -> quote.bp -> trade.p -> bar.c', () => {
-  assertEquals(parseQuotePrice({ quote: { ap: 10 } }), 10);
-  assertEquals(parseQuotePrice({ quote: { bp: 11 } }), 11);
+Deno.test('parseQuotePrice: falls back through trade.p -> bar.c', () => {
   assertEquals(parseQuotePrice({ trade: { p: 12 } }), 12);
   assertEquals(parseQuotePrice({ bar: { c: 13 } }), 13);
+  assertEquals(parseQuotePrice({ trade: { p: 12 }, bar: { c: 13 } }), 12);
+});
+
+// 2026-11-17: a lone ask or bid is an offer nobody traded at; the server never
+// fills at one, so Review buy must never show one.
+Deno.test('parseQuotePrice: a lone ask or bid is never a price', () => {
+  assertEquals(parseQuotePrice({ quote: { ap: 10 } }), null);
+  assertEquals(parseQuotePrice({ quote: { bp: 11 } }), null);
+  assertEquals(parseQuotePrice({ quote: { ap: 10, bp: 9.99 } }), null);
+  assertEquals(parseQuotePrice({ quote: { ap: 247.75 }, bar: { c: 212 } }), 212);
+  assertEquals(parseQuotePrice({ quote: { ap: 247.75 }, trade: { p: 212.1 } }), 212.1);
 });
 
 Deno.test('parseQuotePrice: nullish/zero/negative is unusable', () => {
