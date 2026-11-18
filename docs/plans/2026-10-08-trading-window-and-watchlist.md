@@ -1,6 +1,6 @@
 # Trading window, watchlist and claims (the waiver wire)
 
-Status: Approved (Giorgio, 2026-10-09: "C and approved"); decision 12 (where the watchlist lives) superseded 2026-11-16 by a 5th bottom tab, "B" (`docs/PRODUCT_RULES.md`, #477); the plan revision is the Planner's and is NOT built
+Status: Approved (Giorgio, 2026-10-09: "C and approved"); decision 12 (where the watchlist lives) superseded 2026-11-16 by a 5th bottom tab, "B" (`docs/PRODUCT_RULES.md`, #477); the plan revision is the Planner's and is NOT built Revision: [`2026-11-18-stocks-tab.md`](2026-11-18-stocks-tab.md) (part 1 approved 2026-11-18).
 Planner session: "Planner" (Fable 5.1), 2026-10-08/09 · Orchestrator hand-off: —
 
 ## Goal

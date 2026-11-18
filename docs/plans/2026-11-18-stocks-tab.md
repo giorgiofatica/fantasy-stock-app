@@ -1,0 +1,183 @@
+# The Stocks tab, part 1: the list of stocks you can get
+
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved"); the tab's layout is a later part and is not approved or drafted
+Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: —
+
+This is the revision of decision 12 of
+[`2026-10-08-trading-window-and-watchlist.md`](2026-10-08-trading-window-and-watchlist.md)
+(where search and the watchlist live). Everything else in that plan stands: search any time,
+the per-league watchlist, daily claims, the waiver order. This file covers the tab itself
+and, in this part, only the data behind its list.
+
+## Goal
+
+Today the only way to find a stock is to open "Buy a stock" from Portfolio and type a name
+you already know. Managers get a fifth tab, **Stocks**, that opens on a list of the stocks
+they can actually get in their league, the way a fantasy app's Players screen opens on the
+available players. Part 1 builds the server side of that list, so the screen can be built
+as soon as its layout is settled.
+
+## Giorgio's rules
+
+All typed in the Planner's chat unless noted, and all in `docs/PRODUCT_RULES.md` ("Stock
+search gets its own tab").
+
+- 2026-11-16: "right now, the only place to look up a stock is when you go to buy a stock...
+  a discover page where I can go and search up stocks and then add them to a watch list".
+  Picked B: search, the watchlist and browsing in a tab of their own.
+- 2026-11-18: "the buy stock should live in that new tab. I think if I go to my portfolio and
+  I click on on a stock that I own, I still have the option to do the selling from there."
+- 2026-11-18: "For me to drop a player, I do that from my own roster, which would be like the
+  portfolio here. So the selling aspect isn't really going to be too heavily involved in this
+  part. It's more going to be the buying and seeing what's available."
+- 2026-11-18, on the name: "Let's do C, option C, stocks... let's not do trade."
+- 2026-10-08, the rule this plan makes one exception to: "I don't want people to be able to
+  scrape anything".
+
+## Decisions
+
+| # | Question | Decision | Board section / date |
+|---|---|---|---|
+| 1 | Where the tab sits | Fifth, last on the right; the other four do not move | A/B mockup, 2026-11-18, "A" |
+| 2 | Its name | "Stocks" | Three-way mockup, 2026-11-18, "C" |
+| 3 | Where buying lives | In the Stocks tab. "Buy a stock" leaves Portfolio. Selling stays on a holding's card | His words, 2026-11-18 |
+| 4 | What the tab opens on | A list of stocks, which search narrows; not an empty search field | A/B mockup after the research, 2026-11-18, "A" |
+| 5 | Which stocks are in the list | Only stocks nobody in the league owns. An owned stock is still found by searching | Same mockup, "A" |
+| 6 | What a row carries | The stock's price, under tight limits, as a knowing exception to "nothing scrapable" | A/B mockup, 2026-11-18, "A" |
+| 7 | The order it opens in | Largest companies first; the size figure orders the list and is never shown | A/B mockup, 2026-11-18, "A" |
+
+## Open questions
+
+None blocks part 1. Open for the later parts:
+
+- **The layout of the list** (rows, how filters are presented, whether a manager can re-sort,
+  the action on a row). Waits for Giorgio's screenshots of the three apps' Players tabs; the
+  research could not confirm the mobile layouts
+  ([`../research/2026-11-18-players-tab-and-waiver-wire-ui.md`](../research/2026-11-18-players-tab-and-waiver-wire-ui.md)).
+- **The tab's icon** (the Design Lead's).
+- **Any trending or "most added" list.** "Most added" needs our own cross-league counts;
+  movers need live prices and wait on the price-supplier decision.
+- **Where the watchlist and claims sit on this screen.** Their rules are approved in the
+  October plan; their place is part of the layout.
+
+## Scope
+
+In (part 1): one server read that returns a page of the league's available stocks, its
+limits, and its tests.
+
+Out, and why:
+
+- The screen, the tab bar change, and taking "Buy a stock" off Portfolio: they wait for the
+  layout. Nothing a manager can see changes in part 1.
+- Typed search: it stays on the existing `symbols-search` function, which already finds any
+  stock, owned or not, under its own limits.
+- The watchlist, claims and the waiver order: the October plan.
+- Any change to what the app may read from the `symbols` table directly. That stays as the
+  2026-11-16 lockdown left it: `symbol`, `name`, `is_draftable` only.
+
+## How it works
+
+**From the manager's side (once the screen exists).** Open Stocks: the list shows the
+biggest companies nobody in the league holds, each with its price. Scroll for more. Pick a
+category to narrow it. Type to search instead. Tap a stock to open its sheet, where the
+price shown is the price a buy would fill at (#514), and buy.
+
+**From the system's side.** One new read, in the pattern of the three reader functions that
+replaced direct `symbols` reads (`supabase/migrations/20261205000300_symbols_readers_functions.sql`):
+
+1. **Who may call it.** A signed-in member of the league it asks about, checked inside the
+   function (`auth.uid()` and `is_member`). Everyone else gets nothing: not an empty list
+   that looks like "no stocks", a refusal the app can tell apart.
+2. **Which stocks.** `is_draftable` stocks with a stored price, minus every stock any
+   manager in that league currently holds. "Currently holds" is the net of draft picks and
+   trades, per stock, greater than zero: a stock bought and then sold is available again. The
+   two tables type the manager id and the quantity differently (`CLAUDE.md`, "Cross-table
+   position queries need explicit casts"). "Draftable" is what the app already calls "this league's list": a stock that fails
+   it shows "Not in this league's list" in search today, and is simply absent here.
+3. **What a row returns.** Ticker, name, the stored price (`symbols.last_price`) and when it
+   was stored (`last_price_at`), and the stock's category. Not the company-size figure, the
+   industry, or anything else from the table.
+4. **Order.** Company size, largest first, with the ticker as the tie-break so the order is
+   stable. Stocks with no size figure come last.
+5. **Category filter.** Optional, one of our categories (`supabase/seed/categories.json`),
+   resolved the way the server already resolves a stock's category
+   (`supabase/functions/_shared/category-eligibility.ts`: a curated override first, then the
+   industry rule).
+6. **Paging.** By position in that order ("after this size and ticker"), not by page number,
+   so a page cannot be skipped to. The page size is capped on the server at 25 whatever the
+   app asks for. Each answer says whether more follow (it fetches one extra row to know); it
+   gives no total count, which would tell a caller the size of what they have not paged.
+7. **Pacing and the record.** Per signed-in person, across all their leagues, using the
+   existing limiter (`check_and_bump_rate_limit`): a per-minute limit that normal scrolling
+   never meets, an hourly limit, and a daily one. The daily counter is the record of who
+   read how much. Starting numbers for the builder to confirm against real scrolling: 20
+   pages a minute, 120 an hour, 600 a day. At those limits, walking all of about 14,750
+   stocks takes one account roughly a day, and shows up in the counters.
+8. **Grants.** `SECURITY DEFINER` with `search_path` pinned; execute revoked from `public`,
+   `anon`, `authenticated` and `service_role` by name, then granted to `authenticated`
+   only, verified with the `proacl` query (`CLAUDE.md`, "Postgres function grants").
+
+A database function is proposed over an edge function because the work is one query (the
+anti-join on holdings) and the limiter and the membership check already exist in SQL. The
+builder may argue for an edge function if the category resolution cannot be done in SQL
+without duplicating the rules; that is the one design point left to them.
+
+## Risks and edge cases
+
+- **This re-opens, on purpose and narrowly, what the 2026-11-16 lockdown closed.** The test
+  of "narrow" is in Done means: member-only, capped, paced, counted, three fields plus a
+  category. A reviewer should read this plan next to the S1 finding in
+  `docs/security/2026-11-13-brief-security-check.md`.
+- **Partial state.** A stock with trades but no draft row, or a draft row and a later full
+  sale, must be judged by its net quantity, per stock, never by "does any row exist"
+  (`CLAUDE.md`, the all-or-nothing family).
+- **A stale stored price.** `last_price` can be up to about two trading days old. It is a
+  real price and is shown as the list's price; the sheet shows the price a buy would fill
+  at. A stock with no stored price is not draftable and is not listed. The row never shows a
+  made-up number (2026-11-17, "always a price"; 2026-11-18, "never a stand-in zero").
+- **The order shifting between pages.** Company sizes refresh in the background, so a stock
+  can move while someone scrolls and appear twice or be missed. The app drops repeats by
+  ticker; a missed stock is found by search. Acceptable for a browse list.
+- **Ownership changing between pages.** A stock listed a moment ago can be bought by another
+  manager. The buy path already refuses an owned stock on the server; the list is a guide,
+  not a reservation (`docs/design/FANTASY_CONVENTIONS.md`, "A list is not a reservation").
+- **Leagues before the draft, and finished leagues.** Before the draft nobody owns anything:
+  the list is the draftable universe. In a finished season there is no buying (2026-11-18);
+  the function still answers a member, and the screen decides what to show.
+- **Licensing.** Prices on the rows are the same stored prices the app already shows in
+  search results. The company-size figure comes from the second supplier and is used only to
+  order, never returned. Neither changes the open price-supplier question.
+
+## Done means
+
+- A member gets a page of at most 25 rows, largest first, none of them owned by anyone in
+  that league, each with ticker, name, price, price time and category, and a "more follow"
+  flag.
+- A stock bought and fully sold in the league is listed again; a stock held by any manager
+  is not, whichever of draft or trade put it there.
+- A signed-in non-member, and a signed-out caller, are refused, in tests that run the real
+  migration (PGlite), and the function's grants are checked from `proacl`, not assumed.
+- Asking for 1,000 rows returns 25. The limiter refuses past each limit and the daily counter
+  shows the reads.
+- The category filter returns only that category's stocks, with the same answer the server's
+  existing category resolution gives.
+- Nothing else about `symbols` is readable that was not before: the column grant is
+  unchanged, shown by test.
+- The architecture map is regenerated and current.
+- By hand, with Giorgio: after `db push`, one read-only check that an account outside a
+  league is refused and a member gets rows; recorded in `STATUS.md` by the Recorder.
+
+## Suggested workstreams
+
+1. **Backend (this part):** the migration, its PGlite tests, the map. One worker.
+2. **Design (blocked on screenshots):** the list's layout, modelled on the three apps, as a
+   board for Giorgio.
+3. **Mobile (blocked on 2):** the tab, the list, "Buy a stock" off Portfolio.
+
+## Models
+
+| Role / workstream | Model | Why |
+|---|---|---|
+| Backend read path | Opus, with a `security-reviewer` and a `supabase-reviewer` pass | A new `SECURITY DEFINER` read over a locked table, grants, and a partial-state query |
+| Design | Design Lead's default | Layout from references |
+| Mobile | Sonnet | UI over an existing sheet and search |
