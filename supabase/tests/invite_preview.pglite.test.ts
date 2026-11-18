@@ -95,6 +95,23 @@ Deno.test({
     const reset = () => db.exec('delete from public.invite_preview_limits');
     const count = async (subjectLike: string) =>
       Number((await q(`select coalesce(sum(hits), 0) as n from public.invite_preview_limits where subject like $1`, [subjectLike]))[0].n);
+    // The limiter keys every bucket on date_trunc('minute' | 'hour', now()), and now() is the TRANSACTION's start.
+    // A step that counts calls into one window runs them inside ONE transaction, so every call (and any seed row)
+    // shares one now() and the wall clock cannot cross a boundary mid-step. Without it, 30 hits that straddled a
+    // minute (CI run 44412112161, 22:32:00.037Z) reset the bucket and the 31st came back 'found'. The advisory
+    // try-lock is xact-scoped and re-entrant within the one session, so repeated calls do not refuse themselves.
+    const oneWindow = async (fn: () => Promise<void>) => {
+      await db.exec('begin');
+      try {
+        const start = (await q(`select now()::text as t`))[0].t;
+        await fn();
+        assertEquals((await q(`select now()::text as t`))[0].t, start, 'now() stayed frozen for the whole step');
+        await db.exec('commit');
+      } catch (e) {
+        await db.exec('rollback').catch(() => {});
+        throw e;
+      }
+    };
 
     await db.exec(SCHEMA);
     const migration = await Deno.readTextFile(MIGRATION);
@@ -185,38 +202,47 @@ Deno.test({
     });
 
     await t.step('per-IP misses: 10 an hour, then everything from that IP is refused, valid codes too, and spends nothing', async () => {
-      await reset();
-      for (let i = 0; i < 10; i++) assertEquals((await look(`MISS${i}CODE22`)).status, 'not_found', `miss ${i + 1}`);
-      assertEquals(await count('miss-ip:%'), 10);
-      assertEquals(await look('K7Q2XRM3PA'), { status: 'rate_limited', limit: 'miss-ip' }, 'a valid code from the throttled IP');
-      assertEquals(await look('MISSXCODE22'), { status: 'rate_limited', limit: 'miss-ip' });
-      assertEquals(await count('miss-ip:%'), 10, 'a refusal does not spend more of the budget');
-      assertEquals(await count('miss-all'), 10);
-      // another IP is unaffected
-      assertEquals((await look('K7Q2XRM3PA', '198.51.100.77')).status, 'found');
+      await oneWindow(async () => {
+        await reset();
+        for (let i = 0; i < 10; i++) assertEquals((await look(`MISS${i}CODE22`)).status, 'not_found', `miss ${i + 1}`);
+        assertEquals(await count('miss-ip:%'), 10);
+        assertEquals(await look('K7Q2XRM3PA'), { status: 'rate_limited', limit: 'miss-ip' }, 'a valid code from the throttled IP');
+        assertEquals(await look('MISSXCODE22'), { status: 'rate_limited', limit: 'miss-ip' });
+        assertEquals(await count('miss-ip:%'), 10, 'a refusal does not spend more of the budget');
+        assertEquals(await count('miss-all'), 10);
+        // another IP is unaffected
+        assertEquals((await look('K7Q2XRM3PA', '198.51.100.77')).status, 'found');
+      });
     });
 
     await t.step('hits never spend the miss budget; the request limit is 30 a minute', async () => {
-      await reset();
-      for (let i = 0; i < 30; i++) assertEquals((await look('K7Q2XRM3PA')).status, 'found', `hit ${i + 1}`);
-      assertEquals(await count('miss-%'), 0);
-      assertEquals(await look('K7Q2XRM3PA'), { status: 'rate_limited', limit: 'ip' }, 'the 31st request in the minute');
+      await oneWindow(async () => {
+        await reset();
+        for (let i = 0; i < 30; i++) assertEquals((await look('K7Q2XRM3PA')).status, 'found', `hit ${i + 1}`);
+        assertEquals(await count('miss-%'), 0);
+        assertEquals((await q(`select count(*)::int as n from public.invite_preview_limits where subject like 'ip:%'`))[0].n, 1, 'all 30 in ONE minute row');
+        assertEquals(await look('K7Q2XRM3PA'), { status: 'rate_limited', limit: 'ip' }, 'the 31st request in the minute');
+      });
     });
 
     await t.step('the GLOBAL ceiling: 300 misses an hour refuses everyone, any IP, any code', async () => {
-      await reset();
-      await db.exec(`insert into public.invite_preview_limits values ('miss-all', date_trunc('hour', now()), 299)`);
-      assertEquals((await look('K7Q2XRM3PA', '192.0.2.1')).status, 'found', 'one under the ceiling');
-      assertEquals((await look('MISSAGAIN22', '192.0.2.2')).status, 'not_found', 'the 300th miss');
-      assertEquals(await look('K7Q2XRM3PA', '192.0.2.3'), { status: 'rate_limited', limit: 'miss-all' }, 'a brand-new IP, a valid code');
-      assertEquals(await count('miss-all'), 300, 'the refusal spent nothing');
+      await oneWindow(async () => {
+        await reset();
+        await db.exec(`insert into public.invite_preview_limits values ('miss-all', date_trunc('hour', now()), 299)`);
+        assertEquals((await look('K7Q2XRM3PA', '192.0.2.1')).status, 'found', 'one under the ceiling');
+        assertEquals((await look('MISSAGAIN22', '192.0.2.2')).status, 'not_found', 'the 300th miss');
+        assertEquals(await look('K7Q2XRM3PA', '192.0.2.3'), { status: 'rate_limited', limit: 'miss-all' }, 'a brand-new IP, a valid code');
+        assertEquals(await count('miss-all'), 300, 'the refusal spent nothing');
+      });
     });
 
     await t.step('the GLOBAL request ceiling: 600 a minute refuses everyone, even a brand-new address with a valid code', async () => {
-      await reset();
-      await db.exec(`insert into public.invite_preview_limits values ('req-all', date_trunc('minute', now()), 599)`);
-      assertEquals((await look('K7Q2XRM3PA', '192.0.2.50')).status, 'found', 'the 600th');
-      assertEquals(await look('K7Q2XRM3PA', '192.0.2.51'), { status: 'rate_limited', limit: 'req-all' }, 'the 601st');
+      await oneWindow(async () => {
+        await reset();
+        await db.exec(`insert into public.invite_preview_limits values ('req-all', date_trunc('minute', now()), 599)`);
+        assertEquals((await look('K7Q2XRM3PA', '192.0.2.50')).status, 'found', 'the 600th');
+        assertEquals(await look('K7Q2XRM3PA', '192.0.2.51'), { status: 'rate_limited', limit: 'req-all' }, 'the 601st');
+      });
     });
 
     await t.step('the check-then-bump runs under ONE (try) advisory lock, taken before the first read', async () => {
@@ -418,9 +444,11 @@ Deno.test({
     });
 
     await t.step('an empty IP shares ONE bucket (the strict direction)', async () => {
-      await reset();
-      for (let i = 0; i < 10; i++) await look(`NOIP${i}CODE22`, '');
-      assertEquals((await look('K7Q2XRM3PA', null)).status, 'rate_limited');
+      await oneWindow(async () => {
+        await reset();
+        for (let i = 0; i < 10; i++) await look(`NOIP${i}CODE22`, '');
+        assertEquals((await look('K7Q2XRM3PA', null)).status, 'rate_limited');
+      });
     });
   },
 });
