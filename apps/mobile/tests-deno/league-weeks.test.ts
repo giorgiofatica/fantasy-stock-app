@@ -76,6 +76,22 @@ Deno.test('stockWeek: a row with no live price -> unknown (liveWeekScore leaves 
   assertEquals(stockWeek('NVDA', snap, [], null), { gain: null, pct: null });
 });
 
+Deno.test('stockWeek: a partly unpriced stock (a sale this week, no live price for the rest) is unknown, not its sale', () => {
+  const sell = { symbol: 'NVDA', action: 'sell' as const, quantity: fixtureQty(nvda) / 2, price: nvda.mon + 10, createdAt: new Date('2026-09-22T15:00:00Z') };
+  assertEquals(stockWeek('NVDA', snap, [sell], null), { gain: null, pct: null });
+  const whole = stockWeek('NVDA', snap, [sell], nvda.thu);
+  assert(whole.gain !== null && whole.pct !== null, 'priced: the whole week');
+});
+
+Deno.test('Matchup tab: the roster sides carry the live unpriced symbols; the card uses the same week gate', () => {
+  const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
+  assert(src.includes('unpriced: final ? [] : derived.live.me.unpriced }'), 'your side');
+  assert(src.includes('unpriced: final ? [] : opp.unpriced }'), "their side");
+  assert(src.includes('hasWeeks: leagueHasWeeks(activeLeague?.league_type),'), 'no hard-coded week flag');
+  assert(!src.includes('hasWeeks: true'));
+  assert(strip(SOURCES['lib/game/matchupRosterView.ts']).includes('const c = side.unpriced?.includes(e.symbol) ? undefined : centsBy.get(e.symbol);'));
+});
+
 Deno.test('weekPctOf: no basis -> unknown (null), not 0%', () => {
   assertEquals(weekPctOf(5, 0), null);
   assertEquals(weekPctOf(0, 0), null);
