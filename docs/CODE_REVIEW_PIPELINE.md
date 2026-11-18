@@ -1,6 +1,6 @@
 # Independent review and CI for pull requests
 
-**Status (2026-11-17):** Stage 1 is built (this file, `.github/workflows/ci.yml`, the Copilot instruction files). Stage 2 is a design only; nothing in it is switched on.
+**Status (2026-11-17):** Stage 1 is built: `.github/workflows/ci.yml`, the Copilot instruction files, `scripts/request-copilot-review.mjs` and this file. For Stage 2, Giorgio chose Option A (the desktop app's Auto-fix) on 2026-11-17; its pilot is described below and nothing is switched on by this file. Option B (a fixer hosted in GitHub) is not to be enabled.
 
 Why this exists: the code is written by Claude Code, and until now the same agent family was also the only reviewer. Two independent checks now run on every pull request before Giorgio merges it:
 
@@ -61,61 +61,83 @@ Each comment starts with **Blocking**, **Important** or **Advisory**. Those word
 
 A Copilot finding is checked before it is acted on. If it is right, it is fixed and gets a test. If it is wrong, the reply on the thread says why. A finding is never "fixed" by loosening a test.
 
+## When Copilot reviews
+
+Automatic review is **off** in Giorgio's account (2026-11-17), on purpose. GitHub's automatic review is all or nothing: neither the account setting nor a repository ruleset can skip a docs-only pull request, and two thirds of this repo's pull requests are docs-only. The effort level is an account setting too (now **Lite**); there is no documented way to pick it for one review.
+
+So the session that opens a pull request asks for the review, with one command:
+
+```bash
+node scripts/request-copilot-review.mjs <pr-number>
+```
+
+- It requests a review only when the pull request changes something other than docs (`docs/**` and `.md` files) and is not a draft.
+- It uses `gh pr edit --add-reviewer @copilot`, the documented per-pull-request way to ask, under Giorgio's own GitHub sign-in. No token is stored anywhere.
+- Copilot reviews once. A follow-up push is **not** reviewed by itself. After fixes are pushed, `--again` asks for one more review.
+- It refuses a third review on the same pull request. By then the pull request goes to Giorgio.
+- It reports "requested" only when GitHub shows the request. If the monthly budget is used up, it says so and fails.
+
+For a change that deserves a deeper read (auth, RLS, money, a migration that drops something), Giorgio switches his account's effort level to Balanced, the review is requested, and he switches it back. That is the one manual step left, and it is rare. The script prints a note when a pull request touches migrations, edge functions or workflows.
+
 ## Daily use
 
-1. A session opens a pull request, as now.
-2. CI and Copilot run by themselves. Both finish in a few minutes.
-3. If CI is red or Copilot raised something real, the session that owns the pull request fixes it and pushes. Both run again on the new commit.
+1. A session opens a pull request, as now, and runs the review command above.
+2. CI runs by itself on every push. Copilot reviews once, if the pull request has code in it.
+3. If CI is red or Copilot raised something real, it is fixed and pushed (see "The fix loop"). CI runs again.
 4. When **All checks** is green and the open comments are answered, the pull request is ready for Giorgio. He merges.
 
 ## Owner settings
 
 These are Giorgio's to change; nothing in the repo can set them.
 
-1. **Require CI before merging (recommended, free on a public repository).** Settings › Rules › Rulesets › New branch ruleset. Target branch `main`. Tick "Require status checks to pass" and add the check named `All checks`. Leave "Require a pull request before merging" approvals at 0, so nothing asks for a second human. Add yourself to the bypass list if you want an emergency way through. Do this only after `All checks` has been seen green on `main`.
-2. **Dependency alerts (optional, free, no workflow).** Settings › Advanced Security › turn on Dependency graph and Dependabot alerts. Both are off today, which is why CI has no dependency job: GitHub's dependency review needs the graph.
-3. **Copilot review cost.** See the next section before leaving automatic review on for everything.
+1. **Require CI before merging (recommended, free on a public repository).** Do this once this pull request is merged and `All checks` has been seen green on `main`. Settings › Rules › Rulesets › New ruleset › New branch ruleset. Name it, set Enforcement status to Active, and under Target branches add "Include default branch". Tick "Require status checks to pass", choose "Add checks" and add `All checks`. Leave "Require a pull request before merging" unticked or with 0 approvals, so nothing asks for a second human. Under Bypass list, add "Repository admin" if you want an emergency way through.
+2. **Dependency alerts (optional, free, no workflow).** Settings › Advanced Security › turn on Dependency graph and Dependabot alerts. Both are off today, which is why CI has no dependency job.
+3. **Copilot (done 2026-11-17):** automatic review off, draft review off, effort Lite; an AI-credits budget of $20 a month with "stop usage when budget limit is reached" on.
 
 ## Cost
 
-- **GitHub Actions:** standard runners are free for a public repository. This workflow adds no charge.
-- **Copilot review:** Copilot Pro includes a monthly credit allowance. The planning brief puts a Balanced review at about $1.50 on average and the allowance at $15; neither figure was verified here. This repo opened 200 pull requests on 14 working days in November, about 14 a day, and two thirds of them changed only docs. With automatic review on for every pull request and every push, the allowance is likely to run out within days. Check Settings › Billing and licensing › Usage after the first day and decide from the real number. The cheapest useful setup is review on code pull requests only: turn automatic review off, and have the session that opens a code pull request ask for it (`gh pr edit <number> --add-reviewer @copilot`).
+- **GitHub Actions:** standard runners are free for a public repository. This workflow adds no charge. A Copilot review also starts a short Actions run of its own; that is free here too.
+- **Copilot:** $10 a month for the plan, which includes $15 of AI credits, plus the $20 budget: about $35 of reviews a month, and it stops there. The risk is running out before the month ends, not overspending.
+- **How far $35 goes is not known yet.** The cost of a Lite review on this repo has not been measured. In November the repo opened about 5 code pull requests per working day. One review each is roughly 100 to 140 reviews a month, so the budget covers them only if a Lite review costs about 25 to 35 cents. Read the real figure from Settings › Billing and licensing › Usage after the first few Lite reviews. If it is higher, review only pull requests that touch `supabase/` and `apps/mobile/lib/`, or raise the budget.
 
-## Stage 2: the fix loop (design only, not enabled)
+## The fix loop (Option A, chosen 2026-11-17)
 
-Goal: when CI fails or Copilot raises a real finding, the fix is made and pushed to the same pull request without Giorgio carrying the message. It stops after two tries and never merges.
+Goal: when CI fails or a reviewer comments, the fix is made and pushed to the same pull request without Giorgio carrying the message. It stops after two tries and never merges.
 
-### Option A (recommended first): the desktop app's own pull-request monitor
+### How it works here
 
-The Claude desktop app can watch the pull request a session opened and wake that session on a CI failure, a merge conflict or a review comment ("Auto-fix"). The session that wrote the change fixes it and pushes.
+The Claude desktop app can watch a pull request and wake a session when CI fails, a merge conflict appears or a review comment arrives ("Auto-fix"). The switch is per session and per pull request.
 
-- **New accounts, secrets, bills:** none. It runs under the existing Claude plan, on Giorgio's Mac, with the GitHub sign-in already there.
-- **Triggers CI and Copilot again:** yes, the push is an ordinary push from his account.
-- **Permissions:** unchanged. No workflow gets write access.
-- **Limits:** the Mac must be awake with the app open. The switch is per pull request and the app asks him to approve turning it on. The two-try limit is an instruction to the session, not a hard stop built into GitHub.
-- **Rules the session follows:** act only on a finding for the current commit; check a Copilot finding against the code before changing anything; never loosen a test or raise a baseline; never edit `.github/`, migrations already applied, or `.claude/`; after two failed tries, or on anything touching security, data or a migration, stop and write a summary for Giorgio.
+- **Which session is woken:** the one the app has bound to the pull request. In this repo the **Orchestrator** opens every pull request, and the app shows each one bound to the Orchestrator's session, not to the worker that wrote the code. So feedback arrives at the Orchestrator, which already decides who does what: it fixes a small thing itself or sends it to the worker that owns the branch.
+- **Turning it on:** the Orchestrator turns Auto-fix on for a pull request after opening it. The app asks Giorgio to approve the switch. It is off by default and stays off for docs-only pull requests.
+- **New accounts, secrets, bills:** none. It runs under the existing Claude plan, on Giorgio's Mac, with the GitHub sign-in already there. The Mac must be awake with the app open.
 
-### Option B: a hosted fixer in GitHub Actions
+### The two-try limit
 
-`anthropics/claude-code-action`, started by a second workflow when CI fails or Copilot submits a review.
+The app has no setting for a number of tries, so it cannot enforce the limit itself. The limit is kept by three things, the last two of which do not depend on a session remembering anything:
 
-- **Sign-in to Claude, his choice:** an Anthropic API key (billed per use) or a Claude subscription token made with `claude setup-token` (uses the plan's allowance). Either is a new repository secret.
-- **Pushing:** the default workflow token cannot start another workflow run, so a fix pushed with it would never be re-checked. The action's own GitHub App (or a small app of his own) is needed, with write access to contents and pull requests. That app cannot edit workflow files.
-- **Guards:** runs only for pull requests from this repository opened by the owner, never from a fork (the repo is public, so a stranger's pull request and its comments are untrusted text); one run per pull request at a time; two attempts, counted by a label; a time limit per run; a status comment on every stop.
-- **Cost:** Actions minutes are free here. Each attempt costs one Claude run plus one more Copilot review of the new push. With a two-try limit that is up to three Copilot reviews per pull request.
-- **Risk it adds:** a credential with write access living in GitHub, and an agent acting on text that Copilot or a diff supplies.
+1. **The rule.** A session makes at most two automated fix attempts on one pull request. Each attempt is one commit whose message ends with the line `Autofix-Attempt: 1` or `Autofix-Attempt: 2`.
+2. **The count is on the pull request, not in a session's memory.** Before any automated fix, count them: `git log origin/main..HEAD --grep='^Autofix-Attempt:' --oneline | wc -l`. At 2, stop: turn Auto-fix off for that pull request and write a summary for Giorgio (what failed, what was tried, what is left).
+3. **The review script refuses a third Copilot review**, and GitHub stops reviews when the budget is reached. A loop cannot run up a bill.
 
-### Recommendation
+### Rules for every automated fix
 
-Pilot Option A on one code pull request. It adds nothing new to secure or pay for, and it keeps the fixer in the same place as the context. Move to Option B only if fixes need to happen while the Mac is off.
+- Act only on a finding about the pull request's current commit. Ignore a comment on a commit that has since been replaced.
+- Check a Copilot finding against the code before changing anything. If it is right, fix it and add a test. If it is wrong, reply on the thread saying why, and change nothing.
+- Never loosen or delete a test, raise a number in `.github/ci-baselines.json`, add `--no-check`, or skip a check to get a green run.
+- Never edit `.github/`, `.claude/`, or a migration that is already applied.
+- Go straight to Giorgio, without trying, for anything that touches grants, RLS, secrets, a destructive migration, money or scoring results, and for two findings that contradict each other.
+- Never merge, approve, or turn on auto-merge.
 
-### Decisions for Giorgio before anything is switched on
+### Pilot
 
-1. Option A, Option B, or stay with Stage 1.
-2. For B only: API key or subscription token, and the official app or his own.
-3. Whether Copilot reviews every push during a fix loop or only the last one (cost).
-4. The stop conditions: two tries, and which kinds of change always go to him.
+On one code pull request:
 
-### Pilot (either option)
+1. The Orchestrator turns Auto-fix on (Giorgio approves the switch).
+2. A CI failure occurs. Expect: the Orchestrator is woken once, the fix is pushed as `Autofix-Attempt: 1`, CI goes green, nothing merges.
+3. A Copilot review is requested. Expect: if Copilot comments, the Orchestrator is woken; record whether comments arrive one at a time or together.
+4. Record what did not behave as described here, and correct this section.
 
-One code pull request with a known, harmless failing test. Expect: the fixer is woken once, pushes one fix, CI goes green, Copilot reviews the new commit, a summary lands on the pull request, nothing merges. Then a second pull request where the right answer is to stop and ask, to see that it does.
+### Not chosen: a fixer hosted in GitHub (Option B)
+
+`anthropics/claude-code-action`, started by a workflow when CI fails or a review arrives. It would work with the Mac off, but it needs a Claude sign-in and a push-capable app stored in a public repository, and it adds a Claude run per attempt. Giorgio ruled it out on 2026-11-17. Do not add it without his say-so.
