@@ -383,6 +383,7 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-matchup-after', 'The Matchup tab after the season', () => window.KSMatchupAfter],
     ['call-stocks-finished', 'The Stocks tab in a finished season', () => window.KSStocksFinished],
     ['call-stocks-icon', 'The Stocks tab\u2019s icon', () => window.KSStocksIcon],
   ];
@@ -569,6 +570,7 @@
           {window.KSCreateClose ? <window.KSCreateClose /> : null}
           {window.KSSlotCheck ? <window.KSSlotCheck /> : null}
           {window.KSStocksList ? <window.KSStocksList /> : null}
+          {window.KSMatchupAfter ? <window.KSMatchupAfter /> : null}
           {window.KSStocksFinished ? <window.KSStocksFinished /> : null}
           {window.KSStocksIcon ? <window.KSStocksIcon /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}

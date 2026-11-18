@@ -15460,8 +15460,8 @@ window.KS_REFS = {
       <span key={l} style={{ display: 'grid', justifyItems: 'center', gap: 2, color: on ? 'var(--c-accent)' : 'var(--c-text-2)', ...fs(10, x, 1.3), fontWeight: 600 }}><Icon d={d} size={24} width={on ? 2.4 : 1.8} />{l}</span>
     );
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', padding: '10px 4px 22px', background: 'var(--c-bg)', borderTop: '1px solid var(--c-border)' }}>
-        {tab(ICON.home, 'Home')}{tab(ICON.matchup, 'Matchup')}{tab(ICON.league, 'League')}{tab(ICON.portfolio, 'Portfolio')}{tab(stocks, 'Stocks', true)}
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${stocks === null ? 4 : 5}, 1fr)`, padding: '10px 4px 22px', background: 'var(--c-bg)', borderTop: '1px solid var(--c-border)' }}>
+        {tab(ICON.home, 'Home')}{tab(ICON.matchup, 'Matchup', stocks === null)}{tab(ICON.league, 'League')}{tab(ICON.portfolio, 'Portfolio')}{stocks === null ? null : tab(stocks, 'Stocks', true)}
       </div>
     );
   }
@@ -15556,6 +15556,72 @@ window.KS_REFS = {
   );
   const Grid = ({ children, n = 'three' }) => <div className={`b-concepts b-concepts--${n}`}>{children}</div>;
 
+  /** (1) The Matchup tab once the season is over. v: a (the last matchup, final) | b (blank, as today). */
+  function MatchupAfter({ t = 'light', v, label }) {
+    const rows = [['NVDA', '+$149.60', '+7.23%', '−$12.14', '−0.63%', 'NKE'], ['AAPL', '+$97.68', '+4.73%', '−$21.11', '−1.09%', 'DIS'], ['CRM', '+$46.50', '+2.28%', '+$13.22', '+0.65%', 'KO'], ['V', '+$51.16', '+2.53%', '+$20.50', '+0.98%', 'JPM']];
+    const tone = (s) => (s.startsWith('−') ? 'var(--c-loss)' : 'var(--c-gain)');
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label}>
+          <OS />
+          <div style={{ position: 'absolute', top: 54, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, padding: '0 16px', overflow: 'hidden', display: 'grid', alignContent: 'start', gap: 10 }}>
+              <Pill name="Summer Cup" />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: 3, borderRadius: 10, background: 'var(--c-inset)', fontSize: 14, fontWeight: 600 }}>
+                <span style={{ textAlign: 'center', padding: '7px 0', borderRadius: 8, background: 'var(--c-surface)', color: 'var(--c-text)' }}>My matchup</span>
+                <span style={{ textAlign: 'center', padding: '7px 0', color: 'var(--c-text-2)' }}>All matchups</span>
+              </div>
+              {v === 'a' ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 14px', borderRadius: 10, background: 'var(--c-accent)', color: 'var(--c-on-accent)', fontSize: 14, fontWeight: 800 }}><span>Roberto B. wins the Final</span><span>W · 5–1</span></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderRadius: 14, overflow: 'hidden', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
+                    <div style={{ padding: 12, background: 'var(--c-inset)', display: 'grid', gap: 6 }}><b style={{ fontSize: 14, color: 'var(--c-text)' }}>Roberto B.</b><b className="dr-num" style={{ fontSize: 28, color: 'var(--c-text)' }}>+$351.79</b></div>
+                    <div style={{ padding: 12, display: 'grid', gap: 6, justifyItems: 'end' }}><b style={{ fontSize: 14, color: 'var(--c-text)' }}>Gianluigi B.</b><b className="dr-num" style={{ fontSize: 28, color: 'var(--c-text)' }}>−$38.88</b></div>
+                  </div>
+                  <span style={{ textAlign: 'center', fontSize: 13, color: 'var(--c-text-2)' }}>Roberto B. won by $390.67</span>
+                  {rows.map(([a, ag, ap, bg, bp, b]) => (
+                    <div key={a} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 13 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', borderRadius: 10, background: 'var(--c-inset)' }}><b style={{ color: 'var(--c-text)' }}>{a}</b><span className="dr-num" style={{ textAlign: 'right', color: tone(ag), fontWeight: 700 }}>{ag}<br />{ap}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px' }}><span className="dr-num" style={{ color: tone(bg), fontWeight: 700 }}>{bg}<br />{bp}</span><b style={{ color: 'var(--c-text)' }}>{b}</b></div>
+                    </div>
+                  ))}
+                </>
+              ) : null}
+            </div>
+            <TabBar stocks={null} />
+          </div>
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+
+  function CallMatchupAfter({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-matchup-after" aria-labelledby="call-matchup-after-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Matchup</span>
+          <div>
+            <h2 id="call-matchup-after-h">{archived ? 'Decided: the Matchup tab after the season' : 'Your call: the Matchup tab after the season'}</h2>
+            <p className="b-job">{'Once a season is over, the Matchup tab shows nothing under its switch today. What should it show?'}</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>A · your last matchup, final.</b> The final result the app already draws for any finished week, kept instead of cleared. Tapping a stock opens the finished-season card you picked: no price, no "today", no Sell.</li>
+          <li><b>B · blank, as now.</b></li>
+          <li><b>Who sees what in A:</b> the two finalists see the Final. A manager knocked out earlier sees their line, "Out in the Semifinals" (your words), and one who missed the playoffs sees "You didn't make the playoffs.", as they did in the last week. Nobody has a bye in the last week: byes only happen in the first playoff round.</li>
+          <li><b>Recommended: A.</b> A blank tab is a dead end; the final result is the season’s last record.</li>
+          <li><b>No new words.</b></li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B.</>}</li>
+        </ul>
+        <Grid n="two">{[
+          fig('ma', 'A · the last matchup, final', <MatchupAfter v="a" label="Matchup tab after the season, the last matchup kept, option A" />, 'Numbers are examples.'),
+          fig('mb', 'B · blank, as now', <MatchupAfter v="b" label="Matchup tab after the season, blank, option B" />, 'What a finished league shows today.'),
+        ]}</Grid>
+      </section>
+    );
+  }
+
   function CallStocksFinished({ archived = false, decidedNote }) {
     return (
       <section className="b-sec" id="call-stocks-finished" aria-labelledby="call-stocks-finished-h">
@@ -15611,6 +15677,7 @@ window.KS_REFS = {
     );
   }
 
+  window.KSMatchupAfter = () => <CallMatchupAfter />;
   window.KSStocksFinished = () => <CallStocksFinished />;
   window.KSStocksIcon = () => <CallStocksIcon />;
 })();
@@ -16002,6 +16069,7 @@ window.KS_REFS = {
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-matchup-after', 'The Matchup tab after the season', () => window.KSMatchupAfter],
     ['call-stocks-finished', 'The Stocks tab in a finished season', () => window.KSStocksFinished],
     ['call-stocks-icon', 'The Stocks tab\u2019s icon', () => window.KSStocksIcon],
   ];
@@ -16188,6 +16256,7 @@ window.KS_REFS = {
           {window.KSCreateClose ? <window.KSCreateClose /> : null}
           {window.KSSlotCheck ? <window.KSSlotCheck /> : null}
           {window.KSStocksList ? <window.KSStocksList /> : null}
+          {window.KSMatchupAfter ? <window.KSMatchupAfter /> : null}
           {window.KSStocksFinished ? <window.KSStocksFinished /> : null}
           {window.KSStocksIcon ? <window.KSStocksIcon /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
