@@ -38,7 +38,7 @@ import { RollingMoney } from '@/components/home/RollingMoney';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioSeries, type PortfolioRange } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangePick, portfolioSeries, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
 import { asChartRange, rangeGain, selectableRange } from '@/lib/chart/chartRanges';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
 import { FIXTURE_LEAGUE_ID } from '@/lib/money/fixtureMode';
@@ -90,7 +90,13 @@ export function PortfolioScreen() {
   // its slot pill (the league's slots).
   const home = useHomeLeague(MONEY_FIXTURE ? null : activeLeagueId);
   const roster = useRosterData(MONEY_FIXTURE ? null : activeLeagueId, user?.id ?? null, null);
-  const [range, setRange] = useState<PortfolioRange>(DEFAULT_PORTFOLIO_RANGE);
+  // The picked range belongs to the league it was picked in: switching league reopens on Season
+  // (the reset happens during render, React's documented pattern, so no frame shows the old pick).
+  const [rangePick, setRangePick] = useState<PortfolioRangePick>({ leagueId: activeLeagueId, range: DEFAULT_PORTFOLIO_RANGE });
+  const currentPick = portfolioRangePick(rangePick, activeLeagueId);
+  if (currentPick !== rangePick) setRangePick(currentPick);
+  const range = currentPick.range;
+  const setRange = (next: PortfolioRange) => setRangePick({ leagueId: activeLeagueId, range: next });
   const [selected, setSelected] = useState<string | null>(null);
   // The card stays mounted while it leaves, with the stock it was showing.
   const [shown, setShown] = useState<string | null>(null);
@@ -118,9 +124,10 @@ export function PortfolioScreen() {
   const chart = data.chart;
   const daily = useMemo(() => (chart ? dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt }) : []), [chart, todayEt]);
   // A range longer than the league has existed is grey (history = the league's age: the line
-  // starts at the draft); Season never is, 1W never is. A grey range is never the selected one.
+  // starts at the draft); Season never is, 1W never is. A grey range is never the selected one:
+  // a team chart falls back to Season, not the stock sheet's 1W.
   const greyed = useMemo(() => portfolioGreyedRanges(daily, todayEt), [todayEt, daily]);
-  const shownRange = selectableRange(range, greyed);
+  const shownRange = selectableRange(range, greyed, DEFAULT_PORTFOLIO_RANGE);
   const series = useMemo(
     () => (chart ? portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions }) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
