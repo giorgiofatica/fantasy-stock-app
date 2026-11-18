@@ -150,6 +150,34 @@ Deno.test('a partly unpriced stock (sold half this week, no live price for the r
   assert(whole.weekGain !== null && whole.weekPct !== null);
 });
 
+Deno.test('a FULLY unpriced holding (no sale) stays on its half with no figures, on BOTH sides', () => {
+  const thu = new Date('2026-09-24T17:37:00Z');
+  const mineGone = ROBERTO_HOLDINGS[1].symbol;
+  const theirsGone = GIANLUIGI_HOLDINGS[1].symbol;
+  const quote = (s: string) => (s === mineGone || s === theirsGone ? null : thuQuote(s));
+  const g = view(thu, quote);
+  const lefts = g.flatMap((x) => x.rows.map((r) => r.left)).filter((c) => c !== null);
+  const rights = g.flatMap((x) => x.rows.map((r) => r.right)).filter((c) => c !== null);
+  assertEquals(lefts.length, ROBERTO_HOLDINGS.length, 'every stock you hold is on the roster');
+  assertEquals(rights.length, GIANLUIGI_HOLDINGS.length, 'every stock they hold too');
+  const m = lefts.find((c) => c!.symbol === mineGone)!;
+  const t = rights.find((c) => c!.symbol === theirsGone)!;
+  assertEquals([m.weekGain, m.weekPct, t.weekGain, t.weekPct], [null, null, null, null]);
+  for (const c of [...lefts, ...rights].filter((c) => c!.symbol !== mineGone && c!.symbol !== theirsGone)) assert(c!.weekGain !== null, c!.symbol);
+});
+
+Deno.test('a slotted league: the unpriced holding stays IN ITS SLOT (never an "Empty" slot), same group as when priced', () => {
+  const thu = new Date('2026-09-24T17:37:00Z');
+  const gone = ROBERTO_HOLDINGS[1].symbol;
+  const groupOf = (g: ReturnType<typeof view>, sym: string) => g.find((x) => x.rows.some((r) => r.left?.symbol === sym))?.label ?? 'missing';
+  const priced = view(thu, thuQuote, 'category');
+  const unpriced = view(thu, (s) => (s === gone ? null : thuQuote(s)), 'category');
+  assertEquals(groupOf(unpriced, gone), groupOf(priced, gone));
+  // The slot's shape is unchanged: the same number of your halves, none turned empty.
+  const halves = (g: ReturnType<typeof view>) => g.map((x) => [x.label, x.rows.filter((r) => r.left !== null).length]);
+  assertEquals(halves(unpriced), halves(priced));
+});
+
 Deno.test('a live update moves the numbers, never the rows (the order holds until the next close)', () => {
   const thu = new Date('2026-09-24T17:37:00Z');
   const before = view(thu, thuQuote);

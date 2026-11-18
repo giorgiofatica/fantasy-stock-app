@@ -2,26 +2,70 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "90d9005566e610774972dfd3da118ad032e75d26",
-    "commitShort": "90d90055",
+    "commit": "f8d09899eeeda5dc64c70b0c984d381595777346",
+    "commitShort": "f8d09899",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
+    "branch": "fix/matchup-no-stand-ins",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/migrations/20261207000100_league_available_stocks.sql"
+        "path": "apps/mobile/app/(tabs)/matchup.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/Scoreboard.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/gameNight.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/allMatchups.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/buildMatchupViewModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/leagueWeeks.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/matchupRosterView.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-all-matchups.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/leaguemate-team-view.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-roster.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/tests-deno/matchup-unpriced.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
       }
     ],
-    "timestamp": "2026-11-18T23:01:26Z",
-    "sourceHash": "sha256:594ae1c7bf17350ccc419d62aeec2bf484cd5ae1471b7f9278274e2cc060f6b5",
+    "timestamp": "2026-11-18T23:16:08Z",
+    "sourceHash": "sha256:c98fef048f231b4dfbfdf2516a09a2cd4ec4372c108d83021a21bfa9ad8a848d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 28.6,
+    "ageHours": 28.8,
     "ageDays": 1.2,
     "staleAfterDays": 14,
     "stale": false,
@@ -21011,7 +21055,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -21029,7 +21073,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -21047,7 +21091,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -21065,7 +21109,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:97"
+        "apps/mobile/app/(tabs)/matchup.tsx:96"
       ],
       "via": [
         "useRosterData"
@@ -22233,7 +22277,7 @@
       "payload": ".from('week_snapshots').select()",
       "columns": [],
       "callSites": [
-        "apps/mobile/tests-deno/leaguemate-team-view.test.ts:193"
+        "apps/mobile/tests-deno/leaguemate-team-view.test.ts:194"
       ]
     },
     {
@@ -24460,10 +24504,10 @@
       "supabase/functions/validate-and-record-pick/index.ts:131 -> check_and_bump_rate_limit"
     ],
     "tableOps": [
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> categories.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> drafts.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:97 -> trades.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> categories.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> drafts.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:96 -> trades.select (via useRosterData)",
       "apps/mobile/app/create-league.tsx:208 -> leagues.insert (via seamInsertLeague)",
       "apps/mobile/app/create-league.tsx:235 -> league_members.insert (via seamInsertMember)",
       "apps/mobile/app/create-league.tsx:245 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
@@ -24528,7 +24572,7 @@
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:245 -> league_invites.select",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:248 -> league_invites.insert",
       "apps/mobile/tests-deno/gn-w4-draft.test.ts:163 -> symbols.select",
-      "apps/mobile/tests-deno/leaguemate-team-view.test.ts:193 -> week_snapshots.select",
+      "apps/mobile/tests-deno/leaguemate-team-view.test.ts:194 -> week_snapshots.select",
       "apps/mobile/tests-deno/read-result.test.ts:41 -> symbols.select",
       "apps/web/src/Header.jsx:110 -> league_members.select",
       "apps/web/src/Header.jsx:118 -> leagues.select",

@@ -12,3 +12,13 @@
 export function leagueHasWeeks(leagueType: string | null | undefined): boolean {
   return leagueType === 'matchup';
 }
+
+/**
+ * A LOADED league that has no weeks (a Duration league). Screens that only make sense in weeks
+ * (the Matchup tab) draw nothing for it: no "$0.00" vs "$0.00", no empty opponent, no "Starts …"
+ * (2026-11-18 stop-gap, no new words). A league not loaded yet is NOT this: those screens keep
+ * their loading state rather than flashing blank.
+ */
+export function knownWithoutWeeks(league: { league_type?: string | null } | null | undefined): boolean {
+  return league != null && !leagueHasWeeks(league.league_type);
+}

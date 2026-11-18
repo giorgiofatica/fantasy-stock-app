@@ -18,10 +18,11 @@ export interface RosterSideInput {
   lineup: readonly LineupRow[];
   snapshots: readonly LiveSnapshot[];
   trades: readonly LiveTrade[];
-  /** liveWeekScore's unpriced symbols (upper case): held now with no live price. A lineup row
-   * for one of them carries only this week's SALE of it (the held rest is unscored), so its
-   * figures are unknown: the half shows the stock alone, never the part as the whole. Omit
-   * (or []) for a posted final week's rows, which reconcile by construction. */
+  /** liveWeekScore's unpriced symbols (upper case): held now with no live price. Each is on the
+   * roster with unknown figures ("–"): one with no lineup row (no sale this week) is added as its
+   * own row in its slot, never left out or read as an "Empty" slot; one whose lineup row carries
+   * only this week's SALE of it shows no figures either (never the part as the whole). Omit (or
+   * []) for a posted final week's rows, which reconcile by construction. */
   unpriced?: readonly string[];
 }
 
@@ -85,8 +86,14 @@ export function buildRosterView(input: {
 
   const entries = (side: RosterSideInput, gains: Record<string, number> | null): RosterEntry[] => {
     const seqs = seqOf(side.userId, activity);
-    return side.lineup.map((row, i) => {
-      const sym = row.symbol.toUpperCase();
+    // The lineup's stocks, then every held-but-unpriced stock it has no row for (no sale this
+    // week): still held, so still on the roster. Same order rules (the close, else the draft).
+    const inLineup = new Set(side.lineup.map((r) => r.symbol.toUpperCase()));
+    const symbols = [
+      ...side.lineup.map((r) => r.symbol.toUpperCase()),
+      ...[...new Set((side.unpriced ?? []).map((s) => s.toUpperCase()))].filter((s) => !inLineup.has(s)),
+    ];
+    return symbols.map((sym, i) => {
       return {
         symbol: sym,
         // No ledger yet: the lineup's own order stands in for the draft order.

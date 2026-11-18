@@ -326,6 +326,7 @@ Deno.test('XL: the card keeps its TWO figure columns at every size and caps its 
   assert((row.match(/maxFontSizeMultiplier=\{ROW_TEXT_MAX_SCALE\}/g) ?? []).length >= 2, 'ticker and company capped');
   assert(row.includes('maxFontSizeMultiplier={PCT_MAX_SCALE}') && row.includes('const PCT_MAX_SCALE = 1.3;'), 'the percent never outgrows the gain');
   assert(row.includes('stacked ? [styles.numStacked, mirror ? styles.alignEnd : styles.alignStart]'), 'stacked numbers on the outer edge, no 64% cap');
-  assert(SOURCES['app/(tabs)/matchup.tsx'].includes('maxFontSizeMultiplier={LINE_MAX_SCALE}>{note}'), 'the unpriced note capped too');
+  // The unpriced note is gone from Matchup (an unknown total counts nothing at cost: the "–" says it).
+  assert(!SOURCES['app/(tabs)/matchup.tsx'].includes('{note}') && !SOURCES['app/(tabs)/matchup.tsx'].includes('unpricedNote'), 'no at-cost note on Matchup');
   assert(row.includes('minimumFontScale={0.7}') && 17 * 0.7 >= 11, 'a seven-figure week shrinks, never under 11pt');
 });

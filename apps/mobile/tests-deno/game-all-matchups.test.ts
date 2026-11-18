@@ -34,8 +34,8 @@ function input(overrides: Partial<AllMatchupsInput> = {}): AllMatchupsInput {
 Deno.test('a live matchup scores each manager on their own ledger, with the same live score as Matchup', () => {
   const rows = buildAllMatchups(input());
   const mine = rows.find((r) => r.a.userId === 'roberto')!;
-  assertAlmostEquals(mine.a.gain, 100, 1e-9); // 10 * (110 - 100)
-  assertAlmostEquals(mine.b!.gain, 40, 1e-9); // 4 * (60 - 50)
+  assertAlmostEquals(mine.a.gain!, 100, 1e-9); // 10 * (110 - 100)
+  assertAlmostEquals(mine.b!.gain!, 40, 1e-9); // 4 * (60 - 50)
   assertEquals(mine.a.name, 'Roberto B.');
 });
 

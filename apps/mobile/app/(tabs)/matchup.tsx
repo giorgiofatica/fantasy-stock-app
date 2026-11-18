@@ -27,13 +27,12 @@ import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { FinalBanner } from '@/components/game/FinalBanner';
 import { buildFinalBanner } from '@/lib/game/finalBanner';
 import { useLeagueContext } from '@/lib/LeagueContext';
-import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
+import { knownWithoutWeeks, leagueHasWeeks } from '@/lib/game/leagueWeeks';
 import { useMatchup, type MatchupDerived } from '@/lib/game/useMatchup';
 import { COPY } from '@/lib/game/gameCopy';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 import { AllMatchupsSkeleton, MatchupSkeleton, RosterRowsSkeleton } from '@/components/game/LoadingSkeletons';
 import { LoadFailure } from '@/components/money/LoadFailure';
-import { unpricedNote } from '@/lib/plCoverage';
 import { preSeasonStartsLabel, byeToRoundLabel, eliminatedLabel, playoffPendingLine } from '@/lib/home/homeCopy';
 import { useAuth } from '@/lib/useAuth';
 import type { LineupRow } from '@/lib/game/lineupLedger';
@@ -110,17 +109,21 @@ function MatchupScreen() {
     await Promise.all([refresh(), mRefresh()]);
   }, [refresh, mRefresh]);
 
+  // A league without weeks (Duration) has no matchups: the tab draws nothing under its header
+  // (no switch, no "$0.00" vs "$0.00", no "Starts …"), with nothing in its place.
+  const blank = knownWithoutWeeks(activeLeague);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <BarsRefresh onRefresh={onRefresh} header={<ShellHeader title="Matchup" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[5] }}>
-        {m.derived ? (
+        {m.derived && !blank ? (
           <SegmentedControl
             options={[{ label: 'My matchup', value: 'mine' }, { label: 'All matchups', value: 'all' }]}
             value={segment}
             onChange={(v) => setSegment(v === 'all' ? 'all' : 'mine')}
           />
         ) : null}
-        {segment === 'all' ? (
+        {blank ? null : segment === 'all' ? (
           <AllMatchupsList key={activeLeagueId ?? 'none'} state={all} myUserId={user?.id ?? ''} />
         ) : (
           // S-4: keyed by league, so a league switch mounts a fresh scoreboard and roster
@@ -234,8 +237,9 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
     // then your stocks in one column under the same order rules.
     return (
       <View style={styles.stack}>
-        <Scoreboard you={{ name: youName, gain: live.me.gain }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
-        {raw && live.me.lineup.length ? (
+        <Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
+        {/* A held-but-unpriced stock is on the roster too (with "–"), even if it is all you hold. */}
+        {raw && (live.me.lineup.length || live.me.unpriced.length) ? (
           <Roster derived={derived} raw={raw} roster={roster} myRows={live.me.lineup} theirRows={null} final={false} seamResumesAt={phase?.kind === 'live_closed' ? phase.resumesAt : null} orderAsOf={orderAsOf} />
         ) : null}
       </View>
@@ -258,9 +262,11 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
   }
 
   const isFinal = view.kind === 'final';
-  const mine = isFinal && final ? final.me : live.me.gain;
-  const theirs = isFinal && final ? final.opp : live.opp?.gain ?? 0;
-  const note = isFinal ? null : unpricedNote(live.me.unpriced.length);
+  // Live: a side's total is "–" while any of its holdings has no live price (SideView.total), and
+  // then nobody leads. (The old "N holdings counted at cost" note under the card is gone: an
+  // unknown total counts nothing at cost, and the "–" on the row says which stock it is.)
+  const mine = isFinal && final ? final.me : live.me.total;
+  const theirs = isFinal && final ? final.opp : live.opp?.total ?? null;
 
   return (
     <View style={styles.stack}>
@@ -285,8 +291,6 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
         openYou={openTeam(user.id, youName, true)}
         openOpponent={live.opp ? openTeam(live.opp.userId, live.opp.name, false) : undefined}
       />
-      {/* Capped like the leads-by line: the totals stay loudest at XL. */}
-      {note ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE}>{note}</Text> : null}
       {live.opp && raw ? (
         isFinal ? (
           finalLines.status === 'error' ? (

@@ -10,8 +10,7 @@ import { PressableScale } from '@/components/sp/PressableScale';
 import { keepMoney } from '@/lib/game/keepDots';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
-import { formatMoney } from '@/components/sp/logic/money';
-import { NAME_MIN_SCALE, NAME_MIN_SCALE_COMPACT, nameBesideAvatar, scoreboardNameCap, scoreboardModel, type ScoreSide } from '@/components/sp/logic/gameNight';
+import { NAME_MIN_SCALE, NAME_MIN_SCALE_COMPACT, nameBesideAvatar, scoreboardNameCap, scoreboardModel, scoreHalfLabel, scoreTotalText, type ScoreSide } from '@/components/sp/logic/gameNight';
 import { YOUR_NAME_WEIGHT } from '@/lib/game/managerRow';
 
 // Stockpile — <Scoreboard>, Game Night (§9C "Scoreboard"; Giorgio, 2026-10-12: "I like the
@@ -81,12 +80,14 @@ export function Scoreboard({ you, opponent, final = false, size = 'hero', mine =
   const { colors } = useTheme();
   const model = opponent ? scoreboardModel(you, opponent, final) : null;
   const line = bye || !model ? bye?.line ?? '' : model.line;
+  // No line with an unknown total (scoreboardModel gives ''): nothing in its place.
+  const lineShown = showLine && line !== '';
   // Each half's width, measured: decides whether a name fits beside its avatar.
   const [cardWidth, setCardWidth] = useState(0);
   const interactive = !!(openYou || openOpponent);
   const label = bye
-    ? `${you.name}, you, ${formatMoney(you.gain, { sign: 'always' })}. ${line}.`
-    : `${you.name}${mine ? ', you' : ''}, ${formatMoney(you.gain, { sign: 'always' })}. ${opponent?.name ?? ''}, ${formatMoney(opponent?.gain ?? 0, { sign: 'always' })}.${showLine ? ` ${line}.` : ''}`;
+    ? `${scoreHalfLabel(you.name, true, you.gain)}. ${line}.`
+    : `${scoreHalfLabel(you.name, mine, you.gain)}. ${scoreHalfLabel(opponent?.name ?? '', false, opponent?.gain ?? null)}.${lineShown ? ` ${line}.` : ''}`;
 
   return (
     <View style={styles.wrap}>
@@ -100,7 +101,7 @@ export function Scoreboard({ you, opponent, final = false, size = 'hero', mine =
           <Half side="opp" team={opponent} mirror size={size} halfWidth={cardWidth / 2} open={openOpponent} />
         )}
       </Card>
-      {showLine ? (
+      {lineShown ? (
         // Capped at 1.3× so the totals above stay the loudest thing on the card at XL.
         <Text variant="callout" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE} style={styles.line} importantForAccessibility={interactive ? 'auto' : 'no'} accessibilityElementsHidden={!interactive}>
           {keepMoney(line)}
@@ -134,14 +135,14 @@ function Half({ side, team, mirror, size, halfWidth, open }: { side: 'you' | 'op
   const stacked = halfWidth > 0 && !nameBesideAvatar(team.name, besideRoom, fontPt, minScale);
   // Stacked, the name never outgrows the total under it (the W4 delta gate): its cap follows
   // the total's fitted size, at most NAME_STACKED_MAX_SCALE.
-  const totalText = formatMoney(team.gain, { sign: 'always' });
+  const totalText = scoreTotalText(team.gain);
   const nameCap = scoreboardNameCap({
     stacked, totalText, totalPt: TOTAL_PT[size] * Math.min(fontScale, TOTAL_MAX_SCALE), innerWidth: halfWidth - 2 * HALF_PAD, namePt: NAME_PT[size],
   });
   return (
     <HalfBox
       open={open}
-      label={`${team.name}${you ? ', you' : ''}, ${totalText}`}
+      label={scoreHalfLabel(team.name, you, team.gain)}
       testID={you ? 'scoreboard-you' : undefined}
       style={[
         styles.half,
@@ -165,8 +166,9 @@ function Half({ side, team, mirror, size, halfWidth, open }: { side: 'you' | 'op
           {team.name}
         </Text>
       </View>
-      <Text variant={size === 'compact' ? 'score.lg' : 'score.xl'} adjustsFontSizeToFit minimumFontScale={0.6} style={mirror ? styles.right : null}>
-        {formatMoney(team.gain, { sign: 'always' })}
+      {/* An unknown total is the app's "–" in text2 (the card's and Schedule's mark), never a partial sum. */}
+      <Text variant={size === 'compact' ? 'score.lg' : 'score.xl'} adjustsFontSizeToFit minimumFontScale={0.6} color={team.gain === null ? colors.text2 : undefined} style={mirror ? styles.right : null}>
+        {totalText}
       </Text>
     </HalfBox>
   );

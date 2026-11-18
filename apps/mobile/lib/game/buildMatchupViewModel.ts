@@ -27,6 +27,10 @@ export interface SideView {
   pct: number;
   unpriced: string[];
   lineup: LineupRow[];
+  /** The side's total as the Scoreboard shows it: null (the "–") when ANY holding has no live
+   * price. `gain` then sums only the priced rest, a subset that would read as the whole team
+   * (CLAUDE.md, all-or-nothing case 5: the verdict's scope must match the evidence's). */
+  total: number | null;
 }
 
 export interface MatchupLiveViewModel {
@@ -34,7 +38,7 @@ export interface MatchupLiveViewModel {
   me: SideView;
   opp: SideView | null;
   leader: Leader | null;
-  /** Absolute dollar gap; null with no opponent. */
+  /** Absolute dollar gap; null with no opponent, or when either total is unknown. */
   leadDollars: number | null;
 }
 
@@ -42,6 +46,11 @@ export function nameOf(data: GetHomeLeagueResult, userId: string): { name: strin
   const row = data.standings.find((s) => s.user_id === userId);
   // A manager with no standings row has no name to show. Don't invent one.
   return { name: row?.display_name ?? '', isBot: row?.is_bot ?? false };
+}
+
+/** A side's live total, or null when any holding is unpriced (its gain is then a subset). */
+export function sideTotal(gain: number, unpriced: readonly string[]): number | null {
+  return unpriced.length > 0 ? null : gain;
 }
 
 function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResult['current_week']['my_snapshots'], trades: GetHomeLeagueResult['current_week']['my_trades']): SideView {
@@ -57,6 +66,7 @@ function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResul
     pct: live.pct,
     unpriced: live.unpriced,
     lineup: lineupRows(live.bySymbol, live.gain),
+    total: sideTotal(live.gain, live.unpriced),
   };
 }
 
@@ -78,12 +88,14 @@ export function buildMatchupLive(input: MatchupInput): MatchupLiveViewModel {
     return { hasOpponent: false, me, opp: null, leader: null, leadDollars: null };
   }
   const opp = side(input, oppUserId, cw.opponent_snapshots, cw.opponent_trades);
+  // Who leads is a claim about BOTH whole teams: with either total unknown, nobody leads.
+  const known = me.total !== null && opp.total !== null;
   return {
     hasOpponent: true,
     me,
     opp,
-    leader: leaderOf(me.gain, opp.gain),
-    leadDollars: Math.abs(me.gain - opp.gain),
+    leader: known ? leaderOf(me.total!, opp.total!) : null,
+    leadDollars: known ? Math.abs(me.total! - opp.total!) : null,
   };
 }
 

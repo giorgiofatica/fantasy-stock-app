@@ -17,7 +17,8 @@ export type Side = 'you' | 'opp';
 
 export interface ScoreSide {
   name: string;
-  gain: number;
+  /** Null = unknown (a side with an unpriced holding): the total reads "–", and nobody leads. */
+  gain: number | null;
 }
 
 export interface ScoreboardModel {
@@ -29,6 +30,8 @@ export interface ScoreboardModel {
 }
 
 export function scoreboardModel(you: ScoreSide, opp: ScoreSide, final: boolean): ScoreboardModel {
+  // Either total unknown: no leader and no line (a lead over a partial total is not a lead).
+  if (you.gain === null || opp.gain === null) return { leader: null, line: '' };
   if (you.gain === opp.gain) return { leader: null, line: 'Dead even' };
   const leader: Side = you.gain > opp.gain ? 'you' : 'opp';
   const name = leader === 'you' ? you.name : opp.name;
@@ -78,6 +81,19 @@ export function toneOf(n: number): Tone {
  * (homeCopy SEASON_TILE_UNSCORED). Repeated here, not imported, so this primitive's logic does not
  * pull in homeCopy's import graph; tests-deno/league-weeks.test.ts pins the two equal. */
 export const WEEK_UNKNOWN = '\u2013';
+
+/** A Scoreboard total: "+$12.40", or the app's "–" when the total is unknown (a side with an
+ * unpriced holding). Never the priced rest's sum, and no words. */
+export function scoreTotalText(gain: number | null): string {
+  return gain === null ? WEEK_UNKNOWN : formatMoney(gain, { sign: 'always' });
+}
+
+/** VoiceOver's reading of one Scoreboard half: "Paolo M., +$12.40" / "Roberto B., you, …", and
+ * the name alone when the total is unknown (as Schedule reads an unscored week: no dash read out). */
+export function scoreHalfLabel(name: string, you: boolean, gain: number | null): string {
+  const who = `${name}${you ? ', you' : ''}`;
+  return gain === null ? who : `${who}, ${formatMoney(gain, { sign: 'always' })}`;
+}
 
 export type CardWeekFigure =
   | { kind: 'figure'; value: string; sub: string; tone: Tone }

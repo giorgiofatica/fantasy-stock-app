@@ -32,7 +32,8 @@ export interface AllMatchupSide {
   userId: string;
   name: string;
   isBot: boolean;
-  gain: number;
+  /** Null (the "–") for a live side with any unpriced holding: the rest is not the team. */
+  gain: number | null;
   pct: number | null;
 }
 
@@ -56,7 +57,9 @@ function sideLive(input: AllMatchupsInput, userId: string): AllMatchupSide {
   const trades = input.trades.filter((t) => t.user_id === userId);
   const live = liveWeekScore(toLiveSnapshots(snaps), toLiveTrades(trades), input.quote);
   const { name, isBot } = nameOf(input.names, userId);
-  return { userId, name, isBot, gain: live.gain, pct: live.pct };
+  // Any unpriced holding: the priced rest is a subset, never shown as the team's total.
+  const known = live.unpriced.length === 0;
+  return { userId, name, isBot, gain: known ? live.gain : null, pct: known ? live.pct : null };
 }
 
 export function buildAllMatchups(input: AllMatchupsInput): AllMatchupRow[] {
