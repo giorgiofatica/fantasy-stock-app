@@ -40,8 +40,10 @@ Entries begin with the Recorder's first pass.
 
 - **#517, my record, merged 19:45:40Z (`837e5fcd`).** It landed at its head `d4b5bb0f`, so my last commit (the #518 facts, the cost figures and Giorgio's review-selection ruling) was NOT in it; those are in this record. The Orchestrator says no deploys happened that day beyond #513 and #514.
 
+- **#519 merged 19:53:38Z (`0bac3ad6`, by Giorgio; I read it on GitHub).** It carries the #518 facts, the cost figures and Giorgio's review-selection ruling, which #517 had missed. **Main's CI on `837e5fcd` finished `success`** (run 44383647164; I read all four jobs).
+
 **Merged, not confirmed live**
-- **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged, in no build (build 17 is not started). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
+- **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged; they are in build 17, which is started and IN PROGRESS (not finished, not submitted; see below). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
 
 **Decided**
 - **CI plus a Copilot review is now the standard workflow for every pull request.** Giorgio, as the Orchestrator relayed it: "make this our standard Stockpile development workflow". It is in `CLAUDE.md` ("CI and independent review"); I did not find it in `docs/PRODUCT_RULES.md`, which is for product rulings.
@@ -55,7 +57,7 @@ Entries begin with the Recorder's first pass.
 
 **Waiting on Giorgio**
 - Nothing of his is open from today's work: #517 (my record, merged 19:45:40Z, `837e5fcd`) and #518 are both in. The only open pull request is #279 (the W5 web join, a draft, blocked on the App Store URL; the Orchestrator's account).
-- **Build 17:** not started; `eas build:list` shows 1.3.0 (16) as the latest.
+- **Build 17 is STARTED and IN PROGRESS** (the Orchestrator's account of `eas build:list`): iOS 1.3.0 (17), created 19:49:03Z, from `6bc490db`; not finished, not submitted, fingerprint not given to me. It carries #508, #509 and #514's `parseQuotePrice` change. Everything on `main` after `6bc490db` is docs only (I read the file list), so it has all the code. When it finishes, the Orchestrator sends the result; until then nothing here says it is on his phone.
 
 **Next**
 - **Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.** The Orchestrator will check its logs; I record what it finds, not that the run happened.
