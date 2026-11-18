@@ -98,7 +98,7 @@ const pending = Boolean(requestedAt) && (done.length === 0 || requestedAt > done
 const short = (oid) => (oid ?? '').slice(0, 8);
 
 if (has('--status')) {
-  console.log(`#${d.number} head ${short(d.headRefOid)}; Copilot reviews: ${done.length} of ${MAX_REVIEWS}${pending ? `; one pending since ${requestedAt}` : ''}`);
+  console.log(`#${d.number} head ${short(d.headRefOid)}; Copilot reviews: ${done.length} (the limit is ${MAX_REVIEWS})${pending ? `; one pending since ${requestedAt}` : ''}`);
   for (const v of done) {
     console.log(`  review ${v.submittedAt} on ${short(v.commit?.oid)}${v.commit?.oid === d.headRefOid ? ' (current commit)' : ' (an earlier commit)'}; effort ${v.copilotCodeReviewEffort ?? 'not recorded'}`);
   }

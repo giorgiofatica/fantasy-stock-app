@@ -154,8 +154,9 @@ The test case was real: the mobile tests failed type-checking on `main` (three e
 | Docs-only pull requests are skipped, repeats refused | Yes, on #511 and #512 (skipped), #513 and #514 (already reviewed), and #516 after its second review (refused). |
 | Copilot finds something real | Yes, twice. A stale source manifest could let a new screen pass CI without being declared behind the sign-in guards; CI now checks the manifest. And this script could not see a pending Copilot request; it now reads the timeline. |
 | A Copilot suggestion is checked, not just applied | Yes. For the second finding Copilot said to read the REST "requested reviewers" list. That list had been seen empty while the review was pending, so the fix uses the timeline instead. |
+| A wrong finding is turned down with evidence | Yes. The Lite review said four backend tests could not pass under CI's permissions. All four ran and passed in that same run (1,459 passed, 0 failed, 0 ignored, no permission errors), so nothing was changed and the thread was answered with the run. |
 | New review comments wake the session | **Yes, but late.** One message arrived about 11 minutes after Copilot posted, carrying its summary and both comments together. By then the Orchestrator had read the review itself, pushed the fix and answered both threads. Treat the wake-up as a backstop, not the trigger. |
-| Reviews run at Lite | **No.** The footer says Balanced. |
+| Reviews run at Lite | **Yes, once the request names the effort.** The first two reviews were recorded as Balanced, the second after the account had been set to Lite. The third, asked for with the effort stated, was recorded as Lite and says so in its footer. |
 | The loop runs unattended overnight | **No.** The Mac slept from about 9 PM to 9:30 AM and nothing moved in between. |
 
 What is enforced by code, and what is a rule a session follows:
