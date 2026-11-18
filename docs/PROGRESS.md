@@ -34,9 +34,10 @@ Entries begin with the Recorder's first pass.
 
 - **Six pull requests merged by Giorgio, 19:23Z to 19:25Z (I read each on GitHub):** #513 (`2d4fe8e5`), #514 (`c14b5805`), #510 (`6a1de19b`), #512 (`95175004`), #515 (`aa7e3cd5`), #511 (`6bc490db`, my 2026-11-17 record). `main` is `6bc490db`. #510 and #512 are rulings in `docs/PRODUCT_RULES.md`; #515 is paths; #511 is the 2026-11-17 record.
 
+- **#513 and #514 are DEPLOYED and byte-verified (the Orchestrator's account; I did not run it).** Giorgio deployed ten functions from `/Users/giorgio/fantasy-stock/local/deploy` at `main` `6bc490db`, at about 19:4xZ, with the Homebrew `supabase` 2.67.1. The Orchestrator compared every file of all ten against `main`: 58 compared, 0 differ; a no-credential POST to four of them returned 401. I read the import chain that explains the ten (STATUS §1, 2026-11-18). **Shown:** the byte match and the four 401s. **Not shown:** that the always-a-price step prices anything in a real week (it has not run) or that fills and quotes behave differently; #514's two mobile files are in no build.
+
 **Merged, not confirmed live**
-- **#513, the always-a-price fix: merged, NOT deployed.** It changes `snapshot-week-start`, `snapshot-week-end` and `process-week-results` (I read the file list; no migration). The Orchestrator is handing Giorgio the deploys and will send the byte-verify result. Deadline: the week start, Mon 2026-11-23, 14:35Z.
-- **#514, no lone bid or ask in fills or quotes: merged, NOT deployed.** It changes `quote` and `ticker-quotes` directly, plus two mobile files that are in no build; the Orchestrator's deploy list also has `record-trade`, `validate-and-record-pick`, `draft-control`, `draft-autopick-sweep` and `symbols-search`.
+- **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged, in no build (build 17 is not started). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
 
 **Decided**
 - **CI plus a Copilot review is now the standard workflow for every pull request.** Giorgio, as the Orchestrator relayed it: "make this our standard Stockpile development workflow". It is in `CLAUDE.md` ("CI and independent review"); I did not find it in `docs/PRODUCT_RULES.md`, which is for product rulings.
@@ -47,11 +48,11 @@ Entries begin with the Recorder's first pass.
 - **The pipeline does its first job on its own pull request.** CI caught three type errors the mobile tests had carried on `main`; Copilot found a stale-source-manifest gap and a script blind spot (a pending request it could not see), both since fixed; one Copilot finding was shown wrong by the run log. Nothing here was loosened to get a green run (the Orchestrator's account; the pipeline doc has the table).
 
 **Waiting on Giorgio**
-- **The two deploys:** #513 and #514 (lists in STATUS §1). The Orchestrator is handing them to him now. #517, this record, is open.
+- Nothing of his is open from today's work except merging #517 (this record) and the Planner's #518.
 - **Build 17:** not started; `eas build:list` shows 1.3.0 (16) as the latest.
 
 **Next**
-- Record the two deploys when the Orchestrator sends the byte-verify result; #513's has a date on it (the week start, Mon 2026-11-23, 14:35Z). Until then both stay "merged, not deployed".
+- **Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.** The Orchestrator will check its logs; I record what it finds, not that the run happened.
 - The first red pull request under the ruleset will show whether All checks really blocks the merge; until then STATUS says "not yet observed".
 
 ## 2026-11-17
