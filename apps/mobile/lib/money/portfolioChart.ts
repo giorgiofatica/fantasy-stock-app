@@ -44,6 +44,11 @@ export function portfolioRangePick(pick: PortfolioRangePick, leagueId: string | 
   return pick.leagueId === leagueId ? pick : { leagueId, range: DEFAULT_PORTFOLIO_RANGE };
 }
 
+/** A pill tap: the range, recorded against the league on screen (so portfolioRangePick keeps it). */
+export function portfolioRangeChoice(leagueId: string | null, range: PortfolioRange): PortfolioRangePick {
+  return { leagueId, range };
+}
+
 export interface ChartActivityRow {
   kind: 'draft' | 'trade';
   action: 'buy' | 'sell';

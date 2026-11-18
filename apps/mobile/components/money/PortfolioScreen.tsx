@@ -38,7 +38,7 @@ import { RollingMoney } from '@/components/home/RollingMoney';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangePick, portfolioSeries, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
 import { asChartRange, rangeGain, selectableRange } from '@/lib/chart/chartRanges';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
 import { FIXTURE_LEAGUE_ID } from '@/lib/money/fixtureMode';
@@ -96,7 +96,7 @@ export function PortfolioScreen() {
   const currentPick = portfolioRangePick(rangePick, activeLeagueId);
   if (currentPick !== rangePick) setRangePick(currentPick);
   const range = currentPick.range;
-  const setRange = (next: PortfolioRange) => setRangePick({ leagueId: activeLeagueId, range: next });
+  const setRange = (next: PortfolioRange) => setRangePick(portfolioRangeChoice(activeLeagueId, next));
   const [selected, setSelected] = useState<string | null>(null);
   // The card stays mounted while it leaves, with the stock it was showing.
   const [shown, setShown] = useState<string | null>(null);

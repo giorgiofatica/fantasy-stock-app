@@ -19,7 +19,7 @@ import {
   CHART_RANGES, FALLBACK_RANGE, RANGE_WORDS, SEASON_DEFAULT_RANGE, SHEET_DEFAULT_RANGE, asChartRange, greyedRanges, isRangeGrey,
   rangeGain, rangeGainText, rangeSeries, rangeStartDate, selectableRange, todaySessionOpen, type ChartRange, type GreyContext,
 } from '../lib/chart/chartRanges.ts';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioHistoryStart, portfolioRangePick, portfolioSeries } from '../lib/money/portfolioChart.ts';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioHistoryStart, portfolioRangeChoice, portfolioRangePick, portfolioSeries } from '../lib/money/portfolioChart.ts';
 import { historyStartOf, stockGreyedRanges, stockLineSeries } from '../lib/money/stockChartSeries.ts';
 import { seasonStartOf } from '../lib/money/seasonStart.ts';
 import { lineTone } from '../components/sp/logic/lineChart.ts';
@@ -193,8 +193,16 @@ Deno.test('(c) switching league reopens the team chart on Season; the pick never
   // Back to the first league: still Season (the pick was reset, not remembered per league).
   const inB = portfolioRangePick(inA, 'league-b');
   assertEquals(portfolioRangePick(inB, 'league-a'), { leagueId: 'league-a', range: 'Season' });
+  // The write side: a pill tap in league L survives the next render's read in L (the pills are
+  // never dead), and still resets once the league changes.
+  for (const r of ['1W', '1M', '3M', '6M', 'YTD'] as const) {
+    const chosen = portfolioRangeChoice('league-a', r);
+    assertEquals(portfolioRangePick(chosen, 'league-a').range, r);
+    assertEquals(portfolioRangePick(chosen, 'league-b').range, 'Season');
+  }
   // The screen derives its range from the pick for the league on screen and resets during render.
   const src = strip(portfolioSrc);
+  assert(src.includes('setRangePick(portfolioRangeChoice(activeLeagueId, next))'), 'a tap is recorded against the league on screen');
   assert(src.includes('const currentPick = portfolioRangePick(rangePick, activeLeagueId);'));
   assert(src.includes('if (currentPick !== rangePick) setRangePick(currentPick);'));
   assert(src.includes('const range = currentPick.range;'));
