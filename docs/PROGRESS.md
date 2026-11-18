@@ -38,6 +38,8 @@ Entries begin with the Recorder's first pass.
 
 - **#518 merged 19:36:14Z (`bd1dcfc5`, by Giorgio; the Planner's pull request).** The pipeline doc now reads "live", marks the ruleset step done, and records the review cost so far. I read the diff. A red All checks blocking a merge is still not observed; six no-run pull requests reading BLOCKED is.
 
+- **#517, my record, merged 19:45:40Z (`837e5fcd`).** It landed at its head `d4b5bb0f`, so my last commit (the #518 facts, the cost figures and Giorgio's review-selection ruling) was NOT in it; those are in this record. The Orchestrator says no deploys happened that day beyond #513 and #514.
+
 **Merged, not confirmed live**
 - **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged, in no build (build 17 is not started). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
 
@@ -52,7 +54,7 @@ Entries begin with the Recorder's first pass.
 - **The pipeline does its first job on its own pull request.** CI caught three type errors the mobile tests had carried on `main`; Copilot found a stale-source-manifest gap and a script blind spot (a pending request it could not see), both since fixed; one Copilot finding was shown wrong by the run log. Nothing here was loosened to get a green run (the Orchestrator's account; the pipeline doc has the table).
 
 **Waiting on Giorgio**
-- Nothing of his is open from today's work except merging #517 (this record) and the Planner's #518.
+- Nothing of his is open from today's work: #517 (my record, merged 19:45:40Z, `837e5fcd`) and #518 are both in. The only open pull request is #279 (the W5 web join, a draft, blocked on the App Store URL; the Orchestrator's account).
 - **Build 17:** not started; `eas build:list` shows 1.3.0 (16) as the latest.
 
 **Next**

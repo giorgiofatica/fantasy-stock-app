@@ -1,6 +1,6 @@
 # Independent review and CI for pull requests
 
-**Status (2026-11-18):** Stage 1 is built and was verified on pull request #516: `.github/workflows/ci.yml`, the Copilot instruction files, `scripts/request-copilot-review.mjs` and this file. For the fix loop, Giorgio chose Option A (the desktop app's Auto-fix) on 2026-11-17 and it was piloted on #516; what worked and what did not is under "Pilot on #516". Option B (a fixer hosted in GitHub) is not to be enabled.
+**Status (2026-11-18):** live. The workflow, the Copilot instruction files and `scripts/request-copilot-review.mjs` are on `main` (#516), and the ruleset `main: require CI` has been active since 2026-11-18: nothing merges into `main` except through a pull request whose **All checks** is green. The fix loop is Option A (the desktop app's Auto-fix), piloted on #516; what worked and what did not is under "Pilot on #516". Option B (a fixer hosted in GitHub) is not to be enabled.
 
 Why this exists: the code is written by Claude Code, and until now the same agent family was also the only reviewer. Two independent checks now run on every pull request before Giorgio merges it:
 
@@ -56,7 +56,7 @@ Each comment starts with **Blocking**, **Important** or **Advisory**. Those word
 
 | | What it is | What stops a merge |
 |---|---|---|
-| A red **All checks** | A test, type, lint or build failure | Only a branch rule that requires it (see below). Without the rule it is a red mark and nothing more. |
+| A red **All checks** | A test, type, lint or build failure | The ruleset `main: require CI`. GitHub refuses the merge until the check is green. |
 | A Copilot comment, any label | A second opinion to investigate | Nothing. It is a comment. |
 | Giorgio | The merge | Always his. Nothing here merges, approves or pushes. |
 
@@ -95,7 +95,8 @@ Why the effort is stated each time: the account is set to Lite and the repositor
 
 These are Giorgio's to change; nothing in the repo can set them.
 
-1. **Require CI before merging (recommended, free on a public repository).** Do this once this pull request is merged and `All checks` has been seen green on `main`. Settings › Rules › Rulesets › New ruleset › New branch ruleset. Name it, set Enforcement status to Active, and under Target branches add "Include default branch". Tick "Require status checks to pass", choose "Add checks" and add `All checks`. Leave "Require a pull request before merging" unticked or with 0 approvals, so nothing asks for a second human. Under Bypass list, add "Repository admin" if you want an emergency way through.
+1. **Require CI before merging: done 2026-11-18.** Ruleset `main: require CI` (Settings › Rules › Rulesets): active, targets the default branch, empty bypass list, deletions and force pushes blocked, a pull request required with 0 approvals, and the status check `All checks` required. "Require branches to be up to date" is off on purpose: with a dozen pull requests a day it would force a re-run on every open one after each merge. The rule applies to Giorgio too; if CI is ever broken for reasons outside the code, he sets the ruleset to Disabled, merges, and sets it back to Active.
+   - A pull request opened before the workflow existed has no `All checks` result and reads "blocked". Merge `main` into its branch (no rebase) and push; CI runs and it unblocks.
 2. **Dependency alerts (optional, free, no workflow).** Settings › Advanced Security › turn on Dependency graph and Dependabot alerts. Both are off today, which is why CI has no dependency job.
 3. **Copilot (done 2026-11-17):** automatic review off, draft review off, effort Lite; an AI-credits budget of $20 a month with "stop usage when budget limit is reached" on. The repository has no effort setting of its own (Settings › Copilot › Code review); leave it empty.
 
@@ -103,7 +104,8 @@ These are Giorgio's to change; nothing in the repo can set them.
 
 - **GitHub Actions:** standard runners are free for a public repository. This workflow adds no charge. A Copilot review also starts a short Actions run of its own; that is free here too.
 - **Copilot:** $10 a month for the plan, which includes $15 of AI credits, plus the $20 budget: about $35 of reviews a month, and it stops there. The risk is running out before the month ends, not overspending.
-- **How far $35 goes is not known yet.** The cost of a Lite review on this repo has not been measured. In November the repo opened about 5 code pull requests per working day. One review each is roughly 100 to 140 reviews a month, so the budget covers them only if a Lite review costs about 25 to 35 cents. Read the real figure from Settings › Billing and licensing › Usage after the first few Lite reviews. If it is higher, review only pull requests that touch `supabase/` and `apps/mobile/lib/`, or raise the budget.
+- **Measured so far (Giorgio's billing page, 2026-11-18):** 851 credits for six Balanced reviews, about 142 credits ($1.42) each, if nothing else used credits. One credit is one cent; the monthly ceiling is 3,500 credits. At that price the ceiling buys about 24 reviews, which is why every request now names Lite.
+- **Not measured yet: what a Lite review costs.** One Lite review has run (#516, 18:42Z); its cost needs a second billing reading. November's pace is about 112 code pull requests a month (about 38 touching `supabase/`, about 63 touching mobile logic). One review each fits the ceiling only at about 31 credits a review or less. Giorgio's ruling, 2026-11-18: "Don't change our review-selection rules until we have enough real usage data to make an informed decision."
 
 ## The fix loop (Option A, chosen 2026-11-17)
 
@@ -164,13 +166,14 @@ What is enforced by code, and what is a rule a session follows:
 | Safeguard | Kept by |
 |---|---|
 | CI fails on a failing test, type error, new lint error or stale map or manifest | Code (the workflow) |
-| A red run blocks the merge | Code, once the ruleset in "Owner settings" is on. Until then, nothing. |
+| A red run, or no run, blocks the merge | Code (the ruleset, verified 2026-11-18: six pull requests without a run read "blocked") |
+| Nothing reaches `main` without a pull request; no force push, no deleting `main` | Code (the ruleset) |
 | No more than two Copilot reviews per pull request | Code (the script refuses), unless `--owner-asked` is passed |
 | Every review is asked for at a stated effort | Code (the script names it in the request) |
 | No overspending | Code (GitHub's budget stop) |
 | No more than two automated fixes per pull request | Rule. The count is written into commit messages so it survives a restart, but nothing stops a third. |
 | Check a finding before acting; never loosen a test; never touch `.github/` in an automated fix; send security and money changes to Giorgio | Rule |
-| Only Giorgio merges | Rule today (no session merges). Auto-merge is off and no workflow can merge. |
+| Only Giorgio merges | Rule. No session merges, auto-merge is off on the repository and no workflow can merge, but nothing in GitHub stops a session using his sign-in from merging a green pull request. |
 
 ### Not chosen: a fixer hosted in GitHub (Option B)
 
