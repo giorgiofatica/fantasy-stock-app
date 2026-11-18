@@ -30,6 +30,8 @@ Entries begin with the Recorder's first pass.
 **Shipped**
 - **The CI and independent-review pipeline is on `main`: #516, merged 18:53:31Z (`f2bca005`) by Giorgio.** I read the CI run on `main` for that commit (run 44374604573): Web, Mobile, Backend and All checks all `success`. Detail and the pilot facts in STATUS §1 (2026-11-18) and in `docs/CODE_REVIEW_PIPELINE.md`.
 
+- **The branch ruleset "main: require CI" is ON (later the same day).** I read it on GitHub: active on the default branch, a pull request with 0 approvals, **All checks** required (not strict), no bypass actors, deletions and force-pushes blocked. The Orchestrator saw #510 to #515 go from BLOCKED (no run) to CLEAN after CI; all seven open pull requests were CLEAN with All checks SUCCESS when I read them. A red check blocking a merge has not been observed yet.
+
 **Merged, not confirmed live**
 - Nothing else landed on `main` today, as of my last read (`origin/main` was `f2bca005`).
 
@@ -41,13 +43,12 @@ Entries begin with the Recorder's first pass.
 - **The pipeline does its first job on its own pull request.** CI caught three type errors the mobile tests had carried on `main`; Copilot found a stale-source-manifest gap and a script blind spot (a pending request it could not see), both since fixed; one Copilot finding was shown wrong by the run log. Nothing here was loosened to get a green run (the Orchestrator's account; the pipeline doc has the table).
 
 **Waiting on Giorgio**
-- **The branch ruleset on `main`** (require All checks and a pull request, 0 approvals). He is creating it; I read GitHub at the time of writing and there was none. Until it is on, a red check blocks nothing.
 - **The open pull requests:** #510, #512, #513, #514, #515, and my #511. #513 and #514 need deploys after merge (lists in STATUS §1).
 - **Build 17:** not started; `eas build:list` shows 1.3.0 (16) as the latest.
 
 **Next**
 - Merge order for the fix: #513 before #514, and #513's deploy is the one with a date on it (the week start, Mon 2026-11-23, 14:35Z).
-- When the ruleset is confirmed on, STATUS §3's CI row loses "pending". Until then it says pending.
+- The first red pull request under the ruleset will show whether All checks really blocks the merge; until then STATUS says "not yet observed".
 
 ## 2026-11-17
 
