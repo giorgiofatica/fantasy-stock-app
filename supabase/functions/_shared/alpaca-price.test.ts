@@ -139,7 +139,8 @@ Deno.test('close: the request is a 1Day bar look-back from now - FILL_CLOSE_LOOK
 });
 
 Deno.test('close: the LATEST-dated bar wins whatever order Alpaca returns them in', async () => {
-  const { out } = await run({ close: daily(['2026-11-14', 212], ['2026-11-10', 205], ['2026-11-13', 209]) });
+  // The latest bar is neither first nor last, so "take the first" and "take the last" both fail.
+  const { out } = await run({ close: daily(['2026-11-10', 205], ['2026-11-14', 212], ['2026-11-13', 209]) });
   assertEquals(out, { price: 212, source: 'bar1d.c' });
 });
 
