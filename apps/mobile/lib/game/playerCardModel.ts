@@ -78,7 +78,9 @@ export function stockWeek(symbol: string, snapshots: readonly LiveSnapshot[], tr
     trades.filter((t) => t.symbol.toUpperCase() === sym),
     () => price,
   );
-  const gain = sym in r.bySymbol ? r.bySymbol[sym] : null;
+  // A stock that is partly unpriced (sold some this week, no live price for the rest) has only
+  // its sale in bySymbol: that is a part, not the week, so it is unknown too (CLAUDE.md, partial state).
+  const gain = sym in r.bySymbol && !r.unpriced.includes(sym) ? r.bySymbol[sym] : null;
   return { gain, pct: gain === null ? null : weekPctOf(gain, r.startValue) };
 }
 

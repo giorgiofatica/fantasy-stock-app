@@ -27,6 +27,7 @@ import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { FinalBanner } from '@/components/game/FinalBanner';
 import { buildFinalBanner } from '@/lib/game/finalBanner';
 import { useLeagueContext } from '@/lib/LeagueContext';
+import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
 import { useMatchup, type MatchupDerived } from '@/lib/game/useMatchup';
 import { COPY } from '@/lib/game/gameCopy';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
@@ -355,7 +356,7 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
   final: boolean;
 }) {
   const { user } = useAuth();
-  const { market } = useLeagueContext();
+  const { market, activeLeague } = useLeagueContext();
   const stockSheet = useStockSheet();
   const opp = theirRows ? derived.live.opp : null;
   const me = user!.id;
@@ -366,12 +367,14 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
 
   const cw = raw.data.current_week;
   const sides = useMemo(() => {
-    const mineIn: RosterSideInput = { userId: me, lineup: myRows, snapshots: toLiveSnapshots(cw.my_snapshots), trades: toLiveTrades(cw.my_trades) };
+    // Live rows: a partly unpriced stock's row is only its sale (unknown on the roster). Final
+    // rows are the posted week's own, which reconcile, so nothing is unknown there.
+    const mineIn: RosterSideInput = { userId: me, lineup: myRows, snapshots: toLiveSnapshots(cw.my_snapshots), trades: toLiveTrades(cw.my_trades), unpriced: final ? [] : derived.live.me.unpriced };
     const theirIn: RosterSideInput | null = opp && theirRows
-      ? { userId: opp.userId, lineup: theirRows, snapshots: toLiveSnapshots(cw.opponent_snapshots), trades: toLiveTrades(cw.opponent_trades) }
+      ? { userId: opp.userId, lineup: theirRows, snapshots: toLiveSnapshots(cw.opponent_snapshots), trades: toLiveTrades(cw.opponent_trades), unpriced: final ? [] : opp.unpriced }
       : null;
     return { me: mineIn, opp: theirIn };
-  }, [me, opp, myRows, theirRows, cw]);
+  }, [me, opp, myRows, theirRows, cw, final, derived.live.me.unpriced]);
 
   const now = raw.now;
   const sessions = useMemo(() => {
@@ -422,8 +425,9 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
       snapshots: side.snapshots,
       trades: side.trades,
       weekGain: row.cents / 100,
-      // The roster draws only in a league with weeks (matchupScreenState: leagueHasWeeks).
-      hasWeeks: true,
+      // The same gate as Portfolio's card. (Unreachable without weeks today: a league with no
+      // matchups reads as pre_season, whose view has no roster; this keeps it structural.)
+      hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
       // Under the capture seam the fixture's own daily bars (a real move every day); MSFT, bought
       // this week in the 'bought' fixture, has its bars in Home's raw inputs.
@@ -435,7 +439,7 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
     const pill = cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null);
     return { data, pill };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, roster.ledger, roster.slots, sides, now, raw, final]);
+  }, [shown, roster.ledger, roster.slots, sides, now, raw, final, activeLeague?.league_type]);
 
   // Sell is live only while the market is open (the trade gate fails closed); the capture
   // seam plays the Home fixture's own market.

@@ -2,38 +2,42 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "410deb27c1d0b997b31fc99c867d25d295337e75",
-    "commitShort": "410deb27",
+    "commit": "26ee640713bf9075e42a44b48a89cc8259156769",
+    "commitShort": "26ee6407",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/home-hero-no-weeks",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/index.tsx"
+        "path": "apps/mobile/app/(tabs)/matchup.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/home/HomeHero.tsx"
+        "path": "apps/mobile/lib/game/matchupRosterView.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/home/calmHome.ts"
+        "path": "apps/mobile/lib/game/playerCardModel.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/league-weeks.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-roster.test.ts"
       }
     ],
-    "timestamp": "2026-11-18T22:41:06Z",
-    "sourceHash": "sha256:b2a0255570d4fdf00f77b946794cab5df155156d8dfeca5c9e4ef35f16704bb4",
+    "timestamp": "2026-11-18T22:47:00Z",
+    "sourceHash": "sha256:451e9a2171f22a8e3c822bc1c65813dfc8b038a5840a7d54fbe2abf89090413f",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 28.2,
+    "ageHours": 28.3,
     "ageDays": 1.2,
     "staleAfterDays": 14,
     "stale": false,
@@ -20910,7 +20914,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:96"
+        "apps/mobile/app/(tabs)/matchup.tsx:97"
       ],
       "via": [
         "useRosterData"
@@ -20928,7 +20932,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:96"
+        "apps/mobile/app/(tabs)/matchup.tsx:97"
       ],
       "via": [
         "useRosterData"
@@ -20946,7 +20950,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:96"
+        "apps/mobile/app/(tabs)/matchup.tsx:97"
       ],
       "via": [
         "useRosterData"
@@ -20964,7 +20968,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:96"
+        "apps/mobile/app/(tabs)/matchup.tsx:97"
       ],
       "via": [
         "useRosterData"
@@ -24328,10 +24332,10 @@
       "supabase/functions/validate-and-record-pick/index.ts:131 -> check_and_bump_rate_limit"
     ],
     "tableOps": [
-      "apps/mobile/app/(tabs)/matchup.tsx:96 -> categories.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:96 -> drafts.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:96 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:96 -> trades.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:97 -> categories.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:97 -> drafts.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:97 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:97 -> trades.select (via useRosterData)",
       "apps/mobile/app/create-league.tsx:208 -> leagues.insert (via seamInsertLeague)",
       "apps/mobile/app/create-league.tsx:235 -> league_members.insert (via seamInsertMember)",
       "apps/mobile/app/create-league.tsx:245 -> league_draft_slots.delete (via seamSaveLeagueSlots)",

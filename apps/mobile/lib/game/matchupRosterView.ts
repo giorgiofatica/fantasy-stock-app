@@ -18,6 +18,11 @@ export interface RosterSideInput {
   lineup: readonly LineupRow[];
   snapshots: readonly LiveSnapshot[];
   trades: readonly LiveTrade[];
+  /** liveWeekScore's unpriced symbols (upper case): held now with no live price. A lineup row
+   * for one of them carries only this week's SALE of it (the held rest is unscored), so its
+   * figures are unknown: the half shows the stock alone, never the part as the whole. Omit
+   * (or []) for a posted final week's rows, which reconcile by construction. */
+  unpriced?: readonly string[];
 }
 
 export interface RosterCell {
@@ -95,7 +100,8 @@ export function buildRosterView(input: {
   const cents = (side: RosterSideInput) => new Map(side.lineup.map((r) => [r.symbol.toUpperCase(), r.cents]));
   const cell = (side: RosterSideInput, centsBy: Map<string, number>) => (e: RosterEntry | null): RosterCell | null => {
     if (!e) return null;
-    const c = centsBy.get(e.symbol);
+    // A partly unpriced stock's row is only its sale: unknown, not the week (CLAUDE.md, partial state).
+    const c = side.unpriced?.includes(e.symbol) ? undefined : centsBy.get(e.symbol);
     const weekGain = c === undefined ? null : c / 100;
     return {
       symbol: e.symbol,

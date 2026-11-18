@@ -103,7 +103,8 @@ function viewFull(now: Date, quote: (s: string) => number | null, variant: 'unsl
   opts: { barsAt?: Date; bars?: typeof bars; myTrades?: import('../lib/home/liveWeekScore.ts').LiveTrade[]; bye?: boolean } = {}) {
   const side = (userId: string, rows: typeof ROBERTO_HOLDINGS, trades: import('../lib/home/liveWeekScore.ts').LiveTrade[] = []) => {
     const live = liveWeekScore(snaps(rows), trades, quote);
-    return { userId, lineup: lineupRows(live.bySymbol, live.gain), snapshots: snaps(rows), trades };
+    // As the live Matchup tab passes it: liveWeekScore's unpriced symbols.
+    return { userId, lineup: lineupRows(live.bySymbol, live.gain), snapshots: snaps(rows), trades, unpriced: live.unpriced };
   };
   const ledger = fixtureLedger('unslotted', 'me', 'gia');
   const slots = fixtureSlots(variant, 'me', 'gia');
@@ -131,6 +132,22 @@ Deno.test('a REAL zero week on the roster (every price flat) is $0.00 / 0.00%, w
     assertEquals([c!.weekGain, c!.weekPct], [0, 0], c!.symbol);
     assertEquals(rosterHalfFigures({ weekGain: c!.weekGain, weekPct: c!.weekPct }), { gain: 0, pct: 0 }, `${c!.symbol}: the half keeps its figures`);
   }
+});
+
+Deno.test('a partly unpriced stock (sold half this week, no live price for the rest) shows no figures, never its sale as the week', () => {
+  const nvda = ROBERTO_HOLDINGS[0];
+  const sell = { symbol: 'NVDA', action: 'sell' as const, quantity: fixtureQty(nvda) / 2, price: nvda.mon + 10, createdAt: new Date('2026-09-22T15:00:00Z') };
+  const noNvda = (s: string) => (s === 'NVDA' ? null : thuQuote(s));
+  const thu = new Date('2026-09-24T17:37:00Z');
+  const cells = (g: ReturnType<typeof view>) => g.flatMap((x) => x.rows.map((r) => r.left)).filter((c) => c !== null);
+  const partial = cells(view(thu, noNvda, 'unslotted', { myTrades: [sell] }));
+  const n = partial.find((c) => c!.symbol === 'NVDA')!;
+  assertEquals([n.weekGain, n.weekPct], [null, null], 'the sale alone is a part, not the week');
+  assertEquals(rosterHalfFigures({ weekGain: n.weekGain, weekPct: n.weekPct }), null, 'the half is the stock alone');
+  for (const c of partial.filter((c) => c!.symbol !== 'NVDA')) assert(c!.weekGain !== null, `${c!.symbol} keeps its figure`);
+  // With its live price back, the same week has the whole figure.
+  const whole = cells(view(thu, thuQuote, 'unslotted', { myTrades: [sell] })).find((c) => c!.symbol === 'NVDA')!;
+  assert(whole.weekGain !== null && whole.weekPct !== null);
 });
 
 Deno.test('a live update moves the numbers, never the rows (the order holds until the next close)', () => {
