@@ -6,8 +6,10 @@ import {
   buildPricedRows,
   planWeekWindow,
   weekStartPriceRequest,
+  WEEK_START_MAX_ATTEMPTS,
   type Holding,
 } from './plan.ts';
+import { retryAttemptFrom } from '../_shared/retry-attempt.ts';
 import { checkSnapshotReads, matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
 import type { CalendarSession, Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
 import { IN_SEASON_STATUSES, SNAPSHOT_DRAFT_STATUS, isInSeasonLeague } from '../_shared/snapshot-league-scope.ts';
@@ -68,7 +70,7 @@ import {
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = WEEK_START_MAX_ATTEMPTS;
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), {
@@ -429,7 +431,7 @@ Deno.serve(async (req) => {
   if (parsedBody.kind === 'reprice') return await handleReprice(supabase, parsedBody.request, ALPACA_KEY, ALPACA_SECRET);
 
   // Get retry attempt from header (set by retry mechanism)
-  const retryAttempt = parseInt(req.headers.get('X-Retry-Attempt') || '1');
+  const retryAttempt = retryAttemptFrom(req.headers.get('X-Retry-Attempt'));
 
   // INVARIANT: every run is bracketed by exactly one 'running' write and exactly
   // one terminal write, and runJob (../_shared/run-job.ts) is the only place either

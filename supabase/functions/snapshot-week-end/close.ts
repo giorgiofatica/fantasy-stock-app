@@ -369,6 +369,15 @@ export function planCloseWindow(
   return { action: 'proceed', open: cut.open, close: cut.close, closeSessionDate: cut.closeSessionDate };
 }
 
+/**
+ * snapshot-week-end's attempts on Friday: the 21:05Z cron (attempt 1), then
+ * retries at 21:10Z and 21:15Z; the Mon/Tue 15:30Z heal runs as attempt 3. The
+ * LAST attempt is where step 5 may run on the close session's own day
+ * (prevCloseAllowed), so this number, the retry chain and the heal's header are
+ * pinned by supabase/tests/step5_final_attempts.test.ts.
+ */
+export const WEEK_END_MAX_ATTEMPTS = 3;
+
 // ---------------------------------------------------------------------------
 // weekEndPriceRequest: the ONE price request snapshot-week-end sends (index.ts
 // makes a single call; no price logic lives there). PURE.

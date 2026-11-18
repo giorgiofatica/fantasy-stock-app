@@ -257,6 +257,14 @@ export function planWeekWindow(
   };
 }
 
+/**
+ * snapshot-week-start's attempts per run day: the 14:35Z cron (attempt 1), then
+ * retries at 14:40Z and 14:45Z. The LAST one is where step 5 may run on the open
+ * session's own day (prevCloseAllowed), so this number and the retry chain that
+ * reaches it are pinned by supabase/tests/step5_final_attempts.test.ts.
+ */
+export const WEEK_START_MAX_ATTEMPTS = 3;
+
 // ---------------------------------------------------------------------------
 // weekStartPriceRequest: the ONE price request snapshot-week-start sends
 // (index.ts makes a single call; no price logic lives there). PURE.

@@ -1,6 +1,9 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { classifyCloseCoverage, buildCloseWork, planCloseWindow, weekEndPriceRequest, type Holding } from './close.ts';
+import {
+  classifyCloseCoverage, buildCloseWork, planCloseWindow, weekEndPriceRequest, WEEK_END_MAX_ATTEMPTS, type Holding,
+} from './close.ts';
+import { retryAttemptFrom } from '../_shared/retry-attempt.ts';
 import { checkSnapshotReads, matchupParticipants, snapshotHoldings } from '../_shared/snapshot-holdings.ts';
 import type { CalendarSession, Coverage as MarketCalendarCoverage } from '../_shared/week-window.ts';
 import { describeWeekPrices, fetchWeekPrices } from '../_shared/week-price.ts';
@@ -44,7 +47,7 @@ import { weekEndBaselineGate } from '../_shared/baseline.ts';
 
 function env(k: string) { return Deno.env.get(k) ?? ''; }
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = WEEK_END_MAX_ATTEMPTS;
 
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), {
@@ -255,7 +258,7 @@ Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SECRET_KEY);
 
   // Get retry attempt from header (set by retry mechanism)
-  const retryAttempt = parseInt(req.headers.get('X-Retry-Attempt') || '1');
+  const retryAttempt = retryAttemptFrom(req.headers.get('X-Retry-Attempt'));
 
   // INVARIANT: every run is bracketed by exactly one 'running' write and exactly
   // one terminal write, and runJob (../_shared/run-job.ts) is the only place either
