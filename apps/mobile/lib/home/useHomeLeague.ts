@@ -516,6 +516,8 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
   const leaderFlipFlipped = leaderFlipCall % 2 === 0;
   const quote = (sym: string) => {
     if (matchupExtras.quotes[sym] !== undefined) return matchupExtras.quotes[sym];
+    // Matchup's 'unpriced' capture: these holdings have no live quote at all.
+    if (matchupExtras.unpriced.includes(sym)) return null;
     // A holding with no live price (XL's PLTR) counts at cost, never a quote.
     if (robRows.find((h) => h.symbol === sym)?.unpriced) return null;
     if (fixture === 'leader_flip') {

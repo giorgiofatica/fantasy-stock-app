@@ -18,6 +18,9 @@
  *               waits (W4 Portfolio's "cash from a sale" state).
  *  - 'stress'   unslotted, the longest company names in the universe's style (§9B's stress
  *               fixture; pair with EXPO_PUBLIC_HOME_FIXTURE=xl_million for ≥ $1,000,000).
+ *  - 'unpriced' unslotted, one holding on EACH side with no live price and no sale this week
+ *               (Roberto's AAPL, Gianluigi's JPM): both stay on the roster with "–", and both
+ *               totals read "–" (no stand-ins, 2026-11-18).
  */
 import {
   ROBERTO_HOLDINGS, GIANLUIGI_HOLDINGS, XL_ROBERTO_HOLDINGS, XL_GIANLUIGI_HOLDINGS, XL_MILLION_ROBERTO_HOLDINGS,
@@ -27,10 +30,10 @@ import type { LedgerActivityRow, PortfolioLedger } from '../money/portfolioLedge
 import type { Category } from '../../components/sp/logic/gameNight';
 import type { SlotRow } from './matchupRoster';
 
-export type MatchupFixtureVariant = 'unslotted' | 'category' | 'tiers' | 'bought' | 'sold' | 'stress';
+export type MatchupFixtureVariant = 'unslotted' | 'category' | 'tiers' | 'bought' | 'sold' | 'stress' | 'unpriced';
 
 export function parseMatchupFixture(raw: string | undefined): MatchupFixtureVariant {
-  return raw === 'category' || raw === 'tiers' || raw === 'bought' || raw === 'sold' || raw === 'stress' ? raw : 'unslotted';
+  return raw === 'category' || raw === 'tiers' || raw === 'bought' || raw === 'sold' || raw === 'stress' || raw === 'unpriced' ? raw : 'unslotted';
 }
 
 const NAMES: Record<string, string> = {
@@ -219,6 +222,9 @@ export function fixtureSeasonBars(symbol: string, variant: MatchupFixtureVariant
   return [...out, ...fixtureWeekBars(symbol, variant)];
 }
 
+/** 'unpriced': one held stock per side with no live quote (Roberto's AAPL, Gianluigi's JPM). */
+export const UNPRICED_FIXTURE_SYMBOLS = ['AAPL', 'JPM'] as const;
+
 // ── 'bought': the week's trades, in get_home_league's shape ─────────────────────
 
 /** What a Home fixture adds under EXPO_PUBLIC_MATCHUP_FIXTURE: the week's trades, the extra
@@ -229,12 +235,16 @@ export function matchupWeekExtras(variant: MatchupFixtureVariant): {
   bars: Record<string, { date: string; close: number }[]>;
   /** Share-count multiplier: 'stress' takes the XL million league to seven-figure weeks. */
   qtyScale: number;
+  /** Symbols with NO live quote ('unpriced'): the seam's quote returns null for them. */
+  unpriced: string[];
 } {
-  if (variant === 'stress') return { trades: [], quotes: {}, bars: {}, qtyScale: STRESS_QTY_SCALE };
-  if (variant === 'sold') return { trades: boughtWeekTrades().filter((t) => t.action === 'sell'), quotes: {}, bars: {}, qtyScale: 1 };
-  if (variant !== 'bought') return { trades: [], quotes: {}, bars: {}, qtyScale: 1 };
+  if (variant === 'stress') return { trades: [], quotes: {}, bars: {}, qtyScale: STRESS_QTY_SCALE, unpriced: [] };
+  if (variant === 'sold') return { trades: boughtWeekTrades().filter((t) => t.action === 'sell'), quotes: {}, bars: {}, qtyScale: 1, unpriced: [] };
+  if (variant === 'unpriced') return { trades: [], quotes: {}, bars: {}, qtyScale: 1, unpriced: [...UNPRICED_FIXTURE_SYMBOLS] };
+  if (variant !== 'bought') return { trades: [], quotes: {}, bars: {}, qtyScale: 1, unpriced: [] };
   return {
     qtyScale: 1,
+    unpriced: [],
     trades: boughtWeekTrades(),
     quotes: { MSFT: MSFT_BUY.live },
     bars: { MSFT: [{ date: '2026-09-21', close: 404.18 }, { date: '2026-09-22', close: 407.02 }, { date: '2026-09-23', close: MSFT_BUY.prevClose }, { date: '2026-09-24', close: MSFT_BUY.live }] },

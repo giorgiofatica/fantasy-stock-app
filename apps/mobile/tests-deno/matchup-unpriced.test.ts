@@ -10,6 +10,8 @@ import { buildMatchupLive, sideTotal, type MatchupInput } from '../lib/game/buil
 import { buildAllMatchups, type AllMatchupsInput } from '../lib/game/allMatchups.ts';
 import { scoreHalfLabel, scoreTotalText, scoreboardModel, WEEK_UNKNOWN } from '../components/sp/logic/gameNight.ts';
 import { knownWithoutWeeks } from '../lib/game/leagueWeeks.ts';
+import { matchupWeekExtras, parseMatchupFixture, UNPRICED_FIXTURE_SYMBOLS } from '../lib/game/matchupFixture.ts';
+import { GIANLUIGI_HOLDINGS, ROBERTO_HOLDINGS } from '../lib/home/homeFixtureData.ts';
 import type { GetHomeLeagueResult, HomeLedgerRow } from '../lib/home/buildHomeViewModel.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 
@@ -134,4 +136,18 @@ Deno.test('Matchup tab: a Duration league draws no switch and no body (nothing i
   assert(src.includes('const blank = knownWithoutWeeks(activeLeague);'));
   assert(src.includes('{m.derived && !blank ? (\n          <SegmentedControl'));
   assert(src.includes("{blank ? null : segment === 'all' ? ("), 'neither My matchup (its $0.00 vs $0.00) nor All matchups');
+});
+
+// ── The capture fixture the gate stills use ───────────────────────────────────────
+
+Deno.test("capture: the 'unpriced' Matchup fixture has one HELD, unpriced stock on EACH side, and no sale", () => {
+  assertEquals(parseMatchupFixture('unpriced'), 'unpriced');
+  const x = matchupWeekExtras('unpriced');
+  assertEquals(x.unpriced, [...UNPRICED_FIXTURE_SYMBOLS]);
+  assertEquals(x.trades, [], 'no sale: a FULLY unpriced holding, the case that used to vanish');
+  const [mine, theirs] = UNPRICED_FIXTURE_SYMBOLS;
+  assert(ROBERTO_HOLDINGS.some((h) => h.symbol === mine) && !GIANLUIGI_HOLDINGS.some((h) => h.symbol === mine));
+  assert(GIANLUIGI_HOLDINGS.some((h) => h.symbol === theirs) && !ROBERTO_HOLDINGS.some((h) => h.symbol === theirs));
+  for (const v of ['unslotted', 'category', 'tiers', 'bought', 'sold', 'stress'] as const) assertEquals(matchupWeekExtras(v).unpriced, [], v);
+  assert(strip(SOURCES['lib/home/useHomeLeague.ts']).includes('if (matchupExtras.unpriced.includes(sym)) return null;'), 'the seam quote honours it');
 });
