@@ -1,6 +1,6 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
-Status: Draft (awaiting Giorgio's approval of this part; the tab's layout is a later part)
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved"); the tab's layout is a later part and is not approved or drafted
 Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: —
 
 This is the revision of decision 12 of
