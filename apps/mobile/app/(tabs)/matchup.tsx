@@ -321,7 +321,7 @@ function Withheld({ raw, roster, me, opp }: { raw: HomeRawInputs; roster: Roster
     activity: roster.ledger.activity,
     names: roster.ledger.symbol_names,
   });
-  const half = (c: { symbol: string; company: string } | null) => (c ? { ticker: c.symbol, company: c.company, weekGain: 0, weekPct: 0, figures: false } : null);
+  const half = (c: { symbol: string; company: string } | null) => (c ? { ticker: c.symbol, company: c.company, weekGain: null, weekPct: null, figures: false } : null);
   return (
     <View style={styles.roster}>
       <Text variant="caption" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE} style={styles.center} testID="roster-withheld">{WITHHELD_LINE}</Text>
@@ -455,7 +455,7 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
   const activity = roster.ledger?.activity ?? [];
   const openable = (side: 'me' | 'opp', symbol: string) =>
     openingOf(side === 'me' ? me : opp?.userId ?? '', symbol, activity) !== null && rowPrice(symbol) != null;
-  const half = (side: 'me' | 'opp', c: { symbol: string; company: string; weekGain: number; weekPct: number } | null) =>
+  const half = (side: 'me' | 'opp', c: { symbol: string; company: string; weekGain: number | null; weekPct: number | null } | null) =>
     c ? { ticker: c.symbol, company: c.company, weekGain: c.weekGain, weekPct: c.weekPct, onPress: openable(side, c.symbol) ? () => open(side, c.symbol) : undefined } : null;
 
   let ownership: PlayerCardOwnership | null = null;

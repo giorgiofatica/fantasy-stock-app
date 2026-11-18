@@ -48,11 +48,20 @@ export function rosterHalfParts(opts: { figures?: boolean; stacked: boolean; mir
   return opts.mirror ? ['num', 'name'] : ['name', 'num'];
 }
 
+/** A roster half's week figures, or null when it carries none: a withheld final (`figures:
+ * false`), or a week figure that is unknown (null). An unknown figure is never drawn as $0.00
+ * (Giorgio, 2026-11-18: a missing number never shows as zero); the half is the stock alone. */
+export function rosterHalfFigures(half: { weekGain: number | null; weekPct: number | null; figures?: boolean }): { gain: number; pct: number } | null {
+  if (half.figures === false || half.weekGain === null || half.weekPct === null) return null;
+  return { gain: half.weekGain, pct: half.weekPct };
+}
+
 /** VoiceOver's label for a roster half: whose it is first, then the stock and — unless the half
  * carries no figures — its week ("Yours, NVDA …" / "Gianluigi B., NKE …"). */
-export function rosterHalfLabel(whose: string, half: { ticker: string; company: string; weekGain: number; weekPct: number; figures?: boolean }): string {
-  if (half.figures === false) return `${whose}, ${half.ticker}, ${half.company}`;
-  return `${whose}, ${half.ticker}, ${half.company}, ${formatMoney(half.weekGain, { sign: 'always' })} this week, ${formatPercent(half.weekPct, { sign: 'always' })}`;
+export function rosterHalfLabel(whose: string, half: { ticker: string; company: string; weekGain: number | null; weekPct: number | null; figures?: boolean }): string {
+  const figs = rosterHalfFigures(half);
+  if (!figs) return `${whose}, ${half.ticker}, ${half.company}`;
+  return `${whose}, ${half.ticker}, ${half.company}, ${formatMoney(figs.gain, { sign: 'always' })} this week, ${formatPercent(figs.pct, { sign: 'always' })}`;
 }
 
 /** Giorgio, 2026-10-12: YOUR side is shaded in your colour, win or lose — on the Scoreboard
@@ -63,6 +72,14 @@ export const SHADED_SIDE = 'left' as const;
 export type Tone = 'gain' | 'loss' | 'zero';
 export function toneOf(n: number): Tone {
   return n > 0 ? 'gain' : n < 0 ? 'loss' : 'zero';
+}
+
+/** The player card's Week gain figure ("+$62.40" over "+6.05%"), or null when there is none: a
+ * league without weeks, or a week that has nothing for the stock. Then the card leaves the figure
+ * out (no stand-in, no new words): a missing number never shows as zero (Giorgio, 2026-11-18). */
+export function cardWeekFigure(weekGain: number | null, weekPct: number | null): { value: string; sub: string; tone: Tone } | null {
+  if (weekGain === null || weekPct === null) return null;
+  return { value: formatMoney(weekGain, { sign: 'always' }), sub: formatPercent(weekPct, { sign: 'always' }), tone: toneOf(weekGain) };
 }
 
 // ── Categories (DraftTile, CategoryPill) ─────────────────────────────────────────

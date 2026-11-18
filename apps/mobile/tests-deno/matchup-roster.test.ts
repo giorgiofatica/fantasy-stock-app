@@ -131,7 +131,7 @@ Deno.test('a live update moves the numbers, never the rows (the order holds unti
   assertEquals(left(after), left(before));
   assertEquals(right(after), right(before));
   // …but the numbers on the rows did move.
-  const tsla = (g: ReturnType<typeof view>) => g[0].rows.find((r) => r.left?.symbol === 'TSLA')!.left!.weekGain;
+  const tsla = (g: ReturnType<typeof view>) => g[0].rows.find((r) => r.left?.symbol === 'TSLA')!.left!.weekGain!;
   assert(tsla(after) > tsla(before));
 });
 

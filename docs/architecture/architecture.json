@@ -2,38 +2,102 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "b380a8110d63e24a7bcb477aab4c93937a3e9a1c",
-    "commitShort": "b380a811",
+    "commit": "44ba4e34f37bc5adc3122a4c813e58733d7ea400",
+    "commitShort": "44ba4e34",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/trade-gate-by-season-end",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/gate.test.ts"
+        "path": "apps/mobile/app/(tabs)/matchup.tsx"
       },
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/gate.ts"
+        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
       },
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/index.ts"
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
       },
       {
-        "code": "??",
-        "path": "supabase/migrations/20261207000000_record_trade_season_end_by_date.sql"
+        "code": "M",
+        "path": "apps/mobile/components/shell/LeagueSheetRow.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/PlayerCard.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/RosterRow.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/gameNight.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/game/leagueWeeks.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/matchupRosterView.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/playerCardModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/LeagueContext.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/matchupScreenState.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/shell/devFixture.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/shell/leagueSheet.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/league-weeks.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-calls.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-roster.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/shell-league-sheet.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-18T22:17:59Z",
-    "sourceHash": "sha256:54f6e23265521ef2807bf4c36f5397cb8437468dc097a4ad0c671c49e80e172a",
+    "timestamp": "2026-11-18T22:29:17Z",
+    "sourceHash": "sha256:15870fb89c8314c4bf6658aad0e3acfbeecac935a8738e5d0f51c302b2a22dcf",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 27.8,
+    "ageHours": 28,
     "ageDays": 1.2,
     "staleAfterDays": 14,
     "stale": false,
@@ -20850,7 +20914,7 @@
       ],
       "callSites": [
         "apps/mobile/lib/LeagueContext.tsx:178",
-        "apps/mobile/lib/LeagueContext.tsx:322"
+        "apps/mobile/lib/LeagueContext.tsx:323"
       ]
     },
     {
@@ -20880,7 +20944,7 @@
         "*"
       ],
       "callSites": [
-        "apps/mobile/lib/LeagueContext.tsx:334"
+        "apps/mobile/lib/LeagueContext.tsx:335"
       ]
     },
     {
@@ -24350,8 +24414,8 @@
       "apps/mobile/lib/LeagueContext.tsx:178 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:180 -> league_seasons.select",
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",
-      "apps/mobile/lib/LeagueContext.tsx:322 -> league_members.select",
-      "apps/mobile/lib/LeagueContext.tsx:334 -> leagues.select",
+      "apps/mobile/lib/LeagueContext.tsx:323 -> league_members.select",
+      "apps/mobile/lib/LeagueContext.tsx:335 -> leagues.select",
       "apps/mobile/lib/SessionProvider.tsx:206 -> user_profiles.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:33 -> league_members.select",
       "apps/mobile/lib/account/deleteLeaguesApi.ts:38 -> leagues.select",

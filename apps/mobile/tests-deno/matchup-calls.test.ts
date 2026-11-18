@@ -108,9 +108,11 @@ Deno.test('withheld: the line, then who held what — draft order, no figures', 
   assertEquals(g.rows.map((r) => r.left!.symbol), ['NVDA', 'AAPL', 'CRM', 'TSLA', 'COST', 'V']); // picks 2 11 14 23 26 35
   assertEquals(g.rows.map((r) => r.right!.symbol), ['AMZN', 'JPM', 'DIS', 'NKE', 'KO', 'BA']);
   const src = SOURCES['app/(tabs)/matchup.tsx'];
-  assert(src.includes('weekGain: 0, weekPct: 0, figures: false'), 'the halves carry no numbers');
+  assert(src.includes('weekGain: null, weekPct: null, figures: false'), 'the halves carry no numbers (null, never a stand-in 0)');
+  assertEquals(g.rows.map((r) => [r.left!.weekGain, r.left!.weekPct]), g.rows.map(() => [null, null]), 'the view carries no numbers either');
   assert(src.includes('<Withheld raw={raw} roster={roster} me={user.id} opp={live.opp} />'));
-  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes("rosterHalfParts({ figures: half.figures, stacked, mirror })"), 'the primitive draws by rosterHalfParts');
+  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes("rosterHalfParts({ figures: figs !== null, stacked, mirror })"), 'the primitive draws by rosterHalfParts');
+  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const figs = rosterHalfFigures(half);'), 'figures come from rosterHalfFigures (figures:false or an unknown week = none)');
 });
 
 Deno.test('withheld: a `figures: false` half draws the stock and NO number, in every layout', () => {
@@ -211,7 +213,7 @@ Deno.test('mid-week buy (sold V Tue, bought MSFT Thu): the card\'s week figures 
   })!;
   assertEquals(card.weekGain, msftRow.cents / 100);
   assertEquals(card.weekPct, rowPct);
-  assertEquals(Math.round(card.weekGain * 100), Math.round(trades[1].quantity * (MSFT_BUY.live - MSFT_BUY.price) * 100), 'scored from the buy, not Monday');
+  assertEquals(Math.round(card.weekGain! * 100), Math.round(trades[1].quantity * (MSFT_BUY.live - MSFT_BUY.price) * 100), 'scored from the buy, not Monday');
   assertEquals(card.acquisition, { kind: 'bought', date: 'Sep 24', price: MSFT_BUY.price });
   // V, sold Tuesday, still on this week's roster with its realized gain.
   assert(rows.some((r) => r.symbol === 'V'));

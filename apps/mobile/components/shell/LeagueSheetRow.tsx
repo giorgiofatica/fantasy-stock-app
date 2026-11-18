@@ -8,7 +8,7 @@ import { Icon } from '@/components/sp/Icon';
 import { PhaseChip } from '@/components/sp/PhaseChip';
 import { PressableScale } from '@/components/sp/PressableScale';
 import { Text } from '@/components/sp/Text';
-import { accessibleLeagueRow, chipLabelFor, chipPhaseFor, formatLeagueMeta, type SheetLeague } from '@/lib/shell/leagueSheet';
+import { accessibleLeagueRow, chipLabelFor, chipPhaseFor, formatLeagueMeta, sheetChipShown, type SheetLeague } from '@/lib/shell/leagueSheet';
 
 // Phase 3b-1 — one league in the sheet: name, "2nd of 6 · 4–1", PhaseChip,
 // and a check on the active league (board "League sheet"). The name sits in
@@ -28,7 +28,7 @@ export function LeagueSheetRow({ league, selected, onPick }: LeagueSheetRowProps
   // it squeezed the text into "Ser…" / "joine d". Stacked, nothing truncates.
   const { fontScale } = useWindowDimensions();
   const stacked = fontScale >= FULL_WIDTH_FONT_SCALE;
-  const chip = <PhaseChip phase={chipPhaseFor(league.seasonPhase, league.marketOpen)} label={chipLabelFor(league)} />;
+  const chip = sheetChipShown(league) ? <PhaseChip phase={chipPhaseFor(league.seasonPhase, league.marketOpen)} label={chipLabelFor(league)} /> : null;
 
   return (
     <PressableScale
@@ -49,7 +49,7 @@ export function LeagueSheetRow({ league, selected, onPick }: LeagueSheetRowProps
             {meta}
           </Text>
         ) : null}
-        {stacked ? <View style={styles.chipStacked}>{chip}</View> : null}
+        {stacked && chip ? <View style={styles.chipStacked}>{chip}</View> : null}
       </View>
       {stacked ? null : chip}
       <View style={styles.check}>

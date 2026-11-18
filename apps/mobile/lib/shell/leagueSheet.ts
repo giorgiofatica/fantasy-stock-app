@@ -7,6 +7,7 @@
 // a phase on its own.
 
 import type { SeasonPhase } from '../weekStatus';
+import { leagueHasWeeks } from '../game/leagueWeeks';
 import { playoffRoundLabelForWeek } from '../playoffs';
 import { PHASE_LABELS, phaseChipText, type LeaguePhase } from '../../components/sp/logic/phaseChip';
 
@@ -34,6 +35,8 @@ export interface SheetLeague {
   isChampion: boolean;
   /** The existing getSeasonLabel() text, used verbatim for pre-season ("Starts Tue, Sep 29"). */
   seasonLabel: string;
+  /** leagues.league_type: only a Matchup league plays in weeks (leagueHasWeeks). */
+  leagueType: string | null;
   /** leagues.current_week / num_weeks / playoff_teams / draft_date, for the chip's label. */
   currentWeek: number;
   numWeeks: number | null;
@@ -179,6 +182,15 @@ export function chipLabelFor(l: SheetLeague): string {
   return specificChipLabel(l) ?? PHASE_LABELS[chipPhaseFor(l.seasonPhase, l.marketOpen)];
 }
 
+/**
+ * Whether the row shows its PhaseChip. A league without weeks (Duration: the server runs no weekly
+ * jobs for it) has no "Week N" to show in its season, so that chip is left out, with nothing in its
+ * place (2026-11-18: never a stand-in). Every other phase's chip (the draft, "Final") stays.
+ */
+export function sheetChipShown(l: SheetLeague): boolean {
+  return l.seasonPhase !== 'regular' || leagueHasWeeks(l.leagueType);
+}
+
 function plural(n: number, one: string, many: string): string {
   return `${count(n)} ${n === 1 ? one : many}`;
 }
@@ -196,7 +208,7 @@ export function accessibleLeagueRow(l: SheetLeague, selected: boolean): string {
     const meta = formatLeagueMeta(l);
     if (meta) parts.push(meta);
   }
-  parts.push(phaseChipText(chipPhaseFor(l.seasonPhase, l.marketOpen), chipLabelFor(l)));
+  if (sheetChipShown(l)) parts.push(phaseChipText(chipPhaseFor(l.seasonPhase, l.marketOpen), chipLabelFor(l)));
   if (selected) parts.push('selected');
   return parts.join(', ');
 }

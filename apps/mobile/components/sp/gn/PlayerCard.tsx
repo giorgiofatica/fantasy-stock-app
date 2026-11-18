@@ -10,7 +10,7 @@ import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { formatMoney, formatPercent } from '@/components/sp/logic/money';
 import {
-  acquisitionLine, cardAction, howTitle, toneOf, type Acquisition, type Category, type PlayerCardOwnership,
+  acquisitionLine, cardAction, cardWeekFigure, howTitle, toneOf, type Acquisition, type Category, type PlayerCardOwnership,
 } from '@/components/sp/logic/gameNight';
 
 export type { PlayerCardOwnership, PlayerCardOwnerInfo } from '@/components/sp/logic/gameNight';
@@ -30,6 +30,8 @@ import type { HoldingLot } from '@/lib/game/playerCardModel';
 //   2. TWO key figures on `inset`: Price (with today's change) · Week gain (Giorgio, 2026-11-17,
 //      "B": the matchup week, Monday to now, which is not 1W). They keep their two columns at the
 //      largest text size. "Since the draft" is no longer a figure: it is what Season's gain line says.
+//      A league without weeks (Duration), or a week with nothing for the stock, has no Week gain:
+//      the figure is left out and Price stands alone (2026-11-18: never a stand-in zero).
 //   3. ONE chart, the same one a stock's sheet has (components/money/StockChart): the range's gain
 //      directly above the line (the HOLDING's P/L over the range, e.g. "+$195 (+9.74%) since the draft"),
 //      the six ranges under it, opening on Season; a range longer than the stock's history is grey; no dotted line, and NO acquisition
@@ -57,9 +59,10 @@ interface PlayerCardBase {
   price: number;
   /** Today's change, percent: inside the Price figure. */
   todayPct: number;
-  /** The matchup week (Monday to now), not 1W. */
-  weekGain: number;
-  weekPct: number;
+  /** The matchup week (Monday to now), not 1W. Null = no Week gain figure (a league without
+   * weeks, or a week with nothing for this stock): the strip shows Price alone. */
+  weekGain: number | null;
+  weekPct: number | null;
   acquisition: Acquisition;
   /** The lots held now: the chart's gain line is their P/L, not a per-share move. */
   lots: readonly HoldingLot[];
@@ -98,8 +101,7 @@ export function PlayerCardBody(props: PlayerCardProps) {
   } = props;
   const { colors } = useTheme();
   const action = cardAction(props);
-  const weekTone = colors[toneOf(weekGain)];
-  const money = (n: number) => formatMoney(n, { sign: 'always' });
+  const week = cardWeekFigure(weekGain, weekPct);
   const pct = (n: number) => formatPercent(n, { sign: 'always' });
   const ownerLabel = owner === 'you' ? 'Yours' : MONEY_COPY.ownedBy(owner.name);
 
@@ -134,7 +136,7 @@ export function PlayerCardBody(props: PlayerCardProps) {
       {/* 2. Two key figures: Price (and today) · Week gain. Two columns at every text size. */}
       <View style={[styles.strip, { backgroundColor: colors.inset }]}>
         <Figure label="Price" value={formatMoney(price)} sub={`${pct(todayPct)} today`} subColor={colors[toneOf(todayPct)]} />
-        <Figure label="Week gain" value={money(weekGain)} valueColor={weekTone} sub={pct(weekPct)} subColor={weekTone} />
+        {week ? <Figure label="Week gain" value={week.value} valueColor={colors[week.tone]} sub={week.sub} subColor={colors[week.tone]} /> : null}
       </View>
 
       {/* 3. ONE chart: the range's gain above it, the six ranges under it, opening on Season */}

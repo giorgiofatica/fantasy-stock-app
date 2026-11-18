@@ -131,8 +131,8 @@ const snap = [{ symbol: 'NVDA', quantity: fixtureQty(nvda), weekStartPrice: nvda
 
 Deno.test('stockWeek: the row\'s own number (liveWeekScore over this one stock)', () => {
   const w = stockWeek('NVDA', snap, [], nvda.thu);
-  assertEquals(Math.round(w.gain * 100), Math.round(fixtureQty(nvda) * (nvda.thu - nvda.mon) * 100));
-  assertEquals(Math.round(w.pct * 100) / 100, Math.round(((nvda.thu - nvda.mon) / nvda.mon) * 10000) / 100);
+  assertEquals(Math.round(w.gain! * 100), Math.round(fixtureQty(nvda) * (nvda.thu - nvda.mon) * 100));
+  assertEquals(Math.round(w.pct! * 100) / 100, Math.round(((nvda.thu - nvda.mon) / nvda.mon) * 10000) / 100);
 });
 
 Deno.test('today: the last close before today (never today\'s own bar)', () => {
@@ -169,7 +169,7 @@ Deno.test('playerCardData: Week gain is the matchup week and is NOT the 1W range
   // The 1W gain is per share over the past five sessions; the card's Week gain is the row's own number.
   const one = stockLineSeries({ range: '1W', bars: [{ date: '2026-09-17', close: 250 }, ...weekBars], price: nvda.thu, todayEt: '2026-09-24', now, sessions: [], seasonStart: null });
   const oneWeek = rangeGain(one.points, one.base)!;
-  assert(Math.abs(d.weekGain - oneWeek.money) > 0.01, 'the week gain and the 1W gain are different numbers');
+  assert(Math.abs(d.weekGain! - oneWeek.money) > 0.01, 'the week gain and the 1W gain are different numbers');
   assertEquals(d.weekGain, 62.4);
 });
 

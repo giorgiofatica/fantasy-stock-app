@@ -37,6 +37,7 @@ function league(over: Partial<SheetLeague> = {}): SheetLeague {
     capacity: 6,
     isChampion: false,
     seasonLabel: '',
+    leagueType: 'matchup',
     currentWeek: 6,
     numWeeks: 10,
     playoffTeams: 4,

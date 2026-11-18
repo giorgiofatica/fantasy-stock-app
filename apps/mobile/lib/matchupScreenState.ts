@@ -15,6 +15,8 @@
 // Both were previously indistinguishable from "this IS a duration league",
 // because `undefined?.league_type === 'matchup'` is `false` in every case.
 
+import { leagueHasWeeks } from './game/leagueWeeks';
+
 export type MatchupScreenState = 'leagues-loading' | 'no-league' | 'duration' | 'matchup';
 
 export interface MatchupScreenInput {
@@ -32,7 +34,7 @@ export function getMatchupScreenState({
   activeLeague,
 }: MatchupScreenInput): MatchupScreenState {
   if (activeLeague) {
-    return activeLeague.league_type === 'matchup' ? 'matchup' : 'duration';
+    return leagueHasWeeks(activeLeague.league_type) ? 'matchup' : 'duration';
   }
   // No active league yet. If the context is still fetching, or it has
   // leagues it just hasn't auto-selected one from yet, this is transient.
