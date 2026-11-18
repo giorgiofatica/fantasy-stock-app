@@ -13,7 +13,7 @@ import { formatMoney, formatPercent, isZeroMoney } from '@/components/sp/logic/m
 import { RollingMoney } from '@/components/home/RollingMoney';
 import { HERO_SEASON_GAIN_LABEL, HERO_TODAY_LABEL, heroAccessibilityLabel, heroUnpricedCaption } from '@/lib/home/homeCopy';
 import { ordinal } from '@/lib/home/ordinal';
-import { heroMetaLine } from '@/lib/home/calmHome';
+import { heroLines, heroMetaLine } from '@/lib/home/calmHome';
 
 // Stockpile — <HomeHero> (Phase 3b-2, D1 Concept A; Game Night, W4). The big number is
 // team VALUE; the line under it is the scored season gain plus today's
@@ -64,6 +64,9 @@ export interface HomeHeroProps {
    * ET"). Set to replace the whole gain/pct/today line with that pair;
    * leave null/undefined for every other state. */
   preSeasonLabel?: string | null;
+  /** The league plays in weeks (leagueHasWeeks). False drops the meta line and the gain line
+   * (heroLines): a Duration league has no week and no scored season to show. Default true. */
+  hasWeeks?: boolean;
   /** True when this mount was caused by a LEAGUE SWITCH, not Home's first
    * open (H5, Design Lead ruling 2026-09-29, Blocking 1) — the hero comes
    * in already settled, with no H4 rise. */
@@ -71,7 +74,7 @@ export interface HomeHeroProps {
 }
 
 
-export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, value, seasonGainDollars, seasonGainPct, today, unpricedValue, unpricedToday, preSeasonLabel, skipEntrance = false }: HomeHeroProps) {
+export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, value, seasonGainDollars, seasonGainPct, today, unpricedValue, unpricedToday, preSeasonLabel, hasWeeks = true, skipEntrance = false }: HomeHeroProps) {
   const { colors } = useTheme();
   const { reduced, duration, easing, withTiming } = useMotion();
 
@@ -109,7 +112,11 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
   const todayText = today != null ? formatMoney(today, { sign: 'always' }) : null;
 
   const caption = heroUnpricedCaption(unpricedValue, unpricedToday);
-  const a11yLabel = preSeasonLabel != null
+  const lines = heroLines(hasWeeks);
+  // No gain line (a league without weeks): VoiceOver says the value alone, with no "$0.00".
+  const a11yLabel = !lines.gainLine
+    ? `Your team, ${valueText}.`
+    : preSeasonLabel != null
     ? `Your team, ${valueText}. $0.00, ${preSeasonLabel}.`
     : heroAccessibilityLabel(
         valueText,
@@ -128,15 +135,17 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
         {/* The meta text wraps to a second line at XXXL sizes instead of
             running off the edge (XL check, 2026-10-05); at default size it
             fits one line and lays out exactly as before. */}
-        <Text variant="caption" tone="secondary" style={[styles.metaNum, styles.metaRight]}>
-          {rank != null
-            ? heroMetaLine([`${ordinal(rank)} of ${totalPlayers}`, record, weekOrRound])
-            // Pre-season (rank null, board: "Week 1 of 14 · 0–0"): the
-            // week/round leads, since there's no record worth leading
-            // with yet -- the one case where this order differs from
-            // every other state's "record · week" (Design Lead, B3).
-            : heroMetaLine([weekOrRound, record])}
-        </Text>
+        {lines.meta ? (
+          <Text variant="caption" tone="secondary" style={[styles.metaNum, styles.metaRight]}>
+            {rank != null
+              ? heroMetaLine([`${ordinal(rank)} of ${totalPlayers}`, record, weekOrRound])
+              // Pre-season (rank null, board: "Week 1 of 14 · 0–0"): the
+              // week/round leads, since there's no record worth leading
+              // with yet -- the one case where this order differs from
+              // every other state's "record · week" (Design Lead, B3).
+              : heroMetaLine([weekOrRound, record])}
+          </Text>
+        ) : null}
       </View>
 
       {/* Blocking 2 (Design Lead, code review 2026-09-29): the whole hero
@@ -148,7 +157,7 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
         {/* §9C: the team value is the one standout, `hero` 46/800 (the board's HeroText). */}
         <RollingMoney text={valueText} size="hero" rollKey={leagueId} />
 
-        {preSeasonLabel != null ? (
+        {!lines.gainLine ? null : preSeasonLabel != null ? (
           <View style={styles.gainRow}>
             <RollingMoney text={formatMoney(0, { sign: 'always' })} size="callout" color={colors.zero} rollKey={leagueId} fontWeight="700" />
             <Text variant="callout" tone="secondary"> · {keepTime(preSeasonLabel)}</Text>

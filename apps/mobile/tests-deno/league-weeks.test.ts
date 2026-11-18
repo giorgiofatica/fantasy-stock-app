@@ -12,6 +12,7 @@ import { WEEK_UNKNOWN, cardWeekFigure, rosterHalfFigures, rosterHalfLabel } from
 import { SEASON_TILE_UNSCORED } from '../lib/home/homeCopy.ts';
 import { accessibleLeagueRow, sheetChipShown, type SheetLeague } from '../lib/shell/leagueSheet.ts';
 import { getMatchupScreenState } from '../lib/matchupScreenState.ts';
+import { heroLines } from '../lib/home/calmHome.ts';
 import { fixtureLedger } from '../lib/game/matchupFixture.ts';
 import { ROBERTO_HOLDINGS, fixtureQty } from '../lib/home/homeFixtureData.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
@@ -169,6 +170,24 @@ Deno.test('Home: a league without weeks has no This week card, gated before ever
   const chain = src.slice(gate, src.indexOf('const showSeason ='));
   assert(chain.startsWith("const hasWeeks = leagueHasWeeks(league?.league_type);\n  if (!hasWeeks) {\n    middleCard = null;\n  } else if (phase.kind === 'pre_season') {"), 'the gate is the first branch: no phase can draw the card without weeks');
   assertEquals((chain.match(/<ThisWeekCard/g) ?? []).length, (src.match(/<ThisWeekCard/g) ?? []).length, 'every This week card is behind the gate');
+});
+
+Deno.test('Home hero: a league without weeks has no meta line and no gain line; a Matchup league keeps both', () => {
+  assertEquals(heroLines(leagueHasWeeks('duration')), { meta: false, gainLine: false });
+  assertEquals(heroLines(leagueHasWeeks(null)), { meta: false, gainLine: false });
+  assertEquals(heroLines(leagueHasWeeks('matchup')), { meta: true, gainLine: true });
+});
+
+Deno.test('Home hero (RN): both lines drawn only by heroLines; the value alone for VoiceOver; Home passes its gate', () => {
+  const hero = strip(SOURCES['components/home/HomeHero.tsx']);
+  assert(hero.includes('preSeasonLabel, hasWeeks = true, skipEntrance = false }: HomeHeroProps)'), 'default: weeks (every existing caller unchanged)');
+  assert(hero.includes('const lines = heroLines(hasWeeks);'));
+  assert(hero.includes('{lines.meta ? (\n          <Text variant="caption" tone="secondary" style={[styles.metaNum, styles.metaRight]}>'), 'the meta text sits behind lines.meta');
+  assert(hero.includes('{!lines.gainLine ? null : preSeasonLabel != null ? ('), 'both gain lines (pre-season and in season) sit behind lines.gainLine');
+  assert(hero.includes('const a11yLabel = !lines.gainLine\n    ? `Your team, ${valueText}.`'), 'VoiceOver: no "$0.00" without the gain line');
+  const home = strip(SOURCES['app/(tabs)/index.tsx']);
+  const tag = home.slice(home.indexOf('<HomeHero'), home.indexOf('/>', home.indexOf('<HomeHero')));
+  assert(tag.includes('hasWeeks={hasWeeks}'), 'Home gives the hero the same leagueHasWeeks gate as the This week card');
 });
 
 // ── The league list ──────────────────────────────────────────────────────────────

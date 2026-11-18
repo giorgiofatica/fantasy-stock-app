@@ -367,6 +367,7 @@ function HomeBody({
       unpricedValue={heroVm.unpricedValue}
       unpricedToday={heroVm.unpricedToday}
       preSeasonLabel={phase.kind === 'pre_season' ? preSeasonStartsLabel(phase.seasonStartsAt) : null}
+      hasWeeks={hasWeeks}
       skipEntrance={skipEntrance}
     />
   );

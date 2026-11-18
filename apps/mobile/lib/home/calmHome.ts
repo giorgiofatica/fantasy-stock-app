@@ -96,6 +96,18 @@ export function throughWeekShown(throughWeek: number): boolean {
   return throughWeek > 0;
 }
 
+// ── The hero's lines in a league without weeks ─────────────────────────────
+/**
+ * Which of the hero's lines are drawn. A league without weeks (leagueHasWeeks false: a Duration
+ * league, which Home can only read as pre-season, since it has no matchups) has no meta line
+ * ("Week 1 of ?") and no gain line (the pre-season "$0.00 · Starts …", a stand-in zero): both
+ * are simply absent, nothing in their place, no new words. The value and "Your team" stay. A
+ * stop-gap (2026-11-18), not a design of what a Duration hero should say.
+ */
+export function heroLines(hasWeeks: boolean): { meta: boolean; gainLine: boolean } {
+  return { meta: hasWeeks, gainLine: hasWeeks };
+}
+
 // ── The hero's meta line ───────────────────────────────────────────────────
 const NBSP = ' ';
 /** "2nd of 6 · 4–1 · Week 6 of 14", wrapping only BETWEEN segments at large text: each
