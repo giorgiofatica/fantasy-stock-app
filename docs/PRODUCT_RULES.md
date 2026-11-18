@@ -491,6 +491,25 @@ building anything, and don't reopen a rule without him.
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
   only the tiebreak. The UI shows the metric that decides the winner, via one shared helper.
+- **There is always a price for a stock, and no person ever types one in** (2026-11-17).
+  Asked what the app should do when a held stock has no trade for a whole day (the case the
+  2026-11-17 week-price fix leaves with no price), and shown three options (A: use the
+  stock's last closing price, automatically; B: wait for a person to enter a price; C: alert
+  the owner and leave the week unscored), Giorgio's words: "No. I'm sorry. There should
+  always be a price for a stock. We cannot be building an app that will have a human type in
+  the price. There needs to be, like, that cannot happen. There always needs to be a price
+  for a stock."
+  - Ruled out by his words: a person entering a price (B), and any state where a week stays
+    unscored because a stock has no price (C).
+  - The Planner's reading, not his words: the way to meet it is A, the stock's last real sale
+    price (its most recent close) used automatically when a day has no trade. That is a real
+    price, not an ask or a guess. He was told this is what A does and was not asked to pick a
+    letter again.
+  - Why the case exists at all, for whoever builds it: prices come from one small exchange's
+    feed, where a thinly traded stock can go a day with no trade even though it traded
+    elsewhere. Fuller market coverage is part of the price-supplier decision. A stock that
+    has stopped trading for good (delisted) is a separate case that this rule makes
+    necessary to design: its last price cannot be used for ever.
 - **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
   DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
   biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
