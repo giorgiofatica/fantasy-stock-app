@@ -746,6 +746,21 @@ building anything, and don't reopen a rule without him.
       dollar gain with its percent (a matchup's "This week" line, a roster row, the stock
       sheet's day change). The Design Lead lists them and applies the same format; if the
       brackets change how one of those lines fits or wraps, that still comes to him first.
+  - **On a gain line only the numbers are coloured; the words stay grey** (2026-11-18, A/B
+    mockup in the Planner's chat). The app was inconsistent: on Home the words after a
+    figure ("season gain", "today") were grey, and on Portfolio they took the green or red
+    of the figure ("today" since #508; the whole "since the draft" line). Shown A (words
+    grey everywhere, only the numbers coloured) beside B (the words take the gain colour
+    everywhere), on Home's line and Portfolio's two lines, he picked **A**.
+    - So on Home and Portfolio the figure is green or red and the words that say what it is
+      ("season gain", "today", "since the draft", and the period words of a chart's range
+      gain) are the app's grey. Portfolio changes; Home already looks this way.
+    - Shown to him: Home's line and Portfolio's two lines. Covered by the same pick because
+      it is the same line: the range gain above any chart (the stock sheet, the player
+      card, a manager's portfolio). Any other place a word follows a coloured figure is the
+      Design Lead's to list, and comes to him only if it would look different from these.
+    - Not asked: the weight of the words. They are regular weight in A as drawn; the figures
+      keep theirs.
   - **Which range a chart opens on: your team on Season, a stock you are shopping for on 1W**
     (2026-11-17, board `#call-chart-default`, PR #496; typed in the Orchestrator's chat,
     18:00Z: "go with B"). The Portfolio graph and the card for a stock on a team open on
