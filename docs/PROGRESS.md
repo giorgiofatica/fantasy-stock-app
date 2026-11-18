@@ -23,6 +23,38 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-18
+
+(Times are UTC. The Orchestrator's account unless marked; where I read it myself on GitHub or in the repo, I say so.)
+
+**Shipped**
+- **The CI and independent-review pipeline is on `main`: #516, merged 18:53:31Z (`f2bca005`) by Giorgio.** I read the CI run on `main` for that commit (run 44374604573): Web, Mobile, Backend and All checks all `success`. Detail and the pilot facts in STATUS §1 (2026-11-18) and in `docs/CODE_REVIEW_PIPELINE.md`.
+
+- **The branch ruleset "main: require CI" is ON (later the same day).** I read it on GitHub: active on the default branch, a pull request with 0 approvals, **All checks** required (not strict), no bypass actors, deletions and force-pushes blocked. The Orchestrator saw #510 to #515 go from BLOCKED (no run) to CLEAN after CI; all seven open pull requests were CLEAN with All checks SUCCESS when I read them. A red check blocking a merge has not been observed yet.
+
+- **Six pull requests merged by Giorgio, 19:23Z to 19:25Z (I read each on GitHub):** #513 (`2d4fe8e5`), #514 (`c14b5805`), #510 (`6a1de19b`), #512 (`95175004`), #515 (`aa7e3cd5`), #511 (`6bc490db`, my 2026-11-17 record). `main` is `6bc490db`. #510 and #512 are rulings in `docs/PRODUCT_RULES.md`; #515 is paths; #511 is the 2026-11-17 record.
+
+- **#513 and #514 are DEPLOYED and byte-verified (the Orchestrator's account; I did not run it).** Giorgio deployed ten functions from `/Users/giorgio/fantasy-stock/local/deploy` at `main` `6bc490db`, at about 19:4xZ, with the Homebrew `supabase` 2.67.1. The Orchestrator compared every file of all ten against `main`: 58 compared, 0 differ; a no-credential POST to four of them returned 401. I read the import chain that explains the ten (STATUS §1, 2026-11-18). **Shown:** the byte match and the four 401s. **Not shown:** that the always-a-price step prices anything in a real week (it has not run) or that fills and quotes behave differently; #514's two mobile files are in no build.
+
+**Merged, not confirmed live**
+- **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged, in no build (build 17 is not started). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
+
+**Decided**
+- **CI plus a Copilot review is now the standard workflow for every pull request.** Giorgio, as the Orchestrator relayed it: "make this our standard Stockpile development workflow". It is in `CLAUDE.md` ("CI and independent review"); I did not find it in `docs/PRODUCT_RULES.md`, which is for product rulings.
+- **Brackets everywhere (merged as #512; Giorgio typed "A" at 23:23Z on 2026-11-17) and the always-a-price rule (merged as #510).** Both are in `docs/PRODUCT_RULES.md`. This settles STATUS §4 item 32 and answers item 31; the fix for item 31 is #513, not yet deployed.
+- **Folders (approved 2026-11-17):** everything lives under `/Users/giorgio/fantasy-stock`; deploy checkout in `local/deploy`, design-review captures in `local/design-review`.
+
+**Found**
+- **The pipeline does its first job on its own pull request.** CI caught three type errors the mobile tests had carried on `main`; Copilot found a stale-source-manifest gap and a script blind spot (a pending request it could not see), both since fixed; one Copilot finding was shown wrong by the run log. Nothing here was loosened to get a green run (the Orchestrator's account; the pipeline doc has the table).
+
+**Waiting on Giorgio**
+- Nothing of his is open from today's work except merging #517 (this record) and the Planner's #518.
+- **Build 17:** not started; `eas build:list` shows 1.3.0 (16) as the latest.
+
+**Next**
+- **Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.** The Orchestrator will check its logs; I record what it finds, not that the run happened.
+- The first red pull request under the ruleset will show whether All checks really blocks the merge; until then STATUS says "not yet observed".
+
 ## 2026-11-17
 
 (Times are UTC. The Orchestrator's account throughout, unless marked; I did not run any of the checks.)
