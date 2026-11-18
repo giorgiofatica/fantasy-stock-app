@@ -179,8 +179,8 @@ without duplicating the rules; that is the one design point left to them.
 
 ## Part 2: the screen
 
-Status of this part: Draft (awaiting Giorgio's approval). It is what a manager sees; it
-depends on part 1's read.
+Status of this part: Approved (Giorgio, 2026-11-18: "part 2 approved"). It is what a
+manager sees; it depends on part 1's read.
 
 **In.**
 - A fifth tab, "Stocks", last in the bar, in every league phase where the other tabs show.
