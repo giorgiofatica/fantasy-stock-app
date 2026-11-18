@@ -15,6 +15,8 @@ where it belongs (`STATUS.md`, a plan, `PRODUCT_RULES.md`, a PR); nothing lives 
 
 **Shipped** — what reached players or prod, each with its evidence (PR, migration version
 verified by query, build number with its commit).
+- **#529 APPLIED and DEPLOYED, about 22:3xZ (the Orchestrator's verified account; I ran none of it).** Giorgio, from the deploy checkout at `main` `44ba4e34`: migration `20261207000000` (the dry run listed only that file), and `record-trade`. His read-only check: `record_trade_atomic`'s ACL is `postgres` and `service_role` only; the `schema_migrations` row is there; the function body has the date check. The deployed `record-trade` is byte-identical to `main` (9 files); a no-credential POST returns 401. **Not shown:** a real trade refused for a season finished by date; the proof is the PGlite test (13 steps), not a prod trade. Copilot's one finding (a narrow race with a bracket inserted with its final already past) was answered and is an optional follow-up. STATUS §4 item 33 is closed.
+
 **Merged, not confirmed live** — on `main`, no evidence of the effect yet.
 **Decided** — Giorgio's rulings that day, one line each, pointing at `PRODUCT_RULES.md`.
 **Waiting on Giorgio** — his own steps and open decisions.
@@ -49,7 +51,6 @@ Entries begin with the Recorder's first pass.
 - **Four more merges, 22:12Z to 22:27Z (I read each on GitHub):** #526 (`484f7c07`, a ruling), #527 (`851d1035`, my record, in full), #528 (`2971b7c0`, a ruling), #529 (`44ba4e34`, code). `main` is `44ba4e34`; its CI was unfinished when I looked. Open: #530, the Stocks tab plan, part 1 (approved per the Orchestrator).
 
 **Merged, not confirmed live**
-- **#529, a season finished by date is closed to trading: merged, NOT applied, NOT deployed.** A migration (`20261207000000`, replaces `record_trade_atomic`) and the `record-trade` function. Prod keeps refusing a trade only on the completed flag until Giorgio runs `db push` and the deploy and the Orchestrator verifies by query (STATUS §4 item 33). Low priority.
 - **#521** (the Portfolio range reset fix), merged 21:54:16Z (`49044e06`, by Giorgio; I read it on GitHub): mobile only, in no build; build 17 was cut from `6bc490db` and does not carry it.
 - **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged; they are in build 17, which FINISHED at 19:55Z and was then submitted to TestFlight internal (Giorgio's word; see below). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
 
@@ -75,7 +76,7 @@ Entries begin with the Recorder's first pass.
 - **Build 17 FINISHED and was then SUBMITTED to TestFlight (internal only)** (the Orchestrator's account of `eas build:list`): iOS 1.3.0 (17), profile and channel `production`, runtime 1.3.0, commit `6bc490db`, fingerprint `8cd5f9f8ca5a377a2b39dc89169042f597f4d1d2`, created 19:49:03Z, completed 19:55:15Z. It carries #508, #509 and #514's `parseQuotePrice` change. Everything on `main` after `6bc490db` is docs only (I read the file list), so it has all the code. **Submitted:** Giorgio ran `eas submit --platform ios --latest` on 2026-11-18; the Orchestrator has only his word (no submission id; App Store Connect not read). Later the same day Giorgio sent the Planner a screen recording of build 17 running on his phone; see the Found block (second-hand: the Planner's account, relayed by the Orchestrator).
 
 **Next**
-- **Build 18, not started; in progress, none merged (the Orchestrator's list):** the finished-season Portfolio and stock card (pick A); no week figures where there are no weeks; a server refusal of trades after the season ends, since merged as #529 (not applied or deployed; STATUS §4 item 33).
+- **Build 18, not started; in progress, none merged (the Orchestrator's list):** the finished-season Portfolio and stock card (pick A); no week figures where there are no weeks; a server refusal of trades after the season ends, since merged as #529 (applied and deployed the same evening; STATUS §4 item 33, closed).
 - **Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.** The Orchestrator will check its logs; I record what it finds, not that the run happened.
 - The first red pull request under the ruleset will show whether All checks really blocks the merge; until then STATUS says "not yet observed".
 
