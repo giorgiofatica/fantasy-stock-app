@@ -1142,7 +1142,16 @@ building anything, and don't reopen a rule without him.
       `#call-sell-from-search`).
     - He called it "discover" here, as he did on 2026-11-16. The tab's name is still not
       decided.
-  - Not decided: the tab's name and its place in the bar, and what browsing offers ("look
+  - **The new tab is the fifth, last on the right** (2026-11-18, A/B mockup in the Planner's
+    chat). Shown A (Home · Matchup · League · Portfolio · the new tab) beside B (the new tab
+    in the centre, League and Portfolio each one place to the right), he picked **A**. The
+    four existing tabs do not move.
+  - **Its name should say it is where you buy and sell, not only search** (same message). His
+    words: "I'm thinking we should name it something like market or something where it also
+    indicates that it's not only a search, but also where you could buy or sell your
+    portfolio." So "Discover" (his working word until now, used in the mockup) and "Search"
+    are out. The exact name is going back to him as a mockup; "Market" is his own suggestion.
+  - Not decided: the tab's exact name, and what browsing offers ("look
     around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup
