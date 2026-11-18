@@ -1160,7 +1160,21 @@ building anything, and don't reopen a rule without him.
     swapping with another manager, which this app does not have. "Stocks" is approved copy
     for the tab's label. The icon is the Design Lead's to choose; the magnifying glass in
     the mockup was a stand-in.
-  - Not decided: what browsing offers ("look
+  - **The Stocks tab is about buying and seeing what is available; selling is done from your
+    roster, as in fantasy football** (2026-11-18, the same conversation, after being shown
+    the tab opening on search alone or on search plus our categories). His words: "So
+    thinking in terms of ESPN fantasy football, right? For me to drop a player, I do that
+    from my own roster, which would be like the portfolio here. So the selling aspect isn't
+    really going to be too heavily involved in this part. It's more going to be the buying
+    and seeing what's available. So what I want you to do is research the players tab and
+    the waiver wire of ESPN Fantasy Football, Yahoo, Sleeper... and kind of understand how
+    that UI, UX looks like, those mechanisms, and then we can try to reflect that here."
+    - This narrows his earlier "true home of the buy and sell" (above): the tab is the home
+      of search and buying; selling lives on Portfolio, on a stock you own. A stock you hold
+      can still be sold from its sheet wherever that opens.
+    - What the tab opens on is NOT decided: he did not pick between the two mockups. It
+      waits for the research, then comes back to him as mockups modelled on those apps.
+  - Not decided: what the tab opens on and what browsing offers ("look
     around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup
