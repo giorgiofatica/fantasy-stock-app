@@ -237,7 +237,7 @@ Deno.test('check_setup request: league_id, action, and the proposed slots in the
 });
 
 const SAVED: CheckedRules = { numParticipants: 12, numRounds: 6, stakeMode: 'budget_cap', notionalPerSlot: '1000', budgetCap: '2500', allowUndraftable: false };
-const refusing = async () => ({ data: { ok: false, reason: 'budget_infeasible' } });
+const refusing = async (_body?: Record<string, unknown>) => ({ data: { ok: false, reason: 'budget_infeasible' } });
 
 Deno.test('P1: a changed budget, Teams, rounds, stakes, per-slot stake or non-draftable switch makes NO server call and fails OPEN', async () => {
   const changes: Partial<CheckedRules>[] = [
