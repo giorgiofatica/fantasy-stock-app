@@ -99,8 +99,9 @@ const toneOf = (v: number): 'gain' | 'loss' | 'zero' => (Math.abs(v) < 0.005 ? '
 export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
   const finished = i.finished ?? null;
   const valueText = formatMoney(i.value);
-  // Finished: "Portfolio value" beside the Final chip; there is no cash line to point at.
-  const valueLabel = !finished && Math.abs(i.cash) >= 0.005 ? COPY.portfolioValueIncludesCash : 'Portfolio value';
+  // "· includes cash" whenever the value holds cash, finished or not (Design Lead, 2026-11-18): a finished
+  // team has no cash row, so the label is the one thing saying why the hero is more than its rows.
+  const valueLabel = Math.abs(i.cash) >= 0.005 ? COPY.portfolioValueIncludesCash : 'Portfolio value';
 
   let gainText: string | null = null;
   let gainMoneyText: string | null = null;

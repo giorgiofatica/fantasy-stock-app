@@ -237,6 +237,16 @@ Deno.test('F4: buildPortfolioView finished shows no cash, no slots facts and no 
   assert(live.cashValueText != null && live.buyRowText != null, 'the live view has them (the mutant would pass otherwise)');
   const over = buildPortfolioView({ ...base, stakeMode: 'budget_cap', finished: { draftValue: 200 } });
   assertEquals([over.cashText, over.cashValueText, over.buyRowText, over.slotsText], [null, null, null, null]);
-  assertEquals(over.valueLabel, 'Portfolio value');
-  assertEquals(live.valueLabel === 'Portfolio value', false, 'the live label points at the cash');
+  // A finished team's cash is not a row, but it IS in the value: the label says so (the live screen's own words).
+  assert(over.valueLabel.includes('includes cash'), over.valueLabel);
+  assertEquals(over.valueLabel, live.valueLabel);
+});
+
+Deno.test('F4: a finished team with no cash keeps the plain "Portfolio value" label', () => {
+  const v = buildPortfolioView({
+    value: 300, cash: 0, stake: 250, numRounds: 1, perSlotNotional: null, stakeMode: 'budget_cap',
+    holdings: [{ symbol: 'NVDA', quantity: 2, costBasis: 200, price: 150, prevClose: null, name: 'NVIDIA Corp' }],
+    finished: { draftValue: 200 },
+  });
+  assertEquals(v.valueLabel, 'Portfolio value');
 });
