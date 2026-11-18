@@ -8,6 +8,7 @@ Repo conventions and hard-won operational rules are in the root [`CLAUDE.md`](..
 | [`STATUS.md`](STATUS.md) | Prod ledger, workstream status, open defects, critical path, branches | **Yes — update every session that changes prod** |
 | [`PROGRESS.md`](PROGRESS.md) | Dated log of what shipped, what was decided and what is next, newest first. Not the source of truth: every fact also lives in `STATUS.md`, a plan or `PRODUCT_RULES.md` | **Yes: the Recorder, after each landing** |
 | [`PRODUCT_RULES.md`](PRODUCT_RULES.md) | **Giorgio's product decisions**, by area, with his words verbatim | **Yes: add each rule the moment it's decided** |
+| [`CODE_REVIEW_PIPELINE.md`](CODE_REVIEW_PIPELINE.md) | CI and independent review of every pull request: what the checks run, when and how Copilot reviews, the fix loop (Auto-fix, two tries), owner settings, cost, and the #516 pilot | **Yes: updated whenever the workflow changes** |
 | [`plans/`](plans/) | Plans for new features, written by the Planner with Giorgio before building; the flow, roles and template are in its README | Yes: one file per plan, status kept current |
 | [`research/`](research/) | The Researcher's findings, one file per question, sourced and dated; the brief and template are in its README | Point-in-time records; a finding is dated, not kept current |
 | [`decisions/`](decisions/) | Accepted decision records (DR-001: in-house simulated trading) | Yes — append new DRs, never rewrite accepted ones |
@@ -54,11 +55,25 @@ phone-pass checklist. Roles are in [`plans/README.md`](plans/README.md).
 
 ## Tests at a glance
 
-| Suite | Command (repo root) |
+The first block is what CI runs on every pull request ([`CODE_REVIEW_PIPELINE.md`](CODE_REVIEW_PIPELINE.md) is the source for it, and for the rest of this section). The second block is not in CI.
+
+| Check | Command (repo root) | In CI job |
+|---|---|---|
+| Edge-function tests and the PGlite suites that run the real migrations | `deno test --frozen --allow-read --allow-env supabase/` | Backend |
+| Architecture map matches the code | `node scripts/gen-architecture.mjs --check` | Backend |
+| Edge functions type-check, no new errors | `node scripts/ci-ratchet.mjs edge-typecheck` | Backend |
+| Mobile lint | `(cd apps/mobile && npm run lint)` | Mobile |
+| Mobile type-check | `(cd apps/mobile && npx tsc --noEmit)` | Mobile |
+| Generated source manifest is current | `(cd apps/mobile && node tests-deno/gen-source-manifest.mjs --check)` | Mobile |
+| Mobile logic, copy and layout tests | `(cd apps/mobile/tests-deno && deno test --frozen --allow-read --allow-env --allow-sys --allow-run .)` | Mobile |
+| Web lint, no new errors | `node scripts/ci-ratchet.mjs web-lint` | Web |
+| Web tests, type-check, build | `npm run test`, `typecheck`, `build`, each with `--workspace=apps/web` | Web |
+
+"All checks" is the one name that fails unless every job above succeeded. Local trap: Deno writes into the root `node_modules`, after which the web tests fail with "Invalid Chai property"; delete it and run `npm ci` first (CI is not affected).
+
+Not in CI:
+
+| Suite | Command |
 |---|---|
-| Edge-function pure modules (Deno, hermetic — no DB, no secrets) | `deno test supabase/functions/` |
-| Architecture map freshness | `node scripts/gen-architecture.mjs --check` |
 | Season simulation against a real project | `npm run test:simulation` — see [`testing/SEASON_SIMULATION_TEST.md`](testing/SEASON_SIMULATION_TEST.md) |
 | Mobile app on the iOS Simulator (Expo Go SDK 54) | see [`testing/MOBILE_SIMULATOR.md`](testing/MOBILE_SIMULATOR.md) |
-| Mobile lint / types | `cd apps/mobile && npm run lint && npx tsc --noEmit` |
-| Web lint | `cd apps/web && npm run lint` |

@@ -23,6 +23,32 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-18
+
+(Times are UTC. The Orchestrator's account unless marked; where I read it myself on GitHub or in the repo, I say so.)
+
+**Shipped**
+- **The CI and independent-review pipeline is on `main`: #516, merged 18:53:31Z (`f2bca005`) by Giorgio.** I read the CI run on `main` for that commit (run 44374604573): Web, Mobile, Backend and All checks all `success`. Detail and the pilot facts in STATUS §1 (2026-11-18) and in `docs/CODE_REVIEW_PIPELINE.md`.
+
+**Merged, not confirmed live**
+- Nothing else landed on `main` today, as of my last read (`origin/main` was `f2bca005`).
+
+**Decided**
+- **CI plus a Copilot review is now the standard workflow for every pull request.** Giorgio, as the Orchestrator relayed it: "make this our standard Stockpile development workflow". It is in `CLAUDE.md` ("CI and independent review"); I did not find it in `docs/PRODUCT_RULES.md`, which is for product rulings.
+- **Folders (approved 2026-11-17):** everything lives under `/Users/giorgio/fantasy-stock`; deploy checkout in `local/deploy`, design-review captures in `local/design-review`.
+
+**Found**
+- **The pipeline does its first job on its own pull request.** CI caught three type errors the mobile tests had carried on `main`; Copilot found a stale-source-manifest gap and a script blind spot (a pending request it could not see), both since fixed; one Copilot finding was shown wrong by the run log. Nothing here was loosened to get a green run (the Orchestrator's account; the pipeline doc has the table).
+
+**Waiting on Giorgio**
+- **The branch ruleset on `main`** (require All checks and a pull request, 0 approvals). He is creating it; I read GitHub at the time of writing and there was none. Until it is on, a red check blocks nothing.
+- **The open pull requests:** #510, #512, #513, #514, #515, and my #511. #513 and #514 need deploys after merge (lists in STATUS §1).
+- **Build 17:** not started; `eas build:list` shows 1.3.0 (16) as the latest.
+
+**Next**
+- Merge order for the fix: #513 before #514, and #513's deploy is the one with a date on it (the week start, Mon 2026-11-23, 14:35Z).
+- When the ruleset is confirmed on, STATUS §3's CI row loses "pending". Until then it says pending.
+
 ## 2026-11-17
 
 (Times are UTC. The Orchestrator's account throughout, unless marked; I did not run any of the checks.)

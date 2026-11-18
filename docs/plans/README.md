@@ -56,6 +56,8 @@ kind of shows what we've been doing and where we're at." Their standing briefs a
 5. **Build.** The Orchestrator splits the plan into workers, verifies their work, opens
    PRs and runs the releases with Giorgio. A product question that comes up mid-build
    goes to Giorgio directly; the Planner updates the plan and `PRODUCT_RULES.md`.
+   CI runs on every pull request, a Lite Copilot review is requested for code pull
+   requests, and Giorgio merges; see [`../CODE_REVIEW_PIPELINE.md`](../CODE_REVIEW_PIPELINE.md).
 6. **Close.** When it ships, the Orchestrator marks the plan's status `Shipped` with the
    PRs, and `STATUS.md` records what's live.
 
