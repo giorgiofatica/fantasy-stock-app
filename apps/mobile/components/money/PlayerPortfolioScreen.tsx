@@ -13,6 +13,10 @@
  * dead tap. Only league members can read a member's team: the league ledger
  * (get_portfolio_ledger, INVOKER + is_member) lists current members only, so a member who left,
  * a missing league and a failed read all land on the same "didn't load" + Try again.
+ *
+ * A league whose season is OVER (the Design Lead's spec, matching Portfolio's pick A): the Final chip
+ * beside "Portfolio value", their value and "since the draft" at the season's last day, no today line,
+ * no cash, and the holdings at season-end values under a "Value" header. Still no chart.
  */
 import React, { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -55,6 +59,9 @@ import { isDeletedSeatName } from '@/lib/account/deletedSeat';
 import { canFindNewManager } from '@/lib/account/findManager';
 import { useFindNewManager } from '@/lib/account/useFindNewManager';
 import { JOIN_COPY } from '@/lib/join/joinPreview';
+import { PhaseChip } from '@/components/sp/PhaseChip';
+import { seasonEndEt } from '@/lib/money/seasonEnd';
+import { isSeasonOver } from '@/lib/weekStatus';
 
 /** The hero's sub-lines follow Dynamic Type to 1.3× (the value stays the standout), as Portfolio's do. */
 const HERO_LINE_MAX_SCALE = 1.3;
@@ -87,10 +94,19 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   const router = useRouter();
   // The sheet bar's divider and fade show once the body has scrolled under it.
   const { edge, onScroll } = useSheetScrollEdge();
-  const { market, activeLeague } = useLeagueContext();
+  const { market, activeLeague, activeLeagueId, marketCalendar, sheetLeagues } = useLeagueContext();
   const { user } = useAuth();
   const deletedLabel = useDeletedManagerLabel();
-  const data = usePlayerPortfolioData(userId || null);
+  // The card's week: Matchup's own read for the clock, calendar and live quotes. Also the source of the
+  // season's last day when the season is over (this league's matchups only, never a stale league's).
+  const home = useHomeLeague(MONEY_FIXTURE ? null : activeLeague?.id ?? null);
+  const raw = home.raw;
+  const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);
+  const leagueRaw = raw && raw.leagueId === activeLeagueId ? raw : null;
+  const homeSettled = leagueRaw != null || home.status === 'error' || home.status === 'no-league';
+  const completedAt = sheetLeagues.find((l) => l.id === activeLeagueId)?.seasonCompletedAt ?? null;
+  const endEt = finished && homeSettled ? seasonEndEt(leagueRaw?.data.matchups, completedAt) : null;
+  const data = usePlayerPortfolioData(userId || null, finished ? { finished: true, endEt } : { finished: false });
   const leagueId = data.leagueId;
   // The linked name shows only while loading; a failed load names no one (a crafted link can carry any text).
   const knownName = data.portfolio?.displayName ?? (data.status === 'loading' ? linkedName(username) : null);
@@ -103,10 +119,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
     seasonStatus: activeLeague.season_status,
   });
 
-  // The card's week: Matchup's own read for the clock, calendar and live quotes; the
-  // leaguemate's own snapshots for their week (a member-gated read).
-  const home = useHomeLeague(MONEY_FIXTURE ? null : leagueId);
-  const raw = home.raw;
+  // The leaguemate's own snapshots for their week (a member-gated read).
   const week = raw ? raw.data.current_week.week_number : null;
   // Only for a member the ledger confirms: a forged id fires no reads.
   const confirmed = data.status === 'ready' && !!data.portfolio;
@@ -180,7 +193,10 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   useCaptureAction('scroll', (y) => scrollRef.current?.scrollTo({ y: Number(y) || 0, animated: false }));
 
   let body: React.ReactNode;
-  if (data.status === 'loading') {
+  if (finished && homeSettled && !endEt) {
+    // Over, but no day it ended on could be read: never a guessed day.
+    body = <LoadFailure title={COPY.teamLoadTitle(knownName)} message={COPY.loadRetryMessage} onRetry={() => { void home.refresh(); retry(); }} />;
+  } else if (data.status === 'loading') {
     body = <PortfolioSkeleton label={COPY.teamLoading(knownName)} chart={false} />;
   } else if (data.status === 'error' || !data.portfolio) {
     body = <LoadFailure title={COPY.teamLoadTitle(knownName)} message={COPY.loadRetryMessage} onRetry={retry} />;
@@ -190,8 +206,15 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
     body = (
       <View style={styles.blocks}>
         <View style={styles.heroText}>
-          <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
-          <Text variant="money" accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${v.valueText}`} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{v.valueText}</Text>
+          {finished ? (
+            <View style={styles.captionRow}>
+              <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
+              <PhaseChip phase="season_complete" label="Final" />
+            </View>
+          ) : (
+            <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
+          )}
+          <Text variant="money" accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${finished ? 'Final, ' : ''}${v.valueText}`} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{v.valueText}</Text>
           {v.gainMoneyText && v.gainPctText ? (
             <HeroLine label={`${v.gainText} ${v.sinceDraftLabel}`} money={v.gainMoneyText} pct={v.gainPctText} words={v.sinceDraftLabel} color={toneColor(colors, v.gainTone)} />
           ) : null}
@@ -218,7 +241,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
         <View>
           <View style={styles.listHead}>
             <Text variant="headline" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.extraBold}>{COPY.holdingsHeading}</Text>
-            {v.rows.length ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>Value · today</Text> : null}
+            {v.rows.length ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{finished ? 'Value' : 'Value · today'}</Text> : null}
           </View>
           {v.rows.map((r) => (
             <HoldingRow
@@ -272,6 +295,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: space[6], paddingTop: space[2], paddingBottom: space[9] },
   blocks: { gap: space[7] },
   heroText: { gap: space[1] },
+  captionRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] },
   findBlock: { gap: space[3] },
   factRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', columnGap: space[3] },
   listHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: space[1] },

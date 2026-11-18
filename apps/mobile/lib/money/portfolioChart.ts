@@ -96,8 +96,8 @@ function valueThrough(rows: readonly ChartActivityRow[], date: string, stake: Ch
   }).value;
 }
 
-/** The last close on or before `date` (bars ascending or not). */
-function closeOnOrBefore(bars: readonly { date: string; close: number }[] | undefined, date: string): number | null {
+/** The last close on or before `date` (bars ascending or not); null with none (never a guess, never $0). */
+export function closeOnOrBefore(bars: readonly { date: string; close: number }[] | undefined, date: string): number | null {
   if (!bars) return null;
   let best: { date: string; close: number } | null = null;
   for (const b of bars) {
@@ -121,16 +121,21 @@ export function draftDateOf(rows: readonly ChartActivityRow[]): string | null {
 /**
  * The value at the draft (the stake at cost), then at each trading day's close after the draft
  * day and before today. Trading days are the dates any held-or-ever-held symbol has a bar.
+ *
+ * `endEt` (a season that is over): the days run up to AND INCLUDING the season's last day instead,
+ * and today plays no part, so the line is the same whenever it is read. Each day is still valued at
+ * real closes only (closeOnOrBefore); a bar after endEt is never read.
  */
-export function dailyValues(input: { rows: readonly ChartActivityRow[]; bars: Bars; stake: ChartStake; todayEt: string }): DailyValue[] {
-  const { rows, bars, stake, todayEt } = input;
+export function dailyValues(input: { rows: readonly ChartActivityRow[]; bars: Bars; stake: ChartStake; todayEt: string; endEt?: string | null }): DailyValue[] {
+  const { rows, bars, stake, todayEt, endEt } = input;
   const start = draftDateOf(rows);
   if (!start) return [];
   // The draft day: every stock at its draft price, so the value is the stake.
   const out: DailyValue[] = [{ date: start, value: cents(valueThrough(rows, start, stake, () => null)) }];
+  const inRange = endEt ? (d: string) => d <= endEt : (d: string) => d < todayEt;
   const dates = new Set<string>();
   for (const series of Object.values(bars)) {
-    for (const b of series) if (b.date > start && b.date < todayEt && b.close > 0) dates.add(b.date);
+    for (const b of series) if (b.date > start && inRange(b.date) && b.close > 0) dates.add(b.date);
   }
   for (const date of [...dates].sort()) {
     const value = valueThrough(rows, date, stake, (sym) => closeOnOrBefore(bars[sym] ?? bars[sym.toUpperCase()], date));
@@ -185,4 +190,36 @@ export function portfolioSeries(input: {
     todayEt,
     seasonStart: portfolioHistoryStart(daily),
   });
+}
+
+/**
+ * A season that is over (Giorgio, 2026-11-18, pick A: "just the chart"): the whole line, Season, from the
+ * draft to the season's last day. No live point and no today: `daily` must come from
+ * dailyValues({ endEt }), and the axis ends at endEt (a final whose last close fell on an earlier
+ * session still reaches the season's last day). The same output whenever it is read.
+ */
+export function finishedPortfolioSeries(input: { daily: readonly DailyValue[]; endEt: string }): PortfolioSeries {
+  const { daily, endEt } = input;
+  return rangeSeries({
+    range: 'Season',
+    values: daily.filter((v) => v.date <= endEt),
+    live: null,
+    liveToday: false,
+    todayEt: endEt,
+    seasonStart: portfolioHistoryStart(daily),
+  });
+}
+
+/**
+ * Each symbol's close on or before the season's last day (a finished season's holding prices). A symbol
+ * with no bar by then is left out, so it counts at cost and is captioned, never shown as $0.
+ */
+export function seasonEndCloses(bars: Bars, symbols: readonly string[], endEt: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const sym of symbols) {
+    const up = sym.toUpperCase();
+    const c = closeOnOrBefore(bars[up] ?? bars[sym], endEt);
+    if (c != null) out[up] = c;
+  }
+  return out;
 }

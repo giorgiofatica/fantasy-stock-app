@@ -33,6 +33,9 @@ export interface SheetLeague {
   capacity: number;
   /** league_seasons.champion_user_id is the caller (never inferred from rank). */
   isChampion: boolean;
+  /** league_seasons.completed_at for the current season (null: not completed or not read). Only the
+   * finished-season fallback for the season's last day (lib/money/seasonEnd.ts) reads it. */
+  seasonCompletedAt?: string | null;
   /** The existing getSeasonLabel() text, used verbatim for pre-season ("Starts Tue, Sep 29"). */
   seasonLabel: string;
   /** leagues.league_type: only a Matchup league plays in weeks (leagueHasWeeks). */

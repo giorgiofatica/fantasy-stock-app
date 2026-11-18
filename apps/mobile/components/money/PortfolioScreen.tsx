@@ -15,6 +15,12 @@
  * Matchup; the card's Sell closes it and opens the stock sheet on Sell. A row whose card
  * can't be whole (no opening event in the ledger, or the week's data didn't load) opens the
  * stock sheet instead, so no row is ever a dead tap.
+ *
+ * A league whose season is OVER (Giorgio, 2026-11-18, pick A: "just the chart"): "Portfolio value"
+ * with the Final chip, the value at the season's last day (static, it never rolls), "+$X (+Y%) since
+ * the draft", the line from the draft to that day, then Holdings (ticker, company, value). No range
+ * pills, no today line, no facts row, no cash and no Buy a stock. Frozen: nothing on it reads the live
+ * quote, so it is the same whenever it is opened (usePortfolioData's finished season).
  */
 import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -38,7 +44,10 @@ import { RollingMoney } from '@/components/home/RollingMoney';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, finishedPortfolioSeries, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
+import { seasonEndEt } from '@/lib/money/seasonEnd';
+import { isSeasonOver } from '@/lib/weekStatus';
+import { PhaseChip } from '@/components/sp/PhaseChip';
 import { asChartRange, rangeGain, selectableRange } from '@/lib/chart/chartRanges';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
 import { FIXTURE_LEAGUE_ID } from '@/lib/money/fixtureMode';
@@ -80,16 +89,24 @@ const HERO_LINE_MAX_SCALE = 1.3;
 
 export function PortfolioScreen() {
   const { colors } = useTheme();
-  const data = usePortfolioData();
   const stockSheet = useStockSheet();
   const router = useRouter();
   const { user } = useSession();
-  const { activeLeague, activeLeagueId, market, setActiveLeagueId } = useLeagueContext();
+  const { activeLeague, activeLeagueId, market, setActiveLeagueId, marketCalendar, sheetLeagues } = useLeagueContext();
   const leagueId = activeLeague?.id ?? (MONEY_FIXTURE ? FIXTURE_LEAGUE_ID : null);
   const ledgerState = usePortfolioLedger(leagueId);
   // The player card's week (Matchup's own read: the week's snapshots, trades and bars) and
   // its slot pill (the league's slots).
   const home = useHomeLeague(MONEY_FIXTURE ? null : activeLeagueId);
+  // A season that is over: the league switcher chip's own source (isSeasonOver), then the season's
+  // last day from this league's matchups (never another league's, mid-switch), completed_at only
+  // when there are none. While Home's read is still in flight the day is unknown (null).
+  const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);
+  const leagueRaw = home.raw && home.raw.leagueId === activeLeagueId ? home.raw : null;
+  const homeSettled = leagueRaw != null || home.status === 'error' || home.status === 'no-league';
+  const completedAt = sheetLeagues.find((l) => l.id === activeLeagueId)?.seasonCompletedAt ?? null;
+  const endEt = finished && homeSettled ? seasonEndEt(leagueRaw?.data.matchups, completedAt) : null;
+  const data = usePortfolioData(finished ? { finished: true, endEt } : { finished: false });
   const roster = useRosterData(MONEY_FIXTURE ? null : activeLeagueId, user?.id ?? null, null);
   // The picked range belongs to the league it was picked in: switching league reopens on Season
   // (the reset happens during render, React's documented pattern, so no frame shows the old pick).
@@ -123,17 +140,26 @@ export function PortfolioScreen() {
   }, [calendar, todayEt]);
 
   const chart = data.chart;
-  const daily = useMemo(() => (chart ? dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt }) : []), [chart, todayEt]);
+  // Finished: the days run to the season's last day (chart.endEt), today plays no part.
+  const chartEnd = chart?.endEt ?? null;
+  const daily = useMemo(
+    () => (chart ? dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt, endEt: chartEnd }) : []),
+    [chart, todayEt, chartEnd],
+  );
   // A range longer than the league has existed is grey (history = the league's age: the line
   // starts at the draft); Season never is, 1W never is. A grey range is never the selected one:
   // a team chart falls back to Season, not the stock sheet's 1W.
   const greyed = useMemo(() => portfolioGreyedRanges(daily, todayEt), [todayEt, daily]);
   const shownRange = selectableRange(range, greyed, DEFAULT_PORTFOLIO_RANGE);
   const series = useMemo(
-    () => (chart ? portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions }) : null),
+    () => (!chart ? null
+      : chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd })
+      : portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chart, shownRange, daily, todayEt, sessions],
+    [chart, chartEnd, shownRange, daily, todayEt, sessions],
   );
+  // Finished: always Season ("since the draft"), whatever range was picked before.
+  const gainRange: PortfolioRange = chartEnd ? 'Season' : shownRange;
   const gain = series ? rangeGain(series.points, series.base) : null;
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
@@ -220,6 +246,9 @@ export function PortfolioScreen() {
         ) : null}
       </View>
     );
+  } else if (finished && homeSettled && !endEt) {
+    // Over, but no day it ended on could be read (no matchups, no completed_at): never a guessed day.
+    body = <LoadFailure title={COPY.portfolioLoadTitle} message={COPY.loadRetryMessage} onRetry={() => { void home.refresh(); data.refresh(); }} />;
   } else if (data.status === 'loading') {
     body = <PortfolioSkeleton />;
   } else if (data.status === 'error' || !data.view) {
@@ -227,18 +256,32 @@ export function PortfolioScreen() {
   } else {
     const v = data.view;
     const rollKey = activeLeague?.id ?? '';
+    // A finished season shows only the value, its gain since the draft, the line and the holdings.
+    const over = chartEnd != null;
     body = (
       <View style={styles.blocks}>
         {/* The hero: the value, the gain since the draft, today; then the line and its range. */}
         <View style={styles.hero}>
           <View style={styles.heroText}>
-            <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
+            {over ? (
+              <View style={styles.captionRow}>
+                <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
+                <PhaseChip phase="season_complete" label="Final" />
+              </View>
+            ) : (
+              <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
+            )}
             {/* M3: every money figure that changes on a quote refresh rolls. One accessible
-                element each: RollingMoney renders one Text per character. */}
-            <View accessible accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${v.valueText}`}>
-              <RollingMoney text={v.valueText} size="money" rollKey={rollKey} />
-            </View>
-            {v.todayMoneyText && v.todayPctText ? (
+                element each: RollingMoney renders one Text per character. A finished season's
+                value never changes, so it is plain text (it never rolls). */}
+            {over ? (
+              <Text variant="money" accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, Final, ${v.valueText}`} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="portfolio-final-value">{v.valueText}</Text>
+            ) : (
+              <View accessible accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${v.valueText}`}>
+                <RollingMoney text={v.valueText} size="money" rollKey={rollKey} />
+              </View>
+            )}
+            {!over && v.todayMoneyText && v.todayPctText ? (
               <HeroLine
                 label={`${v.todayMoneyText} (${v.todayPctText}) today`}
                 money={v.todayMoneyText}
@@ -251,7 +294,7 @@ export function PortfolioScreen() {
             {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
           </View>
           {series ? (
-            <RangeGainLine range={shownRange} gain={gain} rollKey={`${rollKey}-${shownRange}`} />
+            <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} />
           ) : null}
           {series ? (
             <Chart
@@ -260,8 +303,8 @@ export function PortfolioScreen() {
               axis={series.axis}
               height={CHART_HEIGHT}
               bleed={space[6]}
-              live={marketOpen}
-              drawKey={shownRange}
+              live={over ? false : marketOpen}
+              drawKey={gainRange}
               formatValue={(n) => formatMoney(n)}
               accessibilityLabel="Portfolio value"
               captureScrubAction="scrub"
@@ -271,13 +314,15 @@ export function PortfolioScreen() {
               the dates and the next block 34pt below; pulled in so the pills sit ~12pt under the
               dates and the 24pt block gap is measured from the pill, glyph to glyph. Each pill
               keeps its 44pt target (32pt fill + its hit slop). */}
-          <View style={styles.pillsRow}>
-            <RangePills options={PORTFOLIO_RANGES} value={shownRange} onChange={setRange} variant="pills" disabled={greyed} />
-          </View>
+          {over ? null : (
+            <View style={styles.pillsRow}>
+              <RangePills options={PORTFOLIO_RANGES} value={shownRange} onChange={setRange} variant="pills" disabled={greyed} />
+            </View>
+          )}
         </View>
 
-        {/* Cash and slots: what the team has to invest. */}
-        {v.cashValueText || v.slotsText ? (
+        {/* Cash and slots: what the team has to invest (never in a finished season). */}
+        {!over && (v.cashValueText || v.slotsText) ? (
           <View style={styles.facts}>
             {v.cashValueText ? (
               <View style={styles.factRow} accessible accessibilityLabel={`${COPY.cashFromSales}, ${v.cashValueText}`}>
@@ -294,7 +339,9 @@ export function PortfolioScreen() {
           </View>
         ) : null}
 
-        {/* Buy a stock: the entry to search (board #buy-a-stock), saying what can be spent. */}
+        {/* Buy a stock: the entry to search (board #buy-a-stock), saying what can be spent. A finished
+            season has nothing to buy. */}
+        {over ? null : (
         <Card>
           <Pressable
             accessibilityRole="button"
@@ -313,12 +360,13 @@ export function PortfolioScreen() {
             <Icon name="chevronRight" size="callout" tone="text2" />
           </Pressable>
         </Card>
+        )}
 
         {/* Holdings: roster rows, no sparklines; each opens its player card. */}
         <View>
           <View style={styles.listHead}>
             <Text variant="headline" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.extraBold}>{COPY.holdingsHeading}</Text>
-            {v.rows.length ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>Value · today</Text> : null}
+            {v.rows.length ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{over ? 'Value' : 'Value · today'}</Text> : null}
           </View>
           {v.rows.map((r) => (
             <HoldingRow key={r.symbol} row={r} pill={pillFor(r.symbol)} onPress={() => openRow(r.symbol, r.name)} />
@@ -415,6 +463,7 @@ const styles = StyleSheet.create({
   blocks: { gap: space[7] },
   hero: { gap: space[4] },
   heroText: { gap: space[1] },
+  captionRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] },
   pillsRow: { marginTop: -space[3], marginBottom: -space[3] },
   rollRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' },
   nowrap: { flexDirection: 'row', alignItems: 'baseline' },

@@ -15,7 +15,7 @@ Deno.test('wiring: the today line rolls (money and percent, each their own Rolli
   const heroLine = portfolioScreenSrc.slice(portfolioScreenSrc.indexOf('function HeroLine'));
   assertEquals((heroLine.match(/<RollingMoney text=\{(money|pct)\}/g) ?? []).length, 2);
   assertEquals(portfolioScreenSrc.includes('<RollingMoney text={v.valueText}'), true);
-  assertEquals(portfolioScreenSrc.includes('<RangeGainLine range={shownRange} gain={gain} rollKey={`${rollKey}-${shownRange}`} />'), true);
+  assertEquals(portfolioScreenSrc.includes('<RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} />'), true);
   assertEquals(portfolioScreenSrc.includes('v.todayMoneyText'), true);
   assertEquals(portfolioScreenSrc.includes('v.todayPctText'), true);
 });

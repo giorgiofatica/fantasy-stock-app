@@ -4,7 +4,7 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **247** tappables in **94** files.
+- **249** tappables in **94** files.
 - **101** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **55** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
@@ -152,15 +152,17 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/league/MembersSection.tsx:63` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
 | `components/money/HoldingRow.tsx:82` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/LoadFailure.tsx:30` | EmptyState | onAction | `onRetry` | prop onRetry (the caller's) |  |
-| `components/money/PlayerPortfolioScreen.tsx:186` | LoadFailure | onRetry | `retry` | fn retry |  |
-| `components/money/PlayerPortfolioScreen.tsx:206` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
-| `components/money/PlayerPortfolioScreen.tsx:228` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
-| `components/money/PortfolioScreen.tsx:218` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/money/PortfolioScreen.tsx:226` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
-| `components/money/PortfolioScreen.tsx:275` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
-| `components/money/PortfolioScreen.tsx:302` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
-| `components/money/PortfolioScreen.tsx:324` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
-| `components/money/PortfolioScreen.tsx:332` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
+| `components/money/PlayerPortfolioScreen.tsx:198` | LoadFailure | onRetry | `inline: () => { void home.refresh(); retry(); }` | fn home.refresh |  |
+| `components/money/PlayerPortfolioScreen.tsx:202` | LoadFailure | onRetry | `retry` | fn retry |  |
+| `components/money/PlayerPortfolioScreen.tsx:229` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
+| `components/money/PlayerPortfolioScreen.tsx:251` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
+| `components/money/PortfolioScreen.tsx:244` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/money/PortfolioScreen.tsx:251` | LoadFailure | onRetry | `inline: () => { void home.refresh(); data.refresh(); }` | fn home.refresh |  |
+| `components/money/PortfolioScreen.tsx:255` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
+| `components/money/PortfolioScreen.tsx:319` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
+| `components/money/PortfolioScreen.tsx:349` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
+| `components/money/PortfolioScreen.tsx:372` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
+| `components/money/PortfolioScreen.tsx:380` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
 | `components/money/SalePicker.tsx:85` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
 | `components/money/SalePicker.tsx:108` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
 | `components/money/SalePicker.tsx:115` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |

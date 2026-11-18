@@ -55,3 +55,8 @@ export const CAPTURE_TEAMS: boolean = SEAM_ON && process.env.EXPO_PUBLIC_CAPTURE
 
 /** Capture only: every price mirrored below its draft price — the loss stress (EXPO_PUBLIC_CAPTURE_LOSS=1). */
 export const CAPTURE_LOSS: boolean = SEAM_ON && process.env.EXPO_PUBLIC_CAPTURE_LOSS === '1';
+
+/** Capture only (finished-season Portfolio's frozen proof, EXPO_PUBLIC_CAPTURE_SEASON_LATER): the week-6 final's Thursday and Friday
+ * closes are in the bars (1), and also (2) the clock moves on to Thu Oct 8 while every stock keeps trading after the season (closes and
+ * live quotes 15% higher). A season that is over must read the same under 1 and 2. Unset (0): as before. Seam only: inert in production. */
+export const CAPTURE_SEASON_LATER: 0 | 1 | 2 = SEAM_ON ? (process.env.EXPO_PUBLIC_CAPTURE_SEASON_LATER === '2' ? 2 : process.env.EXPO_PUBLIC_CAPTURE_SEASON_LATER === '1' ? 1 : 0) : 0;

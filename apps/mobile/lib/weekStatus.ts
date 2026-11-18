@@ -90,6 +90,19 @@ export function getSeasonPhase(
   return 'regular';
 }
 
+/**
+ * The ONE "season over" predicate (finished-season Portfolio, Giorgio 2026-11-18, pick A): the league
+ * switcher's own chip source, getSeasonPhase, read as 'completed'. Every finished-season branch keys on
+ * this, never on its own `season_status ===` check, so the chip and the screens can't disagree.
+ */
+export function isSeasonOver(
+  league: League | null,
+  now: Date = new Date(),
+  marketCalendar: MarketCalendarSession[] = [],
+): boolean {
+  return getSeasonPhase(league, now, marketCalendar) === 'completed';
+}
+
 /** True for any phase that precedes the ordinary regular/playoffs/completed
  * season lifecycle — shared by getWeekStatus (to force status='upcoming')
  * and by screens that need to branch their own rendering on the same
