@@ -16,7 +16,7 @@ import { formatMoney } from '../components/sp/logic/money.ts';
 import { formatShares } from '../lib/money/formatShares.ts';
 
 // The server's trades row (to_jsonb of record_trade_atomic's row), as record-trade replies it.
-const row = (o: Record<string, unknown>) => ({ id: 't1', league_id: 'L', action: 'sell', ...o });
+const row = <T extends Record<string, unknown>>(o: T) => ({ id: 't1', league_id: 'L', action: 'sell', ...o });
 const valueOf = (r: { lines: { label: string; value: string }[] }, label: string) => r.lines.find((l) => l.label === label)?.value;
 const labels = (r: { lines: { label: string }[] }) => r.lines.map((l) => l.label);
 
