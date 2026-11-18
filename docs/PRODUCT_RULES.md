@@ -747,9 +747,24 @@ building anything, and don't reopen a rule without him.
       picked A without objecting. It is not a sentence of his own. On build 17 a finished
       league's Portfolio still moved with that day's market ("+$8.49 (+0.47%) today" on a
       league marked Final); that goes.
-    - Not shown to him, so not covered: the card for a stock from a finished season, and a
-      manager's portfolio viewed from a finished league. The Design Lead specs both to
-      match and shows him if either needs a look of its own.
+    - **The card for a stock from a finished season shows the season only (A)** (2026-11-18,
+      A/B mockup in the Planner's chat). Shown A (no figures at the top; the gain "since the
+      draft", the chart to the season's last day, and "How you got it") beside B (the same,
+      keeping the stock's live Price and today's change at the top), his words: "Yeah, so
+      probably just A, because like, look, this is a previous season. Today's pricing
+      doesn't really matter. Like, if I drafted a 6 week season a year ago and I look at it
+      today, doesn't really matter what the performance is until until now. The season's
+      over."
+      - Gone from that card in a finished season: Price, Week gain, the range buttons and
+        Sell.
+    - **A finished season is closed to buying and selling.** Drawn in every mockup that day
+      ("Buy a stock" off Portfolio, Sell off the card) and put to him twice in words, the
+      second time as "Tell me if you want trading to stay open after a season ends"; he
+      picked A both times and did not ask for it to stay open. It is not a sentence of his
+      own beyond "The season's over." On build 17 a finished league's Portfolio still
+      offered "Buy a stock".
+    - Not shown to him: a manager's portfolio viewed from a finished league. The Design Lead
+      specs it to match A and shows him only if it needs a look of its own.
     - This is an exception to the grey-in-place rule below, which is about a range a chart
       cannot draw YET.
   - **A range a chart cannot draw yet is greyed in its place, never hidden** (2026-11-17, board
