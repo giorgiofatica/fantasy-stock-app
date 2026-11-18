@@ -36,6 +36,10 @@ Entries begin with the Recorder's first pass.
 
 - **#513 and #514 are DEPLOYED and byte-verified (the Orchestrator's account; I did not run it).** Giorgio deployed ten functions from `/Users/giorgio/fantasy-stock/local/deploy` at `main` `6bc490db`, at about 19:4xZ, with the Homebrew `supabase` 2.67.1. The Orchestrator compared every file of all ten against `main`: 58 compared, 0 differ; a no-credential POST to four of them returned 401. I read the import chain that explains the ten (STATUS §1, 2026-11-18). **Shown:** the byte match and the four 401s. **Not shown:** that the always-a-price step prices anything in a real week (it has not run) or that fills and quotes behave differently; #514's two mobile files are in no build.
 
+- **#518 merged 19:36:14Z (`bd1dcfc5`, by Giorgio; the Planner's pull request).** The pipeline doc now reads "live", marks the ruleset step done, and records the review cost so far. I read the diff. A red All checks blocking a merge is still not observed; six no-run pull requests reading BLOCKED is.
+
+- **#517, my record, merged 19:45:40Z (`837e5fcd`).** It landed at its head `d4b5bb0f`, so my last commit (the #518 facts, the cost figures and Giorgio's review-selection ruling) was NOT in it; those are in this record. The Orchestrator says no deploys happened that day beyond #513 and #514.
+
 **Merged, not confirmed live**
 - **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged, in no build (build 17 is not started). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
 
@@ -44,11 +48,13 @@ Entries begin with the Recorder's first pass.
 - **Brackets everywhere (merged as #512; Giorgio typed "A" at 23:23Z on 2026-11-17) and the always-a-price rule (merged as #510).** Both are in `docs/PRODUCT_RULES.md`. This settles STATUS §4 item 32 and answers item 31; the fix for item 31 is #513, not yet deployed.
 - **Folders (approved 2026-11-17):** everything lives under `/Users/giorgio/fantasy-stock`; deploy checkout in `local/deploy`, design-review captures in `local/design-review`.
 
+- **Review selection stays as it is until there is real usage data.** Giorgio, 2026-11-18, as written in `docs/CODE_REVIEW_PIPELINE.md` (#518): "Don't change our review-selection rules until we have enough real usage data to make an informed decision." Balanced reviews cost about 142 credits each (his billing page, per the doc); a Lite review's cost is not measured yet.
+
 **Found**
 - **The pipeline does its first job on its own pull request.** CI caught three type errors the mobile tests had carried on `main`; Copilot found a stale-source-manifest gap and a script blind spot (a pending request it could not see), both since fixed; one Copilot finding was shown wrong by the run log. Nothing here was loosened to get a green run (the Orchestrator's account; the pipeline doc has the table).
 
 **Waiting on Giorgio**
-- Nothing of his is open from today's work except merging #517 (this record) and the Planner's #518.
+- Nothing of his is open from today's work: #517 (my record, merged 19:45:40Z, `837e5fcd`) and #518 are both in. The only open pull request is #279 (the W5 web join, a draft, blocked on the App Store URL; the Orchestrator's account).
 - **Build 17:** not started; `eas build:list` shows 1.3.0 (16) as the latest.
 
 **Next**
