@@ -519,10 +519,15 @@ building anything, and don't reopen a rule without him.
     stock that's down a certain percentage, it's just to be a zero. That's one of the things
     where we need to have a fallback to where it can still figure out what the amount is or
     something like that, because that's going to be an integral part of this app."
-    - What the zero was, by the code and not yet checked against that league's data: the card
-      shows $0.00 and 0.00% when the league-week has no starting price recorded for the stock
+    - What the zero was, by the code: the card shows $0.00 and 0.00% when the league-week
+      has no starting price recorded for the stock
       (`apps/mobile/lib/game/playerCardModel.ts`, `stockWeek`: a missing entry becomes 0). The
       Portfolio and manager-portfolio week rows read the same value.
+    - Why the entry was missing here, found the same day from a read-only query he ran:
+      test_081126 is an old Duration league. A Duration league has no weeks, so the server
+      records no weekly prices for it by design, and the app showed week figures anyway.
+      Matchup leagues are not hit by this cause. The fix: a league with no weeks shows no
+      week figures, and a matchup holding with no recorded start shows "–", never zero.
     - Ruled out by his words: any figure that reads as "flat" or "zero" because the app has
       nothing to compute it from.
     - The Planner's reading, not his words: where the week's starting price was not recorded,
@@ -1205,6 +1210,19 @@ building anything, and don't reopen a rule without him.
       "All" chip and the plus button were placeholders), which waits for his screenshots of
       the real apps; the order of the list (the Planner's proposal, largest companies first,
       was mentioned and not asked); and any trending or "most added" list.
+  - **Each row of that list shows the stock's price, under tight limits** (2026-11-18, A/B
+    mockup in the Planner's chat). Put to him as a conflict with his own ruling ("I don't
+    want people to be able to scrape anything", 2026-10-08, the reason the stock table was
+    locked down on 2026-11-16): a list of every available stock is a way to walk the stock
+    universe, and with prices on the rows it is a way to collect our stored price for each;
+    limits make that slow, members-only and logged, not impossible. Shown A (the price on
+    every row) beside B (name and category on the row, the price only when a stock is
+    opened), he picked **A**.
+    - What he was told A comes with, and so what the build owes: the list is for signed-in
+      members of that league only, paced per person, capped per page, and logged; the prices
+      are delayed ones; only stocks nobody in that league owns are listed.
+    - This is a knowing exception to "nothing scrapable" for this one list, not a change to
+      that rule. Nothing else about the stock table opens up.
   - Not decided: the layout of that list, its order, and what else browsing offers ("look
     around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
