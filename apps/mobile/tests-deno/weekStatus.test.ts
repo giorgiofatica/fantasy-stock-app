@@ -317,7 +317,7 @@ Deno.test('formatSignedCurrency: -0.005 rounds to exactly zero cents (JS ties-to
 // canTradeInPhase
 // ---------------------------------------------------------------------------
 
-Deno.test('canTradeInPhase: mirrors record-trade\'s draft_status gate across all six phases', () => {
+Deno.test('canTradeInPhase: mirrors record-trade\'s phase gates (draft_not_completed, season_completed) across all six phases', () => {
   assertEquals(canTradeInPhase('pre_draft'), false);
   assertEquals(canTradeInPhase('drafting'), false);
   // pre_season: draft_status is already 'completed' server-side, so
@@ -325,7 +325,20 @@ Deno.test('canTradeInPhase: mirrors record-trade\'s draft_status gate across all
   assertEquals(canTradeInPhase('pre_season'), true);
   assertEquals(canTradeInPhase('regular'), true);
   assertEquals(canTradeInPhase('playoffs'), true);
-  assertEquals(canTradeInPhase('completed'), true);
+  // A finished season is closed to buying and selling: record-trade's gate.ts refuses it with 'season_completed'.
+  assertEquals(canTradeInPhase('completed'), false);
+});
+
+Deno.test('canTradeInPhase: a league whose season is over cannot trade, however it got there', () => {
+  const league = { draft_status: 'completed', league_start_date: '2026-08-31T13:30:00Z', current_week: 6, num_weeks: 6 };
+  const now = new Date('2026-11-18T15:00:00Z');
+  // season_status flipped by process-week-results...
+  assertEquals(canTradeInPhase(getSeasonPhase({ ...league, season_status: 'completed' }, now)), false);
+  // ...and the legacy fallback (current_week past num_weeks) reads 'completed' too.
+  assertEquals(canTradeInPhase(getSeasonPhase({ ...league, season_status: 'active', current_week: 7 }, now)), false);
+  // A live league still can.
+  assertEquals(canTradeInPhase(getSeasonPhase({ ...league, season_status: 'active' }, now)), true);
+  assertEquals(canTradeInPhase(getSeasonPhase({ ...league, season_status: 'playoffs' }, now)), true);
 });
 
 // ---------------------------------------------------------------------------

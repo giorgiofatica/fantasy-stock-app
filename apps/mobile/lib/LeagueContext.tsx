@@ -221,7 +221,8 @@ async function fetchSheetFacts(userId: string, leagueData: League[]) {
   const sheet = leagueData.map<SheetLeague>((league) => {
     // U1: the phase boundary is T0 (week 1's first calendar open), so pass
     // the calendar this same fetch just read. Every reader of seasonPhase
-    // (the sheet, PhaseChip, the trade gate's canTradeInPhase) inherits it.
+    // (the sheet, PhaseChip, the finished-season screens via isSeasonOver) inherits it.
+    // (canTradeInPhase mirrors the server's phase gates but has no UI caller yet.)
     const phase = getSeasonPhase(league, new Date(), marketCalendar);
     const row = summaryByLeague.get(league.id);
     return {
