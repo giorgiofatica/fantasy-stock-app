@@ -52,7 +52,10 @@ export function useSeasonEnd(leagueId: string | null, enabled: boolean, complete
   useEffect(() => {
     if (!enabled || !leagueId || fixture) return;
     let cancelled = false;
-    void readSeasonEnd(readLeagueEnds, leagueId, completedAt).then((r) => {
+    // The rows only (completedAt null): the completed_at fallback is applied at RENDER time by resolveSeasonEnd, so
+    // a completed_at that arrives after this read (a later LeagueContext refresh) still fills a no-scored-rows league
+    // without re-reading the matchups.
+    void readSeasonEnd(readLeagueEnds, leagueId, null).then((r) => {
       if (cancelled) return;
       if (r.status === 'error') console.warn('[season-end] matchups read failed');
       setState({ leagueId, ...r });
@@ -60,7 +63,7 @@ export function useSeasonEnd(leagueId: string | null, enabled: boolean, complete
     return () => {
       cancelled = true;
     };
-    // `tick` re-runs the read on Try again; completed_at is read when the league changes.
+    // `tick` re-runs the read on Try again. completed_at is not a dependency: the read does not use it (see above).
   }, [leagueId, enabled, tick, !!fixture]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const view = resolveSeasonEnd({ enabled, leagueId, completedAt, fixtureRows: fixture ? fixture.rows : undefined, state });

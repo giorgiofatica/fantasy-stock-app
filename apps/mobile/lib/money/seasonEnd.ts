@@ -61,7 +61,8 @@ export type SeasonEndStatus = 'idle' | 'loading' | 'ready' | 'error';
 /**
  * What the screens see. Not over (or no league): 'idle'. A capture fixture: its own rows (null = still loading).
  * Otherwise this league's read result; none yet, or one for ANOTHER league (a switch mid-read): 'loading', the day
- * unknown (null), so nothing is frozen to a wrong date.
+ * unknown (null), so nothing is frozen to a wrong date. The hook's read carries the rows' answer only; the
+ * completed_at fallback is applied here, so it follows the CURRENT completedAt.
  */
 export function resolveSeasonEnd(input: {
   enabled: boolean;
@@ -76,5 +77,8 @@ export function resolveSeasonEnd(input: {
     return fixtureRows === null ? { status: 'loading', endEt: null } : { status: 'ready', endEt: seasonEndEt(fixtureRows, completedAt) };
   }
   if (!state || state.leagueId !== leagueId) return { status: 'loading', endEt: null };
-  return { status: state.status, endEt: state.endEt };
+  if (state.status === 'error') return { status: 'error', endEt: null };
+  // The read holds the ROWS' answer only. A successful read with no scored, dated row falls back to completed_at's
+  // date HERE, at render, so a completed_at that arrives after the read still applies (never on an error).
+  return { status: 'ready', endEt: state.endEt ?? (completedAt ? etDateOf(completedAt) : null) };
 }

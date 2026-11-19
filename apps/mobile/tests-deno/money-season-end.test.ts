@@ -148,3 +148,20 @@ Deno.test('the league-wide read path applies the same rule (a read that returned
   const read: MatchupEndsRead = async () => ({ data: [{ week_end: '2026-10-09T21:00:00.000Z', team1_gain: null }], error: null });
   assertEquals(await readSeasonEnd(read, 'L1', '2026-10-03T01:00:00Z'), { status: 'ready', endEt: '2026-10-02' }, 'completed_at, never the unscored row');
 });
+
+Deno.test('resolveSeasonEnd: completed_at is applied at render, so one that arrives AFTER a no-scored-rows read still fills the day (Copilot #555)', () => {
+  const ready = { leagueId: 'L1', status: 'ready' as const, endEt: null };
+  // The read landed while completed_at was still unknown: no day yet.
+  assertEquals(resolveSeasonEnd({ enabled: true, leagueId: 'L1', completedAt: null, state: ready }), { status: 'ready', endEt: null });
+  // A later LeagueContext refresh supplies it: the same read now answers with its ET date, no re-read.
+  assertEquals(resolveSeasonEnd({ enabled: true, leagueId: 'L1', completedAt: '2026-10-03T01:00:00Z', state: ready }), { status: 'ready', endEt: '2026-10-02' });
+  // A scored row still wins over completed_at, and an error never falls back.
+  assertEquals(resolveSeasonEnd({ enabled: true, leagueId: 'L1', completedAt: '2026-10-09T15:00:00Z', state: { ...ready, endEt: '2026-10-02' } }), { status: 'ready', endEt: '2026-10-02' });
+  assertEquals(resolveSeasonEnd({ enabled: true, leagueId: 'L1', completedAt: '2026-10-09T15:00:00Z', state: { leagueId: 'L1', status: 'error', endEt: null } }), { status: 'error', endEt: null });
+});
+
+Deno.test('useSeasonEnd: the read carries the rows only; completed_at is never baked into the stored result', () => {
+  const src = strip(SOURCES['lib/money/useSeasonEnd.ts']);
+  assert(src.includes('readSeasonEnd(readLeagueEnds, leagueId, null)'), 'the hook reads the rows only');
+  assert(!src.includes('readSeasonEnd(readLeagueEnds, leagueId, completedAt)'), 'completed_at baked into state would go stale');
+});
