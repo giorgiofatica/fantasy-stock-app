@@ -95,7 +95,7 @@ Entries begin with the Recorder's first pass.
 **Next**
 - **Build 18, not started; in progress, none merged (the Orchestrator's list):** the finished-season Portfolio and stock card (pick A); no week figures where there are no weeks; a server refusal of trades after the season ends, since merged as #529 (applied and deployed the same evening; STATUS §4 item 33, closed).
 - **Giorgio's decisions waiting:** the supplier and the rest of the price feed (STATUS item 34; the kind is picked), his look at the "–" total on the draft #547, and the January SDK start. (His picks on the Stocks list board are made: A+C.)
-- **Before build 18:** #555 (a finished season ends at the whole league's last scored week; the fix for #545's known bug, by its title; open) must land (the Orchestrator's note). Also open: #554, #556, #557, #558, #547 (draft). The Stocks tab screen (Part 2) is built on an unpushed local branch, awaiting the Design Lead's Round 3 re-gate.
+- **Before build 18:** #555 (a finished season ends at the whole league's last scored week; the fix for #545's known bug) is now MERGED (06:47:12Z, `d082bd4a`), with #554 and #556 (06:47Z; I read each on GitHub); main's CI on `29bfecd1` was pending, so none is recorded. #558 (gain pairs spoken "+$X, +Y%") then merged too (`41a5e906`; mobile, in no build). Still open: #557, #559 (docs only, the pipeline guide) and #547 (draft). The Stocks tab screen (Part 2) is built on an unpushed local branch, awaiting the Design Lead's Round 3 re-gate.
 - **Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.** The Orchestrator will check its logs; I record what it finds, not that the run happened.
 
 ## 2026-11-17
