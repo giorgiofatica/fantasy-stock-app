@@ -41,7 +41,10 @@ export interface StockSheetInput {
    * whatever the market is doing (Giorgio, 2026-11-18: "A finished season is closed to buying and selling";
    * the server refuses with 'season_completed'). The sheet then draws NO Buy/Sell control at all: no segment, no Review
    * button and no line (Giorgio, 2026-11-18, call 2 = A; `controlsShown` is false). The price, chart and ownership stay. */
-  gate: { open: boolean; opensLabel?: string | null; seasonOver?: boolean };
+  gate: { open: boolean; opensLabel?: string | null; seasonOver?: boolean; preDraft?: boolean };
+  /** `gate.preDraft`: the league's draft isn't done (pre_draft / drafting, the app's phase check), so a trade can't start
+   * whatever the market is doing; Review is disabled BEFORE the tap with the existing line "Trading opens after the draft."
+   * (draftNotCompleted, the server's own refusal), the closed-market pattern. */
   leagueName: string;
   /** e.g. "Friday's close", for the closed-market note. */
   lastCloseLabel: string | null;
@@ -84,11 +87,14 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   const priced = input.price !== null && Number.isFinite(input.price);
 
   // A finished season has no line at all (the controls are absent, not disabled): no reason string for either action.
-  const closedReason = input.gate.open
+  const preDraft = !!input.gate.preDraft && !input.gate.seasonOver;
+  const closedReason = input.gate.seasonOver
     ? null
-    : input.gate.seasonOver
-      ? null
-      : input.gate.opensLabel
+    : preDraft
+      ? COPY.draftNotCompleted
+      : input.gate.open
+        ? null
+        : input.gate.opensLabel
         ? COPY.marketClosedOpens(input.gate.opensLabel)
         : COPY.tradingHoursUnavailable;
 
@@ -141,7 +147,7 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   }
 
   // (Not for a season that is over: the market may be open, and the note would say the prices are old.)
-  const marketNote = !input.gate.open && !input.gate.seasonOver && input.lastCloseLabel ? COPY.pricesShowClose(input.lastCloseLabel) : null;
+  const marketNote = !input.gate.open && !input.gate.seasonOver && !preDraft && input.lastCloseLabel ? COPY.pricesShowClose(input.lastCloseLabel) : null;
 
   const todayChange =
     priced && input.prevClose !== null && input.prevClose > 0

@@ -224,6 +224,26 @@ export function rowCategoryName(categoryIds: readonly string[], categories: read
   return null;
 }
 
+/** The gap kept between a selected chip and the row's edge when it is scrolled into view (pt). */
+export const CHIP_EDGE_GAP = 12;
+
+/**
+ * Where the chip row should scroll so the SELECTED chip is fully in view (P2: a chip cut off at the edge, "H" for
+ * Healthcare, reads as a half-drawn control). `chipX`/`chipW` are the chip's position inside the scrolling content,
+ * `scrollX` the row's current offset and `viewW` its visible width. Returns the new offset, or null when the chip is
+ * already whole (the row's offset is then left alone: it does not jump). A chip wider than the view lines up at its
+ * left edge. Never negative.
+ */
+export function chipScrollTarget(chipX: number, chipW: number, scrollX: number, viewW: number, gap: number = CHIP_EDGE_GAP): number | null {
+  if (!(viewW > 0) || !(chipW > 0)) return null;
+  const left = chipX - gap;
+  const right = chipX + chipW + gap;
+  if (chipW + 2 * gap >= viewW) return Math.max(0, chipX - gap) === scrollX ? null : Math.max(0, chipX - gap);
+  if (left < scrollX) return Math.max(0, left);
+  if (right > scrollX + viewW) return right - viewW;
+  return null;
+}
+
 // ── A row ────────────────────────────────────────────────────────────────────────────────────────
 
 /** The price cell: "–" until a live price arrives, and for any price that is not usable (never "$0.00"). */

@@ -23,7 +23,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 
 import { radius, space } from '@/constants/tokens';
-import { Button } from '@/components/sp/Button';
 import { Icon } from '@/components/sp/Icon';
 import { PressableScale } from '@/components/sp/PressableScale';
 import { Text } from '@/components/sp/Text';
@@ -52,6 +51,7 @@ import { useRowPrices } from '@/lib/stocks/useRowPrices';
 import {
   CHIP_TEXT_MAX_SCALE,
   ROW_TEXT_MAX_SCALE,
+  chipScrollTarget,
   chipsFrom,
   controlReducer,
   isNearEnd,
@@ -156,15 +156,54 @@ function StocksBody({
 
 function ChipRow({ chips, selected, onSelect, onSearch }: { chips: { categoryId: string | null; label: string }[]; selected: string | null; onSelect: (id: string | null) => void; onSearch: () => void }) {
   const { colors } = useTheme();
+  // P2: the selected chip stays WHOLE in view. Each chip reports its place in the scrolling content; when the selection
+  // changes the row scrolls just far enough (chipScrollTarget), and a row already showing the chip is left where it is.
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollX = useRef(0);
+  const viewW = useRef(0);
+  const places = useRef(new Map<string, { x: number; w: number }>());
+  const keyOf = (id: string | null) => id ?? 'all';
+  const reveal = useCallback(() => {
+    const place = places.current.get(keyOf(selected));
+    if (!place) return;
+    const to = chipScrollTarget(place.x, place.w, scrollX.current, viewW.current);
+    if (to != null) scrollRef.current?.scrollTo({ x: to, animated: true });
+  }, [selected]);
+  useEffect(() => {
+    reveal();
+  }, [reveal]);
   return (
     <View style={styles.chipRow}>
       {/* C: search is the first icon in the chip row. It stays put; only the chips scroll. */}
       <Pressable accessibilityRole="button" accessibilityLabel="Search" onPress={onSearch} style={[styles.searchIcon, { backgroundColor: colors.sunken }]} testID="stocks-search-icon">
         <Icon name="search" size="body" tone="text" />
       </Pressable>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chips}
+        style={styles.chipScroll}
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          scrollX.current = e.nativeEvent.contentOffset.x;
+        }}
+        onLayout={(e) => {
+          viewW.current = e.nativeEvent.layout.width;
+          reveal();
+        }}
+      >
         {chips.map((c) => (
-          <StockChip key={c.categoryId ?? 'all'} label={c.label} on={selected === c.categoryId} onPress={() => onSelect(c.categoryId)} />
+          <StockChip
+            key={c.categoryId ?? 'all'}
+            label={c.label}
+            on={selected === c.categoryId}
+            onPress={() => onSelect(c.categoryId)}
+            onPlace={(x, w) => {
+              places.current.set(keyOf(c.categoryId), { x, w });
+              if (selected === c.categoryId) reveal();
+            }}
+          />
         ))}
       </ScrollView>
     </View>
@@ -172,7 +211,7 @@ function ChipRow({ chips, selected, onSelect, onSearch }: { chips: { categoryId:
 }
 
 /** A chip: the app's selected pairing (accent on accentTint, the verified-contrast one, as sp/Chip), the label capped at 1.3× and on one line. */
-function StockChip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
+function StockChip({ label, on, onPress, onPlace }: { label: string; on: boolean; onPress: () => void; onPlace: (x: number, w: number) => void }) {
   const { colors } = useTheme();
   return (
     <PressableScale
@@ -181,6 +220,7 @@ function StockChip({ label, on, onPress }: { label: string; on: boolean; onPress
       onPress={onPress}
       haptic={false}
       style={[styles.chip, { backgroundColor: on ? colors.accentTint : colors.sunken }]}
+      onLayout={(e) => onPlace(e.nativeEvent.layout.x, e.nativeEvent.layout.width)}
       testID={`stocks-chip-${label}`}
     >
       <Text variant="callout" color={on ? colors.accent : colors.text2} maxFontSizeMultiplier={CHIP_TEXT_MAX_SCALE} numberOfLines={1} style={styles.bold}>{label}</Text>
@@ -276,6 +316,7 @@ function SearchResults({ query }: { query: string }) {
 
 function AvailableList({ list, categories, seasonOver }: { list: ReturnType<typeof useStocksList>; categories: ChipCategory[]; seasonOver: boolean }) {
   const { open } = useStockSheet();
+  const { colors } = useTheme();
   const { state, loadMore, retry } = list;
   const fold = useScrollFold();
   const listRef = useRef<View>(null);
@@ -357,7 +398,10 @@ function AvailableList({ list, categories, seasonOver }: { list: ReturnType<type
           // E7: a later page failed. The loaded rows stay; this retries only that page.
           <View style={styles.footFail} testID="stocks-foot-failed">
             <Text variant="callout" tone="secondary" maxFontSizeMultiplier={SEARCH_TEXT_MAX_SCALE} style={styles.center}>{COPY.loadRetryMessage}</Text>
-            <Button label={COPY.tryAgain} variant="ghost" size="sm" onPress={retry} testID="stocks-foot-retry" />
+            {/* The app's text button, as the stock sheet's own Try again: accent and bold. */}
+            <Pressable accessibilityRole="button" onPress={retry} hitSlop={8} style={styles.textButton} testID="stocks-foot-retry">
+              <Text variant="callout" maxFontSizeMultiplier={SEARCH_TEXT_MAX_SCALE} color={colors.accent} style={styles.bold}>{COPY.tryAgain}</Text>
+            </Pressable>
           </View>
         ) : null}
       </View>
@@ -488,6 +532,7 @@ const styles = StyleSheet.create({
   skeletonLines: { flex: 1, gap: space[2] },
   empty: { paddingVertical: space[7], gap: space[2], alignItems: 'center' },
   footFail: { paddingVertical: space[5], gap: space[2], alignItems: 'center' },
+  textButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space[4] },
   credit: { paddingTop: space[5] },
   bold: { fontWeight: '700' },
   semi: { fontWeight: '600' },

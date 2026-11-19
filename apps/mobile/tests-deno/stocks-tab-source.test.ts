@@ -88,7 +88,10 @@ Deno.test('E6: first page = 8 skeleton rows with a 26pt circle for the "+"; next
 
 Deno.test('E7: a first-page failure is the existing LoadFailure; a later page keeps its rows with the retry message and a "Try again" that retries only it', () => {
   assertMatch(screen, /view\.kind === 'first_failed'\) return <LoadFailure title=\{COPY\.stockSearchLoadTitle\} message=\{COPY\.loadRetryMessage\} onRetry=\{retry\} \/>/);
-  assertMatch(screen, /testID="stocks-foot-failed"[\s\S]{0,400}COPY\.loadRetryMessage[\s\S]{0,300}label=\{COPY\.tryAgain\} variant="ghost" size="sm" onPress=\{retry\}/);
+  assertMatch(screen, /testID="stocks-foot-failed"[\s\S]{0,400}COPY\.loadRetryMessage[\s\S]{0,600}onPress=\{retry\}[\s\S]{0,300}color=\{colors\.accent\} style=\{styles\.bold\}>\{COPY\.tryAgain\}/);
+  // The app's text-button style (the stock sheet's own Try again): accent and bold, a 44pt target, not a ghost Button.
+  assertFalse(/<Button\b/.test(code(screen)));
+  assertMatch(screen, /textButton: \{ minHeight: 44/);
 });
 
 Deno.test('E8: an empty category reuses search\'s empty state, with the category as the query', () => {
@@ -105,7 +108,7 @@ Deno.test('E9: row words cap at the Holdings rule (1.3x), chips at 1.3x, the sea
   assertMatch(screen, /\{under \? price : null\}/);
   assertMatch(screen, /\{under \? null : <View style=\{styles\.trail\}>\{price\}<\/View>\}/);
   assertMatch(screen, /chipScroll: \{ flex: 1 \}/);
-  assertMatch(screen, /<ScrollView horizontal showsHorizontalScrollIndicator=\{false\}/);
+  assertMatch(screen, /<ScrollView\s+ref=\{scrollRef\}\s+horizontal\s+showsHorizontalScrollIndicator=\{false\}/);
 });
 
 Deno.test('E9: row text is MEASURED, never fitted by iOS (adjustsFontSizeToFit on an unlaid row shrinks it to nothing)', () => {
@@ -121,7 +124,7 @@ Deno.test('E9: row text is MEASURED, never fitted by iOS (adjustsFontSizeToFit o
 
 Deno.test('C: the search icon is first in the chip row; searching swaps the row for a field + Cancel and shows the existing search\'s rows', () => {
   const chipRow = screen.slice(screen.indexOf('function ChipRow'), screen.indexOf('function StockChip'));
-  assert(chipRow.indexOf('stocks-search-icon') < chipRow.indexOf('<ScrollView horizontal'), 'the icon is first, outside the scrolling chips');
+  assert(chipRow.indexOf('stocks-search-icon') < chipRow.indexOf('<ScrollView\n'), 'the icon is first, outside the scrolling chips');
   assertMatch(screen, /control\.mode === 'chips' \? \(\s*<ChipRow/);
   assertMatch(screen, /<SearchField query=\{control\.query\}/);
   assertMatch(screen, /useMoneyStockSearch\(query, ''\)/);
@@ -140,4 +143,11 @@ Deno.test('Portfolio: "Buy a stock" is gone; the holding row still opens its car
   assertFalse(/buyAStock|portfolio-buy-a-stock|stock-search/.test(p));
   assertMatch(p, /<HoldingRow key=\{r\.symbol\} row=\{r\} pill=\{pillFor\(r\.symbol\)\} onPress=\{\(\) => openRow\(r\.symbol, r\.name\)\} \/>/);
   assertMatch(p, /pendingSell\.current = \{ symbol: card\.data\.ticker/);
+});
+
+Deno.test('P2: the selected chip is scrolled into view (chipScrollTarget), from each chip\'s measured place; the row is not reset', () => {
+  assertMatch(screen, /chipScrollTarget\(place\.x, place\.w, scrollX\.current, viewW\.current\)/);
+  assertMatch(screen, /scrollRef\.current\?\.scrollTo\(\{ x: to, animated: true \}\)/);
+  assertMatch(screen, /onLayout=\{\(e\) => onPlace\(e\.nativeEvent\.layout\.x, e\.nativeEvent\.layout\.width\)\}/);
+  assertMatch(screen, /useEffect\(\(\) => \{\s*reveal\(\);\s*\}, \[reveal\]\);/);
 });

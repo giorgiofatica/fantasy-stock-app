@@ -56,7 +56,7 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { reviewPresentation } from '@/lib/money/reviewPresentation';
 import { canDismiss } from '@/lib/money/reviewMachine';
 import { decideTradeGate, type TradeGate } from '@/lib/money/tradeGate';
-import { isSeasonOver } from '@/lib/weekStatus';
+import { getSeasonPhase, isSeasonOver } from '@/lib/weekStatus';
 import { companyLine, stockSheetModel } from '@/lib/money/stockSheetModel';
 import { buyBody, previewBody, sellBody } from '@/lib/money/tradeBodies';
 import { useStockSheetData } from '@/lib/money/useStockSheetData';
@@ -220,6 +220,10 @@ export function StockSheetBody({
   // are disabled before a review, never at the server.
   const seasonOver = isSeasonOver(activeLeague, now, marketCalendar);
   const gate = seasonOver ? SEASON_OVER_GATE : decideTradeGate(now, market);
+  // The draft isn't done (the app's phase check): no trade can start, so Review is disabled before the tap, with the
+  // existing "Trading opens after the draft." line. Not while there is no league (the dev fixtures), never guessed.
+  const seasonPhase = activeLeague ? getSeasonPhase(activeLeague, now, marketCalendar) : null;
+  const preDraft = seasonPhase === 'pre_draft' || seasonPhase === 'drafting';
   const opensLabel = !seasonOver && market?.next_open_at ? marketOpensLabel(market.next_open_at) : null;
 
   async function buildReview(kind: ReviewKind, pickedId: string | null = null): Promise<OpenReview> {
@@ -425,7 +429,7 @@ export function StockSheetBody({
     held: data.facts.held,
     owner: data.facts.owner,
     draft: data.facts.draft,
-    gate: { open: gate.open, opensLabel, seasonOver },
+    gate: { open: gate.open, opensLabel, seasonOver, preDraft },
     leagueName: data.leagueName ?? '',
     lastCloseLabel: null,
     acquisition,

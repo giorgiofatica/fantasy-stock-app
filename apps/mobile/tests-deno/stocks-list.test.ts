@@ -8,6 +8,7 @@ import {
   ALL_CHIP_LABEL,
   PAGE_SIZE,
   answersFromQuote,
+  chipScrollTarget,
   chipsFrom,
   controlReducer,
   initialListState,
@@ -273,4 +274,24 @@ Deno.test('seam fixture: pages of 25 by cursor with has_more, a category filter,
   const pl = parseStocksKnob('page2_loading');
   assertEquals(seamStocksRead(pageArgs('L', null, null), pl)!.error, null);
   assertEquals(seamStocksRead(pageArgs('L', null, 'MSFT'), pl), null, 'the second page never answers');
+});
+
+// ── P2: the selected chip stays whole in view ──
+Deno.test('chipScrollTarget: a chip cut at the right edge scrolls just into view; one already whole leaves the row alone', () => {
+  // view 300 wide at offset 0: a chip at x 260..380 is cut -> scroll so its right edge (+12 gap) is at the view's right edge.
+  assertEquals(chipScrollTarget(260, 120, 0, 300), 380 + 12 - 300);
+  assertEquals(chipScrollTarget(40, 100, 0, 300), null, 'already whole: no jump');
+  assertEquals(chipScrollTarget(100, 100, 0, 300), null);
+});
+
+Deno.test('chipScrollTarget: a chip cut at the LEFT edge scrolls back; never a negative offset; a chip wider than the view lines up left', () => {
+  assertEquals(chipScrollTarget(150, 100, 200, 300), 138);
+  assertEquals(chipScrollTarget(5, 100, 50, 300), 0, 'never negative');
+  assertEquals(chipScrollTarget(400, 400, 0, 300), 388, 'wider than the view: its left edge');
+  assertEquals(chipScrollTarget(400, 400, 388, 300), null);
+});
+
+Deno.test('chipScrollTarget: nothing measured yet means no scroll (never a guess)', () => {
+  assertEquals(chipScrollTarget(260, 120, 0, 0), null);
+  assertEquals(chipScrollTarget(260, 0, 0, 300), null);
 });

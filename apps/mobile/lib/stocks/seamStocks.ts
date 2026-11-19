@@ -22,6 +22,7 @@ export const SEAM_STOCK_CATEGORIES: readonly ChipCategory[] = [
   { id: 'cat-health', name: 'Healthcare', is_misc: false },
   { id: 'cat-energy', name: 'Energy & Utilities', is_misc: false },
   { id: 'cat-retail', name: 'Retail & Consumer Goods', is_misc: false },
+  { id: 'cat-realestate', name: 'Real Estate & Construction', is_misc: false },
   { id: 'cat-misc', name: 'Misc', is_misc: true },
 ];
 
@@ -45,6 +46,7 @@ const CATALOGUE: readonly [string, string, string, number][] = [
   ['SNOW', 'Snowflake', 'cat-tech', 187.2], ['AXP', 'American Express', 'cat-finance', 318.6], ['WMB', 'Williams Companies', 'cat-energy', 61.5],
   ['VRTX', 'Vertex Pharmaceuticals', 'cat-health', 463.0], ['TJX', 'TJX Companies', 'cat-retail', 128.4], ['NOW', 'ServiceNow', 'cat-tech', 902.3],
   ['C', 'Citigroup', 'cat-finance', 82.1], ['KMI', 'Kinder Morgan', 'cat-energy', 27.6], ['REGN', 'Regeneron', 'cat-health', 590.8],
+  ['PLD', 'Prologis', 'cat-realestate', 118.4], ['AMT', 'American Tower', 'cat-realestate', 214.9], ['EQIX', 'Equinix', 'cat-realestate', 842.1],
   ['EL', 'Estée Lauder', 'cat-retail', 61.9], ['PANW', 'Palo Alto Networks', 'cat-tech', 196.5], ['USB', 'U.S. Bancorp', 'cat-finance', 49.7],
   ['OXY', 'Occidental Petroleum', 'cat-energy', 44.2], ['ZTS', 'Zoetis', 'cat-health', 168.3], ['ROST', 'Ross Stores', 'cat-retail', 148.5],
 ];
