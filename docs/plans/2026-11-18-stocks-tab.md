@@ -194,8 +194,12 @@ manager sees; it depends on part 1's read.
 - Search: the icon swaps the control row for a field and Cancel; results are the existing
   search's, with price. A result somebody owns says so with the existing words ("You own
   this", "Owned by {name}"), and "Not in this league's list" stays as it is.
-- The plus, and a tap on a row, open the stock's existing sheet and its existing review. No
-  buy happens without the review.
+- The plus opens the stock's existing sheet straight into its existing buy review (Buy
+  selected, the review shown). A tap on the row opens the same sheet to look, with nothing
+  selected. No buy happens without the review. (Wording corrected 2026-11-18: this bullet
+  first read as if the plus and a row tap did the same thing. What he was told when he
+  picked A was "Tapping it opens the review screen; it never buys in one tap", against a
+  row tap "which opens the stock's page".)
 - "Buy a stock" comes off Portfolio. A holding's card keeps Sell.
 
 **Out, and why.**
@@ -217,6 +221,11 @@ category with no stocks left; the largest text size.
   large companies nobody in the league owns; each shows a current price; a category chip
   narrows it; scrolling loads more; the plus opens the review and a buy completes as it does
   today from search; the bought stock is gone from the list afterwards.
+- A tap on a row opens the stock's sheet without the review; the plus opens it with the
+  review showing.
+- Before the draft, the sheet shows a disabled "Review buy" with the existing "Trading opens
+  after the draft." (the Design Lead's spec, existing words), not a review the server then
+  refuses.
 - A stock another manager owns is not in the list and is found by search, marked.
 - Portfolio no longer shows "Buy a stock"; tapping a holding still offers Sell.
 - After the close the plus opens the sheet with the existing closed-market line; nothing

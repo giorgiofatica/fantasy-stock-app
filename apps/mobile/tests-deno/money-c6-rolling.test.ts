@@ -24,5 +24,5 @@ Deno.test('wiring: the today line rolls (money and percent, each their own Rolli
 
 Deno.test('wiring: the today row is one accessible element, not loose rolling digits; the range gain is one labelled element', () => {
   // W4: the line is one accessible element labelled with the whole sentence.
-  assertEquals(portfolioScreenSrc.includes('<View accessible accessibilityLabel={`${v.todayText} today`}>'), true);
+  assertEquals(portfolioScreenSrc.includes('<View accessible accessibilityLabel={`${v.todaySpoken} today`}>'), true);
 });

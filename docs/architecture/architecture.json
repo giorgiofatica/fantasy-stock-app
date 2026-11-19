@@ -2,27 +2,91 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "bc98248faaa2d16010e134633858ac0016c14a42",
-    "commitShort": "bc98248f",
+    "commit": "289dbc2950df7ffa2233e29726f23776e934f14a",
+    "commitShort": "289dbc29",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "docs/architecture/db-snapshot.json"
+        "path": "apps/mobile/components/home/HomeHero.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/StockSheetBody.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/money.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/chart/chartRanges.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/home/homeCopy.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/portfolioView.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/seasonEnd.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/money/useSeasonEnd.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/gain-pair-spoken.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/home-copy.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c6-rolling.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-finished-season.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-season-end.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-19T06:07:06Z",
-    "sourceHash": "sha256:a2ed1a947010e7a92c55bed4039649727c7d763ab6beba929c83e3ae34441ffc",
+    "timestamp": "2026-11-19T18:06:42Z",
+    "sourceHash": "sha256:b883dfa2df2c02ff0616c43c82ab1d57b1ed6450d780ff50269cde17f19ad5a8",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 5.9,
-    "ageDays": 0.2,
+    "ageHours": 17.9,
+    "ageDays": 0.7,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
@@ -10843,6 +10907,23 @@
       "drift": [],
       "annotation": null,
       "verified": true,
+      "id": "ui.money.useSeasonEnd",
+      "label": "useSeasonEnd.ts",
+      "sublabel": "mobile/lib/money/useSeasonEnd.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/lib/money/useSeasonEnd.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
       "id": "ui.money.useStockChartData",
       "label": "useStockChartData.ts",
       "sublabel": "mobile/lib/money/useStockChartData.ts",
@@ -11274,6 +11355,23 @@
       "kind": "client-screen",
       "source": {
         "path": "apps/mobile/tests-deno/leaguemate-team-view.test.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "ui.tests-deno.money-season-end.test",
+      "label": "money-season-end.test.ts",
+      "sublabel": "mobile/tests-deno/money-season-end.test.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/tests-deno/money-season-end.test.ts",
         "line": 1
       }
     },
@@ -21100,7 +21198,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126"
       ],
       "via": [
         "useRosterData"
@@ -21118,7 +21216,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126"
       ],
       "via": [
         "useRosterData"
@@ -21136,7 +21234,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126"
       ],
       "via": [
         "useRosterData"
@@ -21154,7 +21252,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124"
+        "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126"
       ],
       "via": [
         "useRosterData"
@@ -21172,7 +21270,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:111"
+        "apps/mobile/components/money/PortfolioScreen.tsx:112"
       ],
       "via": [
         "useRosterData"
@@ -21190,7 +21288,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:111"
+        "apps/mobile/components/money/PortfolioScreen.tsx:112"
       ],
       "via": [
         "useRosterData"
@@ -21208,7 +21306,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:111"
+        "apps/mobile/components/money/PortfolioScreen.tsx:112"
       ],
       "via": [
         "useRosterData"
@@ -21226,7 +21324,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:111"
+        "apps/mobile/components/money/PortfolioScreen.tsx:112"
       ],
       "via": [
         "useRosterData"
@@ -21279,6 +21377,21 @@
       "payload": "rpc('get_portfolio_ledger')",
       "callSites": [
         "apps/mobile/lib/money/usePortfolioLedger.ts:22"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.money.useSeasonEnd->tbl.matchups",
+      "from": "ui.money.useSeasonEnd",
+      "to": "tbl.matchups",
+      "protocol": "postgrest-select",
+      "payload": ".from('matchups').select('week_end, team1_gain')",
+      "columns": [
+        "week_end, team1_gain"
+      ],
+      "callSites": [
+        "apps/mobile/lib/money/useSeasonEnd.ts:40"
       ]
     },
     {
@@ -22251,6 +22364,21 @@
       "columns": [],
       "callSites": [
         "apps/mobile/tests-deno/leaguemate-team-view.test.ts:196"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.tests-deno.money-season-end.test->tbl.matchups",
+      "from": "ui.tests-deno.money-season-end.test",
+      "to": "tbl.matchups",
+      "protocol": "postgrest-select",
+      "payload": ".from('matchups').select('week_end, team1_gain')",
+      "columns": [
+        "week_end, team1_gain"
+      ],
+      "callSites": [
+        "apps/mobile/tests-deno/money-season-end.test.ts:127"
       ]
     },
     {
@@ -24276,8 +24404,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 324,
-    "edges": 785,
+    "nodes": 326,
+    "edges": 787,
     "flows": 7,
     "drift": 34,
     "driftHigh": 0,
@@ -24472,14 +24600,14 @@
       "apps/mobile/app/league-settings.tsx:330 -> leagues.update (via seamUpdateLeague)",
       "apps/mobile/app/league-settings.tsx:352 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
       "apps/mobile/app/league-settings.tsx:352 -> league_draft_slots.insert (via seamSaveLeagueSlots)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124 -> categories.select (via useRosterData)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124 -> drafts.select (via useRosterData)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124 -> trades.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> categories.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> drafts.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> trades.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126 -> categories.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126 -> drafts.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/components/money/PlayerPortfolioScreen.tsx:126 -> trades.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:112 -> categories.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:112 -> drafts.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:112 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:112 -> trades.select (via useRosterData)",
       "apps/mobile/lib/LeagueContext.tsx:178 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:180 -> league_seasons.select",
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",
@@ -24518,6 +24646,7 @@
       "apps/mobile/lib/game/useSymbolCategories.ts:38 -> category_rules.select",
       "apps/mobile/lib/game/useWeekOne.ts:17 -> matchups.select",
       "apps/mobile/lib/home/useDraftingData.ts:86 -> drafts.select",
+      "apps/mobile/lib/money/useSeasonEnd.ts:40 -> matchups.select",
       "apps/mobile/lib/pushTokenStore.ts:27 -> push_tokens.upsert",
       "apps/mobile/lib/pushTokenStore.ts:42 -> push_tokens.delete",
       "apps/mobile/lib/useLeagues.ts:33 -> league_members.select",
@@ -24530,6 +24659,7 @@
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:248 -> league_invites.insert",
       "apps/mobile/tests-deno/gn-w4-draft.test.ts:163 -> symbols.select",
       "apps/mobile/tests-deno/leaguemate-team-view.test.ts:196 -> week_snapshots.select",
+      "apps/mobile/tests-deno/money-season-end.test.ts:127 -> matchups.select",
       "apps/mobile/tests-deno/read-result.test.ts:41 -> symbols.select",
       "apps/web/src/Header.jsx:110 -> league_members.select",
       "apps/web/src/Header.jsx:118 -> leagues.select",

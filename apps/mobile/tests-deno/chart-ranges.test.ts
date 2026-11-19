@@ -247,18 +247,19 @@ Deno.test('(e) the period words are the approved copy', () => {
   });
 });
 
-Deno.test('(d) the gain reads "+$54.60 (+41.42%) past 6 months": dollars first, percent in brackets, NO dot', () => {
+Deno.test('(d) the gain SHOWS "+$54.60 (+41.42%)" and SAYS "+$54.60, +41.42% past 6 months": dollars first, NO dot', () => {
   const g = rangeGain([{ t: 0, value: 131.82 }, { t: 100, value: 186.42 }], 131.82)!;
   const t = rangeGainText('6M', g);
   assertEquals(t.figures, '+$54.60 (+41.42%)');
-  assertEquals(t.label, '+$54.60 (+41.42%) past 6 months');
+  // VoiceOver: comma-joined, never the brackets (Design Lead, #546).
+  assertEquals(t.label, '+$54.60, +41.42% past 6 months');
   assert(!t.label.includes('·') && !t.figures.includes('·'), 'no dot between the numbers');
   assertEquals([t.money, t.pct], ['+$54.60', '+41.42%']);
-  assertEquals(rangeGainText('Season', g).label, '+$54.60 (+41.42%) since the draft');
-  assertEquals(rangeGainText('YTD', g).label, '+$54.60 (+41.42%) this year');
-  assertEquals(rangeGainText('1W', g).label, '+$54.60 (+41.42%) past week');
-  assertEquals(rangeGainText('1M', g).label, '+$54.60 (+41.42%) past month');
-  assertEquals(rangeGainText('3M', g).label, '+$54.60 (+41.42%) past 3 months');
+  assertEquals(rangeGainText('Season', g).label, '+$54.60, +41.42% since the draft');
+  assertEquals(rangeGainText('YTD', g).label, '+$54.60, +41.42% this year');
+  assertEquals(rangeGainText('1W', g).label, '+$54.60, +41.42% past week');
+  assertEquals(rangeGainText('1M', g).label, '+$54.60, +41.42% past month');
+  assertEquals(rangeGainText('3M', g).label, '+$54.60, +41.42% past 3 months');
 });
 
 Deno.test('(d) a loss reads −$ and −%, in the loss tone; the tone IS the line\'s tone (same points, same base)', () => {
@@ -316,7 +317,7 @@ Deno.test('(f) the gain follows the range: tapping a pill changes the line, the 
   assertEquals(gains.map((g) => g.base), [140, 140, 130, 120, 150, 100]);
   assertEquals(gains.map((g) => g.axisKind), ['sessions', 'dated', 'dated', 'dated', 'dated', 'dated']);
   assertEquals(new Set(gains.map((g) => g.text)).size, 6, 'six ranges, six different gain lines');
-  assertEquals(gains.find((g) => g.range === 'Season')!.text, '+$15.00 (+10.00%) since the draft');
+  assertEquals(gains.find((g) => g.range === 'Season')!.text, '+$15.00, +10.00% since the draft');
   // The component renders all three from ONE `range` (gain, chart, drawKey, pills).
   const src = strip(stockChartSrc);
   assert(src.includes('<RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />') && src.includes('drawKey={`${symbol}-${range}`}') && src.includes('value={range}'));
@@ -409,7 +410,7 @@ Deno.test('Portfolio\'s today line: "+$121.27 (+0.99%) today" in the bracket for
   const src = strip(portfolioSrc);
   assert(!src.includes('function HeroLine'), 'the line is RollingGainPair, shared, not a Portfolio copy');
   assert(src.includes('<RollingGainPair') && src.includes('words="today"'));
-  assert(src.includes('accessibilityLabel={`${v.todayText} today`}'), 'VoiceOver says it in the same order (todayText is the bracket format)');
+  assert(src.includes('accessibilityLabel={`${v.todaySpoken} today`}'), 'VoiceOver says it in the same order, comma-joined (todaySpoken), never the brackets');
   assert(src.includes('color={toneColor(colors, v.todayTone)}'), 'the colour is the sign\'s (zero is the neutral grey)');
   const pair = strip(gainPairSrc);
   assert(pair.includes('GAIN_PAIR_OPEN') && pair.includes('GAIN_PAIR_CLOSE'), 'a bracket around the percent');
