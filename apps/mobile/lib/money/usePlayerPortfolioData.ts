@@ -2,6 +2,9 @@
  * usePlayerPortfolioData: another manager's portfolio in the active league (3e),
  * read-only. The league ledger (shared), then the price reads for that manager's
  * holdings. DEV fixture: the stress ledger and market, with no network.
+ *
+ * A season that is over: the daily bars are the only read (no quote), and the team is valued at
+ * the season's last day (playerPortfolio's `finished`).
  */
 import { useEffect, useState } from 'react';
 
@@ -13,8 +16,9 @@ import { playerPortfolio, type PlayerPortfolio } from './playerPortfolio';
 import type { PortfolioLedger } from './portfolioLedger';
 import type { DailyBar } from './prevClose';
 import { readPriceMarks, type PriceMarks } from './priceReads';
+import type { PortfolioSeason } from './usePortfolioData';
 import { seamBars, seamQuote } from './portfolioSeam';
-import { CAPTURE_LOSS, MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '../game/devSeam';
+import { CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '../game/devSeam';
 import { HOME_FIXTURE } from '../home/devFixture';
 import { buildStressMarket, STRESS_LEAGUE_NAME } from './stressFixture';
 import { usePortfolioLedger } from './usePortfolioLedger';
@@ -35,7 +39,9 @@ export interface PlayerPortfolioData {
   refresh: () => void;
 }
 
-export function usePlayerPortfolioData(userId: string | null): PlayerPortfolioData {
+export function usePlayerPortfolioData(userId: string | null, season: PortfolioSeason = { finished: false }): PlayerPortfolioData {
+  const finished = season.finished;
+  const endEt = season.finished ? season.endEt : null;
   const { activeLeague } = useLeagueContext();
   const leagueId = activeLeague?.id ?? (MONEY_FIXTURE_CONFIG ? FIXTURE_LEAGUE_ID : null);
   const ledgerState = usePortfolioLedger(leagueId);
@@ -59,6 +65,11 @@ export function usePlayerPortfolioData(userId: string | null): PlayerPortfolioDa
       setState({ status: 'error', portfolio: null, leagueName, prices: {}, bars: {} });
       return;
     }
+    // A finished season whose last day isn't known yet: nothing to value (the screen says why).
+    if (finished && !endEt) {
+      setState((cur) => (cur.status === 'loading' ? cur : { status: 'loading', portfolio: null, leagueName, prices: {}, bars: {} }));
+      return;
+    }
     const ledger = ledgerState.ledger;
     let cancelled = false;
     (async () => {
@@ -68,20 +79,20 @@ export function usePlayerPortfolioData(userId: string | null): PlayerPortfolioDa
       const firstDate = theirs.map((a) => a.occurred_at.slice(0, 10)).sort()[0] ?? null;
       let marks: Pick<PriceMarks, 'prices' | 'prevCloses'> & { bars?: PriceMarks['bars'] };
       if (MONEY_FIXTURE_CONFIG) {
-        marks = buildStressMarket();
+        marks = finished ? { prices: {}, prevCloses: {}, bars: {} } : buildStressMarket();
       } else if (SEAM_ON) {
         // The capture seam: the Matchup fixture's quotes and daily paths, no network.
         marks = { prices: {}, prevCloses: {}, bars: {} };
         for (const sym of unique) {
-          const q = seamQuote(sym, MATCHUP_FIXTURE_VARIANT, { homeFixture: HOME_FIXTURE, loss: CAPTURE_LOSS });
+          const q = finished ? null : seamQuote(sym, MATCHUP_FIXTURE_VARIANT, { homeFixture: HOME_FIXTURE, loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER });
           if (q) {
             marks.prices[sym] = q.price;
             marks.prevCloses[sym] = q.prevClose;
           }
-          marks.bars![sym] = seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS });
+          marks.bars![sym] = seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER });
         }
       } else {
-        marks = await readPriceMarks(unique, new Date(), { barsSymbols: unique, barsStart: firstDate });
+        marks = await readPriceMarks(unique, new Date(), { barsSymbols: unique, barsStart: firstDate, barsOnly: finished });
       }
       if (cancelled) return;
       const portfolio = playerPortfolio({
@@ -92,6 +103,7 @@ export function usePlayerPortfolioData(userId: string | null): PlayerPortfolioDa
         numRounds,
         prices: marks.prices,
         prevCloses: marks.prevCloses,
+        ...(finished && endEt ? { finished: { endEt, bars: marks.bars ?? {} } } : {}),
       });
       setState({ status: portfolio ? 'ready' : 'error', portfolio, leagueName, prices: marks.prices, bars: marks.bars ?? {} });
     })();
@@ -99,7 +111,7 @@ export function usePlayerPortfolioData(userId: string | null): PlayerPortfolioDa
       cancelled = true;
     };
     // The ledger object and the league settings are the inputs; the price reads follow them.
-  }, [userId, ledgerState.status, ledgerState.ledger, stakeMode, notional, numRounds, leagueName]);
+  }, [userId, ledgerState.status, ledgerState.ledger, stakeMode, notional, numRounds, leagueName, finished, endEt]);
 
   return { ...state, leagueId, ledger: ledgerState.ledger, refresh: ledgerRefresh };
 }

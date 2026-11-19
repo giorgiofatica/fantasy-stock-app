@@ -52,7 +52,17 @@ export interface SeamClock {
   homeFixture?: string | null;
   /** The loss stress: every price mirrored below its draft price. */
   loss?: boolean;
+  /** The finished-season frozen proof (devSeam.CAPTURE_SEASON_LATER): 1 adds the final's Thursday and
+   * Friday closes; 2 also trades on after the season (closes and the live quote 15% higher). */
+  later?: 0 | 1 | 2;
 }
+
+const r2 = (v: number) => Math.round(v * 100) / 100;
+
+/** The market after the season, under `later: 2`: every price 15% up. */
+export const SEASON_LATER_MOVE = 1.15;
+/** The sessions after the season (the week-6 final ends Fri Sep 25) that `later: 2` trades through. */
+const AFTER_SEASON_DAYS = ['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-01', '2026-10-02', '2026-10-05', '2026-10-06', '2026-10-07'];
 
 const MONDAY_FIXTURES = new Set(['monday_preclose', 'week1_monday']);
 
@@ -85,10 +95,22 @@ function seamQuoteRaw(symbol: string, variant: MatchupFixtureVariant, clock: Sea
 }
 
 export function seamQuote(symbol: string, variant: MatchupFixtureVariant, clock: SeamClock = {}): { price: number; prevClose: number } | null {
-  const q = seamQuoteRaw(symbol, variant, clock);
+  const raw = seamQuoteRaw(symbol, variant, clock);
+  const q = raw && clock.later === 2 ? { price: r2(raw.price * SEASON_LATER_MOVE), prevClose: r2(raw.prevClose * SEASON_LATER_MOVE) } : raw;
   const draft = draftOf(symbol, variant);
   if (!q || !clock.loss || draft == null) return q;
   return { price: mirror(q.price, draft), prevClose: mirror(q.prevClose, draft) };
+}
+
+/** `later`'s extra closes for a held fixture stock: the final's Thursday and Friday, then (2) the
+ * sessions after the season, 15% up. Ascending, after the fixture's own last bar (Wed Sep 23). */
+function laterBars(symbol: string, later: 0 | 1 | 2 | undefined): { date: string; close: number }[] {
+  if (!later) return [];
+  const h = ROBERTO_HOLDINGS.find((r) => r.symbol === symbol.toUpperCase()) ?? GIANLUIGI_HOLDINGS.find((r) => r.symbol === symbol.toUpperCase());
+  if (!h) return [];
+  const final = [{ date: '2026-09-24', close: h.thu }, { date: '2026-09-25', close: h.fri }];
+  if (later === 1) return final;
+  return [...final, ...AFTER_SEASON_DAYS.map((date, i) => ({ date, close: r2(h.fri * (1 + (SEASON_LATER_MOVE - 1) * ((i + 1) / AFTER_SEASON_DAYS.length))) }))];
 }
 
 
@@ -127,7 +149,9 @@ function seamBarsRaw(symbol: string, variant: MatchupFixtureVariant): { date: st
 
 /** A seam stock's daily closes since the draft (the player card's own seeded path). */
 export function seamBars(symbol: string, variant: MatchupFixtureVariant, clock: SeamClock = {}): { date: string; close: number }[] {
-  const bars = seamBarsRaw(symbol, variant);
+  const raw = seamBarsRaw(symbol, variant);
+  const extra = variant === 'stress' ? [] : laterBars(symbol, clock.later);
+  const bars = extra.length ? [...raw.filter((b) => b.date < extra[0].date), ...extra] : raw;
   const draft = draftOf(symbol, variant);
   return clock.loss && draft != null ? bars.map((b) => ({ date: b.date, close: mirror(b.close, draft) })) : bars;
 }

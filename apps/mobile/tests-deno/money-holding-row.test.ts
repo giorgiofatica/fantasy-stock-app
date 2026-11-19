@@ -31,5 +31,5 @@ Deno.test('the company shrinks and truncates; the share count never shrinks', ()
 
 Deno.test('money values at 700, not the game numbers\' 800', () => {
   assertEquals(/money: \{\s*fontWeight: '700'/.test(src), true);
-  assertEquals(src.includes('{row.valueText}') && src.includes('style={styles.money}>{row.valueText}'), true);
+  assertEquals(src.includes('{row.valueText}') && src.includes('style={[styles.money, { fontSize: VALUE_PT * valueScale(rowWidth, row.valueText, fontScale) }]}>{row.valueText}'), true);
 });

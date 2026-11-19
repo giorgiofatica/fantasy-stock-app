@@ -76,6 +76,13 @@ interface PlayerCardBase {
   marketOpen: boolean;
   /** The next open, for the closed note ("Mon 9:30 AM ET"); null when it isn't known. */
   opens: string | null;
+  /**
+   * A season that is over (Giorgio, 2026-11-18, pick A: "this is a previous season. Today's pricing doesn't
+   * really matter"): the season's last day (ET). The card then has NO Price or Week gain figures, no range
+   * buttons and no Sell; it keeps the header, "Yours", the gain "since the draft" and the chart from the draft
+   * to that day (no live point), and "How you got it". Absent: a live season, exactly as before.
+   */
+  seasonEnd?: string | null;
 }
 
 export type PlayerCardProps = PlayerCardBase & PlayerCardOwnership;
@@ -99,10 +106,12 @@ export function PlayerCard(props: PlayerCardProps) {
 export function PlayerCardBody(props: PlayerCardProps) {
   const {
     onClose, ticker, company, owner, slot, category, price, todayPct, weekGain, weekPct, hasWeeks = true, acquisition,
-    lots, seasonStart, sessions, now, marketOpen, opens,
+    lots, seasonStart, sessions, now, marketOpen, opens, seasonEnd = null,
   } = props;
   const { colors } = useTheme();
-  const action = cardAction(props);
+  const over = seasonEnd != null;
+  // A season that is over is closed to trading: no Sell, and nothing to Save either.
+  const action = over ? null : cardAction(props);
   const week = cardWeekFigure(weekGain, weekPct, hasWeeks);
   const pct = (n: number) => formatPercent(n, { sign: 'always' });
   const ownerLabel = owner === 'you' ? 'Yours' : MONEY_COPY.ownedBy(owner.name);
@@ -136,19 +145,21 @@ export function PlayerCardBody(props: PlayerCardProps) {
       </View>
 
       {/* 2. Two key figures: Price (and today) · Week gain. Two columns at every text size. */}
-      <View style={[styles.strip, { backgroundColor: colors.inset }]}>
-        <Figure label="Price" value={formatMoney(price)} sub={`${pct(todayPct)} today`} subColor={colors[toneOf(todayPct)]} />
-        {/* Unknown: Schedule's dash in text2, no percent; VoiceOver says the label alone (as Schedule does). */}
-        {week ? (
-          <Figure label="Week gain"
-            value={week.value}
-            valueColor={week.kind === 'figure' ? colors[week.tone] : colors.text2}
-            sub={week.kind === 'figure' ? week.sub : undefined}
-            subColor={week.kind === 'figure' ? colors[week.tone] : undefined}
-            a11yLabel={week.kind === 'unknown' ? 'Week gain' : undefined}
-          />
-        ) : null}
-      </View>
+      {over ? null : (
+        <View style={[styles.strip, { backgroundColor: colors.inset }]}>
+          <Figure label="Price" value={formatMoney(price)} sub={`${pct(todayPct)} today`} subColor={colors[toneOf(todayPct)]} />
+          {/* Unknown: Schedule's dash in text2, no percent; VoiceOver says the label alone (as Schedule does). */}
+          {week ? (
+            <Figure label="Week gain"
+              value={week.value}
+              valueColor={week.kind === 'figure' ? colors[week.tone] : colors.text2}
+              sub={week.kind === 'figure' ? week.sub : undefined}
+              subColor={week.kind === 'figure' ? colors[week.tone] : undefined}
+              a11yLabel={week.kind === 'unknown' ? 'Week gain' : undefined}
+            />
+          ) : null}
+        </View>
+      )}
 
       {/* 3. ONE chart: the range's gain above it, the six ranges under it, opening on Season */}
       <StockChart
@@ -162,6 +173,7 @@ export function PlayerCardBody(props: PlayerCardProps) {
         lots={lots}
         defaultRange={SEASON_DEFAULT_RANGE}
         height={CHART_HEIGHT}
+        endEt={seasonEnd}
       />
 
       {/* 4. The one action (none for a stock you sold this week, or with no watchlist to save to) */}

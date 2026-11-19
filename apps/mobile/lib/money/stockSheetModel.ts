@@ -37,7 +37,10 @@ export interface StockSheetInput {
   owner: { kind: 'me' } | { kind: 'other'; name: string | null; isBot: boolean } | null;
   /** The caller's draft row for a held stock, when it was drafted. */
   draft: { round: number; inRoundPick: number } | null;
-  gate: { open: boolean; opensLabel?: string | null };
+  /** `seasonOver`: the league's season is over (isSeasonOver), so the sheet is closed to buying AND selling
+   * whatever the market is doing (Giorgio, 2026-11-18: "A finished season is closed to buying and selling";
+   * the server refuses with 'season_completed'). It says so with the app's existing closed line. */
+  gate: { open: boolean; opensLabel?: string | null; seasonOver?: boolean };
   leagueName: string;
   /** e.g. "Friday's close", for the closed-market note. */
   lastCloseLabel: string | null;
@@ -79,9 +82,11 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
 
   const closedReason = input.gate.open
     ? null
-    : input.gate.opensLabel
-      ? COPY.marketClosedOpens(input.gate.opensLabel)
-      : COPY.tradingHoursUnavailable;
+    : input.gate.seasonOver
+      ? COPY.marketClosedNow
+      : input.gate.opensLabel
+        ? COPY.marketClosedOpens(input.gate.opensLabel)
+        : COPY.tradingHoursUnavailable;
 
   const priceReason = priced ? null : COPY.noPrice;
 
@@ -130,7 +135,8 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
     ownershipLine = COPY.noOneOwns(input.leagueName, input.symbol);
   }
 
-  const marketNote = !input.gate.open && input.lastCloseLabel ? COPY.pricesShowClose(input.lastCloseLabel) : null;
+  // (Not for a season that is over: the market may be open, and the note would say the prices are old.)
+  const marketNote = !input.gate.open && !input.gate.seasonOver && input.lastCloseLabel ? COPY.pricesShowClose(input.lastCloseLabel) : null;
 
   const todayChange =
     priced && input.prevClose !== null && input.prevClose > 0

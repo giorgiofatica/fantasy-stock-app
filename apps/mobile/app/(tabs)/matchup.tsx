@@ -28,6 +28,7 @@ import { FinalBanner } from '@/components/game/FinalBanner';
 import { buildFinalBanner } from '@/lib/game/finalBanner';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
+import { isSeasonOver } from '@/lib/weekStatus';
 import { useMatchup, type MatchupDerived } from '@/lib/game/useMatchup';
 import { COPY } from '@/lib/game/gameCopy';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
@@ -356,7 +357,7 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
   final: boolean;
 }) {
   const { user } = useAuth();
-  const { market, activeLeague } = useLeagueContext();
+  const { market, activeLeague, marketCalendar } = useLeagueContext();
   const stockSheet = useStockSheet();
   const opp = theirRows ? derived.live.opp : null;
   const me = user!.id;
@@ -469,7 +470,8 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
     if (shown.side === 'opp' && opp) {
       // No watchlist exists in the app yet, so there's nothing to save to: Save is not drawn.
       ownership = { owner: { name: opp.name }, save: null };
-    } else if (card.data.held > 0) {
+    } else if (card.data.held > 0 && !isSeasonOver(activeLeague, new Date(), marketCalendar)) {
+      // A season that is over is closed to trading: the card has no Sell (the server refuses it too).
       ownership = {
         owner: 'you',
         onSell: () => {
