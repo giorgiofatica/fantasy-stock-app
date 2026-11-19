@@ -7,6 +7,7 @@ import { Avatar, AVATAR_RING, AVATAR_RING_GAP } from '@/components/sp/Avatar';
 import { useSeatInk } from '@/components/sp/useSeatInk';
 import { Card } from '@/components/sp/Card';
 import { PressableScale } from '@/components/sp/PressableScale';
+import { Icon } from '@/components/sp/Icon';
 import { keepMoney } from '@/lib/game/keepDots';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -59,7 +60,13 @@ export interface GnScoreboardProps {
    * as before, with its single combined label. */
   openYou?: ScoreboardOpen;
   openOpponent?: ScoreboardOpen;
+  /** The whole game opens something (the Matchup recap's All matchups: that week's game): the
+   * card is one button with a trailing chevron. Not combined with openYou / openOpponent. */
+  openGame?: ScoreboardOpen;
 }
+
+/** The trailing chevron's column when the whole game opens (openGame). */
+const GAME_CHEVRON_W = 28;
 
 const AVATAR = { hero: 44, compact: 32 } as const;
 /** The names' Dynamic Type ceiling (the headline's 1.6): beyond it two names can't share a card. */
@@ -77,29 +84,37 @@ const WHO_GAP = space[3];
 /** The leads-by line under the card. */
 export const LINE_MAX_SCALE = 1.3;
 
-export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine = true, bye, openYou, openOpponent }: GnScoreboardProps) {
+export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine = true, bye, openYou, openOpponent, openGame }: GnScoreboardProps) {
   const { colors } = useTheme();
   const model = opponent ? scoreboardModel(you, opponent, final) : null;
   const line = bye || !model ? bye?.line ?? '' : model.line;
   // Each half's width, measured: decides whether a name fits beside its avatar.
   const [cardWidth, setCardWidth] = useState(0);
   const interactive = !!(openYou || openOpponent);
+  const halfWidth = (cardWidth - (openGame ? GAME_CHEVRON_W : 0)) / 2;
   const label = bye
     ? `${you.name}, you, ${formatMoney(you.gain, { sign: 'always' })}. ${line}.`
     : `${you.name}${mine ? ', you' : ''}, ${formatMoney(you.gain, { sign: 'always' })}. ${opponent?.name ?? ''}, ${formatMoney(opponent?.gain ?? 0, { sign: 'always' })}.${showLine ? ` ${line}.` : ''}`;
 
   return (
     <View style={styles.wrap}>
-      <Card style={styles.card} accessible={!interactive} accessibilityLabel={interactive ? undefined : label} onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
-        <Half side={mine ? 'you' : 'opp'} team={you} mirror={false} size={size} halfWidth={cardWidth / 2} open={openYou} />
-        {bye || !opponent ? (
-          <View style={[styles.half, styles.byeHalf]} testID="scoreboard-bye">
-            <Text variant="callout" color={colors.text2} maxFontSizeMultiplier={NAME_MAX_SCALE} style={styles.byeLabel}>{bye?.label ?? ''}</Text>
-          </View>
-        ) : (
-          <Half side="opp" team={opponent} mirror size={size} halfWidth={cardWidth / 2} open={openOpponent} />
-        )}
-      </Card>
+      <GameBox open={openGame} label={label}>
+        <Card style={styles.card} accessible={!interactive && !openGame} accessibilityLabel={interactive || openGame ? undefined : label} onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
+          <Half side={mine ? 'you' : 'opp'} team={you} mirror={false} size={size} halfWidth={halfWidth} open={openYou} />
+          {bye || !opponent ? (
+            <View style={[styles.half, styles.byeHalf]} testID="scoreboard-bye">
+              <Text variant="callout" color={colors.text2} maxFontSizeMultiplier={NAME_MAX_SCALE} style={styles.byeLabel}>{bye?.label ?? ''}</Text>
+            </View>
+          ) : (
+            <Half side="opp" team={opponent} mirror size={size} halfWidth={halfWidth} open={openOpponent} />
+          )}
+          {openGame ? (
+            <View style={styles.gameChevron}>
+              <Icon name="chevronRight" size="callout" tone="text2" />
+            </View>
+          ) : null}
+        </Card>
+      </GameBox>
       {showLine ? (
         // Capped at 1.3× so the totals above stay the loudest thing on the card at XL.
         <Text variant="callout" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE} style={styles.line} importantForAccessibility={interactive ? 'auto' : 'no'} accessibilityElementsHidden={!interactive}>
@@ -107,6 +122,16 @@ export function Scoreboard({ you, opponent, final = false, size = 'hero', mine =
         </Text>
       ) : null}
     </View>
+  );
+}
+
+/** The whole card as one button when the game opens (openGame), else the card alone. */
+function GameBox({ open, label, children }: { open?: ScoreboardOpen; label: string; children: ReactNode }) {
+  if (!open) return <>{children}</>;
+  return (
+    <PressableScale accessibilityRole="button" accessibilityLabel={label} accessibilityHint={open.hint} onPress={open.onPress}>
+      {children}
+    </PressableScale>
   );
 }
 
@@ -178,6 +203,11 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
+  },
+  gameChevron: {
+    width: GAME_CHEVRON_W,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   half: {
     flex: 1,

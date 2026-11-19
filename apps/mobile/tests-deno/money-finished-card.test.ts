@@ -105,7 +105,8 @@ Deno.test('call sites: Portfolio, a manager\'s team and Matchup all close Sell o
   const t = src('../components/money/PlayerPortfolioScreen.tsx');
   assert(t.includes('seasonEnd={finished ? endEt : null}'));
   assert(t.includes('const priceOf = (symbol: string) => (finished ? frozenPriceOf(symbol) : data.prices[symbol] ?? raw?.quote(symbol) ?? null);'), 'team: the card and canOpen never read the live quote when finished');
-  const m = src('../app/(tabs)/matchup.tsx');
+  // The Matchup roster (the tab and the recap's week detail) is components/game/MatchupRoster.tsx.
+  const m = src('../components/game/MatchupRoster.tsx');
   assert(m.includes('card.data.held > 0 && !isSeasonOver(activeLeague, new Date(), marketCalendar)'), 'Matchup: no Sell in a finished league');
   for (const f of [p, t, m]) assert(!/season_status ===/.test(f), 'isSeasonOver is the one predicate');
 });
