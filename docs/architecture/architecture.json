@@ -2,59 +2,23 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "a0049648cbd2f98e448337ee2b106c8f83adee4e",
-    "commitShort": "a0049648",
+    "commit": "4784c7693b2e1372d23bd9270e017c2ee81f4298",
+    "commitShort": "4784c769",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/home/HomeHero.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/HoldingRow.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
         "path": "apps/mobile/components/money/PortfolioScreen.tsx"
       },
       {
-        "code": "A",
-        "path": "apps/mobile/components/money/RollingGainPair.tsx"
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/lineChart.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/money/StockChart.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/StockSheetBody.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/PlayerCard.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/RangeGainLine.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/components/sp/logic/holdingFit.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/logic/money.ts"
+        "path": "apps/mobile/lib/chart/chartGeometry.ts"
       },
       {
         "code": "M",
@@ -65,16 +29,8 @@
         "path": "apps/mobile/lib/game/devSeam.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/lib/home/useHomeLeague.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/LeagueContext.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/playerPortfolio.ts"
+        "code": "A",
+        "path": "apps/mobile/lib/money/barsFault.ts"
       },
       {
         "code": "M",
@@ -82,30 +38,6 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/money/portfolioSeam.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/portfolioView.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/priceReads.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/money/seasonEnd.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/stockChartSeries.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/stockSheetModel.ts"
-      },
-      {
-        "code": "A",
         "path": "apps/mobile/lib/money/teamPortfolioView.ts"
       },
       {
@@ -117,91 +49,23 @@
         "path": "apps/mobile/lib/money/usePortfolioData.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/lib/money/useStockChartData.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/shell/leagueSheet.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/weekStatus.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
-      },
-      {
         "code": "A",
-        "path": "apps/mobile/tests-deno/gain-lines.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/holding-row-fit.test.ts"
+        "path": "apps/mobile/tests-deno/chart-no-invented-stretch.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/home-calm.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/league-weeks.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/leaguemate-team-view.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-c6-rolling.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/money-finished-card.test.ts"
-      },
-      {
-        "code": "A",
         "path": "apps/mobile/tests-deno/money-finished-season.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/money-holding-row.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-portfolio-view.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/money-season-end.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-sheet.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/rolling-money-large-text.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/season-gain-basis.test.ts"
+        "path": "apps/mobile/tests-deno/money-portfolio-chart.test.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/weekStatus.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T03:22:51Z",
+    "timestamp": "2026-11-19T06:04:34Z",
     "sourceHash": "sha256:1cbd9dd627600dfcdacbbab477320f65a5743adfade442d909ad33bfd18183ff",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -209,8 +73,8 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 3.1,
-    "ageDays": 0.1,
+    "ageHours": 5.8,
+    "ageDays": 0.2,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",

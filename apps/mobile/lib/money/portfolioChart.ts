@@ -4,23 +4,26 @@
  * tests-deno/money-portfolio-chart.test.ts pins it.
  *
  * What it plots: the team value (teamValue, the SAME formula as the header and Home) at each
- * trading day's close since the draft, then the live value now. Each day's value is
- * teamValue over the ledger rows up to that day, priced at that day's close (the last close
- * on or before it; a stock with no bar yet counts at cost, never $0). So the line's last point
- * is exactly the header's number, and a buy or a sale moves only the cash/stake split, never
- * the line (the money just changes form).
+ * trading day's close since the draft, then the live value now. Each day's value is teamValue
+ * over the ledger rows up to that day, priced at that very day's REAL closes. A day is drawn only
+ * when every stock held on it has such a close; there is no carried-forward close, no stock valued
+ * at cost and no partial sum (a part shown as the whole), and a hole breaks the line instead of
+ * bridging it (see dailyValues; the Planner's no-invented-stretch rule, 2026-11-18). A buy or a
+ * sale moves only the cash/stake split, never the line (the money just changes form).
  *
  * The ranges are the six every chart shares (lib/chart/chartRanges.ts; Giorgio 2026-11-17): 1W · 1M
  * · 3M · 6M · Season · YTD. Season is the whole line from the draft; the others are windows of it,
  * each measured from the value at the window's start (the first daily value on or after it).
  * A range longer than the league has existed is grey (chartRanges.isRangeGrey, history = the
- * league's age); Season never greys here, since the line starts at the draft by construction.
+ * league's age, from the first drawn date); Season never greys here, since it starts where the line does.
  * No dashed base: the range's first value only sets the line's tone and the gain.
  */
 import { teamValue, type StakeMode } from '../home/teamValue';
 import { etDateOf } from '../game/matchupRoster';
 import type { MarketCalendarSession } from '../time/marketWeek';
-import { CHART_RANGES, SEASON_DEFAULT_RANGE, greyedRanges, rangeSeries, todaySessionOpen, type ChartRange, type RangeSeries } from '../chart/chartRanges';
+import { dayOffset } from '../../components/sp/logic/chartAxis';
+import { CHART_RANGES, SEASON_DEFAULT_RANGE, greyedRanges, rangeSeries, todaySessionOpen, type ChartRange, type RangeGain, type RangeSeries } from '../chart/chartRanges';
+import { lineTone } from '../../components/sp/logic/lineChart';
 
 export type PortfolioRange = ChartRange;
 /** The pills' order, left to right: the same six on every chart. */
@@ -69,6 +72,8 @@ export interface DailyValue {
   /** ET trading date, YYYY-MM-DD. */
   date: string;
   value: number;
+  /** Real data is missing between the previous point and this one: the line breaks here (dailyValues). */
+  breakBefore?: boolean;
 }
 
 type Bars = Record<string, readonly { date: string; close: number }[]>;
@@ -118,29 +123,87 @@ export function draftDateOf(rows: readonly ChartActivityRow[]): string | null {
   return first;
 }
 
+/** No market closure is longer than this many calendar days (a weekend plus a holiday is 4), so two real
+ * points further apart than this have DATA missing between them, not a closed market. */
+export const MAX_GAP_DAYS = 5;
+
+/** The stake at cost on the draft day (every stock at its draft price): the "since the draft" basis,
+ * a real number whether or not the line starts there. Null: nothing drafted. */
+export function draftValueOf(rows: readonly ChartActivityRow[], stake: ChartStake): number | null {
+  const start = draftDateOf(rows);
+  return start ? cents(valueThrough(rows, start, stake, () => null)) : null;
+}
+
+/** The symbols held after every row on or before `date` (net shares above zero), upper-case. */
+function heldOn(rows: readonly ChartActivityRow[], date: string): string[] {
+  const net = new Map<string, number>();
+  for (const r of rows) {
+    const d = rowDate(r);
+    if (d === null || d > date) continue;
+    const sym = r.symbol.toUpperCase();
+    if (sym === 'SKIP') continue;
+    net.set(sym, (net.get(sym) ?? 0) + (r.action === 'sell' ? -r.quantity : r.quantity));
+  }
+  return [...net].filter(([, q]) => q > 1e-9).map(([sym]) => sym);
+}
+
 /**
- * The value at the draft (the stake at cost), then at each trading day's close after the draft
- * day and before today. Trading days are the dates any held-or-ever-held symbol has a bar.
+ * The team's value line: the stake at cost on the draft day, then each trading day's close after it
+ * (before today, or up to the season's last day with `endEt`). NEVER an invented stretch (Giorgio,
+ * 2026-11-18: "never incorrect, never old, never missing"):
+ *   - a date is drawn only when EVERY stock held on it has a REAL close on that very date: no carried
+ *     forward close, no stock valued at cost, no partial sum of the stocks that do have bars;
+ *   - a hole breaks the line (`breakBefore`) instead of joining its two sides: a date in the middle that is
+ *     not complete, or two drawn dates further apart than any market closure (MAX_GAP_DAYS);
+ *   - the draft-day point (the stake) joins the line only when real data follows it directly; otherwise it
+ *     is dropped and the line starts at the first date whose closes are all real (the 407-day bars clamp
+ *     leaves a league older than that with no early bars). Nothing is drawn for the missing stretch.
+ * Trading days are the dates any symbol has a bar. With no complete date there is no line at all.
  *
- * `endEt` (a season that is over): the days run up to AND INCLUDING the season's last day instead,
- * and today plays no part, so the line is the same whenever it is read. Each day is still valued at
- * real closes only (closeOnOrBefore); a bar after endEt is never read.
+ * `endEt` (a season that is over): the days run up to AND INCLUDING the season's last day instead, and
+ * today plays no part, so the line is the same whenever it is read; a bar after endEt is never read.
  */
 export function dailyValues(input: { rows: readonly ChartActivityRow[]; bars: Bars; stake: ChartStake; todayEt: string; endEt?: string | null }): DailyValue[] {
   const { rows, bars, stake, todayEt, endEt } = input;
   const start = draftDateOf(rows);
   if (!start) return [];
-  // The draft day: every stock at its draft price, so the value is the stake.
-  const out: DailyValue[] = [{ date: start, value: cents(valueThrough(rows, start, stake, () => null)) }];
   const inRange = endEt ? (d: string) => d <= endEt : (d: string) => d < todayEt;
+  // Each symbol's closes by date: a date counts for a stock only when it has a real close ON it.
+  const closes = new Map<string, Map<string, number>>();
   const dates = new Set<string>();
-  for (const series of Object.values(bars)) {
-    for (const b of series) if (b.date > start && inRange(b.date) && b.close > 0) dates.add(b.date);
+  for (const [sym, series] of Object.entries(bars)) {
+    const by = closes.get(sym.toUpperCase()) ?? new Map<string, number>();
+    for (const b of series) {
+      if (!(b.close > 0)) continue;
+      by.set(b.date, b.close);
+      if (b.date > start && inRange(b.date)) dates.add(b.date);
+    }
+    closes.set(sym.toUpperCase(), by);
   }
-  for (const date of [...dates].sort()) {
-    const value = valueThrough(rows, date, stake, (sym) => closeOnOrBefore(bars[sym] ?? bars[sym.toUpperCase()], date));
-    out.push({ date, value: cents(value) });
+  const universe = [...dates].sort();
+
+  // Every date whose closes are all real, in order; each says whether a hole lies before it.
+  const points: DailyValue[] = [];
+  let prev: { date: string; complete: boolean } = { date: start, complete: true };
+  for (const date of universe) {
+    const held = heldOn(rows, date);
+    const complete = held.every((sym) => closes.get(sym)?.has(date));
+    if (complete) {
+      const value = valueThrough(rows, date, stake, (sym) => closes.get(sym.toUpperCase())?.get(date) ?? null);
+      const breaks = !prev.complete || dayOffset(prev.date, date) > MAX_GAP_DAYS;
+      points.push({ date, value: cents(value), ...(breaks ? { breakBefore: true } : {}) });
+    }
+    prev = { date, complete };
   }
+
+  // The draft-day point (the stake) joins the line only when the very next drawn point follows it directly
+  // (that point's own flag compares it with the draft day). With no complete date at all the line is that
+  // point and the live one alone, but only for a league drafted just now (no bars yet is no hole), never
+  // across a stretch whose bars are missing; a finished season with no complete date has no line.
+  const keepAnchor = points.length > 0 ? !points[0].breakBefore : !endEt && universe.length === 0 && dayOffset(start, todayEt) <= MAX_GAP_DAYS;
+  const out: DailyValue[] = keepAnchor ? [{ date: start, value: cents(valueThrough(rows, start, stake, () => null)) }] : [];
+  // The first point of a line that starts late has nothing before it to break from.
+  for (const [i, p] of points.entries()) out.push(i === 0 ? { date: p.date, value: p.value } : p);
   return out;
 }
 
@@ -180,16 +243,22 @@ export function portfolioSeries(input: {
   now: Date;
   /** This week's sessions: whether today has opened (the 1W window's last point). */
   sessions: readonly MarketCalendarSession[];
+  /** The stake at cost on the draft day (draftValueOf): Season's gain is measured from it ("since the draft"),
+   * even when the line starts later because early bars are missing. */
+  draftValue?: number | null;
 }): PortfolioSeries {
-  const { range, daily, liveValue, todayEt, now, sessions } = input;
-  return rangeSeries({
+  const { range, daily, liveValue, todayEt, now, sessions, draftValue } = input;
+  const s = rangeSeries({
     range,
     values: daily,
     live: liveValue,
     liveToday: todaySessionOpen(sessions, todayEt, now),
     todayEt,
     seasonStart: portfolioHistoryStart(daily),
+    // The live point never bridges a stretch whose bars are missing.
+    breakLiveOverDays: MAX_GAP_DAYS,
   });
+  return range === 'Season' && draftValue != null && s.points.length ? { ...s, base: draftValue } : s;
 }
 
 /**
@@ -198,9 +267,9 @@ export function portfolioSeries(input: {
  * dailyValues({ endEt }), and the axis ends at endEt (a final whose last close fell on an earlier
  * session still reaches the season's last day). The same output whenever it is read.
  */
-export function finishedPortfolioSeries(input: { daily: readonly DailyValue[]; endEt: string }): PortfolioSeries {
-  const { daily, endEt } = input;
-  return rangeSeries({
+export function finishedPortfolioSeries(input: { daily: readonly DailyValue[]; endEt: string; draftValue?: number | null }): PortfolioSeries {
+  const { daily, endEt, draftValue } = input;
+  const s = rangeSeries({
     range: 'Season',
     values: daily.filter((v) => v.date <= endEt),
     live: null,
@@ -208,6 +277,8 @@ export function finishedPortfolioSeries(input: { daily: readonly DailyValue[]; e
     todayEt: endEt,
     seasonStart: portfolioHistoryStart(daily),
   });
+  // "Since the draft" is the last value minus the stake at cost, even when the line starts late.
+  return draftValue != null && s.points.length ? { ...s, base: draftValue } : s;
 }
 
 /**
@@ -222,4 +293,16 @@ export function seasonEndCloses(bars: Bars, symbols: readonly string[], endEt: s
     if (c != null) out[up] = c;
   }
   return out;
+}
+
+/**
+ * "Since the draft" (Season, and a finished season): the last value minus the stake at cost, both real
+ * numbers (Giorgio, 2026-11-18: unchanged when the line starts late or cannot be drawn at all). It does not
+ * read the drawn points' first value, which is the draft-day point only when real data follows the draft
+ * directly. Null with no last value or no cost.
+ */
+export function sinceTheDraftGain(last: number | null, draftValue: number | null): RangeGain | null {
+  if (last == null || draftValue == null) return null;
+  const money = last - draftValue;
+  return { money, pct: draftValue !== 0 ? (money / draftValue) * 100 : 0, tone: lineTone([{ t: 0, value: last }], draftValue) };
 }

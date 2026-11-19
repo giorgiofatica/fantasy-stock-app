@@ -144,6 +144,8 @@ export interface DatedValue {
   /** ET trading date, YYYY-MM-DD. */
   date: string;
   value: number;
+  /** The data has a hole between the previous value and this one: the line breaks here, it never joins them. */
+  breakBefore?: boolean;
 }
 
 export interface RangeSeries {
@@ -169,16 +171,21 @@ export function rangeSeries(input: {
   liveToday: boolean;
   todayEt: string;
   seasonStart: string | null;
+  /** A chart that must never bridge a hole (the team's value line): the live point breaks from the last
+   * value when it is more than this many calendar days after it (no market closure is longer). Absent: it
+   * always joins, as every other chart does. */
+  breakLiveOverDays?: number;
 }): RangeSeries {
-  const { range, live, liveToday, todayEt, seasonStart } = input;
+  const { range, live, liveToday, todayEt, seasonStart, breakLiveOverDays } = input;
+  const liveBreaks = (lastDate: string | undefined) => breakLiveOverDays != null && lastDate != null && dayOffset(lastDate, todayEt) > breakLiveOverDays;
   const values = [...input.values].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   if (range === '1W') {
     const withToday = liveToday && live != null;
     const days = values.filter((v) => (withToday ? v.date < todayEt : v.date <= todayEt)).slice(-(withToday ? SESSIONS_1W - 1 : SESSIONS_1W));
-    const points: LinePointIn[] = days.map((v, i) => ({ t: i, value: v.value }));
+    const points: LinePointIn[] = days.map((v, i) => (v.breakBefore && i > 0 ? { t: i, value: v.value, gapBefore: true } : { t: i, value: v.value }));
     const dayIsos = days.map((v) => v.date);
     if (withToday) {
-      points.push({ t: points.length, value: live });
+      points.push(points.length && liveBreaks(days[days.length - 1]?.date) ? { t: points.length, value: live, gapBefore: true } : { t: points.length, value: live });
       dayIsos.push(todayEt);
     }
     return { points, base: points[0]?.value ?? 0, axis: { kind: 'sessions', days: dayIsos } };
@@ -189,10 +196,13 @@ export function rangeSeries(input: {
   // when today's live point then replaces that day's own (a season drafted today: one live dot
   // measured from the stake).
   const inWindow = values.filter((v) => v.date >= start && v.date <= todayEt);
-  const series = live != null ? [...inWindow.filter((v) => v.date < todayEt), { date: todayEt, value: live }] : inWindow;
+  const before = inWindow.filter((v) => v.date < todayEt);
+  const series: DatedValue[] = live != null
+    ? [...before, { date: todayEt, value: live, ...(liveBreaks(before[before.length - 1]?.date) ? { breakBefore: true } : {}) }]
+    : inWindow;
   const first = series[0]?.date ?? todayEt;
   return {
-    points: series.map((v) => ({ t: dayOffset(first, v.date), value: v.value })),
+    points: series.map((v, i) => (v.breakBefore && i > 0 ? { t: dayOffset(first, v.date), value: v.value, gapBefore: true } : { t: dayOffset(first, v.date), value: v.value })),
     base: inWindow[0]?.value ?? live ?? 0,
     axis: { kind: 'dated', start: first, end: todayEt < first ? first : todayEt },
   };

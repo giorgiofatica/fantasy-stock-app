@@ -45,7 +45,7 @@ import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, finishedPortfolioSeries, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, draftValueOf, finishedPortfolioSeries, sinceTheDraftGain, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
 import { seasonEndEt } from '@/lib/money/seasonEnd';
 import { isSeasonOver } from '@/lib/weekStatus';
 import { PhaseChip } from '@/components/sp/PhaseChip';
@@ -147,6 +147,9 @@ export function PortfolioScreen() {
     () => (chart ? dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt, endEt: chartEnd }) : []),
     [chart, todayEt, chartEnd],
   );
+  // "Since the draft" is measured from the stake at cost (a real number), even when the line itself starts
+  // later because the early bars are missing (dailyValues never invents the stretch before it).
+  const draftValue = useMemo(() => (chart ? draftValueOf(chart.rows, chart.stake) : null), [chart]);
   // A range longer than the league has existed is grey (history = the league's age: the line
   // starts at the draft); Season never is, 1W never is. A grey range is never the selected one:
   // a team chart falls back to Season, not the stock sheet's 1W.
@@ -154,14 +157,17 @@ export function PortfolioScreen() {
   const shownRange = selectableRange(range, greyed, DEFAULT_PORTFOLIO_RANGE);
   const series = useMemo(
     () => (!chart ? null
-      : chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd })
-      : portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions })),
+      : chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd, draftValue })
+      : portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions, draftValue })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chart, chartEnd, shownRange, daily, todayEt, sessions],
+    [chart, chartEnd, shownRange, daily, todayEt, sessions, draftValue],
   );
   // Finished: always Season ("since the draft"), whatever range was picked before.
   const gainRange: PortfolioRange = chartEnd ? 'Season' : shownRange;
-  const gain = series ? rangeGain(series.points, series.base) : null;
+  // Season (and a finished season) say "since the draft": last value minus the stake at cost, even when the line
+  // starts late or has no points at all (missing early bars); the other ranges are measured from the window.
+  const lastValue = series?.points.length ? series.points[series.points.length - 1].value : chartEnd ? null : chart?.liveValue ?? null;
+  const gain = !series ? null : gainRange === 'Season' ? sinceTheDraftGain(lastValue, draftValue) : rangeGain(series.points, series.base);
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
   const card = useMemo(() => {

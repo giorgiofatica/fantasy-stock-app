@@ -39,9 +39,9 @@ Deno.test('F3: the days run to and including the season\'s last day, never past 
   assertEquals(d, [
     { date: '2026-08-31', value: 150 },
     { date: '2026-09-01', value: 170 },
-    // AAPL's missing Sep 2 bar is its Sep 1 close, never a guess or $0.
-    { date: '2026-09-02', value: 180 },
-    { date: '2026-09-03', value: 146 },
+    // AAPL has no bar on Sep 2: that day is NOT drawn (no carried-forward close, no partial sum), and the line
+    // breaks there instead of joining Sep 1 to Sep 3 (the Planner's no-invented-stretch rule, 2026-11-18).
+    { date: '2026-09-03', value: 146, breakBefore: true },
   ]);
   assert(d.every((x) => x.date <= END), 'no point after endEt');
 });
@@ -59,18 +59,19 @@ Deno.test('F3: the last point is the last REAL close on or before endEt (a weeke
   assertEquals(seasonEndCloses(BARS, ['NVDA', 'aapl'], '2026-09-05'), { NVDA: 130, AAPL: 40 });
 });
 
-Deno.test('F3: a stock with no bar by the season\'s end counts at cost, never $0', () => {
+Deno.test('F3: a stock with no bar by the season\'s end is never valued at cost on the line: with no complete date there is NO line', () => {
   const rows = [...ROWS, { kind: 'draft' as const, action: 'buy' as const, symbol: 'NEW', quantity: 4, price: 10, occurredAt: DRAFT_AT }];
   const bars = { ...BARS, NEW: [{ date: '2026-09-08', close: 99 }] };
-  const d = dailyValues({ rows, bars, stake: STAKE, todayEt: '2026-11-18', endEt: END });
-  assertEquals(d[d.length - 1].value, 146 + 40);
+  assertEquals(dailyValues({ rows, bars, stake: STAKE, todayEt: '2026-11-18', endEt: END }), []);
+  // The holdings rows keep their own honest fallback (cost, captioned), separate from the line.
   assertEquals(seasonEndCloses(bars, ['NEW'], END), {});
 });
 
 Deno.test('F3: the finished series is Season, with no live point, on an axis from the draft to endEt', () => {
   const daily = dailyValues({ rows: ROWS, bars: BARS, stake: STAKE, todayEt: '2026-11-18', endEt: END });
   const s = finishedPortfolioSeries({ daily, endEt: END });
-  assertEquals(s.points.map((p) => p.value), [150, 170, 180, 146]);
+  assertEquals(s.points.map((p) => p.value), [150, 170, 146]);
+  assertEquals(s.points.map((p) => p.gapBefore === true), [false, false, true], 'the hole on Sep 2 breaks the line');
   assertEquals(s.base, 150);
   assertEquals(s.axis, { kind: 'dated', start: '2026-08-31', end: END });
   assertEquals(rangeGain(s.points, s.base)?.money, -4);

@@ -14,7 +14,7 @@
  */
 import { buildPortfolioView, type PortfolioView, type ViewHolding } from './portfolioView';
 import { portfolioHoldings, portfolioSummary } from './portfolioModel';
-import { dailyValues, seasonEndCloses, type ChartActivityRow, type ChartStake } from './portfolioChart';
+import { dailyValues, draftValueOf, seasonEndCloses, type ChartActivityRow, type ChartStake } from './portfolioChart';
 import type { BuyRowInput } from './buyRowLine';
 import type { DailyBar } from './prevClose';
 
@@ -69,7 +69,8 @@ export function teamPortfolioView(i: TeamPortfolioInput): TeamPortfolio {
     stakeMode: i.stake.stakeMode,
     slotLabels: i.slotLabels,
     buyRow: i.buyRow,
-    ...(endEt ? { finished: { draftValue: endDaily?.[0]?.value ?? summary.stake } } : {}),
+    // The stake at cost, a real number even when the line starts late (missing early bars).
+    ...(endEt ? { finished: { draftValue: draftValueOf(i.chartRows, i.stake) ?? summary.stake } } : {}),
   });
   return { view, liveValue: endEt ? null : summary.value };
 }

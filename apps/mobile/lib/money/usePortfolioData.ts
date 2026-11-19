@@ -34,7 +34,11 @@ import { budgetLeftOf, effectiveBudgetCap, userCashSpentFromLedger } from './bud
 import { draftDateOf, type ChartActivityRow, type ChartStake } from './portfolioChart';
 import { teamPortfolioView } from './teamPortfolioView';
 import { seamBars, seamOpenSales, seamPortfolioLeague, seamQuote } from './portfolioSeam';
-import { CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM_ON } from '../game/devSeam';
+import { applyBarsFault, parseBarsFault } from './barsFault';
+import { CAPTURE_BARS, CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM_ON } from '../game/devSeam';
+
+/** Capture only: the missing-bars fault the seam applies to its fixture bars (null in production). */
+const BARS_FAULT = parseBarsFault(CAPTURE_BARS);
 import { HOME_FIXTURE } from '../home/devFixture';
 import type { DailyBar } from './prevClose';
 import type { BuyRowInput } from './buyRowLine';
@@ -188,7 +192,7 @@ export function usePortfolioData(season: PortfolioSeason = LIVE_SEASON): Portfol
             prices[sym] = q.price;
             prevCloses[sym] = q.prevClose;
           }
-          bars[sym] = seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER });
+          bars[sym] = applyBarsFault(sym, seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER }), BARS_FAULT);
         }
       } else {
         // priceReads.readPriceMarks: the same quote + daily-bars read the stock sheet uses

@@ -18,7 +18,11 @@ import type { DailyBar } from './prevClose';
 import { readPriceMarks, type PriceMarks } from './priceReads';
 import type { PortfolioSeason } from './usePortfolioData';
 import { seamBars, seamQuote } from './portfolioSeam';
-import { CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '../game/devSeam';
+import { applyBarsFault, parseBarsFault } from './barsFault';
+import { CAPTURE_BARS, CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '../game/devSeam';
+
+/** Capture only: the missing-bars fault the seam applies to its fixture bars (null in production). */
+const BARS_FAULT = parseBarsFault(CAPTURE_BARS);
 import { HOME_FIXTURE } from '../home/devFixture';
 import { buildStressMarket, STRESS_LEAGUE_NAME } from './stressFixture';
 import { usePortfolioLedger } from './usePortfolioLedger';
@@ -89,7 +93,7 @@ export function usePlayerPortfolioData(userId: string | null, season: PortfolioS
             marks.prices[sym] = q.price;
             marks.prevCloses[sym] = q.prevClose;
           }
-          marks.bars![sym] = seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER });
+          marks.bars![sym] = applyBarsFault(sym, seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER }), BARS_FAULT);
         }
       } else {
         marks = await readPriceMarks(unique, new Date(), { barsSymbols: unique, barsStart: firstDate, barsOnly: finished });
