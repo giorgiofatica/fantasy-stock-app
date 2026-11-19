@@ -15,6 +15,7 @@ import { LARGE_TEXT_SCALE } from '../components/sp/logic/largeText.ts';
 import { type } from '../constants/tokens/type.ts';
 import rollingMoneySrc from '../components/home/RollingMoney.tsx' with { type: 'text' };
 import portfolioSrc from '../components/money/PortfolioScreen.tsx' with { type: 'text' };
+import gainPairSrc from '../components/money/RollingGainPair.tsx' with { type: 'text' };
 
 const HERO_LINE_CAP = 1.3; // PortfolioScreen's HERO_LINE_MAX_SCALE
 
@@ -101,8 +102,9 @@ Deno.test('Reduce Motion path unchanged: per character, instant swap, no timing 
 
 Deno.test('Portfolio sub-lines still pass their 1.3× cap to RollingMoney (the threshold reads it)', () => {
   assertEquals(portfolioSrc.includes(`const HERO_LINE_MAX_SCALE = ${HERO_LINE_CAP};`), true);
-  const heroLine = portfolioSrc.slice(portfolioSrc.indexOf('function HeroLine'));
-  assertEquals((heroLine.match(/maxScale=\{HERO_LINE_MAX_SCALE\} \/>/g) ?? []).length, 2);
+  // The pair draws both figures with the cap it is handed (`maxScale`); Portfolio hands it 1.3.
+  assertEquals((gainPairSrc.match(/maxScale=\{maxScale\} \/>/g) ?? []).length, 2);
+  assertEquals(portfolioSrc.includes('maxScale={HERO_LINE_MAX_SCALE}'), true);
 });
 
 const callout = type.callout; // 13 / 18, no cap of its own
@@ -138,10 +140,11 @@ Deno.test('every engaged cap also stops the roll, so the digit path never meets 
   }
 });
 
-Deno.test('wiring: Portfolio HeroLine keeps its 1.3× cap as a prop; the primitive turns it into a size', () => {
-  const heroLine = portfolioSrc.slice(portfolioSrc.indexOf('function HeroLine'), portfolioSrc.indexOf('const styles = StyleSheet.create'));
+Deno.test('wiring: the gain pair keeps the 1.3× cap Portfolio hands it as a prop; the primitive turns it into a size', () => {
+  const heroLine = gainPairSrc.slice(gainPairSrc.indexOf('export function RollingGainPair'), gainPairSrc.indexOf('const styles = StyleSheet.create'));
   // Five capped pieces: two RollingMoney (maxScale), the two brackets and the words (maxFontSizeMultiplier).
-  assertEquals((heroLine.match(/maxScale=\{HERO_LINE_MAX_SCALE\}/g) ?? []).length, 2);
-  assertEquals((heroLine.match(/maxFontSizeMultiplier=\{HERO_LINE_MAX_SCALE\}/g) ?? []).length, 3);
+  assertEquals((heroLine.match(/maxScale=\{maxScale\}/g) ?? []).length, 2);
+  assertEquals((heroLine.match(/maxFontSizeMultiplier=\{maxScale\}/g) ?? []).length, 3);
   assertEquals(heroLine.includes('cappedTextProps'), false);
+  assertEquals(portfolioSrc.includes('maxScale={HERO_LINE_MAX_SCALE}'), true);
 });

@@ -29,7 +29,7 @@ import { Icon } from '@/components/sp/Icon';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
 import { keepMoney, keepTime } from '@/lib/game/keepDots';
-import { formatMoney, formatPercent } from '@/components/sp/logic/money';
+import { formatGainPair, formatMoney } from '@/components/sp/logic/money';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { MONEY_FIXTURE, MONEY_FIXTURE_CONFIG, MONEY_PRE_DRAFT } from '@/lib/money/devFixture';
 import { SEAM_ON } from '@/lib/game/devSeam';
@@ -601,7 +601,7 @@ export function StockSheetBody({
               <Figure label="Value" value={formatMoney(position.value)} />
               <Figure
                 label="Gain"
-                value={`${formatMoney(position.gain, { sign: 'always' })} · ${formatPercent(position.gainPct, { sign: 'always' })}`}
+                value={formatGainPair(position.gain, position.gainPct).text}
                 color={Math.abs(position.gain) < 0.005 ? colors.zero : position.gain > 0 ? colors.gain : colors.loss}
               />
             </View>

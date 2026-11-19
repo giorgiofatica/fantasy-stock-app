@@ -18,7 +18,7 @@
  */
 import { dayOffset, type AxisSpec } from '../../components/sp/logic/chartAxis';
 import { lineTone, type LinePointIn, type LineTone } from '../../components/sp/logic/lineChart';
-import { formatMoney, formatPercent } from '../../components/sp/logic/money';
+import { formatGainPair } from '../../components/sp/logic/money';
 import { NBSP } from '../game/keepDots';
 import { etWallClockToUtcIso, type MarketCalendarSession } from '../time/marketWeek';
 
@@ -237,9 +237,7 @@ export interface RangeGainText {
  * phrase as one run whose spaces are no-break (keptWords).
  */
 export function rangeGainText(range: ChartRange, gain: RangeGain): RangeGainText {
-  const money = formatMoney(gain.money, { sign: 'always' });
-  const pct = formatPercent(gain.pct, { sign: 'always' });
+  const { money, pct, text: figures } = formatGainPair(gain.money, gain.pct);
   const words = RANGE_WORDS[range];
-  const figures = `${money} (${pct})`;
   return { money, pct, figures, words, label: `${figures} ${words}`, keptWords: words.replace(/ /g, NBSP) };
 }
