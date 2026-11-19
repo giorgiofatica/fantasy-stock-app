@@ -190,9 +190,10 @@ Deno.test('single-line money is left alone: the hero numbers and the shrink / nu
 const SITE_COUNTS: Record<string, number> = {
   'app/create-league.tsx': 1, 'app/join-league.tsx': 2, 'components/game/DraftComplete.tsx': 1, 'components/game/DraftRoom.tsx': 2,
   'components/game/RenewalReview.tsx': 1, 'components/game/ScheduleList.tsx': 2, 'components/home/ThisWeekCard.tsx': 1, 'components/home/YourSeason.tsx': 1,
-  'components/money/PortfolioScreen.tsx': 3, 'components/money/SalePicker.tsx': 1, 'components/money/StockSearchScreen.tsx': 1,
+  'components/money/PortfolioScreen.tsx': 2, 'components/money/SalePicker.tsx': 1, 'components/money/StockSearchScreen.tsx': 1,
   'components/money/StockSheetBody.tsx': 4, 'components/money/TradeHistoryScreen.tsx': 2, 'components/money/TradeReviewPanel.tsx': 5,
   'components/sp/gn/ManagerRow.tsx': 4, 'components/sp/gn/PlayerCard.tsx': 1, 'components/sp/gn/Scoreboard.tsx': 1,
+  'components/stocks/StocksScreen.tsx': 1,
 };
 
 Deno.test('every wrapping site is wired: the exact keepMoney( count per file, and no other file uses it', () => {

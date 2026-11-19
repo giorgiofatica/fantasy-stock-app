@@ -37,6 +37,8 @@ const TABS: { name: string; label: string; icon: TabIconName }[] = [
   { name: 'matchup', label: 'Matchup', icon: 'matchup' },
   { name: 'league', label: 'League', icon: 'league' },
   { name: 'portfolio', label: 'Portfolio', icon: 'portfolio' },
+  // The fifth tab, last on the right (Giorgio, 2026-11-18): "Stocks".
+  { name: 'stocks', label: 'Stocks', icon: 'stocks' },
 ];
 
 const INDICATOR_WIDTH = 18;

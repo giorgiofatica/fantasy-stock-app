@@ -39,8 +39,12 @@ export interface StockSheetInput {
   draft: { round: number; inRoundPick: number } | null;
   /** `seasonOver`: the league's season is over (isSeasonOver), so the sheet is closed to buying AND selling
    * whatever the market is doing (Giorgio, 2026-11-18: "A finished season is closed to buying and selling";
-   * the server refuses with 'season_completed'). It says so with the app's existing closed line. */
-  gate: { open: boolean; opensLabel?: string | null; seasonOver?: boolean };
+   * the server refuses with 'season_completed'). The sheet then draws NO Buy/Sell control at all: no segment, no Review
+   * button and no line (Giorgio, 2026-11-18, call 2 = A; `controlsShown` is false). The price, chart and ownership stay. */
+  gate: { open: boolean; opensLabel?: string | null; seasonOver?: boolean; preDraft?: boolean };
+  /** `gate.preDraft`: the league's draft isn't done (pre_draft / drafting, the app's phase check), so a trade can't start
+   * whatever the market is doing; Review is disabled BEFORE the tap with the existing line "Trading opens after the draft."
+   * (draftNotCompleted, the server's own refusal), the closed-market pattern. */
   leagueName: string;
   /** e.g. "Friday's close", for the closed-market note. */
   lastCloseLabel: string | null;
@@ -51,6 +55,21 @@ export interface StockSheetInput {
   budgetLeft?: number | null;
   /** budget_cap / price_tiers: every slot is held, so a buy has nowhere to go. */
   rosterFull?: boolean;
+  /** fixed_notional: the server's preview read (the same one the review makes) named NO sale proceeds, so every slot is held and
+   * no cash is free to invest. The buy is disabled BEFORE the review, like a full roster, with the existing line "Every slot is
+   * invested. Sell a holding to free one." (see noProceedsKnown). Unset while the preview is unread or unreadable: never guessed. */
+  noProceeds?: boolean;
+}
+
+/** True only when the league is fixed-notional AND its preview was read AND it named no sale proceeds (`sources` null = not read). */
+export function noProceedsKnown(stakeMode: string | null | undefined, sources: readonly unknown[] | null): boolean {
+  return stakeMode === 'fixed_notional' && sources !== null && sources.length === 0;
+}
+
+/** Whether the sheet already knows what funds a buy: every mode but fixed_notional always does; fixed_notional once its preview read
+ * has SETTLED (answered or failed). The "+" waits for this before starting a review (an unsettled read would start one a refusal ends). */
+export function proceedsSettled(stakeMode: string | null | undefined, settled: boolean): boolean {
+  return stakeMode !== 'fixed_notional' || settled;
 }
 
 export interface ActionState {
@@ -66,6 +85,8 @@ export interface StockSheetModel {
    * visible disabled Review buy, the others keep the plain caption. */
   buy: ActionState & { blockedBy: 'closed' | 'price' | 'owned' | 'held' | 'full' | 'budget' | null };
   sell: ActionState & { summary: string | null };
+  /** False in a finished season: the sheet draws no Buy | Sell segment, no Review button and no reason line. */
+  controlsShown: boolean;
   ownershipLine: string;
   ownerBadge: 'Bot' | null;
   marketNote: string | null;
@@ -80,19 +101,24 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   const otherOwned = other !== null;
   const priced = input.price !== null && Number.isFinite(input.price);
 
-  const closedReason = input.gate.open
+  // A finished season has no line at all (the controls are absent, not disabled): no reason string for either action.
+  const preDraft = !!input.gate.preDraft && !input.gate.seasonOver;
+  const closedReason = input.gate.seasonOver
     ? null
-    : input.gate.seasonOver
-      ? COPY.marketClosedNow
-      : input.gate.opensLabel
+    : preDraft
+      ? COPY.draftNotCompleted
+      : input.gate.open
+        ? null
+        : input.gate.opensLabel
         ? COPY.marketClosedOpens(input.gate.opensLabel)
         : COPY.tradingHoursUnavailable;
 
   const priceReason = priced ? null : COPY.noPrice;
 
   // Buy: the first failing rule explains the disabled state.
+  const seasonOver = !!input.gate.seasonOver;
   let buyReason: string | null = closedReason ?? priceReason;
-  let buyBlockedBy: StockSheetModel['buy']['blockedBy'] = buyReason ? (closedReason ? 'closed' : 'price') : null;
+  let buyBlockedBy: StockSheetModel['buy']['blockedBy'] = buyReason || seasonOver ? (closedReason || seasonOver ? 'closed' : 'price') : null;
   if (buyReason === null && otherOwned) {
     buyReason = COPY.ownedBy((other!.name ?? 'another manager'));
     buyBlockedBy = 'owned';
@@ -103,6 +129,11 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   }
   if (buyReason === null && input.rosterFull) {
     buyReason = COPY.rosterFull;
+    buyBlockedBy = 'full';
+  }
+  // A fixed-notional league with every slot held and no sale proceeds: nothing is free to invest (the review would only refuse).
+  if (buyReason === null && input.noProceeds) {
+    buyReason = COPY.everySlotInvested;
     buyBlockedBy = 'full';
   }
   // One share per buy in a budget league: the share's price must fit the budget left, the
@@ -136,7 +167,7 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   }
 
   // (Not for a season that is over: the market may be open, and the note would say the prices are old.)
-  const marketNote = !input.gate.open && !input.gate.seasonOver && input.lastCloseLabel ? COPY.pricesShowClose(input.lastCloseLabel) : null;
+  const marketNote = !input.gate.open && !input.gate.seasonOver && !preDraft && input.lastCloseLabel ? COPY.pricesShowClose(input.lastCloseLabel) : null;
 
   const todayChange =
     priced && input.prevClose !== null && input.prevClose > 0
@@ -146,8 +177,9 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   return {
     name: cleanCompanyName(input.companyName) || input.symbol,
     selected: held ? 'sell' : 'buy',
-    buy: { enabled: buyReason === null, reason: buyReason, blockedBy: buyBlockedBy },
-    sell: { enabled: held && sellReason === null, reason: sellReason, summary: sellSummary },
+    buy: { enabled: buyReason === null && !seasonOver, reason: seasonOver ? null : buyReason, blockedBy: buyBlockedBy },
+    sell: { enabled: held && sellReason === null && !seasonOver, reason: seasonOver ? null : sellReason, summary: seasonOver ? null : sellSummary },
+    controlsShown: !seasonOver,
     ownershipLine,
     ownerBadge: other?.isBot ? 'Bot' : null,
     marketNote,
