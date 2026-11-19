@@ -23,12 +23,17 @@ export interface OpenOptions {
   name?: string | null;
   /** Where the sheet was opened from (a row id), so the caller can restore focus. */
   originRef?: string | null;
+  /** "buy": the sheet opens STRAIGHT INTO its buy review (the Stocks list's "+", Planner ruling 2026-11-19), when a buy is
+   * allowed; otherwise it opens as a plain sheet with its own reason under a disabled "Review buy". Omitted (a row tap, every
+   * other opener): the sheet opens to look. Never a trade without the review. */
+  startReview?: 'buy' | null;
   /** M1: the tapped row's measured screen rect (measureInWindow), for the
    * row->header flying tile. Omitted, the sheet just rises with no tile. */
   originRect?: { x: number; y: number; width: number; height: number } | null;
 }
 
 export interface NormalizedOpenOptions {
+  startReview: 'buy' | null;
   name: string | null;
   originRef: string | null;
   originRect: { x: number; y: number; width: number; height: number } | null;
@@ -36,10 +41,20 @@ export interface NormalizedOpenOptions {
 
 /** The second argument of open(): a legacy origin-ref string, an options object, or nothing. */
 export function normalizeOpenOptions(arg?: string | null | OpenOptions): NormalizedOpenOptions {
-  if (arg == null) return { name: null, originRef: null, originRect: null };
-  if (typeof arg === 'string') return { name: null, originRef: arg || null, originRect: null };
+  if (arg == null) return { name: null, originRef: null, originRect: null, startReview: null };
+  if (typeof arg === 'string') return { name: null, originRef: arg || null, originRect: null, startReview: null };
   const name = typeof arg.name === 'string' && arg.name.trim() ? arg.name.trim() : null;
-  return { name, originRef: arg.originRef ?? null, originRect: arg.originRect ?? null };
+  return { name, originRef: arg.originRef ?? null, originRect: arg.originRect ?? null, startReview: arg.startReview === 'buy' ? 'buy' : null };
+}
+
+/**
+ * Whether the sheet starts its buy review by itself (the "+" on the Stocks list). Only when asked (`start === 'buy'`), once the
+ * sheet's facts have loaded, and only when a buy is ALLOWED right now: the market gate is open and no rule blocks it (the
+ * pre-draft gate, an owned stock, a full roster, the budget). Otherwise the sheet shows its own reason under a disabled
+ * "Review buy", as it does for any opener. A row tap never asks, so it never starts a review.
+ */
+export function shouldStartReview(start: 'buy' | null | undefined, factsReady: boolean, buyEnabled: boolean, gateOpen: boolean): boolean {
+  return start === 'buy' && factsReady && buyEnabled && gateOpen;
 }
 
 /** The name the sheet shows, and where it came from. A name the opener passed

@@ -10,8 +10,8 @@ import { useMotion } from '@/components/sp/motion';
 import { consumeSignInEntrance } from '@/lib/shell/signInTransition';
 import { useFixtureInitialRoute } from '@/lib/shell/fixtureRoute';
 
-// Phase 3b-1 — the four tabs (spec row 15): Home · Matchup · League ·
-// Portfolio, drawn by ShellTabBar from useTheme() tokens (this file used to
+// Phase 3b-1 — the tabs (spec row 15): Home · Matchup · League ·
+// Portfolio · Stocks (the fifth, last on the right, 2026-11-18), drawn by ShellTabBar from useTheme() tokens (this file used to
 // hard-code the legacy white palette). Profile left the tab bar (the Home avatar opens
 // it); `draft` stays a hidden route, reached from the League tab while a
 // league is drafting and from draft notifications.
@@ -72,6 +72,7 @@ export default function TabLayout() {
         <Tabs.Screen name="matchup" options={{ title: 'Matchup' }} />
         <Tabs.Screen name="league" options={{ title: 'League' }} />
         <Tabs.Screen name="portfolio" options={{ title: 'Portfolio' }} />
+        <Tabs.Screen name="stocks" options={{ title: 'Stocks' }} />
         <Tabs.Screen name="draft" options={{ href: null }} />
       </Tabs>
     </Animated.View>
