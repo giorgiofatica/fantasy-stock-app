@@ -491,6 +491,28 @@ building anything, and don't reopen a rule without him.
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
   only the tiebreak. The UI shows the metric that decides the winner, via one shared helper.
+- **A finished week that dollars did not decide says who won and why, winner first (A)**
+  (2026-11-19, the Design Lead's board `#call-tiebreak-words`, branch
+  `design/tiebreak-words-1119`, shown in the Planner's chat; typed there: "A"). The line
+  under a finished week's card:
+  - Percent tiebreak (level on dollars): **"Paolo M. won the tiebreak, +1.76% to +0.74%"**
+  - One team had no stocks: **"Chiara R. won. Sofia F. had no stocks"**
+  - Playoff, level on dollars and percent: **"Tied. Luca V. advances as the higher seed"**
+  - Playoff, no stocks on either side: **"No stocks on either side. Chiara R. advances as
+    the higher seed"**
+  - Unchanged: a week won on dollars keeps "{winner} won by $X", and a true tie keeps
+    "Dead even".
+  - B (the reason first, e.g. "Tied on dollars. Paolo M. won on percent, +1.76% to +0.74%")
+    was not picked.
+  - NOT YET DECIDED: the season recap row for such a week (1, as it is today, or 2, a grey
+    word after the letter). His "A" answered the line only.
+  - Why this came up: the line used to compare the two dollar figures by itself, so a
+    percent-tiebreak week read "Dead even" under a band that named a winner, and a
+    no-stocks week could name the wrong side. Since #566 (2026-11-19) such a week shows no
+    line. These words replace "no line" once the server records why a week was won; it
+    does not today, and the phone cannot work it out from the totals. That is a plan of its
+    own (`docs/plans/2026-11-19-matchup-outcome-reason.md`, a draft), so nothing here
+    ships before it.
 - **There is always a price for a stock, and no person ever types one in** (2026-11-17).
   Asked what the app should do when a held stock has no trade for a whole day (the case the
   2026-11-17 week-price fix leaves with no price), and shown three options (A: use the
