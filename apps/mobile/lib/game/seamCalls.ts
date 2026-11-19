@@ -7,7 +7,7 @@
 import { supabase } from '../supabase';
 import { CAPTURE_CONFIRM_REFUSAL, CAPTURE_DRAFT_REFUSAL, DELETED_SEAT_FIXTURE, SEAM_ON, captureFailsOnce } from './devSeam';
 import { fixtureFor, invokeFixtureFor } from './seamFixtures';
-import { seamTableRows, seamWeekClosed, type SeamTableName } from './seamTables';
+import { parseRecapFixture, seamTableRows, seamWeekClosed, type SeamTableName } from './seamTables';
 import { markFixtureRenewed } from '../shell/devFixture';
 import { markFixtureAnswer } from './renewalFixture';
 import { draftRoomClockRead, parseDraftRoomVariant, roomVariantAfterAutoPick } from './seamRoom';
@@ -37,6 +37,7 @@ const HOME_FIXTURE_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_HOME_FIXTURE : undef
 const SCORED_OUTCOME_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_SCORED_OUTCOME : undefined;
 const LEAGUE_FIXTURE_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_LEAGUE_FIXTURE : undefined;
 const QUEUE_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_QUEUE_FIXTURE : undefined;
+const RECAP_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_RECAP_FIXTURE : undefined;
 /** The Stocks tab's captures (lib/stocks/seamStocks.ts): the list's read and the live quote. Seam only. */
 const STOCKS_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_STOCKS_FIXTURE : undefined;
 const STOCKS_KNOB = parseStocksKnob(STOCKS_FIXTURE);
@@ -123,6 +124,8 @@ export async function seamTable<T>(
     playoffsLive: LEAGUE_FIXTURE_KNOB === 'playoffs_live',
     // The queue row's captures: the board's queue instead of AAPL, CRM, V.
     queueRow: QUEUE_FIXTURE === 'row',
+    // The Matchup recap's season (EXPO_PUBLIC_RECAP_FIXTURE, seamTables.seasonMatchups).
+    recap: parseRecapFixture(RECAP_FIXTURE),
   });
   if (rows) return { data: seatify(rows, DELETED_SEAT) as T[], error: null, count: rows.length };
   return real();

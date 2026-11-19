@@ -301,14 +301,16 @@ Deno.test('RosterRow: VoiceOver says whose half it is ("Yours, â€¦" / "{name}, â
   const src = strip(SOURCES['components/sp/gn/RosterRow.tsx']);
   assert(strip(SOURCES['components/sp/logic/gameNight.ts']).includes('return `${whose}, ${half.ticker}, ${half.company},'));
   assert(src.includes('const a11y = rosterHalfLabel(whose, half);'));
-  assert(SOURCES['app/(tabs)/matchup.tsx'].includes('opponentName={opp.name}'));
+  assert(SOURCES['components/game/MatchupRoster.tsx'].includes('opponentName={right.name}'));
 });
 
 Deno.test('Matchup: Sell hands off to the stock sheet only once the card has left; theirs shows no dead Save', () => {
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
+  const src = SOURCES['components/game/MatchupRoster.tsx'];
   assert(src.includes('if (sell) stockSheet.open(sell.symbol, { name: sell.name });'));
   assert(src.indexOf('stockSheet.open(') > src.indexOf('onClosed={() => {'));
-  assert(src.includes("ownership = { owner: { name: opp.name }, save: null };"), 'no watchlist exists yet: Save hidden, never dead');
+  assert(src.includes("ownership = { owner: { name: owner.name }, save: null };"), 'no watchlist exists yet: Save hidden, never dead');
+  // Whoever isn't you owns the card's stock: on the tab the right side, in another pair's game either side.
+  assert(src.includes('if (owner && !owner.isYou) {'));
   assert(SOURCES['components/sp/Sheet.tsx'].includes('onClosedRef.current?.();'));
 });
 

@@ -97,12 +97,7 @@ export function SetupScaffold({ back, close, sheet, step, title, subtitle, child
           <View style={styles.topRow}>
             <View style={styles.topSide}>
               {back ? (
-                <Pressable onPress={back.onPress} accessibilityRole="button" accessibilityLabel={back.label} style={styles.back} hitSlop={8}>
-                  <Icon name="chevronLeft" size="callout" tone="text2" />
-                  <Text variant="callout" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE}>
-                    {back.label}
-                  </Text>
-                </Pressable>
+                <BackControl label={back.label} onPress={back.onPress} />
               ) : (
                 <View style={styles.back} />
               )}
@@ -145,6 +140,19 @@ export function SetupScaffold({ back, close, sheet, step, title, subtitle, child
       </ScrollView>
       {footer ? <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[5]) }]}>{footer}</View> : null}
     </KeyboardAvoidingView>
+  );
+}
+
+/** The "‹ Back" control (Create league's top row; the Matchup recap's week detail): the chevron
+ * and the label in `text2`, a 44pt-tall target. */
+export function BackControl({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={styles.back} hitSlop={8}>
+      <Icon name="chevronLeft" size="callout" tone="text2" />
+      <Text variant="callout" tone="secondary" maxFontSizeMultiplier={TOP_ROW_MAX_SCALE}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
