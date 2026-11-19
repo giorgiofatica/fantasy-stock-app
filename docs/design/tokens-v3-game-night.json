@@ -132,16 +132,16 @@
    "light": "oklch(52% 0.19 18)"
   },
   "warnTint": {
-   "dark": "oklch(83% 0.15 85 / 0.1)",
-   "light": "oklch(93% 0.07 90)"
+   "dark": "oklch(87% 0.14 205 / 0.16)",
+   "light": "oklch(50% 0.11 220 / 0.12)"
   },
   "warnLine": {
-   "dark": "oklch(83% 0.15 85 / 0.35)",
-   "light": "oklch(86% 0.1 85)"
+   "dark": "oklch(87% 0.14 205 / 0.4)",
+   "light": "oklch(50% 0.11 220 / 0.35)"
   },
   "warnText": {
-   "dark": "oklch(85% 0.15 85)",
-   "light": "oklch(45% 0.1 70)"
+   "dark": "oklch(87% 0.14 205)",
+   "light": "oklch(47% 0.11 220)"
   },
   "medalGold": {
    "dark": "oklch(79% 0.15 80)",
@@ -398,16 +398,16 @@
    "light": "#BD1F3D"
   },
   "warnTint": {
-   "dark": "rgba(244, 191, 63, 0.1)",
-   "light": "#FAE7B3"
+   "dark": "rgba(53, 238, 255, 0.16)",
+   "light": "rgba(0, 112, 142, 0.12)"
   },
   "warnLine": {
-   "dark": "rgba(244, 191, 63, 0.35)",
-   "light": "#EFCC83"
+   "dark": "rgba(53, 238, 255, 0.4)",
+   "light": "rgba(0, 112, 142, 0.35)"
   },
   "warnText": {
-   "dark": "#FAC547",
-   "light": "#784900"
+   "dark": "#35EEFF",
+   "light": "#006885"
   },
   "medalGold": {
    "dark": "#ECAE30",

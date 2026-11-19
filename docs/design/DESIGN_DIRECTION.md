@@ -866,9 +866,9 @@ row's winner) and the five sample `tile*` keys and `onTile` (replaced by the 11 
 | `lossTint` | `rgba(247, 109, 137, 0.14)` | `rgba(192, 36, 71, 0.1)` | Loss tint |
 | `danger` | `#FB8371` | `#B7191C` | Errors |
 | `lossFill` | `#C12440` | `#BD1F3D` | Sell / destructive fill |
-| `warnTint` | `rgba(244, 191, 63, 0.1)` | `#FAE7B3` | "Your call" / heads-up fill |
-| `warnLine` | `rgba(244, 191, 63, 0.35)` | `#EFCC83` | Its edge |
-| `warnText` | `#FAC547` | `#784900` | Its text |
+| `warnTint` | `rgba(53, 238, 255, 0.16)` | `rgba(0, 112, 142, 0.12)` | "Your call" / heads-up fill: the accent's soft tint (pick A, 2026-11-19, board `#call-yellow`) |
+| `warnLine` | `rgba(53, 238, 255, 0.4)` | `rgba(0, 112, 142, 0.35)` | Its edge |
+| `warnText` | `#35EEFF` | `#006885` | Its text (the `liveText` ink) |
 | `medalGold` | `#ECAE30` | `#AD7300` | Medal disc, gold (season complete only) |
 | `medalSilver` | `#BBC5D1` | `#7C8795` | Medal disc, silver |
 | `medalBronze` | `#DE8F57` | `#C36C36` | Medal disc, bronze |
