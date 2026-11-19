@@ -238,12 +238,16 @@ export function portfolioHistoryStart(daily: readonly DailyValue[]): string | nu
 }
 
 /**
- * Is there a LINE to draw? One point (a lone live value, a lone draft-day anchor) is a dot, not a line, so it
- * does not earn a chart block. `dailyCount` keeps the buttons when the window picked has one point but a longer
- * range has a line (the viewer must be able to switch to it).
+ * Is there a LINE to draw? A line is at least one segment: two ADJACENT points with no break between them (a point
+ * flagged `gapBefore` / `breakBefore` restarts the path, so two points with a break on the second draw "M... M...", a
+ * zero-length stroke, not a line). One point (a lone live value, a lone draft-day anchor) is a dot, so it does not
+ * earn a chart block. `daily` (the whole history) keeps the buttons when the window picked has no segment but a
+ * longer range does (the viewer must be able to switch to it).
  */
-export function drawsALine(windowPoints: number, dailyCount: number): boolean {
-  return windowPoints >= 2 || dailyCount >= 2;
+type Breakable = { gapBefore?: boolean; breakBefore?: boolean };
+const hasSegment = (pts: readonly Breakable[]): boolean => pts.some((p, i) => i > 0 && !p.gapBefore && !p.breakBefore);
+export function drawsALine(windowPoints: readonly Breakable[], daily: readonly Breakable[]): boolean {
+  return hasSegment(windowPoints) || hasSegment(daily);
 }
 
 /** The ranges that are grey on Portfolio: those longer than the league has existed (history = the

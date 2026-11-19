@@ -155,3 +155,48 @@ Deno.test('the card and the Portfolio read one decision (seasonEndClose), so the
   assert(pc.includes('const close = seasonEndClose(bars[up] ?? bars[sym], endEt);'));
   assert(pc.includes('for (const d of sessionsBefore(date, PREV_CLOSE_MAX_SESSIONS)) {'), 'the value line counts market sessions');
 });
+
+// ── review 2 of #557: the hero is ONE number, the rows' ───────────────────────────────────────
+
+import { teamPortfolioView } from '../lib/money/teamPortfolioView.ts';
+import { portfolioSummary } from '../lib/money/portfolioModel.ts';
+
+Deno.test('finished: a late purchase after the last bar is in the hero as it is in the rows (hero = rows)', () => {
+  // Every feed stops Wed 2 Sep; MSFT is bought Wed 9 Sep at $38 (qty 2); the season ends Thu 10 Sep. Sep 2 is the fifth
+  // session before Sep 10 (Labor Day is none), so every holding is priced at its Sep 2 close. The value line's last point
+  // is Sep 2 and cannot contain the purchase; the hero must.
+  const rows: ChartActivityRow[] = [
+    { kind: 'draft', action: 'buy', symbol: 'NVDA', quantity: 1, price: 100, occurredAt: '2026-08-31T01:30:00.000Z' },
+    { kind: 'draft', action: 'buy', symbol: 'AAPL', quantity: 2, price: 25, occurredAt: '2026-08-31T01:30:00.000Z' },
+    { kind: 'trade', action: 'buy', symbol: 'MSFT', quantity: 2, price: 38, occurredAt: '2026-09-09T15:00:00.000Z' },
+  ];
+  const bars = {
+    NVDA: [bar('2026-09-01', 110), bar('2026-09-02', 120)],
+    AAPL: [bar('2026-09-01', 30), bar('2026-09-02', 30)],
+    MSFT: [bar('2026-09-02', 40)],
+  };
+  const stake = { ...STAKE, numRounds: 2 };
+  const base = {
+    drafts: [{ symbol: 'NVDA', entryPrice: 100, quantity: 1 }, { symbol: 'AAPL', entryPrice: 25, quantity: 2 }],
+    chartRows: rows, names: {}, stake, bars, endEt: '2026-09-10',
+    live: { prices: {}, prevCloses: {} },
+  };
+  const trades = [{ symbol: 'MSFT', action: 'buy' as const, quantity: 2, price: 38 }];
+  const withBuy = teamPortfolioView({ ...base, trades })!;
+  const line = dailyValues({ rows, bars, stake, todayEt: TODAY, endEt: '2026-09-10' });
+  assertEquals(line[line.length - 1].date, '2026-09-02', 'the line cannot reach the Sep 9 purchase');
+  // The one season-end value: every ledger row, priced at the bounded season-end closes.
+  const closes = seasonEndCloses(bars, ['NVDA', 'AAPL', 'MSFT'], '2026-09-10');
+  assertEquals(closes, { NVDA: 120, AAPL: 30, MSFT: 40 });
+  const expected = portfolioSummary({ ...stake, drafts: base.drafts, trades, price: (s) => closes[s.toUpperCase()] ?? null }).value;
+  assertEquals(withBuy.value, expected, 'the hero is the season-end value with the late purchase in it');
+  assert(withBuy.value !== line[line.length - 1].value, 'not the value line\'s last point, which ends before the purchase');
+  assert(withBuy.view.rows.some((r) => r.symbol === 'MSFT'), 'and the rows hold the purchase too');
+});
+
+// ── review 2 of #557: a line is a connected segment, not a point count ──────────────────────
+
+Deno.test('a series whose only second point has a break before it draws no chart block (source pin)', () => {
+  const src = Deno.readTextFileSync(new URL('../lib/money/portfolioChart.ts', import.meta.url));
+  assert(src.includes('const hasSegment = (pts: readonly Breakable[]): boolean => pts.some((p, i) => i > 0 && !p.gapBefore && !p.breakBefore);'));
+});

@@ -110,7 +110,7 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
     if (next && !greyed.includes(next)) setPicked(next);
   });
   // A season that is over with no line to draw (no real closes): the whole chart block is absent, no frame, axis or label.
-  if (frozen && ready && !drawsALine(frozen.points.length, 0)) return null;
+  if (frozen && ready && !drawsALine(frozen.points, [])) return null;
   return (
     <View style={styles.wrap}>
       <RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />

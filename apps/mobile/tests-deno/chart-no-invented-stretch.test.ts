@@ -270,22 +270,26 @@ Deno.test('no line: the WHOLE chart block is absent (the range\'s gain line, no 
   assert(line.includes("const UNKNOWN_DASH = '\\u2013';"), 'the en dash, the one Schedule and the card use');
   assert(line.includes('if (!gain && unknown) {') && line.includes('{UNKNOWN_DASH}'));
   const screen = read('../components/money/PortfolioScreen.tsx');
-  assert(screen.includes('const hasLine = !!series && drawsALine(series.points.length, daily.length);'));
+  assert(screen.includes('const hasLine = !!series && drawsALine(series.points, daily);'));
   assert(screen.includes('{hasLine && series ? (\n            <Chart'), 'the chart is drawn only with a line');
   assert(screen.includes('{hasLine && series ? (\n            <RangeGainLine'), 'the range\'s gain describes the chart: no chart block, no gain line (no stray dash)');
   assert(screen.includes('{over || !hasLine ? null : ('), 'no range buttons without a line');
   assert(screen.includes('unknown={gain === null}'), 'an unknown gain is the dash, not a blank');
   assert(!screen.includes('EMPTY_FRAME_AXIS'), 'no empty frame');
   // The card: a finished season with no line has no chart block at all.
-  assert(read('../components/money/StockChart.tsx').includes('if (frozen && ready && !drawsALine(frozen.points.length, 0)) return null;'));
+  assert(read('../components/money/StockChart.tsx').includes('if (frozen && ready && !drawsALine(frozen.points, [])) return null;'));
 });
 
 Deno.test('one point is a dot, not a line: no chart block, and no made-up $0.00 move', () => {
-  assertEquals(drawsALine(0, 0), false);
-  assertEquals(drawsALine(1, 0), false, 'a lone live value');
-  assertEquals(drawsALine(1, 1), false, 'a lone anchor');
-  assertEquals(drawsALine(2, 0), true);
-  assertEquals(drawsALine(1, 5), true, 'the picked window is one point but a longer range has a line: keep the buttons');
+  const pt = (gap = false) => ({ gapBefore: gap });
+  assertEquals(drawsALine([], []), false);
+  assertEquals(drawsALine([pt()], []), false, 'a lone live value');
+  assertEquals(drawsALine([pt()], [pt()]), false, 'a lone anchor');
+  assertEquals(drawsALine([pt(), pt()], []), true);
+  assertEquals(drawsALine([pt(), pt(true)], []), false, 'two points with a break before the second draw M..M.. : a zero-length line');
+  assertEquals(drawsALine([pt(), pt(true), pt()], []), true, 'a later connected pair is a line');
+  assertEquals(drawsALine([pt()], [pt(), pt(), pt()]), true, 'the picked window is one point but a longer connected history has a line: keep the buttons');
+  assertEquals(drawsALine([pt()], [{ breakBefore: false }, { breakBefore: true }]), false, 'the history is two broken points too');
   const screen = Deno.readTextFileSync(new URL('../components/money/PortfolioScreen.tsx', import.meta.url));
   assert(screen.includes('series.points.length < 2 ? null : rangeGain(series.points, series.base)'), 'a window of one point has no move: the dash');
 });

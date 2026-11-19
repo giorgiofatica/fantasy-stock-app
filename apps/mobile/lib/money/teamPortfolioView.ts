@@ -8,13 +8,13 @@
  *
  * Finished (`endEt`, Giorgio 2026-11-18, pick A: the value stops at the season's last day): the
  * `live` marks are NOT read. Every holding is priced at its close on or before endEt
- * (seasonEndCloses), the value is the value line's last point (dailyValues to endEt), and "since the
- * draft" is that value minus the line's first point. So the hero, the holding rows and the chart are one
- * set of numbers, and none of them can move with today's market.
+ * (seasonEndCloses, the bounded season-end close) and the value is ONE number: every ledger row up to the end, priced with
+ * those closes. The hero and the holding rows share it by construction (never the value line's last point, which can end
+ * before a late purchase), and none of them can move with today's market.
  */
 import { buildPortfolioView, type PortfolioView, type ViewHolding } from './portfolioView';
 import { portfolioHoldings, portfolioSummary } from './portfolioModel';
-import { dailyValues, draftValueOf, seasonEndCloses, symbolsMissingSeasonEndClose, type ChartActivityRow, type ChartStake } from './portfolioChart';
+import { draftValueOf, seasonEndCloses, symbolsMissingSeasonEndClose, type ChartActivityRow, type ChartStake } from './portfolioChart';
 import type { BuyRowInput } from './buyRowLine';
 import type { DailyBar } from './prevClose';
 
@@ -37,7 +37,7 @@ export interface TeamPortfolioInput {
 
 export interface TeamPortfolio {
   view: PortfolioView;
-  /** The hero's value as a number (the view's valueText): finished, the value line's last point. */
+  /** The hero's value as a number (the view's valueText): every ledger row, priced at the season-end closes when finished. */
   value: number;
   /** The header's value as the line's live end; null in a finished season (no live point). */
   liveValue: number | null;
@@ -57,7 +57,6 @@ export function teamPortfolioView(i: TeamPortfolioInput): TeamPortfolio | null {
   const marks = endEt ? seasonEndCloses(i.bars, held.map((h) => h.symbol), endEt) : i.live.prices;
   const price = (sym: string) => marks[sym.toUpperCase()] ?? marks[sym] ?? null;
   const summary = portfolioSummary({ ...i.stake, drafts: i.drafts, trades: i.trades, price });
-  const endDaily = endEt ? dailyValues({ rows: i.chartRows, bars: i.bars, stake: i.stake, todayEt: endEt, endEt }) : null;
 
   const holdings: ViewHolding[] = held.map((h) => ({
     symbol: h.symbol,
@@ -68,7 +67,8 @@ export function teamPortfolioView(i: TeamPortfolioInput): TeamPortfolio | null {
     name: i.names[h.symbol] ?? i.names[h.symbol.toUpperCase()] ?? null,
   }));
 
-  const heroValue = endDaily?.length ? endDaily[endDaily.length - 1].value : summary.value;
+  // One value for the hero and the rows: after ALL the ledger rows, at the bounded season-end closes (live: at the quote).
+  const heroValue = summary.value;
   const view = buildPortfolioView({
     value: heroValue,
     cash: summary.cash,

@@ -173,7 +173,7 @@ export function PortfolioScreen() {
   const gain = !series ? null : gainRange === 'Season' ? (chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null) : series.points.length < 2 ? null : rangeGain(series.points, series.base);
   // No line to draw: the WHOLE chart block (the range's gain line, frame, axis, range buttons) is absent; the hero value
   // and "today" (from live quotes) stay.
-  const hasLine = !!series && drawsALine(series.points.length, daily.length);
+  const hasLine = !!series && drawsALine(series.points, daily);
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
   const card = useMemo(() => {
