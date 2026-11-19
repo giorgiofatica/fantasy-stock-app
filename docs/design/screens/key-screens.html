@@ -16068,28 +16068,44 @@ window.KS_REFS = {
     );
   }
 
-  /** My matchup, the season recap: the result letter by the result, the figure by its sign (as built). */
-  function Recap() {
+  /** My matchup, the season recap. reason: false = as built today (1); true = the short reason after the letter (2).
+   * x: 1 at Large, 1.3 = the rows' capped size at Giorgio's text size (the result drops under the name, as built). */
+  function Recap({ reason = false, x = 1, label }) {
     const rows = [
-      ['SF', 'LV', 'Luca V.', 'L', '+$20.10'],
-      ['WK 14', 'PM', 'Paolo M.', 'L', '+$34.04'],
-      ['WK 13', 'SF', 'Sofia F.', 'W', '−$12.40'],
-      ['WK 12', 'GB', 'Gianluigi B.', 'W', '+$58.75'],
-      ['WK 11', 'MT', 'Marco T.', 'L', '−$96.40'],
+      ['SF', 'LV', 'Luca V.', 'L', '+$20.10', 'seed'],
+      ['WK 14', 'PM', 'Paolo M.', 'L', '+$34.04', 'tiebreak'],
+      ['WK 13', 'SF', 'Sofia F.', 'W', '−$12.40', 'no stocks'],
+      ['WK 12', 'GB', 'Gianluigi B.', 'W', '+$58.75', null],
+      ['WK 11', 'MT', 'Marco T.', 'L', '−$96.40', null],
     ];
     const tone = (f) => (f.startsWith('−') ? 'var(--c-loss)' : 'var(--c-gain)');
+    const big = x > 1;
     return (
-      <Phone label="The season recap rows in tiebreak weeks">
+      <Phone label={label}>
         <Switch left />
-        {rows.map(([wk, i, n, r, f]) => (
-          <div key={wk} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 12px', borderRadius: 12, background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
-            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.8, color: 'var(--c-text-2)', minWidth: 40 }}>{wk}</span>
-            <Av i={i} s={0.75} />
-            <span style={{ flex: 1, fontSize: 14, color: 'var(--c-text)', whiteSpace: 'nowrap' }}>vs {n}</span>
-            <b className="dr-num" style={{ fontSize: 14 }}><span style={{ color: r === 'W' ? 'var(--c-gain)' : 'var(--c-loss)' }}>{r}</span> <span style={{ color: tone(f) }}>{f}</span></b>
-            <span style={{ color: 'var(--c-text-2)', display: 'grid' }}><Icon d={ICON.right} size={13} width={2.4} /></span>
-          </div>
-        ))}
+        {rows.map(([wk, i, n, r, f, why]) => {
+          const result = (
+            <b className="dr-num" style={{ fontSize: 14 * x, whiteSpace: 'nowrap' }}>
+              <span style={{ color: r === 'W' ? 'var(--c-gain)' : 'var(--c-loss)' }}>{r}</span>
+              {reason && why ? <span style={{ color: 'var(--c-text-2)', fontWeight: 600 }}>{` · ${why}`}</span> : null}
+              {' '}<span style={{ color: tone(f) }}>{f}</span>
+            </b>
+          );
+          return (
+            <div key={wk} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 12px', borderRadius: 12, background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
+              <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 6 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 11 * x, fontWeight: 800, letterSpacing: 0.8, color: 'var(--c-text-2)', minWidth: 40 * x, whiteSpace: 'nowrap' }}>{wk}</span>
+                  <Av i={i} s={0.75} />
+                  <span style={{ flex: 1, fontSize: 14 * x, color: 'var(--c-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>vs {n}</span>
+                  {big ? null : result}
+                </span>
+                {big ? <span style={{ justifySelf: 'end' }}>{result}</span> : null}
+              </div>
+              <span style={{ color: 'var(--c-text-2)', display: 'grid' }}><Icon d={ICON.right} size={13} width={2.4} /></span>
+            </div>
+          );
+        })}
       </Phone>
     );
   }
@@ -16113,10 +16129,10 @@ window.KS_REFS = {
           <li><b>A · short.</b> The winner first: “Paolo M. won the tiebreak, +1.76% to +0.74%”.</li>
           <li><b>B · the reason first.</b> “Tied on dollars. Paolo M. won on percent, +1.76% to +0.74%”. In B one seed line covers both playoff cases.</li>
           <li><b>Who won, on All matchups:</b> every line names the winner, so no extra marker is needed on the card. Where both figures match, or a side shows “–”, the line is what tells you.</li>
-          <li><b>The recap rows stay as they are:</b> the letter is the result and the figure is your week (“L +$34.04”: you gained and still lost). The reason is one tap away, under that week’s card, so a row stays one line.</li>
-          <li><b>Recommended: A.</b> It answers who won before why, like “won by”, and its longest line still fits in two lines at your text size.</li>
-          <li><b>New words</b> (all of them are lines for the four cases below; no other text changes). Normal wins keep “won by $X”, a true tie keeps “Dead even”.</li>
-          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B.</>}</li>
+          <li><b>The season recap row, 1 or 2.</b> 1 · as it is today: the letter is the result, the figure is your week (“L +$34.04”: you gained and still lost); the reason is one tap away, under that week’s card. 2 · the reason after the letter, in grey: “L · tiebreak”, “L · seed”, “W · no stocks” (new words, a word each). Only these weeks change; every other row stays as it is.</li>
+          <li><b>Recommended: A and 2.</b> A answers who won before why, like “won by”, and its longest line still fits in two lines at your text size. 2, because a red L beside a bigger green figure looks like a mistake until you know why; one grey word settles it without a second line.</li>
+          <li><b>New words:</b> the lines for the four cases below, and in 2 the three reason words; no other text changes. Normal wins keep “won by $X”, a true tie keeps “Dead even”.</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B for the line, and 1 or 2 for the recap row.</>}</li>
         </ul>
         <Grid>{[
           fig('ta', 'A · short', <AllMatchups words="A" />, 'Top to bottom: a seed tie, no stocks on either side, a percent tiebreak, no stocks on one side.'),
@@ -16126,7 +16142,11 @@ window.KS_REFS = {
         <Grid>{[
           fig('la', 'A · its longest line, your text size', <Longest words="A" c={CASES.empty} />, 'Two lines, centred under the card.'),
           fig('lb', 'B · its longest line, your text size', <Longest words="B" c={CASES.pct} />, 'Two lines, centred under the card.'),
-          fig('rc', 'The season recap (unchanged)', <Recap />, 'Wk 14: a red L beside a green figure (you gained and still lost). Wk 13 is its mirror: a green W beside a red figure.'),
+        ]}</Grid>
+        <Grid>{[
+          fig('r1', '1 · the recap row as it is today', <Recap label="Season recap rows as today, option 1" />, 'SF and Wk 14: a red L beside a green figure. Wk 13 is its mirror, a green W beside a red figure.'),
+          fig('r2', '2 · the reason after the letter', <Recap reason label="Season recap rows with the reason, option 2" />, 'Only the three tiebreak weeks change.'),
+          fig('r2x', '2 · at your text size', <Recap reason x={1.3} label="Season recap rows with the reason at the largest text size, option 2" />, 'The result drops under the name, as built; the reason stays with its letter.'),
         ]}</Grid>
       </section>
     );
