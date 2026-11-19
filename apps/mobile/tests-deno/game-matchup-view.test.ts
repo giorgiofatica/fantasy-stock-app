@@ -90,6 +90,8 @@ Deno.test('finalGains: uses the server\'s gains for my side, whichever team I am
   const data = fixture();
   data.matchups[0].team1_gain = 351.77;
   data.matchups[0].team2_gain = -38.88;
-  assertEquals(finalGains(data, 'roberto'), { me: 351.77, opp: -38.88, result: 'W' });
-  assertEquals(finalGains(data, 'gianluigi'), { me: -38.88, opp: 351.77, result: 'L' });
+  // This fixture's row has no winner_user_id (an RPC from before 20261126000000): no server verdict,
+  // so the result falls back to dollars and the Scoreboard's final line is withheld (verdict undefined).
+  assertEquals(finalGains(data, 'roberto'), { me: 351.77, opp: -38.88, result: 'W', verdict: undefined });
+  assertEquals(finalGains(data, 'gianluigi'), { me: -38.88, opp: 351.77, result: 'L', verdict: undefined });
 });

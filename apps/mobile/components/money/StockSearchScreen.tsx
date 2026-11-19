@@ -222,7 +222,7 @@ export function SearchRow({ item, status, onPress }: { item: ShapedSearchResult;
   const content = (
     <>
       <View style={[styles.disc, off ? styles.dim : null, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} style={{ fontSize: DISC_PT * discTickerScale(item.symbol) }}>{item.symbol}</Text>
+        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} ellipsizeMode="clip" style={{ fontSize: DISC_PT * discTickerScale(item.symbol) }}>{item.symbol}</Text>
       </View>
       <View style={styles.lead}>
         <Text variant="ticker" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{item.symbol}</Text>

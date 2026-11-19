@@ -356,11 +356,12 @@ Deno.test('seqOf: picks by number, later buys after every pick in the order boug
 
 Deno.test('Matchup: the order reads the last CLOSE (never the live gain), and the roster waits for its order', () => {
   const src = SOURCES['app/(tabs)/matchup.tsx'];
-  assert(src.includes('const closes = useMemo(() => closesBefore(now, sessions), [now, sessions]);'));
-  assert(src.includes('barsAt: orderBarsAt(raw.now, orderAsOf, SEAM_ON),'), 'the fetch time, held to the last focus or refresh');
+  const roster = SOURCES['components/game/MatchupRoster.tsx'];
+  assert(roster.includes('const closes = useMemo(() => closesBefore(now, sessions), [now, sessions]);'));
+  assert(roster.includes('barsAt: orderBarsAt(env.now, orderAsOf, SEAM_ON),'), 'the fetch time, held to the last focus or refresh');
   assert(src.includes('useFocusEffect(useCallback(() => {\n    setOrderAsOf(new Date());'), 'a new order applies on arrival');
   assert(src.includes('setOrderAsOf(new Date());\n    await Promise.all([refresh(), mRefresh()]);'), '…and on pull to refresh');
-  assert(src.includes('if (!view) return <RosterRowsSkeleton />;'), 'no list that re-sorts once the ledger lands');
+  assert(roster.includes('if (!view) return <RosterRowsSkeleton />;'), 'no list that re-sorts once the ledger lands');
   const view = SOURCES['lib/game/matchupRosterView.ts'];
   assert(view.includes('const ordering = orderingClose({ closes, sides: opp ? [me, opp] : [me], bars, barsAt });'));
   assert(view.includes('closeGain: gains ? gains[sym] ?? null : null,'));
@@ -368,15 +369,16 @@ Deno.test('Matchup: the order reads the last CLOSE (never the live gain), and th
 });
 
 Deno.test('Matchup: nothing else — no race chart, no chyron, no old scoreboard; the centre column stays empty', () => {
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
-  assert(!/<Chyron|useLeadChyron|<MatchScoreboard|<WeekRace|TugBar/.test(src));
+  for (const f of ['app/(tabs)/matchup.tsx', 'components/game/MatchupRoster.tsx', 'components/game/FinishedWeek.tsx']) {
+    assert(!/<Chyron|useLeadChyron|<MatchScoreboard|<WeekRace|TugBar/.test(SOURCES[f]), f);
+  }
   const row = SOURCES['components/sp/gn/RosterRow.tsx'];
   assert(row.includes('<View style={{ width: CENTRE_GAP }} />'), 'the centre is a gap, nothing in it');
   assert(row.includes('const CENTRE_GAP = space[4];'));
 });
 
 Deno.test('Matchup: any stock on either side opens the player card; a half that can\'t is not pressable', () => {
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
+  const src = SOURCES['components/game/MatchupRoster.tsx'];
   assert(src.includes("left={half('me', r.left)}"));
   assert(src.includes("right={half('opp', r.right)}"));
   assert(src.includes('onPress: openable(side, c.symbol) ? () => open(side, c.symbol) : undefined'));

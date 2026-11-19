@@ -12,12 +12,23 @@ import { supabase } from '../supabase';
 import { seamTable } from './seamCalls';
 import { finalLineup, type FinalLineupResult, type FinalSnapshot } from './finalLineup';
 import { checkRowsComplete } from './readGuard';
-import type { LiveTrade } from '../home/liveWeekScore';
+import type { LiveSnapshot, LiveTrade } from '../home/liveWeekScore';
+
+/** One side's week as the server scored it: its snapshot rows and the window's trades. */
+export interface FinalSideLedger {
+  snapshots: LiveSnapshot[];
+  trades: LiveTrade[];
+  /** Each held symbol's Friday close (week_snapshots.week_end_price), upper case. */
+  closes: Record<string, number>;
+}
 
 export interface FinalLineupsState {
   status: 'idle' | 'loading' | 'ready' | 'error';
   mine: FinalLineupResult | null;
   theirs: FinalLineupResult | null;
+  /** The rows the two lineups were built from (the recap's week detail draws its roster and
+   * its withheld view from them; the live tab reads Home's current week instead). */
+  ledgers: { mine: FinalSideLedger; theirs: FinalSideLedger } | null;
   /** Re-runs the two reads (W4: a failed final roster offers Try again). */
   retry: () => void;
 }
@@ -28,14 +39,14 @@ export function useFinalLineups(
   sides: { mine: string; theirs: string; myGain: number; theirGain: number; windowStart: string; windowEnd: string } | null,
   enabled: boolean,
 ): FinalLineupsState {
-  const [state, setState] = useState<Omit<FinalLineupsState, 'retry'>>({ status: 'idle', mine: null, theirs: null });
+  const [state, setState] = useState<Omit<FinalLineupsState, 'retry'>>({ status: 'idle', mine: null, theirs: null, ledgers: null });
   const [attempt, setAttempt] = useState(0);
   const key = sides ? `${sides.mine}|${sides.theirs}|${sides.myGain}|${sides.theirGain}` : '';
 
   useEffect(() => {
     if (!enabled || !leagueId || week === null || !sides) return;
     let cancelled = false;
-    setState({ status: 'loading', mine: null, theirs: null });
+    setState({ status: 'loading', mine: null, theirs: null, ledgers: null });
     (async () => {
       try {
         const res = await seamTable('week_snapshots', () => supabase
@@ -72,11 +83,16 @@ export function useFinalLineups(
         const theirs = finalLineup({ snapshots: snapsFor(sides.theirs), trades: tradesFor(sides.theirs), teamGain: sides.theirGain });
         if (!mine.ok || !theirs.ok) console.warn('[game:final-lineup] withheld: rows do not sum to the recorded gain', { mine: mine.ok, theirs: theirs.ok });
         if (cancelled) return;
-        setState({ status: 'ready', mine, theirs });
+        const ledgerOf = (uid: string): FinalSideLedger => ({
+          snapshots: snapsFor(uid).map((x) => ({ symbol: x.symbol, quantity: x.quantity, weekStartPrice: x.week_start_price, enteredMidWeek: x.entered_mid_week })),
+          trades: tradesFor(uid),
+          closes: Object.fromEntries(snapsFor(uid).filter((x) => x.week_end_price !== null).map((x) => [x.symbol.toUpperCase(), x.week_end_price as number])),
+        });
+        setState({ status: 'ready', mine, theirs, ledgers: { mine: ledgerOf(sides.mine), theirs: ledgerOf(sides.theirs) } });
       } catch (err) {
         if (cancelled) return;
         console.warn('[game:final-lineup] failed', (err as Error).message);
-        setState({ status: 'error', mine: null, theirs: null });
+        setState({ status: 'error', mine: null, theirs: null, ledgers: null });
       }
     })();
     return () => {

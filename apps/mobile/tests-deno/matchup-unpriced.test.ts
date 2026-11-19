@@ -112,16 +112,19 @@ Deno.test('All matchups: a live side totals the same way as Matchup (the priced 
 Deno.test('Scoreboard: totals are numbers again and the leads-by line is back (no dash path at all)', () => {
   assertEquals(scoreboardModel({ name: 'A', gain: 125 }, { name: 'B', gain: 42 }, false).line, 'A leads by $83.00');
   const sb = strip(SOURCES['components/sp/gn/Scoreboard.tsx']);
-  assert(sb.includes("{formatMoney(team.gain, { sign: 'always' })}"), 'the total is formatted money');
-  assert(!sb.includes('WEEK_UNKNOWN') && !sb.includes('scoreTotalText') && !sb.includes('lineShown'), 'no dash total, no hidden lead line');
+  // The total is money; the only dash is main's `unscored` (a recap game never posted, SeasonRecap only).
+  assert(sb.includes("const totalText = unscored ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });"), 'the total is formatted money');
+  assert(!sb.includes('WEEK_UNKNOWN') && !sb.includes('scoreTotalText') && !sb.includes('lineShown'), 'no dash total from a missing price, no hidden lead line');
+  assert(!strip(SOURCES['app/(tabs)/matchup.tsx']).includes('unscored'), 'Matchup never draws the recap\'s dash');
 });
 
 Deno.test('Matchup tab: live and bye totals are SideView.total (numbers); a bye roster shows unpriced stocks too', () => {
   const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
-  assert(src.includes('const mine = isFinal && final ? final.me : live.me.total;'));
-  assert(src.includes('const theirs = isFinal && final ? final.opp : live.opp?.total ?? 0;'));
+  // A LIVE week (a final week is FinishedWeek's, with the server's gains and verdict).
+  assert(src.includes("you={{ name: youName, gain: live.me.total }}") && src.includes("opponent={{ name: live.opp?.name ?? '', gain: live.opp?.total ?? 0 }}"));
+  assert(src.includes('<FinishedWeek') && src.includes('verdict={final.verdict}'), 'the final keeps the server\'s verdict');
   assert(src.includes('<Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null}'), 'the bye half too');
-  assert(src.includes('{raw && (live.me.lineup.length || live.me.unpriced.length) ? ('));
+  assert(src.includes('{raw && ledgers && (live.me.lineup.length || live.me.unpriced.length) ? ('));
   assert(!src.includes('unpricedNote'), 'the "counted at cost" caption stays gone: the notice replaces it');
 });
 
@@ -175,13 +178,14 @@ Deno.test('notice placement: under the switch, above the totals, in a LIVE week 
   const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
   assert(src.includes("const notice = view.kind === 'scoreboard' || view.kind === 'bye' ? priceNoticeText(missing) : null;"), 'live views only');
   assert(src.includes('const missing = missingPriceSymbols(live.me.unpriced, live.opp?.unpriced);'));
-  const live = '{!isFinal && notice ? <PriceNotice text={notice} symbols={missing} /> : null}';
-  assert(src.includes(live), 'the live card draws it');
-  const body = src.slice(src.indexOf("const isFinal = view.kind === 'final';"));
-  assert(body.indexOf(live) < body.indexOf('<Scoreboard'), 'above the card');
-  const byeNotice = '{notice ? <PriceNotice text={notice} symbols={missing} /> : null}';
+  const tag = '{notice ? <PriceNotice text={notice} symbols={missing} /> : null}';
+  assertEquals(src.split(tag).length - 1, 2, 'the bye card and the live card draw it, nothing else');
+  // The live card: after the final week's FinishedWeek return (a final never reaches it), above its Scoreboard.
+  const live = src.slice(src.indexOf('<FinishedWeek'));
+  assert(live.includes(tag) && live.indexOf(tag) < live.lastIndexOf('<Scoreboard'), 'above the live card');
+  assert(!src.slice(src.indexOf("if (view.kind === 'final' && final) {"), src.indexOf('<FinishedWeek')).includes('PriceNotice'), 'never on a final week');
   const bye = src.slice(src.indexOf("if (view.kind === 'bye') {"));
-  assert(bye.includes(byeNotice) && bye.indexOf(byeNotice) < bye.indexOf('<Scoreboard'), 'a bye week too, above its card');
+  assert(bye.indexOf(tag) < bye.indexOf('<Scoreboard'), 'a bye week too, above its card');
 });
 
 Deno.test('notice icon (Design Lead P2): centred on the FIRST line at every size, following the capped scale', () => {
@@ -250,7 +254,7 @@ Deno.test('Matchup tab: a Duration league draws no switch and no body (nothing i
   const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
   assert(src.includes('const blank = knownWithoutWeeks(activeLeague);'));
   assert(src.includes('{m.derived && !blank ? (\n          <SegmentedControl'));
-  assert(src.includes("{blank ? null : segment === 'all' ? ("), 'neither My matchup (its $0.00 vs $0.00) nor All matchups');
+  assert(src.includes('{blank ? null : complete && activeLeagueId ? ('), 'no recap, no My matchup (its $0.00 vs $0.00), no All matchups');
 });
 
 // ── The capture fixture the gate stills use ───────────────────────────────────────

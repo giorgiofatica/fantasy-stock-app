@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { View, StyleSheet } from 'react-native';
+import { PressableScale } from '@/components/sp/PressableScale';
+import { Icon } from '@/components/sp/Icon';
 import { useLargeText } from '@/components/sp/useLargeText';
 import { Text } from '@/components/sp/Text';
 import { keepMoney } from '@/lib/game/keepDots';
@@ -13,11 +15,13 @@ import { radius, space } from '@/constants/tokens';
 import { isUnscoredPast, type ScheduleRow } from '@/lib/game/schedule';
 import { SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
 import { byResult } from '@/lib/game/weekResult';
+import { keepName } from '@/lib/account/keepName';
+import { vsOpponentLabel } from '@/lib/home/homeCopy';
 
 /** Every line of a row stops at the score's own cap (score.sm, 1.3×): the result stays the
  * row's loudest text at every size (the checklist's "The standout stays loudest"; at XL the
  * uncapped name drew at ~35pt over a 19.5pt score, W4 capture). */
-const ROW_TEXT_CAP = 1.3;
+export const ROW_TEXT_CAP = 1.3;
 
 export interface ScheduleListProps {
   rows: ScheduleRow[];
@@ -33,55 +37,113 @@ export interface ScheduleListProps {
  * is your game, so none is shaded (B shades YOUR side where you face someone; here that
  * would be every row). A bye is neutral: never W or L. */
 export function ScheduleList({ rows, playoffLine }: ScheduleListProps) {
-  const { colors } = useTheme();
-  // Large text: the result goes on its own line under the week (it was clipped off the card).
-  const largeText = useLargeText();
-  const live = chipLook('live', colors);
   return (
     <View style={styles.stack}>
       <View style={styles.rows}>
-        {rows.map((r) => (
-          <View key={r.week} style={[styles.row, largeText ? styles.rowWrap : null, { backgroundColor: colors.surface }]} accessible accessibilityLabel={label(r)}>
-            <Text variant="tag" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP} style={styles.week}>{`W${r.week}`}</Text>
-            {r.bye || !r.opponent ? null : <Avatar name={r.opponent} size={24} tone="neutral" />}
-            <Text variant="body" numberOfLines={2} maxFontSizeMultiplier={ROW_TEXT_CAP} tone={r.state === 'future' || r.state === 'next' ? 'secondary' : undefined} style={[styles.opponent, r.state === 'live' ? styles.bold : null]}>
-              {r.bye ? 'Bye' : r.opponent === null ? '' : `vs ${r.opponent}`}
-            </Text>
-            <View style={[styles.result, largeText ? styles.resultLine : null]}>
-              {r.bye ? (
-                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{r.gain === null ? '' : keepMoney(formatMoney(r.gain, { sign: 'always' }))}</Text>
-              ) : r.state === 'live' ? (
-                <View style={[styles.chip, { backgroundColor: live.fill }]}>
-                  <LiveDot size={7} />
-                  <Text variant="tag" style={{ color: live.ink }}>Live</Text>
-                </View>
-              ) : r.state === 'next' ? (
-                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>Next</Text>
-              ) : r.gain !== null && r.result !== null ? (
-                <View style={styles.score}>
-                  <Text variant="score.sm" color={byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })}>{r.result}</Text>
-                  <Text variant="score.sm" color={colors[toneOf(r.gain)]} style={styles.gain}>{keepMoney(formatMoney(r.gain, { sign: 'always' }))}</Text>
-                </View>
-              ) : isUnscoredPast(r) ? (
-                // Not scored yet (half-posted): Home's season tile's dash. VoiceOver keeps "Week N, against X".
-                <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{SEASON_TILE_UNSCORED}</Text>
-              ) : null}
-            </View>
-          </View>
-        ))}
+        {rows.map((r) => <ScheduleWeekRow key={r.week} row={r} />)}
       </View>
       {playoffLine ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>Then the playoffs: {playoffLine}.</Text> : null}
     </View>
   );
 }
 
-function label(r: ScheduleRow): string {
+export interface ScheduleWeekRowProps {
+  row: ScheduleRow;
+  /** The week's label in place of "W{n}" (the Matchup recap's "Wk N" or round name). */
+  weekLabel?: string;
+  /** Draw the label as the round chip (a playoff week in the Matchup recap). */
+  roundChip?: boolean;
+  /** What VoiceOver says for the week when the label is a short chip ("SF" is read "Semifinals"). */
+  spokenWeek?: string;
+  /** Opens the week (the recap): the row becomes a button with a trailing chevron. */
+  onPress?: () => void;
+  /** VoiceOver's hint when the row opens something. */
+  accessibilityHint?: string;
+}
+
+/** One week's tile: League › Schedule's row, shared with the Matchup recap (Giorgio,
+ * 2026-11-18, look A), which adds the label, the round chip and the chevron through props
+ * rather than a fork. Without them it is Schedule's row exactly. */
+export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, spokenWeek, onPress, accessibilityHint }: ScheduleWeekRowProps) {
+  const { colors } = useTheme();
+  // Large text: the result goes on its own line under the week (it was clipped off the card).
+  const largeText = useLargeText();
+  const live = chipLook('live', colors);
+  const round = chipLook('default', colors);
+  const week = weekLabel ?? `W${r.week}`;
+  const content = (
+    <>
+      {roundChip ? (
+        // The round's chip: the §9C inset chip (Home's This week chip off-live), at the tag's own cap.
+        <View style={[styles.chip, { backgroundColor: round.fill }]}>
+          <Text variant="tag" style={{ color: round.ink }}>{week}</Text>
+        </View>
+      ) : (
+        <Text variant="tag" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP} style={styles.week}>{week}</Text>
+      )}
+      {r.bye || !r.opponent ? null : <Avatar name={r.opponent} size={24} tone="neutral" />}
+      <Text variant="body" numberOfLines={2} maxFontSizeMultiplier={ROW_TEXT_CAP} tone={r.state === 'future' || r.state === 'next' ? 'secondary' : undefined} style={[styles.opponent, r.state === 'live' ? styles.bold : null]}>
+        {/* A name never breaks (keepName): a long one moves whole to the next line after "vs". */}
+        {r.bye ? 'Bye' : r.opponent === null ? '' : vsOpponentLabel(keepName(r.opponent))}
+      </Text>
+      <View style={[styles.result, largeText ? styles.resultLine : null]}>
+        {r.bye ? (
+          <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{r.gain === null ? '' : keepMoney(formatMoney(r.gain, { sign: 'always' }))}</Text>
+        ) : r.state === 'live' ? (
+          <View style={[styles.chip, { backgroundColor: live.fill }]}>
+            <LiveDot size={7} />
+            <Text variant="tag" style={{ color: live.ink }}>Live</Text>
+          </View>
+        ) : r.state === 'next' ? (
+          <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>Next</Text>
+        ) : r.gain !== null && r.result !== null ? (
+          <View style={styles.score}>
+            <Text variant="score.sm" color={byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })}>{r.result}</Text>
+            <Text variant="score.sm" color={colors[toneOf(r.gain)]} style={styles.gain}>{keepMoney(formatMoney(r.gain, { sign: 'always' }))}</Text>
+          </View>
+        ) : isUnscoredPast(r) ? (
+          // Not scored yet (half-posted): Home's season tile's dash. VoiceOver keeps "Week N, against X".
+          <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{SEASON_TILE_UNSCORED}</Text>
+        ) : null}
+      </View>
+    </>
+  );
+  const a11y = label(r, spokenWeek ?? weekLabel);
+  if (!onPress) {
+    return (
+      <View style={[styles.row, largeText ? styles.rowWrap : null, { backgroundColor: colors.surface }]} accessible accessibilityLabel={a11y}>
+        {content}
+      </View>
+    );
+  }
+  // A row that opens its week: the same tile, its content wrapping as Schedule's does, and the
+  // chevron outside the wrap (vertically centred), so at large text it never drops to a line of
+  // its own. The whole tile is the target (56pt tall at least, so never under 44).
+  return (
+    <PressableScale
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      accessibilityHint={accessibilityHint}
+      style={[styles.row, { backgroundColor: colors.surface }]}
+    >
+      <View style={[styles.rowInner, largeText ? styles.rowWrap : null]}>{content}</View>
+      <View style={styles.chevron}>
+        <Icon name="chevronRight" size="callout" tone="text2" />
+      </View>
+    </PressableScale>
+  );
+}
+
+function label(r: ScheduleRow, weekLabel?: string): string {
   const what = r.bye ? 'Bye' : r.opponent ? `against ${r.opponent}` : '';
-  if (r.state === 'live') return `Week ${r.week}, ${what}, live`;
-  if (r.state === 'next') return `Week ${r.week}, ${what}, next`;
-  if (r.bye) return `Week ${r.week}, bye, no result`;
-  if (r.gain === null || r.result === null) return `Week ${r.week}, ${what}`;
-  return `Week ${r.week}, ${what}, ${byResult(r.result, { W: 'won', L: 'lost', T: 'tie' })}, ${formatMoney(r.gain, { sign: 'always' })}`;
+  // A playoff round is spoken by its name ("Semifinals"); "Wk N" and Schedule's "W{n}" as "Week N".
+  const wk = weekLabel && !/^Wk /.test(weekLabel) ? weekLabel : `Week ${r.week}`;
+  if (r.state === 'live') return `${wk}, ${what}, live`;
+  if (r.state === 'next') return `${wk}, ${what}, next`;
+  if (r.bye) return `${wk}, bye, no result`;
+  if (r.gain === null || r.result === null) return `${wk}, ${what}`;
+  return `${wk}, ${what}, ${byResult(r.result, { W: 'won', L: 'lost', T: 'tie' })}, ${formatMoney(r.gain, { sign: 'always' })}`;
 }
 
 const styles = StyleSheet.create({
@@ -89,6 +151,9 @@ const styles = StyleSheet.create({
   // §9C: tiles 6pt apart, the ManagerRow's tile (radius 12, 12pt padding, 56pt tall).
   rows: { gap: MANAGER_ROW_GAP },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3], minHeight: 56, paddingVertical: space[4], paddingHorizontal: space[4], borderRadius: radius.row },
+  // The tappable row's content: the row's own layout, minus the tile.
+  rowInner: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  chevron: { minWidth: 24, alignItems: 'flex-end', justifyContent: 'center' },
   week: { minWidth: 30 },
   bold: { fontWeight: '700' },
   result: { marginLeft: 'auto', alignItems: 'flex-end' },

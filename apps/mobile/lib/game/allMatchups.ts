@@ -8,6 +8,7 @@
 import { liveWeekScore } from '../home/liveWeekScore';
 import { lineupRows, pricedTotal } from './lineupLedger';
 import { toLiveSnapshots, toLiveTrades, type HomeLedgerRow } from '../home/buildHomeViewModel';
+import { serverVerdict, type ServerVerdict } from './weekResult';
 
 export interface AllMatchupsInput {
   myUserId: string;
@@ -47,6 +48,8 @@ export interface AllMatchupRow {
   mine: boolean;
   /** True once the server has posted both gains (or the bye's one gain). */
   final: boolean;
+  /** The server's verdict from side a (posted games only): the Scoreboard's final line comes from it. */
+  verdict?: ServerVerdict;
 }
 
 function nameOf(names: AllMatchupsInput['names'], userId: string) {
@@ -76,7 +79,7 @@ export function buildAllMatchups(input: AllMatchupsInput): AllMatchupRow[] {
     if (posted) {
       const a: AllMatchupSide = { userId: t1, ...nameOf(input.names, t1), gain: m.team1_gain!, pct: null };
       const b: AllMatchupSide | null = bye ? null : { userId: t2!, ...nameOf(input.names, t2!), gain: m.team2_gain!, pct: null };
-      return [{ a, b, mine, final: true }];
+      return [{ a, b, mine, final: true, verdict: bye ? undefined : serverVerdict(m, t1) }];
     }
     return [{ a: sideLive(input, t1), b: bye ? null : sideLive(input, t2!), mine, final: false }];
   });

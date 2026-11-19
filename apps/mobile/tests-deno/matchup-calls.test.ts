@@ -49,7 +49,7 @@ Deno.test('order label: "Ordered by Wednesday\'s close" — the close the order 
   // Wednesday 6 PM: Wednesday closed but hasn't settled (extended hours), and Tuesday has no
   // bar here — nothing settled orders the rows, so no label.
   assertEquals(build(new Date('2026-09-23T22:00:00Z')).orderedBy, null);
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
+  const src = SOURCES['components/game/MatchupRoster.tsx'];
   assert(src.includes('{view.orderedBy ? ('), 'no label while the draft order holds');
   assert(src.includes('{orderLabel(view.orderedBy)}'));
 });
@@ -63,7 +63,7 @@ Deno.test('an empty slot: a dashed edge and "Empty", on both sides', () => {
   assert(/emptyHalf: \{\s*borderWidth: 1\.5,\s*borderStyle: 'dashed',/.test(src));
   assert(src.includes('>{EMPTY_SLOT}</Text>'));
   assert(src.includes('if (!half && !markEmpty) return <View style={slab} />;'), 'unslotted: an unmatched half is space, not a slot');
-  assert(SOURCES['app/(tabs)/matchup.tsx'].includes('markEmpty={g.label !== null}'), '"Empty" only under a slot group');
+  assert(SOURCES['components/game/MatchupRoster.tsx'].includes('markEmpty={g.label !== null}'), '"Empty" only under a slot group');
 });
 
 // ── 3. The bye (#call-mx-bye, B) ───────────────────────────────────────────────
@@ -78,8 +78,8 @@ Deno.test('bye: your half, "Bye week" in theirs, the app\'s bye line, your stock
   assertEquals(v.groups[0].rows.map((r) => r.left!.symbol), twoSided.groups[0].rows.map((r) => r.left!.symbol), 'the same order rules');
   const src = SOURCES['app/(tabs)/matchup.tsx'];
   assert(src.includes("bye={{ label: BYE_HALF, line: COPY.byeNoResult }}"));
-  assert(src.includes('theirRows={null}') && src.includes('single={!sides.opp}'));
-  assert(SOURCES['components/sp/gn/Scoreboard.tsx'].includes('const line = bye || !model ? bye?.line ?? \'\' : model.line;'), 'never a "leads by" on a bye');
+  assert(src.includes('right={null}') && SOURCES['components/game/MatchupRoster.tsx'].includes('single={!sides.opp}'));
+  assert(SOURCES['components/sp/gn/Scoreboard.tsx'].includes('const line: string | null = bye || !model ? bye?.line ?? \'\' : model.line;'), 'never a "leads by" on a bye');
   const data = SOURCES['lib/game/useRosterData.ts'];
   assert(data.includes('if (!leagueId || !me) return;'), 'the roster loads with no opponent (else a bye shows a skeleton forever)');
   assert(data.includes('const users = opp ? [me, opp] : [me];'));
@@ -93,6 +93,7 @@ Deno.test('All matchups: a bye is the bye — the team and "Bye week · no resul
   const src = SOURCES['app/(tabs)/matchup.tsx'];
   assert(src.includes('{state.rows.map((r, i) => (!r.b ? ('));
   assert(src.includes('<ByeGame key='));
+  assert(SOURCES['components/game/ByeGame.tsx'].includes('const line = COPY.byeNoResult;'));
   assert(!src.includes("r.b?.name ?? ''"), 'no nameless opponent');
 });
 
@@ -107,10 +108,10 @@ Deno.test('withheld: the line, then who held what — draft order, no figures', 
   });
   assertEquals(g.rows.map((r) => r.left!.symbol), ['NVDA', 'AAPL', 'CRM', 'TSLA', 'COST', 'V']); // picks 2 11 14 23 26 35
   assertEquals(g.rows.map((r) => r.right!.symbol), ['AMZN', 'JPM', 'DIS', 'NKE', 'KO', 'BA']);
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
+  const src = SOURCES['components/game/MatchupRoster.tsx'];
   assert(src.includes('weekGain: null, weekPct: null, figures: false'), 'the halves carry no numbers (null, never a stand-in 0)');
   assertEquals(g.rows.map((r) => [r.left!.weekGain, r.left!.weekPct]), g.rows.map(() => [null, null]), 'the view carries no numbers either');
-  assert(src.includes('<Withheld raw={raw} roster={roster} me={user.id} opp={live.opp} />'));
+  assert(SOURCES['components/game/FinishedWeek.tsx'].includes('<WithheldRoster roster={roster} left={{ userId: left.userId, ledger: left.ledger }} right={{ userId: right.userId, name: right.name, ledger: right.ledger }} />'));
   assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes("rosterHalfParts({ figures: show.kind !== 'none', stacked, mirror })"), 'the primitive draws by rosterHalfParts');
   assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const show = rosterHalfShow(half);'), "the slot comes from rosterHalfShow (figures:false = none; an unknown week = the '–')");
 });
