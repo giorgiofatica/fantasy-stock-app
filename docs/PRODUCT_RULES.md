@@ -830,6 +830,18 @@ building anything, and don't reopen a rule without him.
       picked A both times and did not ask for it to stay open. It is not a sentence of his
       own beyond "The season's over." On build 17 a finished league's Portfolio still
       offered "Buy a stock".
+    - **The Matchup tab after the season: a recap of every week, not a blank and not only
+      the last matchup** (2026-11-18, the same board, call 1; typed in the Planner's chat).
+      Found that day: in a league whose season is complete the Matchup tab is blank
+      (`apps/mobile/app/(tabs)/matchup.tsx`, `if (view.kind === 'complete') return null`),
+      with no ruling behind it. Shown A (keep the last matchup with its final result) beside
+      B (blank, as now), he picked neither. His words: "for For number one, there should be
+      some sort of like recap of it. Like if I go to the season or matchup when the season's
+      over, there should be like all the weeks like listed, and then I can click on one and
+      see how like each week's matchup went. Could you mock up something for that?"
+      - Decided by his words: after the season the tab lists the season's weeks, and tapping
+        a week shows how that week's matchup went.
+      - Not decided, going to him as a mockup: what the list looks like and what a row shows.
     - Not shown to him: a manager's portfolio viewed from a finished league. The Design Lead
       specs it to match A and shows him only if it needs a look of its own.
     - This is an exception to the grey-in-place rule below, which is about a range a chart
@@ -1317,6 +1329,16 @@ building anything, and don't reopen a rule without him.
       are not built; in the first version the plus after hours opens the stock's sheet, which
       already says when the market reopens, and the star arrives with the watchlist. ESPN's
       "Trending and recommended" section is left out until the app has the data for it.
+  - **In a finished season the Stocks tab can be browsed but offers no way to buy (A)**
+    (2026-11-18, the Design Lead's board `design/three-calls-1118`, PR #548, call 2; typed in
+    the Planner's chat: "2 A"). The list stays; the rows have no plus; a stock's sheet has
+    no Buy and no line about the season. B (the plus kept, and the sheet saying the existing
+    "{league}'s season is over.") was not picked.
+  - **The tab's icon is a storefront (B)** (same board, call 3; "3 B"). A, the magnifying
+    glass, was his first idea for the tab (2026-11-16) and what the day's mockups showed; it
+    was not picked. The reason given to him: the search button inside the tab is also a
+    magnifying glass, so with A one icon would mean two things on one screen, and the
+    storefront says where you get stocks.
   - Not decided: whether a manager can re-sort the list, and what else
     browsing offers ("look around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
