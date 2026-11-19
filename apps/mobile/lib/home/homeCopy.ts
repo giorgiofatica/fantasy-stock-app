@@ -397,14 +397,14 @@ export function sideUnpricedCaption(name: string, unpriced: string[]): string | 
  * that sentence rather than reading "null" or an empty one. */
 export function heroAccessibilityLabel(
   valueText: string,
-  gainDollarsText: string,
-  gainPctText: string,
+  /** The season-gain pair as VoiceOver says it: formatGainPair(...).spoken ("+$481.78, +4.01%"). */
+  gainSpoken: string,
   todayText: string | null,
   caption: string | null,
 ): string {
   const parts = [
     `Your team, ${valueText}.`,
-    `${gainDollarsText}, ${gainPctText} ${HERO_SEASON_GAIN_LABEL}.`,
+    `${gainSpoken} ${HERO_SEASON_GAIN_LABEL}.`,
   ];
   if (todayText) parts.push(`${todayText} ${HERO_TODAY_LABEL}.`);
   if (caption) parts.push(caption);

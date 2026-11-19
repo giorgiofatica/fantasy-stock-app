@@ -9,7 +9,7 @@ import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useMotion } from '@/components/sp/motion';
 import { Icon } from '@/components/sp/Icon';
-import { formatMoney, formatPercent, GAIN_PAIR_CLOSE, GAIN_PAIR_OPEN, isZeroMoney } from '@/components/sp/logic/money';
+import { formatGainPair, formatMoney, formatPercent, GAIN_PAIR_CLOSE, GAIN_PAIR_OPEN, isZeroMoney } from '@/components/sp/logic/money';
 import { RollingMoney } from '@/components/home/RollingMoney';
 import { HERO_SEASON_GAIN_LABEL, HERO_TODAY_LABEL, heroAccessibilityLabel, heroUnpricedCaption } from '@/lib/home/homeCopy';
 import { ordinal } from '@/lib/home/ordinal';
@@ -120,8 +120,7 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
     ? `Your team, ${valueText}. $0.00, ${preSeasonLabel}.`
     : heroAccessibilityLabel(
         valueText,
-        formatMoney(seasonGainDollars, { sign: 'always' }),
-        formatPercent(seasonGainPct, { sign: 'always' }),
+        formatGainPair(seasonGainDollars, seasonGainPct).spoken,
         todayText,
         caption,
       );
