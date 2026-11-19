@@ -472,7 +472,7 @@ function StockRow({
       ) : null}
       <PressableScale accessibilityRole="button" accessibilityLabel={rowLabel(row, category, priceText)} onPress={onOpen} style={styles.rowMain} testID={`stocks-row-${row.symbol}`}>
         <View style={[styles.disc, { backgroundColor: colors.inset }]}>
-          <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} style={{ fontSize: DISC_PT * discTickerScale(row.symbol) }}>{row.symbol}</Text>
+          <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} ellipsizeMode="clip" style={{ fontSize: DISC_PT * discTickerScale(row.symbol) }}>{row.symbol}</Text>
         </View>
         <View style={styles.lead}>
           <Text variant="ticker" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{row.symbol}</Text>
