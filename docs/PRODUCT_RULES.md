@@ -540,8 +540,39 @@ building anything, and don't reopen a rule without him.
         dash.
       - The Planner's reading, told to him and not his words: with both totals shown again,
         the line under the card that says who leads and by how much shows again too, worked
-        out from those totals; and this matches how the server scores such a week, which
-        also leaves the unpriced stock out.
+        out from those totals.
+      - CORRECTION, the same day: the Planner also told him this matched how the server
+        scores such a week. It does not. The server does not leave the stock out; it refuses
+        to score the week until every holding has a price, and retries
+        (`scoring-eligibility.ts`, `process-week-results`, `snapshot-week-end/close.ts`). So
+        a posted week always includes every stock, and only the LIVE total during the week
+        leaves one out. Told this, his words: "yes, i want the running total to not be zero
+        if there is an issue with one stock." The ruling stands, for the live screen.
+    - **A notice at the top of Matchup while a price is missing** (2026-11-19; his idea,
+      then A/B mockups for the wording and the colour, in the Planner's chat). His words:
+      "maybe what we do is we put a small info/warning banner at the top of the matchup page
+      if there is an issue pulling the price of a stock to let the user know", and, on the
+      first wording shown, "i think the banner needs to say something about arent loading
+      right now and we are working to update it or something. so the user knows we are being
+      proactive. and that the total will be updated with that when its done".
+      - Approved copy (wording "A"): **"Prices for AAPL and JPM aren't loading right now.
+        We're working on it, and the totals will update when they're back."** With one
+        stock: **"The price for AAPL isn't loading right now. We're working on it, and the
+        totals will update when it's back."** The stocks are named, not counted.
+      - Where and when: under the "My matchup | All matchups" switch, above the totals;
+        only while a price is missing during the week; never on a scored week.
+      - Colour (pick "A"): the app's teal accent as a soft tint, with an info icon. Not
+        yellow. His words: "maybe we put it in a color that matches our theme. we should
+        have a select color palette and yellow doesnt really go with it". B (the app's
+        neutral grey-blue) was not picked. The Design Lead sets the exact shades and Dark.
+      - Told to him: "We're working on it" is true as the app and the server retrying by
+        themselves until the price arrives; nobody fixes it by hand.
+    - **Yellow is not part of the theme; the Design Lead audits where it appears**
+      (2026-11-19, the same message: "A, and yes have the design lead audit the yellow").
+      The palette has a yellow for warnings today (`warnTint`, `warnText`), used on the
+      "The draft can't start yet" card among others, which he called a "big yellow box" on
+      2026-11-09. The audit lists every use and comes back to him as a board of each one in
+      the palette's own colours. Nothing changes on those screens until he picks.
     - Ruled out by his words: any figure that reads as "flat" or "zero" because the app has
       nothing to compute it from.
     - The Planner's reading, not his words: where the week's starting price was not recorded,
@@ -1372,6 +1403,14 @@ building anything, and don't reopen a rule without him.
     was not picked. The reason given to him: the search button inside the tab is also a
     magnifying glass, so with A one icon would mean two things on one screen, and the
     storefront says where you get stocks.
+  - **A long ticker shrinks to fit its round badge (A)** (2026-11-19, the Design Lead's board
+    `design/ticker-disc-1118`, PR #565; typed in the Planner's chat: "A for ticker"). The
+    round badge on a stock row (Holdings, the Stocks list, search) could not fit a
+    five-letter ticker at the app's 11pt minimum, so GOOGL, BRK.B and AMGN showed as "GO…",
+    "BR…" and "AM…". With A the badge stays round, the rows stay aligned, and the text in
+    the badge shrinks to fit (about 9pt). That is the one exception to the 11pt rule, allowed
+    because the full ticker is printed beside the badge. B (the badge widens into a pill on
+    those rows) was not picked.
   - Not decided: whether a manager can re-sort the list, and what else
     browsing offers ("look around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
