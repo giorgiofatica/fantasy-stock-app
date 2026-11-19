@@ -383,13 +383,16 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-stocks-list', 'The Stocks tab\u2019s list', () => window.KSStocksList],
+    ['call-matchup-after', 'The Matchup tab after the season', () => window.KSMatchupAfter],
+    ['call-stocks-finished', 'The Stocks tab in a finished season', () => window.KSStocksFinished],
+    ['call-stocks-icon', 'The Stocks tab\u2019s icon', () => window.KSStocksIcon],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-stocks-list', title: 'The Stocks tab\u2019s list', decision: 'A + C: the "+" at the left of each row (opens the sheet and its review), search as the first icon in the chip row. The star and claims wait for the October plan.', date: '2026-11-18', rec: 'docs/plans/2026-11-18-stocks-tab.md (part 2)', render: () => window.KSStocksListArchived },
     { id: 'call-slot-check', title: "A slot that can't be filled", decision: 'B: the check runs by itself ("Check availability" goes); a short slot shows its line in red on the slot and Create league (and League settings\u2019 Save) stays grey until it can be filled; a failed check never blocks.', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSSlotCheckArchived },
     { id: 'call-create-close', title: 'Closing Create league from any step', decision: 'A: a \u00d7 at the top right of every step closes the whole flow at once, no question; "\u2039 Back" stays top left, "Step N of 4" moves to the centre; step 1\u2019s "Cancel" becomes the \u00d7 (VoiceOver "Close").', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCreateCloseArchived },
     { id: 'call-range-gain', title: 'The gain beside each chart', decision: 'Words A ("past week" \u2026 "since the draft", "this year"); player card B: two figures (Price, Week gain) and the range\u2019s gain above the chart, "+$54.60 (+41.42%) past 6 months".', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSRangeGainArchived },
@@ -567,6 +570,9 @@
           {window.KSCreateClose ? <window.KSCreateClose /> : null}
           {window.KSSlotCheck ? <window.KSSlotCheck /> : null}
           {window.KSStocksList ? <window.KSStocksList /> : null}
+          {window.KSMatchupAfter ? <window.KSMatchupAfter /> : null}
+          {window.KSStocksFinished ? <window.KSStocksFinished /> : null}
+          {window.KSStocksIcon ? <window.KSStocksIcon /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
