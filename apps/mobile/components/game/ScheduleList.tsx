@@ -21,7 +21,7 @@ import { vsOpponentLabel } from '@/lib/home/homeCopy';
 /** Every line of a row stops at the score's own cap (score.sm, 1.3×): the result stays the
  * row's loudest text at every size (the checklist's "The standout stays loudest"; at XL the
  * uncapped name drew at ~35pt over a 19.5pt score, W4 capture). */
-const ROW_TEXT_CAP = 1.3;
+export const ROW_TEXT_CAP = 1.3;
 
 export interface ScheduleListProps {
   rows: ScheduleRow[];

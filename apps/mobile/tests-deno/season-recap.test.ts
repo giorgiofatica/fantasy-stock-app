@@ -226,6 +226,9 @@ Deno.test('status line: out in a round, or missed the playoffs; nothing for the 
   const src = SOURCES['components/game/SeasonRecap.tsx'];
   assert(src.includes("if (status.kind === 'eliminated') return eliminatedLabel(status.round);"));
   assert(src.includes(`if (status.kind === 'missed_playoffs') return "You didn't make the playoffs.";`));
+  // Capped at the rows' 1.3x (DL re-gate): at AX5 the line is context and never outweighs the rows.
+  assert(src.includes('{line ? <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{line}</Text> : null}'));
+  assert(SOURCES['components/game/ScheduleList.tsx'].includes('export const ROW_TEXT_CAP = 1.3;'));
   // The tab's existing string, verbatim.
   assert(SOURCES['app/(tabs)/matchup.tsx'].includes(`: "You didn't make the playoffs.";`));
 });

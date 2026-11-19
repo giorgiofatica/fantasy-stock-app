@@ -6,7 +6,7 @@ import { space } from '@/constants/tokens';
 import { Text } from '@/components/sp/Text';
 import { Scoreboard } from '@/components/sp/gn';
 import { MANAGER_ROW_GAP } from '@/components/sp/gn';
-import { ScheduleWeekRow } from '@/components/game/ScheduleList';
+import { ROW_TEXT_CAP, ScheduleWeekRow } from '@/components/game/ScheduleList';
 import { ByeGame } from '@/components/game/ByeGame';
 import { AllMatchupsSkeleton } from '@/components/game/LoadingSkeletons';
 import { TilesSkeleton } from '@/components/league/LeagueStates';
@@ -96,7 +96,9 @@ export function SeasonRecap({ segment, state, leagueId }: SeasonRecapProps) {
   const line = recapStatusLine(recap.status);
   return (
     <View style={styles.stack}>
-      {line ? <Text variant="callout" tone="secondary">{line}</Text> : null}
+      {/* Context, not content: capped at the rows' own 1.3x so at AX5 the season's rows stay the loudest
+          thing (DL re-gate, 2026-11-18; the gate checklist's "the standout stays loudest"). */}
+      {line ? <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{line}</Text> : null}
       <View style={styles.rows}>
         {recap.mine.map((r) => (
           <ScheduleWeekRow
