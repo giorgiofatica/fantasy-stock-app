@@ -33,6 +33,7 @@ import { SHEET_EDGE_DIVIDER } from '@/components/shell/sheetBarLogic';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
+import { DISC_PT, discTickerScale } from '@/components/sp/logic/holdingFit';
 import { Skeleton } from '@/components/Skeleton';
 import { keepMoney } from '@/lib/game/keepDots';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -57,6 +58,35 @@ const SEARCH_TEXT_MAX_SCALE = 1.6;
 /** The search field's text size (pt, before Dynamic Type): the style below and the scale-aware props both read it. */
 const SEARCH_INPUT_FONT_SIZE = 17;
 
+/**
+ * useSearchOwnership: who owns a search result, for every surface that lists search results (this screen, and the
+ * Stocks tab's search). E-3: from the same league-wide ledger the stock sheet already reads (shared/cached, not a
+ * new read, and never a new RPC). Budget and tier leagues: a buy needs a free slot; with every slot of yours held,
+ * a free stock can't be bought until you sell (the sheet's own rosterFull rule), so its row says "No free slot".
+ */
+export function useSearchOwnership(): (symbol: string) => OwnershipSuffix {
+  const { activeLeague } = useLeagueContext();
+  const { user } = useSession();
+  const leagueId = activeLeague?.id ?? (MONEY_FIXTURE ? FIXTURE_LEAGUE_ID : null);
+  const userId = MONEY_FIXTURE ? STRESS_CALLER : (user?.id ?? null);
+  const ledgerState = usePortfolioLedger(leagueId);
+  const league = MONEY_FIXTURE_CONFIG
+    ? fixtureLeague(MONEY_FIXTURE_CONFIG.stake)
+    : SEAM_ON
+      ? seamPortfolioLeague(PORTFOLIO_STAKE_VARIANT, MATCHUP_FIXTURE_VARIANT)
+      : activeLeague;
+  const roomless = !!league && !!ledgerState.ledger && !!userId
+    && (league.stake_mode === 'budget_cap' || league.stake_mode === 'price_tiers')
+    && myHoldingsFromLedger(ledgerState.ledger, userId).length >= league.num_rounds;
+
+  function ownershipFor(symbol: string): OwnershipSuffix {
+    if (!ledgerState.ledger || !userId) return { text: null, mine: false };
+    const facts = deriveStockSheetFacts({ symbol, userId, ...sheetInputsFromLedger(ledgerState.ledger) });
+    return ownershipSuffix(facts.owner, facts.conflict, roomless);
+  }
+  return ownershipFor;
+}
+
 export function StockSearchScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -73,29 +103,8 @@ export function StockSearchScreen() {
   const { edge, onScroll } = useSheetScrollEdge();
   const { results, loading, error, retry } = useMoneyStockSearch(query, '');
 
-  // E-3: ownership in results, from the same league-wide ledger the stock sheet
-  // already reads (shared/cached — not a new read, and never a new RPC).
-  const { activeLeague } = useLeagueContext();
-  const { user } = useSession();
-  const leagueId = activeLeague?.id ?? (MONEY_FIXTURE ? FIXTURE_LEAGUE_ID : null);
-  const userId = MONEY_FIXTURE ? STRESS_CALLER : (user?.id ?? null);
-  const ledgerState = usePortfolioLedger(leagueId);
-  const league = MONEY_FIXTURE_CONFIG
-    ? fixtureLeague(MONEY_FIXTURE_CONFIG.stake)
-    : SEAM_ON
-      ? seamPortfolioLeague(PORTFOLIO_STAKE_VARIANT, MATCHUP_FIXTURE_VARIANT)
-      : activeLeague;
-  // Budget and tier leagues: a buy needs a free slot; with every slot held, a free stock
-  // can't be bought until you sell (the sheet's own rosterFull rule).
-  const roomless = !!league && !!ledgerState.ledger && !!userId
-    && (league.stake_mode === 'budget_cap' || league.stake_mode === 'price_tiers')
-    && myHoldingsFromLedger(ledgerState.ledger, userId).length >= league.num_rounds;
-
-  function ownershipFor(symbol: string): OwnershipSuffix {
-    if (!ledgerState.ledger || !userId) return { text: null, mine: false };
-    const facts = deriveStockSheetFacts({ symbol, userId, ...sheetInputsFromLedger(ledgerState.ledger) });
-    return ownershipSuffix(facts.owner, facts.conflict, roomless);
-  }
+  // E-3: who owns each result, from the shared league ledger (useSearchOwnership).
+  const ownershipFor = useSearchOwnership();
 
   // DEV capture only (captureScript): type a query, pick a result, as a tap would.
   useCaptureAction('query', (q) => setQuery(q ?? ''));
@@ -206,14 +215,14 @@ export function StockSearchScreen() {
 
 /** One result: the disc, the ticker, the status on its own line, the company; the price. A
  * stock not in the league's list is dimmed with its reason and isn't a button at all. */
-function SearchRow({ item, status, onPress }: { item: ShapedSearchResult; status: OwnershipSuffix; onPress: () => void }) {
+export function SearchRow({ item, status, onPress }: { item: ShapedSearchResult; status: OwnershipSuffix; onPress: () => void }) {
   const { colors } = useTheme();
   const off = !item.selectable;
   const label = [item.symbol, item.name, status.text, item.price != null ? formatMoney(item.price) : null].filter(Boolean).join(', ');
   const content = (
     <>
       <View style={[styles.disc, off ? styles.dim : null, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{item.symbol}</Text>
+        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} style={{ fontSize: DISC_PT * discTickerScale(item.symbol) }}>{item.symbol}</Text>
       </View>
       <View style={styles.lead}>
         <Text variant="ticker" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{item.symbol}</Text>

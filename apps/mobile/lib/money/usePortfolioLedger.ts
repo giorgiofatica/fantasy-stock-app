@@ -37,6 +37,15 @@ export function invalidatePortfolioLedger(leagueId: string): void {
   ledgerCache.invalidate(leagueId);
 }
 
+/**
+ * Calls `listener` with the league id each time a league's ledger is invalidated: a fill (the server's picture changed) or a refusal
+ * (ours was wrong), from useTradeSubmit. For lists that must re-read after a trade (the Stocks tab: a bought stock leaves the list, a
+ * sold one reappears). Returns the unsubscribe. The same signal every mounted ledger hook reloads on (ledgerCache.ts).
+ */
+export function subscribePortfolioLedgerInvalidation(listener: (leagueId: string) => void): () => void {
+  return ledgerCache.subscribe(listener);
+}
+
 /** Loads the ledger for a league, de-duplicated and cached on success. */
 export function loadPortfolioLedger(leagueId: string): Promise<PortfolioLedger | null> {
   // DEV fixture: the stress ledger, no network (see devFixture.ts).

@@ -2,42 +2,150 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "8bc374f8365dc8db5e7f9bdd91d5e01570d59ff0",
-    "commitShort": "8bc374f8",
+    "commit": "4aa57fc51ef67f716c72f0139f2dbb992ca50a82",
+    "commitShort": "4aa57fc5",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/season-recap",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/game/SeasonRecap.tsx"
+        "path": "apps/mobile/app/(tabs)/_layout.tsx"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/app/(tabs)/stocks.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/sp/gn/Scoreboard.tsx"
+        "path": "apps/mobile/components/money/MoneyHost.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seamTables.ts"
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/game-night-primitives.test.ts"
+        "path": "apps/mobile/components/money/StockSearchScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/season-recap.test.ts"
+        "path": "apps/mobile/components/money/StockSheetBody.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/shell/ShellTabBar.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/shell/TabIcon.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/icon.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/components/stocks/StocksScreen.tsx"
+      },
+      {
+        "code": "UU",
+        "path": "apps/mobile/lib/game/seamCalls.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/recordTrade.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stockSheetApi.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stockSheetModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/usePortfolioLedger.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/stocks/seamStocks.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/stocks/stocksList.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/stocks/useRowPrices.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/stocks/useStocksList.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/input-remount-key.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/keep-money.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c9-board-defects.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-finished-season.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-sheet.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sell-only-held.test.ts"
+      },
+      {
+        "code": "UU",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sp-icon.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/stock-sheet-api.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/stocks-list.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/stocks-plus-review.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T18:35:11Z",
-    "sourceHash": "sha256:4f9aa20689aa9e23452aaee7935a6c92a7fd015c849f940766d2d063e611377f",
+    "timestamp": "2026-11-19T18:53:04Z",
+    "sourceHash": "sha256:943a8786130179cf9ea49450ecec6aeb4b488e53e7dbb0bf0b97cd256c695e6c",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 18.4,
+    "ageHours": 18.6,
     "ageDays": 0.8,
     "staleAfterDays": 14,
     "stale": false,
@@ -11301,6 +11409,40 @@
       "drift": [],
       "annotation": null,
       "verified": true,
+      "id": "ui.stocks.useRowPrices",
+      "label": "useRowPrices.ts",
+      "sublabel": "mobile/lib/stocks/useRowPrices.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/lib/stocks/useRowPrices.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "ui.stocks.useStocksList",
+      "label": "useStocksList.ts",
+      "sublabel": "mobile/lib/stocks/useStocksList.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/lib/stocks/useStocksList.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
       "id": "ui.tests-deno.account-deletion-wiring.test",
       "label": "account-deletion-wiring.test.ts",
       "sublabel": "mobile/tests-deno/account-deletion-wiring.test.ts",
@@ -20229,7 +20371,7 @@
       "payload": ".from('league_members').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:130"
+        "apps/mobile/lib/game/seamCalls.ts:148"
       ]
     },
     {
@@ -20242,7 +20384,7 @@
       "payload": ".from('leagues').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:124"
+        "apps/mobile/lib/game/seamCalls.ts:142"
       ]
     },
     {
@@ -20255,7 +20397,7 @@
       "payload": ".from('leagues').update()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:87"
+        "apps/mobile/lib/game/seamCalls.ts:105"
       ]
     },
     {
@@ -21453,8 +21595,8 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('record-trade')",
       "callSites": [
-        "apps/mobile/lib/money/recordTrade.ts:33",
-        "apps/mobile/lib/money/recordTrade.ts:73"
+        "apps/mobile/lib/money/recordTrade.ts:34",
+        "apps/mobile/lib/money/recordTrade.ts:81"
       ]
     },
     {
@@ -22379,6 +22521,36 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.ui.stocks.useRowPrices->fn.quote",
+      "from": "ui.stocks.useRowPrices",
+      "to": "fn.quote",
+      "protocol": "https-invoke",
+      "payload": "functions.invoke('quote')",
+      "callSites": [
+        "apps/mobile/lib/stocks/useRowPrices.ts:26"
+      ],
+      "via": [
+        "seamInvoke"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.stocks.useStocksList->pg.get_league_available_stocks",
+      "from": "ui.stocks.useStocksList",
+      "to": "pg.get_league_available_stocks",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('get_league_available_stocks')",
+      "callSites": [
+        "apps/mobile/lib/stocks/useStocksList.ts:62"
+      ],
+      "via": [
+        "seamRpc"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.ui.tests-deno.account-deletion-wiring.test->pg.deleted_manager_label",
       "from": "ui.tests-deno.account-deletion-wiring.test",
       "to": "pg.deleted_manager_label",
@@ -23039,7 +23211,7 @@
           "edge": "e.ui.money.recordTrade->fn.record-trade",
           "detail": "The ONLY trade write path since DR-001 Phase 3: the client-INSERT policy on trades was dropped (20260811000002). In-code getUser() is the auth boundary (verify_jwt=false since Phase 4b). The same function answers the review's advisory preview (slot map, would_fill — which ignores the budget, so the client refuses an over-budget buy itself).",
           "files": [
-            "apps/mobile/lib/money/recordTrade.ts:33"
+            "apps/mobile/lib/money/recordTrade.ts:34"
           ]
         },
         {
@@ -23154,6 +23326,7 @@
         "ui.src.context.PriceContext.jsx",
         "ui.src.pages.DraftPage.jsx",
         "ui.game.useAllMatchups",
+        "ui.stocks.useRowPrices",
         "ui.money.useStockSheetData",
         "fn.ticker-quotes",
         "ui.useStockPrices",
@@ -23176,13 +23349,15 @@
             "e.ui.src.components.TradeModal.jsx->fn.quote",
             "e.ui.src.context.PriceContext.jsx->fn.quote",
             "e.ui.src.pages.DraftPage.jsx->fn.quote",
-            "e.ui.game.useAllMatchups->fn.quote"
+            "e.ui.game.useAllMatchups->fn.quote",
+            "e.ui.stocks.useRowPrices->fn.quote"
           ],
           "detail": "quote — single-symbol live price. The most-invoked function in the app.",
           "files": [
             "apps/mobile/lib/game/useAllMatchups.ts:83",
             "apps/mobile/lib/home/useHomeLeague.ts:692",
             "apps/mobile/lib/money/priceReads.ts:45",
+            "apps/mobile/lib/stocks/useRowPrices.ts:26",
             "apps/web/src/components/TradeModal.jsx:159",
             "apps/web/src/components/TradeModal.jsx:63",
             "apps/web/src/context/PriceContext.jsx:99",
@@ -23991,21 +24166,6 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
-      "node": "pg.get_league_available_stocks",
-      "label": "get_league_available_stocks(p_league_id uuid, p_category_id uuid, p_after_symbol text, p_limit integer)",
-      "kind": "pg-function",
-      "source": "supabase/migrations/20261207000100_league_available_stocks.sql:76",
-      "outbound": [
-        "tbl.categories",
-        "tbl.category_rules",
-        "tbl.drafts",
-        "tbl.symbol_category_overrides",
-        "tbl.symbols",
-        "tbl.trades"
-      ],
-      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
-    },
-    {
       "node": "pg.heal_account_deletions",
       "label": "heal_account_deletions(p_min_age interval, p_limit integer)",
       "kind": "pg-function",
@@ -24318,7 +24478,7 @@
         "surface": "client",
         "name": "callRecordTrade",
         "file": "apps/mobile/lib/money/recordTrade.ts",
-        "line": 21,
+        "line": 22,
         "kind": "seam-stub",
         "detail": "invoke:record-trade"
       },
@@ -24334,7 +24494,7 @@
         "surface": "client",
         "name": "seamInsertLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 119,
+        "line": 137,
         "kind": "seam-stub",
         "detail": "leagues.insert"
       },
@@ -24342,7 +24502,7 @@
         "surface": "client",
         "name": "seamInsertMember",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 127,
+        "line": 145,
         "kind": "seam-stub",
         "detail": "league_members.insert"
       },
@@ -24350,7 +24510,7 @@
         "surface": "client",
         "name": "seamInvoke",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 78,
+        "line": 96,
         "kind": "forwarder:invoke",
         "detail": "argument 0 is the function name"
       },
@@ -24358,7 +24518,7 @@
         "surface": "client",
         "name": "seamRpc",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 64,
+        "line": 74,
         "kind": "forwarder:rpc",
         "detail": "argument 0 is the RPC name"
       },
@@ -24366,7 +24526,7 @@
         "surface": "client",
         "name": "seamSaveLeagueSlots",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 133,
+        "line": 151,
         "kind": "seam-stub",
         "detail": "league_draft_slots.delete, league_draft_slots.insert"
       },
@@ -24382,7 +24542,7 @@
         "surface": "client",
         "name": "seamUpdateLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 84,
+        "line": 102,
         "kind": "seam-stub",
         "detail": "leagues.update"
       },
@@ -24507,12 +24667,12 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 329,
-    "edges": 793,
+    "nodes": 331,
+    "edges": 795,
     "flows": 7,
     "drift": 34,
     "driftHigh": 0,
-    "deadCode": 63,
+    "deadCode": 62,
     "unverified": 16
   },
   "sourceIndex": {
@@ -24560,12 +24720,13 @@
       "apps/mobile/lib/invite/invitePreviewApi.ts:14 -> invite-preview",
       "apps/mobile/lib/money/priceReads.ts:45 -> quote",
       "apps/mobile/lib/money/priceReads.ts:60 -> historical-bars",
-      "apps/mobile/lib/money/recordTrade.ts:33 -> record-trade",
-      "apps/mobile/lib/money/recordTrade.ts:73 -> record-trade",
+      "apps/mobile/lib/money/recordTrade.ts:34 -> record-trade",
+      "apps/mobile/lib/money/recordTrade.ts:81 -> record-trade",
       "apps/mobile/lib/money/useStockChartData.ts:62 -> historical-bars",
       "apps/mobile/lib/money/useStockSheetData.ts:139 -> ticker-quotes",
       "apps/mobile/lib/money/useStockSheetData.ts:155 -> symbol-name",
       "apps/mobile/lib/money/useTradeSubmit.ts:35 -> record-trade (via callRecordTrade)",
+      "apps/mobile/lib/stocks/useRowPrices.ts:26 -> quote (via seamInvoke)",
       "apps/mobile/lib/useStockNames.ts:13 -> symbol-name",
       "apps/mobile/lib/useStockPrices.ts:32 -> ticker-quotes",
       "apps/mobile/lib/useSymbolSearch.ts:85 -> symbols-search",
@@ -24621,6 +24782,7 @@
       "apps/mobile/lib/money/usePortfolioLedger.ts:22 -> get_portfolio_ledger",
       "apps/mobile/lib/shell/usernameApi.ts:30 -> check_usernames",
       "apps/mobile/lib/shell/usernameApi.ts:49 -> set_username",
+      "apps/mobile/lib/stocks/useStocksList.ts:62 -> get_league_available_stocks (via seamRpc)",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:154 -> deleted_manager_label",
       "apps/mobile/tests-deno/gn-w4-draft.test.ts:162 -> get_league_pick_industries",
       "apps/mobile/tests-deno/read-result.test.ts:42 -> symbols_enrichment_progress",
@@ -24728,9 +24890,9 @@
       "apps/mobile/lib/categoryData.ts:138 -> league_draft_slots.insert",
       "apps/mobile/lib/categoryData.ts:145 -> league_draft_slots.select",
       "apps/mobile/lib/categoryData.ts:65 -> categories.select",
-      "apps/mobile/lib/game/seamCalls.ts:124 -> leagues.insert",
-      "apps/mobile/lib/game/seamCalls.ts:130 -> league_members.insert",
-      "apps/mobile/lib/game/seamCalls.ts:87 -> leagues.update",
+      "apps/mobile/lib/game/seamCalls.ts:105 -> leagues.update",
+      "apps/mobile/lib/game/seamCalls.ts:142 -> leagues.insert",
+      "apps/mobile/lib/game/seamCalls.ts:148 -> league_members.insert",
       "apps/mobile/lib/game/useAllMatchups.ts:45 -> matchups.select",
       "apps/mobile/lib/game/useAllMatchups.ts:58 -> week_snapshots.select",
       "apps/mobile/lib/game/useAllMatchups.ts:68 -> trades.select",
