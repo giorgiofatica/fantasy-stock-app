@@ -5,9 +5,10 @@
  * notice says why. Shown during a LIVE week only, never on a scored one. It replaces the old
  * "N holdings counted at cost" caption on that screen.
  *
- * The copy is Giorgio's approved text, exactly (any change goes to the Planner). Three or more stocks join
- * as "AAPL, JPM and KO" through the app's one joiner (listSymbols; Design Lead, 2026-11-19). A long list is
- * never cut: every ticker, and the text wraps. Pure, so tests-deno/matchup-unpriced.test.ts pins it.
+ * The copy is Giorgio's approved text, exactly (any change goes to the Planner). One or two stocks are named
+ * ("AAPL and JPM" through the app's one joiner, listSymbols). THREE OR MORE are not listed: "make it plural and
+ * general" (Giorgio, 2026-11-19; the wording approved: "that wording is good, approved"). Pure, so
+ * tests-deno/matchup-unpriced.test.ts pins it.
  */
 import { keepCode } from './keepDots';
 import { listSymbols } from './listSymbols';
@@ -22,12 +23,16 @@ export function missingPriceSymbols(mine: readonly string[], theirs: readonly st
   return out;
 }
 
+/** Three or more unpriced stocks: Giorgio's approved general sentence, no tickers (2026-11-19). */
+export const PRICE_NOTICE_MANY = "Prices for multiple stocks aren't loading right now. We're working on it, and the totals will update when they're back.";
+
 /** The notice's text, or null when every price is in (then nothing is drawn). */
 export function priceNoticeText(symbols: readonly string[]): string | null {
   if (symbols.length === 0) return null;
   if (symbols.length === 1) {
     return `The price for ${symbols[0]} isn't loading right now. We're working on it, and the totals will update when it's back.`;
   }
+  if (symbols.length >= 3) return PRICE_NOTICE_MANY;
   return `Prices for ${listSymbols(symbols)} aren't loading right now. We're working on it, and the totals will update when they're back.`;
 }
 

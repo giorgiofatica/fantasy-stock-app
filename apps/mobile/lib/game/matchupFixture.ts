@@ -23,7 +23,7 @@
  *               is the sum of the rest, and the price notice names both (Giorgio, PR #562).
  *  - 'unpriced1'  the same with ONE unpriced stock (Roberto's AAPL): the notice's one-stock copy.
  *  - 'unpriced5'  FIVE, including BRK.B (a new stock Roberto bought Thursday morning, never quoted):
- *               "AAPL, CRM, BRK.B, JPM and KO", the long list the notice wraps in full.
+ *               three or more, so the notice's general sentence names none (Giorgio, 2026-11-19).
  */
 import {
   ROBERTO_HOLDINGS, GIANLUIGI_HOLDINGS, XL_ROBERTO_HOLDINGS, XL_GIANLUIGI_HOLDINGS, XL_MILLION_ROBERTO_HOLDINGS,

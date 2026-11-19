@@ -12,7 +12,7 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import { buildMatchupLive, type MatchupInput } from '../lib/game/buildMatchupViewModel.ts';
 import { buildAllMatchups, type AllMatchupsInput } from '../lib/game/allMatchups.ts';
 import { pricedTotal } from '../lib/game/lineupLedger.ts';
-import { missingPriceSymbols, NOTICE_MAX_SCALE, noticeIconMetrics, priceNoticeDisplay, priceNoticeText } from '../lib/game/priceNotice.ts';
+import { missingPriceSymbols, NOTICE_MAX_SCALE, noticeIconMetrics, PRICE_NOTICE_MANY, priceNoticeDisplay, priceNoticeText } from '../lib/game/priceNotice.ts';
 import { listSymbols } from '../lib/game/listSymbols.ts';
 import { WORD_JOINER } from '../lib/game/keepDots.ts';
 import { rosterHalfLabel, rosterHalfParts, rosterHalfShow, scoreboardModel, WEEK_UNKNOWN } from '../components/sp/logic/gameNight.ts';
@@ -127,12 +127,16 @@ Deno.test('Matchup tab: live and bye totals are SideView.total (numbers); a bye 
 
 // ── The price notice ───────────────────────────────────────────────────────────────
 
-Deno.test('notice text: Giorgio\'s approved copy, exactly, for one and for two stocks', () => {
+Deno.test('notice text: Giorgio\'s approved copy, exactly: one and two stocks named, three or more general', () => {
   assertEquals(priceNoticeText([]), null, 'every price in: no notice');
   assertEquals(priceNoticeText(['AAPL']), "The price for AAPL isn't loading right now. We're working on it, and the totals will update when it's back.");
   assertEquals(priceNoticeText(['AAPL', 'JPM']), "Prices for AAPL and JPM aren't loading right now. We're working on it, and the totals will update when they're back.");
-  // Three or more: the Design Lead's call; provisional "A, B and C".
-  assertEquals(priceNoticeText(['AAPL', 'JPM', 'KO']), "Prices for AAPL, JPM and KO aren't loading right now. We're working on it, and the totals will update when they're back.");
+  // Three or more: NOT listed, "plural and general" (Giorgio, 2026-11-19: "that wording is good, approved").
+  const many = "Prices for multiple stocks aren't loading right now. We're working on it, and the totals will update when they're back.";
+  assertEquals(PRICE_NOTICE_MANY, many);
+  assertEquals(priceNoticeText(['AAPL', 'JPM', 'KO']), many);
+  assertEquals(priceNoticeText(['AAPL', 'CRM', 'BRK.B', 'JPM', 'KO']), many, 'five: the same sentence, no tickers');
+  assert(!/AAPL|JPM|KO/.test(priceNoticeText(['AAPL', 'JPM', 'KO'])!), 'no ticker named at 3+');
 });
 
 Deno.test('notice stocks: BOTH teams\', each once, yours first', () => {
@@ -142,25 +146,27 @@ Deno.test('notice stocks: BOTH teams\', each once, yours first', () => {
   assertEquals(missingPriceSymbols([], ['JPM']), ['JPM'], 'their missing price is named too');
 });
 
-Deno.test('notice joining: the app\'s ONE joiner (listSymbols, shared with the draft queue); a long list is never cut', () => {
+Deno.test('notice joining: the app\'s ONE joiner (listSymbols, shared with the draft queue) names two stocks', () => {
   assertEquals(listSymbols(['AAPL']), 'AAPL');
   assertEquals(listSymbols(['AAPL', 'JPM']), 'AAPL and JPM');
   assertEquals(listSymbols(['AAPL', 'JPM', 'MSFT']), 'AAPL, JPM and MSFT', 'no comma before "and"');
-  const five = ['AAPL', 'CRM', 'BRK.B', 'JPM', 'KO'];
-  assertEquals(priceNoticeText(five), "Prices for AAPL, CRM, BRK.B, JPM and KO aren't loading right now. We're working on it, and the totals will update when they're back.");
+  assertEquals(priceNoticeText(['AAPL', 'JPM'])!.startsWith('Prices for AAPL and JPM '), true, 'two: joined by listSymbols');
   assert(strip(SOURCES['lib/game/draftQueue.ts']).includes("import { listSymbols } from './listSymbols';"), 'the queue uses the same joiner');
   assert(!strip(SOURCES['lib/game/draftQueue.ts']).includes('function listSymbols'), 'no second copy');
   assert(strip(SOURCES['lib/game/priceNotice.ts']).includes('${listSymbols(symbols)}'));
 });
 
-Deno.test('notice display: each ticker kept whole (BRK.B never breaks at the dot); VoiceOver reads the plain sentence', () => {
-  const syms = ['A', 'AAPL', 'BRK.B'];
+Deno.test('notice display: each named ticker kept whole (BRK.B never breaks at the dot); VoiceOver reads the plain sentence', () => {
+  const brk = priceNoticeText(['BRK.B'])!;
+  assert(priceNoticeDisplay(brk, ['BRK.B']).includes(['B', 'R', 'K', '.', 'B'].join(WORD_JOINER)), 'BRK.B joined glyph to glyph');
+  const syms = ['A', 'AAPL'];
   const plain = priceNoticeText(syms)!;
   const shown = priceNoticeDisplay(plain, syms);
-  assert(shown.includes(['B', 'R', 'K', '.', 'B'].join(WORD_JOINER)), 'BRK.B joined glyph to glyph');
   assert(shown.includes(['A', 'A', 'P', 'L'].join(WORD_JOINER)), 'AAPL joined');
   assertEquals(shown.split(WORD_JOINER).join(''), plain, 'display only: the same sentence once the joiners are removed');
-  assert(shown.includes(`Prices for A, ${['A', 'A', 'P', 'L'].join(WORD_JOINER)}`), '"A" is matched as a whole word, never inside AAPL');
+  assert(shown.includes(`Prices for A and ${['A', 'A', 'P', 'L'].join(WORD_JOINER)}`), '"A" is matched as a whole word, never inside AAPL');
+  // Three or more names no ticker, so there is nothing to keep whole.
+  assertEquals(priceNoticeDisplay(PRICE_NOTICE_MANY, ['AAPL', 'JPM', 'KO']), PRICE_NOTICE_MANY);
   const card = strip(SOURCES['components/game/PriceNotice.tsx']);
   assert(card.includes('accessibilityLabel={text}') && card.includes('{priceNoticeDisplay(text, symbols)}'), 'label plain, display joined');
 });
@@ -261,14 +267,14 @@ Deno.test("capture: the 'unpriced' Matchup fixture has one HELD, unpriced stock 
   assert(strip(SOURCES['lib/home/useHomeLeague.ts']).includes('if (matchupExtras.unpriced.includes(sym)) return null;'), 'the seam quote honours it');
 });
 
-Deno.test("capture: 'unpriced1' (one stock) and 'unpriced5' (five, with BRK.B bought this week) drive the notice's three shapes", () => {
+Deno.test("capture: 'unpriced1' (one stock), 'unpriced' (two) and 'unpriced5' (five, with BRK.B bought this week) drive the notice's three shapes", () => {
   assertEquals(parseMatchupFixture('unpriced1'), 'unpriced1');
   assertEquals(parseMatchupFixture('unpriced5'), 'unpriced5');
   assertEquals(priceNoticeText([...matchupWeekExtras('unpriced1').unpriced]), "The price for AAPL isn't loading right now. We're working on it, and the totals will update when it's back.");
   assertEquals(priceNoticeText([...matchupWeekExtras('unpriced').unpriced]), "Prices for AAPL and JPM aren't loading right now. We're working on it, and the totals will update when they're back.");
   const five = matchupWeekExtras('unpriced5');
   assertEquals(five.unpriced, [...UNPRICED_VARIANT_SYMBOLS.unpriced5]);
-  assertEquals(priceNoticeText(five.unpriced), "Prices for AAPL, CRM, BRK.B, JPM and KO aren't loading right now. We're working on it, and the totals will update when they're back.");
+  assertEquals(priceNoticeText(five.unpriced), PRICE_NOTICE_MANY, 'five: the general sentence');
   assertEquals(five.trades.map((t) => [t.symbol, t.action]), [['BRK.B', 'buy']], 'BRK.B is HELD: a buy this week');
   const ledger = fixtureLedger('unpriced5', 'me', 'gia');
   assert(ledger.activity.some((r) => r.user_id === 'me' && r.symbol === 'BRK.B' && r.kind === 'trade'));
