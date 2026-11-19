@@ -17,6 +17,9 @@
 //   - CONFLICT   the pull request no longer merges with main
 //   - RED        a check has failed
 //   - FINDINGS   Copilot has review threads that are not resolved and not outdated
+//   - MAIN RED   the newest commit on main has a failed check. Two pull requests can
+//                each be green and still break main together (#554 + #555, 2026-11-19),
+//                and nothing on a pull request shows that
 // Reported but not counted, because they clear by themselves:
 //   - CHECKING   GitHub has not finished working out whether it merges (this can
 //                last several minutes after a push; it is not a conflict)
@@ -35,6 +38,8 @@ if (repo.status !== 0) die(`could not read the repository: ${repo.stderr}`);
 const { owner, name } = JSON.parse(repo.stdout);
 
 const query = `query($owner:String!,$name:String!){repository(owner:$owner,name:$name){
+  defaultBranchRef{name target{... on Commit{oid statusCheckRollup{state contexts(first:50){nodes{
+    __typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}}}}}}}
   pullRequests(states:OPEN,first:50,orderBy:{field:CREATED_AT,direction:ASC}){totalCount nodes{
     number title isDraft mergeable headRefName
     commits(last:1){nodes{commit{statusCheckRollup{state contexts(first:50){nodes{
@@ -51,6 +56,17 @@ if (prs.totalCount > prs.nodes.length) die(`only ${prs.nodes.length} of ${prs.to
 
 const BAD = new Set(['FAILURE', 'ERROR', 'TIMED_OUT', 'CANCELLED', 'ACTION_REQUIRED', 'STARTUP_FAILURE']);
 let needing = 0;
+const main = body.data.repository.defaultBranchRef;
+const mainCtx = main?.target?.statusCheckRollup?.contexts.nodes ?? [];
+const mainFailed = mainCtx.filter((c) => BAD.has(c.conclusion ?? '') || BAD.has(c.state ?? '')).map((c) => c.name ?? c.context);
+const mainRunning = mainCtx.filter((c) => (c.__typename === 'CheckRun' ? c.status !== 'COMPLETED' : c.state === 'PENDING'));
+let mainRed = false;
+if (mainFailed.length) {
+  mainRed = true;
+  console.log(`NEEDS ATTENTION ${main.name} @ ${main.target.oid.slice(0, 8)}\n  MAIN RED: ${mainFailed.join(', ')}\n  Fix main first; every open pull request is tested against it.`);
+} else if (showAll || mainRunning.length) {
+  console.log(`${mainRunning.length ? 'WAIT ' : 'OK   '}${main.name} @ ${main.target.oid.slice(0, 8)}${mainRunning.length ? `\n  RUNNING: ${mainRunning.length} checks` : ''}`);
+}
 for (const p of prs.nodes) {
   if (ignored.has(p.number)) { if (showAll) console.log(`SKIP #${p.number} ${p.headRefName} (parked)`); continue; }
   const reasons = [];
@@ -75,4 +91,5 @@ for (const p of prs.nodes) {
   }
 }
 console.log(needing ? `\n${needing} of ${prs.nodes.length} open pull requests need attention.` : `\nAll ${prs.nodes.length} open pull requests are clear or still running.`);
-process.exit(needing ? 1 : 0);
+if (mainRed) console.log('main itself is RED.');
+process.exit(needing || mainRed ? 1 : 0);
