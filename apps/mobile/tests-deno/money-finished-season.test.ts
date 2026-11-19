@@ -257,8 +257,9 @@ Deno.test('F4: a finished team with no cash keeps the plain "Portfolio value" la
 
 Deno.test('a finished chart\'s axis ends at the season\'s last day, not today, with the clock weeks later', () => {
   // The league's matchups end Fri Sep 25 (the final's week_end, Sep 25 4 PM ET); the season was stamped complete
-  // on Nov 20; today is Dec 31. The last day is the latest matchup's, never completed_at's, never today.
-  const matchups = [{ week_end: '2026-09-18T20:00:00.000Z' }, { week_end: '2026-09-25T20:00:00.000Z' }];
+  // on Nov 20; today is Dec 31. The last day is the latest SCORED matchup's (team1_gain posted, #555), never
+  // completed_at's, never today.
+  const matchups = [{ week_end: '2026-09-18T20:00:00.000Z', team1_gain: 1.5 }, { week_end: '2026-09-25T20:00:00.000Z', team1_gain: -0.4 }];
   const endEt = seasonEndEt(matchups, '2026-11-20T15:00:00.000Z');
   assertEquals(endEt, '2026-09-25');
   for (const todayEt of ['2026-09-26', '2026-11-18', '2026-12-31']) {
@@ -274,7 +275,9 @@ Deno.test('a finished chart\'s axis ends at the season\'s last day, not today, w
 
 Deno.test('Portfolio\'s finished branch builds its series and days from the season end, today plays no part', () => {
   const code = (SOURCES['components/money/PortfolioScreen.tsx'] ?? '').split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
-  assert(code.includes('const endEt = finished && homeSettled ? seasonEndEt(leagueRaw?.data.matchups, completedAt) : null;'));
+  // The end is the WHOLE league's last scored week (useSeasonEnd, #555), never Home's caller-scoped matchups.
+  assert(code.includes("const endEt = finished && seasonEnd.status === 'ready' ? seasonEnd.endEt : null;"));
+  assert(!code.includes('seasonEndEt(leagueRaw'), 'never the caller-scoped matchups');
   assert(code.includes('dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt, endEt: chartEnd })'));
   assert(code.includes('chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd })'), 'finished: the series is the season-end one');
   assert(code.indexOf('finishedPortfolioSeries({ daily, endEt: chartEnd })') < code.indexOf('portfolioSeries({ range: shownRange'), 'checked before the live path');

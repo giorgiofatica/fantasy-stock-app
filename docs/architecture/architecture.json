@@ -2,30 +2,18 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "201c1bf9e80f21e82f63f5362d369215717ff76d",
-    "commitShort": "201c1bf9",
+    "commit": "e25bedd0d0e0ed487091dc820e842d47847215aa",
+    "commitShort": "e25bedd0",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/stocks-tab-screen",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/lib/stocks/stocksList.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/stocks/useStocksList.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/stocks-list.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
+        "path": "apps/mobile/tests-deno/money-finished-season.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T17:38:30Z",
+    "timestamp": "2026-11-19T17:40:03Z",
     "sourceHash": "sha256:b008a8797920d50f489ec893e9619e0bb57c4878b168a6da8c61b409368272dd",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
