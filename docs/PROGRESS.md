@@ -23,6 +23,30 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-19
+
+(Times are UTC, and this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. The overnight merges of 01:30Z to 06:55Z are in the 2026-11-18 entry, which runs on Pacific time.)
+
+**Shipped**
+- Nothing is recorded as reaching players or prod so far today.
+
+**Merged, not confirmed live**
+- **#561 (17:38:31Z, `dd2701aa`), a test-only fix for a red `main`** (I read it on GitHub; one test file). **Main's CI on it was still running when I looked, so no green is recorded.** The red: the runs on `41a5e906` (06:48Z) and `8fbf072a` (06:55Z) FAILED, after #554's tests and #555's season-end change had each passed alone and merged back to back (the Orchestrator's account); the ruleset is not strict.
+
+**Decided**
+- **Giorgio turned on "Require conversation resolution before merging"** on the review ruleset (I read it: `required_review_thread_resolution` true; the status check is still `All checks` and still not strict).
+
+**Found**
+- **#547's server answer contradicts what Giorgio was told (the Orchestrator's account):** the server refuses to score a league-week until every stock is priced. Back with Giorgio; #547 stays a draft.
+
+**Waiting on Giorgio**
+- His answer on #547; whether to make the CI check strict; the supplier for the price feed; the January SDK start.
+
+**Next**
+- Open: #562 (rules: the Matchup total and prices in the app only), #563 (Stocks tab Part 2, the screen), #564 (`pr-watch` reports a red main), #565 (the Design Lead's long-ticker badge board), #557, #547, #279, and my record #560.
+- Read main's CI on `dd2701aa` before calling `main` green.
+- Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.
+
 ## 2026-11-18
 
 (Times are UTC. The Orchestrator's account unless marked; where I read it myself on GitHub or in the repo, I say so.)
