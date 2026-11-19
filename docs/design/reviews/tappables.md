@@ -156,13 +156,13 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/PlayerPortfolioScreen.tsx:204` | LoadFailure | onRetry | `retry` | fn retry |  |
 | `components/money/PlayerPortfolioScreen.tsx:231` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
 | `components/money/PlayerPortfolioScreen.tsx:253` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
-| `components/money/PortfolioScreen.tsx:257` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/money/PortfolioScreen.tsx:264` | LoadFailure | onRetry | `inline: () => { void home.refresh(); data.refresh(); }` | fn home.refresh |  |
-| `components/money/PortfolioScreen.tsx:268` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
-| `components/money/PortfolioScreen.tsx:334` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
-| `components/money/PortfolioScreen.tsx:364` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
-| `components/money/PortfolioScreen.tsx:387` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
-| `components/money/PortfolioScreen.tsx:395` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
+| `components/money/PortfolioScreen.tsx:260` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/money/PortfolioScreen.tsx:267` | LoadFailure | onRetry | `inline: () => { void home.refresh(); data.refresh(); }` | fn home.refresh |  |
+| `components/money/PortfolioScreen.tsx:271` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
+| `components/money/PortfolioScreen.tsx:337` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
+| `components/money/PortfolioScreen.tsx:367` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
+| `components/money/PortfolioScreen.tsx:390` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
+| `components/money/PortfolioScreen.tsx:398` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
 | `components/money/SalePicker.tsx:85` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
 | `components/money/SalePicker.tsx:108` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
 | `components/money/SalePicker.tsx:115` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |

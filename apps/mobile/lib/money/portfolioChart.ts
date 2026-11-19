@@ -123,6 +123,10 @@ export function draftDateOf(rows: readonly ChartActivityRow[]): string | null {
   return first;
 }
 
+/** The server's price ladder look-back (supabase/functions/_shared/week-price.ts PREV_CLOSE_MAX_SESSIONS): a session with no bar
+ * takes the stock's previous real close from within this many market sessions before it, never an older one. */
+export const PREV_CLOSE_MAX_SESSIONS = 5;
+
 /** No market closure is longer than this many calendar days (a weekend plus a holiday is 4), so two real
  * points further apart than this have DATA missing between them, not a closed market. */
 export const MAX_GAP_DAYS = 5;
@@ -151,8 +155,10 @@ function heldOn(rows: readonly ChartActivityRow[], date: string): string[] {
  * The team's value line: the stake at cost on the draft day, then each trading day's close after it
  * (before today, or up to the season's last day with `endEt`). NEVER an invented stretch (Giorgio,
  * 2026-11-18: "never incorrect, never old, never missing"):
- *   - a date is drawn only when EVERY stock held on it has a REAL close on that very date: no carried
- *     forward close, no stock valued at cost, no partial sum of the stocks that do have bars;
+ *   - a date is drawn only when EVERY stock held on it has a REAL close: its own bar, or, for a session with no
+ *     bar (a zero-volume day), its PREVIOUS REAL CLOSE within PREV_CLOSE_MAX_SESSIONS (5) market sessions, the same
+ *     ladder the server scores a week with (_shared/week-price.ts, #513), so the chart agrees with the score. Past
+ *     that: no stock valued at cost, no partial sum of the stocks that do have bars, and the date is not drawn;
  *   - a hole breaks the line (`breakBefore`) instead of joining its two sides: a date in the middle that is
  *     not complete, or two drawn dates further apart than any market closure (MAX_GAP_DAYS);
  *   - the draft-day point (the stake) joins the line only when real data follows it directly; otherwise it
@@ -181,15 +187,28 @@ export function dailyValues(input: { rows: readonly ChartActivityRow[]; bars: Ba
     closes.set(sym.toUpperCase(), by);
   }
   const universe = [...dates].sort();
+  // A stock's price on session `i` of the universe: its own bar, else its most recent real close within the previous
+  // PREV_CLOSE_MAX_SESSIONS sessions (the server's ladder), else none.
+  const priceOn = (sym: string, i: number): number | null => {
+    const by = closes.get(sym.toUpperCase());
+    if (!by) return null;
+    const own = by.get(universe[i]);
+    if (own != null) return own;
+    for (let j = i - 1; j >= Math.max(0, i - PREV_CLOSE_MAX_SESSIONS); j--) {
+      const c = by.get(universe[j]);
+      if (c != null) return c;
+    }
+    return null;
+  };
 
   // Every date whose closes are all real, in order; each says whether a hole lies before it.
   const points: DailyValue[] = [];
   let prev: { date: string; complete: boolean } = { date: start, complete: true };
-  for (const date of universe) {
+  for (const [i, date] of universe.entries()) {
     const held = heldOn(rows, date);
-    const complete = held.every((sym) => closes.get(sym)?.has(date));
+    const complete = held.every((sym) => priceOn(sym, i) != null);
     if (complete) {
-      const value = valueThrough(rows, date, stake, (sym) => closes.get(sym.toUpperCase())?.get(date) ?? null);
+      const value = valueThrough(rows, date, stake, (sym) => priceOn(sym, i));
       const breaks = !prev.complete || dayOffset(prev.date, date) > MAX_GAP_DAYS;
       points.push({ date, value: cents(value), ...(breaks ? { breakBefore: true } : {}) });
     }

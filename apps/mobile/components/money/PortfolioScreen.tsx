@@ -43,6 +43,7 @@ import { PortfolioSkeleton } from '@/components/money/PortfolioSkeleton';
 import { RollingMoney } from '@/components/home/RollingMoney';
 import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
+import type { AxisSpec } from '@/components/sp/logic/chartAxis';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
 import { dailyValues, DEFAULT_PORTFOLIO_RANGE, draftValueOf, finishedPortfolioSeries, sinceTheDraftGain, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
@@ -82,6 +83,8 @@ function seamCardBars(path: readonly { date: string; close: number }[], home: re
   return [...path, ...home.filter((b) => b.date > last)];
 }
 
+/** The empty chart frame (no date has a real close for every holding): no axis labels, since nothing is drawn for a date. */
+const EMPTY_FRAME_AXIS: AxisSpec = { kind: 'sessions', days: [] };
 /** The value line's plot height (the board's amended Portfolio frame: 168). */
 const CHART_HEIGHT = 168;
 /** The hero's label, caption and sub-lines follow Dynamic Type to 1.3×, so the value stays the
@@ -309,13 +312,13 @@ export function PortfolioScreen() {
             {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
           </View>
           {series ? (
-            <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} />
+            <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} unknown={series.points.length === 0} />
           ) : null}
           {series ? (
             <Chart
               points={series.points}
               base={series.base}
-              axis={series.axis}
+              axis={series.points.length ? series.axis : EMPTY_FRAME_AXIS}
               height={CHART_HEIGHT}
               bleed={space[6]}
               live={over ? false : marketOpen}

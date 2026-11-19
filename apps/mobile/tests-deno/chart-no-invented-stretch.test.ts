@@ -68,22 +68,53 @@ Deno.test('a Friday-evening draft joins Monday\'s close (a weekend is not a hole
 
 // ── (v): a hole in the middle breaks the line ─────────────────────────────────────────────────
 
-Deno.test('a mid-gap: a day one stock lacks breaks the line, it does not bridge', () => {
+// ── the zero-volume day: the server's ladder (PREV_CLOSE_MAX_SESSIONS = 5 sessions) ──────────────────────
+
+const DAYS = ['2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09', '2026-01-12', '2026-01-13', '2026-01-14'];
+
+Deno.test('one session with no bar carries the stock\'s previous real close (no break, no invented value)', () => {
   const bars = {
-    NVDA: [bar('2026-01-05', 101), bar('2026-01-06', 102), bar('2026-01-07', 103), bar('2026-01-08', 104)],
+    NVDA: DAYS.slice(0, 4).map((d, i) => bar(d, 101 + i)),
     AAPL: [bar('2026-01-05', 51), bar('2026-01-07', 53), bar('2026-01-08', 54)], // no bar on Jan 6
   };
   const d = dailyValues({ rows: ROWS, bars, stake: STAKE, todayEt: TODAY, endEt: '2026-01-08' });
-  assertEquals(d, [
+  assertEquals(d.map((x) => [x.date, x.value, x.breakBefore === true]), [
+    ['2026-01-04', 150, false], ['2026-01-05', 152, false],
+    ['2026-01-06', 153, false], // NVDA 102 + AAPL's previous real close 51
+    ['2026-01-07', 156, false], ['2026-01-08', 158, false],
+  ]);
+});
+
+Deno.test('five sessions in a row with no bar still carry; the SIXTH breaks the line (the same look-back as the server)', () => {
+  // AAPL's last real bar is Jan 5; NVDA trades every day. Sessions with no AAPL bar: Jan 6, 7, 8, 9, 12 (five), then Jan 13 (six).
+  const bars = { NVDA: DAYS.map((d, i) => bar(d, 101 + i)), AAPL: [bar('2026-01-05', 51), bar('2026-01-14', 60)] };
+  const d = dailyValues({ rows: ROWS, bars, stake: STAKE, todayEt: TODAY, endEt: '2026-01-14' });
+  const dates = d.map((x) => x.date);
+  for (const day of ['2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09', '2026-01-12']) assert(dates.includes(day), `${day} carries (within 5 sessions of Jan 5)`);
+  assert(!dates.includes('2026-01-13'), 'the sixth no-bar session has no price: not drawn');
+  const back = d.find((x) => x.date === '2026-01-14')!;
+  assertEquals(back.breakBefore, true, 'and the line breaks across it rather than bridging');
+  assertEquals(back.value, 108 + 60, 'AAPL\'s own bar again');
+});
+
+Deno.test('a mid-gap longer than the ladder breaks the line, it does not bridge', () => {
+  // AAPL has no bar from Jan 6 to Jan 13 (six sessions); NVDA trades every day.
+  const bars = { NVDA: DAYS.map((d, i) => bar(d, 101 + i)), AAPL: [bar('2026-01-05', 51), bar('2026-01-14', 60)] };
+  const d = dailyValues({ rows: ROWS, bars, stake: STAKE, todayEt: TODAY, endEt: '2026-01-14' });
+  assertEquals(d.filter((x) => x.breakBefore).map((x) => x.date), ['2026-01-14']);
+});
+
+Deno.test('the geometry of a break: the path restarts and the stroke length leaves the gap out', () => {
+  const daily = [
     { date: '2026-01-04', value: 150 }, { date: '2026-01-05', value: 152 },
     { date: '2026-01-07', value: 156, breakBefore: true }, { date: '2026-01-08', value: 158 },
-  ]);
-  // The geometry: the path restarts at the break and the stroke length leaves the gap out.
-  const s = finishedPortfolioSeries({ daily: d, endEt: '2026-01-08' });
-  const g = buildLine(s.points, [0, 4], s.base, { width: 400, height: 100, padLeft: 0, padRight: 0, padTop: 0, padBottom: 0 });
+  ];
+  const s = finishedPortfolioSeries({ daily, endEt: '2026-01-08' });
+  const box = { width: 400, height: 100, padLeft: 0, padRight: 0, padTop: 0, padBottom: 0 };
+  const g = buildLine(s.points, [0, 4], s.base, box);
   assertEquals((g.path.match(/M/g) ?? []).length, 2, 'two strokes');
   assertEquals(g.points.map((p) => p.gapBefore === true), [false, false, true, false]);
-  const joined = buildLine(s.points.map((p) => ({ t: p.t, value: p.value })), [0, 4], s.base, { width: 400, height: 100, padLeft: 0, padRight: 0, padTop: 0, padBottom: 0 });
+  const joined = buildLine(s.points.map((p) => ({ t: p.t, value: p.value })), [0, 4], s.base, box);
   assert(g.length < joined.length, 'the unbridged line is shorter than the bridged one');
 });
 
@@ -229,4 +260,24 @@ Deno.test('capture knob: applyBarsFault removes only what it names', () => {
   assertEquals(applyBarsFault('AAPL', b, { kind: 'late', symbol: 'AAPL', date: '2026-09-10' }).length, 2);
   assertEquals(applyBarsFault('NVDA', b, { kind: 'late', symbol: 'AAPL', date: '2026-09-10' }), b, 'another symbol is untouched');
   assertEquals(applyBarsFault('NVDA', b, { kind: 'gap', symbol: 'NVDA', from: '2026-09-08', to: '2026-09-12' }).map((x) => x.date), ['2026-09-01', '2026-09-15']);
+});
+
+// ── the empty frame (the Planner, 2026-11-19): the app's "–", never a blank; Season still says since the draft ──────
+
+Deno.test('no line: the chart keeps its empty frame, the gain line is the app\'s dash (not a blank), no stray axis label', () => {
+  const read = (p: string) => Deno.readTextFileSync(new URL(p, import.meta.url));
+  const line = read('../components/sp/gn/RangeGainLine.tsx');
+  assert(line.includes("const UNKNOWN_DASH = '\\u2013';"), 'the en dash, the one Schedule and the card use');
+  assert(line.includes('if (!gain && unknown) {') && line.includes('{UNKNOWN_DASH}'));
+  const screen = read('../components/money/PortfolioScreen.tsx');
+  assert(screen.includes('unknown={series.points.length === 0}'));
+  assert(screen.includes('axis={series.points.length ? series.axis : EMPTY_FRAME_AXIS}'), 'no axis labels under an empty chart');
+  assert(screen.includes("const EMPTY_FRAME_AXIS: AxisSpec = { kind: 'sessions', days: [] };"));
+  // No new words and no screen-level failure for it.
+  assert(!/LoadFailure[^\n]*seasonEnd[^\n]*points/.test(screen));
+});
+
+Deno.test('Season still says since the draft when there is no line and the value is real (live); with no real value it is the dash', () => {
+  assertEquals(sinceTheDraftGain(190, 150)!.money, 40);
+  assertEquals(sinceTheDraftGain(null, 150), null, 'a finished season with no real value: no figure, so the dash');
 });
