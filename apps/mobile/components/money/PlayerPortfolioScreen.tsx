@@ -31,6 +31,7 @@ import { useSheetScrollEdge } from '@/components/shell/useSheetScrollEdge';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { HoldingRow, ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { PortfolioSkeleton } from '@/components/money/PortfolioSkeleton';
+import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
 import type { ThemeColors } from '@/constants/tokens/color';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
@@ -66,7 +67,6 @@ import { isSeasonOver } from '@/lib/weekStatus';
 
 /** The hero's sub-lines follow Dynamic Type to 1.3× (the value stays the standout), as Portfolio's do. */
 const HERO_LINE_MAX_SCALE = 1.3;
-const NBSP = '\u00a0';
 
 /** gain/loss/zero -> its theme colour (the Portfolio hero's own mapping). */
 function toneColor(colors: ThemeColors, tone: 'gain' | 'loss' | 'zero' | null): string {
@@ -75,17 +75,13 @@ function toneColor(colors: ThemeColors, tone: 'gain' | 'loss' | 'zero' | null): 
   return colors.zero;
 }
 
-/** A hero sub-line: "+$X · +Y% since the draft". Static (no roll: this screen never live-updates
- * under your eyes). The "·" stays glued to the figure before it, so a wrapped line never starts
- * with one (§5 "Wrapping at XL"). */
-function HeroLine({ label, money, pct, words, color }: { label: string; money: string; pct: string; words: string; color: string }) {
+/** A hero sub-line: "+$X (+Y%) since the draft". The same RollingGainPair Portfolio draws (brackets, a
+ * no-wrap figure group, grey words), so the two screens read alike. Static in effect: this screen never
+ * live-updates under your eyes, so the roll key never changes and nothing rolls. */
+function HeroLine({ label, money, pct, words, color, rollKey }: { label: string; money: string; pct: string; words: string; color: string; rollKey: string }) {
   return (
-    <View accessible accessibilityLabel={label} style={styles.heroLine}>
-      <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>{`${money}${NBSP}· `}</Text>
-      <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>
-        {pct}
-        <Text variant="callout" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.regular}>{`${NBSP}${words}`}</Text>
-      </Text>
+    <View accessible accessibilityLabel={label}>
+      <RollingGainPair money={money} pct={pct} words={words} color={color} rollKey={rollKey} maxScale={HERO_LINE_MAX_SCALE} />
     </View>
   );
 }
@@ -222,10 +218,10 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
           )}
           <Text variant="money" accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${finished ? 'Final, ' : ''}${v.valueText}`} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{v.valueText}</Text>
           {v.gainMoneyText && v.gainPctText ? (
-            <HeroLine label={`${v.gainText} ${v.sinceDraftLabel}`} money={v.gainMoneyText} pct={v.gainPctText} words={v.sinceDraftLabel} color={toneColor(colors, v.gainTone)} />
+            <HeroLine label={`${v.gainText} ${v.sinceDraftLabel}`} money={v.gainMoneyText} pct={v.gainPctText} words={v.sinceDraftLabel} color={toneColor(colors, v.gainTone)} rollKey={userId} />
           ) : null}
           {v.todayMoneyText && v.todayPctText ? (
-            <HeroLine label={`${v.todayText} today`} money={v.todayMoneyText} pct={v.todayPctText} words="today" color={toneColor(colors, v.todayTone)} />
+            <HeroLine label={`${v.todayText} today`} money={v.todayMoneyText} pct={v.todayPctText} words="today" color={toneColor(colors, v.todayTone)} rollKey={userId} />
           ) : null}
           {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
         </View>
@@ -306,9 +302,7 @@ const styles = StyleSheet.create({
   findBlock: { gap: space[3] },
   factRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', columnGap: space[3] },
   listHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: space[1] },
-  heroLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' },
   bold: { fontWeight: '700' },
-  regular: { fontWeight: '400' },
   extraBold: { fontWeight: '800' },
   center: { textAlign: 'center' },
 });

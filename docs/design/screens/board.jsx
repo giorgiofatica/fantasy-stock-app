@@ -383,15 +383,15 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-matchup-after', 'The Matchup tab after the season', () => window.KSMatchupAfter],
-    ['call-stocks-finished', 'The Stocks tab in a finished season', () => window.KSStocksFinished],
-    ['call-stocks-icon', 'The Stocks tab\u2019s icon', () => window.KSStocksIcon],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-matchup-after', title: 'The Matchup tab after the season', decision: 'Superseded: neither A nor B. He wants a season recap (the weeks listed, each opening that week\u2019s matchup); the Planner is mocking it with him as its own call.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSMatchupAfterArchived },
+    { id: 'call-stocks-finished', title: 'The Stocks tab in a finished season', decision: 'A: no "+" on the rows and no Buy (and no line) on a stock\u2019s sheet; the list stays to browse.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSStocksFinishedArchived },
+    { id: 'call-stocks-icon', title: 'The Stocks tab\u2019s icon', decision: 'B: the storefront (Ionicons storefront-outline / storefront).', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSStocksIconArchived },
     { id: 'call-stocks-list', title: 'The Stocks tab\u2019s list', decision: 'A + C: the "+" at the left of each row (opens the sheet and its review), search as the first icon in the chip row. The star and claims wait for the October plan.', date: '2026-11-18', rec: 'docs/plans/2026-11-18-stocks-tab.md (part 2)', render: () => window.KSStocksListArchived },
     { id: 'call-slot-check', title: "A slot that can't be filled", decision: 'B: the check runs by itself ("Check availability" goes); a short slot shows its line in red on the slot and Create league (and League settings\u2019 Save) stays grey until it can be filled; a failed check never blocks.', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSSlotCheckArchived },
     { id: 'call-create-close', title: 'Closing Create league from any step', decision: 'A: a \u00d7 at the top right of every step closes the whole flow at once, no question; "\u2039 Back" stays top left, "Step N of 4" moves to the centre; step 1\u2019s "Cancel" becomes the \u00d7 (VoiceOver "Close").', date: '2026-11-17', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCreateCloseArchived },

@@ -41,6 +41,7 @@ import { LoadFailure } from '@/components/money/LoadFailure';
 import { HoldingRow, ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { PortfolioSkeleton } from '@/components/money/PortfolioSkeleton';
 import { RollingMoney } from '@/components/home/RollingMoney';
+import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
@@ -288,14 +289,16 @@ export function PortfolioScreen() {
               </View>
             )}
             {!over && v.todayMoneyText && v.todayPctText ? (
-              <HeroLine
-                label={`${v.todayMoneyText} (${v.todayPctText}) today`}
-                money={v.todayMoneyText}
-                pct={v.todayPctText}
-                words="today"
-                color={toneColor(colors, v.todayTone)}
-                rollKey={rollKey}
-              />
+              <View accessible accessibilityLabel={`${v.todayText} today`}>
+                <RollingGainPair
+                  money={v.todayMoneyText}
+                  pct={v.todayPctText}
+                  words="today"
+                  color={toneColor(colors, v.todayTone)}
+                  rollKey={rollKey}
+                  maxScale={HERO_LINE_MAX_SCALE}
+                />
+              </View>
             ) : null}
             {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
           </View>
@@ -442,28 +445,6 @@ export function PortfolioScreen() {
   );
 }
 
-/** A hero sub-line: "+$X (+Y%) today" (Design Lead gate, 2026-11-17: the bracket format of every gain
- * line, and the WHOLE line in the gain colour, "today" included; zero stays the neutral grey). The
- * money and the percent roll as two units (C-6/M3: one string misaligns mid-roll). The figures are one
- * non-wrapping run, so a wrapped line breaks only before the word (§5 "Wrapping at XL"), and everything
- * caps at 1.3x so the value stays the screen's loudest text at XL (§5 "The standout stays loudest").
- * Above 1.3x the sp Text primitive (and RollingMoney) turn that cap into an explicit size
- * (cappedType.ts): Home draws the same figures uncapped in the same face, and iOS gave the capped copies
- * those uncapped boxes (P2, 2026-10-16/19). */
-function HeroLine({ label, money, pct, words, color, rollKey }: { label: string; money: string; pct: string; words: string; color: string; rollKey: string }) {
-  return (
-    <View accessible accessibilityLabel={label} style={styles.rollRow}>
-      <View style={styles.nowrap}>
-        <RollingMoney text={money} size="callout" fontWeight="700" color={color} rollKey={rollKey} maxScale={HERO_LINE_MAX_SCALE} />
-        <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>{'\u00a0('}</Text>
-        <RollingMoney text={pct} size="callout" fontWeight="700" color={color} rollKey={rollKey} maxScale={HERO_LINE_MAX_SCALE} />
-        <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>)</Text>
-      </View>
-      <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{`\u00a0${words}`}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: space[6], paddingTop: space[2], paddingBottom: space[9] },
@@ -473,8 +454,6 @@ const styles = StyleSheet.create({
   heroText: { gap: space[1] },
   captionRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] },
   pillsRow: { marginTop: -space[3], marginBottom: -space[3] },
-  rollRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' },
-  nowrap: { flexDirection: 'row', alignItems: 'baseline' },
   facts: { gap: space[3] },
   factRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', columnGap: space[3] },
   linkRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingHorizontal: space[5], paddingVertical: space[4] },
