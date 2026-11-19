@@ -225,7 +225,7 @@ export interface RangeGainText {
   figures: string;
   /** The approved period words ("past 6 months"). */
   words: string;
-  /** Everything, plain, for VoiceOver. */
+  /** Everything, for VoiceOver: the pair comma-joined, then the words ("+$54.60, +41.42% past 6 months"). */
   label: string;
   /** The words with a no-break space between each: the period phrase never breaks. */
   keptWords: string;
@@ -237,7 +237,7 @@ export interface RangeGainText {
  * phrase as one run whose spaces are no-break (keptWords).
  */
 export function rangeGainText(range: ChartRange, gain: RangeGain): RangeGainText {
-  const { money, pct, text: figures } = formatGainPair(gain.money, gain.pct);
+  const { money, pct, text: figures, spoken } = formatGainPair(gain.money, gain.pct);
   const words = RANGE_WORDS[range];
-  return { money, pct, figures, words, label: `${figures} ${words}`, keptWords: words.replace(/ /g, NBSP) };
+  return { money, pct, figures, words, label: `${spoken} ${words}`, keptWords: words.replace(/ /g, NBSP) };
 }

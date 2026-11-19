@@ -220,10 +220,10 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
           )}
           <Text variant="money" accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${finished ? 'Final, ' : ''}${v.valueText}`} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{v.valueText}</Text>
           {v.gainMoneyText && v.gainPctText ? (
-            <HeroLine label={`${v.gainText} ${v.sinceDraftLabel}`} money={v.gainMoneyText} pct={v.gainPctText} words={v.sinceDraftLabel} color={toneColor(colors, v.gainTone)} rollKey={userId} />
+            <HeroLine label={`${v.gainSpoken} ${v.sinceDraftLabel}`} money={v.gainMoneyText} pct={v.gainPctText} words={v.sinceDraftLabel} color={toneColor(colors, v.gainTone)} rollKey={userId} />
           ) : null}
           {v.todayMoneyText && v.todayPctText ? (
-            <HeroLine label={`${v.todayText} today`} money={v.todayMoneyText} pct={v.todayPctText} words="today" color={toneColor(colors, v.todayTone)} rollKey={userId} />
+            <HeroLine label={`${v.todaySpoken} today`} money={v.todayMoneyText} pct={v.todayPctText} words="today" color={toneColor(colors, v.todayTone)} rollKey={userId} />
           ) : null}
           {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
         </View>
