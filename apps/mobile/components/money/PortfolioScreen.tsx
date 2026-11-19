@@ -45,7 +45,7 @@ import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, draftValueOf, finishedPortfolioSeries, sinceTheDraftGain, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, draftValueOf, drawsALine, finishedPortfolioSeries, sinceTheDraftGain, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
 import { seasonEndEt } from '@/lib/money/seasonEnd';
 import { isSeasonOver } from '@/lib/weekStatus';
 import { PhaseChip } from '@/components/sp/PhaseChip';
@@ -168,9 +168,10 @@ export function PortfolioScreen() {
   // starts late or has no points at all (missing early bars); the other ranges are measured from the window.
   // It is a figure only when the value is fully real (every holding priced, none counted at cost); otherwise the dash.
   const lastValue = series?.points.length ? series.points[series.points.length - 1].value : chart?.value ?? null;
-  const gain = !series ? null : gainRange === 'Season' ? (chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null) : rangeGain(series.points, series.base);
+  // A window with fewer than two points has no move to measure: the dash, never a made-up $0.00.
+  const gain = !series ? null : gainRange === 'Season' ? (chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null) : series.points.length < 2 ? null : rangeGain(series.points, series.base);
   // No line to draw: the WHOLE chart block (frame, axis, range buttons) is absent; only the value and its gain line stay.
-  const hasLine = !!series && series.points.length > 0;
+  const hasLine = !!series && drawsALine(series.points.length, daily.length);
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
   const card = useMemo(() => {

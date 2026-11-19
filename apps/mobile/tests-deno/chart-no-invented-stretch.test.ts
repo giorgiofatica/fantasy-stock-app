@@ -13,7 +13,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  dailyValues, draftValueOf, finishedPortfolioSeries, MAX_GAP_DAYS, portfolioSeries, sinceTheDraftGain, type ChartActivityRow,
+  dailyValues, draftValueOf, drawsALine, finishedPortfolioSeries, MAX_GAP_DAYS, portfolioSeries, sinceTheDraftGain, type ChartActivityRow,
 } from '../lib/money/portfolioChart.ts';
 import { rangeGain } from '../lib/chart/chartRanges.ts';
 import { buildLine } from '../components/sp/logic/lineChart.ts';
@@ -270,13 +270,23 @@ Deno.test('no line: the WHOLE chart block is absent (no frame, no axis label, no
   assert(line.includes("const UNKNOWN_DASH = '\\u2013';"), 'the en dash, the one Schedule and the card use');
   assert(line.includes('if (!gain && unknown) {') && line.includes('{UNKNOWN_DASH}'));
   const screen = read('../components/money/PortfolioScreen.tsx');
-  assert(screen.includes('const hasLine = !!series && series.points.length > 0;'));
+  assert(screen.includes('const hasLine = !!series && drawsALine(series.points.length, daily.length);'));
   assert(screen.includes('{hasLine && series ? (\n            <Chart'), 'the chart is drawn only with a line');
   assert(screen.includes('{over || !hasLine ? null : ('), 'no range buttons without a line');
   assert(screen.includes('unknown={gain === null}'), 'an unknown gain is the dash, not a blank');
   assert(!screen.includes('EMPTY_FRAME_AXIS'), 'no empty frame');
   // The card: a finished season with no line has no chart block at all.
-  assert(read('../components/money/StockChart.tsx').includes('if (frozen && ready && frozen.points.length === 0) return null;'));
+  assert(read('../components/money/StockChart.tsx').includes('if (frozen && ready && !drawsALine(frozen.points.length, 0)) return null;'));
+});
+
+Deno.test('one point is a dot, not a line: no chart block, and no made-up $0.00 move', () => {
+  assertEquals(drawsALine(0, 0), false);
+  assertEquals(drawsALine(1, 0), false, 'a lone live value');
+  assertEquals(drawsALine(1, 1), false, 'a lone anchor');
+  assertEquals(drawsALine(2, 0), true);
+  assertEquals(drawsALine(1, 5), true, 'the picked window is one point but a longer range has a line: keep the buttons');
+  const screen = Deno.readTextFileSync(new URL('../components/money/PortfolioScreen.tsx', import.meta.url));
+  assert(screen.includes('series.points.length < 2 ? null : rangeGain(series.points, series.base)'), 'a window of one point has no move: the dash');
 });
 
 Deno.test('since the draft is the dash unless the value is fully real (no holding counted at cost)', () => {

@@ -29,6 +29,7 @@ import { formatMoney } from '@/components/sp/logic/money';
 import {
   asChartRange, CHART_RANGES, rangeFirstDay, rangeGain, selectableRange, SHEET_DEFAULT_RANGE, type ChartRange,
 } from '@/lib/chart/chartRanges';
+import { drawsALine } from '@/lib/money/portfolioChart';
 import { finishedStockSeries, stockGreyedRanges, stockLineSeries } from '@/lib/money/stockChartSeries';
 import { useStockChartData } from '@/lib/money/useStockChartData';
 import { useCaptureAction } from '@/lib/money/captureScript';
@@ -109,7 +110,7 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
     if (next && !greyed.includes(next)) setPicked(next);
   });
   // A season that is over with no line to draw (no real closes): the whole chart block is absent, no frame, axis or label.
-  if (frozen && ready && frozen.points.length === 0) return null;
+  if (frozen && ready && !drawsALine(frozen.points.length, 0)) return null;
   return (
     <View style={styles.wrap}>
       <RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />

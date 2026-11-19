@@ -234,6 +234,15 @@ export function portfolioHistoryStart(daily: readonly DailyValue[]): string | nu
   return daily[0]?.date ?? null;
 }
 
+/**
+ * Is there a LINE to draw? One point (a lone live value, a lone draft-day anchor) is a dot, not a line, so it
+ * does not earn a chart block. `dailyCount` keeps the buttons when the window picked has one point but a longer
+ * range has a line (the viewer must be able to switch to it).
+ */
+export function drawsALine(windowPoints: number, dailyCount: number): boolean {
+  return windowPoints >= 2 || dailyCount >= 2;
+}
+
 /** The ranges that are grey on Portfolio: those longer than the league has existed (history = the
  * league's age, from the draft). Season never is (its first day IS the draft day); 1W never is. */
 export function portfolioGreyedRanges(daily: readonly DailyValue[], todayEt: string): ChartRange[] {
