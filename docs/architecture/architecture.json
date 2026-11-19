@@ -2,18 +2,13 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "9eeeb0ff177b05ba3a36eb136213969c0c331536",
-    "commitShort": "9eeeb0ff",
+    "commit": "63fd4a87dc66b550be5fc4b3c1eb402aadcc5a2b",
+    "commitShort": "63fd4a87",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/season-recap",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      }
-    ],
-    "timestamp": "2026-11-19T06:55:51Z",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-19T17:39:58Z",
     "sourceHash": "sha256:74e6730e1205badbd7f02581c4b2e75a23e0b20555e8fef4f5d25106088bdb21",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -21,8 +16,8 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 6.7,
-    "ageDays": 0.3,
+    "ageHours": 17.4,
+    "ageDays": 0.7,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
