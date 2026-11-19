@@ -111,6 +111,7 @@ function WeekBody({ league, week, a, b }: { league: string; week: number; a: str
       week={week}
       isPlayoff={detail.isPlayoff}
       result={detail.result}
+      verdict={detail.verdict}
       mine={a === user.id}
       left={{ userId: a, name: aName, gain: detail.aGain, ledger: finalLines.ledgers?.mine ?? null, open: openTeam(a, aName) }}
       right={{ userId: b, name: bName, gain: detail.bGain, ledger: finalLines.ledgers?.theirs ?? null, open: openTeam(b, bName) }}

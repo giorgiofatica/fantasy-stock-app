@@ -14,7 +14,7 @@
 import { playoffRoundLabelForWeek, playoffRoundShortName } from '../playoffs';
 import { seasonTileWeekLabel } from '../home/homeCopy';
 import { checkRowsComplete } from './readGuard';
-import { serverVerdict, weekResult, type WeekResult } from './weekResult';
+import { serverVerdict, weekResult, type ServerVerdict, type WeekResult } from './weekResult';
 
 /** A `matchups` row, as useSeasonRecap reads it. */
 export interface RecapMatchup {
@@ -74,6 +74,8 @@ export interface RecapGame {
   mine: boolean;
   /** True once both gains (or the bye's one gain) posted. */
   final: boolean;
+  /** The server's verdict from side a (a posted two-sided game): the card's final line comes from it. */
+  verdict?: ServerVerdict;
   opens: RecapOpen | null;
 }
 
@@ -198,6 +200,7 @@ export function buildRecap(input: RecapInput): SeasonRecap {
       b: bId === null ? null : { userId: bId, name: nameOf(bId), gain: bGain },
       mine: isMine,
       final,
+      verdict: bId === null || !final ? undefined : serverVerdict(m, aId),
       opens: bId === null || !final ? null : { week: m.week_number, a: aId, b: bId },
     };
     const w = weeks.get(m.week_number) ?? { week: m.week_number, label: label(m), isPlayoff: m.is_playoff, games: [] };
@@ -246,6 +249,8 @@ export interface RecapGameDetail {
   bGain: number;
   /** Side a's result (the one decider). */
   result: WeekResult;
+  /** The server's verdict from side a: the card's final line comes from it, never the dollars. */
+  verdict: ServerVerdict | undefined;
   weekStart: string | null;
   weekEnd: string | null;
 }
@@ -262,6 +267,7 @@ export function recapGameDetail(matchups: readonly RecapMatchup[], week: number,
     aGain: (aIsT1 ? m.team1_gain : m.team2_gain)!,
     bGain: (aIsT1 ? m.team2_gain : m.team1_gain)!,
     result,
+    verdict: serverVerdict(m, a),
     weekStart: m.week_start,
     weekEnd: m.week_end,
   };

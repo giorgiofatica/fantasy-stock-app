@@ -94,7 +94,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftRoom.tsx:509` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
 | `components/game/DraftRoom.tsx:519` | Button | onPress | `draft` | fn draft | `pending` |
 | `components/game/DraftRoom.tsx:575` | Button | onPress | `room.refresh` | prop room.refresh |  |
-| `components/game/FinishedWeek.tsx:71` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
+| `components/game/FinishedWeek.tsx:74` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
 | `components/game/InfoPopup.tsx:44` | Pressable | onPress | `inline: () => onOpen(info)` | fn onOpen |  |
 | `components/game/InfoPopup.tsx:87` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/game/InfoPopup.tsx:196` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
@@ -132,7 +132,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/RenewalRoster.tsx:107` | Pressable | onPress | `inline: () => runSheet(p)` | fn runSheet |  |
 | `components/game/ScheduleList.tsx:124` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/SeasonRecap.tsx:61` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
-| `components/game/SeasonRecap.tsx:121` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
+| `components/game/SeasonRecap.tsx:122` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
 | `components/game/SetupRows.tsx:162` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:189` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:248` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
@@ -269,8 +269,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/sp/gn/PlayerCard.tsx:185` | PressableScale | onPress | `action.onPress` | prop action.onPress | `action.disabled` |
 | `components/sp/gn/RangePills.tsx:55` | Pressable | onPress | `inline: () => { if (selected \|\| dead) return; Haptics.selectionAsync` | fn onChange | `dead` |
 | `components/sp/gn/RosterRow.tsx:169` | PressableScale | onPress | `half.onPress` | prop half.onPress |  |
-| `components/sp/gn/Scoreboard.tsx:148` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
-| `components/sp/gn/Scoreboard.tsx:159` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
+| `components/sp/gn/Scoreboard.tsx:154` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
+| `components/sp/gn/Scoreboard.tsx:165` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
 | `components/sp/gn/SegmentTabs.tsx:41` | Pressable | onPress | `inline: () => { if (selected) return; Haptics.selectionAsync().catch` | fn onChange |  |
 | `components/stocks/StocksScreen.tsx:142` | ChipRow | onSelect | `list.selectCategory` | prop list.selectCategory |  |
 | `components/stocks/StocksScreen.tsx:144` | SearchField | onChange | `inline: (q) => dispatchControl({ type: 'type', query: q })` | fn dispatchControl |  |

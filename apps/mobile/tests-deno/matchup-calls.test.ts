@@ -79,7 +79,7 @@ Deno.test('bye: your half, "Bye week" in theirs, the app\'s bye line, your stock
   const src = SOURCES['app/(tabs)/matchup.tsx'];
   assert(src.includes("bye={{ label: BYE_HALF, line: COPY.byeNoResult }}"));
   assert(src.includes('right={null}') && SOURCES['components/game/MatchupRoster.tsx'].includes('single={!sides.opp}'));
-  assert(SOURCES['components/sp/gn/Scoreboard.tsx'].includes('const line = bye || !model ? bye?.line ?? \'\' : model.line;'), 'never a "leads by" on a bye');
+  assert(SOURCES['components/sp/gn/Scoreboard.tsx'].includes('const line: string | null = bye || !model ? bye?.line ?? \'\' : model.line;'), 'never a "leads by" on a bye');
   const data = SOURCES['lib/game/useRosterData.ts'];
   assert(data.includes('if (!leagueId || !me) return;'), 'the roster loads with no opponent (else a bye shows a skeleton forever)');
   assert(data.includes('const users = opp ? [me, opp] : [me];'));

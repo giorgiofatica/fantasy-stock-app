@@ -121,7 +121,10 @@ Deno.test('Matchup\'s finalGains: a tie is T; the server\'s winner decides a dol
   assertEquals(finalGains(data(58.75, 58.75, { winner_user_id: null, is_tie: true }), OPP)?.result, 'T');
   assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), ME)?.result, 'L');
   assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), OPP)?.result, 'W');
-  assertEquals(finalGains(data(72.1, -20.5), ME), { me: 72.1, opp: -20.5, result: 'W' });
+  // No winner_user_id on the row (an older RPC): the result falls back to dollars; no verdict for the card.
+  assertEquals(finalGains(data(72.1, -20.5), ME), { me: 72.1, opp: -20.5, result: 'W', verdict: undefined });
+  // With the server's field, the verdict rides along for the Scoreboard's final line.
+  assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), ME)?.verdict, 'opponent');
   assertEquals(finalGains(data(12, null), ME), null);
 });
 

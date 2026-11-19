@@ -135,10 +135,14 @@ function playoffMatchups(live = false) {
  * 'champion' (default) = Home's 'complete' bracket; 'semis' = out in the Semifinals; 'missed' =
  * no playoff game; 'tie_bye' = the champion's season with a tied week 3 and a bye in week 2;
  * 'unposted' = the champion's season with week 1 MIXED: your game and Paolo-Luca never posted
- * (gains null), Chiara-Marco posted (the case the empty chevron gutter lines up). */
-export type RecapFixture = 'champion' | 'semis' | 'missed' | 'tie_bye' | 'unposted';
+ * (gains null), Chiara-Marco posted (the case the empty chevron gutter lines up); 'tiebreak' = week 14
+ * holds every final-line case (review 2 on #566): your game, which the server gives to Gianluigi although
+ * you have more dollars (no line; its detail reconciles: the snapshot fixture's own totals); Paolo-Luca,
+ * equal dollars with the server naming Luca (no line); Chiara-Marco, a normal win; and a true tie,
+ * Luca-Marco again (the fixture league has six managers, so a fourth game repeats two of them). */
+export type RecapFixture = 'champion' | 'semis' | 'missed' | 'tie_bye' | 'unposted' | 'tiebreak';
 export function parseRecapFixture(v: string | undefined): RecapFixture {
-  return v === 'semis' || v === 'missed' || v === 'tie_bye' || v === 'unposted' ? v : 'champion';
+  return v === 'semis' || v === 'missed' || v === 'tie_bye' || v === 'unposted' || v === 'tiebreak' ? v : 'champion';
 }
 
 /** The fixture league's regular season (the shell's finished league, fx-summer: num_weeks 14). */
@@ -192,6 +196,16 @@ export function seasonMatchups(variant: RecapFixture) {
       : [...wildCard, row(SF, paolo, chiara, 203.75, 118.2, true), row(SF, SEAM_ME, luca, 288.1, 96.42, true), scored(F, SEAM_ME, paolo)];
   const season = [...regular, ...playoffs];
   // A week that never posted: no gains, no winner (the recap's dash, nothing to open).
+  if (variant === 'tiebreak') {
+    const w = SEASON_WEEKS;
+    const week = [
+      { ...row(w, SEAM_ME, gianluigi, closedGain(SEAM_ME), closedGain(gianluigi)), winner_user_id: gianluigi, is_tie: false },
+      { ...row(w, paolo, luca, 34.04, 34.04), winner_user_id: luca, is_tie: false },
+      row(w, chiara, marco, closedGain(chiara), closedGain(marco)),
+      row(w, luca, marco, 12.5, 12.5),
+    ];
+    return [...season.filter((m) => m.week_number !== w), ...week];
+  }
   return variant === 'unposted'
     ? season.map((m) => (m.week_number === 1 && m.team1_user_id !== chiara ? { ...m, team1_gain: null, team2_gain: null, winner_user_id: null, is_tie: false } : m))
     : season;

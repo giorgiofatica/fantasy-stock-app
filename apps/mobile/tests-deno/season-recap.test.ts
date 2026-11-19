@@ -154,7 +154,7 @@ Deno.test('a short read is refused, never a shorter season', () => {
 });
 
 Deno.test('the week detail reads the game from side a, either team order; an unscored game is no detail', () => {
-  assertEquals(recapGameDetail(season, 5, 'me', 'sara'), { week: 5, isPlayoff: true, aGain: 60, bGain: 25, result: 'W', weekStart: null, weekEnd: null });
+  assertEquals(recapGameDetail(season, 5, 'me', 'sara'), { week: 5, isPlayoff: true, aGain: 60, bGain: 25, result: 'W', verdict: 'me', weekStart: null, weekEnd: null });
   assertEquals(recapGameDetail(season, 5, 'sara', 'me')?.result, 'L');
   assertEquals(recapGameDetail(season, 2, 'me', 'gigi')?.result, 'T');
   assertEquals(recapGameDetail(season, 5, 'me', 'paolo'), null);
@@ -287,7 +287,7 @@ Deno.test('a never-posted game keeps both sides, with the dash for each total (r
   assert(/\n\s+chevronGutter\n/.test(unscored), "the chevron's column stays, empty, so it lines up with posted games (DL P2)");
   const sb = SOURCES['components/sp/gn/Scoreboard.tsx'];
   assert(sb.includes("const totalText = unscored ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });"));
-  assert(sb.includes('const showLine = showLineProp && !unscored;'), 'no leader, no line');
+  assert(sb.includes('const showLine = showLineProp && !unscored && line !== null;'), 'no leader, no line');
   assert(sb.includes('{totalText}'));
   // The empty gutter takes the chevron's width out of the halves, exactly as a chevron does.
   assert(sb.includes('const trailing = !!openGame || chevronGutter;'));

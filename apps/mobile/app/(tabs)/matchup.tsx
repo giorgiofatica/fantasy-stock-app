@@ -158,6 +158,7 @@ function AllMatchupsList({ state, myUserId }: { state: { status: string; rows: A
           size="compact"
           mine={r.a.userId === myUserId}
           final={r.final}
+          verdict={r.verdict}
           you={{ name: r.a.name, gain: r.a.gain }}
           opponent={{ name: r.b.name, gain: r.b.gain }}
         />
@@ -274,7 +275,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
           {reveal.decided ? (
             <FinalBanner play={reveal.play} model={buildFinalBanner({ week, result: final.result, youName, oppName: live.opp?.name ?? '', record: derived.myRecord, isPlayoff: phase?.kind === 'scored' ? phase.isPlayoff : false })} />
           ) : null}
-          <Scoreboard you={{ name: youName, gain: final.me }} opponent={{ name: live.opp?.name ?? '', gain: final.opp }} final openYou={openTeam(user.id, youName, true)} />
+          <Scoreboard you={{ name: youName, gain: final.me }} opponent={{ name: live.opp?.name ?? '', gain: final.opp }} final verdict={final.verdict} openYou={openTeam(user.id, youName, true)} />
         </View>
       );
     }
@@ -283,6 +284,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
         week={week}
         isPlayoff={phase?.kind === 'scored' ? phase.isPlayoff : false}
         result={final.result}
+        verdict={final.verdict}
         mine
         left={{ userId: user.id, name: youName, gain: final.me, ledger: ledgers.me, open: openTeam(user.id, youName, true) }}
         right={{ userId: live.opp.userId, name: live.opp.name, gain: final.opp, ledger: ledgers.opp, open: openTeam(live.opp.userId, live.opp.name, false) }}

@@ -15,6 +15,7 @@ import { formatMoney } from '@/components/sp/logic/money';
 import { NAME_MIN_SCALE, NAME_MIN_SCALE_COMPACT, nameBesideAvatar, scoreboardNameCap, scoreboardModel, type ScoreSide } from '@/components/sp/logic/gameNight';
 import { YOUR_NAME_WEIGHT } from '@/lib/game/managerRow';
 import { SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
+import type { ServerVerdict } from '@/lib/game/weekResult';
 
 // Stockpile — <Scoreboard>, Game Night (§9C "Scoreboard"; Giorgio, 2026-10-12: "I like the
 // way that where you are is kind of shaded. And then I like the way that it says like the
@@ -71,6 +72,10 @@ export interface GnScoreboardProps {
   /** Keep the chevron's column, EMPTY, on a card that opens nothing, so it lines up with the cards
    * around it that do (the recap's never-posted game among posted ones; DL P2, 2026-11-19). */
   chevronGutter?: boolean;
+  /** A FINAL board's server verdict, from the `you` side ('me' = the left side won; weekResult's
+   * serverVerdict). The final line's winner comes only from it (scoreboardModel); without it a final
+   * board shows no line, never the dollars' winner. */
+  verdict?: ServerVerdict;
 }
 
 /** The trailing chevron's column when the whole game opens (openGame). */
@@ -92,12 +97,13 @@ const WHO_GAP = space[3];
 /** The leads-by line under the card. */
 export const LINE_MAX_SCALE = 1.3;
 
-export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine: showLineProp = true, bye, openYou, openOpponent, openGame, unscored = false, chevronGutter = false }: GnScoreboardProps) {
+export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine: showLineProp = true, bye, openYou, openOpponent, openGame, unscored = false, chevronGutter = false, verdict }: GnScoreboardProps) {
   const { colors } = useTheme();
-  // A never-posted game has no leader and no line: only the two sides and the dash.
-  const showLine = showLineProp && !unscored;
-  const model = opponent ? scoreboardModel(you, opponent, final) : null;
-  const line = bye || !model ? bye?.line ?? '' : model.line;
+  const model = opponent ? scoreboardModel(you, opponent, final, verdict) : null;
+  const line: string | null = bye || !model ? bye?.line ?? '' : model.line;
+  // A never-posted game has no leader and no line: only the two sides and the dash. A final whose
+  // server result the dollars can't honestly state has no line either (scoreboardModel: null).
+  const showLine = showLineProp && !unscored && line !== null;
   // Each half's width, measured: decides whether a name fits beside its avatar.
   const [cardWidth, setCardWidth] = useState(0);
   const interactive = !!(openYou || openOpponent);
@@ -134,7 +140,7 @@ export function Scoreboard({ you, opponent, final = false, size = 'hero', mine =
       {showLine ? (
         // Capped at 1.3× so the totals above stay the loudest thing on the card at XL.
         <Text variant="callout" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE} style={styles.line} importantForAccessibility={interactive ? 'auto' : 'no'} accessibilityElementsHidden={!interactive}>
-          {keepMoney(line)}
+          {keepMoney(line ?? '')}
         </Text>
       ) : null}
     </View>

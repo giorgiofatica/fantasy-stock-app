@@ -92,6 +92,7 @@ export function SeasonRecap({ segment, state, leagueId }: SeasonRecapProps) {
                   size="compact"
                   mine={g.mine}
                   final
+                  verdict={g.verdict}
                   you={{ name: g.a.name, gain: g.a.gain }}
                   opponent={{ name: g.b.name, gain: g.b.gain }}
                   openGame={g.opens ? { hint: OPENS_MATCHUP_HINT, onPress: () => open(g.opens!) } : undefined}

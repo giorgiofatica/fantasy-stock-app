@@ -21,7 +21,9 @@ Deno.test('Scoreboard: who leads is in the line — "{name} leads by {margin}" /
   const you = { name: 'Roberto B.', gain: 343.59 };
   const opp = { name: 'Gianluigi B.', gain: 121.26 };
   assertEquals(scoreboardModel(you, opp, false), { leader: 'you', line: 'Roberto B. leads by $222.33' });
-  assertEquals(scoreboardModel(you, opp, true).line, 'Roberto B. won by $222.33');
+  // A FINAL line names the SERVER's winner (its verdict), never the dollars' (final-line-verdict.test.ts).
+  assertEquals(scoreboardModel(you, opp, true, 'me').line, 'Roberto B. won by $222.33');
+  assertEquals(scoreboardModel(you, opp, true).line, null, 'no server verdict read: no line');
   assertEquals(scoreboardModel(opp, you, false), { leader: 'opp', line: 'Roberto B. leads by $222.33' });
   assertEquals(scoreboardModel({ ...you, gain: -10 }, { ...opp, gain: -40 }, false).leader, 'you'); // both down: the smaller loss leads
   assertEquals(scoreboardModel(you, { ...opp, gain: you.gain }, false), { leader: null, line: 'Dead even' });
