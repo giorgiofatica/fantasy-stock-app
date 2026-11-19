@@ -215,7 +215,8 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
   const { view, live, final, week } = derived;
   const youName = live.me.name;
   // A LIVE week with a missing price names the stocks (both teams', each once); never on a scored week.
-  const notice = view.kind === 'scoreboard' || view.kind === 'bye' ? priceNoticeText(missingPriceSymbols(live.me.unpriced, live.opp?.unpriced)) : null;
+  const missing = missingPriceSymbols(live.me.unpriced, live.opp?.unpriced);
+  const notice = view.kind === 'scoreboard' || view.kind === 'bye' ? priceNoticeText(missing) : null;
 
   if (view.kind === 'not_started') {
     return <PhasePlaceholder title="Matchup" icon={() => <Icon name="trophy" size="title" tone="text2" />} heading="Not started yet" message="Your matchups start when the draft is done." embedded />;
@@ -242,7 +243,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
     // then your stocks in one column under the same order rules.
     return (
       <View style={styles.stack}>
-        {notice ? <PriceNotice text={notice} /> : null}
+        {notice ? <PriceNotice text={notice} symbols={missing} /> : null}
         <Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
         {/* A held-but-unpriced stock is on the roster too (with "–"), even if it is all you hold. */}
         {raw && (live.me.lineup.length || live.me.unpriced.length) ? (
@@ -276,7 +277,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
 
   return (
     <View style={styles.stack}>
-      {!isFinal && notice ? <PriceNotice text={notice} /> : null}
+      {!isFinal && notice ? <PriceNotice text={notice} symbols={missing} /> : null}
       {/* Mounted only once the reveal is decided: FinalBanner takes its start pose on mount. */}
       {isFinal && final && reveal.decided ? (
         <FinalBanner

@@ -2,8 +2,8 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "4037ded8cd22e7bbff52f6978591419c1b7a813c",
-    "commitShort": "4037ded8",
+    "commit": "0d7a8d2efd67fec4676105a5b94ccca3119a9f03",
+    "commitShort": "0d7a8d2e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/matchup-no-stand-ins",
     "dirty": true,
@@ -13,36 +13,28 @@
         "path": "apps/mobile/app/(tabs)/matchup.tsx"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "apps/mobile/components/game/PriceNotice.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/sp/gn/Scoreboard.tsx"
+        "path": "apps/mobile/constants/tokens/contrastPairs.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/sp/logic/gameNight.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/allMatchups.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/buildMatchupViewModel.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/lineupLedger.ts"
+        "path": "apps/mobile/lib/game/draftQueue.ts"
       },
       {
         "code": "??",
-        "path": "apps/mobile/lib/game/priceNotice.ts"
+        "path": "apps/mobile/lib/game/listSymbols.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/leaguemate-team-view.test.ts"
+        "path": "apps/mobile/lib/game/matchupFixture.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/priceNotice.ts"
       },
       {
         "code": "M",
@@ -51,9 +43,13 @@
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/tokens-v3-game-night.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T18:19:41Z",
+    "timestamp": "2026-11-19T18:28:34Z",
     "sourceHash": "sha256:a8e2a1812992088c6a7e3ad4403777770e226777f926c33b2513f0890cc56c0d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -61,7 +57,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 18.1,
+    "ageHours": 18.2,
     "ageDays": 0.8,
     "staleAfterDays": 14,
     "stale": false,

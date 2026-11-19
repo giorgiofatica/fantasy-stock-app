@@ -5,10 +5,12 @@
  * notice says why. Shown during a LIVE week only, never on a scored one. It replaces the old
  * "N holdings counted at cost" caption on that screen.
  *
- * The copy is Giorgio's approved text, exactly (any change goes to the Planner). How three or more
- * stocks are joined is the Design Lead's call; until it rules, "A, B and C" (commas, "and" before the
- * last). Pure, so tests-deno/matchup-unpriced.test.ts pins it.
+ * The copy is Giorgio's approved text, exactly (any change goes to the Planner). Three or more stocks join
+ * as "AAPL, JPM and KO" through the app's one joiner (listSymbols; Design Lead, 2026-11-19). A long list is
+ * never cut: every ticker, and the text wraps. Pure, so tests-deno/matchup-unpriced.test.ts pins it.
  */
+import { keepCode } from './keepDots';
+import { listSymbols } from './listSymbols';
 
 /** Both teams' unpriced stocks, each once (upper-case), yours first, each side in its own order. */
 export function missingPriceSymbols(mine: readonly string[], theirs: readonly string[] | null | undefined): string[] {
@@ -20,17 +22,29 @@ export function missingPriceSymbols(mine: readonly string[], theirs: readonly st
   return out;
 }
 
-/** "AAPL", "AAPL and JPM", "AAPL, JPM and KO". */
-function joinSymbols(symbols: readonly string[]): string {
-  if (symbols.length <= 1) return symbols[0] ?? '';
-  return `${symbols.slice(0, -1).join(', ')} and ${symbols[symbols.length - 1]}`;
-}
-
 /** The notice's text, or null when every price is in (then nothing is drawn). */
 export function priceNoticeText(symbols: readonly string[]): string | null {
   if (symbols.length === 0) return null;
   if (symbols.length === 1) {
     return `The price for ${symbols[0]} isn't loading right now. We're working on it, and the totals will update when it's back.`;
   }
-  return `Prices for ${joinSymbols(symbols)} aren't loading right now. We're working on it, and the totals will update when they're back.`;
+  return `Prices for ${listSymbols(symbols)} aren't loading right now. We're working on it, and the totals will update when they're back.`;
+}
+
+/**
+ * The notice as DRAWN: each ticker kept whole (keepCode: no line ever breaks inside one, so BRK.B never splits
+ * at its dot). Display only: VoiceOver reads the plain sentence (priceNoticeText). A ticker is matched as a
+ * whole word, so "A" never matches inside "AAPL".
+ */
+export function priceNoticeDisplay(text: string, symbols: readonly string[]): string {
+  const tickers = new Set(symbols);
+  // Whole tokens only (no regex lookbehind, which Hermes may lack): "AAPL," keeps its comma outside the join.
+  return text
+    .split(/(\s+)/)
+    .map((tok) => {
+      const comma = tok.endsWith(',') ? ',' : '';
+      const word = comma ? tok.slice(0, -1) : tok;
+      return tickers.has(word) ? `${keepCode(word)}${comma}` : tok;
+    })
+    .join('');
 }

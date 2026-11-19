@@ -1,3 +1,4 @@
+import { listSymbols } from './listSymbols';
 /**
  * The draft queue editor's rules (3c). The queue is what auto-pick takes first
  * (Giorgio's rule: "the manager's queue first"). These mirror set_draft_queue, so
@@ -62,11 +63,6 @@ export function addSymbol(list: string[], symbol: string): string[] {
   const s = symbol.trim().toUpperCase();
   if (!s || list.includes(s) || list.length >= QUEUE_MAX) return list.slice();
   return [...list, s];
-}
-
-/** "A", "A and B", "A, B and C". */
-function listSymbols(symbols: string[]): string {
-  return symbols.length < 2 ? symbols.join('') : `${symbols.slice(0, -1).join(', ')} and ${symbols[symbols.length - 1]}`;
 }
 
 /** The line for a refused save. Ruled (Design Lead, audit pass 1): too_many,
