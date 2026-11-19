@@ -22,6 +22,7 @@ import { teamValue, type StakeMode } from '../home/teamValue';
 import { etDateOf } from '../game/matchupRoster';
 import type { MarketCalendarSession } from '../time/marketWeek';
 import { dayOffset } from '../../components/sp/logic/chartAxis';
+import { sessionOnOrBefore, sessionsBefore } from './marketSessions';
 import { CHART_RANGES, SEASON_DEFAULT_RANGE, greyedRanges, rangeSeries, todaySessionOpen, type ChartRange, type RangeGain, type RangeSeries } from '../chart/chartRanges';
 import { lineTone } from '../../components/sp/logic/lineChart';
 
@@ -127,8 +128,9 @@ export function draftDateOf(rows: readonly ChartActivityRow[]): string | null {
  * takes the stock's previous real close from within this many market sessions before it, never an older one. */
 export const PREV_CLOSE_MAX_SESSIONS = 5;
 
-/** No market closure is longer than this many calendar days (a weekend plus a holiday is 4), so two real
- * points further apart than this have DATA missing between them, not a closed market. */
+/** The longest market closure the app reads is five calendar days (Hurricane Sandy closed the NYSE on Monday and
+ * Tuesday, 29 and 30 Oct 2012: Friday to Wednesday; a weekend plus one holiday is four), so two real points MORE than
+ * this many days apart have DATA missing between them, not a closed market. Exactly this many is a real closure. */
 export const MAX_GAP_DAYS = 5;
 
 /** The stake at cost on the draft day (every stock at its draft price): the "since the draft" basis,
@@ -187,15 +189,16 @@ export function dailyValues(input: { rows: readonly ChartActivityRow[]; bars: Ba
     closes.set(sym.toUpperCase(), by);
   }
   const universe = [...dates].sort();
-  // A stock's price on session `i` of the universe: its own bar, else its most recent real close within the previous
-  // PREV_CLOSE_MAX_SESSIONS sessions (the server's ladder), else none.
-  const priceOn = (sym: string, i: number): number | null => {
+  // A stock's price on `date`: its own bar, else its most recent real close within the previous PREV_CLOSE_MAX_SESSIONS
+  // MARKET sessions (the server's ladder; sessions are the exchange's, not the dates some other stock has a bar on),
+  // else none.
+  const priceOn = (sym: string, date: string): number | null => {
     const by = closes.get(sym.toUpperCase());
     if (!by) return null;
-    const own = by.get(universe[i]);
+    const own = by.get(date);
     if (own != null) return own;
-    for (let j = i - 1; j >= Math.max(0, i - PREV_CLOSE_MAX_SESSIONS); j--) {
-      const c = by.get(universe[j]);
+    for (const d of sessionsBefore(date, PREV_CLOSE_MAX_SESSIONS)) {
+      const c = by.get(d);
       if (c != null) return c;
     }
     return null;
@@ -204,11 +207,11 @@ export function dailyValues(input: { rows: readonly ChartActivityRow[]; bars: Ba
   // Every date whose closes are all real, in order; each says whether a hole lies before it.
   const points: DailyValue[] = [];
   let prev: { date: string; complete: boolean } = { date: start, complete: true };
-  for (const [i, date] of universe.entries()) {
+  for (const date of universe) {
     const held = heldOn(rows, date);
-    const complete = held.every((sym) => priceOn(sym, i) != null);
+    const complete = held.every((sym) => priceOn(sym, date) != null);
     if (complete) {
-      const value = valueThrough(rows, date, stake, (sym) => priceOn(sym, i));
+      const value = valueThrough(rows, date, stake, (sym) => priceOn(sym, date));
       const breaks = !prev.complete || dayOffset(prev.date, date) > MAX_GAP_DAYS;
       points.push({ date, value: cents(value), ...(breaks ? { breakBefore: true } : {}) });
     }
@@ -310,29 +313,30 @@ export function finishedPortfolioSeries(input: { daily: readonly DailyValue[]; e
 }
 
 /**
- * Each symbol's close at the season's last day (a finished season's holding prices): its own bar on the last session on or
- * before `endEt`, else its previous real close within PREV_CLOSE_MAX_SESSIONS (5) sessions before it, the same ladder the server
- * scores a week with and the value line uses (dailyValues). A close from before that window is NOT the season-end price: a stock
- * whose last bar is weeks earlier is left out (never priced at that old close, and never at cost), so the caller's value is
- * unknown (teamPortfolioView: no view; the screens' load failure). Sessions are the dates any symbol in `bars` has a bar.
+ * A stock's close at the season's last day, or null. The ladder is anchored at `endEt`'s own session (the last market
+ * session on or before it), not at the newest bar anyone has: the stock's own bar on that session, else its previous real
+ * close within PREV_CLOSE_MAX_SESSIONS (5) market sessions before it (the ladder the server scores a week with and the value
+ * line uses). A close from before that window is NOT the season-end price (never priced at that old close, never at cost),
+ * so the caller's value is unknown (teamPortfolioView: no view; the screens' load failure; the player card: no frozen line).
+ * Bars after `endEt` are never read.
  */
+export function seasonEndClose(series: readonly { date: string; close: number }[] | undefined, endEt: string): number | null {
+  if (!series) return null;
+  const last = sessionOnOrBefore(endEt);
+  for (const d of [last, ...sessionsBefore(last, PREV_CLOSE_MAX_SESSIONS)]) {
+    const hit = series.find((b) => b.date === d && b.close > 0);
+    if (hit) return hit.close;
+  }
+  return null;
+}
+
+/** Each symbol's close at the season's last day (see seasonEndClose); a stock with none is left out of the record. */
 export function seasonEndCloses(bars: Bars, symbols: readonly string[], endEt: string): Record<string, number> {
-  const dates = new Set<string>();
-  for (const series of Object.values(bars)) for (const b of series) if (b.close > 0 && b.date <= endEt) dates.add(b.date);
-  // The last session on or before the season's end, then up to PREV_CLOSE_MAX_SESSIONS sessions before it, newest first.
-  const window = [...dates].sort().slice(-(PREV_CLOSE_MAX_SESSIONS + 1)).reverse();
   const out: Record<string, number> = {};
   for (const sym of symbols) {
     const up = sym.toUpperCase();
-    const series = bars[up] ?? bars[sym];
-    if (!series) continue;
-    for (const d of window) {
-      const hit = series.find((b) => b.date === d && b.close > 0);
-      if (hit) {
-        out[up] = hit.close;
-        break;
-      }
-    }
+    const close = seasonEndClose(bars[up] ?? bars[sym], endEt);
+    if (close != null) out[up] = close;
   }
   return out;
 }
