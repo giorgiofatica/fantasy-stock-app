@@ -559,6 +559,13 @@ building anything, and don't reopen a rule without him.
         We're working on it, and the totals will update when they're back."** With one
         stock: **"The price for AAPL isn't loading right now. We're working on it, and the
         totals will update when it's back."** The stocks are named, not counted.
+      - **Three or more stocks: the notice does not list them** (2026-11-19, typed in the
+        Planner's chat after the two wordings above were approved). His words: "if its more
+        than two we should just say something like we are having issue with multiple stocks
+        or whatever. make it plural and general". One stock and two stocks stay named, as
+        above. Approved copy: **"Prices for multiple stocks aren't loading right now. We're
+        working on it, and the totals will update when they're back."** His words on it:
+        "that wording is good, approved".
       - Where and when: under the "My matchup | All matchups" switch, above the totals;
         only while a price is missing during the week; never on a scored week.
       - Colour (pick "A"): the app's teal accent as a soft tint, with an info icon. Not
@@ -1411,6 +1418,12 @@ building anything, and don't reopen a rule without him.
     the badge shrinks to fit (about 9pt). That is the one exception to the 11pt rule, allowed
     because the full ticker is printed beside the badge. B (the badge widens into a pill on
     those rows) was not picked.
+    - Trade history has its own copy of the same badge, with the same defect. It was not on
+      the board he picked from. The Planner's reading, not his words: the pick is how that
+      badge behaves, not a look for three screens, so it covers Trade history and any other
+      copy of the badge at the same size (UX rule 5, the same thing looks the same
+      everywhere). A copy of the badge at a different size, where the text would go well
+      below 9pt, is not covered and goes to him first.
   - Not decided: whether a manager can re-sort the list, and what else
     browsing offers ("look around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier
