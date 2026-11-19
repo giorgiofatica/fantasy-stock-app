@@ -45,7 +45,7 @@ const query = `query($owner:String!,$name:String!){repository(owner:$owner,name:
     __typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}}}}}}}
   pullRequests(states:OPEN,first:50,orderBy:{field:CREATED_AT,direction:ASC}){totalCount nodes{
     number title isDraft mergeable mergeStateStatus headRefName
-    commits(last:1){nodes{commit{statusCheckRollup{state contexts(first:50){nodes{
+    commits(last:1){nodes{commit{statusCheckRollup{state contexts(first:50){totalCount nodes{
       __typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}}}}}}}
     reviewThreads(first:100){nodes{isResolved isOutdated comments(first:1){nodes{isCopilotCodeReview}}}}
   }}}}`;
@@ -89,8 +89,13 @@ for (const p of prs.nodes) {
   const ctx = roll?.contexts.nodes ?? [];
   const failed = ctx.filter((c) => BAD.has(c.conclusion ?? '') || BAD.has(c.state ?? '')).map((c) => c.name ?? c.context);
   const running = ctx.filter((c) => c.__typename === 'CheckRun' ? c.status !== 'COMPLETED' : c.state === 'PENDING');
-  if (failed.length) reasons.push(`RED: ${failed.join(', ')}`);
-  else if (running.length) notes.push(`RUNNING: ${running.length} checks`);
+  // As for main: the verdict is the rollup's own state, over EVERY check; the first 50 names are only the list shown.
+  const total = roll?.contexts.totalCount ?? ctx.length;
+  const partial = total > ctx.length ? ` (names from ${ctx.length} of ${total} checks)` : '';
+  const rollRed = roll?.state === 'FAILURE' || roll?.state === 'ERROR';
+  const rollWait = roll?.state === 'PENDING' || roll?.state === 'EXPECTED';
+  if (failed.length || rollRed) reasons.push(`RED: ${failed.length ? failed.join(', ') : 'a check not among those listed'}${partial}`);
+  else if (running.length || rollWait) notes.push(`RUNNING: ${running.length || 'some'} checks${partial}`);
   else if (!roll) notes.push('no checks have reported on the head commit');
   const open = p.reviewThreads.nodes.filter((t) => !t.isResolved && !t.isOutdated && t.comments.nodes[0]?.isCopilotCodeReview);
   if (open.length) reasons.push(`FINDINGS: ${open.length} open Copilot thread${open.length > 1 ? 's' : ''}`);
