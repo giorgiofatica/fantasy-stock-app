@@ -1,6 +1,6 @@
 # Why a week was won: the server records the reason
 
-Status: DRAFT, not approved. The words wait on the board `#call-tiebreak-words`; nothing here is built until Giorgio approves the plan
+Status: DRAFT, not approved. The words are picked (Giorgio, 2026-11-19: "A" on the board `#call-tiebreak-words`); the plan itself waits for his approval and nothing here is built until then
 Planner session: "Planner" (Fable 5.2), 2026-11-19 · Orchestrator hand-off: not yet
 
 ## Goal
@@ -20,8 +20,12 @@ reason with the result, and the app says it.
 - 2026-11-18: "A missing number never shows as zero", and the same day on prices: "we cannot
   be showing incorrect numbers".
 - 2026-09-29: a regular-season bye is no result: not a win, not a loss, not a tie.
-- The words for the three kinds of week: NOT YET HIS. They come from the board
-  `#call-tiebreak-words` (candidates sent to the Design Lead on 2026-11-19).
+- 2026-11-19, the words, on the board `#call-tiebreak-words`: "A" (the winner first). The
+  four lines are in `docs/PRODUCT_RULES.md`, "Scoring and standings", and in "The words"
+  below.
+- 2026-11-19, the season recap row: "I think maybe we make the P&L red and green, but we
+  keep the L's and W's not red and green and just keep them like bolded neutrals", then "A"
+  on the mockups: neutral letters, and no reason word on the row.
 
 ## What happens today
 
@@ -60,12 +64,14 @@ This plan replaces "no line" with the reason.
 | 1 | Where does the reason come from? | The server stores it with the result. The phone never works it out from the totals, and never recomputes a percent. | Planner, under "we cannot be showing incorrect numbers": a second calculation on the phone can disagree with the scored result |
 | 2 | What is stored? | The reason, and each side's percent gain for the week, in the same write as the winner. | Planner |
 | 3 | What do weeks scored before this show? | What they show today: the line when it is provably true, otherwise no line. They are marked "not recorded", not guessed. | Planner. The real cases cannot be recovered without re-scoring old weeks |
-| 4 | What does the line say for each kind of week? | OPEN: the board `#call-tiebreak-words` | Giorgio |
-| 5 | Does the recap row and the All matchups row carry the reason too? | OPEN: the same board (the Design Lead's three facts) | Giorgio |
+| 4 | What does the line say for each kind of week? | The winner first: "The words", below | Giorgio, 2026-11-19: "A" |
+| 5 | Where does the line appear? | Under a finished week's card, on "My matchup" and on each card in "All matchups", as the board drew it. The season recap row carries no reason. | Giorgio, 2026-11-19: "A" on the board, then "A" on the recap mockups |
 
 ## Open questions
 
-1. The words (decision 4) and where they appear (decision 5).
+None open.
+
+1. ANSWERED 2026-11-19: the words and where they appear (decisions 4 and 5).
 2. ANSWERED 2026-11-19 (the recap worker, read-only, at 48ff11cd): can two playoff teams
    have the same seed, or no seed? Not with today's writers. `start_league_playoffs` sets
    team and seed together, as distinct integers from the bracket math, and advancement
@@ -73,11 +79,28 @@ This plan replaces "no line" with the reason.
    holds by construction, not by a constraint, and rows advanced before 2026-07-27 could
    carry the loser's seed. See "The seed line cannot lie" below.
 
+## The words
+
+| The server's reason | The line under the card |
+|---|---|
+| `dollar_gain` | "{winner} won by $X" (as today) |
+| `regular_season_true_tie`, `both_empty_tie` | "Dead even" (as today) |
+| `percent_tiebreak` | "{winner} won the tiebreak, +1.76% to +0.74%" (the winner's percent first) |
+| `team1_empty_auto_loss`, `team2_empty_auto_loss` | "{winner} won. {loser} had no stocks" |
+| `playoff_seed_tiebreak` | "Tied. {winner} advances as the higher seed" |
+| `both_empty_playoff_seed_tiebreak` | "No stocks on either side. {winner} advances as the higher seed" |
+| `playoff_seed_unresolved`, `not_recorded`, `bye_no_result`, `playoff_no_opponent` | No new words: what the screen shows today |
+
+One thing the board did not draw, for the Design Lead's gate and not a new decision: a
+regular-season week where neither team had stocks is a tie and says "Dead even", with a
+dash for each total.
+
 ## Scope
 
 In: three new columns on `matchups`; `process-week-results` writing them; the phone reading
 them in one helper and showing the approved words on the finished-week scoreboard, the All
-matchups rows and the season recap rows (as the board decides).
+matchups cards. The season recap rows get no reason; their letters become neutral in a
+separate small build that does not wait for this plan.
 
 Out: any change to who wins. The order above is not touched. No re-scoring of old weeks. The
 web app (it is paused and shows no such line). Standings, the bracket and the season result,
@@ -145,13 +168,13 @@ affected). The update's `{ error }` is already checked.
 ### The phone
 
 - One helper takes a finished matchup row and returns what the line says, keyed on
-  `outcome_reason`. The finished-week view, All matchups and the recap rows all call it.
+  `outcome_reason`. The finished-week view and All matchups both call it.
 - `dollar_gain` keeps "{winner} won by $X". A true tie keeps "Dead even". `bye_no_result`
   and `playoff_no_opponent` show what they show today.
 - `not_recorded` (and a scored row with no reason) keeps #566's rule.
 - The other reasons show the approved words. VoiceOver reads the same line.
-- Every hook that selects a result adds the columns it needs: `useAllMatchups`, the
-  finished-week view's read, the recap's read (`useSeasonEnd` or its successor in #566).
+- Every hook that selects a result adds the columns it needs: `useAllMatchups` and the
+  finished-week view's read.
 
 ### Order of release
 
@@ -185,7 +208,7 @@ list, not an empty line. So: the migration first, then the function, then the bu
 3. Phone tests: one per reason for the helper; `not_recorded` keeps #566's behaviour; no
    code path prints a percent it computed itself.
 4. The architecture map is regenerated.
-5. The Design Lead's gate on the three screens, at Large and at the largest text size.
+5. The Design Lead's gate on the two screens, at Large and at the largest text size.
 6. After the release, checked by data and not by the job's status: the first scored week's
    rows carry a reason other than NULL and `'not_recorded'`.
 
@@ -199,8 +222,7 @@ list, not an empty line. So: the migration first, then the function, then the bu
 ## Suggested workstreams
 
 1. Server: the migration and the write (one worker; the supabase reviewer before the push).
-2. Phone: the helper and the three screens, once the words are approved (one worker; the
-   Design Lead gates).
+2. Phone: the helper and the two screens (one worker; the Design Lead gates).
 
 ## Models
 
