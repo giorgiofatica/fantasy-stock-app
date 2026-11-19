@@ -15952,7 +15952,8 @@ window.KS_REFS = {
     );
   }
 
-  window.KSYellow = () => <CallYellow />;
+  window.KSYellow = () => null;
+  window.KSYellowArchived = () => <CallYellow archived decidedNote={<><b>Decided 2026-11-19: A,</b> the teal tint, in all five kinds of place. A build re-points warnTint, warnLine and warnText in both themes.</>} />;
 })();
 
 </script>
@@ -16341,14 +16342,13 @@ window.KS_REFS = {
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [
-    ['call-yellow', 'The yellow warnings, in the palette’s own colours', () => window.KSYellow],
-  ];
+  const OPEN = [];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-yellow', title: 'The yellow warnings', decision: 'A: the teal tint, in all five kinds of place (the refusal panel, Home\u2019s \u201ccan\u2019t start yet\u201d card and its stepper ring, the stake-mode note, a TBD draft time, the draft search\u2019s badge). Only the three warning colours change, both themes. The gold medal and the Property colour stay. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSYellowArchived },
     { id: 'call-ticker-disc', title: 'A long ticker in its round badge', decision: 'A: the badge stays the same round size on every row and only its text shrinks to fit a long ticker (about 9pt for GOOGL), written in full; the one exception to the 11pt smallest-text rule. Holdings, the Stocks list and search. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (#562, the Planner)', render: () => window.KSTickerDiscArchived },
     { id: 'call-matchup-after', title: 'The Matchup tab after the season', decision: 'Superseded: neither A nor B. He wants a season recap (the weeks listed, each opening that week\u2019s matchup); the Planner is mocking it with him as its own call.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSMatchupAfterArchived },
     { id: 'call-stocks-finished', title: 'The Stocks tab in a finished season', decision: 'A: no "+" on the rows and no Buy (and no line) on a stock\u2019s sheet; the list stays to browse.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSStocksFinishedArchived },

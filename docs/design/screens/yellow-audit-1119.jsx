@@ -145,5 +145,6 @@
     );
   }
 
-  window.KSYellow = () => <CallYellow />;
+  window.KSYellow = () => null;
+  window.KSYellowArchived = () => <CallYellow archived decidedNote={<><b>Decided 2026-11-19: A,</b> the teal tint, in all five kinds of place. A build re-points warnTint, warnLine and warnText in both themes.</>} />;
 })();
