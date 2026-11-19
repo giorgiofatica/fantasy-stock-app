@@ -14,7 +14,7 @@
  */
 import { buildPortfolioView, type PortfolioView, type ViewHolding } from './portfolioView';
 import { portfolioHoldings, portfolioSummary } from './portfolioModel';
-import { dailyValues, draftValueOf, seasonEndCloses, type ChartActivityRow, type ChartStake } from './portfolioChart';
+import { dailyValues, draftValueOf, seasonEndCloses, symbolsMissingSeasonEndClose, type ChartActivityRow, type ChartStake } from './portfolioChart';
 import type { BuyRowInput } from './buyRowLine';
 import type { DailyBar } from './prevClose';
 
@@ -41,9 +41,16 @@ export interface TeamPortfolio {
   liveValue: number | null;
 }
 
-export function teamPortfolioView(i: TeamPortfolioInput): TeamPortfolio {
+/**
+ * Null when a finished season's value cannot be worked out: ANY holding with no real close on or before the season's last day
+ * (a value at cost, with a caption about a live price that does not apply to a finished season, would be a stand-in figure,
+ * Design Lead gate 2026-11-18). The screens then show their existing load failure with Try again (a refetch of the bars).
+ * Per holding: one missing close makes it unknown, however many bars the others have.
+ */
+export function teamPortfolioView(i: TeamPortfolioInput): TeamPortfolio | null {
   const held = portfolioHoldings(i.drafts, i.trades);
   const endEt = i.endEt;
+  if (endEt && symbolsMissingSeasonEndClose(i.bars, held.map((h) => h.symbol), endEt).length > 0) return null;
   // Finished: the season-end closes and nothing else. Live: the quote.
   const marks = endEt ? seasonEndCloses(i.bars, held.map((h) => h.symbol), endEt) : i.live.prices;
   const price = (sym: string) => marks[sym.toUpperCase()] ?? marks[sym] ?? null;

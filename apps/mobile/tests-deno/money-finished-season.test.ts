@@ -100,7 +100,7 @@ function input(over: Partial<TeamPortfolioInput> = {}): TeamPortfolioInput {
 }
 
 Deno.test('F4: the hero = the sum of the holding rows = the chart\'s last point', () => {
-  const { view, liveValue } = teamPortfolioView(input());
+  const { view, liveValue } = teamPortfolioView(input())!;
   const chartLast = finishedPortfolioSeries({ daily: dailyValues({ rows: ROWS, bars: BARS, stake: STAKE, todayEt: '2026-11-18', endEt: END }), endEt: END }).points.at(-1)!.value;
   const rowsSum = view.rows.reduce((a, r) => a + r.value, 0);
   assertEquals(view.valueText, formatMoney(146));
@@ -112,7 +112,7 @@ Deno.test('F4: the hero = the sum of the holding rows = the chart\'s last point'
 });
 
 Deno.test('F4: "since the draft" is the value minus the draft-day value, and nothing live is left', () => {
-  const { view } = teamPortfolioView(input());
+  const { view } = teamPortfolioView(input())!;
   assertEquals(view.valueLabel, 'Portfolio value');
   assertEquals(view.gainMoneyText, formatMoney(-4, { sign: 'always' }));
   assertEquals(view.gainTone, 'loss');
@@ -123,15 +123,15 @@ Deno.test('F4: "since the draft" is the value minus the draft-day value, and not
 
 Deno.test('F4: a fixed-notional league loses its facts row ("N of N slots invested") once over', () => {
   const stake = { stakeMode: 'fixed_notional' as const, notionalPerSlot: 75, numRounds: 2 };
-  const live = teamPortfolioView(input({ stake, endEt: null }));
-  const over = teamPortfolioView(input({ stake }));
+  const live = teamPortfolioView(input({ stake, endEt: null }))!;
+  const over = teamPortfolioView(input({ stake }))!;
   assert(live.view.slotsText != null, 'the live view has its facts row');
   assertEquals(over.view.slotsText, null);
   assertEquals(over.view.perSlotText, null);
 });
 
 Deno.test('F4: a live season is unchanged (the quote, today, the buy row)', () => {
-  const { view, liveValue } = teamPortfolioView(input({ endEt: null }));
+  const { view, liveValue } = teamPortfolioView(input({ endEt: null }))!;
   assertEquals(liveValue, 140 + 90);
   assertEquals(view.valueText, formatMoney(230));
   assert(view.todayText != null);
@@ -251,4 +251,38 @@ Deno.test('F4: a finished team with no cash keeps the plain "Portfolio value" la
     finished: { draftValue: 200 },
   });
   assertEquals(v.valueLabel, 'Portfolio value');
+});
+
+// ── a finished season whose value cannot be worked out has NO view (Design Lead gate, 2026-11-18) ────────────────────
+
+import { symbolsMissingSeasonEndClose } from '../lib/money/portfolioChart.ts';
+
+Deno.test('finished: no holding has a season-end close ⇒ no view (never the value at cost)', () => {
+  assertEquals(teamPortfolioView(input({ bars: {} })), null);
+  assertEquals(teamPortfolioView(input({ bars: { NVDA: [], AAPL: [] } })), null);
+});
+
+Deno.test('finished: ONE holding missing its season-end close ⇒ no view, however many bars the others have', () => {
+  assertEquals(symbolsMissingSeasonEndClose({ NVDA: BARS.NVDA }, ['NVDA', 'AAPL'], END), ['AAPL']);
+  assertEquals(teamPortfolioView(input({ bars: { NVDA: BARS.NVDA } })), null);
+  // A bar only AFTER the season's last day is not a close on or before it.
+  assertEquals(teamPortfolioView(input({ bars: { NVDA: BARS.NVDA, AAPL: [{ date: '2026-09-08', close: 50 }] } })), null);
+});
+
+Deno.test('finished: every holding has its close ⇒ the frozen value (unchanged); a live season is unaffected', () => {
+  assertEquals(teamPortfolioView(input())!.view.valueText, formatMoney(146));
+  assertEquals(symbolsMissingSeasonEndClose(BARS, ['NVDA', 'AAPL'], END), []);
+  assert(teamPortfolioView(input({ endEt: null, bars: {} })) !== null, 'a live league with no bars keeps its live-quote view');
+});
+
+Deno.test('a manager\'s finished team with one holding missing its close has no portfolio (the existing team load failure)', () => {
+  const base = { ledger: LEDGER, userId: 'm2', stakeMode: 'budget_cap' as const, notionalPerSlot: null, numRounds: 2, prices: {}, prevCloses: {} };
+  assertEquals(playerPortfolio({ ...base, finished: { endEt: END, bars: { NVDA: BARS.NVDA } } }), null);
+  assertEquals(playerPortfolio({ ...base, finished: { endEt: END, bars: {} } }), null);
+  assert(playerPortfolio({ ...base, finished: { endEt: END, bars: BARS } }) !== null);
+});
+
+Deno.test('the own-Portfolio hook turns a missing season-end close into its error state', () => {
+  const h = Deno.readTextFileSync(new URL('../lib/money/usePortfolioData.ts', import.meta.url));
+  assert(/if \(!team\) \{\s*setState\(\{ \.\.\.EMPTY, status: 'error', leagueName \}\);\s*return;\s*\}/.test(h));
 });

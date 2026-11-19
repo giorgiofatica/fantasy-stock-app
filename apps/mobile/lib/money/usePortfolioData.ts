@@ -255,6 +255,11 @@ export function usePortfolioData(season: PortfolioSeason = LIVE_SEASON): Portfol
         slotLabels,
         buyRow: { stakeMode, sales, budgetLeft, rosterFull, openSlotLabels },
       });
+      // A finished season with a holding that has no season-end close has no value (not one at cost): the load failure.
+      if (!team) {
+        setState({ ...EMPTY, status: 'error', leagueName });
+        return;
+      }
       const view = team.view;
       const firstDraft = mine.filter((a) => a.kind === 'draft').map((a) => a.occurred_at).sort()[0] ?? null;
 

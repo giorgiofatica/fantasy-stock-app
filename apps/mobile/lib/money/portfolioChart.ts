@@ -325,3 +325,13 @@ export function sinceTheDraftGain(last: number | null, draftValue: number | null
   const money = last - draftValue;
   return { money, pct: draftValue !== 0 ? (money / draftValue) * 100 : 0, tone: lineTone([{ t: 0, value: last }], draftValue) };
 }
+
+/**
+ * The held symbols with NO real close on or before the season's last day (a finished season's value is the season-end
+ * closes, so one missing makes it unknown). Judged per holding, never "are there any bars at all" (the partial-state
+ * family): an empty list means every holding has its close.
+ */
+export function symbolsMissingSeasonEndClose(bars: Bars, symbols: readonly string[], endEt: string): string[] {
+  const have = seasonEndCloses(bars, symbols, endEt);
+  return symbols.filter((s) => have[s.toUpperCase()] == null);
+}
