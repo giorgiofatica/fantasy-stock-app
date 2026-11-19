@@ -202,7 +202,7 @@ Deno.test('F5 (source): the finished Portfolio has no pills, no facts, no buy ro
   assert(s.includes('const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);'));
   assert(/\{over \|\| !hasLine \? null : \(\s*<View style=\{styles\.pillsRow\}>\s*<RangePills/.test(s), 'no range pills');
   assert(s.includes("{!over && (v.cashValueText || v.slotsText) ? ("), 'no facts block');
-  assert(/\{over \? null : \(\s*<Card>\s*<Pressable[\s\S]{0,600}testID="portfolio-buy-a-stock"/.test(s), 'no Buy a stock');
+  assert(!s.includes('portfolio-buy-a-stock'), 'no Buy a stock (it left Portfolio entirely, 2026-11-18: buying lives on the Stocks tab)');
   assert(s.includes('live={over ? false : marketOpen}'), 'no live dot');
   assert(s.includes("{over ? 'Value' : 'Value · today'}"), 'the holdings header');
   assert(s.includes('{!over && v.todayMoneyText && v.todayPctText ? ('), 'no today line');

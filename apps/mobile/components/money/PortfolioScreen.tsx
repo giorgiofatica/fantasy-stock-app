@@ -240,7 +240,6 @@ export function PortfolioScreen() {
   });
   useCaptureAction('close', () => setSelected(null));
   useCaptureAction('sheet', (sym) => { if (sym) stockSheet.open(sym, { name: ledgerState.ledger?.symbol_names[sym] ?? null }); });
-  useCaptureAction('search', () => router.push('/stock-search'));
   useCaptureAction('league', (id) => { if (id) setActiveLeagueId(id); });
   // (The 'scrollto' step lives in BarsRefresh, on every tab's scroll view: Portfolio's page is one now.)
 
@@ -360,29 +359,6 @@ export function PortfolioScreen() {
             ) : null}
           </View>
         ) : null}
-
-        {/* Buy a stock: the entry to search (board #buy-a-stock), saying what can be spent. A finished
-            season has nothing to buy. */}
-        {over ? null : (
-        <Card>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={v.buyRowText ? `${COPY.buyAStock}, ${v.buyRowText}` : COPY.buyAStock}
-            onPress={() => router.push('/stock-search')}
-            style={({ pressed }) => [styles.linkRow, { opacity: pressed ? 0.7 : 1 }]}
-            testID="portfolio-buy-a-stock"
-          >
-            <View style={[styles.linkTile, { backgroundColor: colors.accentTint }]}>
-              <Icon name="search" size="body" tone="accent" />
-            </View>
-            <View style={styles.linkText}>
-              <Text variant="callout" color={colors.accent} maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.extraBold}>{COPY.buyAStock}</Text>
-              {v.buyRowText ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{keepMoney(v.buyRowText)}</Text> : null}
-            </View>
-            <Icon name="chevronRight" size="callout" tone="text2" />
-          </Pressable>
-        </Card>
-        )}
 
         {/* Holdings: roster rows, no sparklines; each opens its player card. */}
         <View>
