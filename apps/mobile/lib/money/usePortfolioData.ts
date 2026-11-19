@@ -34,7 +34,11 @@ import { budgetLeftOf, effectiveBudgetCap, userCashSpentFromLedger } from './bud
 import { draftDateOf, type ChartActivityRow, type ChartStake } from './portfolioChart';
 import { teamPortfolioView } from './teamPortfolioView';
 import { seamBars, seamOpenSales, seamPortfolioLeague, seamQuote } from './portfolioSeam';
-import { CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM_ON } from '../game/devSeam';
+import { applyBarsFault, parseBarsFault } from './barsFault';
+import { CAPTURE_BARS, CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM_ON } from '../game/devSeam';
+
+/** Capture only: the missing-bars fault the seam applies to its fixture bars (null in production). */
+const BARS_FAULT = parseBarsFault(CAPTURE_BARS);
 import { HOME_FIXTURE } from '../home/devFixture';
 import type { DailyBar } from './prevClose';
 import type { BuyRowInput } from './buyRowLine';
@@ -49,6 +53,10 @@ export interface PortfolioChartInputs {
   draftAt: string | null;
   /** The header's value: the line's live end. Null in a finished season (no live point). */
   liveValue: number | null;
+  /** The hero's value as a number, and whether EVERY holding is priced (none counted at cost): "since the draft" is only a
+   * figure when it is (the value minus cost, both real). */
+  value: number;
+  fullyPriced: boolean;
   /** A finished season's last day (the line ends there); null for a live season. */
   endEt: string | null;
 }
@@ -188,7 +196,7 @@ export function usePortfolioData(season: PortfolioSeason = LIVE_SEASON): Portfol
             prices[sym] = q.price;
             prevCloses[sym] = q.prevClose;
           }
-          bars[sym] = seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER });
+          bars[sym] = applyBarsFault(sym, seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER }), BARS_FAULT);
         }
       } else {
         // priceReads.readPriceMarks: the same quote + daily-bars read the stock sheet uses
@@ -251,6 +259,11 @@ export function usePortfolioData(season: PortfolioSeason = LIVE_SEASON): Portfol
         slotLabels,
         buyRow: { stakeMode, sales, budgetLeft, rosterFull, openSlotLabels },
       });
+      // A finished season with a holding that has no season-end close has no value (not one at cost): the load failure.
+      if (!team) {
+        setState({ ...EMPTY, status: 'error', leagueName });
+        return;
+      }
       const view = team.view;
       const firstDraft = mine.filter((a) => a.kind === 'draft').map((a) => a.occurred_at).sort()[0] ?? null;
 
@@ -260,7 +273,7 @@ export function usePortfolioData(season: PortfolioSeason = LIVE_SEASON): Portfol
       setState({
         status: 'ready',
         view,
-        chart: { rows: chartRows, bars, stake, draftAt: firstDraft, liveValue: team.liveValue, endEt: finished ? endEt : null },
+        chart: { rows: chartRows, bars, stake, draftAt: firstDraft, liveValue: team.liveValue, value: team.value, fullyPriced: view.unpricedNote === null, endEt: finished ? endEt : null },
         prices,
         requestCount: requests,
         leagueName,
