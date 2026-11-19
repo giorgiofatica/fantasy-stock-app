@@ -10,13 +10,21 @@
 //
 // The fix is RosterRow's: never ask iOS to fit. The disc is a fixed 40pt circle, so its text room is a
 // constant; the value's room is the trail's share of the measured ROW width. Each is a uniform scale
-// (components/sp/logic/fitScale's rule) with the element's OWN floor, and an unmeasured row renders at full
-// size (never shrinks on a guess).
+// (components/sp/logic/fitScale's rule) with the element's OWN floor (the disc has none: pick A, 2026-11-19,
+// see DISC_EXCEPTION_MIN_SCALE), and an unmeasured row renders at full size (never shrinks on a guess).
 import { fitScale, estimateMoneyWidth } from './fitScale';
 
-/** The disc's ticker: 13pt, never scaled by Dynamic Type, floored at 11pt (13 × 0.85, §9B). */
+/** The disc's ticker: 13pt, never scaled by Dynamic Type, and shrunk to fit its round badge (below). */
 export const DISC_PT = 13;
-export const DISC_MIN_SCALE = 0.85;
+/**
+ * THE ONE EXCEPTION to the app's 11pt floor (§9B; DESIGN_DIRECTION "The 11pt floor stands"). Giorgio's pick A,
+ * PRODUCT_RULES "A long ticker shrinks to fit its round badge (A)" (2026-11-19, board #call-ticker-disc, PR #565):
+ * the badge stays a 40pt circle and ONLY its ticker shrinks, under 11pt when it must (GOOGL ≈ 9.3pt, BRK.B
+ * ≈ 10.8pt, AMGN ≈ 11.0pt), so a ticker is never cut to "GO…". Allowed because the full ticker is printed at full
+ * size right beside the badge, so the badge's text is never the only place to read it. No floor: any ticker the
+ * app can hold fits (0: no floor). Scoped to discTickerScale; every other fitted text keeps its own ≥ 11pt floor.
+ */
+export const DISC_EXCEPTION_MIN_SCALE = 0;
 /** The disc is 40pt wide with 2pt of padding on each side (HoldingRow's styles.disc). */
 export const DISC_SIZE = 40;
 export const DISC_PADDING = 2;
@@ -42,7 +50,7 @@ export function flooredFitScale(room: number | null, natural: number | null, flo
  * S) and shrank AAPL ~1.7pt more than iOS's own fit did (Design Lead P3, 2026-11-18); the real widths do not.
  * Measured at 13pt: NVDA 39.2pt, AMZN 40.7pt and MSFT 38.1pt are WIDER than the 36pt room (they shrink to
  * ~0.92 / 0.88 / 0.94, as iOS's fit already did); AAPL 36.6, TSLA 35.6, NFLX 36.2 and PLTR 35.7 are at or
- * within it (≥ 0.98); GOOGL 50.3 and BRK.B 43.3 hit the 0.85 floor.
+ * within it (≥ 0.98); GOOGL 50.3, BRK.B 43.3 and AMGN 42.4 shrink to ~0.72 / 0.83 / 0.849 (pick A, no floor).
  */
 export const TICKER_EM: Readonly<Record<string, number>> = {
   A: 0.746, B: 0.745, C: 0.752, D: 0.755, E: 0.699, F: 0.641, G: 0.815,
@@ -62,9 +70,12 @@ export function tickerWidth(symbol: string, fontPt: number): number {
   return em * fontPt;
 }
 
-/** The scale of the disc's ticker (its room is constant: no measuring, so no first-pass guess). */
+/**
+ * The scale of the disc's ticker (its room is constant: no measuring, so no first-pass guess). It fits the room
+ * with no floor: the DISC_EXCEPTION_MIN_SCALE exception above. Never enlarged past 13pt.
+ */
 export function discTickerScale(symbol: string): number {
-  return flooredFitScale(DISC_TEXT_ROOM, tickerWidth(symbol, DISC_PT), DISC_MIN_SCALE);
+  return flooredFitScale(DISC_TEXT_ROOM, tickerWidth(symbol, DISC_PT), DISC_EXCEPTION_MIN_SCALE);
 }
 
 /** The scale of the value for a row `rowWidth` wide (null: not laid out yet, so full size). */

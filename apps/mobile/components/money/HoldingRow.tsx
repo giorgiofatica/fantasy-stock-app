@@ -46,7 +46,7 @@ export const HoldingRow = forwardRef<View, HoldingRowProps>(function HoldingRow(
   const inner = (
     <>
       <View style={[styles.disc, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} style={{ fontSize: DISC_PT * discTickerScale(row.symbol) }}>{row.symbol}</Text>
+        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} ellipsizeMode="clip" style={{ fontSize: DISC_PT * discTickerScale(row.symbol) }}>{row.symbol}</Text>
       </View>
       <View style={styles.lead}>
         <View style={styles.tickerLine}>
