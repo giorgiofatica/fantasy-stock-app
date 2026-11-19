@@ -161,7 +161,9 @@ Deno.test("the season-gain % is on teamValue's stake: it includes money put in a
 });
 
 Deno.test('wiring: the team view builds from playerPortfolio → portfolioSummary (the one stake), not its own math', () => {
-  assert(SOURCES['lib/money/playerPortfolio.ts'].includes('stake: summary.stake'));
+  // The stake comes from portfolioSummary inside teamPortfolioView, which playerPortfolio calls.
+  assert(SOURCES['lib/money/teamPortfolioView.ts'].includes('stake: summary.stake'));
+  assert(SOURCES['lib/money/playerPortfolio.ts'].includes('teamPortfolioView('));
   const screen = SOURCES['components/money/PlayerPortfolioScreen.tsx'];
   assert(!/teamValue|seasonGain|portfolioSummary/.test(screen.replace(/\/\*[\s\S]*?\*\//g, '')), 'the screen only renders the view');
 });

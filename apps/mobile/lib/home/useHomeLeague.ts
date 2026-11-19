@@ -22,7 +22,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabase';
 import { useAuth } from '../useAuth';
 import { FIXTURE_USER_ID } from '../shell/fixtureIds';
-import { SEAM_ON } from '../game/devSeam';
+import { CAPTURE_SEASON_LATER, SEAM_ON } from '../game/devSeam';
 import { useLeagueContext, type HomeSummaryRow } from '../LeagueContext';
 import { playoffRoundLabelForWeek } from '../playoffs';
 import {
@@ -64,6 +64,9 @@ export type HomeLeagueStatus = 'loading' | 'ready' | 'error' | 'no-league';
 /** The raw inputs the view model was built from (3c Matchup reads the same
  * ledgers, quotes and bars, so its live score is Home's by construction). */
 export interface HomeRawInputs {
+  /** The league these inputs were read for: a reader keyed on the active league checks it, since a
+   * league switch can leave the previous league's inputs in place until the new read lands. */
+  leagueId: string;
   data: GetHomeLeagueResult;
   quote: (symbol: string) => number | null;
   bars: BarsBySymbol;
@@ -471,7 +474,11 @@ function fixtureHomeLeagueRaw(fixture: import('./devFixture').HomeFixture | null
       ? { status: 'closed', reason: 'weekend', nextOpenAt: null }
       : { status: 'open', reason: 'regular_session', nextOpenAt: null };
 
-  const now = fixture === 'scoring' || fixture === 'scored'
+  // Finished-season Portfolio's frozen proof (CAPTURE_SEASON_LATER, capture only): the season is over,
+  // so the clock reads after the final (1: Mon Sep 28; 2: Thu Oct 8, the market moved on since).
+  const now = (fixture === 'complete' || fixture === 'complete_runner_up') && CAPTURE_SEASON_LATER
+    ? new Date(CAPTURE_SEASON_LATER === 2 ? '2026-10-08T17:37:00.000Z' : '2026-09-28T15:00:00.000Z')
+    : fixture === 'scoring' || fixture === 'scored'
     ? new Date('2026-09-25T20:30:00.000Z') // Friday, after week_end
     // R2 (Design Lead, 2026-09-30): Thursday 8 PM ET -- AFTER Thursday's
     // own 4 PM close, so "…at Thursday's close" (lastSessionCloseBefore)
@@ -641,7 +648,7 @@ export function useHomeLeague(leagueId: string | null): UseHomeLeagueResult {
       });
       if (!isStale()) {
         setViewModel(vm);
-        setRaw({ data, quote, bars, marketCalendar: fixtureMarketCalendar, now: fixtureNow });
+        setRaw({ leagueId, data, quote, bars, marketCalendar: fixtureMarketCalendar, now: fixtureNow });
         setStatus('ready');
       }
       return;
@@ -737,7 +744,7 @@ export function useHomeLeague(leagueId: string | null): UseHomeLeagueResult {
       bars, playoffRoundLabelForWeek, marketCalendar,
     });
 
-    const rawInputs: HomeRawInputs = { data, quote: (sym: string) => quotePrices[sym] ?? null, bars, marketCalendar, now: new Date() };
+    const rawInputs: HomeRawInputs = { leagueId, data, quote: (sym: string) => quotePrices[sym] ?? null, bars, marketCalendar, now: new Date() };
     cacheRef.current.set(leagueId, vm);
     rawCacheRef.current.set(leagueId, rawInputs);
     if (isStale()) return; // a newer league switch has already superseded this response

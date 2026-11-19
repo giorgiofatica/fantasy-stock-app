@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase';
 import type { DailyBar } from './stockChartSeries';
 import { MONEY_FIXTURE_CONFIG, MONEY_RECENT_BARS } from './devFixture';
 import { stressChartBars } from './stressFixture';
-import { CAPTURE_LOSS, MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '../game/devSeam';
+import { CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '../game/devSeam';
 import { seamChartBars } from './portfolioSeam';
 
 export interface StockChartData {
@@ -25,7 +25,16 @@ export interface StockChartData {
 // fetched history, only for a stock listed after the draft.
 const LOOKBACK_DAYS = 400;
 
-export function useStockChartData(symbol: string, enabled: boolean): StockChartData {
+/** A season that is over reads only up to its last day, from its draft day (the server clamps `start` to
+ * its own 407-day ceiling, so a season older than that loses its earliest bars, never gets later ones). */
+export interface StockChartWindow {
+  start: string;
+  end: string;
+}
+
+export function useStockChartData(symbol: string, enabled: boolean, window: StockChartWindow | null = null): StockChartData {
+  const windowStart = window?.start ?? null;
+  const windowEnd = window?.end ?? null;
   const [state, setState] = useState<StockChartData>({ status: 'loading', bars: [] });
 
   useEffect(() => {
@@ -43,14 +52,14 @@ export function useStockChartData(symbol: string, enabled: boolean): StockChartD
     }
     // The game capture seam: the fixture's own daily path, no network.
     if (SEAM_ON) {
-      setState({ status: 'ready', bars: seamChartBars(symbol, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS }) });
+      setState({ status: 'ready', bars: seamChartBars(symbol, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER }) });
       return;
     }
     let cancelled = false;
     setState({ status: 'loading', bars: [] });
     (async () => {
-      const start = new Date(Date.now() - LOOKBACK_DAYS * 86_400_000).toISOString().slice(0, 10);
-      const { data, error } = await supabase.functions.invoke('historical-bars', { body: { symbols: [symbol], start } });
+      const start = windowStart ?? new Date(Date.now() - LOOKBACK_DAYS * 86_400_000).toISOString().slice(0, 10);
+      const { data, error } = await supabase.functions.invoke('historical-bars', { body: { symbols: [symbol], start, ...(windowEnd ? { end: windowEnd } : {}) } });
       if (cancelled) return;
       if (error) {
         console.warn('[stock-chart] historical-bars failed', error.message);
@@ -66,7 +75,7 @@ export function useStockChartData(symbol: string, enabled: boolean): StockChartD
     return () => {
       cancelled = true;
     };
-  }, [symbol, enabled]);
+  }, [symbol, enabled, windowStart, windowEnd]);
 
   return state;
 }

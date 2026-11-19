@@ -138,7 +138,8 @@ Deno.test('cardWeekFigure: absent without weeks; the Schedule dash when unknown;
 Deno.test('PlayerCard: Week gain from cardWeekFigure; the dash alone (no percent, no words); absent without weeks', () => {
   const src = strip(SOURCES['components/sp/gn/PlayerCard.tsx']);
   assert(src.includes('const week = cardWeekFigure(weekGain, weekPct, hasWeeks);'));
-  assert(src.includes('{week ? (\n          <Figure label="Week gain"\n            value={week.value}'), 'one Week gain figure, drawn only when cardWeekFigure gives one');
+  // (Indented one level deeper: a season that is over wraps the whole figure strip in `{over ? null : (`.)
+  assert(src.includes('{week ? (\n            <Figure label="Week gain"\n              value={week.value}'), 'one Week gain figure, drawn only when cardWeekFigure gives one');
   assert(src.includes("sub={week.kind === 'figure' ? week.sub : undefined}"), 'the dash has no percent line');
   assert(src.includes("valueColor={week.kind === 'figure' ? colors[week.tone] : colors.text2}"), 'the dash is secondary, as on Schedule');
   assert(src.includes("a11yLabel={week.kind === 'unknown' ? 'Week gain' : undefined}"), 'VoiceOver says the label alone');
@@ -147,9 +148,10 @@ Deno.test('PlayerCard: Week gain from cardWeekFigure; the dash alone (no percent
 });
 
 Deno.test('Portfolio and the manager portfolio key the card on the league type', () => {
-  for (const f of ['components/money/PortfolioScreen.tsx', 'components/money/PlayerPortfolioScreen.tsx']) {
+  // A season that is over draws no week figure at all (the card hides it), so its weekGain is a plain 0 there.
+  for (const [f, over] of [['components/money/PortfolioScreen.tsx', 'chartEnd'], ['components/money/PlayerPortfolioScreen.tsx', 'finished']]) {
     const src = strip(SOURCES[f]);
-    assert(src.includes('weekGain: stockWeek(shown, snapshots, trades, price).gain,'), f);
+    assert(src.includes(`weekGain: ${over} ? 0 : stockWeek(shown, snapshots, trades, price).gain,`), f);
     assert(src.includes('hasWeeks: leagueHasWeeks(activeLeague?.league_type),'), f);
   }
 });

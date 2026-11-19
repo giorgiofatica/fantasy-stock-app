@@ -22,6 +22,12 @@ export interface PriceMarksOptions {
   barsSymbols?: string[];
   /** The bars' first date (YYYY-MM-DD); the default is the last 10 days (the previous close). */
   barsStart?: string | null;
+  /**
+   * A season that is over (finished-season Portfolio): read the daily bars ONLY, never the live quote.
+   * Its prices come from the closes on or before the season's last day, so a live price must not even
+   * be in reach (tests-deno/money-finished-season.test.ts guards it).
+   */
+  barsOnly?: boolean;
 }
 
 function etIsoDate(d: Date): string | null {
@@ -32,14 +38,16 @@ function etIsoDate(d: Date): string | null {
 
 export async function readPriceMarks(symbols: string[], now: Date = new Date(), opts: PriceMarksOptions = {}): Promise<PriceMarks> {
   const out: PriceMarks = { prices: {}, prevCloses: {}, bars: {}, requests: 0 };
-  if (symbols.length === 0) return out;
+  if (symbols.length === 0 && !(opts.barsOnly && opts.barsSymbols?.length)) return out;
 
-  out.requests += 1;
-  const { data: quoteData, error: quoteError } = await supabase.functions.invoke('quote', { body: { symbols } });
-  if (quoteError) console.warn('[prices] quote failed', quoteError.message);
-  else {
-    for (const [sym, p] of Object.entries((quoteData?.prices ?? {}) as Record<string, unknown>)) {
-      if (typeof p === 'number' && Number.isFinite(p) && p > 0) out.prices[sym.toUpperCase()] = p;
+  if (!opts.barsOnly) {
+    out.requests += 1;
+    const { data: quoteData, error: quoteError } = await supabase.functions.invoke('quote', { body: { symbols } });
+    if (quoteError) console.warn('[prices] quote failed', quoteError.message);
+    else {
+      for (const [sym, p] of Object.entries((quoteData?.prices ?? {}) as Record<string, unknown>)) {
+        if (typeof p === 'number' && Number.isFinite(p) && p > 0) out.prices[sym.toUpperCase()] = p;
+      }
     }
   }
 

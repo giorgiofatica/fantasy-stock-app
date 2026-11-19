@@ -44,7 +44,9 @@ Deno.test('wiring: Home passes teamValue\'s stake to seasonGain; both Portfolios
   const home = SOURCES['lib/home/buildHomeViewModel.ts'];
   assertEquals(/const stake = teamValue\(/.test(home), true);
   assertEquals(home.includes('seasonGain(scoredWeeklyGains, currentWeekLiveGain, stake.stake)'), true);
-  assertEquals(SOURCES['lib/money/usePortfolioData.ts'].includes('stake: summary.stake'), true);
-  assertEquals(SOURCES['lib/money/playerPortfolio.ts'].includes('stake: summary.stake'), true);
+  // Both Portfolios build through teamPortfolioView, which takes the stake from portfolioSummary.
+  assertEquals(SOURCES['lib/money/teamPortfolioView.ts'].includes('stake: summary.stake'), true);
+  assertEquals(SOURCES['lib/money/usePortfolioData.ts'].includes('teamPortfolioView('), true);
+  assertEquals(SOURCES['lib/money/playerPortfolio.ts'].includes('teamPortfolioView('), true);
   assertEquals(SOURCES['lib/money/portfolioModel.ts'].includes('stake: tv.stake'), true);
 });

@@ -55,7 +55,8 @@ import { categoryNameOf, loadCategoryNames } from '@/lib/money/categoryNames';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { reviewPresentation } from '@/lib/money/reviewPresentation';
 import { canDismiss } from '@/lib/money/reviewMachine';
-import { decideTradeGate } from '@/lib/money/tradeGate';
+import { decideTradeGate, type TradeGate } from '@/lib/money/tradeGate';
+import { isSeasonOver } from '@/lib/weekStatus';
 import { companyLine, stockSheetModel } from '@/lib/money/stockSheetModel';
 import { buyBody, previewBody, sellBody } from '@/lib/money/tradeBodies';
 import { useStockSheetData } from '@/lib/money/useStockSheetData';
@@ -77,6 +78,8 @@ import { acquisitionLine } from '@/components/sp/logic/gameNight';
 
 /** The sheet's gutter (§9C: the card's and the sheet's 20pt). */
 const SHEET_GUTTER = space[6];
+/** The gate of a season that is over: closed, with no open time (never stale, so it never refetches). */
+const SEASON_OVER_GATE: TradeGate = { open: false, reason: 'closed', stale: false, nextOpenAt: null };
 
 /** The badge's ticker, sized by length rather than by `adjustsFontSizeToFit`: inside the sheet's scroll view iOS
  * shrank that text to a fraction of its size on a sheet that overflows by a little (found at Large on a held stock,
@@ -212,8 +215,12 @@ export function StockSheetBody({
   const submitRef = useRef<(() => Promise<void>) | null>(null);
   const choiceRef = useRef<ReviewKind>('buy');
 
-  const gate = decideTradeGate(now, market);
-  const opensLabel = market?.next_open_at ? marketOpensLabel(market.next_open_at) : null;
+  // A season that is over is closed to buying and selling, whatever the market is doing (the one predicate,
+  // isSeasonOver; the server refuses it too): the sheet's gate is closed with no open time, so Buy and Sell
+  // are disabled before a review, never at the server.
+  const seasonOver = isSeasonOver(activeLeague, now, marketCalendar);
+  const gate = seasonOver ? SEASON_OVER_GATE : decideTradeGate(now, market);
+  const opensLabel = !seasonOver && market?.next_open_at ? marketOpensLabel(market.next_open_at) : null;
 
   async function buildReview(kind: ReviewKind, pickedId: string | null = null): Promise<OpenReview> {
     const league = sheetLeague;
@@ -418,7 +425,7 @@ export function StockSheetBody({
     held: data.facts.held,
     owner: data.facts.owner,
     draft: data.facts.draft,
-    gate: { open: gate.open, opensLabel },
+    gate: { open: gate.open, opensLabel, seasonOver },
     leagueName: data.leagueName ?? '',
     lastCloseLabel: null,
     acquisition,

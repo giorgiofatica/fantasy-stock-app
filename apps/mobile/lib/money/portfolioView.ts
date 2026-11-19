@@ -44,6 +44,13 @@ export interface PortfolioViewInput {
    * playerPortfolio (another manager's view carries no trade action, so there
    * is no row to caption). */
   buyRow?: BuyRowInput;
+  /**
+   * A season that is over (Giorgio, 2026-11-18, pick A). `value` is then the value line's last point
+   * (the season's last day), each holding's `price` its close on or before that day, and the gain is
+   * `value − draftValue` ("since the draft", the line's own Season gain). Today, the slots facts, the
+   * cash and the buy row are all gone: nothing about a finished season moves or can be acted on.
+   */
+  finished?: { draftValue: number };
 }
 
 export interface HoldingRow {
@@ -90,16 +97,21 @@ const cents = (v: number) => Math.round(v * 100) / 100;
 const toneOf = (v: number): 'gain' | 'loss' | 'zero' => (Math.abs(v) < 0.005 ? 'zero' : v > 0 ? 'gain' : 'loss');
 
 export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
+  const finished = i.finished ?? null;
   const valueText = formatMoney(i.value);
+  // "· includes cash" whenever the value holds cash, finished or not (Design Lead, 2026-11-18): a finished
+  // team has no cash row, so the label is the one thing saying why the hero is more than its rows.
   const valueLabel = Math.abs(i.cash) >= 0.005 ? COPY.portfolioValueIncludesCash : 'Portfolio value';
 
   let gainText: string | null = null;
   let gainMoneyText: string | null = null;
   let gainPctText: string | null = null;
   let gainTone: PortfolioView['gainTone'] = null;
-  if (i.stake > 0) {
-    const gain = cents(i.value - i.stake);
-    const pct = (gain / i.stake) * 100;
+  // Since the draft: value − stake live; finished, value − the draft-day value (the line's Season gain).
+  const basis = finished ? finished.draftValue : i.stake;
+  if (basis > 0) {
+    const gain = cents(i.value - basis);
+    const pct = (gain / basis) * 100;
     gainMoneyText = formatMoney(gain, { sign: 'always' });
     gainPctText = formatPercent(pct, { sign: 'always' });
     gainText = `${gainMoneyText} · ${gainPctText}`;
@@ -112,7 +124,7 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
   let todayPctText: string | null = null;
   let todayTone: PortfolioView['todayTone'] = null;
   const held = i.holdings;
-  if (held.length > 0 && held.every((h) => h.price != null && h.prevClose != null && h.prevClose > 0)) {
+  if (!finished && held.length > 0 && held.every((h) => h.price != null && h.prevClose != null && h.prevClose > 0)) {
     const change = held.reduce((a, h) => a + h.quantity * (h.price! - h.prevClose!), 0);
     // The whole account's previous close (W4 DL gate): the holdings at their last close PLUS the
     // cash, so "+$X · +Y% today" is a percent of the value the header shows (cash earns nothing
@@ -125,12 +137,14 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
     todayTone = toneOf(change);
   }
 
-  const fixed = i.stakeMode === 'fixed_notional';
+  // The slots facts ("6 of 6 slots invested"), the cash and the buy row are live-season only.
+  const fixed = !finished && i.stakeMode === 'fixed_notional';
+  const showCash = !finished && i.stakeMode !== 'fixed_notional' && Math.abs(i.cash) >= 0.005;
   const rows: HoldingRow[] = held
     .map((h) => {
       const priced = h.price != null;
       const value = priced ? cents(h.quantity * h.price!) : cents(h.costBasis);
-      const rowPct = priced && h.prevClose != null && h.prevClose > 0 ? ((h.price! - h.prevClose) / h.prevClose) * 100 : null;
+      const rowPct = !finished && priced && h.prevClose != null && h.prevClose > 0 ? ((h.price! - h.prevClose) / h.prevClose) * 100 : null;
       return {
         symbol: h.symbol,
         name: cleanCompanyName(h.name) || h.symbol,
@@ -159,9 +173,9 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
     todayTone,
     slotsText: fixed ? COPY.slotsInvested(held.length, i.numRounds) : null,
     perSlotText: fixed && i.perSlotNotional != null ? COPY.perSlotAtDraft(formatMoney(i.perSlotNotional)) : null,
-    cashText: !fixed && Math.abs(i.cash) >= 0.005 ? `${COPY.cashFromSales} ${formatMoney(i.cash)}` : null,
-    cashValueText: !fixed && Math.abs(i.cash) >= 0.005 ? formatMoney(i.cash) : null,
-    buyRowText: i.buyRow ? buyRowLine(i.buyRow)?.text ?? null : null,
+    cashText: showCash ? `${COPY.cashFromSales} ${formatMoney(i.cash)}` : null,
+    cashValueText: showCash ? formatMoney(i.cash) : null,
+    buyRowText: !finished && i.buyRow ? buyRowLine(i.buyRow)?.text ?? null : null,
     unpricedNote: unpricedNote(held.filter((h) => h.price == null).length),
     rows,
     creditText: COPY.alpacaCredit,

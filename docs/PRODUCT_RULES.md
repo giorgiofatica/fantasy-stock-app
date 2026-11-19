@@ -562,6 +562,27 @@ building anything, and don't reopen a rule without him.
     - It reaches the Stocks list he approved the same day: a row may not show the stored
       price, which can be up to about two trading days old. The plan is revised so rows show
       a current price or the list waits for the feed (see the plan).
+  - **The kind of price feed: a calculated price for every stock (A)** (2026-11-18; a
+    three-way comparison in the Planner's chat, from
+    `docs/research/2026-11-18-full-market-feed-options.md`). Shown A (a price worked out each
+    second from the whole market: never a day old, never missing, but an estimate and not
+    one actual trade; list price about $250 to $1,000 a month, flat), B (real trades from
+    every exchange, 15 minutes late; about $1,250 a month and up; a stock with no trade for
+    hours still shows an old price) and C (real trades from every exchange, live; $3,000 or
+    more a month plus about $3 per player; the same old-price gap; every player must declare
+    they are not a finance professional), he picked **A**.
+    - What the pick is: the KIND of feed the app moves to, chosen because it is the only one
+      of the three that meets both halves of his rule above.
+    - What the pick is NOT: a supplier, a contract, or a go-ahead to spend. He was told the
+      prices were published list prices not confirmed with any supplier; that the right to
+      show prices to players must be in writing first; that a week's test on rarely traded
+      stocks comes before committing; and that one supplier's terms may require deleting its
+      data when the plan ends, which matters because the app stores prices for scoring.
+    - Told to him and not objected to: the cheaper upgrade of the current supplier does not
+      work (its $99 plan covers the whole market but its terms are still personal use).
+    - Not decided: which supplier; when to start paying; whether scoring uses the same
+      calculated price or the day's official open and close; whether prices ever appear on
+      a public web page (it changes what to ask a supplier for).
 - **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
   DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
   biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
