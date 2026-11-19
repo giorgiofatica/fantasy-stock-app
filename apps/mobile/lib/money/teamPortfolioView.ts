@@ -37,6 +37,8 @@ export interface TeamPortfolioInput {
 
 export interface TeamPortfolio {
   view: PortfolioView;
+  /** The hero's value as a number (the view's valueText): finished, the value line's last point. */
+  value: number;
   /** The header's value as the line's live end; null in a finished season (no live point). */
   liveValue: number | null;
 }
@@ -66,8 +68,9 @@ export function teamPortfolioView(i: TeamPortfolioInput): TeamPortfolio | null {
     name: i.names[h.symbol] ?? i.names[h.symbol.toUpperCase()] ?? null,
   }));
 
+  const heroValue = endDaily?.length ? endDaily[endDaily.length - 1].value : summary.value;
   const view = buildPortfolioView({
-    value: endDaily?.length ? endDaily[endDaily.length - 1].value : summary.value,
+    value: heroValue,
     cash: summary.cash,
     stake: summary.stake,
     holdings,
@@ -79,5 +82,5 @@ export function teamPortfolioView(i: TeamPortfolioInput): TeamPortfolio | null {
     // The stake at cost, a real number even when the line starts late (missing early bars).
     ...(endEt ? { finished: { draftValue: draftValueOf(i.chartRows, i.stake) ?? summary.stake } } : {}),
   });
-  return { view, liveValue: endEt ? null : summary.value };
+  return { view, value: heroValue, liveValue: endEt ? null : summary.value };
 }

@@ -53,6 +53,10 @@ export interface PortfolioChartInputs {
   draftAt: string | null;
   /** The header's value: the line's live end. Null in a finished season (no live point). */
   liveValue: number | null;
+  /** The hero's value as a number, and whether EVERY holding is priced (none counted at cost): "since the draft" is only a
+   * figure when it is (the value minus cost, both real). */
+  value: number;
+  fullyPriced: boolean;
   /** A finished season's last day (the line ends there); null for a live season. */
   endEt: string | null;
 }
@@ -269,7 +273,7 @@ export function usePortfolioData(season: PortfolioSeason = LIVE_SEASON): Portfol
       setState({
         status: 'ready',
         view,
-        chart: { rows: chartRows, bars, stake, draftAt: firstDraft, liveValue: team.liveValue, endEt: finished ? endEt : null },
+        chart: { rows: chartRows, bars, stake, draftAt: firstDraft, liveValue: team.liveValue, value: team.value, fullyPriced: view.unpricedNote === null, endEt: finished ? endEt : null },
         prices,
         requestCount: requests,
         leagueName,

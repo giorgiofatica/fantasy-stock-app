@@ -232,7 +232,7 @@ Deno.test('with no break the geometry is unchanged: one stroke through every poi
 Deno.test('own Portfolio, the finished season and a manager\'s team all read dailyValues / draftValueOf', () => {
   const read = (p: string) => Deno.readTextFileSync(new URL(p, import.meta.url));
   const screen = read('../components/money/PortfolioScreen.tsx');
-  assert(screen.includes("gainRange === 'Season' ? sinceTheDraftGain(lastValue, draftValue)"), 'Season says since the draft from the stake at cost');
+  assert(screen.includes("gainRange === 'Season' ? (chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null)"), 'Season says since the draft from the stake at cost, only when the value is fully real');
   assert(screen.includes('finishedPortfolioSeries({ daily, endEt: chartEnd, draftValue })'));
   assert(screen.includes('portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions, draftValue })'));
   const team = read('../lib/money/teamPortfolioView.ts');
@@ -264,17 +264,27 @@ Deno.test('capture knob: applyBarsFault removes only what it names', () => {
 
 // ── the empty frame (the Planner, 2026-11-19): the app's "–", never a blank; Season still says since the draft ──────
 
-Deno.test('no line: the chart keeps its empty frame, the gain line is the app\'s dash (not a blank), no stray axis label', () => {
+Deno.test('no line: the WHOLE chart block is absent (no frame, no axis label, no range buttons); the gain line stays, as the dash when unknown', () => {
   const read = (p: string) => Deno.readTextFileSync(new URL(p, import.meta.url));
   const line = read('../components/sp/gn/RangeGainLine.tsx');
   assert(line.includes("const UNKNOWN_DASH = '\\u2013';"), 'the en dash, the one Schedule and the card use');
   assert(line.includes('if (!gain && unknown) {') && line.includes('{UNKNOWN_DASH}'));
   const screen = read('../components/money/PortfolioScreen.tsx');
-  assert(screen.includes('unknown={series.points.length === 0}'));
-  assert(screen.includes('axis={series.points.length ? series.axis : EMPTY_FRAME_AXIS}'), 'no axis labels under an empty chart');
-  assert(screen.includes("const EMPTY_FRAME_AXIS: AxisSpec = { kind: 'sessions', days: [] };"));
-  // No new words and no screen-level failure for it.
-  assert(!/LoadFailure[^\n]*seasonEnd[^\n]*points/.test(screen));
+  assert(screen.includes('const hasLine = !!series && series.points.length > 0;'));
+  assert(screen.includes('{hasLine && series ? (\n            <Chart'), 'the chart is drawn only with a line');
+  assert(screen.includes('{over || !hasLine ? null : ('), 'no range buttons without a line');
+  assert(screen.includes('unknown={gain === null}'), 'an unknown gain is the dash, not a blank');
+  assert(!screen.includes('EMPTY_FRAME_AXIS'), 'no empty frame');
+  // The card: a finished season with no line has no chart block at all.
+  assert(read('../components/money/StockChart.tsx').includes('if (frozen && ready && frozen.points.length === 0) return null;'));
+});
+
+Deno.test('since the draft is the dash unless the value is fully real (no holding counted at cost)', () => {
+  const screen = Deno.readTextFileSync(new URL('../components/money/PortfolioScreen.tsx', import.meta.url));
+  assert(screen.includes('chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null'));
+  assert(screen.includes('series.points[series.points.length - 1].value : chart?.value ?? null;'), 'with no line the gain still reads the real hero value');
+  const hook = Deno.readTextFileSync(new URL('../lib/money/usePortfolioData.ts', import.meta.url));
+  assert(hook.includes('fullyPriced: view.unpricedNote === null'));
 });
 
 Deno.test('Season still says since the draft when there is no line and the value is real (live); with no real value it is the dash', () => {

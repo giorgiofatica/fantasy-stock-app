@@ -2,8 +2,8 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "732ab59036780ffc78d11aa1673518b72ffb9aa2",
-    "commitShort": "732ab590",
+    "commit": "2251ead2a19c9008c54581bfdfef9cd0aef0310a",
+    "commitShort": "2251ead2",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
@@ -14,11 +14,19 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/sp/gn/RangeGainLine.tsx"
+        "path": "apps/mobile/components/money/StockChart.tsx"
       },
       {
         "code": "M",
         "path": "apps/mobile/lib/money/portfolioChart.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/teamPortfolioView.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/usePortfolioData.ts"
       },
       {
         "code": "M",
@@ -37,8 +45,8 @@
         "path": "apps/mobile/tests-deno/money-finished-season.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T06:04:38Z",
-    "sourceHash": "sha256:0b845c8f7b145aac2c311f26bbc49577e7930e7be7099984c2c06f66b89782c1",
+    "timestamp": "2026-11-19T06:04:42Z",
+    "sourceHash": "sha256:1cbd9dd627600dfcdacbbab477320f65a5743adfade442d909ad33bfd18183ff",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -21196,7 +21204,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:114"
+        "apps/mobile/components/money/PortfolioScreen.tsx:111"
       ],
       "via": [
         "useRosterData"
@@ -21214,7 +21222,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:114"
+        "apps/mobile/components/money/PortfolioScreen.tsx:111"
       ],
       "via": [
         "useRosterData"
@@ -21232,7 +21240,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:114"
+        "apps/mobile/components/money/PortfolioScreen.tsx:111"
       ],
       "via": [
         "useRosterData"
@@ -21250,7 +21258,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/components/money/PortfolioScreen.tsx:114"
+        "apps/mobile/components/money/PortfolioScreen.tsx:111"
       ],
       "via": [
         "useRosterData"
@@ -24500,10 +24508,10 @@
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124 -> drafts.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124 -> league_draft_slots.select (via useRosterData)",
       "apps/mobile/components/money/PlayerPortfolioScreen.tsx:124 -> trades.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:114 -> categories.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:114 -> drafts.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:114 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/components/money/PortfolioScreen.tsx:114 -> trades.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> categories.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> drafts.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/components/money/PortfolioScreen.tsx:111 -> trades.select (via useRosterData)",
       "apps/mobile/lib/LeagueContext.tsx:178 -> league_members.select",
       "apps/mobile/lib/LeagueContext.tsx:180 -> league_seasons.select",
       "apps/mobile/lib/LeagueContext.tsx:183 -> market_calendar.select",

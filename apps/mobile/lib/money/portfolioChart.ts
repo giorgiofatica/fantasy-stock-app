@@ -301,15 +301,29 @@ export function finishedPortfolioSeries(input: { daily: readonly DailyValue[]; e
 }
 
 /**
- * Each symbol's close on or before the season's last day (a finished season's holding prices). A symbol
- * with no bar by then is left out, so it counts at cost and is captioned, never shown as $0.
+ * Each symbol's close at the season's last day (a finished season's holding prices): its own bar on the last session on or
+ * before `endEt`, else its previous real close within PREV_CLOSE_MAX_SESSIONS (5) sessions before it, the same ladder the server
+ * scores a week with and the value line uses (dailyValues). A close from before that window is NOT the season-end price: a stock
+ * whose last bar is weeks earlier is left out (never priced at that old close, and never at cost), so the caller's value is
+ * unknown (teamPortfolioView: no view; the screens' load failure). Sessions are the dates any symbol in `bars` has a bar.
  */
 export function seasonEndCloses(bars: Bars, symbols: readonly string[], endEt: string): Record<string, number> {
+  const dates = new Set<string>();
+  for (const series of Object.values(bars)) for (const b of series) if (b.close > 0 && b.date <= endEt) dates.add(b.date);
+  // The last session on or before the season's end, then up to PREV_CLOSE_MAX_SESSIONS sessions before it, newest first.
+  const window = [...dates].sort().slice(-(PREV_CLOSE_MAX_SESSIONS + 1)).reverse();
   const out: Record<string, number> = {};
   for (const sym of symbols) {
     const up = sym.toUpperCase();
-    const c = closeOnOrBefore(bars[up] ?? bars[sym], endEt);
-    if (c != null) out[up] = c;
+    const series = bars[up] ?? bars[sym];
+    if (!series) continue;
+    for (const d of window) {
+      const hit = series.find((b) => b.date === d && b.close > 0);
+      if (hit) {
+        out[up] = hit.close;
+        break;
+      }
+    }
   }
   return out;
 }

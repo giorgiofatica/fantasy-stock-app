@@ -43,7 +43,6 @@ import { PortfolioSkeleton } from '@/components/money/PortfolioSkeleton';
 import { RollingMoney } from '@/components/home/RollingMoney';
 import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
-import type { AxisSpec } from '@/components/sp/logic/chartAxis';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
 import { dailyValues, DEFAULT_PORTFOLIO_RANGE, draftValueOf, finishedPortfolioSeries, sinceTheDraftGain, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
@@ -83,8 +82,6 @@ function seamCardBars(path: readonly { date: string; close: number }[], home: re
   return [...path, ...home.filter((b) => b.date > last)];
 }
 
-/** The empty chart frame (no date has a real close for every holding): no axis labels, since nothing is drawn for a date. */
-const EMPTY_FRAME_AXIS: AxisSpec = { kind: 'sessions', days: [] };
 /** The value line's plot height (the board's amended Portfolio frame: 168). */
 const CHART_HEIGHT = 168;
 /** The hero's label, caption and sub-lines follow Dynamic Type to 1.3×, so the value stays the
@@ -169,8 +166,11 @@ export function PortfolioScreen() {
   const gainRange: PortfolioRange = chartEnd ? 'Season' : shownRange;
   // Season (and a finished season) say "since the draft": last value minus the stake at cost, even when the line
   // starts late or has no points at all (missing early bars); the other ranges are measured from the window.
-  const lastValue = series?.points.length ? series.points[series.points.length - 1].value : chartEnd ? null : chart?.liveValue ?? null;
-  const gain = !series ? null : gainRange === 'Season' ? sinceTheDraftGain(lastValue, draftValue) : rangeGain(series.points, series.base);
+  // It is a figure only when the value is fully real (every holding priced, none counted at cost); otherwise the dash.
+  const lastValue = series?.points.length ? series.points[series.points.length - 1].value : chart?.value ?? null;
+  const gain = !series ? null : gainRange === 'Season' ? (chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null) : rangeGain(series.points, series.base);
+  // No line to draw: the WHOLE chart block (frame, axis, range buttons) is absent; only the value and its gain line stay.
+  const hasLine = !!series && series.points.length > 0;
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
   const card = useMemo(() => {
@@ -312,13 +312,13 @@ export function PortfolioScreen() {
             {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
           </View>
           {series ? (
-            <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} unknown={series.points.length === 0} />
+            <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} unknown={gain === null} />
           ) : null}
-          {series ? (
+          {hasLine && series ? (
             <Chart
               points={series.points}
               base={series.base}
-              axis={series.points.length ? series.axis : EMPTY_FRAME_AXIS}
+              axis={series.axis}
               height={CHART_HEIGHT}
               bleed={space[6]}
               live={over ? false : marketOpen}
@@ -332,7 +332,7 @@ export function PortfolioScreen() {
               the dates and the next block 34pt below; pulled in so the pills sit ~12pt under the
               dates and the 24pt block gap is measured from the pill, glyph to glyph. Each pill
               keeps its 44pt target (32pt fill + its hit slop). */}
-          {over ? null : (
+          {over || !hasLine ? null : (
             <View style={styles.pillsRow}>
               <RangePills options={PORTFOLIO_RANGES} value={shownRange} onChange={setRange} variant="pills" disabled={greyed} />
             </View>

@@ -198,7 +198,7 @@ Deno.test('F7 (source): the hooks read bars only, never the quote, in a finished
 Deno.test('F5 (source): the finished Portfolio has no pills, no facts, no buy row, no live dot, a "Value" header', () => {
   const s = src('../components/money/PortfolioScreen.tsx');
   assert(s.includes('const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);'));
-  assert(/\{over \? null : \(\s*<View style=\{styles\.pillsRow\}>\s*<RangePills/.test(s), 'no range pills');
+  assert(/\{over \|\| !hasLine \? null : \(\s*<View style=\{styles\.pillsRow\}>\s*<RangePills/.test(s), 'no range pills');
   assert(s.includes("{!over && (v.cashValueText || v.slotsText) ? ("), 'no facts block');
   assert(/\{over \? null : \(\s*<Card>\s*<Pressable[\s\S]{0,600}testID="portfolio-buy-a-stock"/.test(s), 'no Buy a stock');
   assert(s.includes('live={over ? false : marketOpen}'), 'no live dot');
@@ -285,4 +285,24 @@ Deno.test('a manager\'s finished team with one holding missing its close has no 
 Deno.test('the own-Portfolio hook turns a missing season-end close into its error state', () => {
   const h = Deno.readTextFileSync(new URL('../lib/money/usePortfolioData.ts', import.meta.url));
   assert(/if \(!team\) \{\s*setState\(\{ \.\.\.EMPTY, status: 'error', leagueName \}\);\s*return;\s*\}/.test(h));
+});
+
+// ── the season-end close is bounded by the server's 5-session ladder (the other worker's review note) ───────────────
+
+Deno.test('seasonEndCloses: a stock whose last bar is within 5 sessions of the end is priced at it; older is NOT priced at all', () => {
+  // Sessions (any bar): Sep 1..Sep 10 (8 trading days). AAPL's last bar is Sep 2.
+  const days = ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-08', '2026-09-09', '2026-09-10'];
+  const nvda = days.map((date, i) => ({ date, close: 100 + i }));
+  // The end session is Sep 10; the window is Sep 10 and the five sessions before it (Sep 9, 8, 4, 3, 2).
+  const within = seasonEndCloses({ NVDA: nvda, AAPL: [{ date: '2026-09-02', close: 30 }] }, ['NVDA', 'AAPL'], '2026-09-10');
+  assertEquals(within, { NVDA: 106, AAPL: 30 }, 'five sessions back is still within the ladder');
+  const old = seasonEndCloses({ NVDA: nvda, AAPL: [{ date: '2026-09-01', close: 30 }] }, ['NVDA', 'AAPL'], '2026-09-10');
+  assertEquals(old, { NVDA: 106 }, 'six sessions back: left out (never priced at that old close, never at cost)');
+  // And so a finished league holding it has no value: the load failure.
+  assertEquals(symbolsMissingSeasonEndClose({ NVDA: nvda, AAPL: [{ date: '2026-09-01', close: 30 }] }, ['NVDA', 'AAPL'], '2026-09-10'), ['AAPL']);
+});
+
+Deno.test('seasonEndCloses reads only what is on or before the season end, and a weekend end prices on the last session', () => {
+  const bars = { NVDA: [{ date: '2026-09-03', close: 5 }, { date: '2026-09-04', close: 6 }, { date: '2026-09-08', close: 99 }] };
+  assertEquals(seasonEndCloses(bars, ['NVDA'], '2026-09-06'), { NVDA: 6 }, 'Sun Sep 6 reads Fri Sep 4, never Tue Sep 8');
 });
