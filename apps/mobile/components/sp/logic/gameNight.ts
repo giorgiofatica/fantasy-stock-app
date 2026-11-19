@@ -10,6 +10,7 @@ import { formatMoney, formatPercent } from './money';
 import { ordinal } from '../../../lib/home/ordinal';
 import { COPY as MONEY_COPY } from '../../../lib/money/moneyCopy';
 import { estimateLabelWidth } from './chartAxis';
+import type { ServerVerdict } from '../../../lib/game/weekResult';
 
 // ── Scoreboard (Matchup) ─────────────────────────────────────────────────────────
 
@@ -25,15 +26,31 @@ export interface ScoreboardModel {
    * (Giorgio, 2026-10-12: your side is shaded, win or lose), never the leader's. */
   leader: Side | null;
   /** The one line under the card: "{name} leads by {margin}" (or "won by"). */
-  line: string;
+  /** Null: no line (a final whose server result the dollars can't honestly state; scoreboardModel). */
+  line: string | null;
 }
 
-export function scoreboardModel(you: ScoreSide, opp: ScoreSide, final: boolean): ScoreboardModel {
-  if (you.gain === opp.gain) return { leader: null, line: 'Dead even' };
-  const leader: Side = you.gain > opp.gain ? 'you' : 'opp';
-  const name = leader === 'you' ? you.name : opp.name;
+/** The Scoreboard's line. LIVE (final false): from the two dollar totals, as the board's "leads by" /
+ * "Dead even". FINAL: from the SERVER's verdict (`verdict`, from the `you` side: lib/game/weekResult's
+ * serverVerdict), never the dollars (review 2 on #566; Planner, 2026-11-19, an interim removal with no
+ * new words):
+ *  - the server's winner is the dollar leader: "{winner} won by $X" (X = |a - b|);
+ *  - no server winner and equal dollars: "Dead even";
+ *  - anything else (a percent or seed tiebreak, an empty portfolio's automatic loss, a winner who isn't
+ *    the dollar leader, or a verdict not read): NO line (`line: null`). The band and the row name the
+ *    server's winner; the card never names a different one. */
+export function scoreboardModel(you: ScoreSide, opp: ScoreSide, final: boolean, verdict?: ServerVerdict): ScoreboardModel {
+  const dollarLeader: Side | null = you.gain === opp.gain ? null : you.gain > opp.gain ? 'you' : 'opp';
   const margin = formatMoney(Math.abs(you.gain - opp.gain));
-  return { leader, line: `${name} ${final ? 'won by' : 'leads by'} ${margin}` };
+  if (!final) {
+    if (dollarLeader === null) return { leader: null, line: 'Dead even' };
+    return { leader: dollarLeader, line: `${dollarLeader === 'you' ? you.name : opp.name} leads by ${margin}` };
+  }
+  if (verdict === undefined) return { leader: null, line: null };
+  if (verdict === 'nobody') return { leader: null, line: dollarLeader === null ? 'Dead even' : null };
+  const winner: Side = verdict === 'me' ? 'you' : 'opp';
+  if (winner !== dollarLeader) return { leader: winner, line: null };
+  return { leader: winner, line: `${winner === 'you' ? you.name : opp.name} won by ${margin}` };
 }
 
 // ── RosterRow (Matchup) ──────────────────────────────────────────────────────────

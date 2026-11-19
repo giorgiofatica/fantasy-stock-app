@@ -60,3 +60,7 @@ export const CAPTURE_LOSS: boolean = SEAM_ON && process.env.EXPO_PUBLIC_CAPTURE_
  * closes are in the bars (1), and also (2) the clock moves on to Thu Oct 8 while every stock keeps trading after the season (closes and
  * live quotes 15% higher). A season that is over must read the same under 1 and 2. Unset (0): as before. Seam only: inert in production. */
 export const CAPTURE_SEASON_LATER: 0 | 1 | 2 = SEAM_ON ? (process.env.EXPO_PUBLIC_CAPTURE_SEASON_LATER === '2' ? 2 : process.env.EXPO_PUBLIC_CAPTURE_SEASON_LATER === '1' ? 1 : 0) : 0;
+
+/** Capture only (the value line with missing bars, EXPO_PUBLIC_CAPTURE_BARS; lib/money/portfolioSeam.parseBarsFault): the raw
+ * knob, seam only. Production never reads it. */
+export const CAPTURE_BARS: string | null = SEAM_ON ? process.env.EXPO_PUBLIC_CAPTURE_BARS || null : null;

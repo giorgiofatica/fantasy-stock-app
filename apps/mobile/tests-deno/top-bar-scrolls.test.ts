@@ -74,6 +74,7 @@ const TABS_AND_PLACEHOLDER = [
   'app/(tabs)/matchup.tsx',
   'app/(tabs)/league.tsx',
   'components/money/PortfolioScreen.tsx',
+  'components/stocks/StocksScreen.tsx',
   'components/shell/PhasePlaceholder.tsx',
 ];
 /** Sub-screens with their own back control ("‹ Portfolio"): they keep their own header rules (pill, no avatar). */

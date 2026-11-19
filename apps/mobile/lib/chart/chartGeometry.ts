@@ -13,6 +13,8 @@
 export interface ChartPoint {
   x: number;
   y: number;
+  /** The line breaks before this point (a hole in the data): a new stroke, no segment joins it to the last. */
+  gapBefore?: boolean;
 }
 
 export interface ChartGeometry {
@@ -114,13 +116,18 @@ export function nearestPointIndex(points: ChartPoint[], x: number): number {
 export function partialLinePath(points: ChartPoint[], fraction: number, lineLength: number): string {
   if (points.length === 0 || fraction <= 0) return '';
   if (fraction >= 1 || lineLength <= 0) {
-    return points.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
+    return points.map((p, i) => `${i && !p.gapBefore ? 'L' : 'M'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
   }
   const target = fraction * lineLength;
   const parts: string[] = [`M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`];
   let walked = 0;
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1], b = points[i];
+    // A break joins nothing: the stroke restarts at b and walks no length.
+    if (b.gapBefore) {
+      parts.push(`M${b.x.toFixed(2)},${b.y.toFixed(2)}`);
+      continue;
+    }
     const seg = Math.hypot(b.x - a.x, b.y - a.y);
     if (walked + seg <= target) {
       parts.push(`L${b.x.toFixed(2)},${b.y.toFixed(2)}`);
