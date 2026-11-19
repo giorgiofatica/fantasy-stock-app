@@ -528,6 +528,20 @@ building anything, and don't reopen a rule without him.
       records no weekly prices for it by design, and the app showed week figures anyway.
       Matchup leagues are not hit by this cause. The fix: a league with no weeks shows no
       week figures, and a matchup holding with no recorded start shows "–", never zero.
+    - **On Matchup, an unpriced stock shows a dash on its row, and the team's total is the
+      total without that stock** (2026-11-19; shown the real screen at L, at his size and in
+      Dark, PR #547; typed in the Planner's chat). The build had the row's figure as "–" and
+      ALSO the team's total as "–" (the Planner's spec, so that a total leaving a stock out
+      was never shown as the team's total). Asked whether a dash for the total was
+      acceptable, his words: "row has the dash but up top accounts for total without that
+      stock".
+      - So: the stock stays in its slot with "–" where its figures go, and the total at the
+        top is the sum of the stocks that do have a price. The total is a number, never a
+        dash.
+      - The Planner's reading, told to him and not his words: with both totals shown again,
+        the line under the card that says who leads and by how much shows again too, worked
+        out from those totals; and this matches how the server scores such a week, which
+        also leaves the unpriced stock out.
     - Ruled out by his words: any figure that reads as "flat" or "zero" because the app has
       nothing to compute it from.
     - The Planner's reading, not his words: where the week's starting price was not recorded,
@@ -580,9 +594,17 @@ building anything, and don't reopen a rule without him.
       data when the plan ends, which matters because the app stores prices for scoring.
     - Told to him and not objected to: the cheaper upgrade of the current supplier does not
       work (its $99 plan covers the whole market but its terms are still personal use).
+    - **Prices are shown only inside the app, to signed-in players; no supplier is contacted
+      yet** (2026-11-19; typed in the Planner's chat). Asked whether prices should ever
+      appear on a public web page, and whether to send the Planner's draft enquiry to the two
+      low-cost suppliers (Tiingo, Intrinio), his words: "only inside the app, we wont send
+      out yet ill ask when ready".
+      - So an enquiry or a licence asks for in-app display to signed-in players only. The
+        public web ticker for signed-out visitors is not part of what a supplier is asked
+        for.
+      - Nobody sends the enquiry or contacts a supplier until he says so. It is his to send.
     - Not decided: which supplier; when to start paying; whether scoring uses the same
-      calculated price or the day's official open and close; whether prices ever appear on
-      a public web page (it changes what to ask a supplier for).
+      calculated price or the day's official open and close.
 - **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
   DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
   biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
