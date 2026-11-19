@@ -841,7 +841,18 @@ building anything, and don't reopen a rule without him.
       see how like each week's matchup went. Could you mock up something for that?"
       - Decided by his words: after the season the tab lists the season's weeks, and tapping
         a week shows how that week's matchup went.
-      - Not decided, going to him as a mockup: what the list looks like and what a row shows.
+      - **The recap's look: your result and your gain on each row (A)** (2026-11-18, A/B
+        mockup in the Planner's chat; "A"). Each row is a week: its label ("Wk N", or the
+        existing round chip for a playoff week), "vs {name}", W or L, and your own gain that
+        week, with a chevron. Tapping a row opens that week's matchup in the existing
+        finished-week view, with a Back control. B (both teams' totals on the row, which
+        needed the new word "to") was not picked. No new words in A.
+      - Told to him with the mockup and not objected to: the weeks run newest first, so the
+        final is at the top; the "My matchup | All matchups" switch stays, and "All
+        matchups" lists every team's results the same way; a manager who missed the
+        playoffs or was knocked out sees the weeks they played, with the app's existing
+        line for them ("Out in the {round}", "You didn't make the playoffs.") at the top.
+        These three are the Planner's assumptions, stated to him, not his own sentences.
     - Not shown to him: a manager's portfolio viewed from a finished league. The Design Lead
       specs it to match A and shows him only if it needs a look of its own.
     - This is an exception to the grey-in-place rule below, which is about a range a chart
