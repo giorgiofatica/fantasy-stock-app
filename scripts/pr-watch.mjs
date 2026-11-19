@@ -17,6 +17,9 @@
 //   - CONFLICT   the pull request no longer merges with main
 //   - RED        a check has failed
 //   - FINDINGS   Copilot has review threads that are not resolved and not outdated
+//   - BEHIND     the pull request has not been tested on top of the newest main. The
+//                merge rule requires that (Giorgio, 2026-11-19), so it cannot merge
+//                until main is merged into its branch and the checks pass again
 //   - MAIN RED   the newest commit on main has a failed check. Two pull requests can
 //                each be green and still break main together (#554 + #555, 2026-11-19),
 //                and nothing on a pull request shows that
@@ -41,7 +44,7 @@ const query = `query($owner:String!,$name:String!){repository(owner:$owner,name:
   defaultBranchRef{name target{... on Commit{oid statusCheckRollup{state contexts(first:50){totalCount nodes{
     __typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}}}}}}}
   pullRequests(states:OPEN,first:50,orderBy:{field:CREATED_AT,direction:ASC}){totalCount nodes{
-    number title isDraft mergeable headRefName
+    number title isDraft mergeable mergeStateStatus headRefName
     commits(last:1){nodes{commit{statusCheckRollup{state contexts(first:50){nodes{
       __typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}}}}}}}
     reviewThreads(first:100){nodes{isResolved isOutdated comments(first:1){nodes{isCopilotCodeReview}}}}
@@ -81,6 +84,7 @@ for (const p of prs.nodes) {
   const notes = [];
   if (p.mergeable === 'CONFLICTING') reasons.push('CONFLICT: no longer merges with main');
   else if (p.mergeable === 'UNKNOWN') notes.push('CHECKING: GitHub is still working out whether it merges');
+  else if (p.mergeStateStatus === 'BEHIND') reasons.push('BEHIND: merge main into the branch (no rebase), then wait for the checks');
   const roll = p.commits.nodes[0]?.commit.statusCheckRollup;
   const ctx = roll?.contexts.nodes ?? [];
   const failed = ctx.filter((c) => BAD.has(c.conclusion ?? '') || BAD.has(c.state ?? '')).map((c) => c.name ?? c.context);
