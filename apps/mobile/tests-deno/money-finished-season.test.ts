@@ -41,7 +41,8 @@ Deno.test('F3: the days run to and including the season\'s last day, never past 
   assertEquals(d, [
     { date: '2026-08-31', value: 150 },
     { date: '2026-09-01', value: 170 },
-    // AAPL's missing Sep 2 bar is its Sep 1 close, never a guess or $0.
+    // AAPL has no bar on Sep 2 (one session): it takes its PREVIOUS REAL CLOSE (Sep 1's $30), the server's own ladder
+    // (_shared/week-price.ts, #513), so the line neither breaks nor invents a value.
     { date: '2026-09-02', value: 180 },
     { date: '2026-09-03', value: 146 },
   ]);
@@ -61,11 +62,11 @@ Deno.test('F3: the last point is the last REAL close on or before endEt (a weeke
   assertEquals(seasonEndCloses(BARS, ['NVDA', 'aapl'], '2026-09-05'), { NVDA: 130, AAPL: 40 });
 });
 
-Deno.test('F3: a stock with no bar by the season\'s end counts at cost, never $0', () => {
+Deno.test('F3: a stock with no bar by the season\'s end is never valued at cost on the line: with no complete date there is NO line', () => {
   const rows = [...ROWS, { kind: 'draft' as const, action: 'buy' as const, symbol: 'NEW', quantity: 4, price: 10, occurredAt: DRAFT_AT }];
   const bars = { ...BARS, NEW: [{ date: '2026-09-08', close: 99 }] };
-  const d = dailyValues({ rows, bars, stake: STAKE, todayEt: '2026-11-18', endEt: END });
-  assertEquals(d[d.length - 1].value, 146 + 40);
+  assertEquals(dailyValues({ rows, bars, stake: STAKE, todayEt: '2026-11-18', endEt: END }), []);
+  // The holdings rows keep their own honest fallback (cost, captioned), separate from the line.
   assertEquals(seasonEndCloses(bars, ['NEW'], END), {});
 });
 
@@ -73,6 +74,7 @@ Deno.test('F3: the finished series is Season, with no live point, on an axis fro
   const daily = dailyValues({ rows: ROWS, bars: BARS, stake: STAKE, todayEt: '2026-11-18', endEt: END });
   const s = finishedPortfolioSeries({ daily, endEt: END });
   assertEquals(s.points.map((p) => p.value), [150, 170, 180, 146]);
+  assertEquals(s.points.map((p) => p.gapBefore === true), [false, false, false, false], 'one no-bar session carries: no break');
   assertEquals(s.base, 150);
   assertEquals(s.axis, { kind: 'dated', start: '2026-08-31', end: END });
   assertEquals(rangeGain(s.points, s.base)?.money, -4);
@@ -100,7 +102,7 @@ function input(over: Partial<TeamPortfolioInput> = {}): TeamPortfolioInput {
 }
 
 Deno.test('F4: the hero = the sum of the holding rows = the chart\'s last point', () => {
-  const { view, liveValue } = teamPortfolioView(input());
+  const { view, liveValue } = teamPortfolioView(input())!;
   const chartLast = finishedPortfolioSeries({ daily: dailyValues({ rows: ROWS, bars: BARS, stake: STAKE, todayEt: '2026-11-18', endEt: END }), endEt: END }).points.at(-1)!.value;
   const rowsSum = view.rows.reduce((a, r) => a + r.value, 0);
   assertEquals(view.valueText, formatMoney(146));
@@ -112,7 +114,7 @@ Deno.test('F4: the hero = the sum of the holding rows = the chart\'s last point'
 });
 
 Deno.test('F4: "since the draft" is the value minus the draft-day value, and nothing live is left', () => {
-  const { view } = teamPortfolioView(input());
+  const { view } = teamPortfolioView(input())!;
   assertEquals(view.valueLabel, 'Portfolio value');
   assertEquals(view.gainMoneyText, formatMoney(-4, { sign: 'always' }));
   assertEquals(view.gainTone, 'loss');
@@ -123,15 +125,15 @@ Deno.test('F4: "since the draft" is the value minus the draft-day value, and not
 
 Deno.test('F4: a fixed-notional league loses its facts row ("N of N slots invested") once over', () => {
   const stake = { stakeMode: 'fixed_notional' as const, notionalPerSlot: 75, numRounds: 2 };
-  const live = teamPortfolioView(input({ stake, endEt: null }));
-  const over = teamPortfolioView(input({ stake }));
+  const live = teamPortfolioView(input({ stake, endEt: null }))!;
+  const over = teamPortfolioView(input({ stake }))!;
   assert(live.view.slotsText != null, 'the live view has its facts row');
   assertEquals(over.view.slotsText, null);
   assertEquals(over.view.perSlotText, null);
 });
 
 Deno.test('F4: a live season is unchanged (the quote, today, the buy row)', () => {
-  const { view, liveValue } = teamPortfolioView(input({ endEt: null }));
+  const { view, liveValue } = teamPortfolioView(input({ endEt: null }))!;
   assertEquals(liveValue, 140 + 90);
   assertEquals(view.valueText, formatMoney(230));
   assert(view.todayText != null);
@@ -198,7 +200,7 @@ Deno.test('F7 (source): the hooks read bars only, never the quote, in a finished
 Deno.test('F5 (source): the finished Portfolio has no pills, no facts, no buy row, no live dot, a "Value" header', () => {
   const s = src('../components/money/PortfolioScreen.tsx');
   assert(s.includes('const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);'));
-  assert(/\{over \? null : \(\s*<View style=\{styles\.pillsRow\}>\s*<RangePills/.test(s), 'no range pills');
+  assert(/\{over \|\| !hasLine \? null : \(\s*<View style=\{styles\.pillsRow\}>\s*<RangePills/.test(s), 'no range pills');
   assert(s.includes("{!over && (v.cashValueText || v.slotsText) ? ("), 'no facts block');
   assert(!s.includes('portfolio-buy-a-stock'), 'no Buy a stock (it left Portfolio entirely, 2026-11-18: buying lives on the Stocks tab)');
   assert(s.includes('live={over ? false : marketOpen}'), 'no live dot');
@@ -253,6 +255,60 @@ Deno.test('F4: a finished team with no cash keeps the plain "Portfolio value" la
   assertEquals(v.valueLabel, 'Portfolio value');
 });
 
+// ── a finished season whose value cannot be worked out has NO view (Design Lead gate, 2026-11-18) ────────────────────
+
+import { symbolsMissingSeasonEndClose } from '../lib/money/portfolioChart.ts';
+
+Deno.test('finished: no holding has a season-end close ⇒ no view (never the value at cost)', () => {
+  assertEquals(teamPortfolioView(input({ bars: {} })), null);
+  assertEquals(teamPortfolioView(input({ bars: { NVDA: [], AAPL: [] } })), null);
+});
+
+Deno.test('finished: ONE holding missing its season-end close ⇒ no view, however many bars the others have', () => {
+  assertEquals(symbolsMissingSeasonEndClose({ NVDA: BARS.NVDA }, ['NVDA', 'AAPL'], END), ['AAPL']);
+  assertEquals(teamPortfolioView(input({ bars: { NVDA: BARS.NVDA } })), null);
+  // A bar only AFTER the season's last day is not a close on or before it.
+  assertEquals(teamPortfolioView(input({ bars: { NVDA: BARS.NVDA, AAPL: [{ date: '2026-09-08', close: 50 }] } })), null);
+});
+
+Deno.test('finished: every holding has its close ⇒ the frozen value (unchanged); a live season is unaffected', () => {
+  assertEquals(teamPortfolioView(input())!.view.valueText, formatMoney(146));
+  assertEquals(symbolsMissingSeasonEndClose(BARS, ['NVDA', 'AAPL'], END), []);
+  assert(teamPortfolioView(input({ endEt: null, bars: {} })) !== null, 'a live league with no bars keeps its live-quote view');
+});
+
+Deno.test('a manager\'s finished team with one holding missing its close has no portfolio (the existing team load failure)', () => {
+  const base = { ledger: LEDGER, userId: 'm2', stakeMode: 'budget_cap' as const, notionalPerSlot: null, numRounds: 2, prices: {}, prevCloses: {} };
+  assertEquals(playerPortfolio({ ...base, finished: { endEt: END, bars: { NVDA: BARS.NVDA } } }), null);
+  assertEquals(playerPortfolio({ ...base, finished: { endEt: END, bars: {} } }), null);
+  assert(playerPortfolio({ ...base, finished: { endEt: END, bars: BARS } }) !== null);
+});
+
+Deno.test('the own-Portfolio hook turns a missing season-end close into its error state', () => {
+  const h = Deno.readTextFileSync(new URL('../lib/money/usePortfolioData.ts', import.meta.url));
+  assert(/if \(!team\) \{\s*setState\(\{ \.\.\.EMPTY, status: 'error', leagueName \}\);\s*return;\s*\}/.test(h));
+});
+
+// ── the season-end close is bounded by the server's 5-session ladder (the other worker's review note) ───────────────
+
+Deno.test('seasonEndCloses: a stock whose last bar is within 5 sessions of the end is priced at it; older is NOT priced at all', () => {
+  // Sessions (any bar): Sep 1..Sep 10 (8 trading days). AAPL's last bar is Sep 2.
+  const days = ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-08', '2026-09-09', '2026-09-10'];
+  const nvda = days.map((date, i) => ({ date, close: 100 + i }));
+  // The end session is Sep 10; the window is Sep 10 and the five sessions before it (Sep 9, 8, 4, 3, 2).
+  const within = seasonEndCloses({ NVDA: nvda, AAPL: [{ date: '2026-09-02', close: 30 }] }, ['NVDA', 'AAPL'], '2026-09-10');
+  assertEquals(within, { NVDA: 106, AAPL: 30 }, 'five sessions back is still within the ladder');
+  const old = seasonEndCloses({ NVDA: nvda, AAPL: [{ date: '2026-09-01', close: 30 }] }, ['NVDA', 'AAPL'], '2026-09-10');
+  assertEquals(old, { NVDA: 106 }, 'six sessions back: left out (never priced at that old close, never at cost)');
+  // And so a finished league holding it has no value: the load failure.
+  assertEquals(symbolsMissingSeasonEndClose({ NVDA: nvda, AAPL: [{ date: '2026-09-01', close: 30 }] }, ['NVDA', 'AAPL'], '2026-09-10'), ['AAPL']);
+});
+
+Deno.test('seasonEndCloses reads only what is on or before the season end, and a weekend end prices on the last session', () => {
+  const bars = { NVDA: [{ date: '2026-09-03', close: 5 }, { date: '2026-09-04', close: 6 }, { date: '2026-09-08', close: 99 }] };
+  assertEquals(seasonEndCloses(bars, ['NVDA'], '2026-09-06'), { NVDA: 6 }, 'Sun Sep 6 reads Fri Sep 4, never Tue Sep 8');
+});
+
 // ── The finished chart's axis ends at the season's last day, whatever the clock says ─────────────────
 
 Deno.test('a finished chart\'s axis ends at the season\'s last day, not today, with the clock weeks later', () => {
@@ -279,7 +335,7 @@ Deno.test('Portfolio\'s finished branch builds its series and days from the seas
   assert(code.includes("const endEt = finished && seasonEnd.status === 'ready' ? seasonEnd.endEt : null;"));
   assert(!code.includes('seasonEndEt(leagueRaw'), 'never the caller-scoped matchups');
   assert(code.includes('dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt, endEt: chartEnd })'));
-  assert(code.includes('chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd })'), 'finished: the series is the season-end one');
-  assert(code.indexOf('finishedPortfolioSeries({ daily, endEt: chartEnd })') < code.indexOf('portfolioSeries({ range: shownRange'), 'checked before the live path');
+  assert(code.includes('chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd, draftValue })'), 'finished: the series is the season-end one');
+  assert(code.indexOf('finishedPortfolioSeries({ daily, endEt: chartEnd, draftValue })') < code.indexOf('portfolioSeries({ range: shownRange'), 'checked before the live path');
   assert(!/finishedPortfolioSeries\([^)]*todayEt/.test(code), 'the finished series is never handed todayEt');
 });

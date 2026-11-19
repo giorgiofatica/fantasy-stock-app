@@ -14,11 +14,15 @@ export interface LinePointIn {
   /** Position on the axis domain (week: 0..5 trading days; dated: days since start). */
   t: number;
   value: number;
+  /** The data has a hole between the previous point and this one: the line BREAKS here (the path restarts)
+   * instead of joining them. Never invent a stretch (Giorgio, 2026-11-18). */
+  gapBefore?: boolean;
 }
 
 export interface LinePoint {
   x: number;
   y: number;
+  gapBefore?: boolean;
 }
 
 export interface LineGeometry {
@@ -74,10 +78,11 @@ export function buildLine(points: LinePointIn[], domain: readonly [number, numbe
   // A flat window (every value = base) draws on the vertical middle, not the floor.
   const toY = (v: number) => box.padTop + (range > 0 ? (1 - (v - min) / range) * innerH : innerH / 2);
 
-  const px: LinePoint[] = points.map((p) => ({ x: toX(p.t), y: toY(p.value) }));
-  const path = px.length >= 2 ? px.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ') : '';
+  const px: LinePoint[] = points.map((p, i) => (p.gapBefore && i > 0 ? { x: toX(p.t), y: toY(p.value), gapBefore: true } : { x: toX(p.t), y: toY(p.value) }));
+  // A point after a hole starts a new stroke (M), so nothing is drawn across the missing stretch.
+  const path = px.length >= 2 ? px.map((p, i) => `${i && !p.gapBefore ? 'L' : 'M'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ') : '';
   let length = 0;
-  for (let i = 1; i < px.length; i++) length += Math.hypot(px[i].x - px[i - 1].x, px[i].y - px[i - 1].y);
+  for (let i = 1; i < px.length; i++) if (!px[i].gapBefore) length += Math.hypot(px[i].x - px[i - 1].x, px[i].y - px[i - 1].y);
 
   return { points: px, path, length, baseY: toY(base), end: px.length ? px[px.length - 1] : null, toX };
 }

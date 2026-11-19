@@ -2,34 +2,142 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "0e0fda092f24b1f1f07b504e5ac32344a74ee94d",
-    "commitShort": "0e0fda09",
+    "commit": "184a1ff78ce15dfe673fbe831270bcded86e1f2b",
+    "commitShort": "184a1ff7",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/stocks-tab-screen",
+    "branch": "fix/chart-no-invented-stretch",
     "dirty": true,
     "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "apps/mobile/app/(tabs)/_layout.tsx"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/app/(tabs)/stocks.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/MoneyHost.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/StockSearchScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/money/StockSheetBody.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/shell/ShellTabBar.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/shell/TabIcon.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/logic/icon.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/components/stocks/StocksScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/seamCalls.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/recordTrade.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stockSheetApi.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stockSheetModel.ts"
+      },
       {
         "code": "M",
         "path": "apps/mobile/lib/money/usePortfolioLedger.ts"
       },
       {
-        "code": "M",
+        "code": "A",
+        "path": "apps/mobile/lib/stocks/seamStocks.ts"
+      },
+      {
+        "code": "A",
         "path": "apps/mobile/lib/stocks/stocksList.ts"
       },
       {
-        "code": "M",
+        "code": "A",
+        "path": "apps/mobile/lib/stocks/useRowPrices.ts"
+      },
+      {
+        "code": "A",
         "path": "apps/mobile/lib/stocks/useStocksList.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/stocks-list.test.ts"
+        "path": "apps/mobile/tests-deno/input-remount-key.test.ts"
       },
       {
         "code": "M",
+        "path": "apps/mobile/tests-deno/keep-money.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c9-board-defects.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-finished-season.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-sheet.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sell-only-held.test.ts"
+      },
+      {
+        "code": "UU",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sp-icon.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/stock-sheet-api.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/stocks-list.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/stocks-plus-review.test.ts"
+      },
+      {
+        "code": "A",
         "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T18:15:42Z",
+    "timestamp": "2026-11-19T18:28:35Z",
     "sourceHash": "sha256:fabfe21125bc11b660374d157ef8e417c7e5131a624b6a4b285bb48a2076e2e2",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -37,7 +145,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 18,
+    "ageHours": 18.2,
     "ageDays": 0.8,
     "staleAfterDays": 14,
     "stale": false,

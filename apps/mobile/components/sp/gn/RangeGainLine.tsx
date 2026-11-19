@@ -25,8 +25,16 @@ import { rangeGainText, type ChartRange, type RangeGain } from '@/lib/chart/char
 
 const GAIN_LINE_MAX_SCALE = 1.3;
 
-export function RangeGainLine({ range, gain, rollKey }: { range: ChartRange; gain: RangeGain | null; rollKey: string }) {
+/** The app's dash for a figure that cannot be worked out (Schedule's, the player card's week gain): never a blank, which reads
+ * as a rendering fault (the Planner, 2026-11-19). */
+const UNKNOWN_DASH = '\u2013';
+
+export function RangeGainLine({ range, gain, rollKey, unknown = false }: { range: ChartRange; gain: RangeGain | null; rollKey: string; unknown?: boolean }) {
   const { colors } = useTheme();
+  if (!gain && unknown) {
+    // The chart has nothing to draw (no date has a real close for every holding) and no gain can be worked out: the dash.
+    return <Text variant="callout" tone="secondary" maxFontSizeMultiplier={GAIN_LINE_MAX_SCALE} testID="range-gain-unknown">{UNKNOWN_DASH}</Text>;
+  }
   if (!gain) {
     // Nothing drawn yet (the bars are loading): keep the line's height, say nothing.
     return <Text variant="callout" maxFontSizeMultiplier={GAIN_LINE_MAX_SCALE} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{NBSP}</Text>;
