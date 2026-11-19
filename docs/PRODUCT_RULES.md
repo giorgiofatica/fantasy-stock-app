@@ -580,6 +580,19 @@ building anything, and don't reopen a rule without him.
       "The draft can't start yet" card among others, which he called a "big yellow box" on
       2026-11-09. The audit lists every use and comes back to him as a board of each one in
       the palette's own colours. Nothing changes on those screens until he picks.
+      - **The pick: A, the teal tint** (2026-11-19, the Design Lead's board `#call-yellow`,
+        PR #569, with real-app stills of today / A / B in Light and Dark shown in the
+        Planner's chat; typed there: "A"). Every yellow warning takes the accent's soft
+        tint with its words in teal, the same family as the Matchup price notice. It covers
+        the five kinds of place the audit found: the refusal panel (on 13 screens), Home's
+        "The draft can't start yet" card (fill, edge, small label and the Playoff teams
+        stepper's ring), the stake-mode note in League settings, "TBD" on the Draft time
+        row, and the draft search's "NOT DRAFTABLE" / owned badge. B (neutral grey) was not
+        picked; in the stills its grey-edged refusal looked like the outlined button under
+        it. No new words. Left as they are: the gold medal and the Property category's
+        amber, since neither is a warning.
+      - Told to him with the pick: with A a refusal and an information notice are the same
+        colour, so the words carry the difference.
     - Ruled out by his words: any figure that reads as "flat" or "zero" because the app has
       nothing to compute it from.
     - The Planner's reading, not his words: where the week's starting price was not recorded,
