@@ -504,8 +504,22 @@ building anything, and don't reopen a rule without him.
     "Dead even".
   - B (the reason first, e.g. "Tied on dollars. Paolo M. won on percent, +1.76% to +0.74%")
     was not picked.
-  - NOT YET DECIDED: the season recap row for such a week (1, as it is today, or 2, a grey
-    word after the letter). His "A" answered the line only.
+  - **The season recap row: the W and L are bold and neutral, only the money is coloured,
+    and the row carries no reason (A)** (2026-11-19, the same board, then A/B mockups in
+    the Planner's chat). The board offered 1 (as built: the letter coloured by the result,
+    the figure by its sign, so a red "L" beside a green "+$34.04") or 2 (the same with a
+    grey reason word). He took neither. His words: "I think it's going to be a little
+    confusing if there's a red L and then green money... I also don't think it's smart to
+    put red where there's gains... I think maybe we make the P&L red and green, but we keep
+    the L's and W's not red and green and just keep them like bolded neutrals or something
+    like that." Shown that idea two ways (A: neutral letters and nothing else; B: neutral
+    letters plus one grey word, "L · tiebreak", "L · seed", "W · they had no stocks"), he
+    typed "A". So: the letter is in the normal dark ink, bold; the figure keeps its sign
+    colour; no reason word on the row; the reason is on that week's card, one tap away.
+    B was not picked, so the three reason words are not approved copy.
+  - Scope: the recap rows only. W and L letters are drawn in other places; the Design
+    Lead lists every place they are coloured and it comes back to him as a board. Nothing
+    changes on those screens until he picks.
   - Why this came up: the line used to compare the two dollar figures by itself, so a
     percent-tiebreak week read "Dead even" under a band that named a winner, and a
     no-stocks week could name the wrong side. Since #566 (2026-11-19) such a week shows no
