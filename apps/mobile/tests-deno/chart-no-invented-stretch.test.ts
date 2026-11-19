@@ -264,7 +264,7 @@ Deno.test('capture knob: applyBarsFault removes only what it names', () => {
 
 // ── the empty frame (the Planner, 2026-11-19): the app's "–", never a blank; Season still says since the draft ──────
 
-Deno.test('no line: the WHOLE chart block is absent (no frame, no axis label, no range buttons); the gain line stays, as the dash when unknown', () => {
+Deno.test('no line: the WHOLE chart block is absent (the range\'s gain line, no frame, no axis label, no range buttons); the hero and today stay', () => {
   const read = (p: string) => Deno.readTextFileSync(new URL(p, import.meta.url));
   const line = read('../components/sp/gn/RangeGainLine.tsx');
   assert(line.includes("const UNKNOWN_DASH = '\\u2013';"), 'the en dash, the one Schedule and the card use');
@@ -272,6 +272,7 @@ Deno.test('no line: the WHOLE chart block is absent (no frame, no axis label, no
   const screen = read('../components/money/PortfolioScreen.tsx');
   assert(screen.includes('const hasLine = !!series && drawsALine(series.points.length, daily.length);'));
   assert(screen.includes('{hasLine && series ? (\n            <Chart'), 'the chart is drawn only with a line');
+  assert(screen.includes('{hasLine && series ? (\n            <RangeGainLine'), 'the range\'s gain describes the chart: no chart block, no gain line (no stray dash)');
   assert(screen.includes('{over || !hasLine ? null : ('), 'no range buttons without a line');
   assert(screen.includes('unknown={gain === null}'), 'an unknown gain is the dash, not a blank');
   assert(!screen.includes('EMPTY_FRAME_AXIS'), 'no empty frame');

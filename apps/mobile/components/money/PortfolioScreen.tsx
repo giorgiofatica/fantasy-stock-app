@@ -170,7 +170,8 @@ export function PortfolioScreen() {
   const lastValue = series?.points.length ? series.points[series.points.length - 1].value : chart?.value ?? null;
   // A window with fewer than two points has no move to measure: the dash, never a made-up $0.00.
   const gain = !series ? null : gainRange === 'Season' ? (chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null) : series.points.length < 2 ? null : rangeGain(series.points, series.base);
-  // No line to draw: the WHOLE chart block (frame, axis, range buttons) is absent; only the value and its gain line stay.
+  // No line to draw: the WHOLE chart block (the range's gain line, frame, axis, range buttons) is absent; the hero value
+  // and "today" (from live quotes) stay.
   const hasLine = !!series && drawsALine(series.points.length, daily.length);
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
@@ -312,7 +313,7 @@ export function PortfolioScreen() {
             ) : null}
             {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
           </View>
-          {series ? (
+          {hasLine && series ? (
             <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} unknown={gain === null} />
           ) : null}
           {hasLine && series ? (
