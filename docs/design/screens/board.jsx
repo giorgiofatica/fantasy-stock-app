@@ -382,7 +382,9 @@
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [];
+  const OPEN = [
+    ['call-tiebreak-words', 'The words when dollars don’t decide a week', () => window.KSTiebreakWords],
+  ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
@@ -576,6 +578,7 @@
           {window.KSStocksIcon ? <window.KSStocksIcon /> : null}
           {window.KSTickerDisc ? <window.KSTickerDisc /> : null}
           {window.KSYellow ? <window.KSYellow /> : null}
+          {window.KSTiebreakWords ? <window.KSTiebreakWords /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
