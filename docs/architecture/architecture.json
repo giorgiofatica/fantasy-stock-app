@@ -2,94 +2,34 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "efd46b03b6da45657858be1275442461f39832ab",
-    "commitShort": "efd46b03",
+    "commit": "bc98248faaa2d16010e134633858ac0016c14a42",
+    "commitShort": "bc98248f",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/home/HomeHero.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/components/money/RollingGainPair.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/StockSheetBody.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/gn/RangeGainLine.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/sp/logic/money.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/chart/chartRanges.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/portfolioView.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/gain-lines.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/home-calm.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-c6-rolling.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/money-portfolio-view.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/rolling-money-large-text.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+        "path": "docs/architecture/db-snapshot.json"
       }
     ],
-    "timestamp": "2026-11-19T03:23:03Z",
-    "sourceHash": "sha256:d775c49d8c9a5e9de09b4849d0765618ebe04776926671d577cd0017ce3a5696",
+    "timestamp": "2026-11-19T06:07:06Z",
+    "sourceHash": "sha256:a2ed1a947010e7a92c55bed4039649727c7d763ab6beba929c83e3ae34441ffc",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 32.9,
-    "ageDays": 1.4,
+    "capturedAt": "2026-11-19T00:14:08Z",
+    "ageHours": 5.9,
+    "ageDays": 0.2,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:b93ec4366be3917ada8d243c72b1572c2b97c750942ef1e8f4705408db87c7d9",
+    "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
-      "functions": 136,
+      "functions": 137,
       "tables": 40,
       "cronJobs": 14
     }
@@ -5291,7 +5231,32 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "securityDefiner": true,
+        "searchPath": "public, pg_temp",
+        "grants": [
+          {
+            "role": "postgres",
+            "privileges": [
+              "EXECUTE"
+            ]
+          },
+          {
+            "role": "authenticated",
+            "privileges": [
+              "EXECUTE"
+            ]
+          }
+        ],
+        "grantsRaw": [
+          "postgres=X/postgres",
+          "authenticated=X/postgres"
+        ],
+        "anonCallable": false,
+        "authenticatedCallable": true,
+        "owner": "postgres",
+        "volatility": "volatile"
+      },
       "declared": {
         "definedIn": [
           "supabase/migrations/20261207000100_league_available_stocks.sql:76"
@@ -5299,20 +5264,12 @@
         "latestDefinition": "supabase/migrations/20261207000100_league_available_stocks.sql",
         "redefinitions": 1
       },
-      "drift": [
-        {
-          "field": "existence",
-          "declared": "created by migration",
-          "live": "ABSENT from prod snapshot",
-          "severity": "high",
-          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-        }
-      ],
+      "drift": [],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "pg.get_league_available_stocks",
-      "label": "get_league_available_stocks()",
-      "sublabel": "not in snapshot",
+      "label": "get_league_available_stocks(p_league_id uuid, p_category_id uuid, p_after_symbol text, p_limit integer)",
+      "sublabel": "SECURITY DEFINER · authenticated",
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261207000100_league_available_stocks.sql",
@@ -23066,16 +23023,6 @@
   ],
   "drift": [
     {
-      "node": "pg.get_league_available_stocks",
-      "label": "get_league_available_stocks()",
-      "groupKey": "existence",
-      "field": "existence",
-      "declared": "created by migration",
-      "live": "ABSENT from prod snapshot",
-      "severity": "high",
-      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-    },
-    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -23814,7 +23761,7 @@
     },
     {
       "node": "pg.get_league_available_stocks",
-      "label": "get_league_available_stocks()",
+      "label": "get_league_available_stocks(p_league_id uuid, p_category_id uuid, p_after_symbol text, p_limit integer)",
       "kind": "pg-function",
       "source": "supabase/migrations/20261207000100_league_available_stocks.sql:76",
       "outbound": [
@@ -24231,12 +24178,6 @@
   },
   "unverified": [
     {
-      "scope": "pg.get_league_available_stocks",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -24338,10 +24279,10 @@
     "nodes": 324,
     "edges": 785,
     "flows": 7,
-    "drift": 35,
-    "driftHigh": 1,
+    "drift": 34,
+    "driftHigh": 0,
     "deadCode": 63,
-    "unverified": 17
+    "unverified": 16
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -25002,6 +24943,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=false"
     ],
-    "dbSnapshot": "sha256:b93ec4366be3917ada8d243c72b1572c2b97c750942ef1e8f4705408db87c7d9"
+    "dbSnapshot": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242"
   }
 }
