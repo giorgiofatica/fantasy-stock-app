@@ -93,7 +93,7 @@ Deno.test('All matchups: a bye is the bye — the team and "Bye week · no resul
   const src = SOURCES['app/(tabs)/matchup.tsx'];
   assert(src.includes('{state.rows.map((r, i) => (!r.b ? ('));
   assert(src.includes('<ByeGame key='));
-  assert(SOURCES['components/game/ByeGame.tsx'].includes('line = COPY.byeNoResult'));
+  assert(SOURCES['components/game/ByeGame.tsx'].includes('const line = COPY.byeNoResult;'));
   assert(!src.includes("r.b?.name ?? ''"), 'no nameless opponent');
 });
 

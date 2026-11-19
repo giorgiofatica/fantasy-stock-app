@@ -10,10 +10,10 @@ import { YOUR_NAME_WEIGHT } from '@/lib/game/managerRow';
 import { COPY } from '@/lib/game/gameCopy';
 
 /** All matchups' bye: the team (yours shaded, as on its Scoreboard) and COPY.byeNoResult.
- * Moved out of app/(tabs)/matchup.tsx so the Matchup recap's All matchups draws the same row.
- * `line` replaces the bye line for a game with no result to show (the recap's never-posted
- * game: the season tile's dash), still neutral and not tappable. */
-export function ByeGame({ name, mine, line = COPY.byeNoResult }: { name: string; mine: boolean; line?: string }) {
+ * Moved out of app/(tabs)/matchup.tsx so the Matchup recap's All matchups draws the same row
+ * (a bye only: a game with two sides is a Scoreboard, never this row). */
+export function ByeGame({ name, mine }: { name: string; mine: boolean }) {
+  const line = COPY.byeNoResult;
   const { colors } = useTheme();
   return (
     <Card style={[styles.bye, mine ? { backgroundColor: colors.youTint } : null]} accessible accessibilityLabel={`${name}, ${line}`}>

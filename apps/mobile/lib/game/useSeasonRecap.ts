@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../supabase';
 import { seamTable } from './seamCalls';
 import { useAuth } from '../useAuth';
-import { buildRecap, recapReadComplete, type RecapMatchup, type SeasonRecap } from './seasonRecap';
+import { buildRecap, recapReadComplete, recapReadKey, resolveRecapRows, type RecapMatchup, type RecapRowsState, type SeasonRecap } from './seasonRecap';
 import { CAPTURE_DELAY_MS, SEAM_ON } from './devSeam';
 
 export interface SeasonRecapState {
@@ -28,13 +28,15 @@ export function useSeasonRecap(
   enabled: boolean,
 ): SeasonRecapState {
   const { user } = useAuth();
-  const [rows, setRows] = useState<{ status: SeasonRecapState['status']; matchups: RecapMatchup[] }>({ status: 'idle', matchups: [] });
+  const [state, setState] = useState<RecapRowsState | null>(null);
   const [attempt, setAttempt] = useState(0);
+  // Which read this render wants. The rows on screen are only ever THIS read's (resolveRecapRows):
+  // switching from completed league A to B reads as loading at once, never A's games under B.
+  const key = enabled && leagueId && user?.id ? recapReadKey(leagueId, user.id, attempt) : null;
 
   useEffect(() => {
-    if (!enabled || !leagueId || !user?.id) return;
+    if (key === null || !leagueId) return;
     let cancelled = false;
-    setRows((s) => ({ status: 'loading', matchups: s.matchups }));
     (async () => {
       try {
         // DEV capture only (EXPO_PUBLIC_CAPTURE_DELAY_MS): hold the read so the loading state can be shot.
@@ -49,18 +51,19 @@ export function useSeasonRecap(
         if (!recapReadComplete(data.length, res.count ?? null)) throw new Error('matchups read incomplete');
         if (__DEV__) console.log('[game:season-recap] 1 request (matchups, whole season)');
         if (cancelled) return;
-        setRows({ status: 'ready', matchups: data });
+        setState({ key, status: 'ready', matchups: data });
       } catch (err) {
         if (cancelled) return;
         console.warn('[game:season-recap] failed', (err as Error).message);
-        setRows({ status: 'error', matchups: [] });
+        setState({ key, status: 'error', matchups: [] });
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [enabled, leagueId, user?.id, attempt]);
+  }, [key, leagueId]);
 
+  const rows = useMemo(() => resolveRecapRows({ enabled, key, state }), [enabled, key, state]);
   const namesKey = names.map((n) => `${n.user_id}:${n.display_name}`).join('|');
   const recap = useMemo(
     () => (rows.status === 'ready' && user?.id

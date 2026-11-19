@@ -132,7 +132,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/RenewalRoster.tsx:107` | Pressable | onPress | `inline: () => runSheet(p)` | fn runSheet |  |
 | `components/game/ScheduleList.tsx:124` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/SeasonRecap.tsx:61` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
-| `components/game/SeasonRecap.tsx:110` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
+| `components/game/SeasonRecap.tsx:119` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
 | `components/game/SetupRows.tsx:162` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:189` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:248` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
@@ -270,6 +270,6 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/sp/gn/PlayerCard.tsx:185` | PressableScale | onPress | `action.onPress` | prop action.onPress | `action.disabled` |
 | `components/sp/gn/RangePills.tsx:55` | Pressable | onPress | `inline: () => { if (selected \|\| dead) return; Haptics.selectionAsync` | fn onChange | `dead` |
 | `components/sp/gn/RosterRow.tsx:169` | PressableScale | onPress | `half.onPress` | prop half.onPress |  |
-| `components/sp/gn/Scoreboard.tsx:132` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
-| `components/sp/gn/Scoreboard.tsx:143` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
+| `components/sp/gn/Scoreboard.tsx:141` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
+| `components/sp/gn/Scoreboard.tsx:152` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
 | `components/sp/gn/SegmentTabs.tsx:41` | Pressable | onPress | `inline: () => { if (selected) return; Haptics.selectionAsync().catch` | fn onChange |  |

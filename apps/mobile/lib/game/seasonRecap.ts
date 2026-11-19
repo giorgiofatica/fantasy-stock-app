@@ -286,3 +286,25 @@ export function withWeekCloses(
   }
   return out;
 }
+
+/** The recap read's state, tagged with the read it came from (league, user, attempt). */
+export interface RecapRowsState {
+  key: string;
+  status: 'ready' | 'error';
+  matchups: RecapMatchup[];
+}
+
+/** The key of one read: a new league, user or Try again is a new read. */
+export function recapReadKey(leagueId: string, userId: string, attempt: number): string {
+  return `${leagueId}|${userId}|${attempt}`;
+}
+
+/** What the recap shows for the read `key` asks for (review 4633132015). Rows from another read (a
+ * league switch, a Try again) are never shown as this one's: they read as loading until this read
+ * lands, so league A's games never flash under league B (useSeasonEnd's resolveSeasonEnd shape). */
+export function resolveRecapRows(input: { enabled: boolean; key: string | null; state: RecapRowsState | null }): { status: 'idle' | 'loading' | 'ready' | 'error'; matchups: RecapMatchup[] } {
+  const { enabled, key, state } = input;
+  if (!enabled || key === null) return { status: 'idle', matchups: [] };
+  if (!state || state.key !== key) return { status: 'loading', matchups: [] };
+  return state.status === 'ready' ? { status: 'ready', matchups: state.matchups } : { status: 'error', matchups: [] };
+}

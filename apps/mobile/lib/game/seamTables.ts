@@ -133,10 +133,11 @@ function playoffMatchups(live = false) {
 
 /** EXPO_PUBLIC_RECAP_FIXTURE (the Matchup recap's captures): how your finished season went.
  * 'champion' (default) = Home's 'complete' bracket; 'semis' = out in the Semifinals; 'missed' =
- * no playoff game; 'tie_bye' = the champion's season with a tied week 3 and a bye in week 2. */
-export type RecapFixture = 'champion' | 'semis' | 'missed' | 'tie_bye';
+ * no playoff game; 'tie_bye' = the champion's season with a tied week 3 and a bye in week 2;
+ * 'unposted' = the champion's season with week 1's games never posted (gains null). */
+export type RecapFixture = 'champion' | 'semis' | 'missed' | 'tie_bye' | 'unposted';
 export function parseRecapFixture(v: string | undefined): RecapFixture {
-  return v === 'semis' || v === 'missed' || v === 'tie_bye' ? v : 'champion';
+  return v === 'semis' || v === 'missed' || v === 'tie_bye' || v === 'unposted' ? v : 'champion';
 }
 
 /** The fixture league's regular season (the shell's finished league, fx-summer: num_weeks 14). */
@@ -188,7 +189,11 @@ export function seasonMatchups(variant: RecapFixture) {
     : variant === 'semis'
       ? [...wildCard, row(SF, paolo, chiara, 203.75, 118.2, true), row(SF, SEAM_ME, luca, closedGain(SEAM_ME), c(closedGain(SEAM_ME) + 50), true), row(F, paolo, luca, 120.55, 98.1, true)]
       : [...wildCard, row(SF, paolo, chiara, 203.75, 118.2, true), row(SF, SEAM_ME, luca, 288.1, 96.42, true), scored(F, SEAM_ME, paolo)];
-  return [...regular, ...playoffs];
+  const season = [...regular, ...playoffs];
+  // A week that never posted: no gains, no winner (the recap's dash, nothing to open).
+  return variant === 'unposted'
+    ? season.map((m) => (m.week_number === 1 ? { ...m, team1_gain: null, team2_gain: null, winner_user_id: null, is_tie: false } : m))
+    : season;
 }
 
 /** The fixture rows for a table read, or null when the seam is off (the real query stands). */

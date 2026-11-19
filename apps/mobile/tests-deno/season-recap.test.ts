@@ -4,7 +4,7 @@
  * Run: `deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { buildRecap, recapGameDetail, recapReadComplete, recapStatus, recordThrough, withWeekCloses, type RecapMatchup } from '../lib/game/seasonRecap.ts';
+import { buildRecap, recapGameDetail, recapReadKey, resolveRecapRows, recapReadComplete, recapStatus, recordThrough, withWeekCloses, type RecapMatchup } from '../lib/game/seasonRecap.ts';
 import { matchupWeekHref, parseMatchupWeekParams } from '../lib/game/matchupWeekLink.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
 import { COPY } from '../lib/game/gameCopy.ts';
@@ -188,7 +188,7 @@ Deno.test('useSeasonRecap: ONE league-wide matchups read (never get_home_league)
   assert(src.includes("seamTable('matchups_season', () => supabase\n          .from('matchups')"), 'the table itself, not the caller-scoped get_home_league');
   assert(!/\.rpc\(/.test(src));
   assert(src.includes("if (!recapReadComplete(data.length, res.count ?? null)) throw new Error('matchups read incomplete');"));
-  assert(src.includes('if (!enabled || !leagueId || !user?.id) return;'), 'only while the view is complete');
+  assert(src.includes('if (key === null || !leagueId) return;'), 'only while the view is complete (key is null when not enabled)');
 });
 
 Deno.test("the Matchup tab: after the season, the recap replaces the body; the week's All matchups is not read", () => {
@@ -249,4 +249,43 @@ Deno.test("a card opened from the recap's detail is the finished-season card (#5
   assert(card.includes('const action = over ? null : cardAction(props);'));
   assert(card.includes('{over ? null : ('));
   assert(card.includes('endEt={seasonEnd}'));
+});
+
+// ── Review 1 on #566 ──────────────────────────────────────────────────────────────────
+
+Deno.test('a league switch reads as loading at once, never the last league\'s games (review 4633132015)', () => {
+  const a = recapReadKey('league-A', 'me', 0);
+  const b = recapReadKey('league-B', 'me', 0);
+  const loadedA = { key: a, status: 'ready' as const, matchups: season };
+  // League A loaded; the first render asking for league B gets nothing of A's.
+  assertEquals(resolveRecapRows({ enabled: true, key: a, state: loadedA }), { status: 'ready', matchups: season });
+  assertEquals(resolveRecapRows({ enabled: true, key: b, state: loadedA }), { status: 'loading', matchups: [] });
+  // Try again is a new read too: a failed read reads as loading until the retry lands.
+  const failed = { key: a, status: 'error' as const, matchups: [] };
+  assertEquals(resolveRecapRows({ enabled: true, key: a, state: failed }).status, 'error');
+  assertEquals(resolveRecapRows({ enabled: true, key: recapReadKey('league-A', 'me', 1), state: failed }).status, 'loading');
+  // Off (not the complete view) or no league: idle, no rows.
+  assertEquals(resolveRecapRows({ enabled: false, key: a, state: loadedA }), { status: 'idle', matchups: [] });
+  assertEquals(resolveRecapRows({ enabled: true, key: null, state: loadedA }), { status: 'idle', matchups: [] });
+  // The hook shows only resolved rows, keyed by league, user and attempt.
+  const hook = SOURCES['lib/game/useSeasonRecap.ts'];
+  assert(hook.includes('const key = enabled && leagueId && user?.id ? recapReadKey(leagueId, user.id, attempt) : null;'));
+  assert(hook.includes('const rows = useMemo(() => resolveRecapRows({ enabled, key, state }), [enabled, key, state]);'));
+  assert(hook.includes("setState({ key, status: 'ready', matchups: data });"));
+});
+
+Deno.test('a never-posted game keeps both sides, with the dash for each total (review 4633132087)', () => {
+  const recap = SOURCES['components/game/SeasonRecap.tsx'];
+  // ByeGame only for a bye (b null); a two-sided game that never posted is a Scoreboard with the dash.
+  assert(recap.includes('{w.games.map((g, i) => (!g.b ? ('));
+  assert(recap.includes('<ByeGame key={`${g.a.userId}-${i}`} name={g.a.name} mine={g.mine} />'));
+  assert(!recap.includes(' vs ${g.b.name}'), 'never one tile named "A vs B"');
+  const unscored = recap.slice(recap.indexOf('!g.final || g.a.gain === null'), recap.indexOf('openGame='));
+  assert(unscored.includes('<Scoreboard'));
+  assert(/\n\s+unscored\n/.test(unscored), 'the Scoreboard gets the unscored prop (not just the word in a comment)');
+  assert(!unscored.includes('openGame'), 'nothing to tap');
+  const sb = SOURCES['components/sp/gn/Scoreboard.tsx'];
+  assert(sb.includes("const totalText = unscored ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });"));
+  assert(sb.includes('const showLine = showLineProp && !unscored;'), 'no leader, no line');
+  assert(sb.includes('{totalText}'));
 });

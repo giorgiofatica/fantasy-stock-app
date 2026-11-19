@@ -2,22 +2,59 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "63fd4a87dc66b550be5fc4b3c1eb402aadcc5a2b",
-    "commitShort": "63fd4a87",
+    "commit": "3d855f54c4e8ad920a2d3d7100dfd1a03354b058",
+    "commitShort": "3d855f54",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/season-recap",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-11-19T17:39:58Z",
-    "sourceHash": "sha256:74e6730e1205badbd7f02581c4b2e75a23e0b20555e8fef4f5d25106088bdb21",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/ByeGame.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/game/SeasonRecap.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/sp/gn/Scoreboard.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/seamTables.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/seasonRecap.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/useSeasonRecap.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/game-night-primitives.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/matchup-calls.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/season-recap.test.ts"
+      }
+    ],
+    "timestamp": "2026-11-19T18:31:21Z",
+    "sourceHash": "sha256:4f9aa20689aa9e23452aaee7935a6c92a7fd015c849f940766d2d063e611377f",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 17.4,
-    "ageDays": 0.7,
+    "ageHours": 18.3,
+    "ageDays": 0.8,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
@@ -20719,7 +20756,7 @@
         "week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end"
       ],
       "callSites": [
-        "apps/mobile/lib/game/useSeasonRecap.ts:43"
+        "apps/mobile/lib/game/useSeasonRecap.ts:45"
       ]
     },
     {
@@ -24728,7 +24765,7 @@
       "apps/mobile/lib/game/useRosterData.ts:54 -> league_draft_slots.select",
       "apps/mobile/lib/game/useRosterData.ts:78 -> drafts.select",
       "apps/mobile/lib/game/useRosterData.ts:86 -> trades.select",
-      "apps/mobile/lib/game/useSeasonRecap.ts:43 -> matchups.select",
+      "apps/mobile/lib/game/useSeasonRecap.ts:45 -> matchups.select",
       "apps/mobile/lib/game/useSymbolCategories.ts:27 -> symbol_category_overrides.select",
       "apps/mobile/lib/game/useSymbolCategories.ts:38 -> category_rules.select",
       "apps/mobile/lib/game/useWeekOne.ts:17 -> matchups.select",

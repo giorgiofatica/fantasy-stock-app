@@ -12,7 +12,7 @@ import { AllMatchupsSkeleton } from '@/components/game/LoadingSkeletons';
 import { TilesSkeleton } from '@/components/league/LeagueStates';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
-import { eliminatedLabel, SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
+import { eliminatedLabel } from '@/lib/home/homeCopy';
 import { OPENS_MATCHUP_HINT } from '@/lib/home/calmHome';
 import { matchupWeekHref } from '@/lib/game/matchupWeekLink';
 import type { RecapOpen, RecapRow, RecapStatus } from '@/lib/game/seasonRecap';
@@ -73,8 +73,17 @@ export function SeasonRecap({ segment, state, leagueId }: SeasonRecapProps) {
               {w.games.map((g, i) => (!g.b ? (
                 <ByeGame key={`${g.a.userId}-${i}`} name={g.a.name} mine={g.mine} />
               ) : !g.final || g.a.gain === null || g.b.gain === null ? (
-                // Never posted: the two names and the season tile's dash; no figures, no tap.
-                <ByeGame key={`${g.a.userId}-${i}`} name={`${g.a.name} vs ${g.b.name}`} mine={g.mine} line={SEASON_TILE_UNSCORED} />
+                // Never posted (review 4633132087): BOTH sides, as every other game, with the season
+                // tile's dash for each total, no line and no tap. ByeGame stays for a bye alone (b null).
+                // The 0s are never drawn: `unscored` draws the dash and reads no gain.
+                <Scoreboard
+                  key={`${g.a.userId}-${i}`}
+                  size="compact"
+                  mine={g.mine}
+                  unscored
+                  you={{ name: g.a.name, gain: g.a.gain ?? 0 }}
+                  opponent={{ name: g.b.name, gain: g.b.gain ?? 0 }}
+                />
               ) : (
                 <Scoreboard
                   key={`${g.a.userId}-${i}`}
