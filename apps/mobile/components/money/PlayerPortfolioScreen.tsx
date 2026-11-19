@@ -62,7 +62,7 @@ import { canFindNewManager } from '@/lib/account/findManager';
 import { useFindNewManager } from '@/lib/account/useFindNewManager';
 import { JOIN_COPY } from '@/lib/join/joinPreview';
 import { PhaseChip } from '@/components/sp/PhaseChip';
-import { seasonEndEt } from '@/lib/money/seasonEnd';
+import { useSeasonEnd } from '@/lib/money/useSeasonEnd';
 import { isSeasonOver } from '@/lib/weekStatus';
 
 /** The hero's sub-lines follow Dynamic Type to 1.3× (the value stays the standout), as Portfolio's do. */
@@ -100,9 +100,11 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   const raw = home.raw;
   const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);
   const leagueRaw = raw && raw.leagueId === activeLeagueId ? raw : null;
-  const homeSettled = leagueRaw != null || home.status === 'error' || home.status === 'no-league';
   const completedAt = sheetLeagues.find((l) => l.id === activeLeagueId)?.seasonCompletedAt ?? null;
-  const endEt = finished && homeSettled ? seasonEndEt(leagueRaw?.data.matchups, completedAt) : null;
+  // The season's last day from a LEAGUE-WIDE read of the matchups, never Home's (the caller's own games only: a
+  // manager eliminated before the final would freeze the team at a day too early). Unknown while loading or failed.
+  const seasonEnd = useSeasonEnd(activeLeagueId, finished, completedAt, SEAM_ON || MONEY_FIXTURE ? { rows: leagueRaw?.data.matchups ?? null } : null);
+  const endEt = finished && seasonEnd.status === 'ready' ? seasonEnd.endEt : null;
   const data = usePlayerPortfolioData(userId || null, finished ? { finished: true, endEt } : { finished: false });
   const leagueId = data.leagueId;
   // The linked name shows only while loading; a failed load names no one (a crafted link can carry any text).
@@ -195,9 +197,9 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   useCaptureAction('scroll', (y) => scrollRef.current?.scrollTo({ y: Number(y) || 0, animated: false }));
 
   let body: React.ReactNode;
-  if (finished && homeSettled && !endEt) {
-    // Over, but no day it ended on could be read: never a guessed day.
-    body = <LoadFailure title={COPY.teamLoadTitle(knownName)} message={COPY.loadRetryMessage} onRetry={() => { void home.refresh(); retry(); }} />;
+  if (finished && (seasonEnd.status === 'error' || (seasonEnd.status === 'ready' && !endEt))) {
+    // Over, but no day it ended on could be read: never a guessed day, never the caller's own last game.
+    body = <LoadFailure title={COPY.teamLoadTitle(knownName)} message={COPY.loadRetryMessage} onRetry={() => { seasonEnd.refresh(); retry(); }} />;
   } else if (data.status === 'loading') {
     body = <PortfolioSkeleton label={COPY.teamLoading(knownName)} chart={false} />;
   } else if (data.status === 'error' || !data.portfolio) {

@@ -7,8 +7,9 @@
  *   - isSeasonOver is getSeasonPhase === 'completed' (the league switcher chip's own source).
  * Run: cd apps/mobile/tests-deno && deno test --allow-read --allow-env --allow-sys --allow-run .
  */
-import { assertEquals } from 'jsr:@std/assert';
-import { seasonEndEt } from '../lib/money/seasonEnd.ts';
+import { assert, assertEquals } from 'jsr:@std/assert';
+import { readSeasonEnd, resolveSeasonEnd, seasonEndEt, type MatchupEndsRead } from '../lib/money/seasonEnd.ts';
+import { SOURCES } from './sourceManifest.generated.ts';
 import { getSeasonPhase, isSeasonOver } from '../lib/weekStatus.ts';
 
 // schedule.ts's nominal week: Tuesday 14:30Z to Friday 21:00Z (Fri 4 or 5 PM ET).
@@ -61,4 +62,68 @@ Deno.test('isSeasonOver is the switcher chip\'s phase read as completed, and not
   // Never over before the draft, whatever season_status a fresh row defaults to.
   assertEquals(isSeasonOver({ ...LEAGUE, draft_status: 'not_started', season_status: 'completed' }, NOW), false);
   assertEquals(isSeasonOver(null, NOW), false);
+});
+
+// ── The LEAGUE-WIDE read (get_home_league's matchups are the caller's own games only) ─────────────
+
+const strip = (src: string) => src.split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+type Row = { team1: string; team2: string | null; week_end: string | null };
+const g = (team1: string, team2: string | null, friday: string | null): Row => ({ team1, team2, week_end: friday ? `${friday}T21:00:00.000Z` : null });
+// A 4-team league: Paolo is knocked out in the semifinal (Sep 25); the final is Oct 2 between Roberto and Gianluigi.
+const GAMES: Row[] = [
+  g('paolo', 'roberto', '2026-09-11'), g('gianluigi', 'atlas', '2026-09-11'),
+  g('paolo', 'atlas', '2026-09-18'), g('roberto', 'gianluigi', '2026-09-18'),
+  g('paolo', 'roberto', '2026-09-25'), g('gianluigi', 'atlas', '2026-09-25'),
+  g('roberto', 'gianluigi', '2026-10-02'),
+];
+/** What a member's read of `matchups` returns: EVERY row of the league (RLS is is_member), newest dated first. */
+const leagueRead: MatchupEndsRead = async () => ({
+  data: [...GAMES].filter((r) => r.week_end).sort((a, b) => (a.week_end! < b.week_end! ? 1 : -1)).slice(0, 1).map((r) => ({ week_end: r.week_end })),
+  error: null,
+});
+
+Deno.test('eliminated before the final: the CALLER-scoped matchups would end the season early; the league read gives the final', async () => {
+  const callerScoped = GAMES.filter((r) => r.team1 === 'paolo' || r.team2 === 'paolo');
+  assertEquals(seasonEndEt(callerScoped), '2026-09-25', 'the trap: Paolo\'s own last game, not the final');
+  assertEquals(await readSeasonEnd(leagueRead, 'L1', null), { status: 'ready', endEt: '2026-10-02' });
+  // Missed the playoffs entirely (last game Sep 18): the same league read, the same final.
+  assertEquals(seasonEndEt(GAMES.filter((r) => r.team1 === 'atlas' || r.team2 === 'atlas').slice(0, 2)), '2026-09-18');
+  assertEquals((await readSeasonEnd(leagueRead, 'L1', null)).endEt, '2026-10-02');
+});
+
+Deno.test('a FAILED read is unknown (null), never a fallback: neither completed_at nor the caller\'s games', async () => {
+  const failed: MatchupEndsRead = async () => ({ data: null, error: { message: 'permission denied' } });
+  assertEquals(await readSeasonEnd(failed, 'L1', '2026-10-02T22:00:00Z'), { status: 'error', endEt: null });
+  const threw: MatchupEndsRead = () => Promise.reject(new Error('network'));
+  assertEquals(await readSeasonEnd(threw, 'L1', '2026-10-02T22:00:00Z'), { status: 'error', endEt: null });
+  // A successful read of NO dated matchups is the one case completed_at answers.
+  const none: MatchupEndsRead = async () => ({ data: [], error: null });
+  assertEquals(await readSeasonEnd(none, 'L1', '2026-10-02T22:00:00Z'), { status: 'ready', endEt: '2026-10-02' });
+});
+
+Deno.test('resolveSeasonEnd: idle when not over; loading (null) until THIS league\'s read lands; then its answer', () => {
+  const base = { enabled: true, leagueId: 'L1', completedAt: null };
+  assertEquals(resolveSeasonEnd({ ...base, enabled: false, state: null }), { status: 'idle', endEt: null });
+  assertEquals(resolveSeasonEnd({ ...base, leagueId: null, state: null }), { status: 'idle', endEt: null });
+  assertEquals(resolveSeasonEnd({ ...base, state: null }), { status: 'loading', endEt: null });
+  assertEquals(resolveSeasonEnd({ ...base, state: { leagueId: 'L0', status: 'ready', endEt: '2026-09-18' } }), { status: 'loading', endEt: null }, 'another league\'s answer, mid-switch');
+  assertEquals(resolveSeasonEnd({ ...base, state: { leagueId: 'L1', status: 'ready', endEt: '2026-10-02' } }), { status: 'ready', endEt: '2026-10-02' });
+  assertEquals(resolveSeasonEnd({ ...base, state: { leagueId: 'L1', status: 'error', endEt: null } }), { status: 'error', endEt: null });
+  // Capture fixtures: their own rows (null = still loading).
+  assertEquals(resolveSeasonEnd({ ...base, fixtureRows: null, state: null }), { status: 'loading', endEt: null });
+  assertEquals(resolveSeasonEnd({ ...base, fixtureRows: [{ week_end: '2026-10-02T21:00:00Z' }], state: null }), { status: 'ready', endEt: '2026-10-02' });
+});
+
+Deno.test('source: both Portfolio screens take the end from useSeasonEnd, never Home\'s caller-scoped matchups', () => {
+  for (const f of ['components/money/PortfolioScreen.tsx', 'components/money/PlayerPortfolioScreen.tsx']) {
+    const src = strip(SOURCES[f]);
+    assert(src.includes('useSeasonEnd(activeLeagueId, finished, completedAt,'), f);
+    assert(src.includes("const endEt = finished && seasonEnd.status === 'ready' ? seasonEnd.endEt : null;"), f);
+    assert(!src.includes('seasonEndEt('), `${f}: no direct seasonEndEt over Home's matchups`);
+    assert(src.includes("seasonEnd.status === 'error'"), `${f}: a failed read shows the load failure`);
+  }
+  const hook = strip(SOURCES['lib/money/useSeasonEnd.ts']);
+  assert(hook.includes(".from('matchups')") && hook.includes(".eq('league_id', leagueId)"), 'a league-wide read');
+  assert(hook.includes("order('week_end', { ascending: false, nullsFirst: false })"), 'an undated row never sorts first');
+  assert(hook.includes('.limit(1)'));
 });
