@@ -11,6 +11,7 @@
  *   page2_loading the SECOND page never answers (the foot's one skeleton row, E6)
  *   empty        every category answers no stocks (E8)
  *   noprice      the live quote answers no prices (a row's "–")
+ *   proceeds     the fixed-notional preview names one open sale, so a buy is possible (a CLEAN "+" -> buy review; recordTrade.ts)
  *   small        pages of 6 rows, so a page's foot is on screen (the foot states, E6/E7, without a scroll)
  * Combine with a comma ("page2_fail,noprice").
  */
@@ -66,12 +67,13 @@ export interface StocksKnob {
   empty: boolean;
   noPrice: boolean;
   small: boolean;
+  proceeds: boolean;
 }
 
 /** Pure: the knob's flags (a comma-separated list; unknown words are ignored). */
 export function parseStocksKnob(raw: string | null | undefined): StocksKnob {
   const set = new Set((raw ?? '').split(',').map((s) => s.trim().toLowerCase()));
-  return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small') };
+  return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small'), proceeds: set.has('proceeds') };
 }
 
 type ReadResult = { data: unknown; error: { message: string; code?: string } | null };

@@ -57,7 +57,7 @@ import { reviewPresentation } from '@/lib/money/reviewPresentation';
 import { canDismiss } from '@/lib/money/reviewMachine';
 import { decideTradeGate, type TradeGate } from '@/lib/money/tradeGate';
 import { getSeasonPhase, isSeasonOver } from '@/lib/weekStatus';
-import { companyLine, stockSheetModel } from '@/lib/money/stockSheetModel';
+import { companyLine, noProceedsKnown, proceedsSettled, stockSheetModel } from '@/lib/money/stockSheetModel';
 import { shouldStartReview } from '@/lib/money/stockSheetApi';
 import { buyBody, previewBody, sellBody } from '@/lib/money/tradeBodies';
 import { useStockSheetData } from '@/lib/money/useStockSheetData';
@@ -211,6 +211,9 @@ export function StockSheetBody({
   const [choice, setChoice] = useState<'buy' | 'sell' | null>(null);
   const [open, setOpen] = useState<OpenReview | null>(null);
   // "Which sale pays for this?": the sales a per-slot buy can be paid from, and the one chosen.
+  // fixed_notional: the sale proceeds that fund a buy, read ONCE when the sheet's facts are ready (the preview the review makes too),
+  // so a buy with nothing to invest is disabled BEFORE the review. null = not read (or unreadable): never guessed.
+  const [proceeds, setProceeds] = useState<{ sources: PreviewSource[] | null } | null>(null);
   const [picking, setPicking] = useState<{ sources: PreviewSource[]; chosen: string | null } | null>(null);
   const trade = useTradeSubmit();
   const lastData = useRef<unknown>(null);
@@ -319,6 +322,18 @@ export function StockSheetBody({
   useEffect(() => {
     onBusyChange?.(busy);
   }, [busy, onBusyChange]);
+
+  useEffect(() => {
+    if (!sheetLeague || sheetLeague.stake_mode !== 'fixed_notional' || data.status !== 'ready') return;
+    let live = true;
+    void fetchPreview(previewBody(sheetLeague.id)).then((p) => {
+      if (live) setProceeds({ sources: p && p.stakeMode === 'fixed_notional' ? p.sources : null });
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetLeague?.id, sheetLeague?.stake_mode, data.status, symbol]);
 
   // The "+" asked to land in the buy review: decided ONCE, at the first render with the facts ready. A buy that is allowed starts
   // its review; one that is not leaves the plain sheet with its reason, and stays so (a market that opens later never pops a
@@ -442,7 +457,7 @@ export function StockSheetBody({
   openReviewRef.current = (kind) => openReview(kind);
   // The "+" on the Stocks list asks to land IN the buy review: once, when the facts are ready and a buy is allowed
   // (shouldStartReview). Otherwise the sheet is the plain sheet with its own reason under a disabled Review buy.
-  startReviewRef.current = { wanted: startReview, ready: data.status === 'ready', go: () => void openReview('buy') };
+  startReviewRef.current = { wanted: startReview, ready: data.status === 'ready' && proceedsSettled(sheetLeague?.stake_mode, proceeds !== null), go: () => void openReview('buy') };
   submitRef.current = submitNow;
 
   const model = stockSheetModel({
@@ -459,6 +474,7 @@ export function StockSheetBody({
     acquisition,
     budgetLeft,
     rosterFull,
+    noProceeds: noProceedsKnown(sheetLeague?.stake_mode, proceeds?.sources ?? null),
   });
 
   if (picking) {

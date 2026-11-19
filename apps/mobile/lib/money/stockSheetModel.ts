@@ -55,6 +55,21 @@ export interface StockSheetInput {
   budgetLeft?: number | null;
   /** budget_cap / price_tiers: every slot is held, so a buy has nowhere to go. */
   rosterFull?: boolean;
+  /** fixed_notional: the server's preview read (the same one the review makes) named NO sale proceeds, so every slot is held and
+   * no cash is free to invest. The buy is disabled BEFORE the review, like a full roster, with the existing line "Every slot is
+   * invested. Sell a holding to free one." (see noProceedsKnown). Unset while the preview is unread or unreadable: never guessed. */
+  noProceeds?: boolean;
+}
+
+/** True only when the league is fixed-notional AND its preview was read AND it named no sale proceeds (`sources` null = not read). */
+export function noProceedsKnown(stakeMode: string | null | undefined, sources: readonly unknown[] | null): boolean {
+  return stakeMode === 'fixed_notional' && sources !== null && sources.length === 0;
+}
+
+/** Whether the sheet already knows what funds a buy: every mode but fixed_notional always does; fixed_notional once its preview read
+ * has SETTLED (answered or failed). The "+" waits for this before starting a review (an unsettled read would start one a refusal ends). */
+export function proceedsSettled(stakeMode: string | null | undefined, settled: boolean): boolean {
+  return stakeMode !== 'fixed_notional' || settled;
 }
 
 export interface ActionState {
@@ -114,6 +129,11 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   }
   if (buyReason === null && input.rosterFull) {
     buyReason = COPY.rosterFull;
+    buyBlockedBy = 'full';
+  }
+  // A fixed-notional league with every slot held and no sale proceeds: nothing is free to invest (the review would only refuse).
+  if (buyReason === null && input.noProceeds) {
+    buyReason = COPY.everySlotInvested;
     buyBlockedBy = 'full';
   }
   // One share per buy in a budget league: the share's price must fit the budget left, the
