@@ -95,3 +95,17 @@ Deno.test('wiring: the "+" asks for the review, a row tap does not; the host and
   assertFalse(/recordTrade|record-trade|useTradeSubmit|trade\.submit/.test(code(screen)));
   assert(code(body).includes("openReview('buy')"));
 });
+
+Deno.test('the two paths DIFFER: in the same allowed state the "+" starts the review and a row tap does not; both draw the same sheet otherwise', () => {
+  const allowed = stockSheetModel({ ...BASE, gate: { open: true } });
+  const viaPlus = shouldStartReview(normalizeOpenOptions({ name: 'Microsoft', originRef: 'stocks-plus', startReview: 'buy' }).startReview, true, allowed.buy.enabled, true);
+  const viaRow = shouldStartReview(normalizeOpenOptions({ name: 'Microsoft', originRef: 'stocks-row', startReview: null }).startReview, true, allowed.buy.enabled, true);
+  assertEquals([viaPlus, viaRow], [true, false]);
+  // And in a blocked state both paths agree: neither starts a review, both show the sheet's reason.
+  const blocked = stockSheetModel({ ...BASE, gate: { open: false, opensLabel: 'Mon 9:30 AM ET' } });
+  assertEquals(shouldStartReview('buy', true, blocked.buy.enabled, false), false);
+  assertEquals(shouldStartReview(null, true, blocked.buy.enabled, false), false);
+  // The only difference in the screen's wiring is the third argument.
+  const screen = SOURCES['components/stocks/StocksScreen.tsx'];
+  assertMatch(screen, /onOpen=\{\(\) => openSheet\(row, 'stocks-row'\)\}\s*onPlus=\{\(\) => openSheet\(row, 'stocks-plus', true\)\}/);
+});
