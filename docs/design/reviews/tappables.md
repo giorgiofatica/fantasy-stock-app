@@ -178,8 +178,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/StockSheetBody.tsx:544` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
 | `components/money/StockSheetBody.tsx:550` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
 | `components/money/StockSheetBody.tsx:580` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:618` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
-| `components/money/StockSheetBody.tsx:647` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/money/StockSheetBody.tsx:619` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
+| `components/money/StockSheetBody.tsx:648` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/money/TradeHistoryScreen.tsx:134` | SegmentedControl | onChange | `choose` | fn choose |  |
 | `components/money/TradeHistoryScreen.tsx:146` | LoadFailure | onRetry | `ledger.refresh` | prop ledger.refresh |  |
 | `components/money/TradeReviewPanel.tsx:131` | Button | onPress | `onSubmit` | prop onSubmit (the caller's) | `!p.button.enabled` |

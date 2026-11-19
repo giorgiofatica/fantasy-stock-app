@@ -602,6 +602,7 @@ export function StockSheetBody({
               <Figure
                 label="Gain"
                 value={formatGainPair(position.gain, position.gainPct).text}
+                spoken={formatGainPair(position.gain, position.gainPct).spoken}
                 color={Math.abs(position.gain) < 0.005 ? colors.zero : position.gain > 0 ? colors.gain : colors.loss}
               />
             </View>
@@ -654,9 +655,11 @@ function SheetHeader({ symbol, company, onClose }: { symbol: string; company: st
   );
 }
 
-function Figure({ label, value, color }: { label: string; value: string; color?: string }) {
+/** `spoken`: what VoiceOver says for the value when it differs from what is shown (a gain pair says
+ * "+$X, +Y%", never the brackets). */
+function Figure({ label, value, color, spoken }: { label: string; value: string; color?: string; spoken?: string }) {
   return (
-    <View style={styles.figure} accessible accessibilityLabel={`${label}, ${value}`}>
+    <View style={styles.figure} accessible accessibilityLabel={`${label}, ${spoken ?? value}`}>
       <Text variant="caption" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary">{label}</Text>
       <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} color={color} style={[styles.extraBold, styles.tabular]}>{keepMoney(value)}</Text>
     </View>

@@ -289,7 +289,7 @@ export function PortfolioScreen() {
               </View>
             )}
             {!over && v.todayMoneyText && v.todayPctText ? (
-              <View accessible accessibilityLabel={`${v.todayText} today`}>
+              <View accessible accessibilityLabel={`${v.todaySpoken} today`}>
                 <RollingGainPair
                   money={v.todayMoneyText}
                   pct={v.todayPctText}
