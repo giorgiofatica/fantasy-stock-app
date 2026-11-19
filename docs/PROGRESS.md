@@ -28,23 +28,25 @@ Entries begin with the Recorder's first pass.
 (Times are UTC, and this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. The overnight merges of 01:30Z to 06:55Z are in the 2026-11-18 entry, which runs on Pacific time.)
 
 **Shipped**
-- Nothing is recorded as reaching players or prod so far today.
+- Nothing is recorded as reaching players or prod so far today. #563 (the Stocks tab screen) and #562 (rulings) merged; none of it is in a build.
 
 **Merged, not confirmed live**
-- **#561 (17:38:31Z, `dd2701aa`), a test-only fix for a red `main`** (I read it on GitHub; one test file). **Main's CI on it was still running when I looked, so no green is recorded.** The red: the runs on `41a5e906` (06:48Z) and `8fbf072a` (06:55Z) FAILED, after #554's tests and #555's season-end change had each passed alone and merged back to back (the Orchestrator's account); the ruleset is not strict.
+- **#561 (17:38:31Z, `dd2701aa`), a test-only fix for a red `main`**, and **main's CI on it finished `success`** (run 44579370923; I read it). The red: the runs on `41a5e906` (06:48Z) and `8fbf072a` (06:55Z) FAILED, after #554's tests and #555's season-end change had each passed alone and merged back to back (the Orchestrator's account).
+- **#560 (18:19:16Z, `43a676d1`, my record), #562 (18:23:22Z, `da7a337a`, rulings) and #563 (18:27:29Z, `da4cd167`, the Stocks tab Part 2, the screen).** #563 is mobile and docs only, in no build; the Design Lead's final pass and two Copilot reviews with two fixes (the Orchestrator's account). `main`'s CI is `success` on `43a676d1` and `da7a337a`; on `da4cd167` it was unfinished.
 
 **Decided**
-- **Giorgio turned on "Require conversation resolution before merging"** on the review ruleset (I read it: `required_review_thread_resolution` true; the status check is still `All checks` and still not strict).
+- **Giorgio turned on "Require conversation resolution before merging" and then "Require branches to be up to date" (strict)** on the review ruleset (I read both flags). Merges are serial now: the Orchestrator updates the next pull request, it goes green, then Giorgio merges.
+- **Rulings (in `docs/PRODUCT_RULES.md` via #562; none built):** on the live Matchup screen an unpriced stock shows a dash and the total is the total without it, never a dash (the server, by contrast, refuses to score a week until every stock is priced, so a posted week always includes every stock); a notice at the top of Matchup while a price is missing, with approved copy; yellow is not part of the theme (the Design Lead audits where it appears); a long ticker shrinks to fit its round badge (A); prices are shown only inside the app, to signed-in players, and no supplier is contacted yet.
 
 **Found**
-- **#547's server answer contradicts what Giorgio was told (the Orchestrator's account):** the server refuses to score a league-week until every stock is priced. Back with Giorgio; #547 stays a draft.
+- **#547's contradiction is resolved:** the server refuses to score a league-week until every stock is priced, which the Planner had not told Giorgio; told, he kept his ruling for the live screen. #547 is a draft, with the live total and the notice being built.
 
 **Waiting on Giorgio**
-- His answer on #547; whether to make the CI check strict; the supplier for the price feed; the January SDK start.
+- The supplier enquiry (the Planner's draft to Tiingo and Intrinio, his to send when ready); #564 (`pr-watch` reports a red main); the January SDK start.
 
 **Next**
-- Open: #562 (rules: the Matchup total and prices in the app only), #563 (Stocks tab Part 2, the screen), #564 (`pr-watch` reports a red main), #565 (the Design Lead's long-ticker badge board), #557, #547, #279, and my record #560.
-- Read main's CI on `dd2701aa` before calling `main` green.
+- Open: #557 (charts; the last automated fix in progress), #566 (the season recap; fix in progress), #564, #565 (the ticker-badge board; the build chip is offered), #547 (draft), #279. The Design Lead's yellow audit is in progress.
+- Build 18 is not started and nothing is deployed.
 - Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.
 
 ## 2026-11-18
