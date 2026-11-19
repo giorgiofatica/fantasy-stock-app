@@ -2,99 +2,87 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "f36fda1ed103a9627f1c465ce0adb51ace70f565",
-    "commitShort": "f36fda1e",
+    "commit": "f3c58d331c5059144e61024f21dcce05784d480b",
+    "commitShort": "f3c58d33",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/matchup-no-stand-ins",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/_layout.tsx"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/app/(tabs)/stocks.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/MoneyHost.tsx"
-      },
       {
         "code": "M",
         "path": "apps/mobile/components/money/PortfolioScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/money/StockSearchScreen.tsx"
+        "path": "apps/mobile/components/money/StockChart.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/money/StockSheetBody.tsx"
+        "path": "apps/mobile/components/sp/gn/RangeGainLine.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/ShellTabBar.tsx"
+        "path": "apps/mobile/components/sp/logic/lineChart.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/shell/TabIcon.tsx"
+        "path": "apps/mobile/lib/chart/chartGeometry.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/sp/logic/icon.ts"
+        "path": "apps/mobile/lib/chart/chartRanges.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/devSeam.ts"
       },
       {
         "code": "A",
-        "path": "apps/mobile/components/stocks/StocksScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/seamCalls.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/recordTrade.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/stockSheetApi.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/stockSheetModel.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/usePortfolioLedger.ts"
+        "path": "apps/mobile/lib/money/barsFault.ts"
       },
       {
         "code": "A",
-        "path": "apps/mobile/lib/stocks/seamStocks.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/stocks/stocksList.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/stocks/useRowPrices.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/stocks/useStocksList.ts"
+        "path": "apps/mobile/lib/money/marketSessions.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/input-remount-key.test.ts"
+        "path": "apps/mobile/lib/money/playerPortfolio.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/keep-money.test.ts"
+        "path": "apps/mobile/lib/money/portfolioChart.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/money-c9-board-defects.test.ts"
+        "path": "apps/mobile/lib/money/stockChartSeries.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/teamPortfolioView.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/usePlayerPortfolioData.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/usePortfolioData.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/chart-no-invented-stretch.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/chart-ranges.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/tests-deno/chart-sessions-ladder.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c6-rolling.test.ts"
       },
       {
         "code": "M",
@@ -102,42 +90,14 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/money-sheet.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sell-only-held.test.ts"
+        "path": "apps/mobile/tests-deno/money-portfolio-chart.test.ts"
       },
       {
         "code": "UU",
         "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sp-icon.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/stock-sheet-api.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/stocks-list.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/stocks-plus-review.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T18:51:20Z",
+    "timestamp": "2026-11-19T19:48:04Z",
     "sourceHash": "sha256:4b57e42a37732b009e996c26bbae672bfda67953e4a8de47bbe1133eaea28e7f",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -145,7 +105,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 18.6,
+    "ageHours": 19.6,
     "ageDays": 0.8,
     "staleAfterDays": 14,
     "stale": false,
