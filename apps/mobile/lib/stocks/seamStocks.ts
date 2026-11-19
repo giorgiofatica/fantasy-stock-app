@@ -11,6 +11,7 @@
  *   page2_loading the SECOND page never answers (the foot's one skeleton row, E6)
  *   empty        every category answers no stocks (E8)
  *   noprice      the live quote answers no prices (a row's "–")
+ *   small        pages of 6 rows, so a page's foot is on screen (the foot states, E6/E7, without a scroll)
  * Combine with a comma ("page2_fail,noprice").
  */
 import type { ChipCategory } from './stocksList';
@@ -62,12 +63,13 @@ export interface StocksKnob {
   page2Loading: boolean;
   empty: boolean;
   noPrice: boolean;
+  small: boolean;
 }
 
 /** Pure: the knob's flags (a comma-separated list; unknown words are ignored). */
 export function parseStocksKnob(raw: string | null | undefined): StocksKnob {
   const set = new Set((raw ?? '').split(',').map((s) => s.trim().toLowerCase()));
-  return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice') };
+  return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small') };
 }
 
 type ReadResult = { data: unknown; error: { message: string; code?: string } | null };
@@ -92,9 +94,10 @@ export function seamStocksRead(args: Record<string, unknown>, knob: StocksKnob):
   const category = typeof args.p_category_id === 'string' ? args.p_category_id : null;
   const all = CATALOGUE.filter(([, , c]) => category == null || c === category);
   const start = after ? all.findIndex(([s]) => s === after) + 1 : 0;
-  const slice = all.slice(start, start + 26);
-  const rows = slice.slice(0, 25);
-  const hasMore = slice.length > 25;
+  const size = knob.small ? 6 : 25;
+  const slice = all.slice(start, start + size + 1);
+  const rows = slice.slice(0, size);
+  const hasMore = slice.length > size;
   return {
     data: rows.map(([symbol, name, cat]) => ({ symbol, name, category_ids: [cat], has_more: hasMore })),
     error: null,

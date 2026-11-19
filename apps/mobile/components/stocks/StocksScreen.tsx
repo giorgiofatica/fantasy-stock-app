@@ -314,6 +314,11 @@ function AvailableList({ list, categories, seasonOver }: { list: ReturnType<type
   const view = listView(state, state.rows.length);
 
   const openSheet = (row: ListRow, ref: string) => open(row.symbol, { name: row.name, originRef: ref });
+  // DEV capture only (captureScript): the same handler a tap on a row's "+" runs.
+  useCaptureAction('plus', (sym) => {
+    const row = latest.current.rows.find((r) => r.symbol === sym);
+    if (row) openSheet(row, 'stocks-plus');
+  });
 
   if (view.kind === 'first_failed') return <LoadFailure title={COPY.stockSearchLoadTitle} message={COPY.loadRetryMessage} onRetry={retry} />;
   if (view.kind === 'first_loading') return <ListSkeleton rows={SKELETON_ROWS} plus />;

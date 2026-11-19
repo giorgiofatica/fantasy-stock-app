@@ -268,6 +268,8 @@ Deno.test('seam fixture: pages of 25 by cursor with has_more, a category filter,
   assert(seamStocksRead(pageArgs('L', null, 'MSFT'), k)!.error, 'the second page fails once');
   assertEquals(seamStocksRead(pageArgs('L', null, 'MSFT'), k)!.error, null, 'then answers');
   assertEquals(seamStocksRead(pageArgs('L', null, null), parseStocksKnob('empty'))!.data, []);
+  const sm = parsePage(seamStocksRead(pageArgs('L', null, null), parseStocksKnob('small'))!.data)!;
+  assertEquals([sm.rows.length, sm.hasMore], [6, true], 'small: pages of 6');
   const pl = parseStocksKnob('page2_loading');
   assertEquals(seamStocksRead(pageArgs('L', null, null), pl)!.error, null);
   assertEquals(seamStocksRead(pageArgs('L', null, 'MSFT'), pl), null, 'the second page never answers');
