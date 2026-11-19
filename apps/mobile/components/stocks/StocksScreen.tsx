@@ -354,11 +354,17 @@ function AvailableList({ list, categories, seasonOver }: { list: ReturnType<type
 
   const view = listView(state, state.rows.length);
 
-  const openSheet = (row: ListRow, ref: string) => open(row.symbol, { name: row.name, originRef: ref });
+  // A row tap opens the sheet to LOOK. The "+" opens it straight into its buy review (Planner, 2026-11-19), when a buy is allowed;
+  // after the close, or before the draft, the sheet shows its own reason under a disabled Review buy. No buy without the review.
+  const openSheet = (row: ListRow, ref: string, buy = false) => open(row.symbol, { name: row.name, originRef: ref, startReview: buy ? 'buy' : null });
   // DEV capture only (captureScript): the same handler a tap on a row's "+" runs.
   useCaptureAction('plus', (sym) => {
     const row = latest.current.rows.find((r) => r.symbol === sym);
-    if (row) openSheet(row, 'stocks-plus');
+    if (row) openSheet(row, 'stocks-plus', true);
+  });
+  useCaptureAction('row', (sym) => {
+    const row = latest.current.rows.find((r) => r.symbol === sym);
+    if (row) openSheet(row, 'stocks-row');
   });
 
   if (view.kind === 'first_failed') return <LoadFailure title={COPY.stockSearchLoadTitle} message={COPY.loadRetryMessage} onRetry={retry} />;
@@ -384,7 +390,7 @@ function AvailableList({ list, categories, seasonOver }: { list: ReturnType<type
             priceText={rowPriceText(priceOf(row.symbol))}
             plus={plus}
             onOpen={() => openSheet(row, 'stocks-row')}
-            onPlus={() => openSheet(row, 'stocks-plus')}
+            onPlus={() => openSheet(row, 'stocks-plus', true)}
             onBox={(b) => {
               boxes.current.set(row.symbol, b);
               measure();

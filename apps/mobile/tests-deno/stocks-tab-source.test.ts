@@ -57,10 +57,10 @@ Deno.test('paging: the read is the member-only RPC through the seam, error-check
   assertMatch(screen, /onRefresh=\{onRefresh\}/, 'pull to refresh is the existing pattern (BarsRefresh)');
 });
 
-Deno.test('a row and its "+" open the EXISTING stock sheet; nothing here buys, and nothing is a one-tap trade', () => {
-  assertMatch(screen, /const openSheet = \(row: ListRow, ref: string\) => open\(row\.symbol, \{ name: row\.name, originRef: ref \}\)/);
+Deno.test('a row and its "+" open the EXISTING stock sheet (the "+" asks for its review: stocks-plus-review.test.ts); nothing here buys, and nothing is a one-tap trade', () => {
+  assertMatch(screen, /const openSheet = \(row: ListRow, ref: string, buy = false\) => open\(row\.symbol, \{ name: row\.name, originRef: ref, startReview: buy \? 'buy' : null \}\)/);
   assertMatch(screen, /onOpen=\{\(\) => openSheet\(row, 'stocks-row'\)\}/);
-  assertMatch(screen, /onPlus=\{\(\) => openSheet\(row, 'stocks-plus'\)\}/);
+  assertMatch(screen, /onPlus=\{\(\) => openSheet\(row, 'stocks-plus', true\)\}/);
   assertFalse(/useTradeSubmit|recordTrade|record-trade|functions\.invoke|seamInvoke\('record/.test(screen));
 });
 

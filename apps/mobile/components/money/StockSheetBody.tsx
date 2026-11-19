@@ -58,6 +58,7 @@ import { canDismiss } from '@/lib/money/reviewMachine';
 import { decideTradeGate, type TradeGate } from '@/lib/money/tradeGate';
 import { getSeasonPhase, isSeasonOver } from '@/lib/weekStatus';
 import { companyLine, stockSheetModel } from '@/lib/money/stockSheetModel';
+import { shouldStartReview } from '@/lib/money/stockSheetApi';
 import { buyBody, previewBody, sellBody } from '@/lib/money/tradeBodies';
 import { useStockSheetData } from '@/lib/money/useStockSheetData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
@@ -136,11 +137,14 @@ interface OpenReview {
 export function StockSheetBody({
   symbol,
   knownName = null,
+  startReview = null,
   onDone,
   onBusyChange,
 }: {
   symbol: string;
   knownName?: string | null;
+  /** "buy": open straight into the buy review when a buy is allowed (the Stocks list's "+"); see shouldStartReview. */
+  startReview?: 'buy' | null;
   onDone: () => void;
   /** Reports a submit in flight, so the host can lock the sheet's dismiss paths. */
   onBusyChange?: (busy: boolean) => void;
@@ -212,6 +216,10 @@ export function StockSheetBody({
   const lastData = useRef<unknown>(null);
   // DEV capture only: the latest openReview / submit / selected choice, for captureScript.
   const openReviewRef = useRef<((kind: ReviewKind) => Promise<void>) | null>(null);
+  // The review the "+" asked for: wanted until it has been started (or ruled out) once for this sheet.
+  const startReviewRef = useRef<{ wanted: 'buy' | null; ready: boolean; go: () => void } | null>(null);
+  const startedReview = useRef(false);
+  const buyAllowedRef = useRef<{ enabled: boolean; gateOpen: boolean }>({ enabled: false, gateOpen: false });
   const submitRef = useRef<(() => Promise<void>) | null>(null);
   const choiceRef = useRef<ReviewKind>('buy');
 
@@ -311,6 +319,19 @@ export function StockSheetBody({
   useEffect(() => {
     onBusyChange?.(busy);
   }, [busy, onBusyChange]);
+
+  // The "+" asked to land in the buy review: decided ONCE, at the first render with the facts ready. A buy that is allowed starts
+  // its review; one that is not leaves the plain sheet with its reason, and stays so (a market that opens later never pops a
+  // review the person did not see coming).
+  useEffect(() => {
+    startedReview.current = false;
+  }, [symbol, startReview]);
+  useEffect(() => {
+    const s = startReviewRef.current;
+    if (!s || startedReview.current || s.wanted !== 'buy' || !s.ready) return;
+    startedReview.current = true;
+    if (shouldStartReview(s.wanted, s.ready, buyAllowedRef.current.enabled, buyAllowedRef.current.gateOpen)) s.go();
+  });
 
   // A review open when the market closes swaps to closed at once (the server's refusal wins a race).
   useEffect(() => {
@@ -419,6 +440,9 @@ export function StockSheetBody({
   // DEV capture only: this render's openReview / submit (they close over `open`), set before
   // any early return below so a scripted Submit sees the open review.
   openReviewRef.current = (kind) => openReview(kind);
+  // The "+" on the Stocks list asks to land IN the buy review: once, when the facts are ready and a buy is allowed
+  // (shouldStartReview). Otherwise the sheet is the plain sheet with its own reason under a disabled Review buy.
+  startReviewRef.current = { wanted: startReview, ready: data.status === 'ready', go: () => void openReview('buy') };
   submitRef.current = submitNow;
 
   const model = stockSheetModel({
@@ -517,6 +541,7 @@ export function StockSheetBody({
   // this same sheet instance held a different, owned stock must never leak
   // through once the sheet is showing something you don't hold.
   const held = data.facts.held != null;
+  buyAllowedRef.current = { enabled: model.buy.enabled, gateOpen: gate.open };
   const selected = held ? (choice ?? model.selected) : 'buy';
   choiceRef.current = selected;
   const action = selected === 'buy' ? model.buy : model.sell;
