@@ -34,6 +34,8 @@ import { COPY } from '@/lib/game/gameCopy';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 import { AllMatchupsSkeleton, MatchupSkeleton, RosterRowsSkeleton } from '@/components/game/LoadingSkeletons';
 import { LoadFailure } from '@/components/money/LoadFailure';
+import { PriceNotice } from '@/components/game/PriceNotice';
+import { missingPriceSymbols, priceNoticeText } from '@/lib/game/priceNotice';
 import { preSeasonStartsLabel, byeToRoundLabel, eliminatedLabel, playoffPendingLine } from '@/lib/home/homeCopy';
 import { useAuth } from '@/lib/useAuth';
 import type { LineupRow } from '@/lib/game/lineupLedger';
@@ -212,6 +214,8 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
 
   const { view, live, final, week } = derived;
   const youName = live.me.name;
+  // A LIVE week with a missing price names the stocks (both teams', each once); never on a scored week.
+  const notice = view.kind === 'scoreboard' || view.kind === 'bye' ? priceNoticeText(missingPriceSymbols(live.me.unpriced, live.opp?.unpriced)) : null;
 
   if (view.kind === 'not_started') {
     return <PhasePlaceholder title="Matchup" icon={() => <Icon name="trophy" size="title" tone="text2" />} heading="Not started yet" message="Your matchups start when the draft is done." embedded />;
@@ -238,6 +242,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
     // then your stocks in one column under the same order rules.
     return (
       <View style={styles.stack}>
+        {notice ? <PriceNotice text={notice} /> : null}
         <Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
         {/* A held-but-unpriced stock is on the roster too (with "–"), even if it is all you hold. */}
         {raw && (live.me.lineup.length || live.me.unpriced.length) ? (
@@ -263,14 +268,15 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
   }
 
   const isFinal = view.kind === 'final';
-  // Live: a side's total is "–" while any of its holdings has no live price (SideView.total), and
-  // then nobody leads. (The old "N holdings counted at cost" note under the card is gone: an
-  // unknown total counts nothing at cost, and the "–" on the row says which stock it is.)
+  // Live: each total is the sum of the stocks that HAVE a live price (SideView.total; Giorgio, PR #562),
+  // and the leads-by line is worked out from those totals. A stock with no price is "–" on its row and
+  // named in the notice above the card (which replaced the old "counted at cost" caption).
   const mine = isFinal && final ? final.me : live.me.total;
-  const theirs = isFinal && final ? final.opp : live.opp?.total ?? null;
+  const theirs = isFinal && final ? final.opp : live.opp?.total ?? 0;
 
   return (
     <View style={styles.stack}>
+      {!isFinal && notice ? <PriceNotice text={notice} /> : null}
       {/* Mounted only once the reveal is decided: FinalBanner takes its start pose on mount. */}
       {isFinal && final && reveal.decided ? (
         <FinalBanner

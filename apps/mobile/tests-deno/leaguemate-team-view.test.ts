@@ -13,7 +13,6 @@ import { teamHref, teamLinkLabel, linkedName, PORTFOLIO_TAB_HREF } from '../lib/
 import { memberSnapshots, memberTrades } from '../lib/game/memberWeek.ts';
 import { playerPortfolio } from '../lib/money/playerPortfolio.ts';
 import { formatPercent } from '../components/sp/logic/money.ts';
-import { scoreHalfLabel } from '../components/sp/logic/gameNight.ts';
 import { teamValue } from '../lib/home/teamValue.ts';
 import { resolveResumeTarget } from '../lib/shell/resumeTarget.ts';
 import type { PortfolioLedger } from '../lib/money/portfolioLedger.ts';
@@ -232,11 +231,7 @@ Deno.test('the Matchup header: each WHOLE half is one button (label = its readin
   assert(sb.includes('accessible={!interactive}'));
   // The half's own box is the button, with press feedback only (its shading/ring/layout are the plain half's).
   assert(sb.includes('<PressableScale testID={testID} accessibilityRole="button" accessibilityLabel={label} accessibilityHint={open.hint} onPress={open.onPress} style={style}>'));
-  assert(sb.includes('label={scoreHalfLabel(team.name, you, team.gain)}'));
-  // The same reading as before for a known total; the name alone for an unknown one.
-  assertEquals(scoreHalfLabel('Paolo M.', false, 12.4), 'Paolo M., +$12.40');
-  assertEquals(scoreHalfLabel('Roberto B.', true, -3), 'Roberto B., you, \u2212$3.00');
-  assertEquals(scoreHalfLabel('Paolo M.', false, null), 'Paolo M.');
+  assert(sb.includes("label={`${team.name}${you ? ', you' : ''}, ${totalText}`}"));
   // Inert (All matchups' compact boards) keeps the single combined label.
   assert(sb.includes('accessibilityLabel={interactive ? undefined : label}'));
   // The lead line stays separate text, read once the card is split.

@@ -6,6 +6,7 @@
  * never invented; a bot is marked by is_bot.
  */
 import { liveWeekScore } from '../home/liveWeekScore';
+import { lineupRows, pricedTotal } from './lineupLedger';
 import { toLiveSnapshots, toLiveTrades, type HomeLedgerRow } from '../home/buildHomeViewModel';
 
 export interface AllMatchupsInput {
@@ -32,8 +33,9 @@ export interface AllMatchupSide {
   userId: string;
   name: string;
   isBot: boolean;
-  /** Null (the "–") for a live side with any unpriced holding: the rest is not the team. */
-  gain: number | null;
+  /** Live: the sum of the stocks that have a live price (lineupLedger.pricedTotal, as Matchup's
+   * Scoreboard); posted: the server's gain. */
+  gain: number;
   pct: number | null;
 }
 
@@ -57,9 +59,8 @@ function sideLive(input: AllMatchupsInput, userId: string): AllMatchupSide {
   const trades = input.trades.filter((t) => t.user_id === userId);
   const live = liveWeekScore(toLiveSnapshots(snaps), toLiveTrades(trades), input.quote);
   const { name, isBot } = nameOf(input.names, userId);
-  // Any unpriced holding: the priced rest is a subset, never shown as the team's total.
-  const known = live.unpriced.length === 0;
-  return { userId, name, isBot, gain: known ? live.gain : null, pct: known ? live.pct : null };
+  // The same total as Matchup's Scoreboard: the stocks with a live price, never a dash.
+  return { userId, name, isBot, gain: pricedTotal(lineupRows(live.bySymbol, live.gain), live.unpriced), pct: live.pct };
 }
 
 export function buildAllMatchups(input: AllMatchupsInput): AllMatchupRow[] {

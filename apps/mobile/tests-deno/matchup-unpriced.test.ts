@@ -1,14 +1,19 @@
 /**
- * No stand-ins on Matchup (build 18): a side with ANY unpriced holding has an unknown total ("–"),
- * never the priced rest's sum shown as the team (CLAUDE.md, all-or-nothing case 5: a subset stated
- * as the whole), and then nobody leads. All matchups' live games read the same way. A league
- * without weeks (Duration) draws nothing under the tab's header.
+ * Matchup with an unpriced stock (Giorgio, 2026-11-19, PR #562: "row has the dash but up top accounts for total
+ * without that stock"; "i want the running total to not be zero if there is an issue with one stock"):
+ *   - the stock keeps its slot with "–" on its row;
+ *   - each team's total is a NUMBER, the sum of the stocks that DO have a live price; never a dash;
+ *   - the leads-by line is worked out from those totals;
+ *   - a notice under the switch names the unpriced stocks (both teams', each once), live weeks only.
+ * All matchups' live games total the same way. A league without weeks (Duration) draws nothing under the tab.
  *   cd apps/mobile/tests-deno && deno test .
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { buildMatchupLive, sideTotal, type MatchupInput } from '../lib/game/buildMatchupViewModel.ts';
+import { buildMatchupLive, type MatchupInput } from '../lib/game/buildMatchupViewModel.ts';
 import { buildAllMatchups, type AllMatchupsInput } from '../lib/game/allMatchups.ts';
-import { rosterHalfLabel, rosterHalfParts, rosterHalfShow, scoreHalfLabel, scoreTotalText, scoreboardModel, WEEK_UNKNOWN } from '../components/sp/logic/gameNight.ts';
+import { pricedTotal } from '../lib/game/lineupLedger.ts';
+import { missingPriceSymbols, priceNoticeText } from '../lib/game/priceNotice.ts';
+import { rosterHalfLabel, rosterHalfParts, rosterHalfShow, scoreboardModel, WEEK_UNKNOWN } from '../components/sp/logic/gameNight.ts';
 import { knownWithoutWeeks } from '../lib/game/leagueWeeks.ts';
 import { matchupWeekExtras, parseMatchupFixture, UNPRICED_FIXTURE_SYMBOLS } from '../lib/game/matchupFixture.ts';
 import { GIANLUIGI_HOLDINGS, ROBERTO_HOLDINGS } from '../lib/home/homeFixtureData.ts';
@@ -40,38 +45,39 @@ const prices: Record<string, number> = { NVDA: 112.5, AAPL: 198, AMZN: 60, KO: 7
 const without = (...gone: string[]) => (s: string) => (gone.includes(s) ? null : prices[s] ?? null);
 const live = (quote: (s: string) => number | null): MatchupInput => ({ data: data(), myUserId: 'roberto', quote, now: new Date('2026-09-29T17:00:00Z') });
 
-// ── The totals ────────────────────────────────────────────────────────────────────
+// ── The totals: the priced sum, always a number ─────────────────────────────────────────
+// NVDA 10 @100 -> 112.50 (+125.00), AAPL 5 @200 -> 198 (-10.00); AMZN 4 @50 -> 60 (+40.00), KO 2 @70 -> 71 (+2.00).
 
-Deno.test('sideTotal: any unpriced holding -> unknown; none -> the gain', () => {
-  assertEquals(sideTotal(12.5, []), 12.5);
-  assertEquals(sideTotal(12.5, ['AAPL']), null);
-  assertEquals(sideTotal(0, []), 0, 'a real flat week is 0, not unknown');
+Deno.test('pricedTotal: the sum of the rows of the stocks that have a price; a missing one is left out', () => {
+  const rows = [{ symbol: 'NVDA', cents: 12500 }, { symbol: 'AAPL', cents: -1000 }];
+  assertEquals(pricedTotal(rows, []), 115);
+  assertEquals(pricedTotal(rows, ['AAPL']), 125, 'AAPL is "–" on its row and not in the total');
+  assertEquals(pricedTotal(rows, ['aapl']), 125, 'case-insensitive');
+  assertEquals(pricedTotal(rows, ['NVDA', 'AAPL']), 0, 'every stock unpriced: a real 0 sum, still a number');
+  assertEquals(pricedTotal([], ['KO']), 0);
 });
 
-Deno.test('Matchup live: every holding priced -> both totals, and who leads', () => {
+Deno.test('Matchup live: every holding priced -> the full totals and who leads', () => {
   const vm = buildMatchupLive(live(without()));
-  assertEquals(vm.me.total, vm.me.gain);
-  assertEquals(vm.opp!.total, vm.opp!.gain);
-  assert(vm.leader !== null && vm.leadDollars !== null);
+  assertEquals([vm.me.total, vm.opp!.total], [115, 42]);
+  assertEquals([vm.leader, vm.leadDollars], ['me', 73]);
 });
 
-Deno.test('Matchup live: YOUR unpriced holding -> your total unknown, nobody leads, no gap', () => {
+Deno.test('Matchup live: YOUR unpriced holding -> your total is the rest (a number), and the lead is from it', () => {
   const vm = buildMatchupLive(live(without('AAPL')));
   assertEquals(vm.me.unpriced, ['AAPL']);
-  assertEquals(vm.me.total, null, 'NVDA alone is not your team');
-  assert(vm.me.gain !== 0, 'the priced rest still exists underneath (never shown as the total)');
-  assertEquals(vm.opp!.total, vm.opp!.gain, 'their side is whole');
-  assertEquals([vm.leader, vm.leadDollars], [null, null]);
+  assertEquals(vm.me.total, 125, 'NVDA alone: never a dash, never zero');
+  assertEquals(vm.opp!.total, 42);
+  assertEquals([vm.leader, vm.leadDollars], ['me', 83]);
 });
 
 Deno.test('Matchup live: THEIR unpriced holding -> the same on their side', () => {
   const vm = buildMatchupLive(live(without('KO')));
-  assertEquals(vm.opp!.total, null);
-  assertEquals(vm.me.total, vm.me.gain);
-  assertEquals([vm.leader, vm.leadDollars], [null, null]);
+  assertEquals([vm.me.total, vm.opp!.total], [115, 40]);
+  assertEquals([vm.leader, vm.leadDollars], ['me', 75]);
 });
 
-Deno.test('All matchups: a live game side with an unpriced holding has no total (gain and pct null)', () => {
+Deno.test('All matchups: a live side totals the same way as Matchup (the priced sum); posted games keep the server\'s', () => {
   const base: Omit<AllMatchupsInput, 'quote'> = {
     myUserId: 'roberto',
     week: 6,
@@ -81,44 +87,58 @@ Deno.test('All matchups: a live game side with an unpriced holding has no total 
     names: data().standings.map((s) => ({ user_id: s.user_id, display_name: s.display_name, is_bot: s.is_bot })),
   };
   const [g] = buildAllMatchups({ ...base, quote: without('AAPL') });
-  assertEquals([g.a.gain, g.a.pct], [null, null]);
-  assert(g.b!.gain !== null && g.b!.pct !== null, 'the whole side keeps its total');
+  assertEquals([g.a.gain, g.b!.gain], [125, 40]);
   const [whole] = buildAllMatchups({ ...base, quote: without() });
-  assert(whole.a.gain !== null);
-  // Posted (final) games keep the server's numbers whatever the quotes say.
+  assertEquals(whole.a.gain, 115);
   const [posted] = buildAllMatchups({ ...base, matchups: [{ ...base.matchups[0], team1_gain: 5, team2_gain: 3 }], quote: without('AAPL') });
   assertEquals([posted.a.gain, posted.b!.gain], [5, 3]);
 });
 
-// ── The Scoreboard's words ─────────────────────────────────────────────────────────
-
-Deno.test('Scoreboard logic: an unknown total is the "–", no leader and no line; known totals as before', () => {
-  assertEquals(scoreTotalText(null), WEEK_UNKNOWN);
-  assertEquals(WEEK_UNKNOWN, '–');
-  assertEquals(scoreTotalText(12.4), '+$12.40');
-  assertEquals(scoreTotalText(0), '$0.00');
-  assertEquals(scoreboardModel({ name: 'A', gain: null }, { name: 'B', gain: 3 }, false), { leader: null, line: '' });
-  assertEquals(scoreboardModel({ name: 'A', gain: 3 }, { name: 'B', gain: null }, false), { leader: null, line: '' });
-  assertEquals(scoreboardModel({ name: 'A', gain: 3 }, { name: 'B', gain: 1 }, false).line, 'A leads by $2.00');
-  assertEquals(scoreHalfLabel('A', true, null), 'A, you', 'VoiceOver: the name alone, no dash, no $0.00');
-});
-
-Deno.test('Scoreboard (RN): the total and both labels come from the helpers; no line when it is empty', () => {
+Deno.test('Scoreboard: totals are numbers again and the leads-by line is back (no dash path at all)', () => {
+  assertEquals(scoreboardModel({ name: 'A', gain: 125 }, { name: 'B', gain: 42 }, false).line, 'A leads by $83.00');
   const sb = strip(SOURCES['components/sp/gn/Scoreboard.tsx']);
-  assert(sb.includes('const totalText = scoreTotalText(team.gain);'));
-  assert(sb.includes('{totalText}\n'), 'the drawn total is the helper\'s text');
-  assert(sb.includes("color={team.gain === null ? colors.text2 : undefined}"), 'the dash is secondary, as on the card');
-  assert(sb.includes("const lineShown = showLine && line !== '';") && sb.includes('{lineShown ? ('));
-  assert(!sb.includes('formatMoney('), 'no path formats a raw total');
+  assert(sb.includes("{formatMoney(team.gain, { sign: 'always' })}"), 'the total is formatted money');
+  assert(!sb.includes('WEEK_UNKNOWN') && !sb.includes('scoreTotalText') && !sb.includes('lineShown'), 'no dash total, no hidden lead line');
 });
 
-Deno.test('Matchup tab: live totals are SideView.total; the at-cost note is gone; a bye roster shows unpriced stocks too', () => {
+Deno.test('Matchup tab: live and bye totals are SideView.total (numbers); a bye roster shows unpriced stocks too', () => {
   const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
   assert(src.includes('const mine = isFinal && final ? final.me : live.me.total;'));
-  assert(src.includes('const theirs = isFinal && final ? final.opp : live.opp?.total ?? null;'));
+  assert(src.includes('const theirs = isFinal && final ? final.opp : live.opp?.total ?? 0;'));
   assert(src.includes('<Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null}'), 'the bye half too');
   assert(src.includes('{raw && (live.me.lineup.length || live.me.unpriced.length) ? ('));
-  assert(!src.includes('unpricedNote'));
+  assert(!src.includes('unpricedNote'), 'the "counted at cost" caption stays gone: the notice replaces it');
+});
+
+// ── The price notice ───────────────────────────────────────────────────────────────
+
+Deno.test('notice text: Giorgio\'s approved copy, exactly, for one and for two stocks', () => {
+  assertEquals(priceNoticeText([]), null, 'every price in: no notice');
+  assertEquals(priceNoticeText(['AAPL']), "The price for AAPL isn't loading right now. We're working on it, and the totals will update when it's back.");
+  assertEquals(priceNoticeText(['AAPL', 'JPM']), "Prices for AAPL and JPM aren't loading right now. We're working on it, and the totals will update when they're back.");
+  // Three or more: the Design Lead's call; provisional "A, B and C".
+  assertEquals(priceNoticeText(['AAPL', 'JPM', 'KO']), "Prices for AAPL, JPM and KO aren't loading right now. We're working on it, and the totals will update when they're back.");
+});
+
+Deno.test('notice stocks: BOTH teams\', each once, yours first', () => {
+  assertEquals(missingPriceSymbols(['AAPL'], ['JPM']), ['AAPL', 'JPM']);
+  assertEquals(missingPriceSymbols(['aapl', 'NVDA'], ['AAPL', 'KO']), ['AAPL', 'NVDA', 'KO'], 'deduped, upper-case');
+  assertEquals(missingPriceSymbols([], null), [], 'a bye: yours only');
+  assertEquals(missingPriceSymbols([], ['JPM']), ['JPM'], 'their missing price is named too');
+});
+
+Deno.test('notice placement: under the switch, above the totals, in a LIVE week only (never on a scored week)', () => {
+  const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
+  assert(src.includes("const notice = view.kind === 'scoreboard' || view.kind === 'bye' ? priceNoticeText(missingPriceSymbols(live.me.unpriced, live.opp?.unpriced)) : null;"), 'live views only');
+  const body = src.slice(src.indexOf('const isFinal = view.kind === \'final\';'));
+  assert(body.indexOf('{!isFinal && notice ? <PriceNotice text={notice} /> : null}') < body.indexOf('<Scoreboard'), 'above the card, never on a final');
+  const bye = src.slice(src.indexOf("if (view.kind === 'bye') {"));
+  assert(bye.indexOf('{notice ? <PriceNotice text={notice} /> : null}') < bye.indexOf('<Scoreboard'), 'a bye week too');
+  const card = strip(SOURCES['components/game/PriceNotice.tsx']);
+  assert(card.includes('backgroundColor: colors.accentTint'), 'the teal accent as a soft tint (pick A), not warnTint');
+  assert(card.includes('<Icon name="info" size="callout" tone="accent" />'), 'an info icon');
+  assert(!/warn|yellow/i.test(card.replace(/\/\/.*$/gm, '')), 'never yellow or warnTint');
+  assert(card.includes('accessible accessibilityLabel={text}'), 'one element for VoiceOver, saying the text');
 });
 
 // ── The roster half's number slot ──────────────────────────────────────────────────

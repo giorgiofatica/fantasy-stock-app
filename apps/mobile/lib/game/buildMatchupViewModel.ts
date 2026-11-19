@@ -8,7 +8,7 @@
  */
 import { liveWeekScore } from '../home/liveWeekScore';
 import { toLiveSnapshots, toLiveTrades, type GetHomeLeagueResult } from '../home/buildHomeViewModel';
-import { lineupRows, type LineupRow } from './lineupLedger';
+import { lineupRows, pricedTotal, type LineupRow } from './lineupLedger';
 import { leaderOf, type Leader } from './leadChange';
 import { serverVerdict, weekResult, type WeekResult } from './weekResult';
 
@@ -27,10 +27,10 @@ export interface SideView {
   pct: number;
   unpriced: string[];
   lineup: LineupRow[];
-  /** The side's total as the Scoreboard shows it: null (the "–") when ANY holding has no live
-   * price. `gain` then sums only the priced rest, a subset that would read as the whole team
-   * (CLAUDE.md, all-or-nothing case 5: the verdict's scope must match the evidence's). */
-  total: number | null;
+  /** The side's live total as the Scoreboard shows it: the sum of the rows of the stocks that have
+   * a live price (lineupLedger.pricedTotal). Always a number (Giorgio, PR #562); an unpriced stock is
+   * "–" on its row and named in the price notice. */
+  total: number;
 }
 
 export interface MatchupLiveViewModel {
@@ -38,7 +38,7 @@ export interface MatchupLiveViewModel {
   me: SideView;
   opp: SideView | null;
   leader: Leader | null;
-  /** Absolute dollar gap; null with no opponent, or when either total is unknown. */
+  /** Absolute dollar gap between the two totals; null with no opponent. */
   leadDollars: number | null;
 }
 
@@ -48,16 +48,12 @@ export function nameOf(data: GetHomeLeagueResult, userId: string): { name: strin
   return { name: row?.display_name ?? '', isBot: row?.is_bot ?? false };
 }
 
-/** A side's live total, or null when any holding is unpriced (its gain is then a subset). */
-export function sideTotal(gain: number, unpriced: readonly string[]): number | null {
-  return unpriced.length > 0 ? null : gain;
-}
-
 function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResult['current_week']['my_snapshots'], trades: GetHomeLeagueResult['current_week']['my_trades']): SideView {
   const snaps = toLiveSnapshots(snapshots);
   const tds = toLiveTrades(trades);
   const live = liveWeekScore(snaps, tds, input.quote);
   const { name, isBot } = nameOf(input.data, userId);
+  const lineup = lineupRows(live.bySymbol, live.gain);
   return {
     userId,
     name,
@@ -65,8 +61,8 @@ function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResul
     gain: live.gain,
     pct: live.pct,
     unpriced: live.unpriced,
-    lineup: lineupRows(live.bySymbol, live.gain),
-    total: sideTotal(live.gain, live.unpriced),
+    lineup,
+    total: pricedTotal(lineup, live.unpriced),
   };
 }
 
@@ -88,14 +84,13 @@ export function buildMatchupLive(input: MatchupInput): MatchupLiveViewModel {
     return { hasOpponent: false, me, opp: null, leader: null, leadDollars: null };
   }
   const opp = side(input, oppUserId, cw.opponent_snapshots, cw.opponent_trades);
-  // Who leads is a claim about BOTH whole teams: with either total unknown, nobody leads.
-  const known = me.total !== null && opp.total !== null;
+  // Who leads, from the two totals the Scoreboard shows (the priced sums).
   return {
     hasOpponent: true,
     me,
     opp,
-    leader: known ? leaderOf(me.total!, opp.total!) : null,
-    leadDollars: known ? Math.abs(me.total! - opp.total!) : null,
+    leader: leaderOf(me.total, opp.total),
+    leadDollars: Math.abs(me.total - opp.total),
   };
 }
 
