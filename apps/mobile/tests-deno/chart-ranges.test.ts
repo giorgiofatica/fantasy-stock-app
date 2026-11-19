@@ -321,7 +321,7 @@ Deno.test('(f) the gain follows the range: tapping a pill changes the line, the 
   // The component renders all three from ONE `range` (gain, chart, drawKey, pills).
   const src = strip(stockChartSrc);
   assert(src.includes('<RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />') && src.includes('drawKey={`${symbol}-${range}`}') && src.includes('value={range}'));
-  assert(strip(portfolioSrc).includes('<RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} />') && strip(portfolioSrc).includes('drawKey={gainRange}'));
+  assert(strip(portfolioSrc).includes('<RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} unknown={gain === null} />') && strip(portfolioSrc).includes('drawKey={gainRange}'));
 });
 
 Deno.test('(f) the gain is measured from the range\'s first value to the LIVE value (the end of the drawn line)', () => {

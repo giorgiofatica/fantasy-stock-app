@@ -54,9 +54,11 @@ Deno.test('a buy inside the budget does not move the line (money changes form, d
   assertEquals(d.find((x) => x.date === '2026-09-03')!.value, 150 + 71);
 });
 
-Deno.test('a stock with no bar yet counts at cost, never $0', () => {
+Deno.test('a stock with no bar is never counted at cost on the line, nor is the rest summed without it', () => {
+  // AAPL has no bars at all: no date has a real close for every holding, so NO point is drawn (a part
+  // shown as the whole, or a stock at cost, would be an invented value; the Planner's rule, 2026-11-18).
   const d = dailyValues({ rows: ROWS, bars: { NVDA: BARS.NVDA }, stake: STAKE, todayEt: '2026-09-04' });
-  assertEquals(d.find((x) => x.date === '2026-09-02')!.value, 120 + 50);
+  assertEquals(d, []);
 });
 
 Deno.test('1W: the past five sessions on the sessions axis (not the calendar week), the live value last', () => {
