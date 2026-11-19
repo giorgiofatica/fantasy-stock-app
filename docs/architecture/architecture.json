@@ -2,34 +2,34 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "90d9005566e610774972dfd3da118ad032e75d26",
-    "commitShort": "90d90055",
+    "commit": "cb0d04f9abe2bcf2246ac74ab1e5d56c97518b51",
+    "commitShort": "cb0d04f9",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
+    "branch": "chore/db-snapshot-2026-11-19",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/migrations/20261207000100_league_available_stocks.sql"
+        "path": "docs/architecture/db-snapshot.json"
       }
     ],
-    "timestamp": "2026-11-18T23:01:26Z",
-    "sourceHash": "sha256:594ae1c7bf17350ccc419d62aeec2bf484cd5ae1471b7f9278274e2cc060f6b5",
+    "timestamp": "2026-11-19T00:15:23Z",
+    "sourceHash": "sha256:38c0f13f5477709e1777e4802f41fcc2da0d2a02d81e9d1c63e7799a1e293f88",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-11-17T18:27:48Z",
-    "ageHours": 28.6,
-    "ageDays": 1.2,
+    "capturedAt": "2026-11-19T00:14:08Z",
+    "ageHours": 0,
+    "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:b93ec4366be3917ada8d243c72b1572c2b97c750942ef1e8f4705408db87c7d9",
+    "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
-      "functions": 136,
+      "functions": 137,
       "tables": 40,
       "cronJobs": 14
     }
@@ -5231,7 +5231,32 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "securityDefiner": true,
+        "searchPath": "public, pg_temp",
+        "grants": [
+          {
+            "role": "postgres",
+            "privileges": [
+              "EXECUTE"
+            ]
+          },
+          {
+            "role": "authenticated",
+            "privileges": [
+              "EXECUTE"
+            ]
+          }
+        ],
+        "grantsRaw": [
+          "postgres=X/postgres",
+          "authenticated=X/postgres"
+        ],
+        "anonCallable": false,
+        "authenticatedCallable": true,
+        "owner": "postgres",
+        "volatility": "volatile"
+      },
       "declared": {
         "definedIn": [
           "supabase/migrations/20261207000100_league_available_stocks.sql:76"
@@ -5239,20 +5264,12 @@
         "latestDefinition": "supabase/migrations/20261207000100_league_available_stocks.sql",
         "redefinitions": 1
       },
-      "drift": [
-        {
-          "field": "existence",
-          "declared": "created by migration",
-          "live": "ABSENT from prod snapshot",
-          "severity": "high",
-          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-        }
-      ],
+      "drift": [],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "pg.get_league_available_stocks",
-      "label": "get_league_available_stocks()",
-      "sublabel": "not in snapshot",
+      "label": "get_league_available_stocks(p_league_id uuid, p_category_id uuid, p_after_symbol text, p_limit integer)",
+      "sublabel": "SECURITY DEFINER · authenticated",
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261207000100_league_available_stocks.sql",
@@ -23006,16 +23023,6 @@
   ],
   "drift": [
     {
-      "node": "pg.get_league_available_stocks",
-      "label": "get_league_available_stocks()",
-      "groupKey": "existence",
-      "field": "existence",
-      "declared": "created by migration",
-      "live": "ABSENT from prod snapshot",
-      "severity": "high",
-      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-    },
-    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -23754,7 +23761,7 @@
     },
     {
       "node": "pg.get_league_available_stocks",
-      "label": "get_league_available_stocks()",
+      "label": "get_league_available_stocks(p_league_id uuid, p_category_id uuid, p_after_symbol text, p_limit integer)",
       "kind": "pg-function",
       "source": "supabase/migrations/20261207000100_league_available_stocks.sql:76",
       "outbound": [
@@ -24171,12 +24178,6 @@
   },
   "unverified": [
     {
-      "scope": "pg.get_league_available_stocks",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -24278,10 +24279,10 @@
     "nodes": 324,
     "edges": 785,
     "flows": 7,
-    "drift": 35,
-    "driftHigh": 1,
+    "drift": 34,
+    "driftHigh": 0,
     "deadCode": 63,
-    "unverified": 17
+    "unverified": 16
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -24942,6 +24943,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=false"
     ],
-    "dbSnapshot": "sha256:b93ec4366be3917ada8d243c72b1572c2b97c750942ef1e8f4705408db87c7d9"
+    "dbSnapshot": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242"
   }
 }

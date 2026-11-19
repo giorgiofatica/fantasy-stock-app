@@ -2528,6 +2528,21 @@
                 "postgres=X/postgres",
                 "authenticated=X/postgres"
             ],
+            "args": "p_league_id uuid, p_category_id uuid, p_after_symbol text, p_limit integer",
+            "name": "get_league_available_stocks",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
             "args": "p_league_id uuid",
             "name": "get_league_display_names",
             "owner": "postgres",
@@ -3467,7 +3482,7 @@
             "securityDefiner": false
         }
     ],
-    "capturedAt": "2026-11-17T18:27:48Z",
+    "capturedAt": "2026-11-19T00:14:08Z",
     "publications": [
         {
             "table": "drafts",
