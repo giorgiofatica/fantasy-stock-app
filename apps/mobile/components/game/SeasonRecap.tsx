@@ -11,7 +11,6 @@ import { ByeGame } from '@/components/game/ByeGame';
 import { AllMatchupsSkeleton } from '@/components/game/LoadingSkeletons';
 import { TilesSkeleton } from '@/components/league/LeagueStates';
 import { LoadFailure } from '@/components/money/LoadFailure';
-import { COPY } from '@/lib/game/gameCopy';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 import { eliminatedLabel, SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
 import { OPENS_MATCHUP_HINT } from '@/lib/home/calmHome';
@@ -26,6 +25,10 @@ import type { ScheduleRow } from '@/lib/game/schedule';
 // round chip on a playoff week and a chevron; All matchups is the live list's own rows in
 // their final look, a section per week; the one line on top is the tab's existing one.
 // Confirmed by the Planner (not boarded): a tie shows "T"; a bye is neutral, no chevron, no tap.
+
+/** The recap's failure title: a CUT of COPY.allMatchupsLoadFailed ("This week's matchups didn't
+ * load"), which is false on a whole-season list (DL gate, 2026-11-18, P2: a removal, no new words). */
+export const RECAP_LOAD_FAILED = "Matchups didn't load";
 
 export interface SeasonRecapProps {
   segment: 'mine' | 'all';
@@ -55,7 +58,7 @@ export function SeasonRecap({ segment, state, leagueId }: SeasonRecapProps) {
   }
   if (state.status === 'error' || !state.recap) {
     // A short read lands here too: a FAILURE, never a shorter season.
-    return <LoadFailure title={COPY.allMatchupsLoadFailed} message={MONEY_COPY.loadRetryMessage} onRetry={state.retry} />;
+    return <LoadFailure title={RECAP_LOAD_FAILED} message={MONEY_COPY.loadRetryMessage} onRetry={state.retry} />;
   }
   const recap = state.recap;
   const open = (o: RecapOpen) => router.push(matchupWeekHref(leagueId, o));
@@ -99,8 +102,9 @@ export function SeasonRecap({ segment, state, leagueId }: SeasonRecapProps) {
           <ScheduleWeekRow
             key={r.week}
             row={scheduleRowOf(r)}
-            weekLabel={r.label}
-            roundChip={r.isPlayoff}
+            weekLabel={r.chip ?? r.label}
+            roundChip={r.chip !== null}
+            spokenWeek={r.label}
             onPress={r.opens ? () => open(r.opens!) : undefined}
             accessibilityHint={r.opens ? OPENS_MATCHUP_HINT : undefined}
           />

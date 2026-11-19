@@ -15,6 +15,8 @@ import { radius, space } from '@/constants/tokens';
 import { isUnscoredPast, type ScheduleRow } from '@/lib/game/schedule';
 import { SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
 import { byResult } from '@/lib/game/weekResult';
+import { keepName } from '@/lib/account/keepName';
+import { vsOpponentLabel } from '@/lib/home/homeCopy';
 
 /** Every line of a row stops at the score's own cap (score.sm, 1.3×): the result stays the
  * row's loudest text at every size (the checklist's "The standout stays loudest"; at XL the
@@ -51,6 +53,8 @@ export interface ScheduleWeekRowProps {
   weekLabel?: string;
   /** Draw the label as the round chip (a playoff week in the Matchup recap). */
   roundChip?: boolean;
+  /** What VoiceOver says for the week when the label is a short chip ("SF" is read "Semifinals"). */
+  spokenWeek?: string;
   /** Opens the week (the recap): the row becomes a button with a trailing chevron. */
   onPress?: () => void;
   /** VoiceOver's hint when the row opens something. */
@@ -60,7 +64,7 @@ export interface ScheduleWeekRowProps {
 /** One week's tile: League › Schedule's row, shared with the Matchup recap (Giorgio,
  * 2026-11-18, look A), which adds the label, the round chip and the chevron through props
  * rather than a fork. Without them it is Schedule's row exactly. */
-export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, onPress, accessibilityHint }: ScheduleWeekRowProps) {
+export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, spokenWeek, onPress, accessibilityHint }: ScheduleWeekRowProps) {
   const { colors } = useTheme();
   // Large text: the result goes on its own line under the week (it was clipped off the card).
   const largeText = useLargeText();
@@ -79,7 +83,8 @@ export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, onPress,
       )}
       {r.bye || !r.opponent ? null : <Avatar name={r.opponent} size={24} tone="neutral" />}
       <Text variant="body" numberOfLines={2} maxFontSizeMultiplier={ROW_TEXT_CAP} tone={r.state === 'future' || r.state === 'next' ? 'secondary' : undefined} style={[styles.opponent, r.state === 'live' ? styles.bold : null]}>
-        {r.bye ? 'Bye' : r.opponent === null ? '' : `vs ${r.opponent}`}
+        {/* A name never breaks (keepName): a long one moves whole to the next line after "vs". */}
+        {r.bye ? 'Bye' : r.opponent === null ? '' : vsOpponentLabel(keepName(r.opponent))}
       </Text>
       <View style={[styles.result, largeText ? styles.resultLine : null]}>
         {r.bye ? (
@@ -103,7 +108,7 @@ export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, onPress,
       </View>
     </>
   );
-  const a11y = label(r, weekLabel);
+  const a11y = label(r, spokenWeek ?? weekLabel);
   if (!onPress) {
     return (
       <View style={[styles.row, largeText ? styles.rowWrap : null, { backgroundColor: colors.surface }]} accessible accessibilityLabel={a11y}>

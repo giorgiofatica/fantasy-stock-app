@@ -58,10 +58,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/login.tsx:182` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
 | `app/login.tsx:191` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
 | `app/login.tsx:192` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
-| `app/matchup-week.tsx:47` | BackControl | onPress | `back` | route replace('/(tabs)/matchup'); route back |  |
-| `app/matchup-week.tsx:50` | LoadFailure | onRetry | `back` | route replace('/(tabs)/matchup'); route back |  |
-| `app/matchup-week.tsx:86` | LoadFailure | onRetry | `inline: () => { recapState.retry(); void m.refresh(); }` | fn recapState.retry |  |
-| `app/matchup-week.tsx:91` | LoadFailure | onRetry | `recapState.retry` | prop recapState.retry |  |
+| `app/matchup-week.tsx:49` | BackControl | onPress | `back` | route replace('/(tabs)/matchup'); route back |  |
+| `app/matchup-week.tsx:52` | LoadFailure | onRetry | `back` | route replace('/(tabs)/matchup'); route back |  |
+| `app/matchup-week.tsx:93` | LoadFailure | onRetry | `inline: () => { recapState.retry(); void m.refresh(); }` | fn recapState.retry |  |
+| `app/matchup-week.tsx:98` | LoadFailure | onRetry | `recapState.retry` | prop recapState.retry |  |
 | `app/pick-username.tsx:15` | UsernamePickerExit | onPress | `signOut` | fn signOut (from a hook or import) |  |
 | `app/reset-password.tsx:127` | EmptyState | onAction | `inline: () => router.replace('/')` | route replace('/') |  |
 | `app/reset-password.tsx:141` | Pressable | onPress | `handleCancel` | route replace('/') |  |
@@ -94,7 +94,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftRoom.tsx:509` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
 | `components/game/DraftRoom.tsx:519` | Button | onPress | `draft` | fn draft | `pending` |
 | `components/game/DraftRoom.tsx:575` | Button | onPress | `room.refresh` | prop room.refresh |  |
-| `components/game/FinishedWeek.tsx:69` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
+| `components/game/FinishedWeek.tsx:71` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
 | `components/game/InfoPopup.tsx:44` | Pressable | onPress | `inline: () => onOpen(info)` | fn onOpen |  |
 | `components/game/InfoPopup.tsx:87` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/game/InfoPopup.tsx:196` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
@@ -106,8 +106,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/LeaveLeagueSheets.tsx:124` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
 | `components/game/LeaveLeagueSheets.tsx:130` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
 | `components/game/LeaveLeagueSheets.tsx:143` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
-| `components/game/MatchupRoster.tsx:182` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
-| `components/game/MatchupRoster.tsx:273` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `components/game/MatchupRoster.tsx:186` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `components/game/MatchupRoster.tsx:278` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
 | `components/game/QueueEditor.tsx:130` | QueueSearchRow | onPress | `inline: () => setSearchOpen(true)` | sheet setSearchOpen(true) |  |
 | `components/game/QueueEditor.tsx:135` | SymbolSearchField | onSelect | `onSelect` | sheet setSearchOpen(false) |  |
 | `components/game/QueueEditor.tsx:151` | Button | onPress | `inline: () => machine.retry()` | fn machine.retry | `view.status === 'saving'` |
@@ -130,9 +130,9 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/RenewalReview.tsx:149` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/RenewalRoster.tsx:85` | Pressable | onPress | `inline: () => setChanging(true)` | state setChanging |  |
 | `components/game/RenewalRoster.tsx:107` | Pressable | onPress | `inline: () => runSheet(p)` | fn runSheet |  |
-| `components/game/ScheduleList.tsx:119` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/game/SeasonRecap.tsx:58` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
-| `components/game/SeasonRecap.tsx:104` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
+| `components/game/ScheduleList.tsx:124` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/game/SeasonRecap.tsx:61` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
+| `components/game/SeasonRecap.tsx:108` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
 | `components/game/SetupRows.tsx:162` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:189` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
 | `components/game/SetupRows.tsx:248` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |

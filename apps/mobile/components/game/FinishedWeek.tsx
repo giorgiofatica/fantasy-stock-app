@@ -48,9 +48,11 @@ export interface FinishedWeekProps {
   weekEnd: string | null;
   env: RosterEnv;
   orderAsOf: Date;
+  /** A season that is over: its last day (ET), so a card opens as the finished-season card (#545). */
+  seasonEnd?: string | null;
 }
 
-export function FinishedWeek({ week, isPlayoff, result, mine, left, right, record, reveal, finalLines, roster, weekEnd, env, orderAsOf }: FinishedWeekProps) {
+export function FinishedWeek({ week, isPlayoff, result, mine, left, right, record, reveal, finalLines, roster, weekEnd, env, orderAsOf, seasonEnd = null }: FinishedWeekProps) {
   const model = buildFinalBanner({ week, result, youName: left.name, oppName: right.name, record, isPlayoff });
   return (
     <View style={styles.stack}>
@@ -80,6 +82,7 @@ export function FinishedWeek({ week, isPlayoff, result, mine, left, right, recor
           orderAsOf={orderAsOf}
           seamResumesAt={null}
           seamMarketOpen={false}
+          seasonEnd={seasonEnd}
         />
       ) : (
         // The posted rows don't add up to the result: who held what, without figures.

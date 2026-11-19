@@ -73,6 +73,10 @@ export interface MatchupRosterProps {
   seamResumesAt: string | null;
   /** Capture seam only: is the fixture's market open. */
   seamMarketOpen: boolean;
+  /** A season that is over (#545, pick A): its last day (ET). The card then opens as the
+   * finished-season card: no Price, today, Week gain, ranges or Sell; the gain since the draft frozen
+   * at that day. Null: a live season, as before. */
+  seasonEnd?: string | null;
 }
 
 /** Capture seam: the fixture's daily path up to Wednesday, then Home's own bars after it
@@ -86,7 +90,7 @@ function seamBars(symbol: string, homeBars: readonly { date: string; close: numb
 type Side = 'me' | 'opp';
 
 /** The roster and the player card it opens. */
-export function MatchupRoster({ left, right, final, weekEnd, env, roster, orderAsOf, seamResumesAt, seamMarketOpen }: MatchupRosterProps) {
+export function MatchupRoster({ left, right, final, weekEnd, env, roster, orderAsOf, seamResumesAt, seamMarketOpen, seasonEnd = null }: MatchupRosterProps) {
   const { market, activeLeague, marketCalendar } = useLeagueContext();
   const stockSheet = useStockSheet();
   const [selected, setSelected] = useState<{ side: Side; symbol: string } | null>(null);
@@ -256,6 +260,7 @@ export function MatchupRoster({ left, right, final, weekEnd, env, roster, orderA
           now={now}
           marketOpen={marketOpen}
           opens={opens}
+          seasonEnd={seasonEnd}
         />
       ) : null}
     </View>

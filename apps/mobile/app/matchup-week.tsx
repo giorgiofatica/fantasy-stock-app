@@ -23,6 +23,8 @@ import { lastWeekClose, weekSessions } from '@/lib/game/matchupRoster';
 import { resolveWeekWindow } from '@/lib/time/marketWeek';
 import { teamHref, teamLinkLabel } from '@/lib/game/teamLink';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
+import { isSeasonOver } from '@/lib/weekStatus';
+import { seasonEndEt } from '@/lib/money/seasonEnd';
 
 // One finished game from the Matchup recap (Giorgio, 2026-11-18, look A): "‹ Back", then the
 // EXISTING finished-week view (FinishedWeek, the same component the tab draws on the Friday a
@@ -56,7 +58,7 @@ export default function MatchupWeekScreen() {
 function WeekBody({ league, week, a, b }: { league: string; week: number; a: string; b: string }) {
   const { user } = useAuth();
   const router = useRouter();
-  const { leagues } = useLeagueContext();
+  const { leagues, sheetLeagues, marketCalendar } = useLeagueContext();
   const lg = leagues.find((l) => l.id === league) ?? null;
   // Names (the standings) and the clock, bars and calendar: Home's one fetch (useMatchup).
   const m = useMatchup(league);
@@ -69,6 +71,11 @@ function WeekBody({ league, week, a, b }: { league: string; week: number; a: str
   const finalLines = useFinalLineups(league, week, sides, sides !== null);
   const roster = useRosterData(league, a, b);
   const [orderAsOf] = useState(() => new Date());
+  // A season that is over: cards open as the finished-season card (#545, pick A), frozen at the season's
+  // last day, read from THIS league-wide read (the latest week_end, the Final included), never the
+  // caller-scoped list; completed_at only as the fallback.
+  const completedAt = sheetLeagues.find((l) => l.id === league)?.seasonCompletedAt ?? null;
+  const seasonEnd = recapState.status === 'ready' && isSeasonOver(lg, new Date(), marketCalendar) ? seasonEndEt(recapState.matchups, completedAt) : null;
   const rawInputs = m.raw;
 
   // The week's own Friday closes laid into Home's bars, so the order and the rows' prices are
@@ -114,6 +121,7 @@ function WeekBody({ league, week, a, b }: { league: string; week: number; a: str
       weekEnd={detail.weekEnd}
       env={env}
       orderAsOf={orderAsOf}
+      seasonEnd={seasonEnd}
     />
   );
 }

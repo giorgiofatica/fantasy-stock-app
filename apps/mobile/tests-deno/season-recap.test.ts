@@ -7,6 +7,8 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import { buildRecap, recapGameDetail, recapReadComplete, recapStatus, recordThrough, withWeekCloses, type RecapMatchup } from '../lib/game/seasonRecap.ts';
 import { matchupWeekHref, parseMatchupWeekParams } from '../lib/game/matchupWeekLink.ts';
 import { SOURCES } from './sourceManifest.generated.ts';
+import { COPY } from '../lib/game/gameCopy.ts';
+import { seasonEndEt } from '../lib/money/seasonEnd.ts';
 
 const names = [
   { user_id: 'me', display_name: 'Roberto B.' },
@@ -45,6 +47,8 @@ Deno.test('my weeks are newest first, the Final on top', () => {
 
 Deno.test('a playoff week is labelled by its round, a regular week "Wk N"', () => {
   const r = buildRecap({ ...base, matchups: season, myUserId: 'me' });
+  // The row chip is the round's short name (Giorgio's chip names); a regular week has none.
+  assertEquals(r.mine.map((x) => x.chip), ['F', 'SF', null, null, null]);
   assertEquals(r.mine.map((x) => x.label), ['Final', 'Semifinals', 'Wk 3', 'Wk 2', 'Wk 1']);
   assertEquals(r.mine.map((x) => x.isPlayoff), [true, true, false, false, false]);
   assertEquals(r.all.map((w) => w.label), ['Final', 'Semifinals', 'Wk 3', 'Wk 2', 'Wk 1']);
@@ -200,11 +204,18 @@ Deno.test("the Matchup tab: after the season, the recap replaces the body; the w
 
 Deno.test('the recap rows: Schedule\'s row, a chevron only on a row that opens; a bye or a never-posted game never opens', () => {
   const recap = SOURCES['components/game/SeasonRecap.tsx'];
+  const row = SOURCES['components/game/ScheduleList.tsx'];
   assert(recap.includes('<ScheduleWeekRow'));
   assert(recap.includes('onPress={r.opens ? () => open(r.opens!) : undefined}'));
-  assert(recap.includes('roundChip={r.isPlayoff}'));
-  assert(recap.includes('<LoadFailure title={COPY.allMatchupsLoadFailed} message={MONEY_COPY.loadRetryMessage} onRetry={state.retry} />'));
-  const row = SOURCES['components/game/ScheduleList.tsx'];
+  assert(recap.includes('<LoadFailure title={RECAP_LOAD_FAILED} message={MONEY_COPY.loadRetryMessage} onRetry={state.retry} />'));
+  assert(recap.includes(`export const RECAP_LOAD_FAILED = "Matchups didn't load";`));
+  // A CUT of the existing title, never new words (DL gate P2): "This week's matchups didn't load" minus "This week's".
+  assert(COPY.allMatchupsLoadFailed.endsWith("matchups didn't load"));
+  // The row chip is the round's SHORT name; VoiceOver still says the full one; a name never splits.
+  assert(recap.includes('weekLabel={r.chip ?? r.label}'));
+  assert(recap.includes('roundChip={r.chip !== null}'));
+  assert(recap.includes('spokenWeek={r.label}'));
+  assert(row.includes("vsOpponentLabel(keepName(r.opponent))"));
   assert(row.includes('if (!onPress) {'), 'no onPress → the plain tile, no chevron');
   assert(row.indexOf('<Icon name="chevronRight"') > row.indexOf('if (!onPress) {'), 'the chevron is drawn only on the pressable row');
   const schedule = row.slice(row.indexOf('export function ScheduleList('), row.indexOf('export interface ScheduleWeekRowProps'));
@@ -217,4 +228,22 @@ Deno.test('status line: out in a round, or missed the playoffs; nothing for the 
   assert(src.includes(`if (status.kind === 'missed_playoffs') return "You didn't make the playoffs.";`));
   // The tab's existing string, verbatim.
   assert(SOURCES['app/(tabs)/matchup.tsx'].includes(`: "You didn't make the playoffs.";`));
+});
+
+Deno.test("a card opened from the recap's detail is the finished-season card (#545): no Price, Week gain or ranges", () => {
+  // The season's last day comes from the recap's league-wide read: the latest week_end, the Final's.
+  const rows = season.map((m) => ({ ...m, week_end: `2026-0${Math.min(m.week_number, 9)}-1${m.week_number % 10}T20:00:00Z` }));
+  assertEquals(seasonEndEt(rows, null), '2026-05-15');
+  const screen = SOURCES['app/matchup-week.tsx'];
+  assert(screen.includes("const seasonEnd = recapState.status === 'ready' && isSeasonOver(lg, new Date(), marketCalendar) ? seasonEndEt(recapState.matchups, completedAt) : null;"));
+  assert(screen.includes('seasonEnd={seasonEnd}'));
+  assert(SOURCES['components/game/FinishedWeek.tsx'].includes('seasonEnd={seasonEnd}'));
+  const roster = SOURCES['components/game/MatchupRoster.tsx'];
+  assert(roster.includes('          seasonEnd={seasonEnd}\n        />'), 'the card gets the season end');
+  // The card itself: with a seasonEnd there is no Price / Week gain strip, no ranges (StockChart's endEt), no Sell.
+  const card = SOURCES['components/sp/gn/PlayerCard.tsx'];
+  assert(card.includes('const over = seasonEnd != null;'));
+  assert(card.includes('const action = over ? null : cardAction(props);'));
+  assert(card.includes('{over ? null : ('));
+  assert(card.includes('endEt={seasonEnd}'));
 });

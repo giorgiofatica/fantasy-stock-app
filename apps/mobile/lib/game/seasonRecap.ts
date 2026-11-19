@@ -11,7 +11,7 @@
  * The result is the ONE decider's (lib/game/weekResult: the server's winner, else dollars),
  * so a tie reads "T" here exactly as on League › Schedule and Home.
  */
-import { playoffRoundLabelForWeek } from '../playoffs';
+import { playoffRoundLabelForWeek, playoffRoundShortName } from '../playoffs';
 import { seasonTileWeekLabel } from '../home/homeCopy';
 import { checkRowsComplete } from './readGuard';
 import { serverVerdict, weekResult, type WeekResult } from './weekResult';
@@ -40,8 +40,11 @@ export interface RecapOpen {
 /** One of MY weeks (the "My matchup" list). */
 export interface RecapRow {
   week: number;
-  /** "Wk N", or the playoff round's name ("Semifinals"). */
+  /** "Wk N", or the playoff round's name ("Semifinals"): spoken, and All matchups' section head. */
   label: string;
+  /** The row's chip on a playoff week: the round's SHORT name (SF / F / WC, Giorgio's chip names,
+   * 2026-10-04; DL gate 2026-11-18: the full name squeezed the opponent's name); null on a regular week. */
+  chip: string | null;
   isPlayoff: boolean;
   /** Null for a bye. '' when the name is unknown (never invented). */
   opponentName: string | null;
@@ -167,6 +170,7 @@ export function buildRecap(input: RecapInput): SeasonRecap {
       return {
         week: m.week_number,
         label: label(m),
+        chip: m.is_playoff && playoffRoundLabelForWeek(m.week_number, numWeeks, playoffTeams) ? playoffRoundShortName(label(m)) : null,
         isPlayoff: m.is_playoff,
         opponentName: oppId === null ? null : nameOf(oppId),
         bye,
