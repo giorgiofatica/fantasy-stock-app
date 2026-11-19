@@ -155,13 +155,13 @@
     );
   }
 
-  function CallMatchupAfter({ archived = false, decidedNote }) {
+  function CallMatchupAfter({ archived = false, superseded = false, decidedNote }) {
     return (
       <section className="b-sec" id="call-matchup-after" aria-labelledby="call-matchup-after-h">
         <header className="b-sec__head">
           <span className="b-sec__n b-sec__n--code">Matchup</span>
           <div>
-            <h2 id="call-matchup-after-h">{archived ? 'Decided: the Matchup tab after the season' : 'Your call: the Matchup tab after the season'}</h2>
+            <h2 id="call-matchup-after-h">{superseded ? 'Superseded: the Matchup tab after the season' : archived ? 'Decided: the Matchup tab after the season' : 'Your call: the Matchup tab after the season'}</h2>
             <p className="b-job">{'Once a season is over, the Matchup tab shows nothing under its switch today. What should it show?'}</p>
           </div>
         </header>
@@ -236,7 +236,26 @@
     );
   }
 
-  window.KSMatchupAfter = () => <CallMatchupAfter />;
-  window.KSStocksFinished = () => <CallStocksFinished />;
-  window.KSStocksIcon = () => <CallStocksIcon />;
+  window.KSMatchupAfter = () => null; // 2026-11-18: superseded by a season recap; it lives in the Archive
+  window.KSMatchupAfterArchived = () => (
+    <CallMatchupAfter
+      archived
+      superseded
+      decidedNote={<><b>Superseded by Giorgio (2026-11-18): neither A nor B.</b> He wants a season recap on the Matchup tab once a season is over: the season’s weeks listed, each opening that week’s matchup. The Planner is mocking it with him; it is its own call. Recorded in PRODUCT_RULES by the Planner (#551).</>}
+    />
+  );
+  window.KSStocksFinished = () => null; // decided 2026-11-18: A; it lives in the Archive
+  window.KSStocksFinishedArchived = () => (
+    <CallStocksFinished
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-18): A.</b> In a finished season the list stays to browse with no "+", and a stock’s sheet has no Buy and no line, like the finished-season card. Recorded in PRODUCT_RULES by the Planner (#551).</>}
+    />
+  );
+  window.KSStocksIcon = () => null; // decided 2026-11-18: B; it lives in the Archive
+  window.KSStocksIconArchived = () => (
+    <CallStocksIcon
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-18): B, the storefront.</b> Ionicons storefront-outline, storefront when selected. Recorded in PRODUCT_RULES by the Planner (#551).</>}
+    />
+  );
 })();
