@@ -16,6 +16,7 @@ import {
 export type { PlayerCardOwnership, PlayerCardOwnerInfo } from '@/components/sp/logic/gameNight';
 import { Avatar } from '@/components/sp/Avatar';
 import { CategoryPill } from '@/components/sp/gn/CategoryPill';
+import { TickerBadge } from '@/components/sp/gn/TickerBadge';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 import { StockChart } from '@/components/money/StockChart';
 import { SEASON_DEFAULT_RANGE } from '@/lib/chart/chartRanges';
@@ -120,9 +121,7 @@ export function PlayerCardBody(props: PlayerCardProps) {
     <ScrollView contentContainerStyle={styles.body} accessibilityLabel={`${ticker}, player card`}>
       {/* 1. Header */}
       <View style={styles.header}>
-        <View style={[styles.badge, { backgroundColor: colors.inset }]}>
-          <Text variant="ticker.tile" allowFontScaling={false}>{ticker}</Text>
-        </View>
+        <TickerBadge symbol={ticker} size={52} />
         <View style={styles.headText}>
           <Text variant="ticker.card" accessibilityRole="header" testID="player-card-ticker">{ticker}</Text>
           <Text variant="callout" maxFontSizeMultiplier={CARD_TEXT_MAX_SCALE} tone="secondary" numberOfLines={1}>{company}</Text>
@@ -240,13 +239,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[4],
-  },
-  badge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headText: {
     flex: 1,
