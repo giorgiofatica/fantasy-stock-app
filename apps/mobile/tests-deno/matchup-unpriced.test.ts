@@ -12,7 +12,7 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import { buildMatchupLive, type MatchupInput } from '../lib/game/buildMatchupViewModel.ts';
 import { buildAllMatchups, type AllMatchupsInput } from '../lib/game/allMatchups.ts';
 import { pricedTotal } from '../lib/game/lineupLedger.ts';
-import { missingPriceSymbols, priceNoticeDisplay, priceNoticeText } from '../lib/game/priceNotice.ts';
+import { missingPriceSymbols, NOTICE_MAX_SCALE, noticeIconMetrics, priceNoticeDisplay, priceNoticeText } from '../lib/game/priceNotice.ts';
 import { listSymbols } from '../lib/game/listSymbols.ts';
 import { WORD_JOINER } from '../lib/game/keepDots.ts';
 import { rosterHalfLabel, rosterHalfParts, rosterHalfShow, scoreboardModel, WEEK_UNKNOWN } from '../components/sp/logic/gameNight.ts';
@@ -178,14 +178,31 @@ Deno.test('notice placement: under the switch, above the totals, in a LIVE week 
   assert(bye.includes(byeNotice) && bye.indexOf(byeNotice) < bye.indexOf('<Scoreboard'), 'a bye week too, above its card');
 });
 
+Deno.test('notice icon (Design Lead P2): centred on the FIRST line at every size, following the capped scale', () => {
+  // callout is 13pt on an 18pt line (constants/tokens/type.ts): centred = (18 - 13) / 2 at the capped scale.
+  assert(SOURCES['constants/tokens/type.ts'].includes('callout: { fontFamily: FONT.medium, fontSize: 13, lineHeight: 18 }'), 'the metrics this uses');
+  assertEquals(noticeIconMetrics(1), { pt: 13, top: 2.5 }, 'L');
+  const ax5 = noticeIconMetrics(3.1);
+  assertEquals([Math.round(ax5.pt * 100) / 100, Math.round(ax5.top * 100) / 100], [16.9, 3.25], 'AX5: capped at 1.3');
+  assertEquals(noticeIconMetrics(0.85), { pt: 13 * 0.85, top: 2.5 * 0.85 }, 'below 1 it follows the text down');
+  // Centred: the icon's middle is the line's middle (top + pt / 2 = line / 2) at any scale.
+  for (const f of [0.85, 1, 1.15, 1.3, 2, 3.1]) {
+    const { pt, top } = noticeIconMetrics(f);
+    const s = Math.min(f, 1.3);
+    assert(Math.abs(top + pt / 2 - (18 * s) / 2) < 1e-9, `scale ${f}`);
+  }
+});
+
 Deno.test('notice look (Design Lead spec): accent tint, no edge, WarnPanel\'s box, accent info icon, regular text capped at 1.3, role text', () => {
   const card = strip(SOURCES['components/game/PriceNotice.tsx']);
   assert(card.includes('backgroundColor: colors.accentTint') && !card.includes('borderWidth'), 'the tint is its own edge');
   assert(!/warn|yellow/i.test(card), 'never yellow or warnTint');
   assert(card.includes('borderRadius: radius.lg') && card.includes('paddingVertical: space[4]') && card.includes('paddingHorizontal: 14'), "WarnPanel's box");
   assert(card.includes('gap: space[2]'));
-  assert(card.includes('<Icon name="info" size="callout" tone="accent" pt={CALLOUT_PT * Math.min(fontScale, NOTICE_MAX_SCALE)} />'), 'the icon follows the capped size');
-  assert(card.includes('export const NOTICE_MAX_SCALE = 1.3;') && card.includes('maxFontSizeMultiplier={NOTICE_MAX_SCALE}'), "the Matchup rows' cap");
+  assert(card.includes('<View style={{ marginTop: icon.top }}>') && card.includes('<Icon name="info" size="callout" tone="accent" pt={icon.pt} />'), 'the icon from noticeIconMetrics: capped size, centred on line one');
+  assert(card.includes('const icon = noticeIconMetrics(fontScale);'));
+  assertEquals(NOTICE_MAX_SCALE, 1.3);
+  assert(card.includes('maxFontSizeMultiplier={NOTICE_MAX_SCALE}'), "the Matchup rows' cap");
   assert(card.includes('color={colors.text}') && card.includes("fontWeight: '400'"), 'text colour, regular weight');
   assert(card.includes('accessible accessibilityRole="text" accessibilityLabel={text}'), 'one element, role text (not alert)');
   const pairs = SOURCES['constants/tokens/contrastPairs.ts'];

@@ -48,3 +48,18 @@ export function priceNoticeDisplay(text: string, symbols: readonly string[]): st
     })
     .join('');
 }
+
+/** The notice's text cap: the Matchup rows' (1.3x), so it never outranks the Scoreboard under it, and at 1.3x the
+ * icon still fits beside the text (Design Lead spec, 2026-11-19). */
+export const NOTICE_MAX_SCALE = 1.3;
+/** callout's size and line height (constants/tokens/type.ts), for the icon to follow the capped text. */
+const CALLOUT_PT = 13;
+const CALLOUT_LINE = 18;
+
+/** The icon's size and its top offset at a Dynamic Type scale: callout's size at the capped scale, centred on the
+ * FIRST line (Design Lead P2, 2026-11-19: top-aligned it sat 2.3pt high at L and 4pt high at AX5, poking above the
+ * capitals). The offset is (line height - icon size) / 2, both at the capped scale. */
+export function noticeIconMetrics(fontScale: number): { pt: number; top: number } {
+  const s = Math.min(fontScale, NOTICE_MAX_SCALE);
+  return { pt: CALLOUT_PT * s, top: ((CALLOUT_LINE - CALLOUT_PT) * s) / 2 };
+}
