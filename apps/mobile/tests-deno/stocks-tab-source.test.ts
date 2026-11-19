@@ -23,10 +23,10 @@ Deno.test('the Stocks tab is the fifth and LAST tab, named "Stocks", in the bar 
   assert(SOURCES['app/(tabs)/stocks.tsx'].includes('<LeagueListGate title="Stocks">'), 'no leagues is the shared state');
 });
 
-Deno.test('the tab icon is the magnifying glass, in ONE constant', () => {
-  assertEquals(STOCKS_TAB_ICON, { outline: 'search-outline', filled: 'search' });
-  assertEquals(ICON_GLYPHS.tabStocks, 'search-outline');
-  assertEquals(ICON_GLYPHS.tabStocksSelected, 'search');
+Deno.test('the tab icon is the storefront, in ONE constant', () => {
+  assertEquals(STOCKS_TAB_ICON, { outline: 'storefront-outline', filled: 'storefront' });
+  assertEquals(ICON_GLYPHS.tabStocks, 'storefront-outline');
+  assertEquals(ICON_GLYPHS.tabStocksSelected, 'storefront');
   // The only place the Stocks tab's glyph is spelled out.
   for (const [path, src] of Object.entries(SOURCES)) {
     if (path === 'components/sp/logic/icon.ts') continue;

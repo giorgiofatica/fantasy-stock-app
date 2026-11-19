@@ -156,21 +156,31 @@ Deno.test('the header never repeats the ticker as its company line', () => {
 
 // ── a season that is over is closed to buying and selling (Giorgio, 2026-11-18) ────────────
 
-Deno.test('season over: Buy and Sell are both disabled with the app\'s closed line, even with the market open', () => {
+Deno.test('season over: Buy and Sell are not enabled and the controls are ABSENT: no reason line, no market note', () => {
   const free = stockSheetModel({ ...BASE, gate: { open: false, opensLabel: null, seasonOver: true } });
   assertEquals(free.buy.enabled, false);
-  assertEquals(free.buy.blockedBy, 'closed');
-  assertEquals(free.buy.reason, 'Trading is closed right now.');
+  assertEquals(free.buy.reason, null, 'no "Trading is closed right now." line');
+  assertEquals(free.controlsShown, false);
   // No "prices show Friday's close" note: a season that is over says nothing about the market's hours.
   assertEquals(free.marketNote, null);
   const held = stockSheetModel({ ...BASE, held: { quantity: 2 }, gate: { open: false, opensLabel: null, seasonOver: true } });
   assertEquals(held.sell.enabled, false);
-  assertEquals(held.sell.reason, 'Trading is closed right now.');
+  assertEquals(held.sell.reason, null);
+  assertEquals(held.sell.summary, null, 'no sell summary either');
+  assertEquals(held.controlsShown, false);
+  // The ownership line stays ("No one in {league} owns {X}").
+  assertEquals(free.ownershipLine.includes('owns'), true);
+});
+
+Deno.test('a live league draws its controls', () => {
+  assertEquals(stockSheetModel({ ...BASE, gate: { open: true } }).controlsShown, true);
+  assertEquals(stockSheetModel({ ...BASE, gate: { open: false, opensLabel: 'Mon 9:30 AM ET' } }).controlsShown, true);
 });
 
 Deno.test('season over beats an open-market gate: the flag, not the hours, closes it', () => {
   const m = stockSheetModel({ ...BASE, gate: { open: false, seasonOver: true, opensLabel: 'Mon 9:30 AM ET' } });
-  assertEquals(m.buy.reason, 'Trading is closed right now.', 'not "Market\'s closed. Opens Mon 9:30 AM ET."');
+  assertEquals(m.buy.reason, null, 'not "Market\'s closed. Opens Mon 9:30 AM ET." and no line at all');
+  assertEquals(m.controlsShown, false);
 });
 
 Deno.test('a live league is unchanged: open enables Buy, a closed market keeps its open time', () => {
@@ -186,4 +196,8 @@ Deno.test('the sheet body feeds the model the one predicate (isSeasonOver), neve
   if (!s.includes('const gate = seasonOver ? SEASON_OVER_GATE : decideTradeGate(now, market);')) throw new Error('a finished season is a closed gate');
   if (!s.includes('gate: { open: gate.open, opensLabel, seasonOver },')) throw new Error('the model is told');
   if (/season_status ===/.test(s)) throw new Error('no season_status check');
+  // The controls are ABSENT in a finished season: the segment, the pinned action and the warn panel all key on controlsShown.
+  for (const t of ['{held && model.controlsShown ? (', '{model.controlsShown ? (\n      <View style={styles.actionWrap}>', '{model.controlsShown && warnBlock ?']) {
+    if (!s.includes(t)) throw new Error(`controlsShown gate missing: ${t}`);
+  }
 });

@@ -39,7 +39,8 @@ export interface StockSheetInput {
   draft: { round: number; inRoundPick: number } | null;
   /** `seasonOver`: the league's season is over (isSeasonOver), so the sheet is closed to buying AND selling
    * whatever the market is doing (Giorgio, 2026-11-18: "A finished season is closed to buying and selling";
-   * the server refuses with 'season_completed'). It says so with the app's existing closed line. */
+   * the server refuses with 'season_completed'). The sheet then draws NO Buy/Sell control at all: no segment, no Review
+   * button and no line (Giorgio, 2026-11-18, call 2 = A; `controlsShown` is false). The price, chart and ownership stay. */
   gate: { open: boolean; opensLabel?: string | null; seasonOver?: boolean };
   leagueName: string;
   /** e.g. "Friday's close", for the closed-market note. */
@@ -66,6 +67,8 @@ export interface StockSheetModel {
    * visible disabled Review buy, the others keep the plain caption. */
   buy: ActionState & { blockedBy: 'closed' | 'price' | 'owned' | 'held' | 'full' | 'budget' | null };
   sell: ActionState & { summary: string | null };
+  /** False in a finished season: the sheet draws no Buy | Sell segment, no Review button and no reason line. */
+  controlsShown: boolean;
   ownershipLine: string;
   ownerBadge: 'Bot' | null;
   marketNote: string | null;
@@ -80,10 +83,11 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   const otherOwned = other !== null;
   const priced = input.price !== null && Number.isFinite(input.price);
 
+  // A finished season has no line at all (the controls are absent, not disabled): no reason string for either action.
   const closedReason = input.gate.open
     ? null
     : input.gate.seasonOver
-      ? COPY.marketClosedNow
+      ? null
       : input.gate.opensLabel
         ? COPY.marketClosedOpens(input.gate.opensLabel)
         : COPY.tradingHoursUnavailable;
@@ -91,8 +95,9 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   const priceReason = priced ? null : COPY.noPrice;
 
   // Buy: the first failing rule explains the disabled state.
+  const seasonOver = !!input.gate.seasonOver;
   let buyReason: string | null = closedReason ?? priceReason;
-  let buyBlockedBy: StockSheetModel['buy']['blockedBy'] = buyReason ? (closedReason ? 'closed' : 'price') : null;
+  let buyBlockedBy: StockSheetModel['buy']['blockedBy'] = buyReason || seasonOver ? (closedReason || seasonOver ? 'closed' : 'price') : null;
   if (buyReason === null && otherOwned) {
     buyReason = COPY.ownedBy((other!.name ?? 'another manager'));
     buyBlockedBy = 'owned';
@@ -146,8 +151,9 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   return {
     name: cleanCompanyName(input.companyName) || input.symbol,
     selected: held ? 'sell' : 'buy',
-    buy: { enabled: buyReason === null, reason: buyReason, blockedBy: buyBlockedBy },
-    sell: { enabled: held && sellReason === null, reason: sellReason, summary: sellSummary },
+    buy: { enabled: buyReason === null && !seasonOver, reason: seasonOver ? null : buyReason, blockedBy: buyBlockedBy },
+    sell: { enabled: held && sellReason === null && !seasonOver, reason: seasonOver ? null : sellReason, summary: seasonOver ? null : sellSummary },
+    controlsShown: !seasonOver,
     ownershipLine,
     ownerBadge: other?.isBot ? 'Bot' : null,
     marketNote,

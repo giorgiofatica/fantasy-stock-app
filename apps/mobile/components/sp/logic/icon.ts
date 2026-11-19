@@ -20,14 +20,14 @@ export type IconName =
   // The tab bar's five tabs: outline when idle, filled when selected (TabIcon).
   | 'tabHome' | 'tabHomeSelected' | 'tabMatchup' | 'tabMatchupSelected'
   | 'tabLeague' | 'tabLeagueSelected' | 'tabPortfolio' | 'tabPortfolioSelected'
-  // The fifth tab (Stocks, 2026-11-18): the magnifying glass.
+  // The fifth tab (Stocks, 2026-11-18): the storefront (Giorgio's pick on board #548).
   | 'tabStocks' | 'tabStocksSelected';
 
 /**
  * The Stocks tab's icon, in ONE place (Giorgio may pick the storefront later: change these two strings and the tab bar
- * follows). The Ionicons search pair, drawn like the other four tabs: outline when idle, filled when selected.
+ * follows). The Ionicons storefront pair, drawn like the other four tabs: outline when idle, filled when selected.
  */
-export const STOCKS_TAB_ICON = { outline: 'search-outline', filled: 'search' } as const;
+export const STOCKS_TAB_ICON = { outline: 'storefront-outline', filled: 'storefront' } as const;
 
 /** The text roles an icon sits beside, plus the medallion (a 36 pt glyph in a
  * 72 pt disc, used only by the season-complete trophy and the Run it back card). */

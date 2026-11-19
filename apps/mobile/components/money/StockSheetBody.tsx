@@ -530,11 +530,13 @@ export function StockSheetBody({
   // sits exactly where the button sat inline; at XXXL the body scrolls and this stays reachable.
   const footer = (
     <>
+      {/* A finished season draws NO control and no line (model.controlsShown is false): only the credit below. */}
       {/* E-3 (3e UX audit): a buy the server would refuse is named BEFORE the review, in the
           warn panel; the button stays visible and disabled under it (board #buy-a-stock). */}
-      {warnBlock ? <WarnPanel text={keepMoney(warnBlock)} /> : null}
+      {model.controlsShown && warnBlock ? <WarnPanel text={keepMoney(warnBlock)} /> : null}
 
-      {/* The one action, always drawn: enabled, or disabled with its reason beside it. */}
+      {/* The one action, always drawn (a live league): enabled, or disabled with its reason beside it. */}
+      {model.controlsShown ? (
       <View style={styles.actionWrap}>
         <Button
           label={reviewLabel}
@@ -556,6 +558,7 @@ export function StockSheetBody({
         ) : null}
         {model.marketNote ? <Text variant="caption" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{model.marketNote}</Text> : null}
       </View>
+      ) : null}
 
       <Text variant="caption" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{COPY.alpacaCredit}</Text>
     </>
@@ -611,7 +614,7 @@ export function StockSheetBody({
           <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary">{ownerLine}</Text>
         )}
 
-        {held ? (
+        {held && model.controlsShown ? (
           <SegmentedControl
             shape="pill"
             options={[{ label: 'Buy', value: 'buy' }, { label: 'Sell', value: 'sell' }]}
@@ -620,7 +623,7 @@ export function StockSheetBody({
           />
         ) : null}
 
-        {selected === 'sell' && model.sell.summary ? (
+        {model.controlsShown && selected === 'sell' && model.sell.summary ? (
           <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} style={[styles.bold, styles.tabular]}>{keepMoney(model.sell.summary)}</Text>
         ) : null}
       </View>
