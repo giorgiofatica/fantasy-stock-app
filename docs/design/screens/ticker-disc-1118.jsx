@@ -94,5 +94,6 @@
     );
   }
 
-  window.KSTickerDisc = () => <CallTickerDisc />;
+  window.KSTickerDisc = () => null;
+  window.KSTickerDiscArchived = () => <CallTickerDisc archived decidedNote={<><b>Decided 2026-11-19: A.</b> Only the badge text shrinks to fit (about 9pt), the badge keeps its round size; the one exception to the 11pt rule. Recorded in PRODUCT_RULES (#562).</>} />;
 })();
