@@ -134,7 +134,8 @@ function playoffMatchups(live = false) {
 /** EXPO_PUBLIC_RECAP_FIXTURE (the Matchup recap's captures): how your finished season went.
  * 'champion' (default) = Home's 'complete' bracket; 'semis' = out in the Semifinals; 'missed' =
  * no playoff game; 'tie_bye' = the champion's season with a tied week 3 and a bye in week 2;
- * 'unposted' = the champion's season with week 1's games never posted (gains null). */
+ * 'unposted' = the champion's season with week 1 MIXED: your game and Paolo-Luca never posted
+ * (gains null), Chiara-Marco posted (the case the empty chevron gutter lines up). */
 export type RecapFixture = 'champion' | 'semis' | 'missed' | 'tie_bye' | 'unposted';
 export function parseRecapFixture(v: string | undefined): RecapFixture {
   return v === 'semis' || v === 'missed' || v === 'tie_bye' || v === 'unposted' ? v : 'champion';
@@ -192,7 +193,7 @@ export function seasonMatchups(variant: RecapFixture) {
   const season = [...regular, ...playoffs];
   // A week that never posted: no gains, no winner (the recap's dash, nothing to open).
   return variant === 'unposted'
-    ? season.map((m) => (m.week_number === 1 ? { ...m, team1_gain: null, team2_gain: null, winner_user_id: null, is_tie: false } : m))
+    ? season.map((m) => (m.week_number === 1 && m.team1_user_id !== chiara ? { ...m, team1_gain: null, team2_gain: null, winner_user_id: null, is_tie: false } : m))
     : season;
 }
 

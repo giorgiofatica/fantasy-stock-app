@@ -75,12 +75,14 @@ export function SeasonRecap({ segment, state, leagueId }: SeasonRecapProps) {
               ) : !g.final || g.a.gain === null || g.b.gain === null ? (
                 // Never posted (review 4633132087): BOTH sides, as every other game, with the season
                 // tile's dash for each total, no line and no tap. ByeGame stays for a bye alone (b null).
-                // The 0s are never drawn: `unscored` draws the dash and reads no gain.
+                // The 0s are never drawn: `unscored` draws the dash and reads no gain. The chevron's
+                // column stays, empty, so its halves line up with the posted games around it.
                 <Scoreboard
                   key={`${g.a.userId}-${i}`}
                   size="compact"
                   mine={g.mine}
                   unscored
+                  chevronGutter
                   you={{ name: g.a.name, gain: g.a.gain ?? 0 }}
                   opponent={{ name: g.b.name, gain: g.b.gain ?? 0 }}
                 />

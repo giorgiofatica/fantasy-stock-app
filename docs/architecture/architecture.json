@@ -2,16 +2,12 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "3d855f54c4e8ad920a2d3d7100dfd1a03354b058",
-    "commitShort": "3d855f54",
+    "commit": "8bc374f8365dc8db5e7f9bdd91d5e01570d59ff0",
+    "commitShort": "8bc374f8",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/season-recap",
     "dirty": true,
     "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/ByeGame.tsx"
-      },
       {
         "code": "M",
         "path": "apps/mobile/components/game/SeasonRecap.tsx"
@@ -26,26 +22,14 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seasonRecap.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useSeasonRecap.ts"
-      },
-      {
-        "code": "M",
         "path": "apps/mobile/tests-deno/game-night-primitives.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/matchup-calls.test.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/season-recap.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T18:31:21Z",
+    "timestamp": "2026-11-19T18:35:11Z",
     "sourceHash": "sha256:4f9aa20689aa9e23452aaee7935a6c92a7fd015c849f940766d2d063e611377f",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -53,7 +37,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 18.3,
+    "ageHours": 18.4,
     "ageDays": 0.8,
     "staleAfterDays": 14,
     "stale": false,

@@ -36,7 +36,7 @@ Deno.test('Scoreboard: totals in score.xl, YOUR half always shaded (never the le
   // games pass mine={false} and shade nothing).
   assert(src.includes("<Half side={mine ? 'you' : 'opp'} team={you} mirror={false} size={size} halfWidth={halfWidth} open={openYou} unscored={unscored} />"));
   // Each half is half the card, less the recap's chevron column when the whole game opens.
-  assert(src.includes('const halfWidth = (cardWidth - (openGame ? GAME_CHEVRON_W : 0)) / 2;'));
+  assert(src.includes('const halfWidth = (cardWidth - (trailing ? GAME_CHEVRON_W : 0)) / 2;'));
   assert(!/leadWash|model\.leader ===/.test(src), 'no leader shading');
   assert(src.includes('tone="you" ring'));
   assert(src.includes('padding: AVATAR_RING + AVATAR_RING_GAP'), 'the opponent keeps the ring footprint so totals align');

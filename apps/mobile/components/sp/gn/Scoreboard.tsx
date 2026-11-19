@@ -68,6 +68,9 @@ export interface GnScoreboardProps {
    * as usual, each total drawn as the season tile's dash in text2, no line, nothing to tap. `gain` is
    * not read. */
   unscored?: boolean;
+  /** Keep the chevron's column, EMPTY, on a card that opens nothing, so it lines up with the cards
+   * around it that do (the recap's never-posted game among posted ones; DL P2, 2026-11-19). */
+  chevronGutter?: boolean;
 }
 
 /** The trailing chevron's column when the whole game opens (openGame). */
@@ -89,7 +92,7 @@ const WHO_GAP = space[3];
 /** The leads-by line under the card. */
 export const LINE_MAX_SCALE = 1.3;
 
-export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine: showLineProp = true, bye, openYou, openOpponent, openGame, unscored = false }: GnScoreboardProps) {
+export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine: showLineProp = true, bye, openYou, openOpponent, openGame, unscored = false, chevronGutter = false }: GnScoreboardProps) {
   const { colors } = useTheme();
   // A never-posted game has no leader and no line: only the two sides and the dash.
   const showLine = showLineProp && !unscored;
@@ -98,7 +101,9 @@ export function Scoreboard({ you, opponent, final = false, size = 'hero', mine =
   // Each half's width, measured: decides whether a name fits beside its avatar.
   const [cardWidth, setCardWidth] = useState(0);
   const interactive = !!(openYou || openOpponent);
-  const halfWidth = (cardWidth - (openGame ? GAME_CHEVRON_W : 0)) / 2;
+  // The chevron's column: drawn when the game opens, kept empty when asked (chevronGutter).
+  const trailing = !!openGame || chevronGutter;
+  const halfWidth = (cardWidth - (trailing ? GAME_CHEVRON_W : 0)) / 2;
   const label = unscored
     ? `${you.name}${mine ? ', you' : ''}. ${opponent?.name ?? ''}.`
     : bye
@@ -121,6 +126,8 @@ export function Scoreboard({ you, opponent, final = false, size = 'hero', mine =
             <View style={styles.gameChevron}>
               <Icon name="chevronRight" size="callout" tone="text2" />
             </View>
+          ) : chevronGutter ? (
+            <View style={styles.gameChevron} testID="scoreboard-chevron-gutter" />
           ) : null}
         </Card>
       </GameBox>

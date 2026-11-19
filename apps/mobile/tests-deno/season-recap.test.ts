@@ -284,8 +284,13 @@ Deno.test('a never-posted game keeps both sides, with the dash for each total (r
   assert(unscored.includes('<Scoreboard'));
   assert(/\n\s+unscored\n/.test(unscored), 'the Scoreboard gets the unscored prop (not just the word in a comment)');
   assert(!unscored.includes('openGame'), 'nothing to tap');
+  assert(/\n\s+chevronGutter\n/.test(unscored), "the chevron's column stays, empty, so it lines up with posted games (DL P2)");
   const sb = SOURCES['components/sp/gn/Scoreboard.tsx'];
   assert(sb.includes("const totalText = unscored ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });"));
   assert(sb.includes('const showLine = showLineProp && !unscored;'), 'no leader, no line');
   assert(sb.includes('{totalText}'));
+  // The empty gutter takes the chevron's width out of the halves, exactly as a chevron does.
+  assert(sb.includes('const trailing = !!openGame || chevronGutter;'));
+  assert(sb.includes('const halfWidth = (cardWidth - (trailing ? GAME_CHEVRON_W : 0)) / 2;'));
+  assert(sb.includes('<View style={styles.gameChevron} testID="scoreboard-chevron-gutter" />'));
 });
