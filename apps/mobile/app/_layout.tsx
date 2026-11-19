@@ -406,6 +406,8 @@ function RootLayoutNav({ fontsLoaded }: { fontsLoaded: boolean }) {
                   <Stack.Screen name="join-league" options={HIDDEN_HEADER_FULLSCREEN} />
                   <Stack.Screen name="league-settings" options={HIDDEN_HEADER_MODAL} />
                   <Stack.Screen name="player-portfolio" options={HIDDEN_HEADER_MODAL} />
+                  {/* The Matchup recap's week detail (2026-11-18, look A): a pushed page with its own "‹ Back". */}
+                  <Stack.Screen name="matchup-week" options={HIDDEN_HEADER} />
                   <Stack.Screen name="trade-history" options={HIDDEN_HEADER_MODAL} />
                   {/* S-15: was undeclared, so expo-router auto-added it outside
                       both guards (reachable signed out by deep link). Default

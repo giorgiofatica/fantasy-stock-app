@@ -96,7 +96,9 @@ Deno.test('League › Schedule draws the dash from the season tile\'s own copy, 
   assert(src.includes(") : isUnscoredPast(r) ? ("));
   assert(src.includes("maxFontSizeMultiplier={ROW_TEXT_CAP}>{SEASON_TILE_UNSCORED}</Text>"));
   // The label for an unscored row is unchanged: no result word, no score.
-  assert(src.includes("if (r.gain === null || r.result === null) return `Week ${r.week}, ${what}`;"));
+  assert(src.includes("if (r.gain === null || r.result === null) return `${wk}, ${what}`;"));
+  // Schedule's own rows pass no label, so "Week N" stays; the recap's "Wk N" is spoken "Week N".
+  assert(src.includes("const wk = weekLabel && !/^Wk /.test(weekLabel) ? weekLabel : `Week ${r.week}`;"));
   assert(SOURCES['components/home/YourSeason.tsx'].includes('{SEASON_TILE_UNSCORED}</Text>'));
 });
 
