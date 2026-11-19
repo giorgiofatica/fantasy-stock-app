@@ -38,7 +38,7 @@ if (repo.status !== 0) die(`could not read the repository: ${repo.stderr}`);
 const { owner, name } = JSON.parse(repo.stdout);
 
 const query = `query($owner:String!,$name:String!){repository(owner:$owner,name:$name){
-  defaultBranchRef{name target{... on Commit{oid statusCheckRollup{state contexts(first:50){nodes{
+  defaultBranchRef{name target{... on Commit{oid statusCheckRollup{state contexts(first:50){totalCount nodes{
     __typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}}}}}}}
   pullRequests(states:OPEN,first:50,orderBy:{field:CREATED_AT,direction:ASC}){totalCount nodes{
     number title isDraft mergeable headRefName
@@ -57,15 +57,23 @@ if (prs.totalCount > prs.nodes.length) die(`only ${prs.nodes.length} of ${prs.to
 const BAD = new Set(['FAILURE', 'ERROR', 'TIMED_OUT', 'CANCELLED', 'ACTION_REQUIRED', 'STARTUP_FAILURE']);
 let needing = 0;
 const main = body.data.repository.defaultBranchRef;
-const mainCtx = main?.target?.statusCheckRollup?.contexts.nodes ?? [];
+const mainRollup = main?.target?.statusCheckRollup ?? null;
+const mainCtx = mainRollup?.contexts.nodes ?? [];
+const mainTotal = mainRollup?.contexts.totalCount ?? mainCtx.length;
 const mainFailed = mainCtx.filter((c) => BAD.has(c.conclusion ?? '') || BAD.has(c.state ?? '')).map((c) => c.name ?? c.context);
 const mainRunning = mainCtx.filter((c) => (c.__typename === 'CheckRun' ? c.status !== 'COMPLETED' : c.state === 'PENDING'));
+// The verdict comes from the rollup's own state, which GitHub computes over EVERY check, not from the first page
+// of names: a failure past the 50th context must still read as red (Copilot on #564). The names are only a list.
+const rollupRed = mainRollup?.state === 'FAILURE' || mainRollup?.state === 'ERROR';
+const unread = mainTotal > mainCtx.length ? ` (names from ${mainCtx.length} of ${mainTotal} checks)` : '';
 let mainRed = false;
-if (mainFailed.length) {
+if (mainFailed.length || rollupRed) {
   mainRed = true;
-  console.log(`NEEDS ATTENTION ${main.name} @ ${main.target.oid.slice(0, 8)}\n  MAIN RED: ${mainFailed.join(', ')}\n  Fix main first; every open pull request is tested against it.`);
-} else if (showAll || mainRunning.length) {
-  console.log(`${mainRunning.length ? 'WAIT ' : 'OK   '}${main.name} @ ${main.target.oid.slice(0, 8)}${mainRunning.length ? `\n  RUNNING: ${mainRunning.length} checks` : ''}`);
+  const names = mainFailed.length ? mainFailed.join(', ') : 'a check not among those listed';
+  console.log(`NEEDS ATTENTION ${main.name} @ ${main.target.oid.slice(0, 8)}\n  MAIN RED: ${names}${unread}\n  Fix main first; every open pull request is tested against it.`);
+} else if (showAll || mainRunning.length || mainRollup?.state === 'PENDING') {
+  const waiting = mainRunning.length > 0 || mainRollup?.state === 'PENDING';
+  console.log(`${waiting ? 'WAIT ' : 'OK   '}${main.name} @ ${main.target.oid.slice(0, 8)}${waiting ? `\n  RUNNING: ${mainRunning.length || 'some'} checks${unread}` : ''}`);
 }
 for (const p of prs.nodes) {
   if (ignored.has(p.number)) { if (showAll) console.log(`SKIP #${p.number} ${p.headRefName} (parked)`); continue; }
