@@ -66,10 +66,12 @@ This plan replaces "no line" with the reason.
 ## Open questions
 
 1. The words (decision 4) and where they appear (decision 5).
-2. For the worker to report before building, not for Giorgio unless the answer is yes: can
-   two playoff teams have the same seed, or no seed? The server then advances team 2
-   (`resolveBySeed`: a missing seed counts as 999, and equal seeds fall to team 2). "Advances
-   as the higher seed" would be false for that week. If it can happen, it comes back here.
+2. ANSWERED 2026-11-19 (the recap worker, read-only, at 48ff11cd): can two playoff teams
+   have the same seed, or no seed? Not with today's writers. `start_league_playoffs` sets
+   team and seed together, as distinct integers from the bracket math, and advancement
+   carries the winner's own seed, so a row with both teams has two different seeds. That
+   holds by construction, not by a constraint, and rows advanced before 2026-07-27 could
+   carry the loser's seed. See "The seed line cannot lie" below.
 
 ## Scope
 
@@ -87,8 +89,8 @@ which read `winner_user_id` and `is_tie` and keep doing so.
 
 On `public.matchups`:
 
-- `outcome_reason text`, limited by a CHECK to the server's ten values plus
-  `'not_recorded'`.
+- `outcome_reason text`, limited by a CHECK to the server's ten values,
+  `'playoff_seed_unresolved'` (below) and `'not_recorded'`.
 - `team1_percent_gain numeric`, `team2_percent_gain numeric`.
 
 Three states, each with its own marker, so that an empty value never has to carry a meaning
@@ -98,7 +100,7 @@ Three states, each with its own marker, so that an empty value never has to carr
 |---|---|---|
 | Not scored yet | NULL | `team1_gain` is NULL too, as today |
 | Scored before this plan | `'not_recorded'` | Written once by the migration, to every row that already has a result |
-| Scored after this plan | one of the ten reasons | Written with the winner |
+| Scored after this plan | one of the eleven reasons | Written with the winner |
 
 A scored row with a NULL reason should not exist after the release. If the phone meets one
 (a week scored by the old function between the migration and the deploy), it treats it as
@@ -112,6 +114,26 @@ present on such a row. Nothing else may branch on whether a percent is NULL.
 `matchups` has no column-level grants (one SELECT policy for league members, no client
 writes since `20261002000000`), so league members can read the new columns with no new
 grant. The reviewer confirms this against the live table before the push.
+
+### The seed line cannot lie
+
+"Advances as the higher seed" is only true if two different seeds were compared.
+`resolveBySeed` treats a missing seed as 999 and gives equal seeds to team 2, so with bad
+data it would still pick a winner. Who advances does not change. What is stored does: the
+server stores `playoff_seed_tiebreak` (or `both_empty_playoff_seed_tiebreak`) only when both
+seeds are present and differ. Otherwise it stores `playoff_seed_unresolved`, an eleventh
+reason, and the phone shows the winner with no reason line for that week. So the words rest
+on what was compared in that run, not on every writer staying correct.
+
+A CHECK on the table (both seeds present and different on a playoff row with both teams) is
+the reviewer's call, added `NOT VALID` so old rows cannot block the push. Before the push,
+Giorgio can run the worker's read-only query; it should return no rows:
+
+```sql
+SELECT league_id, week_number, team1_seed, team2_seed FROM matchups
+WHERE is_playoff AND team1_user_id IS NOT NULL AND team2_user_id IS NOT NULL
+  AND (team1_seed IS NULL OR team2_seed IS NULL OR team1_seed = team2_seed);
+```
 
 ### The write
 
@@ -149,7 +171,7 @@ list, not an empty line. So: the migration first, then the function, then the bu
 - **The migration's update touches every scored row.** One statement, a few hundred rows.
 - **`atomic` in a migration.** The file must not contain the bare word (CLAUDE.md, the CLI
   splitter); `migration_cli_split.test.ts` checks it.
-- **Equal or missing seeds.** Open question 2.
+- **Equal or missing seeds.** "The seed line cannot lie", above.
 - **Run it back.** A new season's matchups are new rows; nothing carries a reason over.
 
 ## Done means
@@ -157,7 +179,7 @@ list, not an empty line. So: the migration first, then the function, then the bu
 1. PGlite: the migration applies; a scored row gets `'not_recorded'`; an unscored row stays
    NULL; the CHECK refuses an unknown reason and a `percent_tiebreak` row without both
    percents.
-2. The handler test drives `process-week-results` through each of the ten reasons and
+2. The handler test drives `process-week-results` through each reason, including a playoff row with equal and with missing seeds, and
    asserts the update carries that reason and the right percents (NULL for a side with no
    stocks), in the same call as the winner.
 3. Phone tests: one per reason for the helper; `not_recorded` keeps #566's behaviour; no
