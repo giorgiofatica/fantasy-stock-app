@@ -2,39 +2,27 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "4784c7693b2e1372d23bd9270e017c2ee81f4298",
-    "commitShort": "4784c769",
+    "commit": "580f9fde78b1544eaef17230589b536457ce3301",
+    "commitShort": "580f9fde",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
-      },
-      {
-        "code": "M",
         "path": "apps/mobile/lib/money/seasonEnd.ts"
       },
       {
-        "code": "A",
+        "code": "M",
         "path": "apps/mobile/lib/money/useSeasonEnd.ts"
       },
       {
         "code": "M",
         "path": "apps/mobile/tests-deno/money-season-end.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-19T05:57:09Z",
-    "sourceHash": "sha256:966cb49a332cd73122fbef8e937e30e9673a00e15980ec1d5ab7b94fda7fe6f3",
+    "timestamp": "2026-11-19T05:57:13Z",
+    "sourceHash": "sha256:825f03b07527adabc816113e32002d5d54fb7c58429ab239bd40fb9efa89dbba",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -21342,12 +21330,12 @@
       "from": "ui.money.useSeasonEnd",
       "to": "tbl.matchups",
       "protocol": "postgrest-select",
-      "payload": ".from('matchups').select('week_end')",
+      "payload": ".from('matchups').select('week_end, team1_gain')",
       "columns": [
-        "week_end"
+        "week_end, team1_gain"
       ],
       "callSites": [
-        "apps/mobile/lib/money/useSeasonEnd.ts:39"
+        "apps/mobile/lib/money/useSeasonEnd.ts:40"
       ]
     },
     {
@@ -22329,10 +22317,12 @@
       "from": "ui.tests-deno.money-season-end.test",
       "to": "tbl.matchups",
       "protocol": "postgrest-select",
-      "payload": ".from('matchups').select()",
-      "columns": [],
+      "payload": ".from('matchups').select('week_end, team1_gain')",
+      "columns": [
+        "week_end, team1_gain"
+      ],
       "callSites": [
-        "apps/mobile/tests-deno/money-season-end.test.ts:126"
+        "apps/mobile/tests-deno/money-season-end.test.ts:127"
       ]
     },
     {
@@ -24600,7 +24590,7 @@
       "apps/mobile/lib/game/useSymbolCategories.ts:38 -> category_rules.select",
       "apps/mobile/lib/game/useWeekOne.ts:17 -> matchups.select",
       "apps/mobile/lib/home/useDraftingData.ts:86 -> drafts.select",
-      "apps/mobile/lib/money/useSeasonEnd.ts:39 -> matchups.select",
+      "apps/mobile/lib/money/useSeasonEnd.ts:40 -> matchups.select",
       "apps/mobile/lib/pushTokenStore.ts:27 -> push_tokens.upsert",
       "apps/mobile/lib/pushTokenStore.ts:42 -> push_tokens.delete",
       "apps/mobile/lib/useLeagues.ts:33 -> league_members.select",
@@ -24613,7 +24603,7 @@
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:248 -> league_invites.insert",
       "apps/mobile/tests-deno/gn-w4-draft.test.ts:163 -> symbols.select",
       "apps/mobile/tests-deno/leaguemate-team-view.test.ts:195 -> week_snapshots.select",
-      "apps/mobile/tests-deno/money-season-end.test.ts:126 -> matchups.select",
+      "apps/mobile/tests-deno/money-season-end.test.ts:127 -> matchups.select",
       "apps/mobile/tests-deno/read-result.test.ts:41 -> symbols.select",
       "apps/web/src/Header.jsx:110 -> league_members.select",
       "apps/web/src/Header.jsx:118 -> leagues.select",

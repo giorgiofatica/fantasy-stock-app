@@ -3,7 +3,9 @@
  * Giorgio 2026-11-18, pick A: the value is frozen at the season's last day). Pure, so
  * tests-deno/money-season-end.test.ts pins it.
  *
- * The last day is the ET date of the LATEST matchup week_end in the league, the playoff final included.
+ * The last day is the ET date of the LATEST SCORED matchup week_end in the league (team1_gain posted), the
+ * playoff final included. An unscored later row (a placeholder round, or a league completed by the legacy
+ * current_week > num_weeks fallback) never stretches the season past its last scored week (DL P3, 2026-11-19).
  * Not league_seasons.completed_at: the heal pass (process-week-results' healUncompletedSeasons) can stamp
  * that days after the final closed, and every close in between would leak into the frozen value. With
  * no matchups at all (none read), completed_at's ET date is the fallback; with neither, null (no end is
@@ -12,12 +14,13 @@
 import { etDateOf } from '../game/matchupRoster';
 
 export function seasonEndEt(
-  matchups: readonly { week_end: string | null | undefined }[] | null | undefined,
+  matchups: readonly { week_end: string | null | undefined; team1_gain: number | string | null | undefined }[] | null | undefined,
   completedAt: string | null | undefined = null,
 ): string | null {
   let last: string | null = null;
   for (const m of matchups ?? []) {
-    if (!m.week_end) continue;
+    // Only a SCORED game ends anything: an unscored row is not a week the season played.
+    if (!m.week_end || m.team1_gain == null) continue;
     const d = etDateOf(m.week_end);
     if (d && (last == null || d > last)) last = d;
   }
@@ -28,7 +31,7 @@ export function seasonEndEt(
 /** One page of matchup `week_end`s, as supabase-js's PromiseLike query resolves it (the read never throws on a
  * Postgres error: it resolves `{ data, error }`, CLAUDE.md "success signals" #5). */
 export type MatchupEndsRead = (leagueId: string) => PromiseLike<{
-  data: readonly { week_end: string | null }[] | null;
+  data: readonly { week_end: string | null; team1_gain: number | string | null }[] | null;
   error: { message: string } | null;
 }>;
 
@@ -64,7 +67,7 @@ export function resolveSeasonEnd(input: {
   enabled: boolean;
   leagueId: string | null;
   completedAt: string | null;
-  fixtureRows?: readonly { week_end: string | null }[] | null;
+  fixtureRows?: readonly { week_end: string | null; team1_gain: number | string | null }[] | null;
   state: { leagueId: string; status: 'ready' | 'error'; endEt: string | null } | null;
 }): { status: SeasonEndStatus; endEt: string | null } {
   const { enabled, leagueId, completedAt, fixtureRows, state } = input;

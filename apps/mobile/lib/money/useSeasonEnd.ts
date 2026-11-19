@@ -30,15 +30,17 @@ export interface SeasonEnd {
 }
 
 /** A dev fixture's matchups (rows null: not loaded yet), or null in production. */
-export type SeasonEndFixture = { rows: readonly { week_end: string | null }[] | null } | null;
+export type SeasonEndFixture = { rows: readonly { week_end: string | null; team1_gain: number | string | null }[] | null } | null;
 
-/** The league's newest dated week_end. `nullsFirst: false`: week_end is nullable, and Postgres sorts NULLs FIRST in
- * a descending order, so without it one undated row would be the "newest" and hide the final. */
+/** The league's newest SCORED, dated week_end. Scored only (team1_gain posted): an unscored later row (a placeholder
+ * round, a legacy-completed league) never stretches the season (DL P3). `nullsFirst: false`: week_end is nullable,
+ * and Postgres sorts NULLs FIRST in a descending order, so without it one undated row would be the "newest". */
 const readLeagueEnds: MatchupEndsRead = (leagueId) =>
   supabase
     .from('matchups')
-    .select('week_end')
+    .select('week_end, team1_gain')
     .eq('league_id', leagueId)
+    .not('team1_gain', 'is', null)
     .order('week_end', { ascending: false, nullsFirst: false })
     .limit(1);
 
