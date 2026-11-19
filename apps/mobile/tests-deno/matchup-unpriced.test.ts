@@ -77,6 +77,16 @@ Deno.test('Matchup live: THEIR unpriced holding -> the same on their side', () =
   assertEquals([vm.leader, vm.leadDollars], ['me', 75]);
 });
 
+Deno.test('a PARTLY unpriced stock (sold some this week, no price for the rest): its row is "–" and its sale is NOT in the total', () => {
+  // Sold 2 AAPL at 210 on Tuesday (+20.00 realised), the other 3 have no live price.
+  const d = data();
+  d.current_week.my_trades = [{ symbol: 'AAPL', action: 'sell', quantity: 2, price: 210, created_at: '2026-09-29T15:00:00Z' }];
+  const vm = buildMatchupLive({ data: d, myUserId: 'roberto', quote: without('AAPL'), now: new Date('2026-09-29T17:00:00Z') });
+  assertEquals(vm.me.unpriced, ['AAPL']);
+  assertEquals(vm.me.gain, 145, 'liveWeekScore\'s gain still counts the sale');
+  assertEquals(vm.me.total, 125, 'the Scoreboard total is the stocks with a price: NVDA alone');
+});
+
 Deno.test('All matchups: a live side totals the same way as Matchup (the priced sum); posted games keep the server\'s', () => {
   const base: Omit<AllMatchupsInput, 'quote'> = {
     myUserId: 'roberto',
@@ -90,6 +100,9 @@ Deno.test('All matchups: a live side totals the same way as Matchup (the priced 
   assertEquals([g.a.gain, g.b!.gain], [125, 40]);
   const [whole] = buildAllMatchups({ ...base, quote: without() });
   assertEquals(whole.a.gain, 115);
+  // A partly unpriced side: the sale of the unpriced stock stays out, as on Matchup.
+  const [partial] = buildAllMatchups({ ...base, trades: [{ symbol: 'AAPL', action: 'sell', quantity: 2, price: 210, created_at: '2026-09-29T15:00:00Z', user_id: 'roberto' }], quote: without('AAPL') });
+  assertEquals(partial.a.gain, 125);
   const [posted] = buildAllMatchups({ ...base, matchups: [{ ...base.matchups[0], team1_gain: 5, team2_gain: 3 }], quote: without('AAPL') });
   assertEquals([posted.a.gain, posted.b!.gain], [5, 3]);
 });
