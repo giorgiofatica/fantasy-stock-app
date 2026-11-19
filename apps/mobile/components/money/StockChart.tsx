@@ -29,7 +29,7 @@ import { formatMoney } from '@/components/sp/logic/money';
 import {
   asChartRange, CHART_RANGES, rangeFirstDay, rangeGain, selectableRange, SHEET_DEFAULT_RANGE, type ChartRange,
 } from '@/lib/chart/chartRanges';
-import { stockGreyedRanges, stockLineSeries } from '@/lib/money/stockChartSeries';
+import { finishedStockSeries, stockGreyedRanges, stockLineSeries } from '@/lib/money/stockChartSeries';
 import { useStockChartData } from '@/lib/money/useStockChartData';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { etDateOf } from '@/lib/game/matchupRoster';
@@ -60,15 +60,22 @@ export interface StockChartProps {
    * stays the stock's price. Without them (the stock sheet) everything is per share.
    */
   lots?: readonly HoldingLot[];
+  /**
+   * A season that is over (the player card, Giorgio 2026-11-18, pick A): the season's last day (ET). The chart
+   * is then Season only, from the draft to that day, on real closes up to it: no live point, no breathing dot,
+   * no range buttons, and the gain is measured to that day's close ("since the draft"). `price` is not read.
+   */
+  endEt?: string | null;
 }
 
 const HEIGHT = 140;
 /** No sessions yet: no labels (chartAxis 'sessions' with no days). */
 const LOADING_AXIS: AxisSpec = { kind: 'sessions', days: [] };
 
-export function StockChart({ symbol, price, live, now = new Date(), sessions, bleed, seasonStart, defaultRange = SHEET_DEFAULT_RANGE, height = HEIGHT, lots }: StockChartProps) {
+export function StockChart({ symbol, price, live, now = new Date(), sessions, bleed, seasonStart, defaultRange = SHEET_DEFAULT_RANGE, height = HEIGHT, lots, endEt = null }: StockChartProps) {
   const [picked, setPicked] = useState<ChartRange>(defaultRange);
-  const data = useStockChartData(symbol, true);
+  const over = endEt != null && seasonStart != null;
+  const data = useStockChartData(symbol, true, over ? { start: seasonStart, end: endEt } : null);
   const todayEt = etDateOf(now) ?? now.toISOString().slice(0, 10);
   // Until the bars are in, the chart is empty AND its axis has no labels (the live price alone
   // would otherwise make a lone "Mon" under nothing). The axis row keeps its height either way.
@@ -78,15 +85,21 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
     () => stockGreyedRanges({ bars: data.bars, ready, todayEt, seasonStart }),
     [data.bars, ready, todayEt, seasonStart],
   );
-  const range = selectableRange(picked, greyed);
+  const range: ChartRange = over ? 'Season' : selectableRange(picked, greyed);
+  // A season that is over: the frozen line and its end price (never today's quote).
+  const frozen = useMemo(
+    () => (over ? finishedStockSeries({ bars: data.bars, endEt: endEt!, seasonStart }) : null),
+    [over, data.bars, endEt, seasonStart],
+  );
   const series = useMemo(
-    () => stockLineSeries({ range, bars: data.bars, price, todayEt, now, sessions, seasonStart }),
+    () => frozen ?? stockLineSeries({ range, bars: data.bars, price, todayEt, now, sessions, seasonStart }),
     // `now` ticks; the line only changes with the date, the bars, the price and the range.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [range, data.bars, price, todayEt, sessions, seasonStart],
+    [frozen, range, data.bars, price, todayEt, sessions, seasonStart],
   );
+  const gainPrice = frozen ? frozen.endPrice : price;
   const holding = ready && lots?.length
-    ? holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, todayEt, seasonStart), base: series.base, price })
+    ? holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, frozen ? endEt! : todayEt, seasonStart), base: series.base, price: gainPrice })
     : null;
   // The holding's P/L when the card has lots; otherwise (the sheet, or a sold stock) the per-share move.
   const gain = ready ? holding ?? rangeGain(series.points, series.base) : null;
@@ -105,13 +118,13 @@ export function StockChart({ symbol, price, live, now = new Date(), sessions, bl
         axis={ready ? series.axis : LOADING_AXIS}
         height={height}
         bleed={bleed}
-        live={live}
+        live={over ? false : live}
         drawKey={`${symbol}-${range}`}
         formatValue={(v) => formatMoney(v)}
         accessibilityLabel={`${symbol} price`}
         captureScrubAction="stockscrub"
       />
-      <RangePills options={CHART_RANGES} value={range} onChange={setPicked} variant="pills" disabled={greyed} />
+      {over ? null : <RangePills options={CHART_RANGES} value={range} onChange={setPicked} variant="pills" disabled={greyed} />}
     </View>
   );
 }

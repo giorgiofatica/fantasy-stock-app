@@ -320,7 +320,7 @@ Deno.test('(f) the gain follows the range: tapping a pill changes the line, the 
   // The component renders all three from ONE `range` (gain, chart, drawKey, pills).
   const src = strip(stockChartSrc);
   assert(src.includes('<RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />') && src.includes('drawKey={`${symbol}-${range}`}') && src.includes('value={range}'));
-  assert(strip(portfolioSrc).includes('<RangeGainLine range={shownRange} gain={gain} rollKey={`${rollKey}-${shownRange}`} />') && strip(portfolioSrc).includes('drawKey={shownRange}'));
+  assert(strip(portfolioSrc).includes('<RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} />') && strip(portfolioSrc).includes('drawKey={gainRange}'));
 });
 
 Deno.test('(f) the gain is measured from the range\'s first value to the LIVE value (the end of the drawn line)', () => {
@@ -391,7 +391,7 @@ Deno.test('the range gain rolls its two numbers (RollingMoney) and a pill tap ne
   assert(g.includes('rollKey={rollKey}') && strip(gainLineSrc).includes('rollKey={rollKey}'));
   // RollingMoney diffs against ITSELF when its key changes (no roll): the key must change with the range.
   assert(strip(stockChartSrc).includes('rollKey={`${symbol}-${range}`}'));
-  assert(strip(portfolioSrc).includes('rollKey={`${rollKey}-${shownRange}`}'));
+  assert(strip(portfolioSrc).includes('rollKey={`${rollKey}-${gainRange}`}'));
 });
 
 // ── (Design Lead gate P2-3) one disabled look ───────────────────────────────────────────────
@@ -420,7 +420,9 @@ Deno.test('the card passes its lots to the chart (P/L gain, the line coloured by
   assert(strip(cardSrc).includes('lots={lots}'));
   assert(!/lots=/.test(strip(stockSheetSrc)), 'the sheet draws per share');
   const src = strip(stockChartSrc);
-  assert(src.includes('holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, todayEt, seasonStart), base: series.base, price })'));
+  // A live season measures to today's price (todayEt, `price`); a finished one to its frozen end price (gainPrice).
+  assert(src.includes('holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, frozen ? endEt! : todayEt, seasonStart), base: series.base, price: gainPrice })'));
+  assert(src.includes('const gainPrice = frozen ? frozen.endPrice : price;'));
   assert(src.includes('const gain = ready ? holding ?? rangeGain(series.points, series.base) : null;'));
   assert(src.includes('tone={holding ? holding.tone : undefined}'), 'the colour follows the gain line when it is the holding\'s P/L');
 });

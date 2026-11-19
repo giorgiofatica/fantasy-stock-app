@@ -1,6 +1,6 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
-Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved"); Building: the part 1 server read is built and is being reworked to drop its price columns (the accurate-prices rule, #533), not merged, and it will need a `db push`; the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is in #538, open when I wrote this) and NOT built: the build waits on Part 1 being merged and applied and on the Design Lead's edge-state spec
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved"); Building: the part 1 server read is built and is being reworked to drop its price columns (the accurate-prices rule, #533), not merged, and it will need a `db push`; the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and NOT built: the build waits on Part 1 being merged and applied and on the Design Lead's edge-state spec
 Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: 5021a5bb
 
 **Revised 2026-11-18, the same day, after a later ruling.** Giorgio: "we can't be showing a

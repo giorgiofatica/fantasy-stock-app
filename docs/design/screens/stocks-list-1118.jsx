@@ -176,7 +176,7 @@
           <li><b>New words:</b> "All" (the first chip). Everything else is words the app already has: the tab name "Stocks", the category names, Save/Saved, Buy, Claim, Cancel, "Search".</li>
           <li>{archived ? decidedNote : <><b>Answer with:</b> A or B, and C or D.</>}</li>
         </ul>
-        <h3 className="b-sub">A · "+" on the row · C · search icon (recommended)</h3>
+        <h3 className="b-sub">{archived ? 'A · "+" on the row · C · search icon (decided)' : 'A · "+" on the row · C · search icon (recommended)'}</h3>
         <Grid>{[
           fig('ac', 'A + C · market open', <Stocks row="A" search="C" label="Stocks list, plus on the row, search icon, market open" />, 'The "+" is Buy. Numbers are examples. The tab\u2019s magnifier icon is a stand-in, chosen separately.'),
           fig('acc', 'A + C · after the close', <Stocks row="A" search="C" closed label="Stocks list, plus on the row, market closed" />, 'The "+" turns to Claim, amber, as ESPN’s waiver orange.'),
@@ -209,5 +209,11 @@
     );
   }
 
-  window.KSStocksList = () => <CallStocksList />;
+  window.KSStocksList = () => null; // decided 2026-11-18: A + C; it lives in the Archive
+  window.KSStocksListArchived = () => (
+    <CallStocksList
+      archived
+      decidedNote={<><b>Decided by Giorgio (2026-11-18): A + C.</b> The "+" at the left of each row (it opens the stock’s sheet and its review), and search as the first icon in the chip row. Recorded in the Stocks tab plan, part 2 (docs/plans/2026-11-18-stocks-tab.md). Until claims and the watchlist are built, the "+" keeps one look and the star is not drawn.</>}
+    />
+  );
 })();
