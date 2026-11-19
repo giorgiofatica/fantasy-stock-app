@@ -17,9 +17,17 @@ export type IconName =
   | 'unlink' | 'league' | 'clock' | 'offline'
   // A password field's show / hide toggle (components/shell/PasswordReveal.tsx): the action it takes.
   | 'eye' | 'eyeOff'
-  // The tab bar's four tabs: outline when idle, filled when selected (TabIcon).
+  // The tab bar's five tabs: outline when idle, filled when selected (TabIcon).
   | 'tabHome' | 'tabHomeSelected' | 'tabMatchup' | 'tabMatchupSelected'
-  | 'tabLeague' | 'tabLeagueSelected' | 'tabPortfolio' | 'tabPortfolioSelected';
+  | 'tabLeague' | 'tabLeagueSelected' | 'tabPortfolio' | 'tabPortfolioSelected'
+  // The fifth tab (Stocks, 2026-11-18): the magnifying glass.
+  | 'tabStocks' | 'tabStocksSelected';
+
+/**
+ * The Stocks tab's icon, in ONE place (Giorgio may pick the storefront later: change these two strings and the tab bar
+ * follows). The Ionicons search pair, drawn like the other four tabs: outline when idle, filled when selected.
+ */
+export const STOCKS_TAB_ICON = { outline: 'search-outline', filled: 'search' } as const;
 
 /** The text roles an icon sits beside, plus the medallion (a 36 pt glyph in a
  * 72 pt disc, used only by the season-complete trophy and the Run it back card). */
@@ -72,6 +80,8 @@ export const ICON_GLYPHS: Record<IconName, string> = {
   tabLeagueSelected: 'trophy',
   tabPortfolio: 'bar-chart-outline',
   tabPortfolioSelected: 'bar-chart',
+  tabStocks: STOCKS_TAB_ICON.outline,
+  tabStocksSelected: STOCKS_TAB_ICON.filled,
 };
 
 /** Icon size (pt) by the text role it sits with (the board's scale). */

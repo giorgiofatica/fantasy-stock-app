@@ -13,6 +13,7 @@ import { markFixtureAnswer } from './renewalFixture';
 import { draftRoomClockRead, parseDraftRoomVariant, roomVariantAfterAutoPick } from './seamRoom';
 import { FIXTURE_TAKEOVER_CODE, parseTakeoverFixture, seatify, takeoverFixtureFor, takeoverInviteFixture } from './seamAccountDeletion';
 import { pendingTakeover } from '../invite/pendingTakeoverStore';
+import { parseStocksKnob, seamStocksRead, seamStockPrices } from '../stocks/seamStocks';
 
 /** DEV captures (account deletion): the seat reads as the label (EXPO_PUBLIC_DELETED_SEAT=1) and the takeover answers (EXPO_PUBLIC_TAKEOVER_FIXTURE). Seam only. */
 const DELETED_SEAT = DELETED_SEAT_FIXTURE;
@@ -36,6 +37,9 @@ const HOME_FIXTURE_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_HOME_FIXTURE : undef
 const SCORED_OUTCOME_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_SCORED_OUTCOME : undefined;
 const LEAGUE_FIXTURE_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_LEAGUE_FIXTURE : undefined;
 const QUEUE_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_QUEUE_FIXTURE : undefined;
+/** The Stocks tab's captures (lib/stocks/seamStocks.ts): the list's read and the live quote. Seam only. */
+const STOCKS_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_STOCKS_FIXTURE : undefined;
+const STOCKS_KNOB = parseStocksKnob(STOCKS_FIXTURE);
 import { saveLeagueSlots, type SlotDraft } from '../categoryData';
 
 /** The error a read answers with when EXPO_PUBLIC_CAPTURE_FAIL_ONCE names it (its first call only). */
@@ -52,6 +56,12 @@ export async function seamRpc(name: string, args: Record<string, unknown>) {
     // DRAFT_ROOM_FIXTURE=loading: the room's clock read never answers, so its skeleton stays up for the capture.
     if (name === 'get_draft_clock' && draftRoomClockRead(roomVariant) === 'pending') return new Promise<never>(() => {});
     if (name === 'create_takeover_invite') return takeoverInviteFixture();
+    if (name === 'get_league_available_stocks') {
+      // The Stocks list: the catalogue's page, or (knobs) a read that never answers / fails / answers nothing.
+      const read = seamStocksRead(args, STOCKS_KNOB);
+      if (!read) return new Promise<never>(() => {});
+      return { ...read, count: null, status: read.error ? 500 : 200, statusText: 'fixture' };
+    }
     const f = fixtureFor(name, args, roomVariant, DRAFT_START_FIXTURE);
     // A renewal adds Season 2 to the fixture league list, as the real list would.
     if (f && name === 'renew_league') markFixtureRenewed();
@@ -71,6 +81,14 @@ export async function seamInvoke(fn: string, opts: { body: Record<string, unknow
       if (t) return t as { data: unknown; error: null };
     }
     if (SLOT_REFUSE && fn === 'draft-control' && opts.body.action === 'check_setup') return { data: { ok: false, reason: 'budget_infeasible' }, error: null };
+    if (fn === 'quote' && Array.isArray(opts.body.symbols)) {
+      // The Stocks list's live prices: the catalogue's example prices (or none: a row's "–"); never a stored price.
+      const prices = STOCKS_KNOB.noPrice ? {} : seamStockPrices();
+      const asked = (opts.body.symbols as string[]).map((x) => String(x).toUpperCase());
+      if (asked.every((x) => x in seamStockPrices() || STOCKS_KNOB.noPrice)) {
+        return { data: { prices: Object.fromEntries(asked.filter((x) => x in prices).map((x) => [x, (prices as Record<string, number>)[x]])) }, error: null };
+      }
+    }
     const f = invokeFixtureFor(fn, opts.body, DRAFT_START_FIXTURE, LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL, CAPTURE_DRAFT_REFUSAL);
     if (f) return seatify(f, DELETED_SEAT);
   }
