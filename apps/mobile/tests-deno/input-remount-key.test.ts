@@ -195,6 +195,8 @@ const HOSTS: Record<string, string> = {
   'components/shell/SheetBar.tsx': 'remount',
   'components/SymbolSearchField.tsx': 'inputRemount',
   'components/money/StockSearchScreen.tsx': 'searchRemount',
+  // The Stocks tab's search field (the icon swaps the chip row for it).
+  'components/stocks/StocksScreen.tsx': 'searchRemount',
 };
 
 Deno.test('every TextInput host takes the hook: key, autoFocus, and both focus handlers', () => {
@@ -289,6 +291,7 @@ Deno.test('the hook hands the host its explicit size, and a latched credential h
 const FONT_HOSTS: Record<string, { name: string; call: RegExp }> = {
   'components/SymbolSearchField.tsx': { name: 'inputRemount', call: /const inputFont = inputRemount\.fontProps\(INPUT_FONT_SIZE\);/ },
   'components/money/StockSearchScreen.tsx': { name: 'searchRemount', call: /const searchFont = searchRemount\.fontProps\(SEARCH_INPUT_FONT_SIZE\);/ },
+  'components/stocks/StocksScreen.tsx': { name: 'searchRemount', call: /const searchFont = searchRemount\.fontProps\(SEARCH_INPUT_FONT_SIZE\);/ },
   'components/shell/Field.tsx': { name: 'remount', call: /const font = inputFontSize \? null : remount\.fontProps\(type\.body\.fontSize\);/ },
   // The sheet bar's rename field draws the scaled size capped at the bar's 1.3x (sheetBarLogic.ts sheetBarFieldSize).
   'components/shell/SheetBar.tsx': { name: 'remount', call: /const font = remount\.fontProps\(SHEET_BAR_TITLE_SIZE\);/ },
@@ -312,6 +315,9 @@ Deno.test('the two search inputs draw the size they pass: one constant in the st
   const search = SOURCES['components/money/StockSearchScreen.tsx'];
   assertMatch(search, /const SEARCH_INPUT_FONT_SIZE = 17;/);
   assertMatch(search, /input: \{[^}]*fontSize: SEARCH_INPUT_FONT_SIZE,/);
+  const stocks = SOURCES['components/stocks/StocksScreen.tsx'];
+  assertMatch(stocks, /const SEARCH_INPUT_FONT_SIZE = 17;/);
+  assertMatch(stocks, /input: \{[^}]*fontSize: SEARCH_INPUT_FONT_SIZE,/);
 });
 
 Deno.test("Field: a caller's own inputFontSize wins, and a spread prop cannot turn the scale props back off", () => {

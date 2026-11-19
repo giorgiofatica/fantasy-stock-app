@@ -15,6 +15,7 @@ import { CAPTURE_REFUSAL, MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM
 import { SEAM_LEAGUE, SEAM_ME } from '../game/seamTables';
 import { HOME_FIXTURE } from '../home/devFixture';
 import { seamOpenSales, seamPortfolioLedger } from './portfolioSeam';
+import { parseStocksKnob } from '../stocks/seamStocks';
 import { parsePreviewSlots, parseSlotShape, type PreviewSlot, type SlotShape } from './tierContract';
 
 export type TradeBody = SellBody | BuyBody;
@@ -47,6 +48,11 @@ export interface PreviewResult {
   openSlots?: SlotShape[];
 }
 
+/** DEV capture only (EXPO_PUBLIC_STOCKS_FIXTURE=proceeds, seam on): the fixed-notional preview names ONE open sale, so a buy is possible and the
+ * sheet / the "+" reach a clean buy review. Without it the seam league has every slot held and no proceeds. */
+const STOCKS_FIXTURE_KNOB = SEAM_ON ? process.env.EXPO_PUBLIC_STOCKS_FIXTURE : undefined;
+const SEAM_PROCEEDS = parseStocksKnob(STOCKS_FIXTURE_KNOB).proceeds;
+
 /** The read-only preview: the sale proceeds that can pay for a buy. Null when it can't be read. */
 export async function fetchPreview(body: PreviewBody): Promise<PreviewResult | null> {
   // DEV fixture: the preview is answered from the fixture, with no network call.
@@ -65,7 +71,9 @@ export async function fetchPreview(body: PreviewBody): Promise<PreviewResult | n
       stakeMode,
       stake: null,
       unfilledSlots: 0,
-      sources: stakeMode === 'fixed_notional' ? sales.map((x, i) => ({ trade_id: `seam-sale-${i}`, symbol: x.symbol, amount: x.amount })) : [],
+      sources: stakeMode === 'fixed_notional'
+        ? (SEAM_PROCEEDS ? [{ trade_id: 'seam-sale-proceeds', symbol: 'JPM', amount: 2012.4 }] : sales.map((x, i) => ({ trade_id: `seam-sale-${i}`, symbol: x.symbol, amount: x.amount })))
+        : [],
       slots: [],
       ...('price' in body && body.price != null ? { wouldFill: flex, openSlots: [] } : {}),
     };
