@@ -10,6 +10,8 @@ import {
   answersFromQuote,
   chipScrollTarget,
   chipsFrom,
+  fetchKey,
+  pendingRead,
   controlReducer,
   initialListState,
   isFailedRead,
@@ -59,7 +61,7 @@ Deno.test('pageArgs: the cursor is the last ticker, the category id is passed, t
 // ── paging ──
 Deno.test('paging: the first page, then the next page asks AFTER the last ticker, and rows append', () => {
   let s = initialListState();
-  assertEquals(s.pending, { id: 1, after: null, replace: true });
+  assertEquals(s.pending, { id: 1, after: null, replace: true, leagueId: null, categoryId: null });
   s = settle(s, ['A', 'B'], true);
   assertEquals(s.cursor, 'B');
   s = listReducer(s, { type: 'more' });
@@ -107,7 +109,7 @@ Deno.test('refresh asks for the first page again and keeps the rows until it lan
   let s = settle(initialListState(), ['A', 'B'], true);
   s = listReducer(s, { type: 'refresh' });
   assertEquals(s.rows.length, 2);
-  assertEquals(s.pending, { id: s.seq, after: null, replace: true });
+  assertEquals(s.pending, { id: s.seq, after: null, replace: true, leagueId: null, categoryId: null });
   s = settle(s, ['X'], false);
   assertEquals(s.rows.map((r) => r.symbol), ['X']);
 });
@@ -294,4 +296,78 @@ Deno.test('chipScrollTarget: a chip cut at the LEFT edge scrolls back; never a n
 Deno.test('chipScrollTarget: nothing measured yet means no scroll (never a guess)', () => {
   assertEquals(chipScrollTarget(260, 120, 0, 0), null);
   assertEquals(chipScrollTarget(260, 0, 0, 300), null);
+});
+
+// ── a league switch mid-load: ONE read, for the NEW league, with no cursor (Copilot, #563) ──
+
+/** The fetch effect's re-run rule, modelled: it fires when `fetchKey` changes to a non-null id, and does the read `pendingRead` names. */
+function simulateEffect(states: ListState[]): { leagueId: string; categoryId: string | null; after: string | null }[] {
+  const reads: { leagueId: string; categoryId: string | null; after: string | null }[] = [];
+  let prev: number | null = null;
+  for (const st of states) {
+    const key = fetchKey(st);
+    if (key !== prev) {
+      prev = key;
+      const r = key == null ? null : pendingRead(st);
+      if (r && r.id === key) reads.push({ leagueId: r.leagueId, categoryId: r.categoryId, after: r.after });
+    }
+  }
+  return reads;
+}
+
+Deno.test('a league switch mid-load issues exactly ONE read for the new league, first page, no category, and never the old cursor', () => {
+  const states: ListState[] = [];
+  let s = initialListState(null, 'A');
+  states.push(s); // render 1: A's first page is asked
+  s = settle(s, ['X1', 'X2'], true);
+  states.push(s); // A's first page landed
+  s = listReducer(s, { type: 'more' });
+  states.push(s); // A's SECOND page is in flight, with the cursor 'X2'
+  assertEquals(s.pending?.after, 'X2');
+  // The league prop flips to B: this render still carries A's pending request (the 'start' lands only after the effect runs).
+  states.push(s);
+  s = listReducer(s, { type: 'start', categoryId: null, leagueId: 'B' });
+  states.push(s); // B's first page is asked
+  const reads = simulateEffect(states);
+  assertEquals(reads, [
+    { leagueId: 'A', categoryId: null, after: null },
+    { leagueId: 'A', categoryId: null, after: 'X2' },
+    { leagueId: 'B', categoryId: null, after: null },
+  ]);
+  assertEquals(reads.filter((r) => r.leagueId === 'B').length, 1, 'exactly ONE read for the new league');
+  assertEquals(reads.some((r) => r.leagueId === 'B' && r.after !== null), false, 'never the old cursor');
+});
+
+Deno.test('a request stays tied to the league and category it was made for; its answer after a switch is dropped by id', () => {
+  let s = initialListState(null, 'A');
+  s = settle(s, ['X1'], true);
+  s = listReducer(s, { type: 'start', categoryId: 'cat-tech' });
+  assertEquals(pendingRead(s), { id: s.pending!.id, leagueId: 'A', categoryId: 'cat-tech', after: null }, 'a chip keeps the league');
+  const old = s.pending!.id;
+  s = listReducer(s, { type: 'start', categoryId: null, leagueId: 'B' });
+  assertEquals(s.leagueId, 'B');
+  assertEquals(pendingRead(s), { id: s.pending!.id, leagueId: 'B', categoryId: null, after: null }, 'another league resets the category');
+  const late = listReducer(s, { type: 'loaded', id: old, page: parsePage(data(['Z'], true))! });
+  assertEquals(late, s, 'the old league\'s answer changes nothing');
+});
+
+Deno.test('no league yet: nothing to read; when one arrives the start asks for it', () => {
+  let s = initialListState(null, null);
+  assertEquals(pendingRead(s), null);
+  s = listReducer(s, { type: 'start', categoryId: null, leagueId: 'A' });
+  assertEquals(pendingRead(s)?.leagueId, 'A');
+});
+
+Deno.test('more / retry / refresh ask for the list\'s own league', () => {
+  let s = settle(initialListState(null, 'A'), ['X1', 'X2'], true);
+  s = listReducer(s, { type: 'more' });
+  assertEquals(pendingRead(s)?.leagueId, 'A');
+  s = listReducer(s, { type: 'failed', id: s.pending!.id });
+  s = listReducer(s, { type: 'retry' });
+  assertEquals(pendingRead(s), { id: s.pending!.id, leagueId: 'A', categoryId: null, after: 'X2' });
+  s = settle(s, ['X3'], true);
+  s = listReducer(s, { type: 'refresh' });
+  // A refresh asks for the FIRST page again even though the list already holds a cursor: the read is the request's own `after`.
+  assertEquals(pendingRead(s), { id: s.pending!.id, leagueId: 'A', categoryId: null, after: null });
+  assertEquals(s.cursor, 'X3', 'the list still holds its cursor while the refresh is in flight');
 });

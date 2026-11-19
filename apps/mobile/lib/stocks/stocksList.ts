@@ -76,14 +76,22 @@ export function pageArgs(leagueId: string, categoryId: string | null, after: str
 
 // ── The paging state ─────────────────────────────────────────────────────────────────────────────
 
-/** A request: which page (`after`), and whether its rows REPLACE the list (the first page, a refresh). */
+/**
+ * A request: which page (`after`), and whether its rows REPLACE the list (the first page, a refresh). It carries the league and the
+ * category it was made for, so the work in flight is tied to ITS league: a request is never re-issued against another league (a
+ * switch mid-load would otherwise send the old cursor to the new league and burn the member's paced reads).
+ */
 export interface PageRequest {
   id: number;
   after: string | null;
   replace: boolean;
+  leagueId: string | null;
+  categoryId: string | null;
 }
 
 export interface ListState {
+  /** The league this list is for; every request is made for it. */
+  leagueId: string | null;
   categoryId: string | null;
   rows: ListRow[];
   /** The last ticker the server sent (the next page's `after`); null before any page. */
@@ -99,7 +107,8 @@ export interface ListState {
 }
 
 export type ListAction =
-  | { type: 'start'; categoryId: string | null }
+  /** A new list from its first page: a chip (`categoryId`), or another league (`leagueId`, which also resets the category). */
+  | { type: 'start'; categoryId: string | null; leagueId?: string | null }
   | { type: 'refresh' }
   | { type: 'more' }
   | { type: 'retry' }
@@ -107,13 +116,28 @@ export type ListAction =
   | { type: 'failed'; id: number };
 
 /** The list before anything is asked: the first page of "All". */
-export function initialListState(categoryId: string | null = null): ListState {
-  return { categoryId, rows: [], cursor: null, hasMore: true, status: 'loading', pending: { id: 1, after: null, replace: true }, failed: null, seq: 1 };
+export function initialListState(categoryId: string | null = null, leagueId: string | null = null): ListState {
+  return {
+    leagueId, categoryId, rows: [], cursor: null, hasMore: true, status: 'loading',
+    pending: { id: 1, after: null, replace: true, leagueId, categoryId }, failed: null, seq: 1,
+  };
 }
 
 function ask(state: ListState, after: string | null, replace: boolean): ListState {
   const id = state.seq + 1;
-  return { ...state, status: 'loading', pending: { id, after, replace }, failed: null, seq: id };
+  return { ...state, status: 'loading', pending: { id, after, replace, leagueId: state.leagueId, categoryId: state.categoryId }, failed: null, seq: id };
+}
+
+/** What the fetch effect re-runs on: the in-flight request's id and nothing else (never the league prop, never a cursor). */
+export function fetchKey(state: ListState): number | null {
+  return state.pending?.id ?? null;
+}
+
+/** The read the in-flight request stands for: ITS league, category and cursor. Null when nothing is in flight or it has no league yet. */
+export function pendingRead(state: ListState): { id: number; leagueId: string; categoryId: string | null; after: string | null } | null {
+  const p = state.pending;
+  if (!p || !p.leagueId) return null;
+  return { id: p.id, leagueId: p.leagueId, categoryId: p.categoryId, after: p.after };
 }
 
 /** Appends `incoming` to `rows`, dropping a ticker already there (the order can shift between pages). */
@@ -132,7 +156,7 @@ export function listReducer(state: ListState, action: ListAction): ListState {
   switch (action.type) {
     case 'start':
       // A chip: a new list from its first page. Any answer still in flight is for the old list and is dropped (its id).
-      return ask({ ...state, categoryId: action.categoryId, rows: [], cursor: null, hasMore: true }, null, true);
+      return ask({ ...state, leagueId: action.leagueId !== undefined ? action.leagueId : state.leagueId, categoryId: action.categoryId, rows: [], cursor: null, hasMore: true }, null, true);
     case 'refresh':
       // Pull to refresh: the first page again; the rows stay on screen until it arrives.
       return ask(state, null, true);

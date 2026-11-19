@@ -51,7 +51,12 @@ Deno.test('prices are asked for the rows ON SCREEN only, through the existing qu
 });
 
 Deno.test('paging: the read is the member-only RPC through the seam, error-checked, 25 at a time, one extra page when near the foot', () => {
-  assertMatch(listHook, /seamRpc\('get_league_available_stocks', pageArgs\(leagueId, categoryId, pendingAfter\)\)/);
+  assertMatch(listHook, /seamRpc\('get_league_available_stocks', pageArgs\(read\.leagueId, read\.categoryId, read\.after\)\)/);
+  // Tied to its league (Copilot, #563): the fetch re-runs on the request id ALONE, never on the league prop or a cursor.
+  assertMatch(listHook, /const pendingId = fetchKey\(state\);/);
+  assertMatch(listHook, /\}, \[pendingId\]\);/);
+  assertFalse(/\}, \[[^\]]*leagueId[^\]]*\]\);\s*\n\s*const loadMore/.test(listHook), 'the fetch effect does not depend on leagueId');
+  assertMatch(listHook, /dispatch\(\{ type: 'start', categoryId: null, leagueId \}\);/);
   assertMatch(listHook, /isFailedRead\(result\)/, 'a resolved { error } (42501, PT429) is a load failure, not "no stocks"');
   assertMatch(screen, /isNearEnd\(y, vp\)\) latest\.current\.loadMore\(\)/);
   assertMatch(screen, /onRefresh=\{onRefresh\}/, 'pull to refresh is the existing pattern (BarsRefresh)');

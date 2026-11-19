@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 
 import { seamRpc } from '../game/seamCalls';
-import { initialListState, isFailedRead, listReducer, pageArgs, parsePage, type ListState } from './stocksList';
+import { fetchKey, initialListState, isFailedRead, listReducer, pageArgs, parsePage, pendingRead, type ListState } from './stocksList';
 
 export interface StocksList {
   state: ListState;
@@ -23,30 +23,32 @@ export interface StocksList {
 }
 
 export function useStocksList(leagueId: string | null): StocksList {
-  const [state, dispatch] = useReducer(listReducer, undefined, () => initialListState());
-  const leagueRef = useRef(leagueId);
-  leagueRef.current = leagueId;
+  const [state, dispatch] = useReducer(listReducer, leagueId, (l) => initialListState(null, l));
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const settleRef = useRef<(() => void) | null>(null);
 
-  // Another league is a different list: start over from its first page.
+  // Another league is a different list: start over from its first page, for THAT league (the request carries it).
   const lastLeague = useRef(leagueId);
   useEffect(() => {
     if (lastLeague.current === leagueId) return;
     lastLeague.current = leagueId;
-    dispatch({ type: 'start', categoryId: null });
+    dispatch({ type: 'start', categoryId: null, leagueId });
   }, [leagueId]);
 
-  const pendingId = state.pending?.id ?? null;
-  const pendingAfter = state.pending?.after ?? null;
-  const categoryId = state.categoryId;
+  // The fetch is keyed on the in-flight request's id ALONE (fetchKey) and reads that request's own league, category and cursor
+  // (pendingRead). It does not depend on the league prop: a league switch mid-load changes the prop BEFORE the new 'start' lands,
+  // and re-running on it would send the old cursor to the new league (a wasted read that burns the member's paced counter).
+  const pendingId = fetchKey(state);
 
   useEffect(() => {
-    if (pendingId == null || !leagueId) return;
+    const read = pendingRead(stateRef.current);
+    if (pendingId == null || !read || read.id !== pendingId) return;
     let cancelled = false;
     void (async () => {
       let result: { data: unknown; error: unknown };
       try {
-        result = await seamRpc('get_league_available_stocks', pageArgs(leagueId, categoryId, pendingAfter));
+        result = await seamRpc('get_league_available_stocks', pageArgs(read.leagueId, read.categoryId, read.after));
       } catch (e) {
         result = { data: null, error: e };
       }
@@ -60,7 +62,7 @@ export function useStocksList(leagueId: string | null): StocksList {
     return () => {
       cancelled = true;
     };
-  }, [pendingId, pendingAfter, categoryId, leagueId]);
+  }, [pendingId]);
 
   const loadMore = useCallback(() => dispatch({ type: 'more' }), []);
   const retry = useCallback(() => dispatch({ type: 'retry' }), []);

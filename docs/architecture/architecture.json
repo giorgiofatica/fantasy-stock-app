@@ -2,27 +2,39 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "ffd76692d3184b732c6b16773787c489cb1131ba",
-    "commitShort": "ffd76692",
+    "commit": "201c1bf9e80f21e82f63f5362d369215717ff76d",
+    "commitShort": "201c1bf9",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/stocks-tab-screen",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+        "path": "apps/mobile/lib/stocks/stocksList.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/stocks/useStocksList.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/stocks-list.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
       }
     ],
-    "timestamp": "2026-11-19T06:55:14Z",
-    "sourceHash": "sha256:9473a7c0c63f2d5cc1d65f6eabe3734e62ce68efa7e0f803a3d0a105acbb3ebf",
+    "timestamp": "2026-11-19T17:38:30Z",
+    "sourceHash": "sha256:b008a8797920d50f489ec893e9619e0bb57c4878b168a6da8c61b409368272dd",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 6.7,
-    "ageDays": 0.3,
+    "ageHours": 17.4,
+    "ageDays": 0.7,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
@@ -22280,7 +22292,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_league_available_stocks')",
       "callSites": [
-        "apps/mobile/lib/stocks/useStocksList.ts:49"
+        "apps/mobile/lib/stocks/useStocksList.ts:51"
       ],
       "via": [
         "seamRpc"
@@ -24507,7 +24519,7 @@
       "apps/mobile/lib/money/usePortfolioLedger.ts:22 -> get_portfolio_ledger",
       "apps/mobile/lib/shell/usernameApi.ts:30 -> check_usernames",
       "apps/mobile/lib/shell/usernameApi.ts:49 -> set_username",
-      "apps/mobile/lib/stocks/useStocksList.ts:49 -> get_league_available_stocks (via seamRpc)",
+      "apps/mobile/lib/stocks/useStocksList.ts:51 -> get_league_available_stocks (via seamRpc)",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:154 -> deleted_manager_label",
       "apps/mobile/tests-deno/gn-w4-draft.test.ts:162 -> get_league_pick_industries",
       "apps/mobile/tests-deno/read-result.test.ts:42 -> symbols_enrichment_progress",
