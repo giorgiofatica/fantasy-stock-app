@@ -120,10 +120,22 @@ Deno.test('Scoreboard: totals are numbers again and the leads-by line is back (n
 
 Deno.test('Matchup tab: live and bye totals are SideView.total (numbers); a bye roster shows unpriced stocks too', () => {
   const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
-  // A LIVE week (a final week is FinishedWeek's, with the server's gains and verdict).
-  assert(src.includes("you={{ name: youName, gain: live.me.total }}") && src.includes("opponent={{ name: live.opp?.name ?? '', gain: live.opp?.total ?? 0 }}"));
-  assert(src.includes('<FinishedWeek') && src.includes('verdict={final.verdict}'), 'the final keeps the server\'s verdict');
-  assert(src.includes('<Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null}'), 'the bye half too');
+  // Each branch is checked on its OWN slice: a whole-file includes() let the live "you" line be satisfied by the
+  // bye's, and FinishedWeek's verdict by the fallback Scoreboard's (mutants M2/M11 on the #566 merge).
+  const finalAt = src.indexOf("if (view.kind === 'final' && final) {");
+  const liveAt = src.lastIndexOf('<Scoreboard');
+  assert(finalAt > 0 && liveAt > finalAt, 'bye, then final, then the live card');
+  const bye = src.slice(0, finalAt);
+  const final = src.slice(finalAt, liveAt);
+  const live = src.slice(liveAt);
+  // A LIVE week: the priced totals.
+  assert(live.includes("you={{ name: youName, gain: live.me.total }}") && live.includes("opponent={{ name: live.opp?.name ?? '', gain: live.opp?.total ?? 0 }}"), 'the live card shows the priced totals');
+  // A FINAL week: the server's gains and verdict, never the priced totals (they feed the live "leads by" only).
+  assert(!final.includes('.total'), 'no priced total anywhere on a final week');
+  assert(final.includes('<Scoreboard you={{ name: youName, gain: final.me }} opponent={{ name: live.opp?.name ?? \'\', gain: final.opp }} final verdict={final.verdict}'), 'the opponent-less final: the server\'s gains and verdict');
+  const finished = final.slice(final.indexOf('<FinishedWeek'));
+  assert(final.includes('<FinishedWeek') && finished.includes('verdict={final.verdict}'), 'FinishedWeek keeps the server\'s verdict');
+  assert(bye.includes('<Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null}'), 'the bye half too');
   assert(src.includes('{raw && ledgers && (live.me.lineup.length || live.me.unpriced.length) ? ('));
   assert(!src.includes('unpricedNote'), 'the "counted at cost" caption stays gone: the notice replaces it');
 });
