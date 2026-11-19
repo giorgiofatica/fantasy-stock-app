@@ -161,8 +161,11 @@ export interface GainPair {
   money: string;
   /** The signed percent, e.g. "+2.86%". */
   pct: string;
-  /** Both, the percent in brackets: "+$343.59 (+2.86%)". Never a dot between them. */
+  /** Both, the percent in brackets: "+$343.59 (+2.86%)". Never a dot between them. What is SHOWN. */
   text: string;
+  /** Both, comma-joined: "+$343.59, +2.86%". What VoiceOver SAYS (Design Lead, #546: brackets are not
+   * spoken well). The ONE source of a gain pair's speech: every accessibilityLabel uses this, never `text`. */
+  spoken: string;
 }
 
 /** A dollar gain and its own percent, the percent in brackets. The ONE formatter every gain line builds
@@ -171,5 +174,5 @@ export interface GainPair {
 export function formatGainPair(money: number, pct: number): GainPair {
   const m = formatMoney(money, { sign: 'always' });
   const p = formatPercent(pct, { sign: 'always' });
-  return { money: m, pct: p, text: `${m} ${GAIN_PAIR_OPEN}${p}${GAIN_PAIR_CLOSE}` };
+  return { money: m, pct: p, text: `${m} ${GAIN_PAIR_OPEN}${p}${GAIN_PAIR_CLOSE}`, spoken: `${m}, ${p}` };
 }

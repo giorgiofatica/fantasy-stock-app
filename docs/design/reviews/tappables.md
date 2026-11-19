@@ -152,17 +152,17 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/league/MembersSection.tsx:63` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
 | `components/money/HoldingRow.tsx:87` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/LoadFailure.tsx:30` | EmptyState | onAction | `onRetry` | prop onRetry (the caller's) |  |
-| `components/money/PlayerPortfolioScreen.tsx:200` | LoadFailure | onRetry | `inline: () => { void home.refresh(); retry(); }` | fn home.refresh |  |
-| `components/money/PlayerPortfolioScreen.tsx:204` | LoadFailure | onRetry | `retry` | fn retry |  |
-| `components/money/PlayerPortfolioScreen.tsx:231` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
-| `components/money/PlayerPortfolioScreen.tsx:253` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
-| `components/money/PortfolioScreen.tsx:262` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/money/PortfolioScreen.tsx:269` | LoadFailure | onRetry | `inline: () => { void home.refresh(); data.refresh(); }` | fn home.refresh |  |
-| `components/money/PortfolioScreen.tsx:273` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
-| `components/money/PortfolioScreen.tsx:339` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
-| `components/money/PortfolioScreen.tsx:369` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
-| `components/money/PortfolioScreen.tsx:392` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
-| `components/money/PortfolioScreen.tsx:400` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
+| `components/money/PlayerPortfolioScreen.tsx:202` | LoadFailure | onRetry | `inline: () => { seasonEnd.refresh(); retry(); }` | fn seasonEnd.refresh |  |
+| `components/money/PlayerPortfolioScreen.tsx:206` | LoadFailure | onRetry | `retry` | fn retry |  |
+| `components/money/PlayerPortfolioScreen.tsx:233` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
+| `components/money/PlayerPortfolioScreen.tsx:255` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
+| `components/money/PortfolioScreen.tsx:263` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/money/PortfolioScreen.tsx:271` | LoadFailure | onRetry | `inline: () => { seasonEnd.refresh(); data.refresh(); }` | fn seasonEnd.refresh |  |
+| `components/money/PortfolioScreen.tsx:275` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
+| `components/money/PortfolioScreen.tsx:341` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
+| `components/money/PortfolioScreen.tsx:371` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
+| `components/money/PortfolioScreen.tsx:394` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
+| `components/money/PortfolioScreen.tsx:402` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
 | `components/money/SalePicker.tsx:85` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
 | `components/money/SalePicker.tsx:108` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
 | `components/money/SalePicker.tsx:115` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
@@ -178,8 +178,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/StockSheetBody.tsx:544` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
 | `components/money/StockSheetBody.tsx:550` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
 | `components/money/StockSheetBody.tsx:580` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:618` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
-| `components/money/StockSheetBody.tsx:647` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/money/StockSheetBody.tsx:619` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
+| `components/money/StockSheetBody.tsx:648` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/money/TradeHistoryScreen.tsx:134` | SegmentedControl | onChange | `choose` | fn choose |  |
 | `components/money/TradeHistoryScreen.tsx:146` | LoadFailure | onRetry | `ledger.refresh` | prop ledger.refresh |  |
 | `components/money/TradeReviewPanel.tsx:131` | Button | onPress | `onSubmit` | prop onSubmit (the caller's) | `!p.button.enabled` |

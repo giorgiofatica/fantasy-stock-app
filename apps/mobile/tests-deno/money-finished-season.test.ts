@@ -18,6 +18,8 @@ import { playerPortfolio } from '../lib/money/playerPortfolio.ts';
 import { rangeGain } from '../lib/chart/chartRanges.ts';
 import { formatMoney } from '../components/sp/logic/money.ts';
 import type { PortfolioLedger } from '../lib/money/portfolioLedger.ts';
+import { seasonEndEt } from '../lib/money/seasonEnd.ts';
+import { SOURCES } from './sourceManifest.generated.ts';
 
 const DRAFT_AT = '2026-09-01T00:30:00.000Z'; // Mon Aug 31, 8:30 PM ET
 const STAKE = { stakeMode: 'budget_cap' as const, notionalPerSlot: null, numRounds: 2 };
@@ -305,4 +307,35 @@ Deno.test('seasonEndCloses: a stock whose last bar is within 5 sessions of the e
 Deno.test('seasonEndCloses reads only what is on or before the season end, and a weekend end prices on the last session', () => {
   const bars = { NVDA: [{ date: '2026-09-03', close: 5 }, { date: '2026-09-04', close: 6 }, { date: '2026-09-08', close: 99 }] };
   assertEquals(seasonEndCloses(bars, ['NVDA'], '2026-09-06'), { NVDA: 6 }, 'Sun Sep 6 reads Fri Sep 4, never Tue Sep 8');
+});
+
+// ── The finished chart's axis ends at the season's last day, whatever the clock says ─────────────────
+
+Deno.test('a finished chart\'s axis ends at the season\'s last day, not today, with the clock weeks later', () => {
+  // The league's matchups end Fri Sep 25 (the final's week_end, Sep 25 4 PM ET); the season was stamped complete
+  // on Nov 20; today is Dec 31. The last day is the latest SCORED matchup's (team1_gain posted, #555), never
+  // completed_at's, never today.
+  const matchups = [{ week_end: '2026-09-18T20:00:00.000Z', team1_gain: 1.5 }, { week_end: '2026-09-25T20:00:00.000Z', team1_gain: -0.4 }];
+  const endEt = seasonEndEt(matchups, '2026-11-20T15:00:00.000Z');
+  assertEquals(endEt, '2026-09-25');
+  for (const todayEt of ['2026-09-26', '2026-11-18', '2026-12-31']) {
+    const daily = dailyValues({ rows: ROWS, bars: BARS, stake: STAKE, todayEt, endEt });
+    const s = finishedPortfolioSeries({ daily, endEt: endEt! });
+    assertEquals(s.axis, { kind: 'dated', start: '2026-08-31', end: '2026-09-25' }, `today ${todayEt}`);
+  }
+  // With NO matchups read at all, completed_at's ET date is the (only) fallback: a league whose last day is
+  // really that late ends there, by design. A capture fixture with no matchups therefore shows a long axis.
+  assertEquals(seasonEndEt([], '2026-11-20T15:00:00.000Z'), '2026-11-20');
+  assertEquals(seasonEndEt([], null), null);
+});
+
+Deno.test('Portfolio\'s finished branch builds its series and days from the season end, today plays no part', () => {
+  const code = (SOURCES['components/money/PortfolioScreen.tsx'] ?? '').split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+  // The end is the WHOLE league's last scored week (useSeasonEnd, #555), never Home's caller-scoped matchups.
+  assert(code.includes("const endEt = finished && seasonEnd.status === 'ready' ? seasonEnd.endEt : null;"));
+  assert(!code.includes('seasonEndEt(leagueRaw'), 'never the caller-scoped matchups');
+  assert(code.includes('dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt, endEt: chartEnd })'));
+  assert(code.includes('chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd, draftValue })'), 'finished: the series is the season-end one');
+  assert(code.indexOf('finishedPortfolioSeries({ daily, endEt: chartEnd, draftValue })') < code.indexOf('portfolioSeries({ range: shownRange'), 'checked before the live path');
+  assert(!/finishedPortfolioSeries\([^)]*todayEt/.test(code), 'the finished series is never handed todayEt');
 });

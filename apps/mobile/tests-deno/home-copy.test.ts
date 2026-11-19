@@ -5,6 +5,7 @@
  * ThisWeekCard captions.
  * Run: `cd apps/mobile/tests-deno && deno test .`
  */
+import { formatGainPair } from '../components/sp/logic/money.ts';
 import { assertEquals } from 'jsr:@std/assert';
 import {
   heroUnpricedCaption, sideUnpricedCaption, heroAccessibilityLabel, heroWeekOrRoundLabel,
@@ -48,7 +49,7 @@ Deno.test('sideUnpricedCaption: de-duplicates case-insensitively, same as the he
 // ── Hero VoiceOver label (Design Lead ruling, 2026-09-29, Blocking 2) ──────
 
 Deno.test('heroAccessibilityLabel: joins value, gain, today and the caption into ONE sentence-by-sentence label', () => {
-  const label = heroAccessibilityLabel('$12,343.59', '+$343.59', '+2.86%', '+$121.26', '1 holding counted at cost (no live price yet)');
+  const label = heroAccessibilityLabel('$12,343.59', formatGainPair(343.59, 2.86).spoken, '+$121.26', '1 holding counted at cost (no live price yet)');
   assertEquals(
     label,
     'Your team, $12,343.59. +$343.59, +2.86% season gain. +$121.26 today. 1 holding counted at cost (no live price yet)',
@@ -56,7 +57,7 @@ Deno.test('heroAccessibilityLabel: joins value, gain, today and the caption into
 });
 
 Deno.test('heroAccessibilityLabel: omits the today sentence entirely when today is null (non-trading day)', () => {
-  const label = heroAccessibilityLabel('$12,343.59', '+$343.59', '+2.86%', null, null);
+  const label = heroAccessibilityLabel('$12,343.59', formatGainPair(343.59, 2.86).spoken, null, null);
   assertEquals(label, 'Your team, $12,343.59. +$343.59, +2.86% season gain.');
 });
 

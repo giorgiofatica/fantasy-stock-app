@@ -46,7 +46,7 @@ import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
 import { dailyValues, DEFAULT_PORTFOLIO_RANGE, draftValueOf, drawsALine, finishedPortfolioSeries, sinceTheDraftGain, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
-import { seasonEndEt } from '@/lib/money/seasonEnd';
+import { useSeasonEnd } from '@/lib/money/useSeasonEnd';
 import { isSeasonOver } from '@/lib/weekStatus';
 import { PhaseChip } from '@/components/sp/PhaseChip';
 import { asChartRange, rangeGain, selectableRange } from '@/lib/chart/chartRanges';
@@ -99,14 +99,15 @@ export function PortfolioScreen() {
   // The player card's week (Matchup's own read: the week's snapshots, trades and bars) and
   // its slot pill (the league's slots).
   const home = useHomeLeague(MONEY_FIXTURE ? null : activeLeagueId);
-  // A season that is over: the league switcher chip's own source (isSeasonOver), then the season's
-  // last day from this league's matchups (never another league's, mid-switch), completed_at only
-  // when there are none. While Home's read is still in flight the day is unknown (null).
+  // A season that is over: the league switcher chip's own source (isSeasonOver), then the season's last day
+  // from a LEAGUE-WIDE read of the matchups (useSeasonEnd). Home's `matchups` are the CALLER's games only, so a
+  // manager eliminated before the final would freeze early: it is never the source. While the read is in flight
+  // or if it failed the day is unknown (null) and nothing is frozen to a wrong date.
   const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);
-  const leagueRaw = home.raw && home.raw.leagueId === activeLeagueId ? home.raw : null;
-  const homeSettled = leagueRaw != null || home.status === 'error' || home.status === 'no-league';
   const completedAt = sheetLeagues.find((l) => l.id === activeLeagueId)?.seasonCompletedAt ?? null;
-  const endEt = finished && homeSettled ? seasonEndEt(leagueRaw?.data.matchups, completedAt) : null;
+  const leagueRaw = home.raw && home.raw.leagueId === activeLeagueId ? home.raw : null;
+  const seasonEnd = useSeasonEnd(activeLeagueId, finished, completedAt, SEAM_ON || MONEY_FIXTURE ? { rows: leagueRaw?.data.matchups ?? null } : null);
+  const endEt = finished && seasonEnd.status === 'ready' ? seasonEnd.endEt : null;
   const data = usePortfolioData(finished ? { finished: true, endEt } : { finished: false });
   const roster = useRosterData(MONEY_FIXTURE ? null : activeLeagueId, user?.id ?? null, null);
   // The picked range belongs to the league it was picked in: switching league reopens on Season
@@ -264,9 +265,10 @@ export function PortfolioScreen() {
         ) : null}
       </View>
     );
-  } else if (finished && homeSettled && !endEt) {
-    // Over, but no day it ended on could be read (no matchups, no completed_at): never a guessed day.
-    body = <LoadFailure title={COPY.portfolioLoadTitle} message={COPY.loadRetryMessage} onRetry={() => { void home.refresh(); data.refresh(); }} />;
+  } else if (finished && (seasonEnd.status === 'error' || (seasonEnd.status === 'ready' && !endEt))) {
+    // Over, but no day it ended on could be read (the read failed, or no matchups and no completed_at): never a guessed
+    // day, and never the caller's own last game.
+    body = <LoadFailure title={COPY.portfolioLoadTitle} message={COPY.loadRetryMessage} onRetry={() => { seasonEnd.refresh(); data.refresh(); }} />;
   } else if (data.status === 'loading') {
     body = <PortfolioSkeleton />;
   } else if (data.status === 'error' || !data.view) {
@@ -300,7 +302,7 @@ export function PortfolioScreen() {
               </View>
             )}
             {!over && v.todayMoneyText && v.todayPctText ? (
-              <View accessible accessibilityLabel={`${v.todayText} today`}>
+              <View accessible accessibilityLabel={`${v.todaySpoken} today`}>
                 <RollingGainPair
                   money={v.todayMoneyText}
                   pct={v.todayPctText}

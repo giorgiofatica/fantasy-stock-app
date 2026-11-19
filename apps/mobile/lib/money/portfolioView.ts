@@ -76,11 +76,15 @@ export interface PortfolioView {
    * width changes). Null together with gainText. */
   gainMoneyText: string | null;
   gainPctText: string | null;
+  /** The gain pair as VoiceOver says it ("+$481.78, +4.01%"; formatGainPair.spoken). Null with gainText. */
+  gainSpoken: string | null;
   gainTone: 'gain' | 'loss' | 'zero' | null;
   sinceDraftLabel: string;
   todayText: string | null;
   todayMoneyText: string | null;
   todayPctText: string | null;
+  /** Today's pair as VoiceOver says it ("+$121.27, +0.99%"). Null with todayText. */
+  todaySpoken: string | null;
   todayTone: 'gain' | 'loss' | 'zero' | null;
   slotsText: string | null;
   perSlotText: string | null;
@@ -106,6 +110,7 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
   let gainText: string | null = null;
   let gainMoneyText: string | null = null;
   let gainPctText: string | null = null;
+  let gainSpoken: string | null = null;
   let gainTone: PortfolioView['gainTone'] = null;
   // Since the draft: value − stake live; finished, value − the draft-day value (the line's Season gain).
   const basis = finished ? finished.draftValue : i.stake;
@@ -116,6 +121,7 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
     gainMoneyText = pair.money;
     gainPctText = pair.pct;
     gainText = pair.text;
+    gainSpoken = pair.spoken;
     gainTone = toneOf(gain);
   }
 
@@ -123,6 +129,7 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
   let todayText: string | null = null;
   let todayMoneyText: string | null = null;
   let todayPctText: string | null = null;
+  let todaySpoken: string | null = null;
   let todayTone: PortfolioView['todayTone'] = null;
   const held = i.holdings;
   if (!finished && held.length > 0 && held.every((h) => h.price != null && h.prevClose != null && h.prevClose > 0)) {
@@ -136,6 +143,7 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
     todayMoneyText = pair.money;
     todayPctText = pair.pct;
     todayText = pair.text;
+    todaySpoken = pair.spoken;
     todayTone = toneOf(change);
   }
 
@@ -167,11 +175,13 @@ export function buildPortfolioView(i: PortfolioViewInput): PortfolioView {
     gainText,
     gainMoneyText,
     gainPctText,
+    gainSpoken,
     gainTone,
     sinceDraftLabel: COPY.sinceTheDraft,
     todayText,
     todayMoneyText,
     todayPctText,
+    todaySpoken,
     todayTone,
     slotsText: fixed ? COPY.slotsInvested(held.length, i.numRounds) : null,
     perSlotText: fixed && i.perSlotNotional != null ? COPY.perSlotAtDraft(formatMoney(i.perSlotNotional)) : null,
