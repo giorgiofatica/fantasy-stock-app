@@ -128,6 +128,15 @@ function ask(state: ListState, after: string | null, replace: boolean): ListStat
   return { ...state, status: 'loading', pending: { id, after, replace, leagueId: state.leagueId, categoryId: state.categoryId }, failed: null, seq: id };
 }
 
+/**
+ * What the list does when a league's ledger is invalidated (a trade filled or was refused there): re-read its FIRST page, the same
+ * path as pull-to-refresh (the loaded rows stay until the answer lands, no spinner over the list), so a bought stock leaves the list
+ * and a sold one reappears. Another league's invalidation, or a list with no league yet, does nothing.
+ */
+export function invalidationAction(state: ListState, invalidatedLeagueId: string): ListAction | null {
+  return state.leagueId !== null && state.leagueId === invalidatedLeagueId ? { type: 'refresh' } : null;
+}
+
 /** What the fetch effect re-runs on: the in-flight request's id and nothing else (never the league prop, never a cursor). */
 export function fetchKey(state: ListState): number | null {
   return state.pending?.id ?? null;

@@ -8,7 +8,8 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 
 import { seamRpc } from '../game/seamCalls';
-import { fetchKey, initialListState, isFailedRead, listReducer, pageArgs, parsePage, pendingRead, type ListState } from './stocksList';
+import { subscribePortfolioLedgerInvalidation } from '../money/usePortfolioLedger';
+import { fetchKey, initialListState, invalidationAction, isFailedRead, listReducer, pageArgs, parsePage, pendingRead, type ListState } from './stocksList';
 
 export interface StocksList {
   state: ListState;
@@ -35,6 +36,16 @@ export function useStocksList(leagueId: string | null): StocksList {
     lastLeague.current = leagueId;
     dispatch({ type: 'start', categoryId: null, leagueId });
   }, [leagueId]);
+
+  // A trade (a fill, or a refusal that corrects our picture) invalidates its league's ledger: the same signal Portfolio and the sheet
+  // reload on. This list re-reads its first page for ITS league (the pull-to-refresh path: rows stay until the answer lands), so a
+  // bought stock leaves the list and a sold one reappears. Another league's trade does nothing.
+  useEffect(() => {
+    return subscribePortfolioLedgerInvalidation((invalidated) => {
+      const action = invalidationAction(stateRef.current, invalidated);
+      if (action) dispatch(action);
+    });
+  }, []);
 
   // The fetch is keyed on the in-flight request's id ALONE (fetchKey) and reads that request's own league, category and cursor
   // (pendingRead). It does not depend on the league prop: a league switch mid-load changes the prop BEFORE the new 'start' lands,

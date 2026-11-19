@@ -11,6 +11,7 @@ import {
   chipScrollTarget,
   chipsFrom,
   fetchKey,
+  invalidationAction,
   pendingRead,
   controlReducer,
   initialListState,
@@ -370,4 +371,62 @@ Deno.test('more / retry / refresh ask for the list\'s own league', () => {
   // A refresh asks for the FIRST page again even though the list already holds a cursor: the read is the request's own `after`.
   assertEquals(pendingRead(s), { id: s.pending!.id, leagueId: 'A', categoryId: null, after: null });
   assertEquals(s.cursor, 'X3', 'the list still holds its cursor while the refresh is in flight');
+});
+
+// ── a trade in the list's league re-reads the first page; the bought stock is gone (Copilot, #563, review 2) ──
+
+Deno.test('a trade invalidation for the list\'s league dispatches ONE first-page refresh; another league\'s, or none yet, nothing', () => {
+  const s = settle(initialListState(null, 'A'), ['MSFT', 'GOOGL'], true);
+  assertEquals(invalidationAction(s, 'A'), { type: 'refresh' });
+  assertEquals(invalidationAction(s, 'B'), null, 'another league\'s trade does nothing');
+  assertEquals(invalidationAction(initialListState(null, null), 'A'), null, 'no league yet: nothing to re-read');
+});
+
+Deno.test('after a trade in league A the list issues exactly ONE read: A\'s first page, no cursor; league B\'s trade issues none', () => {
+  const states: ListState[] = [];
+  let s = initialListState(null, 'A');
+  states.push(s);
+  s = settle(s, ['MSFT', 'GOOGL'], true);
+  states.push(s);
+  s = listReducer(s, { type: 'more' });
+  states.push(s);
+  s = settle(s, ['AVGO'], true);
+  states.push(s); // two pages loaded, cursor 'AVGO'
+  const beforeReads = simulateEffect(states).length;
+  // League B trades: nothing happens.
+  const other = invalidationAction(s, 'B');
+  assertEquals(other, null);
+  // League A trades: one refresh.
+  const act = invalidationAction(s, 'A');
+  assertEquals(act, { type: 'refresh' });
+  s = listReducer(s, act!);
+  states.push(s);
+  const reads = simulateEffect(states);
+  assertEquals(reads.length - beforeReads, 1, 'exactly one more read');
+  assertEquals(reads[reads.length - 1], { leagueId: 'A', categoryId: null, after: null }, 'the first page, no cursor');
+});
+
+Deno.test('the bought symbol is gone after the refresh (and a sold one is back); the rows stay on screen until the answer lands', () => {
+  let s = settle(initialListState(null, 'A'), ['MSFT', 'GOOGL', 'AVGO'], true);
+  s = listReducer(s, invalidationAction(s, 'A')!);
+  assertEquals(s.rows.map((r) => r.symbol), ['MSFT', 'GOOGL', 'AVGO'], 'no flash: the rows stay while the read is in flight');
+  assertEquals(listView(s, s.rows.length), { kind: 'rows', foot: 'none' }, 'no spinner or skeleton over the list');
+  // The server answers WITHOUT MSFT (bought): it is gone.
+  s = settle(s, ['GOOGL', 'AVGO', 'BRK.B'], true);
+  assertEquals(s.rows.map((r) => r.symbol), ['GOOGL', 'AVGO', 'BRK.B']);
+  assertEquals(s.rows.some((r) => r.symbol === 'MSFT'), false);
+  // A later sell: MSFT reappears at its size order.
+  s = listReducer(s, invalidationAction(s, 'A')!);
+  s = settle(s, ['MSFT', 'GOOGL', 'AVGO'], true);
+  assertEquals(s.rows[0].symbol, 'MSFT');
+});
+
+Deno.test('a trade while a page is in flight re-reads the first page and drops the in-flight page\'s answer (by id)', () => {
+  let s = settle(initialListState(null, 'A'), ['MSFT'], true);
+  s = listReducer(s, { type: 'more' });
+  const inFlight = s.pending!.id;
+  s = listReducer(s, invalidationAction(s, 'A')!);
+  assertEquals(s.pending?.after, null);
+  const late = listReducer(s, { type: 'loaded', id: inFlight, page: parsePage(data(['ZZZ'], false))! });
+  assertEquals(late, s, 'the stale page cannot land');
 });

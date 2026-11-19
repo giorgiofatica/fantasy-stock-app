@@ -156,3 +156,13 @@ Deno.test('P2: the selected chip is scrolled into view (chipScrollTarget), from 
   assertMatch(screen, /onLayout=\{\(e\) => onPlace\(e\.nativeEvent\.layout\.x, e\.nativeEvent\.layout\.width\)\}/);
   assertMatch(screen, /useEffect\(\(\) => \{\s*reveal\(\);\s*\}, \[reveal\]\);/);
 });
+
+Deno.test('the list re-reads after a trade: it subscribes to the EXISTING ledger invalidation for its own league and dispatches the refresh', () => {
+  const hook = SOURCES['lib/stocks/useStocksList.ts'];
+  assertMatch(hook, /import \{ subscribePortfolioLedgerInvalidation \} from '\.\.\/money\/usePortfolioLedger';/);
+  assertMatch(hook, /return subscribePortfolioLedgerInvalidation\(\(invalidated\) => \{\s*const action = invalidationAction\(stateRef\.current, invalidated\);\s*if \(action\) dispatch\(action\);/);
+  const ledger = SOURCES['lib/money/usePortfolioLedger.ts'];
+  assertMatch(ledger, /export function subscribePortfolioLedgerInvalidation\(listener: \(leagueId: string\) => void\): \(\) => void \{\s*return ledgerCache\.subscribe\(listener\);/);
+  // The signal is the one the trade hook already raises on a fill or a refusal.
+  assertMatch(SOURCES['lib/money/useTradeSubmit.ts'], /if \(outcome\.kind === 'ok' \|\| outcome\.kind === 'refused'\) invalidatePortfolioLedger\(body\.league_id\);/);
+});
