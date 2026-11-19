@@ -31,6 +31,7 @@ import gainLineSrc from '../components/sp/gn/RangeGainLine.tsx' with { type: 'te
 import stockChartSrc from '../components/money/StockChart.tsx' with { type: 'text' };
 import stockSheetSrc from '../components/money/StockSheetBody.tsx' with { type: 'text' };
 import portfolioSrc from '../components/money/PortfolioScreen.tsx' with { type: 'text' };
+import gainPairSrc from '../components/money/RollingGainPair.tsx' with { type: 'text' };
 import cardSrc from '../components/sp/gn/PlayerCard.tsx' with { type: 'text' };
 
 const SIX = ['1W', '1M', '3M', '6M', 'Season', 'YTD'];
@@ -273,12 +274,16 @@ Deno.test('(d) a loss reads −$ and −%, in the loss tone; the tone IS the lin
   assertEquals([flat.tone, flat.money, flat.pct], ['zero', 0, 0]);
 });
 
-Deno.test('(d) the gain line colours its WHOLE line by the sign (the same colors[tone] the Chart strokes with)', () => {
+Deno.test('(d) the gain line colours its NUMBERS by the sign (the same colors[tone] the Chart strokes with); its words are grey', () => {
   assert(strip(gainLineSrc).includes('const color = colors[gain.tone];'));
   assert(strip(chartSrc).includes('const tone = toneOverride ?? lineTone(points, base);') && strip(chartSrc).includes('const lineColor = colors[tone];'));
-  // The words are in the gain colour too (the whole line), figures and brackets alike.
-  const g = strip(gainLineSrc);
-  assertEquals((g.match(/color=\{color\}/g) ?? []).length, 5, 'both numbers, both brackets and the words');
+  // Word colour (Giorgio, 2026-11-18, pick A): the line hands its colour to RollingGainPair, which gives it
+  // to the two numbers and the percent's two brackets ONLY; the words are the app's grey, regular weight.
+  assert(strip(gainLineSrc).includes('color={color}') && strip(gainLineSrc).includes('words={text.keptWords}'));
+  const g = strip(gainPairSrc);
+  assertEquals((g.match(/color=\{color\}/g) ?? []).length, 4, 'both numbers and both brackets, never the words');
+  const words = g.slice(g.indexOf('{words ? ('));
+  assert(/tone="secondary"/.test(words) && !/color=\{/.test(words) && /regular\b/.test(words), 'the words: grey token, regular weight');
 });
 
 Deno.test('(e) the break rule: the figures are one non-wrapping run, the period phrase another, one break between', () => {
@@ -289,13 +294,13 @@ Deno.test('(e) the break rule: the figures are one non-wrapping run, the period 
     assert(!t.keptWords.includes(' ') && t.keptWords.replaceAll(NBSP, ' ') === RANGE_WORDS[range], `${range}: the phrase never breaks`);
     assertEquals(t.figures.replace(' (', ' ('), `${t.money} (${t.pct})`);
   }
-  // The component: [nowrap group: money, " (", percent, ")"] then the phrase, in a wrapping row, so the
-  // only break is between the two groups. The gap before the bracket and before the phrase is a
+  // The component (RollingGainPair): [nowrap group: money, " (", percent, ")"] then the phrase, in a wrapping
+  // row, so the only break is between the two groups. The gap before the bracket and before the phrase is a
   // no-break space, so neither can start a line.
-  const src = strip(gainLineSrc);
+  const src = strip(gainPairSrc);
   assert(/row: \{ flexDirection: 'row', flexWrap: 'wrap'/.test(src) && /nowrap: \{ flexDirection: 'row'/.test(src) && !/flexWrap: 'wrap'[^}]*nowrap/.test(src));
-  assert(src.includes('{`${NBSP}(`}') && src.includes('{`${NBSP}${text.keptWords}`}'));
-  assert(src.indexOf('<View style={styles.nowrap}>') < src.indexOf('text={text.money}') && src.indexOf('text={text.pct}') < src.indexOf('text.keptWords'));
+  assert(src.includes('{`${NBSP}${GAIN_PAIR_OPEN}`}') && src.includes('{`${NBSP}${words}`}'));
+  assert(src.indexOf('<View style={styles.nowrap}>') < src.indexOf('text={money}') && src.indexOf('text={pct}') < src.indexOf('{words ? ('));
 });
 
 Deno.test('(f) the gain follows the range: tapping a pill changes the line, the gain and the axis together (one source)', () => {
@@ -315,7 +320,7 @@ Deno.test('(f) the gain follows the range: tapping a pill changes the line, the 
   // The component renders all three from ONE `range` (gain, chart, drawKey, pills).
   const src = strip(stockChartSrc);
   assert(src.includes('<RangeGainLine range={range} gain={gain} rollKey={`${symbol}-${range}`} />') && src.includes('drawKey={`${symbol}-${range}`}') && src.includes('value={range}'));
-  assert(strip(portfolioSrc).includes('<RangeGainLine range={shownRange} gain={gain} rollKey={`${rollKey}-${shownRange}`} />') && strip(portfolioSrc).includes('drawKey={shownRange}'));
+  assert(strip(portfolioSrc).includes('<RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} />') && strip(portfolioSrc).includes('drawKey={gainRange}'));
 });
 
 Deno.test('(f) the gain is measured from the range\'s first value to the LIVE value (the end of the drawn line)', () => {
@@ -381,12 +386,12 @@ Deno.test('no chart has a dotted or base line: Chart takes no showBase, nothing 
 // ── (Design Lead gate P2-2) the range gain rolls on a quote refresh; a pill tap swaps it at once ─────
 
 Deno.test('the range gain rolls its two numbers (RollingMoney) and a pill tap never rolls: the roll key carries the range', () => {
-  const g = strip(gainLineSrc);
+  const g = strip(gainPairSrc);
   assertEquals((g.match(/<RollingMoney /g) ?? []).length, 2, 'money and percent, each their own rolling figure');
-  assert(g.includes('rollKey={rollKey}'));
+  assert(g.includes('rollKey={rollKey}') && strip(gainLineSrc).includes('rollKey={rollKey}'));
   // RollingMoney diffs against ITSELF when its key changes (no roll): the key must change with the range.
   assert(strip(stockChartSrc).includes('rollKey={`${symbol}-${range}`}'));
-  assert(strip(portfolioSrc).includes('rollKey={`${rollKey}-${shownRange}`}'));
+  assert(strip(portfolioSrc).includes('rollKey={`${rollKey}-${gainRange}`}'));
 });
 
 // ── (Design Lead gate P2-3) one disabled look ───────────────────────────────────────────────
@@ -400,22 +405,24 @@ Deno.test('a grey pill is the app\'s one disabled look: 50% opacity, as Stepper 
 
 // ── (Design Lead gate P2-1) Portfolio's today line ──────────────────────────────────────────
 
-Deno.test('Portfolio\'s today line: "+$121.27 (+0.99%) today" in the bracket format, the WHOLE line in the gain colour', () => {
+Deno.test('Portfolio\'s today line: "+$121.27 (+0.99%) today" in the bracket format; the numbers take the gain colour, "today" is grey', () => {
   const src = strip(portfolioSrc);
-  const hero = src.slice(src.indexOf('function HeroLine'), src.indexOf('const styles = StyleSheet.create'));
-  assert(hero.includes("{'\\u00a0('}") && hero.includes('>)</Text>'), 'a bracket around the percent');
-  assert(!hero.includes('·'), 'no dot between the numbers');
-  assert(!/tone="secondary"/.test(hero), '"today" is not grey: it takes the line\'s colour');
-  assertEquals((hero.match(/color=\{color\}/g) ?? []).length, 5, 'both numbers, both brackets, the word');
-  assert(src.includes('label={`${v.todayMoneyText} (${v.todayPctText}) today`}'), 'VoiceOver says it in the same order');
+  assert(!src.includes('function HeroLine'), 'the line is RollingGainPair, shared, not a Portfolio copy');
+  assert(src.includes('<RollingGainPair') && src.includes('words="today"'));
+  assert(src.includes('accessibilityLabel={`${v.todayText} today`}'), 'VoiceOver says it in the same order (todayText is the bracket format)');
   assert(src.includes('color={toneColor(colors, v.todayTone)}'), 'the colour is the sign\'s (zero is the neutral grey)');
+  const pair = strip(gainPairSrc);
+  assert(pair.includes('GAIN_PAIR_OPEN') && pair.includes('GAIN_PAIR_CLOSE'), 'a bracket around the percent');
+  assert(!pair.includes('·'), 'no dot between the numbers');
 });
 
 Deno.test('the card passes its lots to the chart (P/L gain, the line coloured by it); the stock sheet stays per share', () => {
   assert(strip(cardSrc).includes('lots={lots}'));
   assert(!/lots=/.test(strip(stockSheetSrc)), 'the sheet draws per share');
   const src = strip(stockChartSrc);
-  assert(src.includes('holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, todayEt, seasonStart), base: series.base, price })'));
+  // A live season measures to today's price (todayEt, `price`); a finished one to its frozen end price (gainPrice).
+  assert(src.includes('holdingRangeGain({ lots, start: rangeFirstDay(range, series.axis, frozen ? endEt! : todayEt, seasonStart), base: series.base, price: gainPrice })'));
+  assert(src.includes('const gainPrice = frozen ? frozen.endPrice : price;'));
   assert(src.includes('const gain = ready ? holding ?? rangeGain(series.points, series.base) : null;'));
   assert(src.includes('tone={holding ? holding.tone : undefined}'), 'the colour follows the gain line when it is the holding\'s P/L');
 });

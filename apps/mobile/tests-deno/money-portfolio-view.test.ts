@@ -101,14 +101,14 @@ Deno.test('a stock in a tier slot shows its slot label; a stock in no slot shows
 // todayMoneyText/todayPctText are the SAME combined text split in two, so
 // RollingMoney can roll each figure on its own (a single composite string
 // rolls badly -- digitDiff right-aligns for one value, not a sentence).
-Deno.test('the gain splits into money + percent, joined with the same separator as gainText', () => {
+Deno.test('the gain splits into money + percent, the same pair gainText reads, the percent in brackets', () => {
   const v = view();
-  assertEquals(`${v.gainMoneyText} · ${v.gainPctText}`, v.gainText);
+  assertEquals(`${v.gainMoneyText} (${v.gainPctText})`, v.gainText);
 });
 
-Deno.test('today splits into money + percent, joined with the same separator as todayText', () => {
+Deno.test('today splits into money + percent, the same pair todayText reads, the percent in brackets', () => {
   const v = view();
-  assertEquals(`${v.todayMoneyText} · ${v.todayPctText}`, v.todayText);
+  assertEquals(`${v.todayMoneyText} (${v.todayPctText})`, v.todayText);
 });
 
 Deno.test('no stake: gainText and its split parts are all null together', () => {

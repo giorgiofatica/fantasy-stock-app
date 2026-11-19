@@ -50,15 +50,16 @@ Deno.test('before the draft, the countdown is the one big number (score.xl); the
 
 // ── The hero is unchanged ──────────────────────────────────────────────────
 
-Deno.test('the hero sub-line is unchanged: "+$X · +Y% season gain · +$Z today"', () => {
+Deno.test('the hero sub-line: "+$X (+Y%) season gain · +$Z today", the brackets with the percent', () => {
   assertEquals(HERO_SEASON_GAIN_LABEL, 'season gain');
   assertEquals(HERO_TODAY_LABEL, 'today');
   const hero = SOURCES['components/home/HomeHero.tsx'];
   // Game Night (the board's HeroText): the numbers at 700 in their sign's colour, the words at 500 in text2.
   const subLine = [
     '<RollingMoney text={gainDollarsText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />',
-    '<Text variant="callout" style={{ color: gainColor, fontWeight: \'700\' }}> · </Text>',
+    '<Text variant="callout" style={{ color: gainColor, fontWeight: \'700\' }}> {GAIN_PAIR_OPEN}</Text>',
     '<RollingMoney text={gainPctText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />',
+    '<Text variant="callout" style={{ color: gainColor, fontWeight: \'700\' }}>{GAIN_PAIR_CLOSE}</Text>',
     '<Text variant="callout" tone="secondary"> {HERO_SEASON_GAIN_LABEL}</Text>',
     '<Text variant="callout" tone="secondary"> · </Text>',
     '<RollingMoney text={todayText} size="callout" color={todayColor} rollKey={leagueId} fontWeight="700" />',

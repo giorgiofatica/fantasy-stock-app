@@ -90,6 +90,19 @@ export function getSeasonPhase(
   return 'regular';
 }
 
+/**
+ * The ONE "season over" predicate (finished-season Portfolio, Giorgio 2026-11-18, pick A): the league
+ * switcher's own chip source, getSeasonPhase, read as 'completed'. Every finished-season branch keys on
+ * this, never on its own `season_status ===` check, so the chip and the screens can't disagree.
+ */
+export function isSeasonOver(
+  league: League | null,
+  now: Date = new Date(),
+  marketCalendar: MarketCalendarSession[] = [],
+): boolean {
+  return getSeasonPhase(league, now, marketCalendar) === 'completed';
+}
+
 /** True for any phase that precedes the ordinary regular/playoffs/completed
  * season lifecycle — shared by getWeekStatus (to force status='upcoming')
  * and by screens that need to branch their own rendering on the same
@@ -187,18 +200,23 @@ export function formatSignedCurrency(value: number): string {
 }
 
 /** Whether the server would accept a trade for a league in this phase.
- * Mirrors supabase/functions/record-trade/index.ts's own gate exactly — it
+ * Mirrors supabase/functions/record-trade/gate.ts's phase-level gate: it
  * refuses every buy/sell with `draft_not_completed` unless
  * `league.draft_status === 'completed'` (the only write path for trades;
  * the client-side INSERT policy on `trades` was dropped in
- * 20260811000002_trades_drop_direct_client_insert.sql). 'pre_season' is
- * `completed` with a future `league_start_date`, so trading is allowed
- * there — the draft itself is done, the server has no separate "season
- * hasn't started yet" check, and pre-season roster changes are a real,
- * currently-supported use case. Keep this in sync with that function if its
+ * 20260811000002_trades_drop_direct_client_insert.sql), and with
+ * `season_completed` once the season is over (Giorgio, 2026-11-18: "A finished
+ * season is closed to buying and selling"), which is this file's 'completed'
+ * phase. 'pre_season' is `completed` with a future `league_start_date`, so
+ * trading is allowed there — the draft itself is done, the server has no
+ * separate "season hasn't started yet" check, and pre-season roster changes
+ * are a real, currently-supported use case.
+ * NOT mirrored: the server's by-DATE check (now is past the schedule's last
+ * `week_end`, before season_status flips); a phase cannot express it, so the
+ * server alone refuses that gap. Keep this in sync with gate.ts if its
  * gate ever changes. */
 export function canTradeInPhase(phase: SeasonPhase): boolean {
-  return phase !== 'pre_draft' && phase !== 'drafting';
+  return phase !== 'pre_draft' && phase !== 'drafting' && phase !== 'completed';
 }
 
 /** "Week 1 starts Mon, Sep 28" (T0's day, see seasonStartInstant) — the pre_season Matchup tab's headline for

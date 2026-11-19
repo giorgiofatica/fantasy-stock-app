@@ -9,6 +9,10 @@
  * W4: the bars read now starts at the draft and covers every stock ever held (the same one
  * request, wider), so it also feeds the value line (portfolioChart) and each player card's
  * season line, with no new request.
+ *
+ * A season that is over (Giorgio, 2026-11-18, pick A): the daily bars are the ONLY read (no
+ * quote, no preview). The value, the gain and every holding are priced at the closes on or before
+ * the season's last day, so the screen is the same whenever it is opened.
  */
 import { useCallback, useEffect, useState } from 'react';
 
@@ -16,8 +20,8 @@ import { useLeagueContext } from '@/lib/LeagueContext';
 import { useSession } from '@/lib/SessionProvider';
 
 import { readPriceMarks } from './priceReads';
-import { portfolioHoldings, portfolioSummary } from './portfolioModel';
-import { buildPortfolioView, type PortfolioView, type ViewHolding } from './portfolioView';
+import { portfolioHoldings } from './portfolioModel';
+import type { PortfolioView } from './portfolioView';
 import { usePortfolioLedger } from './usePortfolioLedger';
 import { fetchPreview } from './recordTrade';
 import { previewBody } from './tradeBodies';
@@ -28,8 +32,9 @@ import { buildStressMarket, stressChartBars, STRESS_CALLER, STRESS_LEAGUE_NAME }
 import { FIXTURE_LEAGUE_ID, fixtureLeague } from './fixtureMode';
 import { budgetLeftOf, effectiveBudgetCap, userCashSpentFromLedger } from './budgetFigures';
 import { draftDateOf, type ChartActivityRow, type ChartStake } from './portfolioChart';
+import { teamPortfolioView } from './teamPortfolioView';
 import { seamBars, seamOpenSales, seamPortfolioLeague, seamQuote } from './portfolioSeam';
-import { CAPTURE_LOSS, MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM_ON } from '../game/devSeam';
+import { CAPTURE_LOSS, CAPTURE_SEASON_LATER, MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM_ON } from '../game/devSeam';
 import { HOME_FIXTURE } from '../home/devFixture';
 import type { DailyBar } from './prevClose';
 import type { BuyRowInput } from './buyRowLine';
@@ -42,8 +47,10 @@ export interface PortfolioChartInputs {
   stake: ChartStake;
   /** The draft's instant (the 1W line starts there in a season drafted this week). */
   draftAt: string | null;
-  /** The header's value: the line's live end. */
-  liveValue: number;
+  /** The header's value: the line's live end. Null in a finished season (no live point). */
+  liveValue: number | null;
+  /** A finished season's last day (the line ends there); null for a live season. */
+  endEt: string | null;
 }
 
 export interface PortfolioData {
@@ -75,7 +82,14 @@ function settingsOf(activeLeague: { stake_mode: string | null; notional_per_slot
   };
 }
 
-export function usePortfolioData(): PortfolioData {
+/** Which season Portfolio reads: a live one, or one that is over and ends on `endEt` (null: that day
+ * isn't known yet, so the screen holds its own loading or failure state). */
+export type PortfolioSeason = { finished: false } | { finished: true; endEt: string | null };
+const LIVE_SEASON: PortfolioSeason = { finished: false };
+
+export function usePortfolioData(season: PortfolioSeason = LIVE_SEASON): PortfolioData {
+  const finished = season.finished;
+  const endEt = season.finished ? season.endEt : null;
   const { user, loading: sessionLoading } = useSession();
   const { activeLeague, loading: leaguesLoading } = useLeagueContext();
   // Key on primitives, not the league object: a LeagueContext refresh that rebuilds
@@ -117,6 +131,11 @@ export function usePortfolioData(): PortfolioData {
       setState({ ...EMPTY, status: 'error', leagueName });
       return;
     }
+    // A finished season whose last day isn't known yet: nothing can be valued (the screen says why).
+    if (finished && !endEt) {
+      setState((cur) => (cur.status === 'loading' ? cur : { ...EMPTY, status: 'loading', leagueName }));
+      return;
+    }
 
     const ledger = ledgerState.ledger;
     let cancelled = false;
@@ -155,24 +174,28 @@ export function usePortfolioData(): PortfolioData {
       const prevCloses: Record<string, number> = {};
       const bars: Record<string, DailyBar[]> = {};
       if (market) {
-        for (const [sym, p] of Object.entries(market.prices)) prices[sym] = p;
-        for (const [sym, p] of Object.entries(market.prevCloses)) prevCloses[sym] = p;
+        // A finished season never reads a live price (the stress market's included).
+        if (!finished) {
+          for (const [sym, p] of Object.entries(market.prices)) prices[sym] = p;
+          for (const [sym, p] of Object.entries(market.prevCloses)) prevCloses[sym] = p;
+        }
         for (const sym of everHeld) bars[sym] = stressChartBars(sym);
       } else if (SEAM_ON) {
         // The capture seam: the Matchup fixture's quotes and daily paths, no network.
         for (const sym of everHeld) {
-          const q = seamQuote(sym, MATCHUP_FIXTURE_VARIANT, { homeFixture: HOME_FIXTURE, loss: CAPTURE_LOSS });
+          const q = finished ? null : seamQuote(sym, MATCHUP_FIXTURE_VARIANT, { homeFixture: HOME_FIXTURE, loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER });
           if (q) {
             prices[sym] = q.price;
             prevCloses[sym] = q.prevClose;
           }
-          bars[sym] = seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS });
+          bars[sym] = seamBars(sym, MATCHUP_FIXTURE_VARIANT, { loss: CAPTURE_LOSS, later: CAPTURE_SEASON_LATER });
         }
       } else {
         // priceReads.readPriceMarks: the same quote + daily-bars read the stock sheet uses
         // (shared, error-checked the same way — a failed read leaves its marks empty, never $0),
-        // widened to every stock ever held since the draft for the value line.
-        const marks = await readPriceMarks(symbols, new Date(), { barsSymbols: everHeld, barsStart: draftDate });
+        // widened to every stock ever held since the draft for the value line. A finished season
+        // reads the bars alone (barsOnly: no quote request at all).
+        const marks = await readPriceMarks(symbols, new Date(), { barsSymbols: everHeld, barsStart: draftDate, barsOnly: finished });
         requests += marks.requests;
         Object.assign(prices, marks.prices);
         Object.assign(prevCloses, marks.prevCloses);
@@ -186,7 +209,9 @@ export function usePortfolioData(): PortfolioData {
       let slotLabels: Record<string, string> = {};
       let sales: BuyRowInput['sales'] = [];
       let openSlotLabels: string[] = [];
-      if (SEAM_ON) {
+      if (finished) {
+        // Nothing to buy in a finished season, and no slot labels to show: no preview read.
+      } else if (SEAM_ON) {
         sales = seamOpenSales(ledger, callerId);
       } else if (!market && leagueId) {
         requests += 1;
@@ -211,30 +236,22 @@ export function usePortfolioData(): PortfolioData {
       const budgetLeft = cap == null ? null : budgetLeftOf(cap, cashSpent);
       const rosterFull = holdings.length >= numRounds;
 
-      const price = (sym: string) => prices[sym] ?? null;
       const stake: ChartStake = { stakeMode, notionalPerSlot: notional, numRounds };
-      const summary = portfolioSummary({ ...stake, drafts: costDrafts, trades: costTrades, price });
-
-      const viewHoldings: ViewHolding[] = holdings.map((h) => ({
-        symbol: h.symbol,
-        quantity: h.quantity,
-        costBasis: h.costBasis,
-        price: price(h.symbol),
-        prevClose: prevCloses[h.symbol] ?? null,
-        name: ledger.symbol_names[h.symbol] ?? null,
-      }));
-
-      const view = buildPortfolioView({
-        value: summary.value,
-        cash: summary.cash,
-        stake: summary.stake,
-        holdings: viewHoldings,
-        numRounds,
-        perSlotNotional: notional,
-        stakeMode,
+      // teamPortfolioView: live, the quote; finished, the closes on or before the season's last day
+      // (it never reads `prices` then, and `prices` is empty anyway: no quote was read).
+      const team = teamPortfolioView({
+        drafts: costDrafts,
+        trades: costTrades,
+        chartRows,
+        names: ledger.symbol_names,
+        stake: { ...stake, numRounds },
+        live: { prices, prevCloses },
+        bars,
+        endEt: finished ? endEt : null,
         slotLabels,
         buyRow: { stakeMode, sales, budgetLeft, rosterFull, openSlotLabels },
       });
+      const view = team.view;
       const firstDraft = mine.filter((a) => a.kind === 'draft').map((a) => a.occurred_at).sort()[0] ?? null;
 
       if (__DEV__) {
@@ -243,7 +260,7 @@ export function usePortfolioData(): PortfolioData {
       setState({
         status: 'ready',
         view,
-        chart: { rows: chartRows, bars, stake, draftAt: firstDraft, liveValue: summary.value },
+        chart: { rows: chartRows, bars, stake, draftAt: firstDraft, liveValue: team.liveValue, endEt: finished ? endEt : null },
         prices,
         requestCount: requests,
         leagueName,
@@ -254,7 +271,7 @@ export function usePortfolioData(): PortfolioData {
       cancelled = true;
     };
     // `tick` re-runs the price reads on Try again.
-  }, [leagueId, leagueName, stakeMode, notional, numRounds, budgetAmount, userId, sessionLoading, leaguesLoading, ledgerState.status, ledgerState.ledger, ledgerState.fetchedNow, tick]);
+  }, [leagueId, leagueName, stakeMode, notional, numRounds, budgetAmount, userId, sessionLoading, leaguesLoading, ledgerState.status, ledgerState.ledger, ledgerState.fetchedNow, tick, finished, endEt]);
 
   return { ...state, refresh };
 }

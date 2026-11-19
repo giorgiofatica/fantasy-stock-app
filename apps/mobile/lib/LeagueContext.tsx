@@ -177,8 +177,8 @@ async function fetchSheetFacts(userId: string, leagueData: League[]) {
     supabase.rpc('get_home_summary'),
     supabase.from('league_members').select('league_id').in('league_id', ids),
     seasonIds.length
-      ? supabase.from('league_seasons').select('id, champion_user_id').in('id', seasonIds)
-      : Promise.resolve({ data: [] as { id: string; champion_user_id: string | null }[], error: null }),
+      ? supabase.from('league_seasons').select('id, champion_user_id, completed_at').in('id', seasonIds)
+      : Promise.resolve({ data: [] as { id: string; champion_user_id: string | null; completed_at: string | null }[], error: null }),
     supabase.rpc('market_session_status'),
     supabase.from('market_calendar').select('session_date, open_et, close_et'),
   ]);
@@ -195,8 +195,12 @@ async function fetchSheetFacts(userId: string, leagueData: League[]) {
   }
 
   const championBySeason = new Map<string, string | null>();
+  const completedAtBySeason = new Map<string, string | null>();
   if (seasons.error) console.warn('[leagues] season results failed', seasons.error.message);
-  else for (const s of seasons.data ?? []) championBySeason.set(s.id, s.champion_user_id);
+  else for (const s of seasons.data ?? []) {
+    championBySeason.set(s.id, s.champion_user_id);
+    completedAtBySeason.set(s.id, s.completed_at ?? null);
+  }
 
   // 'unknown' (calendar gap) or a failed read shows the league as Closed:
   // claiming "Live" without evidence the market is open would be the lie.
@@ -217,7 +221,8 @@ async function fetchSheetFacts(userId: string, leagueData: League[]) {
   const sheet = leagueData.map<SheetLeague>((league) => {
     // U1: the phase boundary is T0 (week 1's first calendar open), so pass
     // the calendar this same fetch just read. Every reader of seasonPhase
-    // (the sheet, PhaseChip, the trade gate's canTradeInPhase) inherits it.
+    // (the sheet, PhaseChip, the finished-season screens via isSeasonOver) inherits it.
+    // (canTradeInPhase mirrors the server's phase gates but has no UI caller yet.)
     const phase = getSeasonPhase(league, new Date(), marketCalendar);
     const row = summaryByLeague.get(league.id);
     return {
@@ -233,6 +238,7 @@ async function fetchSheetFacts(userId: string, leagueData: League[]) {
       membersJoined: memberCounts ? memberCounts.get(league.id) ?? 0 : null,
       capacity: league.num_participants,
       isChampion: !!league.current_season_id && championBySeason.get(league.current_season_id) === userId,
+      seasonCompletedAt: league.current_season_id ? completedAtBySeason.get(league.current_season_id) ?? null : null,
       seasonLabel: getSeasonLabel(phase, league, marketCalendar),
       leagueType: league.league_type ?? null,
       currentWeek: league.current_week,

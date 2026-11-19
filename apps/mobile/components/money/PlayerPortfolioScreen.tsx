@@ -13,6 +13,10 @@
  * dead tap. Only league members can read a member's team: the league ledger
  * (get_portfolio_ledger, INVOKER + is_member) lists current members only, so a member who left,
  * a missing league and a failed read all land on the same "didn't load" + Try again.
+ *
+ * A league whose season is OVER (the Design Lead's spec, matching Portfolio's pick A): the Final chip
+ * beside "Portfolio value", their value and "since the draft" at the season's last day, no today line,
+ * no cash, and the holdings at season-end values under a "Value" header. Still no chart.
  */
 import React, { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -27,6 +31,7 @@ import { useSheetScrollEdge } from '@/components/shell/useSheetScrollEdge';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { HoldingRow, ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { PortfolioSkeleton } from '@/components/money/PortfolioSkeleton';
+import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
 import type { ThemeColors } from '@/constants/tokens/color';
 import { MONEY_FIXTURE } from '@/lib/money/devFixture';
@@ -38,6 +43,7 @@ import { memberSnapshots, memberTrades } from '@/lib/game/memberWeek';
 import { cardSlotPill, etDateOf, weekSessions } from '@/lib/game/matchupRoster';
 import { openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
 import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
+import { seasonEndCloses } from '@/lib/money/portfolioChart';
 import { mondayOf } from '@/lib/money/portfolioChart';
 import { decideTradeGate } from '@/lib/money/tradeGate';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
@@ -55,10 +61,12 @@ import { isDeletedSeatName } from '@/lib/account/deletedSeat';
 import { canFindNewManager } from '@/lib/account/findManager';
 import { useFindNewManager } from '@/lib/account/useFindNewManager';
 import { JOIN_COPY } from '@/lib/join/joinPreview';
+import { PhaseChip } from '@/components/sp/PhaseChip';
+import { seasonEndEt } from '@/lib/money/seasonEnd';
+import { isSeasonOver } from '@/lib/weekStatus';
 
 /** The hero's sub-lines follow Dynamic Type to 1.3× (the value stays the standout), as Portfolio's do. */
 const HERO_LINE_MAX_SCALE = 1.3;
-const NBSP = '\u00a0';
 
 /** gain/loss/zero -> its theme colour (the Portfolio hero's own mapping). */
 function toneColor(colors: ThemeColors, tone: 'gain' | 'loss' | 'zero' | null): string {
@@ -67,17 +75,13 @@ function toneColor(colors: ThemeColors, tone: 'gain' | 'loss' | 'zero' | null): 
   return colors.zero;
 }
 
-/** A hero sub-line: "+$X · +Y% since the draft". Static (no roll: this screen never live-updates
- * under your eyes). The "·" stays glued to the figure before it, so a wrapped line never starts
- * with one (§5 "Wrapping at XL"). */
-function HeroLine({ label, money, pct, words, color }: { label: string; money: string; pct: string; words: string; color: string }) {
+/** A hero sub-line: "+$X (+Y%) since the draft". The same RollingGainPair Portfolio draws (brackets, a
+ * no-wrap figure group, grey words), so the two screens read alike. Static in effect: this screen never
+ * live-updates under your eyes, so the roll key never changes and nothing rolls. */
+function HeroLine({ label, money, pct, words, color, rollKey }: { label: string; money: string; pct: string; words: string; color: string; rollKey: string }) {
   return (
-    <View accessible accessibilityLabel={label} style={styles.heroLine}>
-      <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>{`${money}${NBSP}· `}</Text>
-      <Text variant="callout" color={color} maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.bold}>
-        {pct}
-        <Text variant="callout" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE} style={styles.regular}>{`${NBSP}${words}`}</Text>
-      </Text>
+    <View accessible accessibilityLabel={label}>
+      <RollingGainPair money={money} pct={pct} words={words} color={color} rollKey={rollKey} maxScale={HERO_LINE_MAX_SCALE} />
     </View>
   );
 }
@@ -87,10 +91,19 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   const router = useRouter();
   // The sheet bar's divider and fade show once the body has scrolled under it.
   const { edge, onScroll } = useSheetScrollEdge();
-  const { market, activeLeague } = useLeagueContext();
+  const { market, activeLeague, activeLeagueId, marketCalendar, sheetLeagues } = useLeagueContext();
   const { user } = useAuth();
   const deletedLabel = useDeletedManagerLabel();
-  const data = usePlayerPortfolioData(userId || null);
+  // The card's week: Matchup's own read for the clock, calendar and live quotes. Also the source of the
+  // season's last day when the season is over (this league's matchups only, never a stale league's).
+  const home = useHomeLeague(MONEY_FIXTURE ? null : activeLeague?.id ?? null);
+  const raw = home.raw;
+  const finished = isSeasonOver(activeLeague, new Date(), marketCalendar);
+  const leagueRaw = raw && raw.leagueId === activeLeagueId ? raw : null;
+  const homeSettled = leagueRaw != null || home.status === 'error' || home.status === 'no-league';
+  const completedAt = sheetLeagues.find((l) => l.id === activeLeagueId)?.seasonCompletedAt ?? null;
+  const endEt = finished && homeSettled ? seasonEndEt(leagueRaw?.data.matchups, completedAt) : null;
+  const data = usePlayerPortfolioData(userId || null, finished ? { finished: true, endEt } : { finished: false });
   const leagueId = data.leagueId;
   // The linked name shows only while loading; a failed load names no one (a crafted link can carry any text).
   const knownName = data.portfolio?.displayName ?? (data.status === 'loading' ? linkedName(username) : null);
@@ -103,10 +116,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
     seasonStatus: activeLeague.season_status,
   });
 
-  // The card's week: Matchup's own read for the clock, calendar and live quotes; the
-  // leaguemate's own snapshots for their week (a member-gated read).
-  const home = useHomeLeague(MONEY_FIXTURE ? null : leagueId);
-  const raw = home.raw;
+  // The leaguemate's own snapshots for their week (a member-gated read).
   const week = raw ? raw.data.current_week.week_number : null;
   // Only for a member the ledger confirms: a forged id fires no reads.
   const confirmed = data.status === 'ready' && !!data.portfolio;
@@ -129,12 +139,17 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   // A card can be whole when the ledger names how they got the stock, the stock has a price,
   // and the week's reads are in. Otherwise the row is information only.
   const cardReady = !!ledger && !!raw && snaps.status === 'ready';
-  const priceOf = (symbol: string) => data.prices[symbol] ?? raw?.quote(symbol) ?? null;
+  // A season that is over: the close on or before its last day (never today's quote), else the position's own entry.
+  const frozenPriceOf = (symbol: string) => {
+    if (!finished || !endEt || !ledger) return null;
+    return seasonEndCloses(data.bars, [symbol], endEt)[symbol.toUpperCase()] ?? openingOf(userId, symbol, ledger.activity)?.price ?? null;
+  };
+  const priceOf = (symbol: string) => (finished ? frozenPriceOf(symbol) : data.prices[symbol] ?? raw?.quote(symbol) ?? null);
   const canOpen = (symbol: string) => cardReady && openingOf(userId, symbol, ledger!.activity) !== null && priceOf(symbol) != null;
 
   const card = useMemo(() => {
     if (!shown || !ledger || !raw || snaps.status !== 'ready') return null;
-    const price = data.prices[shown] ?? raw.quote(shown);
+    const price = priceOf(shown);
     if (price == null) return null;
     const snapshots = memberSnapshots(snaps.rows);
     const trades = window ? memberTrades(ledger.activity, userId, window.weekStart, window.weekEnd) : [];
@@ -146,18 +161,18 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
       snapshots,
       trades,
       // An unknown week is null (the card's "–"), never a stand-in $0.00; a league without weeks
-      // (Duration) has no week figure at all.
-      weekGain: stockWeek(shown, snapshots, trades, price).gain,
+      // (Duration) has no week figure at all. A season that is over draws no week figure (the card hides it).
+      weekGain: finished ? 0 : stockWeek(shown, snapshots, trades, price).gain,
       hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
-      bars: data.bars[shown] ?? raw.bars[shown] ?? [],
+      bars: finished ? [] : data.bars[shown] ?? raw.bars[shown] ?? [],
       now,
     });
     if (!cardData) return null;
     const slotId = roster.slots.bySide[userId]?.[shown] ?? null;
     return { data: cardData, pill: cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, window, roster.slots, userId, activeLeague?.league_type]);
+  }, [shown, ledger, raw, snaps.status, snaps.rows, data.prices, data.bars, finished, endEt, window, roster.slots, userId, activeLeague?.league_type]);
 
   function pillFor(symbol: string) {
     const slotId = roster.slots.bySide[userId]?.[symbol] ?? null;
@@ -180,7 +195,10 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
   useCaptureAction('scroll', (y) => scrollRef.current?.scrollTo({ y: Number(y) || 0, animated: false }));
 
   let body: React.ReactNode;
-  if (data.status === 'loading') {
+  if (finished && homeSettled && !endEt) {
+    // Over, but no day it ended on could be read: never a guessed day.
+    body = <LoadFailure title={COPY.teamLoadTitle(knownName)} message={COPY.loadRetryMessage} onRetry={() => { void home.refresh(); retry(); }} />;
+  } else if (data.status === 'loading') {
     body = <PortfolioSkeleton label={COPY.teamLoading(knownName)} chart={false} />;
   } else if (data.status === 'error' || !data.portfolio) {
     body = <LoadFailure title={COPY.teamLoadTitle(knownName)} message={COPY.loadRetryMessage} onRetry={retry} />;
@@ -190,13 +208,20 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
     body = (
       <View style={styles.blocks}>
         <View style={styles.heroText}>
-          <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
-          <Text variant="money" accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${v.valueText}`} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{v.valueText}</Text>
+          {finished ? (
+            <View style={styles.captionRow}>
+              <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
+              <PhaseChip phase="season_complete" label="Final" />
+            </View>
+          ) : (
+            <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.valueLabel}</Text>
+          )}
+          <Text variant="money" accessibilityRole="header" accessibilityLabel={`${v.valueLabel}, ${finished ? 'Final, ' : ''}${v.valueText}`} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{v.valueText}</Text>
           {v.gainMoneyText && v.gainPctText ? (
-            <HeroLine label={`${v.gainText} ${v.sinceDraftLabel}`} money={v.gainMoneyText} pct={v.gainPctText} words={v.sinceDraftLabel} color={toneColor(colors, v.gainTone)} />
+            <HeroLine label={`${v.gainText} ${v.sinceDraftLabel}`} money={v.gainMoneyText} pct={v.gainPctText} words={v.sinceDraftLabel} color={toneColor(colors, v.gainTone)} rollKey={userId} />
           ) : null}
           {v.todayMoneyText && v.todayPctText ? (
-            <HeroLine label={`${v.todayText} today`} money={v.todayMoneyText} pct={v.todayPctText} words="today" color={toneColor(colors, v.todayTone)} />
+            <HeroLine label={`${v.todayText} today`} money={v.todayMoneyText} pct={v.todayPctText} words="today" color={toneColor(colors, v.todayTone)} rollKey={userId} />
           ) : null}
           {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
         </View>
@@ -218,7 +243,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
         <View>
           <View style={styles.listHead}>
             <Text variant="headline" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.extraBold}>{COPY.holdingsHeading}</Text>
-            {v.rows.length ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>Value · today</Text> : null}
+            {v.rows.length ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{finished ? 'Value' : 'Value · today'}</Text> : null}
           </View>
           {v.rows.map((r) => (
             <HoldingRow
@@ -261,6 +286,7 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
           now={now}
           marketOpen={SEAM_ON ? false : gate.open}
           opens={marketOpensLabel(market?.next_open_at ?? null)}
+          seasonEnd={finished ? endEt : null}
         />
       ) : null}
     </View>
@@ -272,12 +298,11 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: space[6], paddingTop: space[2], paddingBottom: space[9] },
   blocks: { gap: space[7] },
   heroText: { gap: space[1] },
+  captionRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[2] },
   findBlock: { gap: space[3] },
   factRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', columnGap: space[3] },
   listHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: space[1] },
-  heroLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline' },
   bold: { fontWeight: '700' },
-  regular: { fontWeight: '400' },
   extraBold: { fontWeight: '800' },
   center: { textAlign: 'center' },
 });

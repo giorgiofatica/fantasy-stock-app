@@ -111,3 +111,22 @@ export function stockLineSeries(input: {
     seasonStart,
   });
 }
+
+/**
+ * A stock's line for a season that is over (Giorgio, 2026-11-18, pick A on the player card: "this is a
+ * previous season. Today's pricing doesn't really matter"): Season, from the league's draft day to the
+ * season's last day. Closes on or before `endEt` ONLY (a later bar is never read), no live point, and
+ * `endPrice` is the last real close on or before endEt (null with none, never a guess) — the price the
+ * holding's gain is measured to. The same output whenever it is read.
+ */
+export function finishedStockSeries(input: {
+  bars: readonly DailyBar[];
+  endEt: string;
+  seasonStart: string | null;
+}): { points: LinePointIn[]; base: number; axis: AxisSpec; endPrice: number | null } {
+  const { bars, endEt, seasonStart } = input;
+  const values = bars.filter((b) => b.close > 0 && b.date <= endEt).map((b) => ({ date: b.date, value: b.close }));
+  const last = values.reduce<{ date: string; value: number } | null>((best, v) => (!best || v.date > best.date ? v : best), null);
+  const s = rangeSeries({ range: 'Season', values, live: null, liveToday: false, todayEt: endEt, seasonStart });
+  return { ...s, endPrice: last ? last.value : null };
+}

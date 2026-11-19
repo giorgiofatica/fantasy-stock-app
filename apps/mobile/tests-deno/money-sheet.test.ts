@@ -153,3 +153,37 @@ Deno.test('the header never repeats the ticker as its company line', () => {
   assertEquals(companyLine(null, 'AMD'), '');
   assertEquals(companyLine('Advanced Micro Devices', 'AMD'), 'Advanced Micro Devices');
 });
+
+// ── a season that is over is closed to buying and selling (Giorgio, 2026-11-18) ────────────
+
+Deno.test('season over: Buy and Sell are both disabled with the app\'s closed line, even with the market open', () => {
+  const free = stockSheetModel({ ...BASE, gate: { open: false, opensLabel: null, seasonOver: true } });
+  assertEquals(free.buy.enabled, false);
+  assertEquals(free.buy.blockedBy, 'closed');
+  assertEquals(free.buy.reason, 'Trading is closed right now.');
+  // No "prices show Friday's close" note: a season that is over says nothing about the market's hours.
+  assertEquals(free.marketNote, null);
+  const held = stockSheetModel({ ...BASE, held: { quantity: 2 }, gate: { open: false, opensLabel: null, seasonOver: true } });
+  assertEquals(held.sell.enabled, false);
+  assertEquals(held.sell.reason, 'Trading is closed right now.');
+});
+
+Deno.test('season over beats an open-market gate: the flag, not the hours, closes it', () => {
+  const m = stockSheetModel({ ...BASE, gate: { open: false, seasonOver: true, opensLabel: 'Mon 9:30 AM ET' } });
+  assertEquals(m.buy.reason, 'Trading is closed right now.', 'not "Market\'s closed. Opens Mon 9:30 AM ET."');
+});
+
+Deno.test('a live league is unchanged: open enables Buy, a closed market keeps its open time', () => {
+  assertEquals(stockSheetModel({ ...BASE, gate: { open: true } }).buy.enabled, true);
+  const closed = stockSheetModel({ ...BASE, gate: { open: false, opensLabel: 'Mon 9:30 AM ET' } });
+  assertEquals(closed.buy.reason, "Market's closed. Opens Mon 9:30 AM ET.");
+  assertEquals(closed.marketNote, "Prices show Friday's close.");
+});
+
+Deno.test('the sheet body feeds the model the one predicate (isSeasonOver), never its own season_status check', () => {
+  const s = Deno.readTextFileSync(new URL('../components/money/StockSheetBody.tsx', import.meta.url));
+  if (!s.includes('const seasonOver = isSeasonOver(activeLeague, now, marketCalendar);')) throw new Error('isSeasonOver is the predicate');
+  if (!s.includes('const gate = seasonOver ? SEASON_OVER_GATE : decideTradeGate(now, market);')) throw new Error('a finished season is a closed gate');
+  if (!s.includes('gate: { open: gate.open, opensLabel, seasonOver },')) throw new Error('the model is told');
+  if (/season_status ===/.test(s)) throw new Error('no season_status check');
+});

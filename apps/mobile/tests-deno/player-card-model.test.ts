@@ -278,7 +278,8 @@ Deno.test('PlayerCard: Save carries the drawn star; no "{entry} → {now}" capti
 
 Deno.test('PlayerCard: the action is drawn only from cardAction (never a handler-less button), and the X closes', () => {
   const src = strip(SOURCES['components/sp/gn/PlayerCard.tsx']);
-  assert(src.includes('const action = cardAction(props);'));
+  // A season that is over has no action at all (no Sell, no Save); a live one draws cardAction's.
+  assert(src.includes('const action = over ? null : cardAction(props);'));
   assert(src.includes('{action ? ('));
   assert(src.includes('onPress={action.onPress}'));
   assert(!/onToggleSave|saved = false/.test(src), 'no optional handler props left');
