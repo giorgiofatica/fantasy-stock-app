@@ -866,9 +866,9 @@ row's winner) and the five sample `tile*` keys and `onTile` (replaced by the 11 
 | `lossTint` | `rgba(247, 109, 137, 0.14)` | `rgba(192, 36, 71, 0.1)` | Loss tint |
 | `danger` | `#FB8371` | `#B7191C` | Errors |
 | `lossFill` | `#C12440` | `#BD1F3D` | Sell / destructive fill |
-| `warnTint` | `rgba(244, 191, 63, 0.1)` | `#FAE7B3` | "Your call" / heads-up fill |
-| `warnLine` | `rgba(244, 191, 63, 0.35)` | `#EFCC83` | Its edge |
-| `warnText` | `#FAC547` | `#784900` | Its text |
+| `warnTint` | `rgba(53, 238, 255, 0.16)` | `rgba(0, 112, 142, 0.12)` | "Your call" / heads-up fill: the accent's soft tint (pick A, 2026-11-19, board `#call-yellow`) |
+| `warnLine` | `rgba(53, 238, 255, 0.4)` | `rgba(0, 112, 142, 0.35)` | Its edge |
+| `warnText` | `#35EEFF` | `#006885` | Its text (the `liveText` ink) |
 | `medalGold` | `#ECAE30` | `#AD7300` | Medal disc, gold (season complete only) |
 | `medalSilver` | `#BBC5D1` | `#7C8795` | Medal disc, silver |
 | `medalBronze` | `#DE8F57` | `#C36C36` | Medal disc, bronze |
@@ -1075,9 +1075,12 @@ row's winner) and the five sample `tile*` keys and `onTile` (replaced by the 11 
 ### Contrast evidence (v3.1)
 
 Computed from the values above against **the app's own tables**
-(`apps/mobile/constants/tokens/contrastPairs.ts`), **113 checks per theme**: 17 scored
-`TOKEN_ROWS` (of 18; `text3` is measured, not scored) and 96 `PAIRS` (W4 Portfolio added the
-money sheet's warn panel, `warnText` on `warnTint` over `surface`: Light 6.23, Dark 9.56). The pairs are the 40
+(`apps/mobile/constants/tokens/contrastPairs.ts`), **118 checks per theme**: 17 scored
+`TOKEN_ROWS` (of 18; `text3` is measured, not scored) and 101 `PAIRS` (W4 Portfolio added the
+money sheet's warn panel, `warnText` on `warnTint` over `surface`: Light 6.23, Dark 9.56 in the yellow, 5.28 / 8.85 in
+the teal of pick A; W4 Onboarding added the Email confirmed chip, `gain` on `gainTint` over `bg`; the yellow call, pick A,
+2026-11-19, added `warnText` straight on a card and `text2` on `warnTint` over `bg`; Matchup's price notice, 2026-11-19,
+added `text` and its info icon, `accent` (graphic, 3), on `accentTint` over `bg`). The pairs are the 40
 existing rows (three re-pointed; W4 Draft replaced the your-turn rest pair, liveText on
 warnTint, with three rows on the accent-tint rest card: text, text2 and the last-10-seconds
 loss, so 39 + 3), 50 Game Night rows and W3's 3 Chip rows. The Game Night rows
@@ -1097,8 +1100,8 @@ added.
 
 | Theme | Scored | Pass | Tightest |
 |---|---|---|---|
-| Dark | 113 | 113 | `borderStrong` on `surface` 3.29 (needs 3); `onYou` on `you` 5.07; `you` on `surface` 3.49 (needs 3) |
-| Light | 113 | 113 | the last-10-seconds `loss` on the accent-tint rest card 4.55; `loss` in your column 4.67; `accent` on its tint 4.69; `medalSilver` on the you-tint row 3.11 (needs 3); the owner's disc 3.32 (needs 3) |
+| Dark | 118 | 118 | `borderStrong` on `surface` 3.29 (needs 3); `onYou` on `you` 5.07; `you` on `surface` 3.49 (needs 3) |
+| Light | 118 | 118 | the last-10-seconds `loss` on the accent-tint rest card 4.55; `loss` in your column 4.67; `accent` on its tint 4.69; `medalSilver` on the you-tint row 3.11 (needs 3); the owner's disc 3.32 (needs 3) |
 
 **`contrastPairs.ts` and the board's `PAIRS` are identical, row for row** (the board's `themes.css`
 is the app's `color.ts` key for key, so both score one palette); add a pair to both or to

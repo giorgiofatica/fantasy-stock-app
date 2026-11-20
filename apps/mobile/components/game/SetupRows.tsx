@@ -7,6 +7,7 @@ import { Card } from '@/components/sp/Card';
 import { Icon } from '@/components/sp/Icon';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
+import { WARN_TEXT_MAX_SCALE } from '@/components/sp/WarnPanel';
 import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 import { isStacked, nextBrokeAt, subAfterValue, valueLinesAt } from '@/lib/game/labelBreaks';
 
@@ -278,7 +279,9 @@ export function SwitchRow({ label, sub, value, onValueChange, disabled = false, 
 /** The board's warn-tint card (ByeNotice, setup blockers): informational by
  * default (a note); `alert` when it explains why an action is refused. No icon
  * (§9B: refusals and blockers keep their warn-tint card, with no icon). Both lines read the
- * fill's own ink, `warnText` (§9C rule 4, as the money screens' WarnPanel; W4 Onboarding). */
+ * fill's own ink, `warnText` (§9C rule 4, as the money screens' WarnPanel; W4 Onboarding), and both
+ * take WarnPanel's text cap, so at the largest text sizes the note never outranks the rows around it
+ * (Design Lead, feat/warn-teal gate, 2026-11-19). */
 export function WarnNote({ title, line, alert = false }: { title: string; line?: string; alert?: boolean }) {
   const { colors } = useTheme();
   return (
@@ -287,10 +290,10 @@ export function WarnNote({ title, line, alert = false }: { title: string; line?:
       accessibilityRole={alert ? 'alert' : 'text'}
       style={[styles.warn, { backgroundColor: colors.warnTint, borderColor: colors.warnLine }]}
     >
-      <Text variant="callout" color={colors.warnText} style={styles.key}>
+      <Text variant="callout" maxFontSizeMultiplier={WARN_TEXT_MAX_SCALE} color={colors.warnText} style={styles.key}>
         {title}
       </Text>
-      {line ? <Text variant="caption" color={colors.warnText}>{line}</Text> : null}
+      {line ? <Text variant="caption" maxFontSizeMultiplier={WARN_TEXT_MAX_SCALE} color={colors.warnText}>{line}</Text> : null}
     </View>
   );
 }
