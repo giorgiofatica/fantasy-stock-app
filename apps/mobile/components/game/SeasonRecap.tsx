@@ -121,6 +121,7 @@ export function SeasonRecap({ segment, state, leagueId }: SeasonRecapProps) {
             spokenWeek={r.label}
             onPress={r.opens ? () => open(r.opens!) : undefined}
             accessibilityHint={r.opens ? OPENS_MATCHUP_HINT : undefined}
+            neutralResult
           />
         ))}
       </View>

@@ -130,7 +130,10 @@ Deno.test('Matchup\'s finalGains: a tie is T; the server\'s winner decides a dol
 
 Deno.test('League › Schedule draws a T in the neutral colour and says "tie" (W gain colour, L loss colour, unchanged)', () => {
   const src = SOURCES['components/game/ScheduleList.tsx'];
-  assert(src.includes("byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })"));
+  // The colours moved into lib/game/weekResult resultLetterInk (the recap draws them neutral);
+  // tests-deno/recap-neutral-letters.test.ts pins W gain, L loss, T text2 for Schedule.
+  assert(src.includes('color={resultLetterInk(r.result, colors, neutralResult)}'));
+  assert(SOURCES['lib/game/weekResult.ts'].includes('byResult(result, { W: colors.gain, L: colors.loss, T: colors.text2 })'));
   assert(src.includes("byResult(r.result, { W: 'won', L: 'lost', T: 'tie' })"));
 });
 

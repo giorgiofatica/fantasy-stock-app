@@ -14,7 +14,7 @@ import { MANAGER_ROW_GAP } from '@/components/sp/gn';
 import { radius, space } from '@/constants/tokens';
 import { isUnscoredPast, type ScheduleRow } from '@/lib/game/schedule';
 import { SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
-import { byResult } from '@/lib/game/weekResult';
+import { byResult, resultLetterInk } from '@/lib/game/weekResult';
 import { keepName } from '@/lib/account/keepName';
 import { vsOpponentLabel } from '@/lib/home/homeCopy';
 
@@ -59,12 +59,16 @@ export interface ScheduleWeekRowProps {
   onPress?: () => void;
   /** VoiceOver's hint when the row opens something. */
   accessibilityHint?: string;
+  /** The season recap only: the W / L / T in the normal `text` ink (still score.sm's extra
+   * bold), only the money coloured by its sign (Giorgio, 2026-11-19, A). League › Schedule
+   * leaves it off and keeps the letter coloured by the result. */
+  neutralResult?: boolean;
 }
 
 /** One week's tile: League › Schedule's row, shared with the Matchup recap (Giorgio,
  * 2026-11-18, look A), which adds the label, the round chip and the chevron through props
  * rather than a fork. Without them it is Schedule's row exactly. */
-export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, spokenWeek, onPress, accessibilityHint }: ScheduleWeekRowProps) {
+export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, spokenWeek, onPress, accessibilityHint, neutralResult = false }: ScheduleWeekRowProps) {
   const { colors } = useTheme();
   // Large text: the result goes on its own line under the week (it was clipped off the card).
   const largeText = useLargeText();
@@ -98,7 +102,7 @@ export function ScheduleWeekRow({ row: r, weekLabel, roundChip = false, spokenWe
           <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>Next</Text>
         ) : r.gain !== null && r.result !== null ? (
           <View style={styles.score}>
-            <Text variant="score.sm" color={byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })}>{r.result}</Text>
+            <Text variant="score.sm" color={resultLetterInk(r.result, colors, neutralResult)}>{r.result}</Text>
             <Text variant="score.sm" color={colors[toneOf(r.gain)]} style={styles.gain}>{keepMoney(formatMoney(r.gain, { sign: 'always' }))}</Text>
           </View>
         ) : isUnscoredPast(r) ? (
