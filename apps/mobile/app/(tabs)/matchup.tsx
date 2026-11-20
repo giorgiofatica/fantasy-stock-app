@@ -13,7 +13,7 @@ import { LeagueListGate } from '@/components/shell/NoLeagueState';
 import { ShellHeader } from '@/components/shell/ShellHeader';
 import { BarsRefresh } from '@/components/shell/BarsRefresh';
 import { Scoreboard } from '@/components/sp/gn';
-import { LINE_MAX_SCALE, type ScoreboardOpen } from '@/components/sp/gn/Scoreboard';
+import { type ScoreboardOpen } from '@/components/sp/gn/Scoreboard';
 import { MatchupRoster, type RosterLedger } from '@/components/game/MatchupRoster';
 import { FinishedWeek } from '@/components/game/FinishedWeek';
 import { ByeGame } from '@/components/game/ByeGame';
@@ -34,7 +34,9 @@ import { COPY } from '@/lib/game/gameCopy';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
 import { AllMatchupsSkeleton, MatchupSkeleton } from '@/components/game/LoadingSkeletons';
 import { LoadFailure } from '@/components/money/LoadFailure';
-import { unpricedNote } from '@/lib/plCoverage';
+import { PriceNotice } from '@/components/game/PriceNotice';
+import { missingPriceSymbols, priceNoticeText } from '@/lib/game/priceNotice';
+import { knownWithoutWeeks } from '@/lib/game/leagueWeeks';
 import { preSeasonStartsLabel, byeToRoundLabel, eliminatedLabel, playoffPendingLine } from '@/lib/home/homeCopy';
 import { useAuth } from '@/lib/useAuth';
 import type { HomeRawInputs } from '@/lib/home/useHomeLeague';
@@ -114,17 +116,21 @@ function MatchupScreen() {
     await Promise.all([refresh(), mRefresh()]);
   }, [refresh, mRefresh]);
 
+  // A league without weeks (Duration) has no matchups: the tab draws nothing under its header
+  // (no switch, no "$0.00" vs "$0.00", no "Starts …", no recap), with nothing in its place.
+  const blank = knownWithoutWeeks(activeLeague);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <BarsRefresh onRefresh={onRefresh} header={<ShellHeader title="Matchup" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[5] }}>
-        {m.derived ? (
+        {m.derived && !blank ? (
           <SegmentedControl
             options={[{ label: 'My matchup', value: 'mine' }, { label: 'All matchups', value: 'all' }]}
             value={segment}
             onChange={(v) => setSegment(v === 'all' ? 'all' : 'mine')}
           />
         ) : null}
-        {complete && activeLeagueId ? (
+        {blank ? null : complete && activeLeagueId ? (
           <SeasonRecap key={activeLeagueId} segment={segment} state={recap} leagueId={activeLeagueId} />
         ) : segment === 'all' ? (
           <AllMatchupsList key={activeLeagueId ?? 'none'} state={all} myUserId={user?.id ?? ''} />
@@ -205,6 +211,9 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
 
   const { view, live, final, week } = derived;
   const youName = live.me.name;
+  // A LIVE week with a missing price names the stocks (both teams', each once); never on a scored week.
+  const missing = missingPriceSymbols(live.me.unpriced, live.opp?.unpriced);
+  const notice = view.kind === 'scoreboard' || view.kind === 'bye' ? priceNoticeText(missing) : null;
 
   if (view.kind === 'not_started') {
     return <PhasePlaceholder title="Matchup" icon={() => <Icon name="trophy" size="title" tone="text2" />} heading="Not started yet" message="Your matchups start when the draft is done." embedded />;
@@ -231,8 +240,10 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
     // then your stocks in one column under the same order rules.
     return (
       <View style={styles.stack}>
-        <Scoreboard you={{ name: youName, gain: live.me.gain }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
-        {raw && ledgers && live.me.lineup.length ? (
+        {notice ? <PriceNotice text={notice} symbols={missing} /> : null}
+        <Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
+        {/* A held-but-unpriced stock is on the roster too (with "–"), even if it is all you hold. */}
+        {raw && ledgers && (live.me.lineup.length || live.me.unpriced.length) ? (
           <MatchupRoster
             left={{ userId: user.id, name: youName, isYou: true, rows: live.me.lineup, ledger: ledgers.me, unpriced: live.me.unpriced }}
             right={null}
@@ -299,18 +310,20 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
     );
   }
 
-  const note = unpricedNote(live.me.unpriced.length);
+  // LIVE: each total is the sum of the stocks that HAVE a live price (SideView.total; Giorgio, PR #562), and
+  // the leads-by line is worked out from those totals. A stock with no price is "–" on its row and named in the
+  // notice above the card (which replaced the old "counted at cost" caption). A FINAL week never comes here: it
+  // is FinishedWeek's, with the server's own gains and verdict, which these priced totals never override.
 
   return (
     <View style={styles.stack}>
+      {notice ? <PriceNotice text={notice} symbols={missing} /> : null}
       <Scoreboard
-        you={{ name: youName, gain: live.me.gain }}
-        opponent={{ name: live.opp?.name ?? '', gain: live.opp?.gain ?? 0 }}
+        you={{ name: youName, gain: live.me.total }}
+        opponent={{ name: live.opp?.name ?? '', gain: live.opp?.total ?? 0 }}
         openYou={openTeam(user.id, youName, true)}
         openOpponent={live.opp ? openTeam(live.opp.userId, live.opp.name, false) : undefined}
       />
-      {/* Capped like the leads-by line: the totals stay loudest at XL. */}
-      {note ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE}>{note}</Text> : null}
       {live.opp && raw && ledgers?.opp ? (
         <MatchupRoster
           left={{ userId: user.id, name: youName, isYou: true, rows: live.me.lineup, ledger: ledgers.me, unpriced: live.me.unpriced }}

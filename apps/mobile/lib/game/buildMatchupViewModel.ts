@@ -8,7 +8,7 @@
  */
 import { liveWeekScore } from '../home/liveWeekScore';
 import { toLiveSnapshots, toLiveTrades, type GetHomeLeagueResult } from '../home/buildHomeViewModel';
-import { lineupRows, type LineupRow } from './lineupLedger';
+import { lineupRows, pricedTotal, type LineupRow } from './lineupLedger';
 import { leaderOf, type Leader } from './leadChange';
 import { serverVerdict, weekResult, type ServerVerdict, type WeekResult } from './weekResult';
 
@@ -27,6 +27,10 @@ export interface SideView {
   pct: number;
   unpriced: string[];
   lineup: LineupRow[];
+  /** The side's live total as the Scoreboard shows it: the sum of the rows of the stocks that have
+   * a live price (lineupLedger.pricedTotal). Always a number (Giorgio, PR #562); an unpriced stock is
+   * "–" on its row and named in the price notice. */
+  total: number;
 }
 
 export interface MatchupLiveViewModel {
@@ -34,7 +38,7 @@ export interface MatchupLiveViewModel {
   me: SideView;
   opp: SideView | null;
   leader: Leader | null;
-  /** Absolute dollar gap; null with no opponent. */
+  /** Absolute dollar gap between the two totals; null with no opponent. */
   leadDollars: number | null;
 }
 
@@ -49,6 +53,7 @@ function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResul
   const tds = toLiveTrades(trades);
   const live = liveWeekScore(snaps, tds, input.quote);
   const { name, isBot } = nameOf(input.data, userId);
+  const lineup = lineupRows(live.bySymbol, live.gain);
   return {
     userId,
     name,
@@ -56,7 +61,8 @@ function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResul
     gain: live.gain,
     pct: live.pct,
     unpriced: live.unpriced,
-    lineup: lineupRows(live.bySymbol, live.gain),
+    lineup,
+    total: pricedTotal(lineup, live.unpriced),
   };
 }
 
@@ -78,12 +84,13 @@ export function buildMatchupLive(input: MatchupInput): MatchupLiveViewModel {
     return { hasOpponent: false, me, opp: null, leader: null, leadDollars: null };
   }
   const opp = side(input, oppUserId, cw.opponent_snapshots, cw.opponent_trades);
+  // Who leads, from the two totals the Scoreboard shows (the priced sums).
   return {
     hasOpponent: true,
     me,
     opp,
-    leader: leaderOf(me.gain, opp.gain),
-    leadDollars: Math.abs(me.gain - opp.gain),
+    leader: leaderOf(me.total, opp.total),
+    leadDollars: Math.abs(me.total - opp.total),
   };
 }
 
