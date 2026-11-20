@@ -520,6 +520,20 @@ building anything, and don't reopen a rule without him.
   - Scope: the recap rows only. W and L letters are drawn in other places; the Design
     Lead lists every place they are coloured and it comes back to him as a board. Nothing
     changes on those screens until he picks.
+  - **W, L and T are neutral everywhere; the won-week banner stays blue** (2026-11-20, the
+    Design Lead's board `#call-result-colour`, branch `design/result-colour-1119`, PR #578,
+    with real-app stills of each place today against neutral in Light and Dark; typed in
+    the Planner's chat: "A and keep blue").
+    - Letters, pick A: the W, L and T are bold in the normal ink, like the recap rows, in
+      the three other places that coloured them by the result: Home's "Your season" tiles,
+      the League › Schedule rows, and the Matchup "i" popup (the W beside the winner). The
+      money keeps its green or red. B (as before: W green, L red, T grey) was not picked.
+    - The finished week's banner, pick 1: it stays blue on a week you won and grey on a
+      week you lost or tied. The blue is your colour, not a result colour. 2 (grey for
+      every week) was not picked.
+    - Left as they are, and not part of the pick: the bracket (winner bold, the other
+      grey), the medals, money everywhere, and the standings' up and down arrows.
+    - No new words.
   - Why this came up: the line used to compare the two dollar figures by itself, so a
     percent-tiebreak week read "Dead even" under a band that named a winner, and a
     no-stocks week could name the wrong side. Since #566 (2026-11-19) such a week shows no
