@@ -24,3 +24,5 @@ export { PlayerCard, PlayerCardBody } from './PlayerCard';
 export type { PlayerCardProps, PlayerCardOwnership, PlayerCardOwnerInfo } from './PlayerCard';
 export { SegmentTabs } from './SegmentTabs';
 export type { SegmentTabsProps } from './SegmentTabs';
+export { TickerBadge } from './TickerBadge';
+export type { TickerBadgeProps } from './TickerBadge';

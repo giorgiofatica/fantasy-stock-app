@@ -28,7 +28,8 @@ import { PressableScale } from '@/components/sp/PressableScale';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useInputRemountKey } from '@/components/sp/useInputRemountKey';
-import { DISC_PT, discTickerScale, VALUE_PT, valueScale } from '@/components/sp/logic/holdingFit';
+import { VALUE_PT, valueScale } from '@/components/sp/logic/holdingFit';
+import { TickerBadge } from '@/components/sp/gn/TickerBadge';
 import { BarsRefresh } from '@/components/shell/BarsRefresh';
 import { ShellHeader } from '@/components/shell/ShellHeader';
 import { useScrollFold } from '@/components/shell/scrollFold';
@@ -471,9 +472,7 @@ function StockRow({
         </Pressable>
       ) : null}
       <PressableScale accessibilityRole="button" accessibilityLabel={rowLabel(row, category, priceText)} onPress={onOpen} style={styles.rowMain} testID={`stocks-row-${row.symbol}`}>
-        <View style={[styles.disc, { backgroundColor: colors.inset }]}>
-          <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} ellipsizeMode="clip" style={{ fontSize: DISC_PT * discTickerScale(row.symbol) }}>{row.symbol}</Text>
-        </View>
+        <TickerBadge symbol={row.symbol} />
         <View style={styles.lead}>
           <Text variant="ticker" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{row.symbol}</Text>
           {sub ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} numberOfLines={2}>{sub}</Text> : null}
@@ -529,7 +528,6 @@ const styles = StyleSheet.create({
   rowMain: { flex: 1, minWidth: 0, minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingVertical: space[3] },
   plusTarget: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   plusDisc: { width: PLUS_DISC, height: PLUS_DISC, borderRadius: PLUS_DISC / 2, alignItems: 'center', justifyContent: 'center' },
-  disc: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[1] },
   lead: { flex: 1, minWidth: 0, gap: space[1] },
   trail: { flexShrink: 0, maxWidth: '45%', alignItems: 'flex-end' },
   // A money number: 700 (800 is for game numbers, §9C rule 5), tabular.

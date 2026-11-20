@@ -337,7 +337,7 @@ Deno.test('Scroll fade: drawn only when the rule says so, on the surface, no rul
 
 // ── No shrink-to-fit text in a scrolled sheet body (found at Large on a held stock, 2026-10-19) ───────────
 
-Deno.test('Scrolled sheet bodies: no adjustsFontSizeToFit text (iOS collapsed the stock sheet\'s ticker badge to a fraction of its size); the badge is sized by length', () => {
+Deno.test('Scrolled sheet bodies: no adjustsFontSizeToFit text (iOS collapsed the stock sheet\'s ticker badge to a fraction of its size); the badge is the shared measured one', () => {
   for (const f of [
     'components/money/StockSheetBody.tsx', 'components/money/TradeReviewPanel.tsx', 'components/money/SalePicker.tsx',
     'components/game/LeaveLeagueSheets.tsx', 'components/game/RenewalChangeSheet.tsx', 'components/game/DraftDateSheet.tsx',
@@ -346,10 +346,10 @@ Deno.test('Scrolled sheet bodies: no adjustsFontSizeToFit text (iOS collapsed th
     assert(!src(f).includes('adjustsFontSizeToFit'), `${f}: no adjustsFontSizeToFit inside a scroll body`);
   }
   const stock = src('components/money/StockSheetBody.tsx');
-  assert(stock.includes('style={tickerTileSize(symbol)}'), 'the badge text takes its size from the ticker\'s length');
-  assert(/symbol\.length >= 5 \? TICKER_TILE_LONG : TICKER_TILE_SIZE/.test(stock), 'five or more characters take the smaller size');
-  assertEquals(Number(/TICKER_TILE_SIZE = \{ fontSize: (\d+)/.exec(stock)?.[1]), TYPE['ticker.tile'].fontSize, 'up to four characters are at the ticker.tile token size');
-  assert(Number(/TICKER_TILE_LONG = \{ fontSize: (\d+)/.exec(stock)?.[1]) >= Math.floor(TYPE['ticker.tile'].fontSize * 0.85), 'the long size is the old fit\'s floor (0.85)');
+  // The badge is the shared TickerBadge at 52pt: a MEASURED fit (pick A, 2026-11-19), never iOS's.
+  assert(stock.includes('<TickerBadge symbol={symbol} size={52} />'), 'the sheet header uses the shared 52pt badge');
+  assert(!/tickerTileSize|TICKER_TILE_LONG/.test(stock), 'no length-based size of its own any more');
+  assert(!src('components/sp/gn/TickerBadge.tsx').includes('adjustsFontSizeToFit'), 'the shared badge never asks iOS to fit');
 });
 
 // ── The ONE bottom space, which yields at the 90% ceiling (DL, 2026-10-19: held-stock sell at Large on a 17e) ───────

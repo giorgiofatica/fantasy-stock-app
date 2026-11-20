@@ -19,16 +19,27 @@ export const DISC_PT = 13;
 /**
  * THE ONE EXCEPTION to the app's 11pt floor (§9B; DESIGN_DIRECTION "The 11pt floor stands"). Giorgio's pick A,
  * PRODUCT_RULES "A long ticker shrinks to fit its round badge (A)" (2026-11-19, board #call-ticker-disc, PR #565):
- * the badge stays a 40pt circle and ONLY its ticker shrinks, under 11pt when it must (GOOGL ≈ 9.3pt, BRK.B
+ * the badge stays a circle (40pt on a row, 52pt in a header) and ONLY its ticker shrinks, under 11pt when it must (GOOGL ≈ 9.3pt, BRK.B
  * ≈ 10.8pt, AMGN ≈ 11.0pt), so a ticker is never cut to "GO…". Allowed because the full ticker is printed at full
  * size right beside the badge, so the badge's text is never the only place to read it. No floor: any ticker the
  * app can hold fits (0: no floor). Scoped to discTickerScale; every other fitted text keeps its own ≥ 11pt floor.
  */
 export const DISC_EXCEPTION_MIN_SCALE = 0;
-/** The disc is 40pt wide with 2pt of padding on each side (HoldingRow's styles.disc). */
+/** The row badge is 40pt wide with 2pt of padding on each side (components/sp/gn/TickerBadge's styles.badge). */
 export const DISC_SIZE = 40;
 export const DISC_PADDING = 2;
 export const DISC_TEXT_ROOM = DISC_SIZE - 2 * DISC_PADDING;
+/**
+ * The round ticker badge's two sizes, the only two (TickerBadge): 40pt on a row (Holdings, the Stocks list, search,
+ * Trade history), 52pt in a header (the stock sheet, the player card). The same fit, the same exception, in both.
+ * In 52pt the room is 48pt: GOOGL ≈ 12.4pt, BRK.B and AMGN keep 13pt, and even "WWWWW" stays ≈ 9.8pt.
+ */
+export const TICKER_BADGE_SIZES = [40, 52] as const;
+export type TickerBadgeSize = (typeof TICKER_BADGE_SIZES)[number];
+/** The ticker's room in a badge `size` wide: the circle less its padding. */
+export function badgeTextRoom(size: TickerBadgeSize): number {
+  return size - 2 * DISC_PADDING;
+}
 
 /** The value: score.sm 15pt, capped at 1.3× by the row, floored at 0.75. */
 export const VALUE_PT = 15;
@@ -71,11 +82,11 @@ export function tickerWidth(symbol: string, fontPt: number): number {
 }
 
 /**
- * The scale of the disc's ticker (its room is constant: no measuring, so no first-pass guess). It fits the room
+ * The scale of a badge's ticker (its room is constant: no measuring, so no first-pass guess). It fits the room
  * with no floor: the DISC_EXCEPTION_MIN_SCALE exception above. Never enlarged past 13pt.
  */
-export function discTickerScale(symbol: string): number {
-  return flooredFitScale(DISC_TEXT_ROOM, tickerWidth(symbol, DISC_PT), DISC_EXCEPTION_MIN_SCALE);
+export function discTickerScale(symbol: string, size: TickerBadgeSize = DISC_SIZE): number {
+  return flooredFitScale(badgeTextRoom(size), tickerWidth(symbol, DISC_PT), DISC_EXCEPTION_MIN_SCALE);
 }
 
 /** The scale of the value for a row `rowWidth` wide (null: not laid out yet, so full size). */

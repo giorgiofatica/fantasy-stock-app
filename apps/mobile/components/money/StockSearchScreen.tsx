@@ -33,7 +33,7 @@ import { SHEET_EDGE_DIVIDER } from '@/components/shell/sheetBarLogic';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
-import { DISC_PT, discTickerScale } from '@/components/sp/logic/holdingFit';
+import { TickerBadge } from '@/components/sp/gn/TickerBadge';
 import { Skeleton } from '@/components/Skeleton';
 import { keepMoney } from '@/lib/game/keepDots';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -221,9 +221,7 @@ export function SearchRow({ item, status, onPress }: { item: ShapedSearchResult;
   const label = [item.symbol, item.name, status.text, item.price != null ? formatMoney(item.price) : null].filter(Boolean).join(', ');
   const content = (
     <>
-      <View style={[styles.disc, off ? styles.dim : null, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} ellipsizeMode="clip" style={{ fontSize: DISC_PT * discTickerScale(item.symbol) }}>{item.symbol}</Text>
-      </View>
+      <TickerBadge symbol={item.symbol} style={off ? styles.dim : null} />
       <View style={styles.lead}>
         <Text variant="ticker" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{item.symbol}</Text>
         {status.text ? (
@@ -271,7 +269,6 @@ const styles = StyleSheet.create({
   input: { flex: 1, minHeight: 44, fontSize: SEARCH_INPUT_FONT_SIZE, fontFamily: 'Archivo-Medium' },
   results: { gap: space[1] },
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingVertical: space[3] },
-  disc: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[1] },
   lead: { flex: 1, minWidth: 0, gap: space[1] },
   price: { flexShrink: 0 },
   chevronSpace: { width: 16 },

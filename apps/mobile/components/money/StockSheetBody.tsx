@@ -28,6 +28,7 @@ import { SheetBody } from '@/components/sp/Sheet';
 import { Icon } from '@/components/sp/Icon';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
+import { TickerBadge } from '@/components/sp/gn/TickerBadge';
 import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { formatGainPair, formatMoney } from '@/components/sp/logic/money';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -82,15 +83,6 @@ const SHEET_GUTTER = space[6];
 /** The gate of a season that is over: closed, with no open time (never stale, so it never refetches). */
 const SEASON_OVER_GATE: TradeGate = { open: false, reason: 'closed', stale: false, nextOpenAt: null };
 
-/** The badge's ticker, sized by length rather than by `adjustsFontSizeToFit`: inside the sheet's scroll view iOS
- * shrank that text to a fraction of its size on a sheet that overflows by a little (found at Large on a held stock,
- * 2026-10-19). Up to four characters are at the token size; five or more take the old fit's floor (0.85), so they
- * always fit the 52pt disc. */
-const TICKER_TILE_SIZE = { fontSize: 13, lineHeight: 16 } as const;
-const TICKER_TILE_LONG = { fontSize: 11, lineHeight: 14 } as const;
-function tickerTileSize(symbol: string) {
-  return symbol.length >= 5 ? TICKER_TILE_LONG : TICKER_TILE_SIZE;
-}
 
 /** The sheet's small text follows Dynamic Type to 1.6× (the player card's ceiling), so the price
  * stays the sheet's loudest text at XXXL. */
@@ -679,12 +671,9 @@ export function StockSheetBody({
 /** The player card's header, shared so the stock looks the same from every entry point
  * (PRODUCT_RULES, sell-from-search A): the ticker badge, the ticker, the company, the ×. */
 function SheetHeader({ symbol, company, onClose }: { symbol: string; company: string; onClose: () => void }) {
-  const { colors } = useTheme();
   return (
     <View style={styles.header}>
-      <View style={[styles.badge, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} style={tickerTileSize(symbol)}>{symbol}</Text>
-      </View>
+      <TickerBadge symbol={symbol} size={52} />
       <View style={styles.headText}>
         <Text variant="ticker.card" accessibilityRole="header">{symbol}</Text>
         {company ? <Text variant="callout" tone="secondary" numberOfLines={1} maxFontSizeMultiplier={1.6}>{company}</Text> : null}
@@ -723,7 +712,6 @@ const styles = StyleSheet.create({
   stack: { gap: space[5] },
   footer: { gap: space[5], paddingHorizontal: SHEET_GUTTER, paddingBottom: space[7] },
   header: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
-  badge: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[1] },
   headText: { flex: 1, minWidth: 0, gap: space[1] },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   priceBlock: { gap: space[1] },
