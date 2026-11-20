@@ -32,17 +32,20 @@ Entries begin with the Recorder's first pass.
 - **Not shown:** a new scored week carrying a real reason (STATUS item 37); the Orchestrator says no league in prod is mid-season, so it may wait.
 
 **Merged, not confirmed live**
-- **#579 (18:12:10Z, `fa98ddf8`): W, L and T bold in the normal ink on Home, Schedule and the Matchup popup; mobile, in no build.** Also merged today (I read each on GitHub): #575 (the tiebreak-words board, 17:16:56Z), #576 (the outcome-reason plan, 17:38:18Z), #577 (my record, 17:41:49Z, with `4197cdd0`), #578 (the result-colour board, 17:50:17Z). Main's CI is `success` on `fa98ddf8` and `723b460b`; on `6d5669bc` it finished `success` (run 44800783093; I re-read it just before handing off).
+- **#579 (18:12:10Z, `fa98ddf8`): W, L and T bold in the normal ink on Home, Schedule and the Matchup popup; mobile, in no build.** Also merged today (I read each on GitHub): #575 (the tiebreak-words board, 17:16:56Z), #576 (the outcome-reason plan, 17:38:18Z), #577 (my record, 17:41:49Z, with `4197cdd0`), #578 (the result-colour board, 17:50:17Z), #581 (my record, 19:34:22Z, with `0f81a456`; main's CI `success`, run 44803390060). Main's CI is `success` on `fa98ddf8` and `723b460b`; on `6d5669bc` it finished `success` (run 44800783093; I re-read it just before handing off).
 
 **Decided**
 - **W, L and T are neutral everywhere; the won-week banner stays blue** (Giorgio, 2026-11-20, "A and keep blue"; in `docs/PRODUCT_RULES.md` via #578 and #579).
 - **The outcome-reason plan** (approved 2026-11-20) is on `main` as of #576, and its server workstream is now built, applied and deployed.
 
+**Found**
+- **A gap in the db-snapshot (the Orchestrator's finding; I checked):** it captures CHECK constraints but not unique constraints or indexes, so it cannot confirm, for example, `matchups`' unique `(league_id, week_number, team1_user_id)` on prod. Not decided whether to extend it. STATUS §4 item 38.
+
 **Waiting on Giorgio**
 - Nothing is waiting on him that I know of except the supplier enquiry (his to send when ready) and the January SDK start.
 
 **Next**
-- The phone workstream (the tiebreak words) is offered as a chip, not started; then build 18, held on his word until the tiebreak words are in.
+- The phone workstream (the tiebreak words) is has started (session `local_c1cdc544`; I have seen no pull request from it yet); then build 18, held on his word until the tiebreak words are in.
 - After a real scoring run, check by data that the new rows carry real reasons.
 - Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.
 

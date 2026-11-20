@@ -1,6 +1,6 @@
 # Why a week was won: the server records the reason
 
-Status: Approved (Giorgio, 2026-11-20, shown today-against-the-plan as a drawing in the Planner's chat: "Yeah, I like that plan where there's the small thing underneath if in case of a tiebreak."). Building: the server workstream is merged (#580, 2026-11-20), applied (migration `20261208000000`) and deployed (`process-week-results` from `6d5669bc`, byte-verified); the post-release check on a real scored week is still to do; the phone workstream (the words) is NOT started; no build carries it. The words were picked on 2026-11-19 ("A" on the board `#call-tiebreak-words`)
+Status: Approved (Giorgio, 2026-11-20, shown today-against-the-plan as a drawing in the Planner's chat: "Yeah, I like that plan where there's the small thing underneath if in case of a tiebreak."). Building: the server workstream is merged (#580, 2026-11-20), applied (migration `20261208000000`) and deployed (`process-week-results` from `6d5669bc`, byte-verified); the post-release check on a real scored week is still to do; the phone workstream (the words) has STARTED (the Orchestrator's account) and nothing of it is merged; no build carries it. The words were picked on 2026-11-19 ("A" on the board `#call-tiebreak-words`)
 Planner session: "Planner" (Fable 5.2), 2026-11-19 and 2026-11-20 · Orchestrator hand-off: this commit
 
 ## Goal
