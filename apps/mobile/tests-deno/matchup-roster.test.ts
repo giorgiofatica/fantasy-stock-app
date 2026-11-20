@@ -6,7 +6,7 @@
  * first close, the draft/slot order. Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { rosterHalfFigures } from '../components/sp/logic/gameNight.ts';
+import { rosterHalfFigures, rosterHalfShow } from '../components/sp/logic/gameNight.ts';
 import {
   barCloseAt, cardSlotPill, closesBefore, gainsAtClose, isSlotted, lastWeekClose, orderBarsAt, orderSide, orderingClose, pairRows, recordedSlots, settlesAt,
   rosterGroups, slotGroupLabel,
@@ -143,11 +143,41 @@ Deno.test('a partly unpriced stock (sold half this week, no live price for the r
   const partial = cells(view(thu, noNvda, 'unslotted', { myTrades: [sell] }));
   const n = partial.find((c) => c!.symbol === 'NVDA')!;
   assertEquals([n.weekGain, n.weekPct], [null, null], 'the sale alone is a part, not the week');
-  assertEquals(rosterHalfFigures({ weekGain: n.weekGain, weekPct: n.weekPct }), null, 'the half is the stock alone');
+  assertEquals(rosterHalfFigures({ weekGain: n.weekGain, weekPct: n.weekPct }), null, 'no week figures');
+  assertEquals(rosterHalfShow({ weekGain: n.weekGain, weekPct: n.weekPct }), { kind: 'unknown', text: '\u2013' }, 'the "–" in its slot');
   for (const c of partial.filter((c) => c!.symbol !== 'NVDA')) assert(c!.weekGain !== null, `${c!.symbol} keeps its figure`);
   // With its live price back, the same week has the whole figure.
   const whole = cells(view(thu, thuQuote, 'unslotted', { myTrades: [sell] })).find((c) => c!.symbol === 'NVDA')!;
   assert(whole.weekGain !== null && whole.weekPct !== null);
+});
+
+Deno.test('a FULLY unpriced holding (no sale) stays on its half with no figures, on BOTH sides', () => {
+  const thu = new Date('2026-09-24T17:37:00Z');
+  const mineGone = ROBERTO_HOLDINGS[1].symbol;
+  const theirsGone = GIANLUIGI_HOLDINGS[1].symbol;
+  const quote = (s: string) => (s === mineGone || s === theirsGone ? null : thuQuote(s));
+  const g = view(thu, quote);
+  const lefts = g.flatMap((x) => x.rows.map((r) => r.left)).filter((c) => c !== null);
+  const rights = g.flatMap((x) => x.rows.map((r) => r.right)).filter((c) => c !== null);
+  assertEquals(lefts.length, ROBERTO_HOLDINGS.length, 'every stock you hold is on the roster');
+  assertEquals(rights.length, GIANLUIGI_HOLDINGS.length, 'every stock they hold too');
+  const m = lefts.find((c) => c!.symbol === mineGone)!;
+  const t = rights.find((c) => c!.symbol === theirsGone)!;
+  assertEquals([m.weekGain, m.weekPct, t.weekGain, t.weekPct], [null, null, null, null]);
+  for (const c of [m, t]) assertEquals(rosterHalfShow({ weekGain: c.weekGain, weekPct: c.weekPct }).kind, 'unknown', `${c.symbol}: "–", not left blank`);
+  for (const c of [...lefts, ...rights].filter((c) => c!.symbol !== mineGone && c!.symbol !== theirsGone)) assert(c!.weekGain !== null, c!.symbol);
+});
+
+Deno.test('a slotted league: the unpriced holding stays IN ITS SLOT (never an "Empty" slot), same group as when priced', () => {
+  const thu = new Date('2026-09-24T17:37:00Z');
+  const gone = ROBERTO_HOLDINGS[1].symbol;
+  const groupOf = (g: ReturnType<typeof view>, sym: string) => g.find((x) => x.rows.some((r) => r.left?.symbol === sym))?.label ?? 'missing';
+  const priced = view(thu, thuQuote, 'category');
+  const unpriced = view(thu, (s) => (s === gone ? null : thuQuote(s)), 'category');
+  assertEquals(groupOf(unpriced, gone), groupOf(priced, gone));
+  // The slot's shape is unchanged: the same number of your halves, none turned empty.
+  const halves = (g: ReturnType<typeof view>) => g.map((x) => [x.label, x.rows.filter((r) => r.left !== null).length]);
+  assertEquals(halves(unpriced), halves(priced));
 });
 
 Deno.test('a live update moves the numbers, never the rows (the order holds until the next close)', () => {

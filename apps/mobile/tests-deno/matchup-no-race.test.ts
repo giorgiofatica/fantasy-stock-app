@@ -14,7 +14,7 @@ Deno.test('Matchup renders no WeekRace and imports no race chart (source guard)'
   assert(!/import[^;]*\b(WeekRace|raceLayout|raceCoords|weekRacePoints)\b/.test(screen));
   assert(!/['"]@\/(components\/game\/WeekRace|lib\/game\/(raceLayout|weekRace))['"]/.test(screen));
   // What stays (W4): the Scoreboard and the mirrored roster, both lineups in it.
-  assert(screen.includes('<Scoreboard') && screen.includes('you={{ name: youName, gain: live.me.gain }}'));
+  assert(screen.includes('<Scoreboard') && screen.includes('you={{ name: youName, gain: live.me.total }}'));
   assert(screen.includes('rows: live.me.lineup') && screen.includes('rows: live.opp.lineup'));
   assert(SOURCES['components/game/MatchupRoster.tsx'].includes('<RosterRow'));
   for (const f of ['components/game/MatchupRoster.tsx', 'components/game/FinishedWeek.tsx', 'app/matchup-week.tsx', 'components/game/SeasonRecap.tsx']) {

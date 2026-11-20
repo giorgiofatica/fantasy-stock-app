@@ -957,9 +957,11 @@ row's winner) and the five sample `tile*` keys and `onTile` (replaced by the 11 
 - The 11pt floor stands (§9B), including text that shrinks to fit: a `minimumFontScale` never
   takes a label under 11pt (12pt caption → 0.92 at least), and avatar initials floor at 11pt.
   ONE exception (Giorgio's pick A, 2026-11-19, PRODUCT_RULES "A long ticker shrinks to fit its
-  round badge (A)"): the ticker inside a stock row's 40pt round badge shrinks to fit with no
-  floor (GOOGL ≈ 9.3pt), because the full ticker is printed at full size beside it
-  (`DISC_EXCEPTION_MIN_SCALE` in `components/sp/logic/holdingFit.ts`). Nothing else goes under 11pt.
+  round badge (A)"): the ticker inside the round ticker badge shrinks to fit with no floor
+  (GOOGL ≈ 9.3pt at 40pt, ≈ 12.4pt at 52pt), because the full ticker is printed at full size
+  beside it (`DISC_EXCEPTION_MIN_SCALE` in `components/sp/logic/holdingFit.ts`). The badge is ONE
+  component, `components/sp/gn/TickerBadge` (40pt on a row, 52pt in a header); never hand-make
+  another. Nothing else goes under 11pt.
   A disc under 24pt (the player card's 20pt owner disc) shows ONE initial, the first name's:
   two wide initials ("MW") at 11pt are as wide as a 20pt disc and would clip.
 - **Uppercase is set in the string, never with `textTransform`** (W3, 2026-10-12): React
@@ -1073,11 +1075,12 @@ row's winner) and the five sample `tile*` keys and `onTile` (replaced by the 11 
 ### Contrast evidence (v3.1)
 
 Computed from the values above against **the app's own tables**
-(`apps/mobile/constants/tokens/contrastPairs.ts`), **116 checks per theme**: 17 scored
-`TOKEN_ROWS` (of 18; `text3` is measured, not scored) and 99 `PAIRS` (W4 Portfolio added the
+(`apps/mobile/constants/tokens/contrastPairs.ts`), **118 checks per theme**: 17 scored
+`TOKEN_ROWS` (of 18; `text3` is measured, not scored) and 101 `PAIRS` (W4 Portfolio added the
 money sheet's warn panel, `warnText` on `warnTint` over `surface`: Light 6.23, Dark 9.56 in the yellow, 5.28 / 8.85 in
 the teal of pick A; W4 Onboarding added the Email confirmed chip, `gain` on `gainTint` over `bg`; the yellow call, pick A,
-2026-11-19, added `warnText` straight on a card and `text2` on `warnTint` over `bg`). The pairs are the 40
+2026-11-19, added `warnText` straight on a card and `text2` on `warnTint` over `bg`; Matchup's price notice, 2026-11-19,
+added `text` and its info icon, `accent` (graphic, 3), on `accentTint` over `bg`). The pairs are the 40
 existing rows (three re-pointed; W4 Draft replaced the your-turn rest pair, liveText on
 warnTint, with three rows on the accent-tint rest card: text, text2 and the last-10-seconds
 loss, so 39 + 3), 50 Game Night rows and W3's 3 Chip rows. The Game Night rows
@@ -1097,8 +1100,8 @@ added.
 
 | Theme | Scored | Pass | Tightest |
 |---|---|---|---|
-| Dark | 116 | 116 | `borderStrong` on `surface` 3.29 (needs 3); `onYou` on `you` 5.07; `you` on `surface` 3.49 (needs 3) |
-| Light | 116 | 116 | the last-10-seconds `loss` on the accent-tint rest card 4.55; `loss` in your column 4.67; `accent` on its tint 4.69; `medalSilver` on the you-tint row 3.11 (needs 3); the owner's disc 3.32 (needs 3) |
+| Dark | 118 | 118 | `borderStrong` on `surface` 3.29 (needs 3); `onYou` on `you` 5.07; `you` on `surface` 3.49 (needs 3) |
+| Light | 118 | 118 | the last-10-seconds `loss` on the accent-tint rest card 4.55; `loss` in your column 4.67; `accent` on its tint 4.69; `medalSilver` on the you-tint row 3.11 (needs 3); the owner's disc 3.32 (needs 3) |
 
 **`contrastPairs.ts` and the board's `PAIRS` are identical, row for row** (the board's `themes.css`
 is the app's `color.ts` key for key, so both score one palette); add a pair to both or to

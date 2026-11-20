@@ -41,3 +41,16 @@ export function lineupRows(bySymbol: Record<string, number>, gain: number): Line
   for (let k = order.length - 1; leftover < 0; k--, leftover++) cents[order[k % order.length]] -= 1;
   return symbols.map((symbol, i) => ({ symbol, cents: cents[i] }));
 }
+
+/**
+ * A team's LIVE total as the Scoreboard shows it (Giorgio, 2026-11-19, PR #562: "row has the dash but up
+ * top accounts for total without that stock"; "i want the running total to not be zero if there is an issue
+ * with one stock"): the sum of the rows of the stocks that DO have a live price. A stock with no price shows
+ * "–" on its row and is left out here, so the visible numbers add up to the total exactly. Never a dash, and
+ * never a stand-in for the missing stock. (A POSTED week is the server's own number: it waits for every price.)
+ */
+export function pricedTotal(lineup: readonly LineupRow[], unpriced: readonly string[]): number {
+  const missing = new Set(unpriced.map((s) => s.toUpperCase()));
+  const cents = lineup.reduce((sum, r) => (missing.has(r.symbol.toUpperCase()) ? sum : sum + r.cents), 0);
+  return cents / 100;
+}

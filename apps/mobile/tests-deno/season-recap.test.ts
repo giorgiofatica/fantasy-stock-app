@@ -196,7 +196,8 @@ Deno.test("the Matchup tab: after the season, the recap replaces the body; the w
   assert(src.includes("const complete = m.derived?.view.kind === 'complete';"));
   assert(src.includes('m.names, complete);'), 'the recap reads only when complete');
   assert(src.includes("segment === 'all' && !complete);"), 'All matchups (the week) is off once complete');
-  assert(src.includes('{complete && activeLeagueId ? ('));
+  // (A league without weeks draws nothing at all, recap included: #547's knownWithoutWeeks gate goes first.)
+  assert(src.includes('{blank ? null : complete && activeLeagueId ? ('));
   assert(src.includes('<SeasonRecap key={activeLeagueId} segment={segment} state={recap} leagueId={activeLeagueId} />'));
   // The switch stays.
   assert(src.includes("options={[{ label: 'My matchup', value: 'mine' }, { label: 'All matchups', value: 'all' }]}"));

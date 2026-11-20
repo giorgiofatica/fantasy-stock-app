@@ -8,7 +8,7 @@ import { PressableScale } from '@/components/sp/PressableScale';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { formatMoney, formatPercent } from '@/components/sp/logic/money';
-import { rosterHalfFigures, rosterHalfLabel, rosterHalfParts, toneOf } from '@/components/sp/logic/gameNight';
+import { rosterHalfLabel, rosterHalfParts, rosterHalfShow, toneOf } from '@/components/sp/logic/gameNight';
 import { useLargeText } from '@/components/sp/useLargeText';
 import { estimateMoneyWidth, fitScale } from '@/components/sp/logic/fitScale';
 
@@ -121,12 +121,13 @@ function Half({ half, mirror, shaded, gutter, whose, single = false, markEmpty =
     );
   }
 
-  // No figures (a withheld final, or an unknown week): the half is the stock alone.
-  const figs = rosterHalfFigures(half);
-  const gainText = figs ? formatMoney(figs.gain, { sign: 'always' }) : '';
+  // The number slot: the week, the "–" for an unknown week (secondary, no percent), or nothing at
+  // all for a withheld final (the half is the stock alone).
+  const show = rosterHalfShow(half);
+  const figs = show.kind === 'figures' ? show : null;
+  const gainText = show.kind === 'figures' ? formatMoney(show.gain, { sign: 'always' }) : show.kind === 'unknown' ? show.text : '';
   const stackedScale = fitScale(numWidth, estimateMoneyWidth(gainText, SCORE_MD_PT * Math.min(fontScale, SCORE_MD_MAX)));
-  const tone = figs ? toneOf(figs.gain) : 'zero';
-  const toneColor = colors[tone];
+  const toneColor = figs ? colors[toneOf(figs.gain)] : colors.text2;
   const name = (
     <View style={[styles.name, mirror ? styles.alignEnd : null]}>
       <Text variant="ticker" numberOfLines={1} maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{half.ticker}</Text>
@@ -149,12 +150,15 @@ function Half({ half, mirror, shaded, gutter, whose, single = false, markEmpty =
       ) : (
         <Text variant="score.md" color={toneColor} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{gainText}</Text>
       )}
-      {/* The percent caps at 1.3× — the gain (score.md, 1.3×) is never the smaller of the two. */}
-      <Text variant="caption" color={toneColor} style={styles.pct} numberOfLines={1} maxFontSizeMultiplier={PCT_MAX_SCALE}>{figs ? formatPercent(figs.pct, { sign: 'always' }) : ''}</Text>
+      {/* The percent caps at 1.3× — the gain (score.md, 1.3×) is never the smaller of the two. An
+          unknown week has no percent line. */}
+      {figs ? (
+        <Text variant="caption" color={toneColor} style={styles.pct} numberOfLines={1} maxFontSizeMultiplier={PCT_MAX_SCALE}>{formatPercent(figs.pct, { sign: 'always' })}</Text>
+      ) : null}
     </View>
   );
   const a11y = rosterHalfLabel(whose, half);
-  const content = rosterHalfParts({ figures: figs !== null, stacked, mirror }).map((p) => (p === 'name' ? name : num));
+  const content = rosterHalfParts({ figures: show.kind !== 'none', stacked, mirror }).map((p) => (p === 'name' ? name : num));
   const layout = stacked ? styles.contentStacked : styles.content;
 
   if (!half.onPress) {

@@ -126,6 +126,11 @@ const W4_PORTFOLIO_PAIRS: ReadonlyArray<[string, string, string | null, number]>
 const W4_ONBOARDING_PAIRS: ReadonlyArray<[string, string, string | null, number]> = [
   ['gain', 'gainTint', 'bg', 4.5],
 ];
+// Matchup's price notice (2026-11-19, the Design Lead's spec): the sentence and its info icon on the accent tint.
+const MATCHUP_NOTICE_PAIRS: ReadonlyArray<[string, string, string | null, number]> = [
+  ['text', 'accentTint', 'bg', 4.5],
+  ['accent', 'accentTint', 'bg', 3],
+];
 
 // The yellow call, pick A (2026-11-19): warnText straight on a card, and the blockers caption.
 const WARN_TEAL_PAIRS: ReadonlyArray<[string, string, string | null, number]> = [
@@ -134,10 +139,10 @@ const WARN_TEAL_PAIRS: ReadonlyArray<[string, string, string | null, number]> = 
 
 Deno.test('contrast: every Game Night pair is in PAIRS (sp-contrast.test.ts scores each in both themes)', () => {
   assertEquals(GAME_NIGHT_PAIRS.length, 50, '§9C v3.1: 50 new pairs');
-  for (const [fg, bg, over, min] of [...GAME_NIGHT_PAIRS, ...W3_CHIP_PAIRS, ...W4_DRAFT_PAIRS, ...W4_PORTFOLIO_PAIRS, ...W4_ONBOARDING_PAIRS, ...WARN_TEAL_PAIRS]) {
+  for (const [fg, bg, over, min] of [...GAME_NIGHT_PAIRS, ...W3_CHIP_PAIRS, ...W4_DRAFT_PAIRS, ...W4_PORTFOLIO_PAIRS, ...W4_ONBOARDING_PAIRS, ...MATCHUP_NOTICE_PAIRS, ...WARN_TEAL_PAIRS]) {
     assert(PAIRS.some(([f, b, o, m]) => f === fg && b === bg && o === over && m === min), `${fg} on ${bg}${over ? ` over ${over}` : ''} >= ${min}`);
   }
-  assertEquals(PAIRS.length, 40 - 1 + GAME_NIGHT_PAIRS.length + W3_CHIP_PAIRS.length + W4_DRAFT_PAIRS.length + W4_PORTFOLIO_PAIRS.length + W4_ONBOARDING_PAIRS.length + WARN_TEAL_PAIRS.length);
+  assertEquals(PAIRS.length, 40 - 1 + GAME_NIGHT_PAIRS.length + W3_CHIP_PAIRS.length + W4_DRAFT_PAIRS.length + W4_PORTFOLIO_PAIRS.length + W4_ONBOARDING_PAIRS.length + MATCHUP_NOTICE_PAIRS.length + WARN_TEAL_PAIRS.length);
 });
 
 Deno.test('every category has its pair: a pill (onCat) AND a line on the tile and on an inset', () => {

@@ -118,13 +118,13 @@ Deno.test('E9: row words cap at the Holdings rule (1.3x), chips at 1.3x, the sea
 
 Deno.test('E9: row text is MEASURED, never fitted by iOS (adjustsFontSizeToFit on an unlaid row shrinks it to nothing)', () => {
   assertFalse(/adjustsFontSizeToFit|minimumFontScale/.test(code(screen)));
-  assertMatch(screen, /fontSize: DISC_PT \* discTickerScale\(row\.symbol\)/);
+  assertMatch(screen, /<TickerBadge symbol=\{row\.symbol\} \/>/);
   assertMatch(screen, /fontSize: VALUE_PT \* valueScale\(rowWidth, priceText, fontScale\)/);
   assertMatch(screen, /const \[rowWidth, setRowWidth\] = useState<number \| null>\(null\);/, 'null until laid out: full size');
   // The shared search row (reused for search results) is measured too.
   const search = SOURCES['components/money/StockSearchScreen.tsx'];
   assertFalse(/adjustsFontSizeToFit/.test(code(search)));
-  assertMatch(search, /fontSize: DISC_PT \* discTickerScale\(item\.symbol\)/);
+  assertMatch(search, /<TickerBadge symbol=\{item\.symbol\} style=\{off \? styles\.dim : null\} \/>/);
 });
 
 Deno.test('C: the search icon is first in the chip row; searching swaps the row for a field + Cancel and shows the existing search\'s rows', () => {
