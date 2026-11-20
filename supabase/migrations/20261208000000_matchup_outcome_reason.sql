@@ -59,6 +59,8 @@ alter table public.matchups
   add column if not exists team1_percent_gain numeric,
   add column if not exists team2_percent_gain numeric;
 
+-- Re-runnable: a push that died after the columns landed re-adds cleanly.
+alter table public.matchups drop constraint if exists matchups_outcome_reason_valid;
 alter table public.matchups
   add constraint matchups_outcome_reason_valid check (
     outcome_reason is null or outcome_reason in (
@@ -77,6 +79,7 @@ alter table public.matchups
     )
   );
 
+alter table public.matchups drop constraint if exists matchups_percent_tiebreak_has_percents;
 alter table public.matchups
   add constraint matchups_percent_tiebreak_has_percents check (
     outcome_reason is distinct from 'percent_tiebreak'
