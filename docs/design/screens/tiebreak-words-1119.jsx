@@ -192,5 +192,6 @@
     );
   }
 
-  window.KSTiebreakWords = () => <CallTiebreakWords />;
+  window.KSTiebreakWords = () => null;
+  window.KSTiebreakWordsArchived = () => <CallTiebreakWords archived decidedNote={<><b>Decided 2026-11-19.</b> The line: <b>A</b>, the winner first. These words wait on the server plan, which stores why a week was decided; until then the card shows no line in these weeks. The recap row: <b>his own option</b>, neither 1 nor 2 above: W, L and T in bold neutral ink, the figure keeps its sign colour, and no reason word on the row (built, #574).</>} />;
 })();

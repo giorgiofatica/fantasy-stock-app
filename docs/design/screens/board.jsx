@@ -391,14 +391,13 @@
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [
-    ['call-tiebreak-words', 'The words when dollars don’t decide a week', () => window.KSTiebreakWords],
-  ];
+  const OPEN = [];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-tiebreak-words', title: 'The words when dollars don\u2019t decide a week', decision: 'The line: A, the winner first ("Paolo M. won the tiebreak, +1.76% to +0.74%"); the words wait on the server storing why a week was decided. The recap row: his own option, neither 1 nor 2: W, L and T in bold neutral ink, the figure keeps its sign colour, no reason word on the row (built, #574).', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSTiebreakWordsArchived },
     { id: 'call-yellow', title: 'The yellow warnings', decision: 'A: the teal tint, in all five kinds of place (the refusal panel, Home\u2019s \u201ccan\u2019t start yet\u201d card and its stepper ring, the stake-mode note, a TBD draft time, the draft search\u2019s badge). Only the three warning colours change, both themes. The gold medal and the Property colour stay. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSYellowArchived },
     { id: 'call-ticker-disc', title: 'A long ticker in its round badge', decision: 'A: the badge stays the same round size on every row and only its text shrinks to fit a long ticker (about 9pt for GOOGL), written in full; the one exception to the 11pt smallest-text rule. Holdings, the Stocks list and search. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (#562, the Planner)', render: () => window.KSTickerDiscArchived },
     { id: 'call-matchup-after', title: 'The Matchup tab after the season', decision: 'Superseded: neither A nor B. He wants a season recap (the weeks listed, each opening that week\u2019s matchup); the Planner is mocking it with him as its own call.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSMatchupAfterArchived },
