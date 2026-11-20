@@ -34,18 +34,22 @@ Entries begin with the Recorder's first pass.
 - **#561 (17:38:31Z, `dd2701aa`), a test-only fix for a red `main`**, and **main's CI on it finished `success`** (run 44579370923; I read it). The red: the runs on `41a5e906` (06:48Z) and `8fbf072a` (06:55Z) FAILED, after #554's tests and #555's season-end change had each passed alone and merged back to back (the Orchestrator's account).
 - **#560 (18:19:16Z, `43a676d1`, my record), #562 (18:23:22Z, `da7a337a`, rulings) and #563 (18:27:29Z, `da4cd167`, the Stocks tab Part 2, the screen).** #563 is mobile and docs only, in no build; the Design Lead's final pass and two Copilot reviews with two fixes (the Orchestrator's account). `main`'s CI is `success` on `43a676d1` and `da7a337a`; on `da4cd167` it was unfinished.
 
+- **Evening, 19:44Z on 11-19 to 03:32Z on 11-20 (I read each on GitHub):** #557 (`a96aec6a`, charts never invent a stretch), #567 (`55e9bf42`, my record, with `4bfa265c`), #568 (`8b30437f`, a long ticker shrinks to fit its badge), #566 (`dd1f5fe2`, the season recap on Matchup after a season, finished cards naming the server's winner), #570 (`076607ee`, rulings), #569 (`30912336`, the yellow audit board), #571 (`0328dfa9`, one shared `TickerBadge`), **#547 (`8f252299`, Matchup totals are the priced sum, "–" rows, "leads by" back, the teal missing-price notice)**; #565 earlier (`c400c14f`, the badge board). None touches `supabase/`, web, scripts or CI; nothing deployed; no build cut. Main's CI is `success` on each merge commit I looked up, except `8f252299` (unfinished when I looked). Open: #572 (the teal tint build), #564 (`pr-watch`; Giorgio's call), #279 (draft).
+
 **Decided**
 - **Giorgio turned on "Require conversation resolution before merging" and then "Require branches to be up to date" (strict)** on the review ruleset (I read both flags). Merges are serial now: the Orchestrator updates the next pull request, it goes green, then Giorgio merges.
+- **More rulings (in `docs/PRODUCT_RULES.md` via #570; none built beyond what is merged above):** a week dollars did not decide says who won and why, winner first (A), BUT these words wait on a server change (the server does not yet record why; the Planner's plan `docs/plans/2026-11-19-matchup-outcome-reason.md` is a local draft, not approved, not on `main`; until then such a week shows no line); the recap row's W and L are bold and neutral, only the money is coloured, no reason on the row (A); three or more unpriced stocks use a general notice ("Prices for multiple stocks aren't loading right now..."); every yellow warning takes the teal tint (A; the build is #572, open); the ticker-badge rule covers Trade history's copy (the Planner's reading).
+- **A standing rule from Giorgio (the Orchestrator's account):** when open pull requests build up, pause and drain them before opening new ones (a working cap of about four).
 - **Rulings (in `docs/PRODUCT_RULES.md` via #562; none built):** on the live Matchup screen an unpriced stock shows a dash and the total is the total without it, never a dash (the server, by contrast, refuses to score a week until every stock is priced, so a posted week always includes every stock); a notice at the top of Matchup while a price is missing, with approved copy; yellow is not part of the theme (the Design Lead audits where it appears); a long ticker shrinks to fit its round badge (A); prices are shown only inside the app, to signed-in players, and no supplier is contacted yet.
 
 **Found**
-- **#547's contradiction is resolved:** the server refuses to score a league-week until every stock is priced, which the Planner had not told Giorgio; told, he kept his ruling for the live screen. #547 is a draft, with the live total and the notice being built.
+- **#547's contradiction is resolved:** the server refuses to score a league-week until every stock is priced, which the Planner had not told Giorgio; told, he kept his ruling for the live screen. #547 was then built and merged (03:32:17Z on 11-20, `8f252299`).
 
 **Waiting on Giorgio**
 - The supplier enquiry (the Planner's draft to Tiingo and Intrinio, his to send when ready); #564 (`pr-watch` reports a red main); the January SDK start.
 
 **Next**
-- Open: #557 (charts; the last automated fix in progress), #566 (the season recap; fix in progress), #564, #565 (the ticker-badge board; the build chip is offered), #547 (draft), #279. The Design Lead's yellow audit is in progress.
+- Open: #572 (the teal tint build), #564 (`pr-watch`; Giorgio's call), #279 (draft). Queued: the recap-row letters build, the Design Lead's W/L colour audit board, the Planner's draft plan for `matchups.outcome_reason`.
 - Build 18 is not started and nothing is deployed.
 - Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.
 
