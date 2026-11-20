@@ -18,15 +18,16 @@ Deno.test('wiring: `selected` ignores `choice` entirely when not held, not just 
 });
 
 Deno.test('wiring: the Buy | Sell SegmentedControl is gated on `held`, not rendered unconditionally', () => {
-  // The control sits inside a `{held ? ( ... ) : null}` guard right before
+  // The control sits inside a `{held && model.controlsShown ? ( ... ) : null}` guard (held; and not a finished season) right before
   // its own JSX -- confirm the gate wraps the SegmentedControl, not some
   // unrelated held-conditional elsewhere in the file.
   const controlIndex = stockSheetBodySrc.indexOf('<SegmentedControl');
-  const gateIndex = stockSheetBodySrc.lastIndexOf('{held ? (', controlIndex);
+  const GATE = '{held && model.controlsShown ? (';
+  const gateIndex = stockSheetBodySrc.lastIndexOf(GATE, controlIndex);
   assertEquals(controlIndex > 0, true, 'SegmentedControl must still exist');
   assertEquals(gateIndex > 0 && gateIndex < controlIndex, true, 'the `held` gate must immediately precede the SegmentedControl');
   // Nothing non-whitespace/comment sits between the gate and the control.
-  const between = stockSheetBodySrc.slice(gateIndex + '{held ? ('.length, controlIndex);
+  const between = stockSheetBodySrc.slice(gateIndex + GATE.length, controlIndex);
   assertEquals(/^\s*$/.test(between), true, `expected only whitespace between the gate and the control, got: ${JSON.stringify(between)}`);
 });
 

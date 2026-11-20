@@ -55,7 +55,7 @@ Deno.test('W4: a free stock when every slot is held reads "No free slot"; owners
 // dim, the reason stays in text2 at FULL opacity (dimmed, it read 2.44:1 / 2.04:1).
 Deno.test('wiring: a not-in-list row dims only its disc and price, never its reason', () => {
   const row = searchScreenSrc.slice(searchScreenSrc.indexOf('function SearchRow'));
-  assertEquals(row.includes('styles.disc, off ? styles.dim : null'), true);
+  assertEquals(row.includes('<TickerBadge symbol={item.symbol} style={off ? styles.dim : null} />'), true);
   assertEquals(row.includes('off ? styles.dim : null]}>{keepMoney(formatMoney(item.price))}'), true);
   // The whole-row opacity is gone, and the status Text carries no dim.
   assertEquals(row.includes('styles.row, styles.disabled'), false);

@@ -23,6 +23,32 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-19
+
+(Times are UTC, and this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. The overnight merges of 01:30Z to 06:55Z are in the 2026-11-18 entry, which runs on Pacific time.)
+
+**Shipped**
+- Nothing is recorded as reaching players or prod so far today. #563 (the Stocks tab screen) and #562 (rulings) merged; none of it is in a build.
+
+**Merged, not confirmed live**
+- **#561 (17:38:31Z, `dd2701aa`), a test-only fix for a red `main`**, and **main's CI on it finished `success`** (run 44579370923; I read it). The red: the runs on `41a5e906` (06:48Z) and `8fbf072a` (06:55Z) FAILED, after #554's tests and #555's season-end change had each passed alone and merged back to back (the Orchestrator's account).
+- **#560 (18:19:16Z, `43a676d1`, my record), #562 (18:23:22Z, `da7a337a`, rulings) and #563 (18:27:29Z, `da4cd167`, the Stocks tab Part 2, the screen).** #563 is mobile and docs only, in no build; the Design Lead's final pass and two Copilot reviews with two fixes (the Orchestrator's account). `main`'s CI is `success` on `43a676d1` and `da7a337a`; on `da4cd167` it was unfinished.
+
+**Decided**
+- **Giorgio turned on "Require conversation resolution before merging" and then "Require branches to be up to date" (strict)** on the review ruleset (I read both flags). Merges are serial now: the Orchestrator updates the next pull request, it goes green, then Giorgio merges.
+- **Rulings (in `docs/PRODUCT_RULES.md` via #562; none built):** on the live Matchup screen an unpriced stock shows a dash and the total is the total without it, never a dash (the server, by contrast, refuses to score a week until every stock is priced, so a posted week always includes every stock); a notice at the top of Matchup while a price is missing, with approved copy; yellow is not part of the theme (the Design Lead audits where it appears); a long ticker shrinks to fit its round badge (A); prices are shown only inside the app, to signed-in players, and no supplier is contacted yet.
+
+**Found**
+- **#547's contradiction is resolved:** the server refuses to score a league-week until every stock is priced, which the Planner had not told Giorgio; told, he kept his ruling for the live screen. #547 is a draft, with the live total and the notice being built.
+
+**Waiting on Giorgio**
+- The supplier enquiry (the Planner's draft to Tiingo and Intrinio, his to send when ready); #564 (`pr-watch` reports a red main); the January SDK start.
+
+**Next**
+- Open: #557 (charts; the last automated fix in progress), #566 (the season recap; fix in progress), #564, #565 (the ticker-badge board; the build chip is offered), #547 (draft), #279. The Design Lead's yellow audit is in progress.
+- Build 18 is not started and nothing is deployed.
+- Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.
+
 ## 2026-11-18
 
 (Times are UTC. The Orchestrator's account unless marked; where I read it myself on GitHub or in the repo, I say so.)
@@ -58,6 +84,7 @@ Entries begin with the Recorder's first pass.
 
 - **#542 APPLIED, about 00:1xZ on 2026-11-19 (the Orchestrator's verified account; I ran none of it; merged 2026-11-18T23:10:17Z, `f8d09899`).** Giorgio, from `local/deploy` (I read it at `f8d09899`), Homebrew `supabase` 2.67.1: migration `20261207000100` (the dry run listed only that file). His read-only checks: the function is `SECURITY DEFINER` with a pinned `search_path`; its ACL is `postgres` and `authenticated` only, no `anon`, no `service_role`; the effect test PASSED (the result is exactly four columns with no price; a real member got 25 rows with none held; an outsider was refused; `anon` was refused), rolled back. Ids kept out of the repo. **The db-snapshot was re-captured at 00:14:08Z on 2026-11-19 (Giorgio ran `db-snapshot.sql`) and is in #549, open, not merged.** Nothing of the Stocks tab screen is built.
 - **Three more merges, 23:10Z to 00:14Z (I read each on GitHub):** #542 (`f8d09899`), #544 (`5979c2f1`, Giorgio's price feed kind), #543 (`cb0d04f9`, my record; merged as the Orchestrator's rebuild `3a75a689`). `main` is `cb0d04f9`; main's CI on `5979c2f1` is `success`, and on `cb0d04f9` was unfinished. #545 merged 00:16:46Z (`2dcebaf5`; a finished season shows the season only, no trading; mobile, in no build) and #548 merged 00:17:23Z (`9e21b476`; the Design Lead's three-calls board; his picks on it are not recorded as made). Open: #546, #547 (draft), #279, and this record as #550.
+- **Overnight, 01:30Z to 05:53Z on 2026-11-19 (I read each on GitHub):** #546 (`19ef7b8b`, gain lines; mobile, in no build), #551 (`8165255b`, Giorgio's three calls as rulings), #552 (`a7a2fcb8`, the board archived), #550 (`28bc8216`, my record, all three commits in), **#549 (`7c0d19b7`, the db-snapshot re-capture: STATUS item 36 is closed)**, #553 (`4784c769`, the review pipeline doc and `scripts/pr-watch.mjs`). `main` is `4784c769`; its CI is `success` (run 44468217175). Nothing in it touches `supabase/`; nothing deployed; no build cut. The map on `main` has 34 drift rows, none high.
 **Merged, not confirmed live**
 - **#521** (the Portfolio range reset fix), merged 21:54:16Z (`49044e06`, by Giorgio; I read it on GitHub): mobile only, in no build; build 17 was cut from `6bc490db` and does not carry it.
 - **#514's two mobile files** (`apps/mobile/lib/symbolSearch.ts` and its test): merged; they are in build 17, which FINISHED at 19:55Z and was then submitted to TestFlight internal (Giorgio's word; see below). The server side of today's code is deployed, as above. Merging to `main` also deploys the web app to Vercel; neither of the two code pull requests touches `apps/web` (I read their file lists), and I recorded no web effect.
@@ -73,6 +100,7 @@ Entries begin with the Recorder's first pass.
 
 - **The Stocks list (Giorgio, 2026-11-18, in `docs/PRODUCT_RULES.md` via #526 and #528; none built):** it opens on a list of the stocks you can get, not an empty search (pick A); each row shows the stock's price, under tight limits (pick A); the list opens with the largest companies first (pick A). Not decided: the layout itself, which waits on his screenshots of the real apps.
 
+- **Giorgio's three calls on the Design Lead's board (#548; ruled in `docs/PRODUCT_RULES.md` via #551; none built):** the Matchup tab after the season is a recap of every week (your result and your gain on each row, tapping opens that week's matchup); in a finished season the Stocks tab can be browsed but has no plus and no Buy (2A); the Stocks tab's icon is a storefront (3B).
 - **Accurate prices (Giorgio, 2026-11-18, #533; none built):** a price shown to a manager is the current one, never old and never missing, however rarely the stock trades. The Planner's reading is that the current data cannot meet it and that it needs a full-market price feed (a supplier decision; the Researcher is on the options); until then the buy path stays as it is.
 - **Gain lines: only the numbers are coloured, the words stay grey (pick A; #533).**
 - **The price feed KIND (Giorgio, 2026-11-18, #544): "A", a calculated price for every stock** (an estimate worked out each second from the whole market, never a day old, never missing; about $250 to $1,000 a month, flat). Not a supplier, a contract or a go-ahead to spend. Not decided: which supplier, when to start paying, whether scoring uses the same calculated price or the day's official open and close, and whether prices ever appear on a public web page.
@@ -93,6 +121,7 @@ Entries begin with the Recorder's first pass.
 **Next**
 - **Build 18, not started; in progress, none merged (the Orchestrator's list):** the finished-season Portfolio and stock card (pick A); no week figures where there are no weeks; a server refusal of trades after the season ends, since merged as #529 (applied and deployed the same evening; STATUS §4 item 33, closed).
 - **Giorgio's decisions waiting:** the supplier and the rest of the price feed (STATUS item 34; the kind is picked), his look at the "–" total on the draft #547, and the January SDK start. (His picks on the Stocks list board are made: A+C.)
+- **Before build 18:** #555 (a finished season ends at the whole league's last scored week; the fix for #545's known bug) is now MERGED (06:47:12Z, `d082bd4a`), with #554 and #556 (06:47Z; I read each on GitHub); main's CI on `29bfecd1` was pending, so none is recorded. #558 (gain pairs spoken "+$X, +Y%") then merged too (`41a5e906`; mobile, in no build). Still open: #557, #559 (docs only, the pipeline guide) and #547 (draft). The Stocks tab screen (Part 2) is built on an unpushed local branch, awaiting the Design Lead's Round 3 re-gate.
 - **Mon 2026-11-23, 14:35Z: the first live week-start with the always-a-price step.** The Orchestrator will check its logs; I record what it finds, not that the run happened.
 
 ## 2026-11-17

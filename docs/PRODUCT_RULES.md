@@ -491,6 +491,42 @@ building anything, and don't reopen a rule without him.
 
 - **Dollars decide.** Dollar gain decides every matchup in every stake mode; percent is
   only the tiebreak. The UI shows the metric that decides the winner, via one shared helper.
+- **A finished week that dollars did not decide says who won and why, winner first (A)**
+  (2026-11-19, the Design Lead's board `#call-tiebreak-words`, branch
+  `design/tiebreak-words-1119`, shown in the Planner's chat; typed there: "A"). The line
+  under a finished week's card:
+  - Percent tiebreak (level on dollars): **"Paolo M. won the tiebreak, +1.76% to +0.74%"**
+  - One team had no stocks: **"Chiara R. won. Sofia F. had no stocks"**
+  - Playoff, level on dollars and percent: **"Tied. Luca V. advances as the higher seed"**
+  - Playoff, no stocks on either side: **"No stocks on either side. Chiara R. advances as
+    the higher seed"**
+  - Unchanged: a week won on dollars keeps "{winner} won by $X", and a true tie keeps
+    "Dead even".
+  - B (the reason first, e.g. "Tied on dollars. Paolo M. won on percent, +1.76% to +0.74%")
+    was not picked.
+  - **The season recap row: the W and L are bold and neutral, only the money is coloured,
+    and the row carries no reason (A)** (2026-11-19, the same board, then A/B mockups in
+    the Planner's chat). The board offered 1 (as built: the letter coloured by the result,
+    the figure by its sign, so a red "L" beside a green "+$34.04") or 2 (the same with a
+    grey reason word). He took neither. His words: "I think it's going to be a little
+    confusing if there's a red L and then green money... I also don't think it's smart to
+    put red where there's gains... I think maybe we make the P&L red and green, but we keep
+    the L's and W's not red and green and just keep them like bolded neutrals or something
+    like that." Shown that idea two ways (A: neutral letters and nothing else; B: neutral
+    letters plus one grey word, "L · tiebreak", "L · seed", "W · they had no stocks"), he
+    typed "A". So: the letter is in the normal dark ink, bold; the figure keeps its sign
+    colour; no reason word on the row; the reason is on that week's card, one tap away.
+    B was not picked, so the three reason words are not approved copy.
+  - Scope: the recap rows only. W and L letters are drawn in other places; the Design
+    Lead lists every place they are coloured and it comes back to him as a board. Nothing
+    changes on those screens until he picks.
+  - Why this came up: the line used to compare the two dollar figures by itself, so a
+    percent-tiebreak week read "Dead even" under a band that named a winner, and a
+    no-stocks week could name the wrong side. Since #566 (2026-11-19) such a week shows no
+    line. These words replace "no line" once the server records why a week was won; it
+    does not today, and the phone cannot work it out from the totals. That is a plan of its
+    own (`docs/plans/2026-11-19-matchup-outcome-reason.md`, a draft), so nothing here
+    ships before it.
 - **There is always a price for a stock, and no person ever types one in** (2026-11-17).
   Asked what the app should do when a held stock has no trade for a whole day (the case the
   2026-11-17 week-price fix leaves with no price), and shown three options (A: use the
@@ -528,6 +564,71 @@ building anything, and don't reopen a rule without him.
       records no weekly prices for it by design, and the app showed week figures anyway.
       Matchup leagues are not hit by this cause. The fix: a league with no weeks shows no
       week figures, and a matchup holding with no recorded start shows "–", never zero.
+    - **On Matchup, an unpriced stock shows a dash on its row, and the team's total is the
+      total without that stock** (2026-11-19; shown the real screen at L, at his size and in
+      Dark, PR #547; typed in the Planner's chat). The build had the row's figure as "–" and
+      ALSO the team's total as "–" (the Planner's spec, so that a total leaving a stock out
+      was never shown as the team's total). Asked whether a dash for the total was
+      acceptable, his words: "row has the dash but up top accounts for total without that
+      stock".
+      - So: the stock stays in its slot with "–" where its figures go, and the total at the
+        top is the sum of the stocks that do have a price. The total is a number, never a
+        dash.
+      - The Planner's reading, told to him and not his words: with both totals shown again,
+        the line under the card that says who leads and by how much shows again too, worked
+        out from those totals.
+      - CORRECTION, the same day: the Planner also told him this matched how the server
+        scores such a week. It does not. The server does not leave the stock out; it refuses
+        to score the week until every holding has a price, and retries
+        (`scoring-eligibility.ts`, `process-week-results`, `snapshot-week-end/close.ts`). So
+        a posted week always includes every stock, and only the LIVE total during the week
+        leaves one out. Told this, his words: "yes, i want the running total to not be zero
+        if there is an issue with one stock." The ruling stands, for the live screen.
+    - **A notice at the top of Matchup while a price is missing** (2026-11-19; his idea,
+      then A/B mockups for the wording and the colour, in the Planner's chat). His words:
+      "maybe what we do is we put a small info/warning banner at the top of the matchup page
+      if there is an issue pulling the price of a stock to let the user know", and, on the
+      first wording shown, "i think the banner needs to say something about arent loading
+      right now and we are working to update it or something. so the user knows we are being
+      proactive. and that the total will be updated with that when its done".
+      - Approved copy (wording "A"): **"Prices for AAPL and JPM aren't loading right now.
+        We're working on it, and the totals will update when they're back."** With one
+        stock: **"The price for AAPL isn't loading right now. We're working on it, and the
+        totals will update when it's back."** The stocks are named, not counted.
+      - **Three or more stocks: the notice does not list them** (2026-11-19, typed in the
+        Planner's chat after the two wordings above were approved). His words: "if its more
+        than two we should just say something like we are having issue with multiple stocks
+        or whatever. make it plural and general". One stock and two stocks stay named, as
+        above. Approved copy: **"Prices for multiple stocks aren't loading right now. We're
+        working on it, and the totals will update when they're back."** His words on it:
+        "that wording is good, approved".
+      - Where and when: under the "My matchup | All matchups" switch, above the totals;
+        only while a price is missing during the week; never on a scored week.
+      - Colour (pick "A"): the app's teal accent as a soft tint, with an info icon. Not
+        yellow. His words: "maybe we put it in a color that matches our theme. we should
+        have a select color palette and yellow doesnt really go with it". B (the app's
+        neutral grey-blue) was not picked. The Design Lead sets the exact shades and Dark.
+      - Told to him: "We're working on it" is true as the app and the server retrying by
+        themselves until the price arrives; nobody fixes it by hand.
+    - **Yellow is not part of the theme; the Design Lead audits where it appears**
+      (2026-11-19, the same message: "A, and yes have the design lead audit the yellow").
+      The palette has a yellow for warnings today (`warnTint`, `warnText`), used on the
+      "The draft can't start yet" card among others, which he called a "big yellow box" on
+      2026-11-09. The audit lists every use and comes back to him as a board of each one in
+      the palette's own colours. Nothing changes on those screens until he picks.
+      - **The pick: A, the teal tint** (2026-11-19, the Design Lead's board `#call-yellow`,
+        PR #569, with real-app stills of today / A / B in Light and Dark shown in the
+        Planner's chat; typed there: "A"). Every yellow warning takes the accent's soft
+        tint with its words in teal, the same family as the Matchup price notice. It covers
+        the five kinds of place the audit found: the refusal panel (on 13 screens), Home's
+        "The draft can't start yet" card (fill, edge, small label and the Playoff teams
+        stepper's ring), the stake-mode note in League settings, "TBD" on the Draft time
+        row, and the draft search's "NOT DRAFTABLE" / owned badge. B (neutral grey) was not
+        picked; in the stills its grey-edged refusal looked like the outlined button under
+        it. No new words. Left as they are: the gold medal and the Property category's
+        amber, since neither is a warning.
+      - Told to him with the pick: with A a refusal and an information notice are the same
+        colour, so the words carry the difference.
     - Ruled out by his words: any figure that reads as "flat" or "zero" because the app has
       nothing to compute it from.
     - The Planner's reading, not his words: where the week's starting price was not recorded,
@@ -580,9 +681,17 @@ building anything, and don't reopen a rule without him.
       data when the plan ends, which matters because the app stores prices for scoring.
     - Told to him and not objected to: the cheaper upgrade of the current supplier does not
       work (its $99 plan covers the whole market but its terms are still personal use).
+    - **Prices are shown only inside the app, to signed-in players; no supplier is contacted
+      yet** (2026-11-19; typed in the Planner's chat). Asked whether prices should ever
+      appear on a public web page, and whether to send the Planner's draft enquiry to the two
+      low-cost suppliers (Tiingo, Intrinio), his words: "only inside the app, we wont send
+      out yet ill ask when ready".
+      - So an enquiry or a licence asks for in-app display to signed-in players only. The
+        public web ticker for signed-out visitors is not part of what a supplier is asked
+        for.
+      - Nobody sends the enquiry or contacts a supplier until he says so. It is his to send.
     - Not decided: which supplier; when to start paying; whether scoring uses the same
-      calculated price or the day's official open and close; whether prices ever appear on
-      a public web page (it changes what to ask a supplier for).
+      calculated price or the day's official open and close.
 - **A Duration league is won by dollars too** (2026-11-11: "dollars, confirmed", confirming
   DR-001's "Duration (single long window, best total dollar return)", 2026-08-08): the
   biggest dollar gain at the end of the league wins, in every stake mode. Duration scoring
@@ -1350,6 +1459,20 @@ building anything, and don't reopen a rule without him.
     was not picked. The reason given to him: the search button inside the tab is also a
     magnifying glass, so with A one icon would mean two things on one screen, and the
     storefront says where you get stocks.
+  - **A long ticker shrinks to fit its round badge (A)** (2026-11-19, the Design Lead's board
+    `design/ticker-disc-1118`, PR #565; typed in the Planner's chat: "A for ticker"). The
+    round badge on a stock row (Holdings, the Stocks list, search) could not fit a
+    five-letter ticker at the app's 11pt minimum, so GOOGL, BRK.B and AMGN showed as "GO…",
+    "BR…" and "AM…". With A the badge stays round, the rows stay aligned, and the text in
+    the badge shrinks to fit (about 9pt). That is the one exception to the 11pt rule, allowed
+    because the full ticker is printed beside the badge. B (the badge widens into a pill on
+    those rows) was not picked.
+    - Trade history has its own copy of the same badge, with the same defect. It was not on
+      the board he picked from. The Planner's reading, not his words: the pick is how that
+      badge behaves, not a look for three screens, so it covers Trade history and any other
+      copy of the badge at the same size (UX rule 5, the same thing looks the same
+      everywhere). A copy of the badge at a different size, where the text would go well
+      below 9pt, is not covered and goes to him first.
   - Not decided: whether a manager can re-sort the list, and what else
     browsing offers ("look around, see different markets"). Browsing by our own categories needs nothing new; lists
     that depend on live market data (movers, most active) wait on the price-supplier

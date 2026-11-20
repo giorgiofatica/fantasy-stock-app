@@ -111,6 +111,10 @@ export const PAIRS: readonly ContrastPair[] = [
   ['text', 'accentTint', 'bg', 4.5, 'Your-turn rest: the round line and the clock on the accent-tint card'],
   ['text2', 'accentTint', 'bg', 4.5, 'Your-turn rest: the captions on the accent-tint card'],
   ['loss', 'accentTint', 'bg', 4.5, 'Your-turn rest: the clock in the last 10 seconds'],
+  // Matchup's price notice (2026-11-19, Giorgio's pick A, the Design Lead's spec): the sentence in `text`
+  // and the info icon in `accent` on the accent tint over the page.
+  ['text', 'accentTint', 'bg', 4.5, 'Matchup price notice: the sentence'],
+  ['accent', 'accentTint', 'bg', 3, 'Matchup price notice: the info icon (graphic)'],
 
   // ── Game Night, §9C v3.1 (2026-10-12): the 50 new scored pairs. §9C names them by group
   // (your side on the card surface and on the page, the clock cell, the money page, the

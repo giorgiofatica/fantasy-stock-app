@@ -16,13 +16,14 @@ import type { IconName } from '@/components/sp/logic/icon';
 // filled change is part of S2's micro-animation rather than a hard swap;
 // ShellTabBar adds the one-shot scale bump. Reduce Motion: instant swap.
 
-export type TabIconName = 'home' | 'matchup' | 'league' | 'portfolio';
+export type TabIconName = 'home' | 'matchup' | 'league' | 'portfolio' | 'stocks';
 
 const GLYPHS: Record<TabIconName, { filled: IconName; outline: IconName }> = {
   home: { filled: 'tabHomeSelected', outline: 'tabHome' },
   matchup: { filled: 'tabMatchupSelected', outline: 'tabMatchup' },
   league: { filled: 'tabLeagueSelected', outline: 'tabLeague' },
   portfolio: { filled: 'tabPortfolioSelected', outline: 'tabPortfolio' },
+  stocks: { filled: 'tabStocksSelected', outline: 'tabStocks' },
 };
 
 /** The tab icon's box: the `tab` role's 24pt (it never scales). */

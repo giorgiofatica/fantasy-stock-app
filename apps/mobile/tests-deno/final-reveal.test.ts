@@ -16,9 +16,14 @@ Deno.test('the banner mounts only after the reveal is decided, per league-week (
   assert(hook.includes('setState({ key, play });'));
   assert(hook.includes('return { decided: key !== null && state.key === key, play: key !== null && state.key === key && state.play };'));
   assert(!hook.includes('setPlay(true)'));
+  // The final week is FinishedWeek (the tab's 'final' state and the recap's week detail).
   const screen = SOURCES['app/(tabs)/matchup.tsx'];
-  assert(screen.includes('{isFinal && final && reveal.decided ? ('));
-  assert(screen.includes('play={reveal.play}'));
+  assert(screen.includes("if (view.kind === 'final' && final) {"));
+  assert(screen.includes('reveal={reveal}'));
+  const fw = SOURCES['components/game/FinishedWeek.tsx'];
+  assert(fw.includes('{reveal.decided ? <FinalBanner play={reveal.play}'));
+  // The recap's week detail never replays the reveal.
+  assert(SOURCES['app/matchup-week.tsx'].includes('const NO_REVEAL = { decided: true, play: false } as const;'));
   // Why: the banner's start pose is read once, on mount.
   assert(SOURCES['components/game/FinalBanner.tsx'].includes('const progress = useSharedValue(play && !reduced ? 0 : 1);'));
 });

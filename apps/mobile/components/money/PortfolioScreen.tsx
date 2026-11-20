@@ -45,7 +45,7 @@ import { RollingGainPair } from '@/components/money/RollingGainPair';
 import { COPY } from '@/lib/money/moneyCopy';
 import { usePortfolioData } from '@/lib/money/usePortfolioData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
-import { dailyValues, DEFAULT_PORTFOLIO_RANGE, finishedPortfolioSeries, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
+import { dailyValues, DEFAULT_PORTFOLIO_RANGE, draftValueOf, drawsALine, finishedPortfolioSeries, sinceTheDraftGain, mondayOf, PORTFOLIO_RANGES, portfolioGreyedRanges, portfolioRangeChoice, portfolioRangePick, portfolioSeries, seasonEndCloses, type PortfolioRange, type PortfolioRangePick } from '@/lib/money/portfolioChart';
 import { useSeasonEnd } from '@/lib/money/useSeasonEnd';
 import { isSeasonOver } from '@/lib/weekStatus';
 import { PhaseChip } from '@/components/sp/PhaseChip';
@@ -148,6 +148,9 @@ export function PortfolioScreen() {
     () => (chart ? dailyValues({ rows: chart.rows, bars: chart.bars, stake: chart.stake, todayEt, endEt: chartEnd }) : []),
     [chart, todayEt, chartEnd],
   );
+  // "Since the draft" is measured from the stake at cost (a real number), even when the line itself starts
+  // later because the early bars are missing (dailyValues never invents the stretch before it).
+  const draftValue = useMemo(() => (chart ? draftValueOf(chart.rows, chart.stake) : null), [chart]);
   // A range longer than the league has existed is grey (history = the league's age: the line
   // starts at the draft); Season never is, 1W never is. A grey range is never the selected one:
   // a team chart falls back to Season, not the stock sheet's 1W.
@@ -155,14 +158,22 @@ export function PortfolioScreen() {
   const shownRange = selectableRange(range, greyed, DEFAULT_PORTFOLIO_RANGE);
   const series = useMemo(
     () => (!chart ? null
-      : chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd })
-      : portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions })),
+      : chartEnd ? finishedPortfolioSeries({ daily, endEt: chartEnd, draftValue })
+      : portfolioSeries({ range: shownRange, daily, liveValue: chart.liveValue, todayEt, now, sessions, draftValue })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chart, chartEnd, shownRange, daily, todayEt, sessions],
+    [chart, chartEnd, shownRange, daily, todayEt, sessions, draftValue],
   );
   // Finished: always Season ("since the draft"), whatever range was picked before.
   const gainRange: PortfolioRange = chartEnd ? 'Season' : shownRange;
-  const gain = series ? rangeGain(series.points, series.base) : null;
+  // Season (and a finished season) say "since the draft": last value minus the stake at cost, even when the line
+  // starts late or has no points at all (missing early bars); the other ranges are measured from the window.
+  // It is a figure only when the value is fully real (every holding priced, none counted at cost); otherwise the dash.
+  const lastValue = series?.points.length ? series.points[series.points.length - 1].value : chart?.value ?? null;
+  // A window with fewer than two points has no move to measure: the dash, never a made-up $0.00.
+  const gain = !series ? null : gainRange === 'Season' ? (chart?.fullyPriced ? sinceTheDraftGain(lastValue, draftValue) : null) : series.points.length < 2 ? null : rangeGain(series.points, series.base);
+  // No line to draw: the WHOLE chart block (the range's gain line, frame, axis, range buttons) is absent; the hero value
+  // and "today" (from live quotes) stay.
+  const hasLine = !!series && drawsALine(series.points, daily);
 
   // The card's data for the stock it's showing (null: no opening event, or no week read).
   const card = useMemo(() => {
@@ -229,7 +240,6 @@ export function PortfolioScreen() {
   });
   useCaptureAction('close', () => setSelected(null));
   useCaptureAction('sheet', (sym) => { if (sym) stockSheet.open(sym, { name: ledgerState.ledger?.symbol_names[sym] ?? null }); });
-  useCaptureAction('search', () => router.push('/stock-search'));
   useCaptureAction('league', (id) => { if (id) setActiveLeagueId(id); });
   // (The 'scrollto' step lives in BarsRefresh, on every tab's scroll view: Portfolio's page is one now.)
 
@@ -304,10 +314,10 @@ export function PortfolioScreen() {
             ) : null}
             {v.unpricedNote ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={HERO_LINE_MAX_SCALE}>{v.unpricedNote}</Text> : null}
           </View>
-          {series ? (
-            <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} />
+          {hasLine && series ? (
+            <RangeGainLine range={gainRange} gain={gain} rollKey={`${rollKey}-${gainRange}`} unknown={gain === null} />
           ) : null}
-          {series ? (
+          {hasLine && series ? (
             <Chart
               points={series.points}
               base={series.base}
@@ -325,7 +335,7 @@ export function PortfolioScreen() {
               the dates and the next block 34pt below; pulled in so the pills sit ~12pt under the
               dates and the 24pt block gap is measured from the pill, glyph to glyph. Each pill
               keeps its 44pt target (32pt fill + its hit slop). */}
-          {over ? null : (
+          {over || !hasLine ? null : (
             <View style={styles.pillsRow}>
               <RangePills options={PORTFOLIO_RANGES} value={shownRange} onChange={setRange} variant="pills" disabled={greyed} />
             </View>
@@ -349,29 +359,6 @@ export function PortfolioScreen() {
             ) : null}
           </View>
         ) : null}
-
-        {/* Buy a stock: the entry to search (board #buy-a-stock), saying what can be spent. A finished
-            season has nothing to buy. */}
-        {over ? null : (
-        <Card>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={v.buyRowText ? `${COPY.buyAStock}, ${v.buyRowText}` : COPY.buyAStock}
-            onPress={() => router.push('/stock-search')}
-            style={({ pressed }) => [styles.linkRow, { opacity: pressed ? 0.7 : 1 }]}
-            testID="portfolio-buy-a-stock"
-          >
-            <View style={[styles.linkTile, { backgroundColor: colors.accentTint }]}>
-              <Icon name="search" size="body" tone="accent" />
-            </View>
-            <View style={styles.linkText}>
-              <Text variant="callout" color={colors.accent} maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.extraBold}>{COPY.buyAStock}</Text>
-              {v.buyRowText ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{keepMoney(v.buyRowText)}</Text> : null}
-            </View>
-            <Icon name="chevronRight" size="callout" tone="text2" />
-          </Pressable>
-        </Card>
-        )}
 
         {/* Holdings: roster rows, no sparklines; each opens its player card. */}
         <View>

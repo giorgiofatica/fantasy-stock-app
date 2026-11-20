@@ -7,12 +7,15 @@ import { Avatar, AVATAR_RING, AVATAR_RING_GAP } from '@/components/sp/Avatar';
 import { useSeatInk } from '@/components/sp/useSeatInk';
 import { Card } from '@/components/sp/Card';
 import { PressableScale } from '@/components/sp/PressableScale';
+import { Icon } from '@/components/sp/Icon';
 import { keepMoney } from '@/lib/game/keepDots';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { formatMoney } from '@/components/sp/logic/money';
 import { NAME_MIN_SCALE, NAME_MIN_SCALE_COMPACT, nameBesideAvatar, scoreboardNameCap, scoreboardModel, type ScoreSide } from '@/components/sp/logic/gameNight';
 import { YOUR_NAME_WEIGHT } from '@/lib/game/managerRow';
+import { SEASON_TILE_UNSCORED } from '@/lib/home/homeCopy';
+import type { ServerVerdict } from '@/lib/game/weekResult';
 
 // Stockpile — <Scoreboard>, Game Night (§9C "Scoreboard"; Giorgio, 2026-10-12: "I like the
 // way that where you are is kind of shaded. And then I like the way that it says like the
@@ -59,7 +62,24 @@ export interface GnScoreboardProps {
    * as before, with its single combined label. */
   openYou?: ScoreboardOpen;
   openOpponent?: ScoreboardOpen;
+  /** The whole game opens something (the Matchup recap's All matchups: that week's game): the
+   * card is one button with a trailing chevron. Not combined with openYou / openOpponent. */
+  openGame?: ScoreboardOpen;
+  /** A game whose gains never posted (the Matchup recap's All matchups, review 4633132087): both sides
+   * as usual, each total drawn as the season tile's dash in text2, no line, nothing to tap. `gain` is
+   * not read. */
+  unscored?: boolean;
+  /** Keep the chevron's column, EMPTY, on a card that opens nothing, so it lines up with the cards
+   * around it that do (the recap's never-posted game among posted ones; DL P2, 2026-11-19). */
+  chevronGutter?: boolean;
+  /** A FINAL board's server verdict, from the `you` side ('me' = the left side won; weekResult's
+   * serverVerdict). The final line's winner comes only from it (scoreboardModel); without it a final
+   * board shows no line, never the dollars' winner. */
+  verdict?: ServerVerdict;
 }
+
+/** The trailing chevron's column when the whole game opens (openGame). */
+const GAME_CHEVRON_W = 28;
 
 const AVATAR = { hero: 44, compact: 32 } as const;
 /** The names' Dynamic Type ceiling (the headline's 1.6): beyond it two names can't share a card. */
@@ -77,36 +97,63 @@ const WHO_GAP = space[3];
 /** The leads-by line under the card. */
 export const LINE_MAX_SCALE = 1.3;
 
-export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine = true, bye, openYou, openOpponent }: GnScoreboardProps) {
+export function Scoreboard({ you, opponent, final = false, size = 'hero', mine = true, showLine: showLineProp = true, bye, openYou, openOpponent, openGame, unscored = false, chevronGutter = false, verdict }: GnScoreboardProps) {
   const { colors } = useTheme();
-  const model = opponent ? scoreboardModel(you, opponent, final) : null;
-  const line = bye || !model ? bye?.line ?? '' : model.line;
+  const model = opponent ? scoreboardModel(you, opponent, final, verdict) : null;
+  const line: string | null = bye || !model ? bye?.line ?? '' : model.line;
+  // A never-posted game has no leader and no line: only the two sides and the dash. A final whose
+  // server result the dollars can't honestly state has no line either (scoreboardModel: null).
+  const showLine = showLineProp && !unscored && line !== null;
   // Each half's width, measured: decides whether a name fits beside its avatar.
   const [cardWidth, setCardWidth] = useState(0);
   const interactive = !!(openYou || openOpponent);
-  const label = bye
+  // The chevron's column: drawn when the game opens, kept empty when asked (chevronGutter).
+  const trailing = !!openGame || chevronGutter;
+  const halfWidth = (cardWidth - (trailing ? GAME_CHEVRON_W : 0)) / 2;
+  const label = unscored
+    ? `${you.name}${mine ? ', you' : ''}. ${opponent?.name ?? ''}.`
+    : bye
     ? `${you.name}, you, ${formatMoney(you.gain, { sign: 'always' })}. ${line}.`
     : `${you.name}${mine ? ', you' : ''}, ${formatMoney(you.gain, { sign: 'always' })}. ${opponent?.name ?? ''}, ${formatMoney(opponent?.gain ?? 0, { sign: 'always' })}.${showLine ? ` ${line}.` : ''}`;
 
   return (
     <View style={styles.wrap}>
-      <Card style={styles.card} accessible={!interactive} accessibilityLabel={interactive ? undefined : label} onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
-        <Half side={mine ? 'you' : 'opp'} team={you} mirror={false} size={size} halfWidth={cardWidth / 2} open={openYou} />
-        {bye || !opponent ? (
-          <View style={[styles.half, styles.byeHalf]} testID="scoreboard-bye">
-            <Text variant="callout" color={colors.text2} maxFontSizeMultiplier={NAME_MAX_SCALE} style={styles.byeLabel}>{bye?.label ?? ''}</Text>
-          </View>
-        ) : (
-          <Half side="opp" team={opponent} mirror size={size} halfWidth={cardWidth / 2} open={openOpponent} />
-        )}
-      </Card>
+      <GameBox open={openGame} label={label}>
+        <Card style={styles.card} accessible={!interactive && !openGame} accessibilityLabel={interactive || openGame ? undefined : label} onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
+          <Half side={mine ? 'you' : 'opp'} team={you} mirror={false} size={size} halfWidth={halfWidth} open={openYou} unscored={unscored} />
+          {bye || !opponent ? (
+            <View style={[styles.half, styles.byeHalf]} testID="scoreboard-bye">
+              <Text variant="callout" color={colors.text2} maxFontSizeMultiplier={NAME_MAX_SCALE} style={styles.byeLabel}>{bye?.label ?? ''}</Text>
+            </View>
+          ) : (
+            <Half side="opp" team={opponent} mirror size={size} halfWidth={halfWidth} open={openOpponent} unscored={unscored} />
+          )}
+          {openGame ? (
+            <View style={styles.gameChevron}>
+              <Icon name="chevronRight" size="callout" tone="text2" />
+            </View>
+          ) : chevronGutter ? (
+            <View style={styles.gameChevron} testID="scoreboard-chevron-gutter" />
+          ) : null}
+        </Card>
+      </GameBox>
       {showLine ? (
         // Capped at 1.3× so the totals above stay the loudest thing on the card at XL.
         <Text variant="callout" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE} style={styles.line} importantForAccessibility={interactive ? 'auto' : 'no'} accessibilityElementsHidden={!interactive}>
-          {keepMoney(line)}
+          {keepMoney(line ?? '')}
         </Text>
       ) : null}
     </View>
+  );
+}
+
+/** The whole card as one button when the game opens (openGame), else the card alone. */
+function GameBox({ open, label, children }: { open?: ScoreboardOpen; label: string; children: ReactNode }) {
+  if (!open) return <>{children}</>;
+  return (
+    <PressableScale accessibilityRole="button" accessibilityLabel={label} accessibilityHint={open.hint} onPress={open.onPress}>
+      {children}
+    </PressableScale>
   );
 }
 
@@ -121,7 +168,7 @@ function HalfBox({ open, label, style, testID, children }: { open?: ScoreboardOp
   );
 }
 
-function Half({ side, team, mirror, size, halfWidth, open }: { side: 'you' | 'opp'; team: ScoreSide & { avatarUri?: string | null }; mirror: boolean; size: 'hero' | 'compact'; halfWidth: number; open?: ScoreboardOpen }) {
+function Half({ side, team, mirror, size, halfWidth, open, unscored = false }: { side: 'you' | 'opp'; team: ScoreSide & { avatarUri?: string | null }; mirror: boolean; size: 'hero' | 'compact'; halfWidth: number; open?: ScoreboardOpen; unscored?: boolean }) {
   const { colors } = useTheme();
   const { fontScale } = useWindowDimensions();
   const you = side === 'you';
@@ -134,7 +181,7 @@ function Half({ side, team, mirror, size, halfWidth, open }: { side: 'you' | 'op
   const stacked = halfWidth > 0 && !nameBesideAvatar(team.name, besideRoom, fontPt, minScale);
   // Stacked, the name never outgrows the total under it (the W4 delta gate): its cap follows
   // the total's fitted size, at most NAME_STACKED_MAX_SCALE.
-  const totalText = formatMoney(team.gain, { sign: 'always' });
+  const totalText = unscored ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });
   const nameCap = scoreboardNameCap({
     stacked, totalText, totalPt: TOTAL_PT[size] * Math.min(fontScale, TOTAL_MAX_SCALE), innerWidth: halfWidth - 2 * HALF_PAD, namePt: NAME_PT[size],
   });
@@ -165,8 +212,8 @@ function Half({ side, team, mirror, size, halfWidth, open }: { side: 'you' | 'op
           {team.name}
         </Text>
       </View>
-      <Text variant={size === 'compact' ? 'score.lg' : 'score.xl'} adjustsFontSizeToFit minimumFontScale={0.6} style={mirror ? styles.right : null}>
-        {formatMoney(team.gain, { sign: 'always' })}
+      <Text variant={size === 'compact' ? 'score.lg' : 'score.xl'} adjustsFontSizeToFit minimumFontScale={0.6} color={unscored ? colors.text2 : undefined} style={mirror ? styles.right : null}>
+        {totalText}
       </Text>
     </HalfBox>
   );
@@ -178,6 +225,11 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
+  },
+  gameChevron: {
+    width: GAME_CHEVRON_W,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   half: {
     flex: 1,

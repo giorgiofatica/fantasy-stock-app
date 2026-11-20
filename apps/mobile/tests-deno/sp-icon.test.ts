@@ -14,6 +14,7 @@ const NAMES: IconName[] = [
   'close', 'search', 'add', 'remove', 'share', 'trophy', 'lock', 'mail', 'alert', 'star', 'starFilled',
   'checkCircle', 'pending', 'bell', 'person', 'unlink', 'league', 'clock', 'offline', 'eye', 'eyeOff', 'edit',
   'tabHome', 'tabHomeSelected', 'tabMatchup', 'tabMatchupSelected', 'tabLeague', 'tabLeagueSelected', 'tabPortfolio', 'tabPortfolioSelected',
+  'tabStocks', 'tabStocksSelected',
 ];
 
 Deno.test('the name map is exhaustive and matches the spec table', () => {

@@ -10,6 +10,7 @@ import { formatMoney, formatPercent } from './money';
 import { ordinal } from '../../../lib/home/ordinal';
 import { COPY as MONEY_COPY } from '../../../lib/money/moneyCopy';
 import { estimateLabelWidth } from './chartAxis';
+import type { ServerVerdict } from '../../../lib/game/weekResult';
 
 // ── Scoreboard (Matchup) ─────────────────────────────────────────────────────────
 
@@ -25,15 +26,31 @@ export interface ScoreboardModel {
    * (Giorgio, 2026-10-12: your side is shaded, win or lose), never the leader's. */
   leader: Side | null;
   /** The one line under the card: "{name} leads by {margin}" (or "won by"). */
-  line: string;
+  /** Null: no line (a final whose server result the dollars can't honestly state; scoreboardModel). */
+  line: string | null;
 }
 
-export function scoreboardModel(you: ScoreSide, opp: ScoreSide, final: boolean): ScoreboardModel {
-  if (you.gain === opp.gain) return { leader: null, line: 'Dead even' };
-  const leader: Side = you.gain > opp.gain ? 'you' : 'opp';
-  const name = leader === 'you' ? you.name : opp.name;
+/** The Scoreboard's line. LIVE (final false): from the two dollar totals, as the board's "leads by" /
+ * "Dead even". FINAL: from the SERVER's verdict (`verdict`, from the `you` side: lib/game/weekResult's
+ * serverVerdict), never the dollars (review 2 on #566; Planner, 2026-11-19, an interim removal with no
+ * new words):
+ *  - the server's winner is the dollar leader: "{winner} won by $X" (X = |a - b|);
+ *  - no server winner and equal dollars: "Dead even";
+ *  - anything else (a percent or seed tiebreak, an empty portfolio's automatic loss, a winner who isn't
+ *    the dollar leader, or a verdict not read): NO line (`line: null`). The band and the row name the
+ *    server's winner; the card never names a different one. */
+export function scoreboardModel(you: ScoreSide, opp: ScoreSide, final: boolean, verdict?: ServerVerdict): ScoreboardModel {
+  const dollarLeader: Side | null = you.gain === opp.gain ? null : you.gain > opp.gain ? 'you' : 'opp';
   const margin = formatMoney(Math.abs(you.gain - opp.gain));
-  return { leader, line: `${name} ${final ? 'won by' : 'leads by'} ${margin}` };
+  if (!final) {
+    if (dollarLeader === null) return { leader: null, line: 'Dead even' };
+    return { leader: dollarLeader, line: `${dollarLeader === 'you' ? you.name : opp.name} leads by ${margin}` };
+  }
+  if (verdict === undefined) return { leader: null, line: null };
+  if (verdict === 'nobody') return { leader: null, line: dollarLeader === null ? 'Dead even' : null };
+  const winner: Side = verdict === 'me' ? 'you' : 'opp';
+  if (winner !== dollarLeader) return { leader: winner, line: null };
+  return { leader: winner, line: `${winner === 'you' ? you.name : opp.name} won by ${margin}` };
 }
 
 // ── RosterRow (Matchup) ──────────────────────────────────────────────────────────
@@ -78,6 +95,20 @@ export function toneOf(n: number): Tone {
  * (homeCopy SEASON_TILE_UNSCORED). Repeated here, not imported, so this primitive's logic does not
  * pull in homeCopy's import graph; tests-deno/league-weeks.test.ts pins the two equal. */
 export const WEEK_UNKNOWN = '\u2013';
+
+/**
+ * What a roster half's number slot shows:
+ *  - 'figures': the week ("+$62.40" over "+6.05%");
+ *  - 'unknown': a live week with no figure for the stock (no live price for it): the app's "–"
+ *    in the number slot, no percent, no words (2026-11-18), the same mark as the card and Schedule;
+ *  - 'none': a withheld final (`figures: false`, #call-mx-withheld, B): the stock alone, no slot.
+ */
+export type RosterHalfShow = { kind: 'figures'; gain: number; pct: number } | { kind: 'unknown'; text: string } | { kind: 'none' };
+export function rosterHalfShow(half: { weekGain: number | null; weekPct: number | null; figures?: boolean }): RosterHalfShow {
+  if (half.figures === false) return { kind: 'none' };
+  if (half.weekGain === null || half.weekPct === null) return { kind: 'unknown', text: WEEK_UNKNOWN };
+  return { kind: 'figures', gain: half.weekGain, pct: half.weekPct };
+}
 
 export type CardWeekFigure =
   | { kind: 'figure'; value: string; sub: string; tone: Tone }
