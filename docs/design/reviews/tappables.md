@@ -130,7 +130,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/RenewalReview.tsx:149` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/RenewalRoster.tsx:85` | Pressable | onPress | `inline: () => setChanging(true)` | state setChanging |  |
 | `components/game/RenewalRoster.tsx:107` | Pressable | onPress | `inline: () => runSheet(p)` | fn runSheet |  |
-| `components/game/ScheduleList.tsx:124` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/game/ScheduleList.tsx:128` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/SeasonRecap.tsx:61` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `components/game/SeasonRecap.tsx:122` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
 | `components/game/SetupRows.tsx:162` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
