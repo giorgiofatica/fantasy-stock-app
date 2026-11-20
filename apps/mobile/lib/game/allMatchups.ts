@@ -9,6 +9,7 @@ import { liveWeekScore } from '../home/liveWeekScore';
 import { lineupRows, pricedTotal } from './lineupLedger';
 import { toLiveSnapshots, toLiveTrades, type HomeLedgerRow } from '../home/buildHomeViewModel';
 import { serverVerdict, type ServerVerdict } from './weekResult';
+import { recordedOutcome, type OutcomeColumns, type RecordedOutcome } from './outcomeLine';
 
 export interface AllMatchupsInput {
   myUserId: string;
@@ -21,6 +22,10 @@ export interface AllMatchupsInput {
     winner_user_id: string | null;
     is_tie: boolean;
     is_playoff: boolean;
+    /** The stored reason and percents (20261208000000); absent on an older response = NULL. */
+    outcome_reason?: OutcomeColumns['outcome_reason'];
+    team1_percent_gain?: OutcomeColumns['team1_percent_gain'];
+    team2_percent_gain?: OutcomeColumns['team2_percent_gain'];
   }[];
   /** Every manager's snapshot rows this week (user_id added to each). */
   snapshots: (HomeLedgerRow & { user_id: string })[];
@@ -50,6 +55,8 @@ export interface AllMatchupRow {
   final: boolean;
   /** The server's verdict from side a (posted games only): the Scoreboard's final line comes from it. */
   verdict?: ServerVerdict;
+  /** The stored reason from side a (posted two-sided games only): the final line is keyed on it. */
+  outcome?: RecordedOutcome;
 }
 
 function nameOf(names: AllMatchupsInput['names'], userId: string) {
@@ -79,7 +86,7 @@ export function buildAllMatchups(input: AllMatchupsInput): AllMatchupRow[] {
     if (posted) {
       const a: AllMatchupSide = { userId: t1, ...nameOf(input.names, t1), gain: m.team1_gain!, pct: null };
       const b: AllMatchupSide | null = bye ? null : { userId: t2!, ...nameOf(input.names, t2!), gain: m.team2_gain!, pct: null };
-      return [{ a, b, mine, final: true, verdict: bye ? undefined : serverVerdict(m, t1) }];
+      return [{ a, b, mine, final: true, verdict: bye ? undefined : serverVerdict(m, t1), outcome: bye ? undefined : recordedOutcome(m, t1) }];
     }
     return [{ a: sideLive(input, t1), b: bye ? null : sideLive(input, t2!), mine, final: false }];
   });

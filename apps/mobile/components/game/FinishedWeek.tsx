@@ -10,6 +10,7 @@ import { LoadFailure } from '@/components/money/LoadFailure';
 import { MatchupRoster, WithheldRoster, type RosterEnv, type RosterLedger } from '@/components/game/MatchupRoster';
 import { buildFinalBanner } from '@/lib/game/finalBanner';
 import type { ServerVerdict, WeekResult } from '@/lib/game/weekResult';
+import type { RecordedOutcome } from '@/lib/game/outcomeLine';
 import type { FinalLineupsState } from '@/lib/game/useFinalLineups';
 import type { RosterData } from '@/lib/game/useRosterData';
 import type { RevealState } from '@/lib/game/useRevealOnce';
@@ -38,6 +39,9 @@ export interface FinishedWeekProps {
   result: WeekResult;
   /** The server's verdict from the left side: the Scoreboard's line names only the server's winner. */
   verdict: ServerVerdict | undefined;
+  /** The stored reason from the left side (lib/game/outcomeLine's recordedOutcome): the line is keyed on it;
+   * absent (not read yet, or a week scored before the column) keeps #566's rule. */
+  outcome?: RecordedOutcome;
   /** True when the left side is you: your half is shaded and the band can be yours. */
   mine: boolean;
   left: FinishedWeekSide;
@@ -54,7 +58,7 @@ export interface FinishedWeekProps {
   seasonEnd?: string | null;
 }
 
-export function FinishedWeek({ week, isPlayoff, result, verdict, mine, left, right, record, reveal, finalLines, roster, weekEnd, env, orderAsOf, seasonEnd = null }: FinishedWeekProps) {
+export function FinishedWeek({ week, isPlayoff, result, verdict, outcome, mine, left, right, record, reveal, finalLines, roster, weekEnd, env, orderAsOf, seasonEnd = null }: FinishedWeekProps) {
   const model = buildFinalBanner({ week, result, youName: left.name, oppName: right.name, record, isPlayoff });
   return (
     <View style={styles.stack}>
@@ -66,6 +70,7 @@ export function FinishedWeek({ week, isPlayoff, result, verdict, mine, left, rig
         opponent={{ name: right.name, gain: right.gain }}
         final
         verdict={verdict}
+        outcome={outcome}
         mine={mine}
         openYou={left.open}
         openOpponent={right.open}

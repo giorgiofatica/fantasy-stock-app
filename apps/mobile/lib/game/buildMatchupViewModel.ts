@@ -100,6 +100,24 @@ export function buildMatchupLive(input: MatchupInput): MatchupLiveViewModel {
  * decider (lib/game/weekResult). Null until both post: nothing reads final
  * before it is. My side is team1 or team2, whichever I am.
  */
+/** The finished week's matchup row EXACTLY as get_home_league gave it (the one the card's winner and result come
+ * from): its keys and its winner / tie. useFinalOutcome keys its second read on these, and the reason line shows
+ * only when that read agrees with them (lib/game/outcomeLine agreedOutcome). Null when I am not on a row with a
+ * team 1. `team2` is null for a bye or an unfilled playoff slot. */
+export interface FinalCardRow {
+  week: number;
+  team1: string;
+  team2: string | null;
+  winner: string | null | undefined;
+  isTie: boolean | null | undefined;
+}
+export function finalCardRow(data: GetHomeLeagueResult, myUserId: string): FinalCardRow | null {
+  const cw = data.current_week;
+  const m = data.matchups.find((row) => row.week_number === cw.week_number) ?? null;
+  if (!m || m.team1_user_id === null || (m.team1_user_id !== myUserId && m.team2_user_id !== myUserId)) return null;
+  return { week: m.week_number, team1: m.team1_user_id, team2: m.team2_user_id, winner: m.winner_user_id, isTie: m.is_tie };
+}
+
 export function finalGains(data: GetHomeLeagueResult, myUserId: string): { me: number; opp: number; result: WeekResult; verdict: ServerVerdict | undefined } | null {
   const cw = data.current_week;
   const m = data.matchups.find((row) => row.week_number === cw.week_number) ?? null;

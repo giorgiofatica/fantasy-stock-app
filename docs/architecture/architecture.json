@@ -2,39 +2,47 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "c263c21bb79861108dd4ca2837224494b9c2b9fd",
-    "commitShort": "c263c21b",
+    "commit": "adf323b3540615bba98ebaf99bb1b37f9f764e2e",
+    "commitShort": "adf323b3",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/matchup-outcome-reason-server",
+    "branch": "feat/matchup-outcome-reason-phone",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/process-week-results/index.ts"
+        "path": "apps/mobile/app/(tabs)/matchup.tsx"
       },
       {
-        "code": "??",
-        "path": "supabase/functions/process-week-results/outcome-record.test.ts"
+        "code": "M",
+        "path": "apps/mobile/lib/game/buildMatchupViewModel.ts"
       },
       {
-        "code": "??",
-        "path": "supabase/functions/process-week-results/outcome-record.ts"
+        "code": "M",
+        "path": "apps/mobile/lib/game/outcomeLine.ts"
       },
       {
-        "code": "??",
-        "path": "supabase/migrations/20261208000000_matchup_outcome_reason.sql"
+        "code": "M",
+        "path": "apps/mobile/lib/game/useFinalOutcome.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/useMatchup.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/outcome-line.test.ts"
       }
     ],
-    "timestamp": "2026-11-20T17:22:19Z",
-    "sourceHash": "sha256:51e13a6bc36eaefdfb42ae3b65dbe99461c42eab6c65c3dc1ef50ba3058d2aef",
+    "timestamp": "2026-11-20T19:56:12Z",
+    "sourceHash": "sha256:000c7e36970b97a8af32889b94b178a975c3eacf365eb02f6be833337b54ad7e",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 41.1,
-    "ageDays": 1.7,
+    "ageHours": 43.7,
+    "ageDays": 1.8,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
@@ -10435,6 +10443,23 @@
       "drift": [],
       "annotation": null,
       "verified": true,
+      "id": "ui.game.useFinalOutcome",
+      "label": "useFinalOutcome.ts",
+      "sublabel": "mobile/lib/game/useFinalOutcome.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/lib/game/useFinalOutcome.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
       "id": "ui.game.useLeagueHistory",
       "label": "useLeagueHistory.ts",
       "sublabel": "mobile/lib/game/useLeagueHistory.ts",
@@ -11427,6 +11452,23 @@
       "kind": "client-screen",
       "source": {
         "path": "apps/mobile/tests-deno/onboarding-w3-invite-links.test.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "ui.tests-deno.outcome-line.test",
+      "label": "outcome-line.test.ts",
+      "sublabel": "mobile/tests-deno/outcome-line.test.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/tests-deno/outcome-line.test.ts",
         "line": 1
       }
     },
@@ -20344,9 +20386,9 @@
       "from": "ui.game.useAllMatchups",
       "to": "tbl.matchups",
       "protocol": "postgrest-select",
-      "payload": ".from('matchups').select('team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end')",
+      "payload": ".from('matchups').select('team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end, outcome_reason, team1_percent_gain, team2_percent_gain')",
       "columns": [
-        "team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end"
+        "team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end, outcome_reason, team1_percent_gain, team2_percent_gain"
       ],
       "callSites": [
         "apps/mobile/lib/game/useAllMatchups.ts:45"
@@ -20583,6 +20625,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.ui.game.useFinalOutcome->tbl.matchups",
+      "from": "ui.game.useFinalOutcome",
+      "to": "tbl.matchups",
+      "protocol": "postgrest-select",
+      "payload": ".from('matchups').select()",
+      "columns": [],
+      "callSites": [
+        "apps/mobile/lib/game/useFinalOutcome.ts:39"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.ui.game.useLeagueHistory->pg.get_league_history",
       "from": "ui.game.useLeagueHistory",
       "to": "pg.get_league_history",
@@ -20799,9 +20854,9 @@
       "from": "ui.game.useSeasonRecap",
       "to": "tbl.matchups",
       "protocol": "postgrest-select",
-      "payload": ".from('matchups').select('week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end')",
+      "payload": ".from('matchups').select('week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end, outcome_reason, team1_percent_gain, team2_percent_gain')",
       "columns": [
-        "week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end"
+        "week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end, outcome_reason, team1_percent_gain, team2_percent_gain"
       ],
       "callSites": [
         "apps/mobile/lib/game/useSeasonRecap.ts:45"
@@ -21208,7 +21263,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:95"
+        "apps/mobile/app/(tabs)/matchup.tsx:107"
       ],
       "via": [
         "useRosterData"
@@ -21226,7 +21281,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:95"
+        "apps/mobile/app/(tabs)/matchup.tsx:107"
       ],
       "via": [
         "useRosterData"
@@ -21244,7 +21299,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:95"
+        "apps/mobile/app/(tabs)/matchup.tsx:107"
       ],
       "via": [
         "useRosterData"
@@ -21262,7 +21317,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:95"
+        "apps/mobile/app/(tabs)/matchup.tsx:107"
       ],
       "via": [
         "useRosterData"
@@ -22575,6 +22630,19 @@
       "payload": "functions.invoke('invite-preview')",
       "callSites": [
         "apps/mobile/tests-deno/onboarding-w3-invite-links.test.ts:717"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.ui.tests-deno.outcome-line.test->tbl.matchups",
+      "from": "ui.tests-deno.outcome-line.test",
+      "to": "tbl.matchups",
+      "protocol": "postgrest-select",
+      "payload": ".from('matchups').select()",
+      "columns": [],
+      "callSites": [
+        "apps/mobile/tests-deno/outcome-line.test.ts:237"
       ]
     },
     {
@@ -24589,8 +24657,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 332,
-    "edges": 796,
+    "nodes": 334,
+    "edges": 798,
     "flows": 7,
     "drift": 34,
     "driftHigh": 0,
@@ -24776,10 +24844,10 @@
       "supabase/functions/validate-and-record-pick/index.ts:131 -> check_and_bump_rate_limit"
     ],
     "tableOps": [
-      "apps/mobile/app/(tabs)/matchup.tsx:95 -> categories.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:95 -> drafts.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:95 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:95 -> trades.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:107 -> categories.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:107 -> drafts.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:107 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:107 -> trades.select (via useRosterData)",
       "apps/mobile/app/create-league.tsx:208 -> leagues.insert (via seamInsertLeague)",
       "apps/mobile/app/create-league.tsx:235 -> league_members.insert (via seamInsertMember)",
       "apps/mobile/app/create-league.tsx:245 -> league_draft_slots.delete (via seamSaveLeagueSlots)",
@@ -24826,6 +24894,7 @@
       "apps/mobile/lib/game/useDraftRoom.ts:57 -> draft_queue.select",
       "apps/mobile/lib/game/useFinalLineups.ts:53 -> week_snapshots.select",
       "apps/mobile/lib/game/useFinalLineups.ts:63 -> trades.select",
+      "apps/mobile/lib/game/useFinalOutcome.ts:39 -> matchups.select",
       "apps/mobile/lib/game/useLeaveLeague.ts:33 -> league_members.select",
       "apps/mobile/lib/game/useLeaveLeague.ts:60 -> league_members.select",
       "apps/mobile/lib/game/useMemberSnapshots.ts:38 -> week_snapshots.select",
@@ -24852,6 +24921,7 @@
       "apps/mobile/tests-deno/gn-w4-draft.test.ts:163 -> symbols.select",
       "apps/mobile/tests-deno/leaguemate-team-view.test.ts:201 -> week_snapshots.select",
       "apps/mobile/tests-deno/money-season-end.test.ts:127 -> matchups.select",
+      "apps/mobile/tests-deno/outcome-line.test.ts:237 -> matchups.select",
       "apps/mobile/tests-deno/read-result.test.ts:41 -> symbols.select",
       "apps/mobile/tests-deno/season-recap.test.ts:188 -> matchups.select",
       "apps/web/src/Header.jsx:110 -> league_members.select",

@@ -237,7 +237,8 @@ Deno.test('the Matchup header: each WHOLE half is one button (label = its readin
   assert(sb.includes('accessible={!interactive && !openGame}'));
   // The half's own box is the button, with press feedback only (its shading/ring/layout are the plain half's).
   assert(sb.includes('<PressableScale testID={testID} accessibilityRole="button" accessibilityLabel={label} accessibilityHint={open.hint} onPress={open.onPress} style={style}>'));
-  assert(sb.includes("label={`${team.name}${you ? ', you' : ''}, ${totalText}`}"));
+  // (A side the server recorded as holding no stocks is read by name alone: no "$0.00" is spoken.)
+  assert(sb.includes("label={noStocks ? `${team.name}${you ? ', you' : ''}` : `${team.name}${you ? ', you' : ''}, ${totalText}`}"));
   // Inert (All matchups' compact boards) keeps the single combined label.
   assert(sb.includes('accessibilityLabel={interactive || openGame ? undefined : label}'));
   // The lead line stays separate text, read once the card is split.

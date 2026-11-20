@@ -52,6 +52,23 @@ export function keepDotsIn(sentence: string, phrase: string): string {
  */
 const AMOUNT = '[+\\u2212]?\\$\\d[\\d,]*(?:\\.\\d+)?[KMBT]?';
 const PERCENT = '[+\\u2212]?\\d[\\d,]*(?:\\.\\d+)?%';
+/**
+ * keepOutcomeLine (Design Lead P2, 2026-11-20, on the "why a week was won" lines): two break rules for the line
+ * under a finished week's card, and nothing else about it.
+ *  1. No orphan: the LAST TWO words are joined by a no-break space, so "…advances as the higher seed" breaks
+ *     "…advances as the / higher seed", never "…higher / seed".
+ *  2. The percent pair is one phrase: "+1.76% to +0.74%" keeps no-break spaces around "to", so it breaks
+ *     "won the tiebreak, / +1.76% to +0.74%", never "+1.76% to / +0.74%".
+ * Display only (the words, and every accessibilityLabel, stay plain), applied at the render in Scoreboard
+ * for the new reason lines only, never to the string a test or width estimate compares. Run it BEFORE keepMoney:
+ * keepMoney puts word joiners inside each percent, which this pattern would no longer match.
+ */
+const SIGNED_PERCENT = '[+\\u2212]?\\d[\\d,]*(?:\\.\\d+)?%';
+const PERCENT_PAIR = new RegExp(`(${SIGNED_PERCENT}) to (${SIGNED_PERCENT})`);
+export function keepOutcomeLine(line: string): string {
+  return line.replace(PERCENT_PAIR, `$1${NBSP}to${NBSP}$2`).replace(/ (\S+)$/, `${NBSP}$1`);
+}
+
 /** An amount, then optionally its short unit ("a slot", "per slot", "a share", "per share"). */
 const MONEY_OR_PERCENT = new RegExp(`(${AMOUNT})( (?:a|per) (?:slot|share)(?![A-Za-z]))?|${PERCENT}`, 'g');
 /**

@@ -113,7 +113,9 @@ Deno.test('Scoreboard: totals are numbers again and the leads-by line is back (n
   assertEquals(scoreboardModel({ name: 'A', gain: 125 }, { name: 'B', gain: 42 }, false).line, 'A leads by $83.00');
   const sb = strip(SOURCES['components/sp/gn/Scoreboard.tsx']);
   // The total is money; the only dash is main's `unscored` (a recap game never posted, SeasonRecap only).
-  assert(sb.includes("const totalText = unscored ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });"), 'the total is formatted money');
+  // The dash is only for `unscored` (a recap game never posted) or a side the SERVER recorded as holding no stocks
+  // (outcome_reason; never a missing price, never a NULL percent).
+  assert(sb.includes("const dashed = unscored || noStocks;") && sb.includes("const totalText = dashed ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });"), 'the total is formatted money');
   assert(!sb.includes('WEEK_UNKNOWN') && !sb.includes('scoreTotalText') && !sb.includes('lineShown'), 'no dash total from a missing price, no hidden lead line');
   assert(!strip(SOURCES['app/(tabs)/matchup.tsx']).includes('unscored'), 'Matchup never draws the recap\'s dash');
 });

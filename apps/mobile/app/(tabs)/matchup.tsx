@@ -23,6 +23,8 @@ import { teamHref, teamLinkLabel } from '@/lib/game/teamLink';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { useRevealOnce, type RevealState } from '@/lib/game/useRevealOnce';
 import { useAllMatchups } from '@/lib/game/useAllMatchups';
+import { useFinalOutcome } from '@/lib/game/useFinalOutcome';
+import { agreedOutcome, type CardMatchup, type RecordedOutcome } from '@/lib/game/outcomeLine';
 import { useFinalLineups, type FinalLineupsState } from '@/lib/game/useFinalLineups';
 import type { AllMatchupRow } from '@/lib/game/allMatchups';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
@@ -91,6 +93,16 @@ function MatchupScreen() {
   const finalSides = fv && fv.view.kind === 'final' && fv.final && fv.live.opp && user && fv.weekStart && fv.weekEnd
     ? { mine: user.id, theirs: fv.live.opp.userId, myGain: fv.final.me, theirGain: fv.final.opp, windowStart: fv.weekStart, windowEnd: fv.weekEnd }
     : null;
+  // Why the finished week was decided as it was (the stored reason): get_home_league carries no such column, so
+  // ONE second read of the matchups table, keyed on the RPC row's own league / week / team ids (useFinalOutcome).
+  // Only for a finished week, and never for a row with no team 2 (a bye, an unfilled playoff slot). The reason
+  // shows only while that read's winner and tie equal the card's (agreedOutcome); the winner's name is the card's.
+  const fr = fv?.finalRow ?? null;
+  const cardMatchup: CardMatchup | null = activeLeagueId && fv && fv.view.kind === 'final' && fv.final && fr && fr.team2 !== null
+    ? { leagueId: activeLeagueId, week: fr.week, team1: fr.team1, team2: fr.team2, winner: fr.winner, isTie: fr.isTie }
+    : null;
+  const outcomeRead = useFinalOutcome(cardMatchup);
+  const outcome = user && cardMatchup ? agreedOutcome(cardMatchup, outcomeRead, user.id) : undefined;
   const finalLines = useFinalLineups(activeLeagueId, fv?.week ?? null, finalSides, finalSides !== null);
   const roster = useRosterData(activeLeagueId, user?.id ?? null, fv?.live.opp?.userId ?? null);
   // This week's two ledgers (Home's current week), for the roster and the withheld view.
@@ -137,7 +149,7 @@ function MatchupScreen() {
         ) : (
           // S-4: keyed by league, so a league switch mounts a fresh scoreboard and roster
           // instead of rolling league A's into league B's (Home's H5, HomeLeagueTransition).
-          <MatchupBody key={activeLeagueId ?? 'none'} status={m.status} derived={m.derived} phase={m.phase} onRefresh={m.refresh} raw={m.raw} reveal={reveal} finalLines={finalLines} roster={roster} orderAsOf={orderAsOf} ledgers={ledgers} />
+          <MatchupBody key={activeLeagueId ?? 'none'} status={m.status} derived={m.derived} phase={m.phase} onRefresh={m.refresh} raw={m.raw} reveal={reveal} finalLines={finalLines} roster={roster} orderAsOf={orderAsOf} ledgers={ledgers} outcome={outcome} />
         )}
       </BarsRefresh>
     </View>
@@ -165,6 +177,7 @@ function AllMatchupsList({ state, myUserId }: { state: { status: string; rows: A
           mine={r.a.userId === myUserId}
           final={r.final}
           verdict={r.verdict}
+          outcome={r.outcome}
           you={{ name: r.a.name, gain: r.a.gain }}
           opponent={{ name: r.b.name, gain: r.b.gain }}
         />
@@ -186,9 +199,11 @@ interface BodyProps {
   orderAsOf: Date;
   /** This week's two ledgers (Home's current week); null while loading. */
   ledgers: { me: RosterLedger; opp: RosterLedger } | null;
+  /** The finished week's stored reason (useFinalOutcome); undefined = not read / not recorded. */
+  outcome?: RecordedOutcome;
 }
 
-function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLines, roster, orderAsOf, ledgers }: BodyProps) {
+function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLines, roster, orderAsOf, ledgers, outcome }: BodyProps) {
   const { user } = useAuth();
   const router = useRouter();
   // The scoreboard's avatar + name open that manager's team (the opponent's, read-only) or,
@@ -286,7 +301,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
           {reveal.decided ? (
             <FinalBanner play={reveal.play} model={buildFinalBanner({ week, result: final.result, youName, oppName: live.opp?.name ?? '', record: derived.myRecord, isPlayoff: phase?.kind === 'scored' ? phase.isPlayoff : false })} />
           ) : null}
-          <Scoreboard you={{ name: youName, gain: final.me }} opponent={{ name: live.opp?.name ?? '', gain: final.opp }} final verdict={final.verdict} openYou={openTeam(user.id, youName, true)} />
+          <Scoreboard you={{ name: youName, gain: final.me }} opponent={{ name: live.opp?.name ?? '', gain: final.opp }} final verdict={final.verdict} outcome={outcome} openYou={openTeam(user.id, youName, true)} />
         </View>
       );
     }
@@ -296,6 +311,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
         isPlayoff={phase?.kind === 'scored' ? phase.isPlayoff : false}
         result={final.result}
         verdict={final.verdict}
+        outcome={outcome}
         mine
         left={{ userId: user.id, name: youName, gain: final.me, ledger: ledgers.me, open: openTeam(user.id, youName, true) }}
         right={{ userId: live.opp.userId, name: live.opp.name, gain: final.opp, ledger: ledgers.opp, open: openTeam(live.opp.userId, live.opp.name, false) }}
