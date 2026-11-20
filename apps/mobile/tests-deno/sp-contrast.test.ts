@@ -100,3 +100,42 @@ Deno.test('B-1: the your-turn pairs are in PAIRS and clear the measured ratios',
   near('light', 'text2', 5.29);
   near('dark', 'text2', 5.84);
 });
+
+// ── The yellow call, pick A (Giorgio, 2026-11-19; board #call-yellow; PRODUCT_RULES) ──
+// The three warn tokens leave the yellow for the accent's soft tint family, per theme, at the
+// board's exact values: the fill IS the accent tint, the ink IS liveText (the accent's text ink),
+// the edge is the accent at 0.35 (Light) / 0.4 (Dark). Nothing else moves: the gold medal and the
+// Property category's amber are not warnings and keep their values.
+Deno.test('warn = the accent tint family (pick A), at the board values, per theme', () => {
+  assertEquals(color.light.warnTint, 'rgba(0, 112, 142, 0.12)');
+  assertEquals(color.light.warnLine, 'rgba(0, 112, 142, 0.35)');
+  assertEquals(color.light.warnText, '#006885');
+  assertEquals(color.dark.warnTint, 'rgba(53, 238, 255, 0.16)');
+  assertEquals(color.dark.warnLine, 'rgba(53, 238, 255, 0.4)');
+  assertEquals(color.dark.warnText, '#35EEFF');
+  for (const t of THEMES) {
+    assertEquals(color[t].warnTint, color[t].accentTint, `${t}: the fill is the accent tint`);
+    assertEquals(color[t].warnText, color[t].liveText, `${t}: the ink is the accent's text ink`);
+  }
+  // Left alone (not warnings).
+  assertEquals([color.light.medalGold, color.dark.medalGold], ['#AD7300', '#ECAE30']);
+  assertEquals([color.light.catRealEstate, color.dark.catRealEstate], ['#8D5F00', '#E1B767']);
+});
+
+Deno.test('warn (pick A): every text on the teal tint clears 4.5, at the measured ratios', () => {
+  const near = (t: 'light' | 'dark', fg: string, bg: string, over: string | null, want: number) => {
+    const got = ratioOf(color[t], fg as never, bg as never, over as never);
+    assertEquals(got >= 4.5, true, `${t} ${fg} on ${bg} ${got.toFixed(2)}`);
+    assertEquals(Math.abs(got - want) < 0.05, true, `${t} ${fg} on ${bg}${over ? ` over ${over}` : ''} ${got.toFixed(2)}, measured ${want}`);
+  };
+  near('light', 'warnText', 'warnTint', 'bg', 4.91); // the tightest
+  near('dark', 'warnText', 'warnTint', 'bg', 9.9);
+  near('light', 'warnText', 'warnTint', 'surface', 5.28);
+  near('dark', 'warnText', 'warnTint', 'surface', 8.85);
+  near('light', 'text', 'warnTint', 'bg', 14.12);
+  near('dark', 'text', 'warnTint', 'bg', 12.87);
+  near('light', 'text2', 'warnTint', 'bg', 5.29);
+  near('dark', 'text2', 'warnTint', 'bg', 5.84);
+  near('light', 'warnText', 'surface', null, 6.27);
+  near('dark', 'warnText', 'surface', null, 12.86);
+});

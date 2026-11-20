@@ -136,6 +136,9 @@ Deno.test('a refusal reads the warn fill\'s own ink: WarnPanel / WarnNote use wa
   const rows = src('components/game/SetupRows.tsx');
   const note = rows.slice(rows.indexOf('export function WarnNote'), rows.indexOf('export function LockNote'));
   assertEquals(note.match(/color=\{colors\.warnText\}/g)?.length, 2, 'title and line');
+  // WarnPanel's text cap on both lines (DL, feat/warn-teal gate, 2026-11-19): at AX5 the note grew ~3x and outranked every row.
+  assertEquals(note.match(/maxFontSizeMultiplier=\{WARN_TEXT_MAX_SCALE\}/g)?.length, 2, 'title and line take the WarnPanel cap');
+  assert(rows.includes("import { WARN_TEXT_MAX_SCALE } from '@/components/sp/WarnPanel';"), 'the one cap, not a copy');
   const join = src('app/join-league.tsx');
   assert(join.includes('<WarnPanel text={view.message} />') && join.includes('<WarnPanel text={actionError} />'));
   assert(!join.includes('AlertCard'));
