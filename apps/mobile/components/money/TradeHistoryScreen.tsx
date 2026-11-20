@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/Skeleton';
 import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
+import { TickerBadge } from '@/components/sp/gn/TickerBadge';
 import { formatMoney } from '@/components/sp/logic/money';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { SheetBar } from '@/components/shell/SheetBar';
@@ -52,7 +53,6 @@ const FILTERS: { label: string; value: HistoryFilter }[] = [
 const HISTORY_TEXT_MAX_SCALE = 1.6;
 
 function ItemRow({ item }: { item: HistoryItem }) {
-  const { colors } = useTheme();
   const label = item.kind === 'draft'
     ? COPY.tradeDrafted(item.symbol)
     : item.action === 'sell' ? COPY.tradeSold(item.symbol) : COPY.tradeBought(item.symbol);
@@ -64,9 +64,7 @@ function ItemRow({ item }: { item: HistoryItem }) {
   const total = historyTotal(item);
   return (
     <View style={styles.item} accessible accessibilityLabel={`${label}, ${spokenDetail}${total != null ? `, ${formatMoney(total)}` : ''}`}>
-      <View style={[styles.disc, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{item.symbol}</Text>
-      </View>
+      <TickerBadge symbol={item.symbol} />
       <View style={styles.itemLead}>
         <Text variant="callout" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.extraBold}>{label}</Text>
         <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.tabular}>{keepTime(keepMoney(detail))}</Text>
@@ -197,7 +195,6 @@ const styles = StyleSheet.create({
   gutter: { paddingHorizontal: space[6] },
   section: { paddingTop: space[6], paddingBottom: space[2], fontWeight: '800' },
   item: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingVertical: space[3] },
-  disc: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[1] },
   itemLead: { flex: 1, minWidth: 0, gap: space[1] },
   skeleton: { paddingHorizontal: space[6], paddingTop: space[6], gap: space[1] },
   empty: { paddingTop: space[7], textAlign: 'center' },

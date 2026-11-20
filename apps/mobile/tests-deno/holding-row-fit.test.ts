@@ -51,10 +51,11 @@ Deno.test('the disc: real glyph widths (Archivo ExtraBold at 13pt), a constant r
   assertEquals(DISC_EXCEPTION_MIN_SCALE, 0);
 });
 
-Deno.test('the disc room matches HoldingRow\'s styles (40pt circle, space[1] padding)', () => {
+Deno.test('the disc room matches TickerBadge\'s styles (a `size` circle, space[1] padding)', () => {
   assertEquals(DISC_PADDING, space[1]);
-  const row = Deno.readTextFileSync(new URL('../components/money/HoldingRow.tsx', import.meta.url));
-  assert(/disc: \{\s*width: 40,\s*height: 40,[\s\S]*?paddingHorizontal: space\[1\],/.test(row));
+  const badge = Deno.readTextFileSync(new URL('../components/sp/gn/TickerBadge.tsx', import.meta.url));
+  assert(/badge: \{[\s\S]*?paddingHorizontal: space\[1\],/.test(badge));
+  assert(badge.includes('{ width: size, height: size, borderRadius: size / 2,'));
   assertEquals(DISC_SIZE, 40);
 });
 
@@ -73,7 +74,7 @@ Deno.test('HoldingRow: no adjustsFontSizeToFit; it measures its row and uses bot
   const row = Deno.readTextFileSync(new URL('../components/money/HoldingRow.tsx', import.meta.url));
   assert(!/adjustsFontSizeToFit\s*[=\s>]/.test(row.replace(/\/\/.*$/gm, '')), 'iOS is never asked to fit a row text');
   assert(row.includes('onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}'));
-  assert(row.includes('fontSize: DISC_PT * discTickerScale(row.symbol)'));
+  assert(row.includes('<TickerBadge symbol={row.symbol} />'), 'the shared badge (pick A fit)');
   assert(row.includes('fontSize: VALUE_PT * valueScale(rowWidth, row.valueText, fontScale)'));
   assert(/trail: \{[\s\S]*?maxWidth: '45%',/.test(row), 'TRAIL_SHARE is the trail\'s own maxWidth');
 });
