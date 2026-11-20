@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { groupMatchupsByLeagueWeek } from './grouping.ts';
+import { recordOutcome } from './outcome-record.ts';
 import {
   decideMatchupOutcome,
   willAdvanceWinner,
@@ -1012,6 +1013,18 @@ Deno.serve(async (req) => {
             break;
           // 'dollar_gain' logged nothing before; it still logs nothing.
         }
+        // Why it came out this way, and each side's percent (./outcome-record.ts):
+        // stored in the SAME update as the winner, so the two are written
+        // together or not at all (docs/plans/2026-11-19-matchup-outcome-reason.md).
+        // A seed reason is stored only when both seeds were present and differed;
+        // who advances is unchanged.
+        const record = recordOutcome(progressionMatchup, outcome, team1Score, isByeWeek ? null : team2Score);
+        if (record.outcome_reason !== outcome.reason) {
+          console.error(
+            `Matchup ${matchup.id}: ${outcome.reason} decided on seeds ${matchup.team1_seed} vs ` +
+            `${matchup.team2_seed} (missing or equal); stored as ${record.outcome_reason}`
+          );
+        }
         // Update matchup with results
         const { error: updateErr } = await supabase
           .from('matchups')
@@ -1020,6 +1033,7 @@ Deno.serve(async (req) => {
             team2_gain: isByeWeek ? null : team2Gain, // null for bye weeks
             winner_user_id: winnerId,
             is_tie: isTie,
+            ...record,
           })
           .eq('id', matchup.id);
 
