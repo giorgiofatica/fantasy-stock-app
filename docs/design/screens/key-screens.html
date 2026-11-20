@@ -15958,6 +15958,326 @@ window.KS_REFS = {
 
 </script>
 <script type="text/babel" data-presets="react">
+// Stockpile key-screens board — "Your call: the words under a final that wasn't decided by dollars" (2026-11-19,
+// the Planner's candidate lines). Today the line under a final card picks the winner from DOLLARS, so a percent
+// tiebreak, an automatic loss for no stocks, or a playoff seed decision can read "Dead even" or "won by $X" beside
+// the real result; the interim build shows no line there. These are the words for those cases, A (short) or B
+// (reason first), drawn on All matchups, the season recap and the week itself. Review notes sit UNDER the phones.
+(function () {
+  const { Icon, ICON } = window.KSKit;
+  const GN = window.KSGN;
+  const { Fit } = GN;
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>{children}</div>;
+  const OS = () => <div className="ks-os"><span>9:41</span><span className="ks-os__island" /><span className="ks-os__icons"><span className="ks-os__bars"><i /><i /><i /><i /></span><span className="ks-os__batt"><i /></span></span></div>;
+
+  // The four cases (you are Roberto B.). Figures: equal dollars where the rule says so; "–" for a side with no stocks.
+  const CASES = {
+    pct: {
+      week: 'WK 14', l: ['RB', 'Roberto B.', '+$34.04', true], r: ['PM', 'Paolo M.', '+$34.04'],
+      A: 'Paolo M. won the tiebreak, +1.76% to +0.74%',
+      B: 'Tied on dollars. Paolo M. won on percent, +1.76% to +0.74%',
+    },
+    none: {
+      week: 'WK 14', l: ['CR', 'Chiara R.', '−$12.40'], r: ['SF', 'Sofia F.', '–'],
+      A: 'Chiara R. won. Sofia F. had no stocks',
+      B: 'Sofia F. had no stocks this week, so Chiara R. won',
+    },
+    seed: {
+      week: 'WK 15', l: ['RB', 'Roberto B.', '+$20.10', true], r: ['LV', 'Luca V.', '+$20.10'],
+      A: 'Tied. Luca V. advances as the higher seed',
+      B: 'Dead even. The higher seed, Luca V., advances',
+    },
+    empty: {
+      week: 'WK 15', l: ['CR', 'Chiara R.', '–'], r: ['MT', 'Marco T.', '–'],
+      A: 'No stocks on either side. Chiara R. advances as the higher seed',
+      B: 'Dead even. The higher seed, Chiara R., advances',
+    },
+  };
+
+  const Av = ({ i, you, s = 1 }) => (
+    <span style={{ width: 30 * s, height: 30 * s, flex: `0 0 ${30 * s}px`, borderRadius: 15 * s, background: you ? 'var(--c-you)' : 'var(--c-opp)', color: you ? 'var(--c-on-you, #fff)' : 'var(--c-on-opp)', boxShadow: you ? '0 0 0 2px var(--c-surface), 0 0 0 3.5px var(--c-you)' : 'none', display: 'grid', placeItems: 'center', fontSize: 11 * s, fontWeight: 700 }}>{i}</span>
+  );
+
+  /** The compact Scoreboard (All matchups) with its line. x: 1 at Large, 1.3 = the capped AX5 size of names and the line. */
+  function Card({ c, words, x = 1 }) {
+    const [li, ln, lf, you] = c.l;
+    const [ri, rn, rf] = c.r;
+    const fig = (f, end) => <b className="dr-num" style={{ fontSize: 24, color: f === '–' ? 'var(--c-text-2)' : 'var(--c-text)', textAlign: end ? 'right' : 'left' }}>{f}</b>;
+    const stack = x > 1;
+    return (
+      <div style={{ display: 'grid', gap: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 22px', borderRadius: 14, overflow: 'hidden', background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
+          <div style={{ padding: 10, display: 'grid', gap: 8, background: you ? 'var(--c-you-tint)' : 'transparent' }}>
+            <span style={{ display: 'flex', flexDirection: stack ? 'column' : 'row', alignItems: stack ? 'flex-start' : 'center', gap: 6 }}><Av i={li} you={you} /><b style={{ fontSize: 13 * x, color: 'var(--c-text)', whiteSpace: 'nowrap' }}>{ln}</b></span>
+            {fig(lf)}
+          </div>
+          <div style={{ padding: 10, display: 'grid', gap: 8, justifyItems: 'end' }}>
+            <span style={{ display: 'flex', flexDirection: stack ? 'column-reverse' : 'row', alignItems: stack ? 'flex-end' : 'center', gap: 6 }}><b style={{ fontSize: 13 * x, color: 'var(--c-text)', whiteSpace: 'nowrap' }}>{rn}</b>{stack ? null : <Av i={ri} />}{stack ? <Av i={ri} /> : null}</span>
+            {fig(rf, true)}
+          </div>
+          <span style={{ display: 'grid', placeItems: 'center', color: 'var(--c-text-2)' }}><Icon d={ICON.right} size={14} width={2.4} /></span>
+        </div>
+        <span style={{ textAlign: 'center', fontSize: 12.5 * x, lineHeight: `${Math.round(17 * x)}px`, color: 'var(--c-text-2)', padding: '0 8px' }}>{c[words]}</span>
+      </div>
+    );
+  }
+
+  const Switch = ({ left }) => (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: 3, borderRadius: 10, background: 'var(--c-inset)', fontSize: 14, fontWeight: 600 }}>
+      <span style={{ textAlign: 'center', padding: '7px 0', borderRadius: 8, background: left ? 'var(--c-surface)' : 'transparent', color: left ? 'var(--c-text)' : 'var(--c-text-2)' }}>My matchup</span>
+      <span style={{ textAlign: 'center', padding: '7px 0', borderRadius: 8, background: left ? 'transparent' : 'var(--c-surface)', color: left ? 'var(--c-text-2)' : 'var(--c-text)' }}>All matchups</span>
+    </div>
+  );
+  const Wk = ({ children }) => <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1, color: 'var(--c-text-2)', marginTop: 4 }}>{children}</span>;
+
+  function Phone({ t = 'light', label, children }) {
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label}>
+          <OS />
+          <div style={{ position: 'absolute', top: 58, left: 16, right: 16, bottom: 30, display: 'grid', alignContent: 'start', gap: 10, overflow: 'hidden' }}>{children}</div>
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+
+  /** All matchups, recap view: the two weeks holding the four cases. */
+  function AllMatchups({ t, words }) {
+    return (
+      <Phone t={t} label={`All matchups with the ${words} words`}>
+        <Switch />
+        <Wk>WK 15</Wk>
+        <Card c={CASES.seed} words={words} />
+        <Card c={CASES.empty} words={words} />
+        <Wk>WK 14</Wk>
+        <Card c={CASES.pct} words={words} />
+        <Card c={CASES.none} words={words} />
+      </Phone>
+    );
+  }
+
+  /** The longest line of an option, at Giorgio's text size (names and the line at their 1.3 cap). */
+  function Longest({ words, c }) {
+    return (
+      <Phone label={`The longest ${words} line at the largest text size`}>
+        <Switch />
+        <Wk>{c.week}</Wk>
+        <Card c={c} words={words} x={1.3} />
+      </Phone>
+    );
+  }
+
+  /** My matchup, the season recap. reason: false = as built today (1); true = the short reason after the letter (2).
+   * x: 1 at Large, 1.3 = the rows' capped size at Giorgio's text size (the result drops under the name, as built). */
+  function Recap({ reason = false, x = 1, label }) {
+    const rows = [
+      ['SF', 'LV', 'Luca V.', 'L', '+$20.10', 'seed'],
+      ['WK 14', 'PM', 'Paolo M.', 'L', '+$34.04', 'tiebreak'],
+      ['WK 13', 'SF', 'Sofia F.', 'W', '−$12.40', 'no stocks'],
+      ['WK 12', 'GB', 'Gianluigi B.', 'W', '+$58.75', null],
+      ['WK 11', 'MT', 'Marco T.', 'L', '−$96.40', null],
+    ];
+    const tone = (f) => (f.startsWith('−') ? 'var(--c-loss)' : 'var(--c-gain)');
+    const big = x > 1;
+    return (
+      <Phone label={label}>
+        <Switch left />
+        {rows.map(([wk, i, n, r, f, why]) => {
+          const result = (
+            <b className="dr-num" style={{ fontSize: 14 * x, whiteSpace: 'nowrap' }}>
+              <span style={{ color: r === 'W' ? 'var(--c-gain)' : 'var(--c-loss)' }}>{r}</span>
+              {reason && why ? <span style={{ color: 'var(--c-text-2)', fontWeight: 600 }}>{` · ${why}`}</span> : null}
+              {' '}<span style={{ color: tone(f) }}>{f}</span>
+            </b>
+          );
+          return (
+            <div key={wk} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 12px', borderRadius: 12, background: 'var(--c-surface)', boxShadow: 'inset 0 0 0 1px var(--c-border)' }}>
+              <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 6 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 11 * x, fontWeight: 800, letterSpacing: 0.8, color: 'var(--c-text-2)', minWidth: 40 * x, whiteSpace: 'nowrap' }}>{wk}</span>
+                  <Av i={i} s={0.75} />
+                  <span style={{ flex: 1, fontSize: 14 * x, color: 'var(--c-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>vs {n}</span>
+                  {big ? null : result}
+                </span>
+                {big ? <span style={{ justifySelf: 'end' }}>{result}</span> : null}
+              </div>
+              <span style={{ color: 'var(--c-text-2)', display: 'grid' }}><Icon d={ICON.right} size={13} width={2.4} /></span>
+            </div>
+          );
+        })}
+      </Phone>
+    );
+  }
+
+  const fig = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}><Fit>{node}</Fit><figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const Grid = ({ children, n = 'three' }) => <div className={`b-concepts b-concepts--${n}`}>{children}</div>;
+
+  function CallTiebreakWords({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-tiebreak-words" aria-labelledby="call-tiebreak-words-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Matchup</span>
+          <div>
+            <h2 id="call-tiebreak-words-h">{archived ? 'Decided: the words when dollars don’t decide a week' : 'Your call: the words when dollars don’t decide a week'}</h2>
+            <p className="b-job">When the dollars are level, or a team had no stocks, the winner is decided another way. The line under the final card should say who won and why.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>A · short.</b> The winner first: “Paolo M. won the tiebreak, +1.76% to +0.74%”.</li>
+          <li><b>B · the reason first.</b> “Tied on dollars. Paolo M. won on percent, +1.76% to +0.74%”. In B one seed line covers both playoff cases.</li>
+          <li><b>Who won, on All matchups:</b> every line names the winner, so no extra marker is needed on the card. Where both figures match, or a side shows “–”, the line is what tells you.</li>
+          <li><b>The season recap row, 1 or 2.</b> 1 · as it is today: the letter is the result, the figure is your week (“L +$34.04”: you gained and still lost); the reason is one tap away, under that week’s card. 2 · the reason after the letter, in grey: “L · tiebreak”, “L · seed”, “W · no stocks” (new words, a word each). Only these weeks change; every other row stays as it is.</li>
+          <li><b>Recommended: A and 2.</b> A answers who won before why, like “won by”, and its longest line still fits in two lines at your text size. 2, because a red L beside a bigger green figure looks like a mistake until you know why; one grey word settles it without a second line.</li>
+          <li><b>New words:</b> the lines for the four cases below, and in 2 the three reason words; no other text changes. Normal wins keep “won by $X”, a true tie keeps “Dead even”.</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B for the line, and 1 or 2 for the recap row.</>}</li>
+        </ul>
+        <Grid>{[
+          fig('ta', 'A · short', <AllMatchups words="A" />, 'Top to bottom: a seed tie, no stocks on either side, a percent tiebreak, no stocks on one side.'),
+          fig('tb', 'B · reason first', <AllMatchups words="B" />, 'The same four games.'),
+          fig('tad', 'A · Dark', <AllMatchups t="dark" words="A" />),
+        ]}</Grid>
+        <Grid>{[
+          fig('la', 'A · its longest line, your text size', <Longest words="A" c={CASES.empty} />, 'Two lines, centred under the card.'),
+          fig('lb', 'B · its longest line, your text size', <Longest words="B" c={CASES.pct} />, 'Two lines, centred under the card.'),
+        ]}</Grid>
+        <Grid>{[
+          fig('r1', '1 · the recap row as it is today', <Recap label="Season recap rows as today, option 1" />, 'SF and Wk 14: a red L beside a green figure. Wk 13 is its mirror, a green W beside a red figure.'),
+          fig('r2', '2 · the reason after the letter', <Recap reason label="Season recap rows with the reason, option 2" />, 'Only the three tiebreak weeks change.'),
+          fig('r2x', '2 · at your text size', <Recap reason x={1.3} label="Season recap rows with the reason at the largest text size, option 2" />, 'The result drops under the name, as built; the reason stays with its letter.'),
+        ]}</Grid>
+      </section>
+    );
+  }
+
+  window.KSTiebreakWords = () => null;
+  window.KSTiebreakWordsArchived = () => <CallTiebreakWords archived decidedNote={<><b>Decided 2026-11-19.</b> The line: <b>A</b>, the winner first. These words wait on the server plan, which stores why a week was decided; until then the card shows no line in these weeks. The recap row: <b>his own option</b>, neither 1 nor 2 above: W, L and T in bold neutral ink, the figure keeps its sign colour, and no reason word on the row (built, #574).</>} />;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
+// Stockpile key-screens board — "Your call: W, L and T in neutral ink everywhere?" (2026-11-19). Giorgio made the
+// season recap's result letters bold neutral ink, the figure keeping its sign colour (#574). This audit lists every
+// other place a result is coloured by the result and shows each as it is today and neutral. The real app stills
+// (same fixture, only the result element differs) live outside the repo: local/design-review/design/result-colour-1119/.
+// Review notes sit UNDER the elements, never inside.
+(function () {
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`} style={{ background: 'var(--c-bg)', padding: 10, borderRadius: 12 }}>{children}</div>;
+  const ink = (r, neutral) => (neutral ? 'var(--c-text)' : r === 'W' ? 'var(--c-gain)' : r === 'L' ? 'var(--c-loss)' : 'var(--c-text-2)');
+  const sign = (f) => (f.startsWith('−') ? 'var(--c-loss)' : 'var(--c-gain)');
+
+  const WEEKS = [['Wk 1', 'W', '+$41.30'], ['Wk 2', 'W', '+$58.75'], ['Wk 3', 'L', '−$96.40'], ['Wk 4', 'W', '+$72.10'], ['Wk 5', 'W', '+$54.24']];
+
+  /** Home › Your season: the week tiles. */
+  const Tiles = ({ n }) => (
+    <div style={{ background: 'var(--c-surface)', borderRadius: 14, padding: 10, display: 'grid', gap: 8 }}>
+      <b style={{ fontSize: 13, color: 'var(--c-text)' }}>Your season</b>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 4 }}>
+        {WEEKS.map(([w, r, f]) => (
+          <div key={w} style={{ display: 'grid', justifyItems: 'center', gap: 2, padding: '5px 0', borderRadius: 8, boxShadow: 'inset 0 0 0 1px var(--c-rim)' }}>
+            <span style={{ fontSize: 9, color: 'var(--c-text-2)' }}>{w}</span>
+            <b style={{ fontSize: 17, fontWeight: 800, color: ink(r, n) }}>{r}</b>
+            <span className="dr-num" style={{ fontSize: 8.5, fontWeight: 700, color: sign(f) }}>{f}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  /** League › Schedule: the week rows. */
+  const Schedule = ({ n }) => (
+    <div style={{ display: 'grid', gap: 6 }}>
+      {WEEKS.slice(1, 4).map(([w, r, f]) => (
+        <div key={w} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--c-surface)', borderRadius: 10, padding: '9px 10px', fontSize: 12.5 }}>
+          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--c-text-2)', minWidth: 26 }}>{w.replace('Wk ', 'W')}</span>
+          <span style={{ flex: 1, color: 'var(--c-text)', whiteSpace: 'nowrap' }}>vs Gianluigi B.</span>
+          <b className="dr-num" style={{ whiteSpace: 'nowrap' }}><span style={{ color: ink(r, n) }}>{r}</span> <span style={{ color: sign(f) }}>{f}</span></b>
+        </div>
+      ))}
+    </div>
+  );
+
+  /** The finished week's banner, a week you won. */
+  const Banner = ({ n }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, borderRadius: 10, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, background: n ? 'var(--c-sunken)' : 'var(--c-you)', color: n ? 'var(--c-text)' : 'var(--c-on-you)' }}>
+      <span style={{ whiteSpace: 'nowrap' }}>Roberto B. wins Week 6</span><span style={{ whiteSpace: 'nowrap' }}>W · 5–1</span>
+    </div>
+  );
+
+  /** The Matchup "i" popup's picture: the W beside the winner. */
+  const Popup = ({ n }) => (
+    <div style={{ background: 'var(--c-inset)', borderRadius: 12, padding: 10, display: 'grid', gap: 8, fontSize: 12.5 }}>
+      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: 'var(--c-text-2)' }}>WEEK 3</span>
+      {[['You', '+$24.10', true], ['Marco R.', '−$8.30', false]].map(([who, f, win]) => (
+        <div key={who} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ flex: 1, color: 'var(--c-text)', fontWeight: win ? 700 : 400 }}>{who}</span>
+          <b className="dr-num" style={{ color: sign(f) }}>{f}</b>
+          <b style={{ width: 16, textAlign: 'center', fontSize: 11, color: win ? ink('W', n) : 'transparent' }}>W</b>
+        </div>
+      ))}
+    </div>
+  );
+
+  const PLACES = [
+    { key: 'tiles', name: 'Home › Your season', where: 'The week tiles: the letter is green, red or grey today; the figure under it keeps its sign colour either way.', El: Tiles },
+    { key: 'sched', name: 'League › Schedule', where: 'Each week’s row: the same letter as the season recap, which is already neutral (#574).', El: Schedule },
+    { key: 'popup', name: 'The Matchup “i” popup', where: 'The W beside the winner in the picture that explains a matchup.', El: Popup },
+  ];
+
+  const Pair = ({ El, n }) => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 6 }}>
+      <Th t="light"><El n={n} /></Th>
+      <Th t="dark"><El n={n} /></Th>
+    </div>
+  );
+
+  function Place({ name, where, El, a, b }) {
+    return (
+      <div style={{ display: 'grid', gap: 8 }}>
+        <div><b>{name}</b><span className="b-annot" style={{ display: 'block' }}>Where: {where}</span></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', gap: 12 }}>
+          <figure style={{ margin: 0, display: 'grid', gap: 6 }}><Pair El={El} n={false} /><figcaption><b>{a}</b><span className="b-annot"> Light · Dark</span></figcaption></figure>
+          <figure style={{ margin: 0, display: 'grid', gap: 6 }}><Pair El={El} n /><figcaption><b>{b}</b><span className="b-annot"> Light · Dark</span></figcaption></figure>
+        </div>
+      </div>
+    );
+  }
+
+  function CallResultColour({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-result-colour" aria-labelledby="call-result-colour-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Colour</span>
+          <div>
+            <h2 id="call-result-colour-h">{archived ? 'Decided: W, L and T colours outside the recap' : 'Your call: W, L and T in neutral ink everywhere?'}</h2>
+            <p className="b-job">You made the season recap’s W, L and T bold neutral ink, with the money keeping its green or red. Three more places colour the letter by the result, and one banner colours a week you won.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>Letters · A, neutral everywhere.</b> Home’s season tiles, League › Schedule and the Matchup popup draw W, L and T like the recap: bold, in the normal ink. The figures keep their sign colour.</li>
+          <li><b>Letters · B, as today</b> outside the recap: W green, L red, T grey.</li>
+          <li><b>The banner · 1, keep it blue</b> when you won a week (your colour; a lost or tied week is already grey). <b>2, grey for every week.</b></li>
+          <li><b>Recommended: A and 1.</b> A, because the tiles and Schedule show the same weeks as the recap, and a tiebreak week would otherwise show a red L beside a green figure there too. 1, because the blue is your colour, not a result colour: it never sits beside a figure it could contradict, and it is the one moment a week celebrates you.</li>
+          <li><b>Left as they are:</b> the bracket (the winner bold, the other grey, no colour), the medals, money everywhere, and the standings’ up and down arrows (rank movement, not a result).</li>
+          <li><b>No new words.</b> Real app stills of every place: the contact sheet sent with this board.</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B for the letters, and 1 or 2 for the banner.</>}</li>
+        </ul>
+        <div style={{ display: 'grid', gap: 22 }}>
+          {PLACES.map((p) => <Place key={p.key} name={p.name} where={p.where} El={p.El} a="Today" b="A · neutral" />)}
+          <Place name="The finished week’s banner" where="The Matchup tab and a week’s detail, a week you won. A week you lost or tied is grey today and stays grey." El={Banner} a="1 · as today, blue" b="2 · grey for every week" />
+        </div>
+      </section>
+    );
+  }
+
+  window.KSResultColour = () => null;
+  window.KSResultColourArchived = () => <CallResultColour archived decidedNote={<><b>Decided 2026-11-20:</b> “A and keep blue”. The letters go neutral in all three places, the money keeps its colour, and the banner of a week you won stays blue.</>} />;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
 // The review board around the key screens: one section per screen, each
 // with the live component, what it shows, its motion moments (playable),
 // and the questions only Giorgio can answer. Then the ledger, computed
@@ -16357,6 +16677,8 @@ window.KS_REFS = {
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-result-colour', title: 'W, L and T colours outside the recap', decision: '"A and keep blue". Letters A: W, L and T bold in the normal ink on Home\u2019s season tiles, League \u203a Schedule and the Matchup \u201ci\u201d popup, as in the recap; the money keeps its sign colour. Banner 1: a week you won stays blue (your colour). No new words.', date: '2026-11-20', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSResultColourArchived },
+    { id: 'call-tiebreak-words', title: 'The words when dollars don\u2019t decide a week', decision: 'The line: A, the winner first ("Paolo M. won the tiebreak, +1.76% to +0.74%"); the words wait on the server storing why a week was decided. The recap row: his own option, neither 1 nor 2: W, L and T in bold neutral ink, the figure keeps its sign colour, no reason word on the row (built, #574).', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSTiebreakWordsArchived },
     { id: 'call-yellow', title: 'The yellow warnings', decision: 'A: the teal tint, in all five kinds of place (the refusal panel, Home\u2019s \u201ccan\u2019t start yet\u201d card and its stepper ring, the stake-mode note, a TBD draft time, the draft search\u2019s badge). Only the three warning colours change, both themes. The gold medal and the Property colour stay. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSYellowArchived },
     { id: 'call-ticker-disc', title: 'A long ticker in its round badge', decision: 'A: the badge stays the same round size on every row and only its text shrinks to fit a long ticker (about 9pt for GOOGL), written in full; the one exception to the 11pt smallest-text rule. Holdings, the Stocks list and search. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (#562, the Planner)', render: () => window.KSTickerDiscArchived },
     { id: 'call-matchup-after', title: 'The Matchup tab after the season', decision: 'Superseded: neither A nor B. He wants a season recap (the weeks listed, each opening that week\u2019s matchup); the Planner is mocking it with him as its own call.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSMatchupAfterArchived },
@@ -16545,6 +16867,8 @@ window.KS_REFS = {
           {window.KSStocksIcon ? <window.KSStocksIcon /> : null}
           {window.KSTickerDisc ? <window.KSTickerDisc /> : null}
           {window.KSYellow ? <window.KSYellow /> : null}
+          {window.KSTiebreakWords ? <window.KSTiebreakWords /> : null}
+          {window.KSResultColour ? <window.KSResultColour /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}

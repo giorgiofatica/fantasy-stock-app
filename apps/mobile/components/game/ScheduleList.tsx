@@ -31,8 +31,8 @@ export interface ScheduleListProps {
 
 /** League › Schedule (board frame, D4 = keep), on Game Night: each week its own `surface`
  * tile, 6pt apart like the standings (separation by space, §9C rule 2). The week, the
- * opponent's avatar and name, and the result with your score once it posts (the letter by
- * result, the score by sign); this week the §9C live chip ("Live", its dot drawn); the
+ * opponent's avatar and name, and the result with your score once it posts (the letter bold
+ * in the normal ink, the score by sign: Giorgio, 2026-11-20, pick A); this week the §9C live chip ("Live", its dot drawn); the
  * week after, "Next"; a past week not scored yet, the season tile's dash. Every row here
  * is your game, so none is shaded (B shades YOUR side where you face someone; here that
  * would be every row). A bye is neutral: never W or L. */
@@ -40,7 +40,7 @@ export function ScheduleList({ rows, playoffLine }: ScheduleListProps) {
   return (
     <View style={styles.stack}>
       <View style={styles.rows}>
-        {rows.map((r) => <ScheduleWeekRow key={r.week} row={r} />)}
+        {rows.map((r) => <ScheduleWeekRow key={r.week} row={r} neutralResult />)}
       </View>
       {playoffLine ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>Then the playoffs: {playoffLine}.</Text> : null}
     </View>
@@ -59,9 +59,9 @@ export interface ScheduleWeekRowProps {
   onPress?: () => void;
   /** VoiceOver's hint when the row opens something. */
   accessibilityHint?: string;
-  /** The season recap only: the W / L / T in the normal `text` ink (still score.sm's extra
-   * bold), only the money coloured by its sign (Giorgio, 2026-11-19, A). League › Schedule
-   * leaves it off and keeps the letter coloured by the result. */
+  /** The W / L / T in the normal `text` ink (still score.sm's extra bold), only the money
+   * coloured by its sign: the season recap (Giorgio, 2026-11-19, A) and League › Schedule
+   * (2026-11-20, pick A, #call-result-colour) both pass it. */
   neutralResult?: boolean;
 }
 
