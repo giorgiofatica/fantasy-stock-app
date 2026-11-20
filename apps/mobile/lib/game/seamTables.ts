@@ -88,7 +88,7 @@ function snapshotRows(weekClosed: boolean, lost = false) {
   );
 }
 
-function weekMatchups(weekClosed: boolean, bye = false, lost = false) {
+function weekMatchups(weekClosed: boolean, bye = false, lost = false, outcomes = false) {
   const game = (team1: string, team2: string) => {
     if (!weekClosed) return { team1_user_id: team1, team2_user_id: team2, team1_gain: null, team2_gain: null, winner_user_id: null, is_tie: false, is_playoff: false, week_start: WEEK_START, week_end: WEEK_END, week_number: WEEK };
     const g1 = closedGain(team1, lost);
@@ -100,6 +100,16 @@ function weekMatchups(weekClosed: boolean, bye = false, lost = false) {
     // Gianluigi, and All matchups lists each bye as its own row (team2 null).
     const sit = (team: string) => ({ ...game(team, team), team2_user_id: null, team2_gain: null, winner_user_id: null });
     return [game(paolo, luca), game(chiara, marco), sit(SEAM_ME), sit(gianluigi)];
+  }
+  // EXPO_PUBLIC_RECAP_FIXTURE=outcomes on a closed week: the live tab's All matchups reads the stored reason too.
+  // Your game stays Home's (the tab's own final week reads get_home_league's gains, which stay as they are); Paolo-Luca
+  // is a no-stocks automatic loss (Luca held nothing) and Chiara-Marco a percent tiebreak on level dollars.
+  if (weekClosed && outcomes) {
+    return [
+      game(SEAM_ME, gianluigi),
+      { ...game(paolo, luca), team1_gain: -12.4, team2_gain: 0, winner_user_id: paolo, is_tie: false, outcome_reason: 'team2_empty_auto_loss', team1_percent_gain: -1.21, team2_percent_gain: null },
+      { ...game(chiara, marco), team1_gain: 34.04, team2_gain: 34.04, winner_user_id: marco, is_tie: false, outcome_reason: 'percent_tiebreak', team1_percent_gain: 0.74, team2_percent_gain: 1.76 },
+    ];
   }
   return [game(SEAM_ME, gianluigi), game(paolo, luca), game(chiara, marco)];
 }
@@ -140,9 +150,9 @@ function playoffMatchups(live = false) {
  * you have more dollars (no line; its detail reconciles: the snapshot fixture's own totals); Paolo-Luca,
  * equal dollars with the server naming Luca (no line); Chiara-Marco, a normal win; and a true tie,
  * Luca-Marco again (the fixture league has six managers, so a fourth game repeats two of them). */
-export type RecapFixture = 'champion' | 'semis' | 'missed' | 'tie_bye' | 'unposted' | 'tiebreak';
+export type RecapFixture = 'champion' | 'semis' | 'missed' | 'tie_bye' | 'unposted' | 'tiebreak' | 'outcomes';
 export function parseRecapFixture(v: string | undefined): RecapFixture {
-  return v === 'semis' || v === 'missed' || v === 'tie_bye' || v === 'unposted' || v === 'tiebreak' ? v : 'champion';
+  return v === 'semis' || v === 'missed' || v === 'tie_bye' || v === 'unposted' || v === 'tiebreak' || v === 'outcomes' ? v : 'champion';
 }
 
 /** The fixture league's regular season (the shell's finished league, fx-summer: num_weeks 14). */
@@ -206,6 +216,25 @@ export function seasonMatchups(variant: RecapFixture) {
     ];
     return [...season.filter((m) => m.week_number !== w), ...week];
   }
+  // The stored reason on every kind of week (matchups.outcome_reason, plan 2026-11-19-matchup-outcome-reason):
+  // week 14 (regular): my game a percent tiebreak (equal dollars, Gianluigi's percent higher), Paolo-Luca a
+  // no-stocks automatic loss (Luca held nothing), Chiara-Marco a week scored before the column ('not_recorded',
+  // a level week the server gave to Chiara: no line); week 15 (wild card): Luca-Gianluigi a seed tiebreak, Chiara-
+  // Marco no stocks on either side. Only this fixture carries the three columns; every other row lacks them.
+  if (variant === 'outcomes') {
+    const w = SEASON_WEEKS;
+    const rec = (m: ReturnType<typeof row>, outcome_reason: string, team1_percent_gain: number | null, team2_percent_gain: number | null) => ({ ...m, outcome_reason, team1_percent_gain, team2_percent_gain });
+    const week14 = [
+      rec({ ...row(w, SEAM_ME, gianluigi, 34.04, 34.04), winner_user_id: gianluigi, is_tie: false }, 'percent_tiebreak', 0.74, 1.76),
+      rec({ ...row(w, paolo, luca, -12.4, 0), winner_user_id: paolo, is_tie: false }, 'team2_empty_auto_loss', -1.21, null),
+      rec({ ...row(w, chiara, marco, 20.5, 20.5), winner_user_id: chiara, is_tie: false }, 'not_recorded', null, null),
+    ];
+    const week15 = [
+      rec({ ...row(WC, luca, gianluigi, 88.15, 88.15, true), winner_user_id: luca, is_tie: false }, 'playoff_seed_tiebreak', 2.4, 2.4),
+      rec({ ...row(WC, chiara, marco, 0, 0, true), winner_user_id: chiara, is_tie: false }, 'both_empty_playoff_seed_tiebreak', null, null),
+    ];
+    return [...season.filter((m) => m.week_number !== w && m.week_number !== WC), ...week14, ...week15];
+  }
   return variant === 'unposted'
     ? season.map((m) => (m.week_number === 1 && m.team1_user_id !== chiara ? { ...m, team1_gain: null, team2_gain: null, winner_user_id: null, is_tie: false } : m))
     : season;
@@ -227,7 +256,7 @@ export function seamTableRows(on: boolean, table: SeamTableName, roomVariant: Dr
         { symbol: 'CRM', position: 2 },
         { symbol: 'V', position: 3 },
       ];
-    case 'matchups_week': return weekMatchups(opts.weekClosed === true, opts.bye === true, opts.lost === true);
+    case 'matchups_week': return weekMatchups(opts.weekClosed === true, opts.bye === true, opts.lost === true, opts.recap === 'outcomes');
     // The transfer picker's current members (the draft fixture's names; Roberto is you).
     // Your own row, for a leave's re-read: still a member (the capture of "You're still in …").
     case 'league_members_me': return [{ hidden_at: null }];

@@ -11,6 +11,7 @@ import { ordinal } from '../../../lib/home/ordinal';
 import { COPY as MONEY_COPY } from '../../../lib/money/moneyCopy';
 import { estimateLabelWidth } from './chartAxis';
 import type { ServerVerdict } from '../../../lib/game/weekResult';
+import { finalLine, type RecordedOutcome } from '../../../lib/game/outcomeLine';
 
 // ── Scoreboard (Matchup) ─────────────────────────────────────────────────────────
 
@@ -28,29 +29,22 @@ export interface ScoreboardModel {
   /** The one line under the card: "{name} leads by {margin}" (or "won by"). */
   /** Null: no line (a final whose server result the dollars can't honestly state; scoreboardModel). */
   line: string | null;
+  /** FINAL only: a side the server recorded as holding no stocks draws its total as a dash (finalLine). */
+  noStocks?: { you: boolean; opp: boolean };
 }
 
 /** The Scoreboard's line. LIVE (final false): from the two dollar totals, as the board's "leads by" /
- * "Dead even". FINAL: from the SERVER's verdict (`verdict`, from the `you` side: lib/game/weekResult's
- * serverVerdict), never the dollars (review 2 on #566; Planner, 2026-11-19, an interim removal with no
- * new words):
- *  - the server's winner is the dollar leader: "{winner} won by $X" (X = |a - b|);
- *  - no server winner and equal dollars: "Dead even";
- *  - anything else (a percent or seed tiebreak, an empty portfolio's automatic loss, a winner who isn't
- *    the dollar leader, or a verdict not read): NO line (`line: null`). The band and the row name the
- *    server's winner; the card never names a different one. */
-export function scoreboardModel(you: ScoreSide, opp: ScoreSide, final: boolean, verdict?: ServerVerdict): ScoreboardModel {
+ * "Dead even". FINAL: lib/game/outcomeLine's finalLine, the one helper keyed on the reason the server
+ * stored (`outcome`, matchups.outcome_reason) with the server's winner (`verdict`, from the `you` side:
+ * lib/game/weekResult's serverVerdict), never the dollars' winner. Without a reason it knows (a week
+ * scored before the column, an unresolved seed, NULL, an older response) it keeps #566's rule: "won by"
+ * only for a dollar-leader win, "Dead even" only for a server tie on equal dollars, else NO line. */
+export function scoreboardModel(you: ScoreSide, opp: ScoreSide, final: boolean, verdict?: ServerVerdict, outcome?: RecordedOutcome): ScoreboardModel {
+  if (final) return finalLine(you, opp, verdict, outcome);
   const dollarLeader: Side | null = you.gain === opp.gain ? null : you.gain > opp.gain ? 'you' : 'opp';
   const margin = formatMoney(Math.abs(you.gain - opp.gain));
-  if (!final) {
-    if (dollarLeader === null) return { leader: null, line: 'Dead even' };
-    return { leader: dollarLeader, line: `${dollarLeader === 'you' ? you.name : opp.name} leads by ${margin}` };
-  }
-  if (verdict === undefined) return { leader: null, line: null };
-  if (verdict === 'nobody') return { leader: null, line: dollarLeader === null ? 'Dead even' : null };
-  const winner: Side = verdict === 'me' ? 'you' : 'opp';
-  if (winner !== dollarLeader) return { leader: winner, line: null };
-  return { leader: winner, line: `${winner === 'you' ? you.name : opp.name} won by ${margin}` };
+  if (dollarLeader === null) return { leader: null, line: 'Dead even' };
+  return { leader: dollarLeader, line: `${dollarLeader === 'you' ? you.name : opp.name} leads by ${margin}` };
 }
 
 // ── RosterRow (Matchup) ──────────────────────────────────────────────────────────
