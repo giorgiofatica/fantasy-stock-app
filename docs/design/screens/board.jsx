@@ -388,6 +388,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-yellow', title: 'The yellow warnings', decision: 'A: the teal tint, in all five kinds of place (the refusal panel, Home\u2019s \u201ccan\u2019t start yet\u201d card and its stepper ring, the stake-mode note, a TBD draft time, the draft search\u2019s badge). Only the three warning colours change, both themes. The gold medal and the Property colour stay. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSYellowArchived },
     { id: 'call-ticker-disc', title: 'A long ticker in its round badge', decision: 'A: the badge stays the same round size on every row and only its text shrinks to fit a long ticker (about 9pt for GOOGL), written in full; the one exception to the 11pt smallest-text rule. Holdings, the Stocks list and search. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (#562, the Planner)', render: () => window.KSTickerDiscArchived },
     { id: 'call-matchup-after', title: 'The Matchup tab after the season', decision: 'Superseded: neither A nor B. He wants a season recap (the weeks listed, each opening that week\u2019s matchup); the Planner is mocking it with him as its own call.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSMatchupAfterArchived },
     { id: 'call-stocks-finished', title: 'The Stocks tab in a finished season', decision: 'A: no "+" on the rows and no Buy (and no line) on a stock\u2019s sheet; the list stays to browse.', date: '2026-11-18', rec: 'PRODUCT_RULES (#551, the Planner)', render: () => window.KSStocksFinishedArchived },
@@ -574,6 +575,7 @@
           {window.KSStocksFinished ? <window.KSStocksFinished /> : null}
           {window.KSStocksIcon ? <window.KSStocksIcon /> : null}
           {window.KSTickerDisc ? <window.KSTickerDisc /> : null}
+          {window.KSYellow ? <window.KSYellow /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
