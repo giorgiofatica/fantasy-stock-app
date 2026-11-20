@@ -16,7 +16,7 @@ import { toneOf } from '@/components/sp/logic/gameNight';
 import { formatMoney } from '@/components/sp/logic/money';
 import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 import { keepMoney } from '@/lib/game/keepDots';
-import { byResult } from '@/lib/game/weekResult';
+import { resultLetterInk } from '@/lib/game/weekResult';
 import { LIVE_CHIP, SEASON_TILE_BYE, SEASON_TILE_UNSCORED, YOUR_SEASON_TITLE } from '@/lib/home/homeCopy';
 import { SCHEDULE_HREF, THIS_WEEK_HREF } from '@/lib/home/calmHome';
 import {
@@ -105,7 +105,8 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
   const { colors } = useTheme();
   const w = tileWidth(fontScale);
   const dot = DOT * Math.min(Math.max(fontScale, 1), 2);
-  const toneColor = (r: SeasonResult) => byResult(r, { W: colors.gain, L: colors.loss, T: colors.text2 });
+  // The W / L / T is bold in the normal ink; only the score keeps its sign colour (pick A, #call-result-colour).
+  const letterInk = (r: SeasonResult) => resultLetterInk(r, colors, true);
 
   const isThis = tile.kind === 'this';
   const upcoming = tile.kind === 'upcoming';
@@ -118,7 +119,7 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
   let bottom: ReactNode = null;
   switch (tile.kind) {
     case 'played':
-      middle = <Glyph letter={tile.result} color={toneColor(tile.result)} />;
+      middle = <Glyph letter={tile.result} color={letterInk(tile.result)} />;
       bottom = (
         <Text
           variant="score.sm"
@@ -153,7 +154,7 @@ function Tile({ tile, fontScale }: { tile: SeasonTile; fontScale: number }) {
       if (tile.middle === 'live') middle = <View style={{ width: dot, height: dot, borderRadius: dot / 2, backgroundColor: colors.live }} />;
       else if (tile.middle === 'ring') middle = <View style={{ width: dot, height: dot, borderRadius: dot / 2, borderWidth: 1.5, borderColor: colors.text2 }} />;
       else if (tile.middle === 'bye') middle = <Text variant="caption" tone="secondary" style={styles.word} maxFontSizeMultiplier={GLYPH_MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{SEASON_TILE_BYE}</Text>;
-      else if (tile.result) middle = <Glyph letter={tile.result} color={toneColor(tile.result)} />;
+      else if (tile.result) middle = <Glyph letter={tile.result} color={letterInk(tile.result)} />;
       // "Live", only while the market is open; never a score.
       if (tile.showLive) bottom = <Text variant="caption" color={colors.liveText} style={styles.live} maxFontSizeMultiplier={LABEL_MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={SCORE_MIN_FONT_SCALE}>{LIVE_CHIP}</Text>;
       break;

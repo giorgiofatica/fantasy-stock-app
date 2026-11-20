@@ -75,7 +75,7 @@ function MatchupPicture() {
         <V style={win ? styles.bold : undefined}>{name}</V>
       </View>
       <Strong color={gain.startsWith('+') ? colors.gain : colors.loss} style={styles.tabular}>{gain}</Strong>
-      <View style={styles.winMark}>{win ? <Strong variant="caption" color={colors.gain}>W</Strong> : null}</View>
+      <View style={styles.winMark}>{win ? <Strong variant="caption" color={colors.text}>W</Strong> : null}</View>
     </View>
   );
   return (

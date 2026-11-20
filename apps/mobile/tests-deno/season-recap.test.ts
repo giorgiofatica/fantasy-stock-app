@@ -220,7 +220,8 @@ Deno.test('the recap rows: Schedule\'s row, a chevron only on a row that opens; 
   assert(row.includes('if (!onPress) {'), 'no onPress → the plain tile, no chevron');
   assert(row.indexOf('<Icon name="chevronRight"') > row.indexOf('if (!onPress) {'), 'the chevron is drawn only on the pressable row');
   const schedule = row.slice(row.indexOf('export function ScheduleList('), row.indexOf('export interface ScheduleWeekRowProps'));
-  assert(schedule.includes('<ScheduleWeekRow key={r.week} row={r} />'), "Schedule passes no label, chip or onPress: its rows are unchanged");
+  // Neutral letters since 2026-11-20 (pick A); still no label, chip or onPress.
+  assert(schedule.includes('<ScheduleWeekRow key={r.week} row={r} neutralResult />'), "Schedule passes no label, chip or onPress: its rows are unchanged");
 });
 
 Deno.test('status line: out in a round, or missed the playoffs; nothing for the champion or runner-up', () => {
