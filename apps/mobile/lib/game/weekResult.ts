@@ -67,11 +67,12 @@ export function byResult<V>(result: WeekResult, cases: Record<WeekResult, V>): V
 /** The inks a result letter can take (the theme's tokens). */
 export interface ResultLetterColors { gain: string; loss: string; text: string; text2: string }
 
-/** The result letter's ink. League › Schedule colours it by the result (W gain, L loss,
- * T text2). The season recap draws it neutral, the normal `text` ink for every result, and
- * only the money keeps its sign colour (Giorgio, 2026-11-19, A: "keep the L's and W's not
- * red and green and just keep them like bolded neutrals"), so a tiebreak week never shows a
- * red L beside a green figure. */
+/** The result letter's ink. Neutral is the normal `text` ink for every result, and only the
+ * money keeps its sign colour (Giorgio, 2026-11-19, A, for the season recap: "keep the L's
+ * and W's not red and green and just keep them like bolded neutrals"; 2026-11-20, pick A,
+ * #call-result-colour, for Home's "Your season" tiles and League › Schedule too), so a
+ * tiebreak week never shows a red L beside a green figure. Not neutral (W gain, L loss,
+ * T text2) is what those places drew before; no place draws it now. */
 export function resultLetterInk(result: WeekResult, colors: ResultLetterColors, neutral: boolean): string {
   if (neutral) return colors.text;
   return byResult(result, { W: colors.gain, L: colors.loss, T: colors.text2 });
