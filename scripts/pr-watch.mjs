@@ -15,8 +15,14 @@
 //
 // What counts as needing attention:
 //   - CONFLICT   the pull request no longer merges with main
-//   - RED        a check has failed
+//   - RED        the newest run of a check has failed (a run that a later run replaced does not count)
 //   - FINDINGS   Copilot has review threads that are not resolved and not outdated
+//   - BEHIND     the pull request has not been tested on top of the newest main. The
+//                merge rule requires that (Giorgio, 2026-11-19), so it cannot merge
+//                until main is merged into its branch and the checks pass again
+//   - MAIN RED   the newest commit on main has a failed check. Two pull requests can
+//                each be green and still break main together (#554 + #555, 2026-11-19),
+//                and nothing on a pull request shows that
 // Reported but not counted, because they clear by themselves:
 //   - CHECKING   GitHub has not finished working out whether it merges (this can
 //                last several minutes after a push; it is not a conflict)
@@ -35,10 +41,12 @@ if (repo.status !== 0) die(`could not read the repository: ${repo.stderr}`);
 const { owner, name } = JSON.parse(repo.stdout);
 
 const query = `query($owner:String!,$name:String!){repository(owner:$owner,name:$name){
+  defaultBranchRef{name target{... on Commit{oid statusCheckRollup{state contexts(first:100){totalCount nodes{
+    __typename ... on CheckRun{name status conclusion databaseId checkSuite{app{databaseId}}} ... on StatusContext{context state createdAt}}}}}}}
   pullRequests(states:OPEN,first:50,orderBy:{field:CREATED_AT,direction:ASC}){totalCount nodes{
-    number title isDraft mergeable headRefName
-    commits(last:1){nodes{commit{statusCheckRollup{state contexts(first:50){nodes{
-      __typename ... on CheckRun{name status conclusion} ... on StatusContext{context state}}}}}}}
+    number title isDraft mergeable mergeStateStatus headRefName
+    commits(last:1){nodes{commit{statusCheckRollup{state contexts(first:100){totalCount nodes{
+      __typename ... on CheckRun{name status conclusion databaseId checkSuite{app{databaseId}}} ... on StatusContext{context state createdAt}}}}}}}
     reviewThreads(first:100){nodes{isResolved isOutdated comments(first:1){nodes{isCopilotCodeReview}}}}
   }}}}`;
 const r = gh('api', 'graphql', '-f', `query=${query}`, '-f', `owner=${owner.login}`, '-f', `name=${name}`);
@@ -50,19 +58,65 @@ const prs = body.data.repository.pullRequests;
 if (prs.totalCount > prs.nodes.length) die(`only ${prs.nodes.length} of ${prs.totalCount} open pull requests were read; this script must page before it can be trusted`);
 
 const BAD = new Set(['FAILURE', 'ERROR', 'TIMED_OUT', 'CANCELLED', 'ACTION_REQUIRED', 'STARTUP_FAILURE']);
+
+// GitHub lists EVERY run of a check on a commit, not only the newest. When a second run starts on the same commit
+// (a draft marked ready, a re-run), the first is cancelled, its "All checks" job reports FAILURE, and both stay
+// listed beside the new run's results. The rollup's own state counts them too: it said FAILURE on #547 while every
+// newest check was green (2026-11-19). The merge rule goes by the newest run of each check, so this does as well.
+// A check whose NEWEST run was cancelled or failed is still red: nothing replaced it.
+const checkKey = (c) => (c.__typename === 'CheckRun' ? `run:${c.checkSuite?.app?.databaseId ?? ''}:${c.name}` : `status:${c.context}`);
+const checkOrder = (c) => (c.__typename === 'CheckRun' ? (c.databaseId ?? 0) : Date.parse(c.createdAt ?? '') || 0);
+function newestPerCheck(nodes) {
+  const newest = new Map();
+  for (const c of nodes) {
+    const prev = newest.get(checkKey(c));
+    if (!prev || checkOrder(c) > checkOrder(prev)) newest.set(checkKey(c), c);
+  }
+  return [...newest.values()];
+}
+// One verdict for a commit, used for main and for every pull request.
+//   red      a check's newest run failed; or not every check could be read and GitHub's own state says failed
+//   waiting  a check's newest run is still going, or GitHub is still expecting one
+// If the list was cut short (more checks than one page), the newest run of a check may be among those not read,
+// so the names cannot clear the commit: the rollup's state decides then, and the line says how many were read.
+function verdict(roll) {
+  const all = roll?.contexts.nodes ?? [];
+  const total = roll?.contexts.totalCount ?? all.length;
+  const cut = total > all.length;
+  const ctx = newestPerCheck(all);
+  const failed = ctx.filter((c) => BAD.has(c.conclusion ?? '') || BAD.has(c.state ?? '')).map((c) => c.name ?? c.context);
+  const running = ctx.filter((c) => (c.__typename === 'CheckRun' ? c.status !== 'COMPLETED' : c.state === 'PENDING'));
+  const rollRed = roll?.state === 'FAILURE' || roll?.state === 'ERROR';
+  return {
+    red: failed.length > 0 || (cut && rollRed),
+    names: failed.length ? failed.join(', ') : 'a check not among those read',
+    waiting: running.length > 0 || roll?.state === 'PENDING' || roll?.state === 'EXPECTED',
+    running: running.length,
+    partial: cut ? ` (read ${all.length} of ${total} check runs)` : '',
+  };
+}
 let needing = 0;
+const main = body.data.repository.defaultBranchRef;
+const mainRollup = main?.target?.statusCheckRollup ?? null;
+const mainV = verdict(mainRollup);
+let mainRed = false;
+if (mainV.red) {
+  mainRed = true;
+  console.log(`NEEDS ATTENTION ${main.name} @ ${main.target.oid.slice(0, 8)}\n  MAIN RED: ${mainV.names}${mainV.partial}\n  Fix main first; every open pull request is tested against it.`);
+} else if (showAll || mainV.waiting) {
+  console.log(`${mainV.waiting ? 'WAIT ' : 'OK   '}${main.name} @ ${main.target.oid.slice(0, 8)}${mainV.waiting ? `\n  RUNNING: ${mainV.running || 'some'} checks${mainV.partial}` : ''}`);
+}
 for (const p of prs.nodes) {
   if (ignored.has(p.number)) { if (showAll) console.log(`SKIP #${p.number} ${p.headRefName} (parked)`); continue; }
   const reasons = [];
   const notes = [];
   if (p.mergeable === 'CONFLICTING') reasons.push('CONFLICT: no longer merges with main');
   else if (p.mergeable === 'UNKNOWN') notes.push('CHECKING: GitHub is still working out whether it merges');
+  else if (p.mergeStateStatus === 'BEHIND') reasons.push('BEHIND: merge main into the branch (no rebase), then wait for the checks');
   const roll = p.commits.nodes[0]?.commit.statusCheckRollup;
-  const ctx = roll?.contexts.nodes ?? [];
-  const failed = ctx.filter((c) => BAD.has(c.conclusion ?? '') || BAD.has(c.state ?? '')).map((c) => c.name ?? c.context);
-  const running = ctx.filter((c) => c.__typename === 'CheckRun' ? c.status !== 'COMPLETED' : c.state === 'PENDING');
-  if (failed.length) reasons.push(`RED: ${failed.join(', ')}`);
-  else if (running.length) notes.push(`RUNNING: ${running.length} checks`);
+  const v = verdict(roll);
+  if (v.red) reasons.push(`RED: ${v.names}${v.partial}`);
+  else if (v.waiting) notes.push(`RUNNING: ${v.running || 'some'} checks${v.partial}`);
   else if (!roll) notes.push('no checks have reported on the head commit');
   const open = p.reviewThreads.nodes.filter((t) => !t.isResolved && !t.isOutdated && t.comments.nodes[0]?.isCopilotCodeReview);
   if (open.length) reasons.push(`FINDINGS: ${open.length} open Copilot thread${open.length > 1 ? 's' : ''}`);
@@ -75,4 +129,5 @@ for (const p of prs.nodes) {
   }
 }
 console.log(needing ? `\n${needing} of ${prs.nodes.length} open pull requests need attention.` : `\nAll ${prs.nodes.length} open pull requests are clear or still running.`);
-process.exit(needing ? 1 : 0);
+if (mainRed) console.log('main itself is RED.');
+process.exit(needing || mainRed ? 1 : 0);
