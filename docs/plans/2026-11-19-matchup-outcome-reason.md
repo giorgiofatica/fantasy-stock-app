@@ -1,7 +1,7 @@
 # Why a week was won: the server records the reason
 
-Status: DRAFT, not approved. The words are picked (Giorgio, 2026-11-19: "A" on the board `#call-tiebreak-words`); the plan itself waits for his approval and nothing here is built until then
-Planner session: "Planner" (Fable 5.2), 2026-11-19 · Orchestrator hand-off: not yet
+Status: Approved (Giorgio, 2026-11-20, shown today-against-the-plan as a drawing in the Planner's chat: "Yeah, I like that plan where there's the small thing underneath if in case of a tiebreak."). Not built. The words were picked on 2026-11-19 ("A" on the board `#call-tiebreak-words`)
+Planner session: "Planner" (Fable 5.2), 2026-11-19 and 2026-11-20 · Orchestrator hand-off: this commit
 
 ## Goal
 

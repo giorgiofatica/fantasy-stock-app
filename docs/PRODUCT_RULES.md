@@ -525,8 +525,10 @@ building anything, and don't reopen a rule without him.
     no-stocks week could name the wrong side. Since #566 (2026-11-19) such a week shows no
     line. These words replace "no line" once the server records why a week was won; it
     does not today, and the phone cannot work it out from the totals. That is a plan of its
-    own (`docs/plans/2026-11-19-matchup-outcome-reason.md`, a draft), so nothing here
-    ships before it.
+    own (`docs/plans/2026-11-19-matchup-outcome-reason.md`), so nothing here ships
+    before it. He approved that plan on 2026-11-20, shown today against the plan as a
+    drawing: "Yeah, I like that plan where there's the small thing underneath if in case
+    of a tiebreak."
 - **There is always a price for a stock, and no person ever types one in** (2026-11-17).
   Asked what the app should do when a held stock has no trade for a whole day (the case the
   2026-11-17 week-price fix leaves with no price), and shown three options (A: use the
