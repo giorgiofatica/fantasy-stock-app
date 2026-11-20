@@ -147,8 +147,13 @@
     ['warn-text', 'warn-tint', 'bg', 4.5, '"Your call" notes'],
     ['text', 'warn-tint', 'bg', 4.5, 'Draft blockers card: title and lines (on the page)'],
     ['text', 'warn-tint', 'surface', 4.5, 'Text on the warn tint over a surface (no current use: the signups and bye notes read warnText since W4 Onboarding)'],
-    // W4 Portfolio: the money sheet's warn panel on the sheet's surface (Light 6.23, Dark 9.56).
+    // W4 Portfolio: the money sheet's warn panel on the sheet's surface (yellow: Light 6.23, Dark 9.56; teal, pick A: Light 5.28, Dark 8.85).
     ['warn-text', 'warn-tint', 'surface', 4.5, 'Money sheet warn panel (refusals, pre-review blocks)'],
+    // The yellow call, pick A (2026-11-19, #call-yellow): the warn tokens are the accent's
+    // tint family. Two uses had no row: warnText straight on a card (no tint behind it), and the
+    // blockers card's caption, which reads text2 on the tint.
+    ['warn-text', 'surface', null, 4.5, '"TBD" on the Draft time row, and the draft search\'s NOT DRAFTABLE / owned badge (on a card)'],
+    ['text-2', 'warn-tint', 'bg', 4.5, 'Draft blockers card: the caption under its title (on the page)'],
     // W4 Onboarding: the "✓ EMAIL CONFIRMED" chip above Pick a username (gain on its tint, on the page).
     ['gain', 'gain-tint', 'bg', 4.5, 'Email confirmed chip (on the page)'],
     ['live', 'inset', null, 3, 'Live dot inside a LIVE chip (graphic)'],
