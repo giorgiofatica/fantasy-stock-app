@@ -8,6 +8,7 @@
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
 import { finalLine, interimFinalLine, outcomeFromRows, recordedOutcome, type OutcomeColumns, type RecordedOutcome } from '../lib/game/outcomeLine.ts';
 import { scoreboardModel } from '../components/sp/logic/gameNight.ts';
+import { NBSP, keepMoney, keepOutcomeLine } from '../lib/game/keepDots.ts';
 import { serverVerdict, type ServerVerdict } from '../lib/game/weekResult.ts';
 import { buildAllMatchups } from '../lib/game/allMatchups.ts';
 import { buildRecap, recapGameDetail, type RecapMatchup } from '../lib/game/seasonRecap.ts';
@@ -269,10 +270,58 @@ Deno.test('VoiceOver reads the same line, and a no-stocks side is read without a
   const sb = SOURCES['components/sp/gn/Scoreboard.tsx'];
   // One `line` feeds both the drawn Text and the spoken label.
   assert(sb.includes("${showLine ? ` ${line}.` : ''}"));
-  assert(sb.includes('{keepMoney(line ?? \'\')}'));
+  assert(sb.includes("{keepMoney(model?.reasoned ? keepOutcomeLine(line ?? '') : line ?? '')}"));
   assert(sb.includes('const spokenSide = (name: string, gain: number, empty: boolean, isYou: boolean)'));
   assert(sb.includes("${empty ? '' : `, ${formatMoney(gain, { sign: 'always' })}`}"));
   // The half's own button label drops the amount the same way, and the total draws the dash.
   assert(sb.includes("label={noStocks ? `${team.name}${you ? ', you' : ''}` :"));
   assert(sb.includes("const totalText = dashed ? SEASON_TILE_UNSCORED : formatMoney(team.gain, { sign: 'always' });"));
+});
+
+// ── the Design Lead's break rules (P2, 2026-11-20): display only ───────────────────────────────
+Deno.test('break rule 1: the last two words of a reason line never break apart (no orphan)', () => {
+  assertEquals(keepOutcomeLine('Tied. Luca V. advances as the higher seed'), `Tied. Luca V. advances as the higher${NBSP}seed`);
+  assertEquals(keepOutcomeLine('No stocks on either side. Chiara R. advances as the higher seed'), `No stocks on either side. Chiara R. advances as the higher${NBSP}seed`);
+  assertEquals(keepOutcomeLine('Paolo M. won. Luca V. had no stocks'), `Paolo M. won. Luca V. had no${NBSP}stocks`);
+  // Only the LAST space is bound: every other space still wraps.
+  assertEquals(keepOutcomeLine('Tied. Luca V. advances as the higher seed').split(' ').length, 7);
+});
+
+Deno.test('break rule 2: "+1.76% to +0.74%" is one phrase, no-break spaces around "to"', () => {
+  const out = keepOutcomeLine('Paolo M. won the tiebreak, +1.76% to +0.74%');
+  assertEquals(out, `Paolo M. won the tiebreak, +1.76%${NBSP}to${NBSP}+0.74%`);
+  // Negative percents keep their real minus; the pair is still one phrase.
+  assertEquals(keepOutcomeLine('Paolo M. won the tiebreak, −0.30% to −1.10%'), `Paolo M. won the tiebreak, −0.30%${NBSP}to${NBSP}−1.10%`);
+  // The only ordinary space left after the comma is the one that lets it wrap there.
+  assertEquals(out.slice(out.indexOf(',')).split(' ').length, 2);
+});
+
+Deno.test('break rules compose with keepMoney (the percents stay unbreakable inside themselves)', () => {
+  const out = keepMoney(keepOutcomeLine('Paolo M. won the tiebreak, +1.76% to +0.74%'));
+  assert(out.includes(`${NBSP}to${NBSP}`));
+  assert(out.replaceAll('\u2060', '').replaceAll(NBSP, ' ') === 'Paolo M. won the tiebreak, +1.76% to +0.74%');
+});
+
+Deno.test('the break rules change no words and only the reason lines: the stored strings and spoken label stay plain', () => {
+  const o = outcome({ outcome_reason: 'percent_tiebreak', team1_percent_gain: 1.76, team2_percent_gain: 0.74 });
+  const m = finalLine({ ...R, gain: 5 }, { ...P, gain: 5 }, 'me', o);
+  assertEquals(m.line, 'Roberto B. won the tiebreak, +1.76% to +0.74%'); // no NBSP in what a test or label reads
+  assert(!m.line!.includes(NBSP));
+  assertEquals(m.reasoned, true);
+  for (const reason of ['team2_empty_auto_loss', 'playoff_seed_tiebreak', 'both_empty_playoff_seed_tiebreak']) {
+    const r = finalLine({ ...R, gain: reason === 'team2_empty_auto_loss' ? -12 : 0 }, { ...P, gain: reason === 'team2_empty_auto_loss' ? 0 : 0 }, 'me', outcome({ outcome_reason: reason }));
+    if (r.line) assertEquals(r.reasoned, true, reason);
+  }
+  // "won by $X", "Dead even" and the no-line cases are NOT reasoned: their breaks are exactly as before.
+  assertEquals(finalLine({ ...R, gain: 50 }, { ...P, gain: 20 }, 'me', outcome({ outcome_reason: 'dollar_gain' })).reasoned, undefined);
+  assertEquals(finalLine({ ...R, gain: 10 }, { ...P, gain: 10 }, 'nobody', outcome({ outcome_reason: 'regular_season_true_tie' })).reasoned, undefined);
+  assertEquals(finalLine({ ...R, gain: 10 }, { ...P, gain: 10 }, 'me', outcome({ outcome_reason: 'not_recorded' })).reasoned, undefined);
+});
+
+Deno.test('wiring: Scoreboard applies keepOutcomeLine at the render only, to reasoned lines, before keepMoney', () => {
+  const sb = SOURCES['components/sp/gn/Scoreboard.tsx'];
+  assert(sb.includes("{keepMoney(model?.reasoned ? keepOutcomeLine(line ?? '') : line ?? '')}"));
+  // The spoken label reads the plain `line`.
+  assert(sb.includes("${showLine ? ` ${line}.` : ''}"));
+  assert(!/accessibilityLabel[^\n]*keepOutcomeLine/.test(sb));
 });

@@ -11,7 +11,7 @@
  * Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { NBSP, WORD_JOINER, keepDots, keepMoney } from '../lib/game/keepDots.ts';
+import { NBSP, WORD_JOINER, keepDots, keepMoney, keepOutcomeLine } from '../lib/game/keepDots.ts';
 import { formatMoney, formatPercent } from '../components/sp/logic/money.ts';
 import { stakesLine } from '../lib/stakesLine.ts';
 import { scoreboardModel, acquisitionLine } from '../components/sp/logic/gameNight.ts';
@@ -128,7 +128,8 @@ const SURFACES: { surface: string; file: string; pin: string; strings: string[] 
   { surface: 'Draft room strip caption', file: 'components/game/DraftRoom.tsx', pin: 'caption={keepMoney(keepDots(caption))}', strings: [keepDots(rosterCaption(1, 6, { stakeMode: 'fixed_notional', notionalPerSlot: 2000 })), keepDots(rosterCaption(2, 6, { stakeMode: 'budget_cap', budgetLeft: 1240.5 }))] },
   { surface: 'Draft complete caption', file: 'components/game/DraftComplete.tsx', pin: '{keepMoney(keepDots(rosterPickCaption(r)))}', strings: [keepDots(rosterPickCaption({ round: 2, pick: 11 }))] },
   { surface: 'This week lead', file: 'components/home/ThisWeekCard.tsx', pin: '{keepMoney(formatMoney(gap))}', strings: [`You lead by ${formatMoney(123.15)}`, `You lead by ${formatMoney(1234567.89)}`] },
-  { surface: 'Scoreboard lead line', file: 'components/sp/gn/Scoreboard.tsx', pin: "{keepMoney(line ?? '')}", strings: [scoreboardModel({ name: 'Roberto B.', gain: 1284.6 }, { name: 'Gianluigi B.', gain: -1038.25 }, false).line!, scoreboardModel({ name: 'Roberto B.', gain: 213.6 }, { name: 'Gianluigi B.', gain: 90.45 }, true, 'me').line!] },
+  { surface: 'Scoreboard lead line', file: 'components/sp/gn/Scoreboard.tsx', pin: "{keepMoney(model?.reasoned ? keepOutcomeLine(line ?? '') : line ?? '')}", strings: [scoreboardModel({ name: 'Roberto B.', gain: 1284.6 }, { name: 'Gianluigi B.', gain: -1038.25 }, false).line!, scoreboardModel({ name: 'Roberto B.', gain: 213.6 }, { name: 'Gianluigi B.', gain: 90.45 }, true, 'me').line!] },
+  { surface: 'Scoreboard reason line (percent tiebreak)', file: 'components/sp/gn/Scoreboard.tsx', pin: 'keepOutcomeLine(line ?? \'\')', strings: [keepOutcomeLine('Paolo M. won the tiebreak, +1.76% to +0.74%'), keepOutcomeLine('Paolo M. won the tiebreak, −12.30% to −1,204.55%')] },
   { surface: 'Player card acquisition line', file: 'components/sp/gn/PlayerCard.tsx', pin: '{keepMoney(acquisitionLine(acquisition))}', strings: [acquisitionLine({ kind: 'drafted', pick: 2, date: 'Aug 31', price: 290.1 }), acquisitionLine({ kind: 'bought', date: 'Oct 2', price: 1214.8 })] },
   { surface: 'Standings gains', file: 'components/sp/gn/ManagerRow.tsx', pin: '{keepMoney(gainText)}', strings: [formatMoney(512.4, { sign: 'always' }), formatMoney(-1234567.89, { sign: 'always' })] },
   { surface: 'Schedule gains', file: 'components/game/ScheduleList.tsx', pin: "keepMoney(formatMoney(r.gain, { sign: 'always' }))", strings: [formatMoney(-96.4, { sign: 'always' }), formatMoney(1204.55, { sign: 'always' })] },

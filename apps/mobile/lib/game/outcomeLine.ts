@@ -102,6 +102,9 @@ export interface FinalLine {
    * $0.00 (Giorgio, 2026-11-18: "A missing number never shows as zero"; the board drew "–").
    * Known only from the reason, never from a NULL percent. */
   noStocks: { you: boolean; opp: boolean };
+  /** True for the four new reason lines (percent tiebreak, no stocks, the two seed lines) and only them: the
+   * ones the Design Lead's break rules apply to at render (keepOutcomeLine). "won by $X" and "Dead even" are not. */
+  reasoned?: boolean;
 }
 
 const NONE = { you: false, opp: false } as const;
@@ -139,20 +142,20 @@ export function finalLine(you: LineSide, opp: LineSide, verdict: ServerVerdict |
       // The server compared these two and the winner's was higher; a row that says otherwise is not stated.
       if (winnerPct === null || loserPct === null || !(winnerPct > loserPct)) return interim;
       const pct = (p: number) => formatPercent(p, { sign: 'always' });
-      return { leader: winner, line: `${name(winner)} won the tiebreak, ${pct(winnerPct)} to ${pct(loserPct)}`, noStocks: NONE };
+      return { leader: winner, line: `${name(winner)} won the tiebreak, ${pct(winnerPct)} to ${pct(loserPct)}`, noStocks: NONE, reasoned: true };
     }
     case 'team1_empty_auto_loss':
     case 'team2_empty_auto_loss': {
       const loser = sideOf(outcome.reason === 'team1_empty_auto_loss' ? 'team1' : 'team2');
       if (winner === null || winner === loser) return interim;
-      return { leader: winner, line: `${name(winner)} won. ${name(loser)} had no stocks`, noStocks: { you: loser === 'you', opp: loser === 'opp' } };
+      return { leader: winner, line: `${name(winner)} won. ${name(loser)} had no stocks`, noStocks: { you: loser === 'you', opp: loser === 'opp' }, reasoned: true };
     }
     case 'playoff_seed_tiebreak':
       if (winner === null || !level) return interim;
-      return { leader: winner, line: `Tied. ${name(winner)} advances as the higher seed`, noStocks: NONE };
+      return { leader: winner, line: `Tied. ${name(winner)} advances as the higher seed`, noStocks: NONE, reasoned: true };
     case 'both_empty_playoff_seed_tiebreak':
       if (winner === null || !level) return interim;
-      return { leader: winner, line: `No stocks on either side. ${name(winner)} advances as the higher seed`, noStocks: { you: true, opp: true } };
+      return { leader: winner, line: `No stocks on either side. ${name(winner)} advances as the higher seed`, noStocks: { you: true, opp: true }, reasoned: true };
     // dollar_gain and regular_season_true_tie say what #566 says ("won by" / "Dead even"), and it
     // checks them against the totals. not_recorded, playoff_seed_unresolved, NULL, an absent column
     // and any unknown value keep #566's rule. bye_no_result / playoff_no_opponent have no second side.

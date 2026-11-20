@@ -31,6 +31,8 @@ export interface ScoreboardModel {
   line: string | null;
   /** FINAL only: a side the server recorded as holding no stocks draws its total as a dash (finalLine). */
   noStocks?: { you: boolean; opp: boolean };
+  /** FINAL only: the line is one of the new reason lines, so the render applies keepOutcomeLine's break rules. */
+  reasoned?: boolean;
 }
 
 /** The Scoreboard's line. LIVE (final false): from the two dollar totals, as the board's "leads by" /

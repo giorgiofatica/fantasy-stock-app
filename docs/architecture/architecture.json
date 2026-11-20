@@ -2,28 +2,12 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "6d5669bc4e5fecd5492091355cc903b39d289602",
-    "commitShort": "6d5669bc",
+    "commit": "98ee3cb4ad3ace5728ebace61af0c10f28d74ebe",
+    "commitShort": "98ee3cb4",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/matchup-outcome-reason-phone",
     "dirty": true,
     "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/app/matchup-week.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/FinishedWeek.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/components/game/SeasonRecap.tsx"
-      },
       {
         "code": "M",
         "path": "apps/mobile/components/sp/gn/Scoreboard.tsx"
@@ -34,70 +18,30 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/allMatchups.ts"
+        "path": "apps/mobile/lib/game/keepDots.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "apps/mobile/lib/game/outcomeLine.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seamTables.ts"
+        "path": "apps/mobile/tests-deno/keep-money.test.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seasonRecap.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useAllMatchups.ts"
-      },
-      {
-        "code": "??",
-        "path": "apps/mobile/lib/game/useFinalOutcome.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useSeasonRecap.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/final-line-verdict.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/game-night-primitives.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/leaguemate-team-view.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/matchup-unpriced.test.ts"
-      },
-      {
-        "code": "??",
         "path": "apps/mobile/tests-deno/outcome-line.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/season-recap.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
       }
     ],
-    "timestamp": "2026-11-20T19:30:21Z",
-    "sourceHash": "sha256:4cd9d8fa541de38fe6311e1455d7fe83ef265ce55851838a4a06d532084ed5f4",
+    "timestamp": "2026-11-20T19:52:47Z",
+    "sourceHash": "sha256:995105fb846476f420ee987c3f5617a7e3c2a21126ad4e62b28e46e3c4f7bc0d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 43.3,
+    "ageHours": 43.6,
     "ageDays": 1.8,
     "staleAfterDays": 14,
     "stale": false,
@@ -22698,7 +22642,7 @@
       "payload": ".from('matchups').select()",
       "columns": [],
       "callSites": [
-        "apps/mobile/tests-deno/outcome-line.test.ts:230"
+        "apps/mobile/tests-deno/outcome-line.test.ts:238"
       ]
     },
     {
@@ -24977,7 +24921,7 @@
       "apps/mobile/tests-deno/gn-w4-draft.test.ts:163 -> symbols.select",
       "apps/mobile/tests-deno/leaguemate-team-view.test.ts:201 -> week_snapshots.select",
       "apps/mobile/tests-deno/money-season-end.test.ts:127 -> matchups.select",
-      "apps/mobile/tests-deno/outcome-line.test.ts:230 -> matchups.select",
+      "apps/mobile/tests-deno/outcome-line.test.ts:238 -> matchups.select",
       "apps/mobile/tests-deno/read-result.test.ts:41 -> symbols.select",
       "apps/mobile/tests-deno/season-recap.test.ts:188 -> matchups.select",
       "apps/web/src/Header.jsx:110 -> league_members.select",
