@@ -112,5 +112,6 @@
     );
   }
 
-  window.KSResultColour = () => <CallResultColour />;
+  window.KSResultColour = () => null;
+  window.KSResultColourArchived = () => <CallResultColour archived decidedNote={<><b>Decided 2026-11-20:</b> “A and keep blue”. The letters go neutral in all three places, the money keeps its colour, and the banner of a week you won stays blue.</>} />;
 })();
