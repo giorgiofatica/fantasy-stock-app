@@ -8,7 +8,8 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { PressableScale } from '@/components/sp/PressableScale';
 import { CategoryPill, ROW_PILL_MAX_SCALE } from '@/components/sp/gn/CategoryPill';
 import type { Category } from '@/components/sp/logic/gameNight';
-import { DISC_PT, discTickerScale, VALUE_PT, valueScale } from '@/components/sp/logic/holdingFit';
+import { VALUE_PT, valueScale } from '@/components/sp/logic/holdingFit';
+import { TickerBadge } from '@/components/sp/gn/TickerBadge';
 import type { HoldingRow as HoldingRowData } from '@/lib/money/portfolioView';
 
 // Stockpile — <HoldingRow>, Game Night (W4 Portfolio; the board's Portfolio frame, A): one
@@ -22,7 +23,7 @@ import type { HoldingRow as HoldingRowData } from '@/lib/money/portfolioView';
 /** The row's small text never outgrows the ticker beside it, nor the value: 1.3× at most. */
 export const ROW_TEXT_MAX_SCALE = 1.3;
 const NBSP = '\u00a0';
-// The disc's ticker (floor 11pt, §9B) and the value (floor 0.75) are fitted by a MEASURED scale
+// The disc's ticker (<TickerBadge>, pick A: no floor) and the value (floor 0.75) are fitted by a MEASURED scale
 // (components/sp/logic/holdingFit), never by iOS's adjustsFontSizeToFit: on a frame not yet laid out it
 // shrank the first row's two texts to ~40% at AX5 (the finished manager portfolio, DL gate 2026-11-18).
 
@@ -45,9 +46,7 @@ export const HoldingRow = forwardRef<View, HoldingRowProps>(function HoldingRow(
   const label = `${row.symbol}, ${row.name}, ${row.quantityText} shares, ${row.valueText}${row.todayText ? `, ${row.todayText} today` : ''}`;
   const inner = (
     <>
-      <View style={[styles.disc, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} style={{ fontSize: DISC_PT * discTickerScale(row.symbol) }}>{row.symbol}</Text>
-      </View>
+      <TickerBadge symbol={row.symbol} />
       <View style={styles.lead}>
         <View style={styles.tickerLine}>
           <Text variant="ticker" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}>{row.symbol}</Text>
@@ -106,14 +105,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space[4],
     paddingVertical: space[3],
-  },
-  disc: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: space[1],
   },
   lead: {
     flex: 1,

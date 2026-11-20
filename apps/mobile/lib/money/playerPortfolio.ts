@@ -44,7 +44,7 @@ export function playerPortfolio(i: {
   }));
   // Upper-cased marks, as the ledger's symbols may not be.
   const upper = (m: Record<string, number>) => Object.fromEntries(Object.entries(m).map(([k, v]) => [k.toUpperCase(), v]));
-  const { view } = teamPortfolioView({
+  const team = teamPortfolioView({
     drafts,
     trades,
     chartRows: rows,
@@ -55,5 +55,7 @@ export function playerPortfolio(i: {
     bars: i.finished?.bars ?? {},
     endEt: i.finished?.endEt ?? null,
   });
-  return { displayName: member.display_name, isBot: member.is_bot, view };
+  // A finished season with a holding that has no season-end close has no value: no portfolio (the screen's load failure).
+  if (!team) return null;
+  return { displayName: member.display_name, isBot: member.is_bot, view: team.view };
 }

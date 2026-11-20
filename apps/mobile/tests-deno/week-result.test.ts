@@ -121,13 +121,19 @@ Deno.test('Matchup\'s finalGains: a tie is T; the server\'s winner decides a dol
   assertEquals(finalGains(data(58.75, 58.75, { winner_user_id: null, is_tie: true }), OPP)?.result, 'T');
   assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), ME)?.result, 'L');
   assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), OPP)?.result, 'W');
-  assertEquals(finalGains(data(72.1, -20.5), ME), { me: 72.1, opp: -20.5, result: 'W' });
+  // No winner_user_id on the row (an older RPC): the result falls back to dollars; no verdict for the card.
+  assertEquals(finalGains(data(72.1, -20.5), ME), { me: 72.1, opp: -20.5, result: 'W', verdict: undefined });
+  // With the server's field, the verdict rides along for the Scoreboard's final line.
+  assertEquals(finalGains(data(20, 20, { winner_user_id: OPP, is_tie: false }), ME)?.verdict, 'opponent');
   assertEquals(finalGains(data(12, null), ME), null);
 });
 
 Deno.test('League › Schedule draws a T in the neutral colour and says "tie" (W gain colour, L loss colour, unchanged)', () => {
   const src = SOURCES['components/game/ScheduleList.tsx'];
-  assert(src.includes("byResult(r.result, { W: colors.gain, L: colors.loss, T: colors.text2 })"));
+  // The colours moved into lib/game/weekResult resultLetterInk (the recap draws them neutral);
+  // tests-deno/recap-neutral-letters.test.ts pins W gain, L loss, T text2 for Schedule.
+  assert(src.includes('color={resultLetterInk(r.result, colors, neutralResult)}'));
+  assert(SOURCES['lib/game/weekResult.ts'].includes('byResult(result, { W: colors.gain, L: colors.loss, T: colors.text2 })'));
   assert(src.includes("byResult(r.result, { W: 'won', L: 'lost', T: 'tie' })"));
 });
 

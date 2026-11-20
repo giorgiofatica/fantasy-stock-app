@@ -84,9 +84,12 @@ Deno.test('stockWeek: a partly unpriced stock (a sale this week, no live price f
 });
 
 Deno.test('Matchup tab: the roster sides carry the live unpriced symbols; the card uses the same week gate', () => {
-  const src = strip(SOURCES['app/(tabs)/matchup.tsx']);
-  assert(src.includes('unpriced: final ? [] : derived.live.me.unpriced }'), 'your side');
-  assert(src.includes('unpriced: final ? [] : opp.unpriced }'), "their side");
+  // The roster moved to components/game/MatchupRoster.tsx (shared with the recap's week detail).
+  const src = strip(SOURCES['components/game/MatchupRoster.tsx']);
+  assert(src.includes('unpriced: final ? [] : s.unpriced });'), 'both sides');
+  const tab = strip(SOURCES['app/(tabs)/matchup.tsx']);
+  assert(tab.includes('ledger: ledgers.me, unpriced: live.me.unpriced }}'), 'your side');
+  assert(tab.includes('ledger: ledgers.opp, unpriced: live.opp.unpriced }}'), 'their side');
   assert(src.includes('hasWeeks: leagueHasWeeks(activeLeague?.league_type),'), 'no hard-coded week flag');
   assert(!src.includes('hasWeeks: true'));
   assert(strip(SOURCES['lib/game/matchupRosterView.ts']).includes('const c = side.unpriced?.includes(e.symbol) ? undefined : centsBy.get(e.symbol);'));
@@ -176,7 +179,7 @@ Deno.test('guard: a missing row never renders "$0.00" / "0.00%" on the card or a
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: null }), null);
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: 2, figures: false }), null);
   assertEquals(rosterHalfFigures({ ...half, weekGain: 1, weekPct: 2 }), { gain: 1, pct: 2 });
-  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const figs = rosterHalfFigures(half);'));
+  assert(strip(SOURCES['components/sp/gn/RosterRow.tsx']).includes('const show = rosterHalfShow(half);'));
 });
 
 // ── Home ─────────────────────────────────────────────────────────────────────────

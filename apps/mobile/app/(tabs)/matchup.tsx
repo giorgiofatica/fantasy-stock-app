@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { matchupSegmentFromParam } from '@/lib/game/draftComplete';
 import { View, StyleSheet } from 'react-native';
@@ -12,13 +12,15 @@ import { PhasePlaceholder } from '@/components/shell/PhasePlaceholder';
 import { LeagueListGate } from '@/components/shell/NoLeagueState';
 import { ShellHeader } from '@/components/shell/ShellHeader';
 import { BarsRefresh } from '@/components/shell/BarsRefresh';
-import { GroupHead, PlayerCard, RosterRow, Scoreboard, type PlayerCardOwnership } from '@/components/sp/gn';
-import { LINE_MAX_SCALE, type ScoreboardOpen } from '@/components/sp/gn/Scoreboard';
+import { Scoreboard } from '@/components/sp/gn';
+import { type ScoreboardOpen } from '@/components/sp/gn/Scoreboard';
+import { MatchupRoster, type RosterLedger } from '@/components/game/MatchupRoster';
+import { FinishedWeek } from '@/components/game/FinishedWeek';
+import { ByeGame } from '@/components/game/ByeGame';
+import { SeasonRecap } from '@/components/game/SeasonRecap';
+import { useSeasonRecap } from '@/lib/game/useSeasonRecap';
 import { teamHref, teamLinkLabel } from '@/lib/game/teamLink';
 import { useCaptureAction } from '@/lib/money/captureScript';
-import { Card } from '@/components/sp/Card';
-import { Avatar } from '@/components/sp/Avatar';
-import { YOUR_NAME_WEIGHT } from '@/lib/game/managerRow';
 import { useRevealOnce, type RevealState } from '@/lib/game/useRevealOnce';
 import { useAllMatchups } from '@/lib/game/useAllMatchups';
 import { useFinalLineups, type FinalLineupsState } from '@/lib/game/useFinalLineups';
@@ -27,29 +29,20 @@ import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { FinalBanner } from '@/components/game/FinalBanner';
 import { buildFinalBanner } from '@/lib/game/finalBanner';
 import { useLeagueContext } from '@/lib/LeagueContext';
-import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
-import { isSeasonOver } from '@/lib/weekStatus';
 import { useMatchup, type MatchupDerived } from '@/lib/game/useMatchup';
 import { COPY } from '@/lib/game/gameCopy';
 import { COPY as MONEY_COPY } from '@/lib/money/moneyCopy';
-import { AllMatchupsSkeleton, MatchupSkeleton, RosterRowsSkeleton } from '@/components/game/LoadingSkeletons';
+import { AllMatchupsSkeleton, MatchupSkeleton } from '@/components/game/LoadingSkeletons';
 import { LoadFailure } from '@/components/money/LoadFailure';
-import { unpricedNote } from '@/lib/plCoverage';
+import { PriceNotice } from '@/components/game/PriceNotice';
+import { missingPriceSymbols, priceNoticeText } from '@/lib/game/priceNotice';
+import { knownWithoutWeeks } from '@/lib/game/leagueWeeks';
 import { preSeasonStartsLabel, byeToRoundLabel, eliminatedLabel, playoffPendingLine } from '@/lib/home/homeCopy';
 import { useAuth } from '@/lib/useAuth';
-import type { LineupRow } from '@/lib/game/lineupLedger';
 import type { HomeRawInputs } from '@/lib/home/useHomeLeague';
 import { toLiveSnapshots, toLiveTrades } from '@/lib/home/buildHomeViewModel';
-import { resolveWeekWindow } from '@/lib/time/marketWeek';
-import { cardSlotPill, closesBefore, lastWeekClose, orderBarsAt, weekSessions } from '@/lib/game/matchupRoster';
-import { BYE_HALF, buildRosterView, buildWithheldView, orderLabel, WITHHELD_LINE, type RosterSideInput } from '@/lib/game/matchupRosterView';
+import { BYE_HALF } from '@/lib/game/matchupRosterView';
 import { useRosterData, type RosterData } from '@/lib/game/useRosterData';
-import { openingOf, playerCardData } from '@/lib/game/playerCardModel';
-import { fixtureSeasonBars, fixtureWeekBars } from '@/lib/game/matchupFixture';
-import { MATCHUP_FIXTURE_VARIANT, SEAM_ON } from '@/lib/game/devSeam';
-import { useStockSheet } from '@/components/money/MoneyHost';
-import { decideTradeGate } from '@/lib/money/tradeGate';
-import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
 import { keepTime } from '@/lib/game/keepDots';
 
 // Matchup (W4, Game Night). Giorgio, 2026-10-12: "a fantasy-football matchup, nothing
@@ -87,7 +80,11 @@ function MatchupScreen() {
     const s = matchupSegmentFromParam(segmentParam);
     if (s) setSegment(s);
   }, [segmentParam]);
-  const all = useAllMatchups(activeLeagueId, m.derived?.week ?? null, m.names, segment === 'all');
+  // After the season the tab is the recap (Giorgio, 2026-11-18, look A): one league-wide read
+  // of the season's games, only while the view is 'complete'; the week's All matchups is not read.
+  const complete = m.derived?.view.kind === 'complete';
+  const recap = useSeasonRecap(activeLeagueId, { numWeeks: activeLeague?.num_weeks ?? null, playoffTeams: activeLeague?.playoff_teams ?? null }, m.names, complete);
+  const all = useAllMatchups(activeLeagueId, m.derived?.week ?? null, m.names, segment === 'all' && !complete);
   const { user } = useAuth();
   // The final lineup: the posted week's own per-stock rows, shown only when they reconcile.
   const fv = m.derived;
@@ -96,6 +93,14 @@ function MatchupScreen() {
     : null;
   const finalLines = useFinalLineups(activeLeagueId, fv?.week ?? null, finalSides, finalSides !== null);
   const roster = useRosterData(activeLeagueId, user?.id ?? null, fv?.live.opp?.userId ?? null);
+  // This week's two ledgers (Home's current week), for the roster and the withheld view.
+  const cw = m.raw?.data.current_week ?? null;
+  const ledgers = useMemo(() => (cw
+    ? {
+        me: { snapshots: toLiveSnapshots(cw.my_snapshots), trades: toLiveTrades(cw.my_trades) },
+        opp: { snapshots: toLiveSnapshots(cw.opponent_snapshots), trades: toLiveTrades(cw.opponent_trades) },
+      }
+    : null), [cw]);
   // The order may change only when you arrive or pull to refresh, never under a poll while
   // you're looking (Design Lead, 2026-10-12, on Giorgio's "AFTER TRADING ENDS"): a newly
   // settled close is admitted only if it settled before this moment (orderAsOf).
@@ -111,22 +116,28 @@ function MatchupScreen() {
     await Promise.all([refresh(), mRefresh()]);
   }, [refresh, mRefresh]);
 
+  // A league without weeks (Duration) has no matchups: the tab draws nothing under its header
+  // (no switch, no "$0.00" vs "$0.00", no "Starts …", no recap), with nothing in its place.
+  const blank = knownWithoutWeeks(activeLeague);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <BarsRefresh onRefresh={onRefresh} header={<ShellHeader title="Matchup" showAvatar />} contentContainerStyle={{ paddingHorizontal: space[6], paddingBottom: space[9], gap: space[5] }}>
-        {m.derived ? (
+        {m.derived && !blank ? (
           <SegmentedControl
             options={[{ label: 'My matchup', value: 'mine' }, { label: 'All matchups', value: 'all' }]}
             value={segment}
             onChange={(v) => setSegment(v === 'all' ? 'all' : 'mine')}
           />
         ) : null}
-        {segment === 'all' ? (
+        {blank ? null : complete && activeLeagueId ? (
+          <SeasonRecap key={activeLeagueId} segment={segment} state={recap} leagueId={activeLeagueId} />
+        ) : segment === 'all' ? (
           <AllMatchupsList key={activeLeagueId ?? 'none'} state={all} myUserId={user?.id ?? ''} />
         ) : (
           // S-4: keyed by league, so a league switch mounts a fresh scoreboard and roster
           // instead of rolling league A's into league B's (Home's H5, HomeLeagueTransition).
-          <MatchupBody key={activeLeagueId ?? 'none'} status={m.status} derived={m.derived} phase={m.phase} onRefresh={m.refresh} raw={m.raw} reveal={reveal} finalLines={finalLines} roster={roster} orderAsOf={orderAsOf} />
+          <MatchupBody key={activeLeagueId ?? 'none'} status={m.status} derived={m.derived} phase={m.phase} onRefresh={m.refresh} raw={m.raw} reveal={reveal} finalLines={finalLines} roster={roster} orderAsOf={orderAsOf} ledgers={ledgers} />
         )}
       </BarsRefresh>
     </View>
@@ -153,23 +164,12 @@ function AllMatchupsList({ state, myUserId }: { state: { status: string; rows: A
           size="compact"
           mine={r.a.userId === myUserId}
           final={r.final}
+          verdict={r.verdict}
           you={{ name: r.a.name, gain: r.a.gain }}
           opponent={{ name: r.b.name, gain: r.b.gain }}
         />
       )))}
     </View>
-  );
-}
-
-/** All matchups' bye: the team (yours shaded, as on its Scoreboard) and COPY.byeNoResult. */
-function ByeGame({ name, mine }: { name: string; mine: boolean }) {
-  const { colors } = useTheme();
-  return (
-    <Card style={[styles.bye, mine ? { backgroundColor: colors.youTint } : null]} accessible accessibilityLabel={`${name}, ${COPY.byeNoResult}`}>
-      <Avatar name={name} size={32} tone={mine ? 'you' : 'opp'} ring={mine} />
-      <Text variant="callout" numberOfLines={1} style={[styles.byeName, mine ? styles.byeNameMine : null]}>{name}</Text>
-      <Text variant="caption" tone="secondary" numberOfLines={1}>{COPY.byeNoResult}</Text>
-    </Card>
   );
 }
 
@@ -184,9 +184,11 @@ interface BodyProps {
   finalLines: FinalLineupsState;
   roster: RosterData;
   orderAsOf: Date;
+  /** This week's two ledgers (Home's current week); null while loading. */
+  ledgers: { me: RosterLedger; opp: RosterLedger } | null;
 }
 
-function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLines, roster, orderAsOf }: BodyProps) {
+function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLines, roster, orderAsOf, ledgers }: BodyProps) {
   const { user } = useAuth();
   const router = useRouter();
   // The scoreboard's avatar + name open that manager's team (the opponent's, read-only) or,
@@ -209,6 +211,9 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
 
   const { view, live, final, week } = derived;
   const youName = live.me.name;
+  // A LIVE week with a missing price names the stocks (both teams', each once); never on a scored week.
+  const missing = missingPriceSymbols(live.me.unpriced, live.opp?.unpriced);
+  const notice = view.kind === 'scoreboard' || view.kind === 'bye' ? priceNoticeText(missing) : null;
 
   if (view.kind === 'not_started') {
     return <PhasePlaceholder title="Matchup" icon={() => <Icon name="trophy" size="title" tone="text2" />} heading="Not started yet" message="Your matchups start when the draft is done." embedded />;
@@ -235,9 +240,21 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
     // then your stocks in one column under the same order rules.
     return (
       <View style={styles.stack}>
-        <Scoreboard you={{ name: youName, gain: live.me.gain }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
-        {raw && live.me.lineup.length ? (
-          <Roster derived={derived} raw={raw} roster={roster} myRows={live.me.lineup} theirRows={null} final={false} seamResumesAt={phase?.kind === 'live_closed' ? phase.resumesAt : null} orderAsOf={orderAsOf} />
+        {notice ? <PriceNotice text={notice} symbols={missing} /> : null}
+        <Scoreboard you={{ name: youName, gain: live.me.total }} opponent={null} bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />
+        {/* A held-but-unpriced stock is on the roster too (with "–"), even if it is all you hold. */}
+        {raw && ledgers && (live.me.lineup.length || live.me.unpriced.length) ? (
+          <MatchupRoster
+            left={{ userId: user.id, name: youName, isYou: true, rows: live.me.lineup, ledger: ledgers.me, unpriced: live.me.unpriced }}
+            right={null}
+            final={false}
+            weekEnd={derived.weekEnd}
+            env={raw}
+            roster={roster}
+            orderAsOf={orderAsOf}
+            seamResumesAt={phase?.kind === 'live_closed' ? phase.resumesAt : null}
+            seamMarketOpen={false}
+          />
         ) : null}
       </View>
     );
@@ -252,279 +269,72 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
     return <Text variant="callout" tone="secondary">{line}</Text>;
   }
 
+  // After the season: the recap (Giorgio, 2026-11-18, look A). MatchupScreen draws it in place
+  // of this body; nothing of the last week's scoreboard remains (unreachable here).
   if (view.kind === 'complete') return null;
 
   if (view.kind === 'scoring' || (view.kind === 'final' && final === null)) {
     return <Text variant="callout" tone="secondary">{COPY.scoringLabel}</Text>;
   }
 
-  const isFinal = view.kind === 'final';
-  const mine = isFinal && final ? final.me : live.me.gain;
-  const theirs = isFinal && final ? final.opp : live.opp?.gain ?? 0;
-  const note = isFinal ? null : unpricedNote(live.me.unpriced.length);
+  // FINAL: the finished-week view the recap's week detail draws too (FinishedWeek).
+  if (view.kind === 'final' && final) {
+    if (!live.opp || !raw || !ledgers?.opp) {
+      // No opponent row (never a bye here: a bye is its own view): the band and the score alone.
+      return (
+        <View style={styles.stack}>
+          {reveal.decided ? (
+            <FinalBanner play={reveal.play} model={buildFinalBanner({ week, result: final.result, youName, oppName: live.opp?.name ?? '', record: derived.myRecord, isPlayoff: phase?.kind === 'scored' ? phase.isPlayoff : false })} />
+          ) : null}
+          <Scoreboard you={{ name: youName, gain: final.me }} opponent={{ name: live.opp?.name ?? '', gain: final.opp }} final verdict={final.verdict} openYou={openTeam(user.id, youName, true)} />
+        </View>
+      );
+    }
+    return (
+      <FinishedWeek
+        week={week}
+        isPlayoff={phase?.kind === 'scored' ? phase.isPlayoff : false}
+        result={final.result}
+        verdict={final.verdict}
+        mine
+        left={{ userId: user.id, name: youName, gain: final.me, ledger: ledgers.me, open: openTeam(user.id, youName, true) }}
+        right={{ userId: live.opp.userId, name: live.opp.name, gain: final.opp, ledger: ledgers.opp, open: openTeam(live.opp.userId, live.opp.name, false) }}
+        record={derived.myRecord}
+        reveal={reveal}
+        finalLines={finalLines}
+        roster={roster}
+        weekEnd={derived.weekEnd}
+        env={raw}
+        orderAsOf={orderAsOf}
+      />
+    );
+  }
+
+  // LIVE: each total is the sum of the stocks that HAVE a live price (SideView.total; Giorgio, PR #562), and
+  // the leads-by line is worked out from those totals. A stock with no price is "–" on its row and named in the
+  // notice above the card (which replaced the old "counted at cost" caption). A FINAL week never comes here: it
+  // is FinishedWeek's, with the server's own gains and verdict, which these priced totals never override.
 
   return (
     <View style={styles.stack}>
-      {/* Mounted only once the reveal is decided: FinalBanner takes its start pose on mount. */}
-      {isFinal && final && reveal.decided ? (
-        <FinalBanner
-          play={reveal.play}
-          model={buildFinalBanner({
-            week,
-            result: final.result,
-            youName,
-            oppName: live.opp?.name ?? '',
-            record: derived.myRecord,
-            isPlayoff: phase?.kind === 'scored' ? phase.isPlayoff : false,
-          })}
-        />
-      ) : null}
+      {notice ? <PriceNotice text={notice} symbols={missing} /> : null}
       <Scoreboard
-        you={{ name: youName, gain: mine }}
-        opponent={{ name: live.opp?.name ?? '', gain: theirs }}
-        final={isFinal}
+        you={{ name: youName, gain: live.me.total }}
+        opponent={{ name: live.opp?.name ?? '', gain: live.opp?.total ?? 0 }}
         openYou={openTeam(user.id, youName, true)}
         openOpponent={live.opp ? openTeam(live.opp.userId, live.opp.name, false) : undefined}
       />
-      {/* Capped like the leads-by line: the totals stay loudest at XL. */}
-      {note ? <Text variant="caption" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE}>{note}</Text> : null}
-      {live.opp && raw ? (
-        isFinal ? (
-          finalLines.status === 'error' ? (
-            <LoadFailure title="Couldn't load this matchup" message={MONEY_COPY.loadRetryMessage} onRetry={finalLines.retry} />
-          ) : finalLines.status !== 'ready' ? (
-            <RosterRowsSkeleton />
-          ) : finalLines.mine?.ok && finalLines.theirs?.ok && finalLines.mine.rows && finalLines.theirs.rows ? (
-            <Roster derived={derived} raw={raw} roster={roster} myRows={finalLines.mine.rows} theirRows={finalLines.theirs.rows} final seamResumesAt={null} orderAsOf={orderAsOf} />
-          ) : (
-            // The posted rows don't add up to the result: who held what, without figures.
-            <Withheld raw={raw} roster={roster} me={user.id} opp={live.opp} />
-          )
-        ) : (
-          <Roster derived={derived} raw={raw} roster={roster} myRows={live.me.lineup} theirRows={live.opp.lineup} final={false} seamResumesAt={phase?.kind === 'live_closed' ? phase.resumesAt : null} orderAsOf={orderAsOf} />
-        )
-      ) : null}
-    </View>
-  );
-}
-
-/** A final week whose per-stock rows don't reconcile (#call-mx-withheld, B): the line, then
- * both lineups as ticker + company with no figures, in draft order, your side shaded. */
-function Withheld({ raw, roster, me, opp }: { raw: HomeRawInputs; roster: RosterData; me: string; opp: { userId: string; name: string } }) {
-  if (roster.ledgerStatus === 'error') {
-    return <LoadFailure title="Couldn't load this matchup" message={MONEY_COPY.loadRetryMessage} onRetry={roster.retry} />;
-  }
-  if (!roster.ledger) return <RosterRowsSkeleton />;
-  const cw = raw.data.current_week;
-  const symbolsOf = (snaps: typeof cw.my_snapshots, trades: typeof cw.my_trades) => [...snaps.map((x) => x.symbol), ...trades.filter((t) => t.action === 'buy').map((t) => t.symbol)];
-  const group = buildWithheldView({
-    me: { userId: me, symbols: symbolsOf(cw.my_snapshots, cw.my_trades) },
-    opp: { userId: opp.userId, symbols: symbolsOf(cw.opponent_snapshots, cw.opponent_trades) },
-    activity: roster.ledger.activity,
-    names: roster.ledger.symbol_names,
-  });
-  const half = (c: { symbol: string; company: string } | null) => (c ? { ticker: c.symbol, company: c.company, weekGain: null, weekPct: null, figures: false } : null);
-  return (
-    <View style={styles.roster}>
-      <Text variant="caption" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE} style={styles.center} testID="roster-withheld">{WITHHELD_LINE}</Text>
-      {group.rows.map((r, i) => (
-        <RosterRow key={`${r.left?.symbol ?? '-'}|${r.right?.symbol ?? '-'}|${i}`} left={half(r.left)} right={half(r.right)} opponentName={opp.name} />
-      ))}
-    </View>
-  );
-}
-
-/** Capture seam: the fixture's daily path up to Wednesday, then Home's own bars after it
- * (Thursday's close lives there), so a closed Thursday shows its close. */
-function seamBars(symbol: string, homeBars: readonly { date: string; close: number }[]): { date: string; close: number }[] {
-  const path = fixtureWeekBars(symbol, MATCHUP_FIXTURE_VARIANT).length ? fixtureSeasonBars(symbol, MATCHUP_FIXTURE_VARIANT) : [];
-  const last = path.length ? path[path.length - 1].date : '';
-  return [...path, ...homeBars.filter((b) => b.date > last)];
-}
-
-/** The roster and the player card it opens. */
-function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt, orderAsOf }: {
-  derived: MatchupDerived;
-  /** The last focus or pull-to-refresh: no close that settled after it may reorder. */
-  orderAsOf: Date;
-  /** Capture seam only: the Home fixture's next open (the shell fixture has no market row). */
-  seamResumesAt: string | null;
-  raw: HomeRawInputs;
-  roster: RosterData;
-  myRows: LineupRow[];
-  /** null = a bye week: your stocks in one column (#call-mx-bye, B). */
-  theirRows: LineupRow[] | null;
-  final: boolean;
-}) {
-  const { user } = useAuth();
-  const { market, activeLeague, marketCalendar } = useLeagueContext();
-  const stockSheet = useStockSheet();
-  const opp = theirRows ? derived.live.opp : null;
-  const me = user!.id;
-  const [selected, setSelected] = useState<{ side: 'me' | 'opp'; symbol: string } | null>(null);
-  // The card stays mounted while it leaves, with the stock it was showing.
-  const [shown, setShown] = useState<{ side: 'me' | 'opp'; symbol: string } | null>(null);
-  const pendingSell = useRef<{ symbol: string; name: string } | null>(null);
-
-  const cw = raw.data.current_week;
-  const sides = useMemo(() => {
-    // Live rows: a partly unpriced stock's row is only its sale (unknown on the roster). Final
-    // rows are the posted week's own, which reconcile, so nothing is unknown there.
-    const mineIn: RosterSideInput = { userId: me, lineup: myRows, snapshots: toLiveSnapshots(cw.my_snapshots), trades: toLiveTrades(cw.my_trades), unpriced: final ? [] : derived.live.me.unpriced };
-    const theirIn: RosterSideInput | null = opp && theirRows
-      ? { userId: opp.userId, lineup: theirRows, snapshots: toLiveSnapshots(cw.opponent_snapshots), trades: toLiveTrades(cw.opponent_trades), unpriced: final ? [] : opp.unpriced }
-      : null;
-    return { me: mineIn, opp: theirIn };
-  }, [me, opp, myRows, theirRows, cw, final, derived.live.me.unpriced]);
-
-  const now = raw.now;
-  const sessions = useMemo(() => {
-    const win = derived.weekEnd ? resolveWeekWindow(derived.weekEnd, raw.marketCalendar) : null;
-    return win ? weekSessions(win.weekStart, win.weekEnd, raw.marketCalendar) : [];
-  }, [derived.weekEnd, raw.marketCalendar]);
-  // The order's clock: the week's closes so far, latest first. The roster orders by the
-  // latest one SETTLED in the fetched bars (matchupRoster.orderingClose) — never a quote,
-  // never a bar fetched before its close. A final week reads Friday's.
-  const closes = useMemo(() => closesBefore(now, sessions), [now, sessions]);
-  // The final rows' percent is measured at the week's last close.
-  const close = useMemo(() => lastWeekClose(now, sessions), [now, sessions]);
-  // A row's percent: live, or at the week's close once final.
-  const closeOn = close?.date ?? '';
-  const rowPrice = (symbol: string) => (final ? raw.bars[symbol]?.find((b) => b.date === closeOn)?.close ?? raw.quote(symbol) : raw.quote(symbol));
-
-  const ready = roster.ledgerStatus === 'ready' && roster.slots.status === 'ready' && roster.ledger;
-  const view = useMemo(() => {
-    if (!ready || !roster.ledger) return null;
-    return buildRosterView({
-      me: sides.me,
-      opp: sides.opp,
-      activity: roster.ledger.activity,
-      names: roster.ledger.symbol_names,
-      slots: roster.slots.slots,
-      slotOf: roster.slots.bySide,
-      closes,
-      bars: raw.bars,
-      // raw.now is stamped when the fetch (bars included) returns; the order never runs ahead
-      // of the last focus or pull-to-refresh, so a poll can't reorder under your eyes.
-      barsAt: orderBarsAt(raw.now, orderAsOf, SEAM_ON),
-    });
-  }, [ready, roster.ledger, roster.slots, sides, closes, raw, orderAsOf]);
-
-  // The card's data for the stock it's showing (null: no opening event in the ledger).
-  const card = useMemo(() => {
-    if (!shown || !roster.ledger) return null;
-    const side = shown.side === 'me' ? sides.me : sides.opp;
-    if (!side) return null;
-    const row = side.lineup.find((r) => r.symbol.toUpperCase() === shown.symbol);
-    const price = rowPrice(shown.symbol);
-    if (!row || price == null) return null;
-    const data = playerCardData({
-      symbol: shown.symbol,
-      company: roster.ledger.symbol_names[shown.symbol] ?? '',
-      userId: side.userId,
-      activity: roster.ledger.activity,
-      snapshots: side.snapshots,
-      trades: side.trades,
-      weekGain: row.cents / 100,
-      // The same gate as Portfolio's card. (Unreachable without weeks today: a league with no
-      // matchups reads as pre_season, whose view has no roster; this keeps it structural.)
-      hasWeeks: leagueHasWeeks(activeLeague?.league_type),
-      price,
-      // Under the capture seam the fixture's own daily bars (a real move every day); MSFT, bought
-      // this week in the 'bought' fixture, has its bars in Home's raw inputs.
-      bars: SEAM_ON ? seamBars(shown.symbol, raw.bars[shown.symbol] ?? []) : raw.bars[shown.symbol] ?? [],
-      now,
-    });
-    if (!data) return null;
-    const slotId = roster.slots.bySide[side.userId]?.[shown.symbol] ?? null;
-    const pill = cardSlotPill(roster.slots.slots.find((s) => s.id === slotId) ?? null);
-    return { data, pill };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, roster.ledger, roster.slots, sides, now, raw, final, activeLeague?.league_type]);
-
-  // Sell is live only while the market is open (the trade gate fails closed); the capture
-  // seam plays the Home fixture's own market.
-  const gate = decideTradeGate(new Date(), market);
-  const marketOpen = SEAM_ON ? derived.view.kind === 'scoreboard' && !derived.view.closed : gate.open;
-  const opens = marketOpensLabel(SEAM_ON ? seamResumesAt : market?.next_open_at ?? null);
-
-  if (roster.ledgerStatus === 'error' || roster.slots.status === 'error') {
-    return <LoadFailure title="Couldn't load this matchup" message={MONEY_COPY.loadRetryMessage} onRetry={roster.retry} />;
-  }
-  if (!view) return <RosterRowsSkeleton />;
-
-  const open = (side: 'me' | 'opp', symbol: string) => {
-    setSelected({ side, symbol });
-    setShown({ side, symbol });
-  };
-  // A half opens the card only when the card can be whole (the ledger names how the stock
-  // was got, and it has a price); otherwise it isn't pressable at all — never a dead tap.
-  const activity = roster.ledger?.activity ?? [];
-  const openable = (side: 'me' | 'opp', symbol: string) =>
-    openingOf(side === 'me' ? me : opp?.userId ?? '', symbol, activity) !== null && rowPrice(symbol) != null;
-  const half = (side: 'me' | 'opp', c: { symbol: string; company: string; weekGain: number | null; weekPct: number | null } | null) =>
-    c ? { ticker: c.symbol, company: c.company, weekGain: c.weekGain, weekPct: c.weekPct, onPress: openable(side, c.symbol) ? () => open(side, c.symbol) : undefined } : null;
-
-  let ownership: PlayerCardOwnership | null = null;
-  if (card && shown) {
-    if (shown.side === 'opp' && opp) {
-      // No watchlist exists in the app yet, so there's nothing to save to: Save is not drawn.
-      ownership = { owner: { name: opp.name }, save: null };
-    } else if (card.data.held > 0 && !isSeasonOver(activeLeague, new Date(), marketCalendar)) {
-      // A season that is over is closed to trading: the card has no Sell (the server refuses it too).
-      ownership = {
-        owner: 'you',
-        onSell: () => {
-          // The stock sheet (Sell selected for a held stock) opens once the card has left.
-          pendingSell.current = { symbol: card.data.ticker, name: card.data.company };
-          setSelected(null);
-        },
-      };
-    } else {
-      ownership = { owner: 'you', sold: true };
-    }
-  }
-
-  return (
-    <View style={styles.roster}>
-      {/* The close the order is using (#call-mx-order, B); none while the draft order holds. */}
-      {view.orderedBy ? (
-        <Text variant="caption" tone="secondary" maxFontSizeMultiplier={LINE_MAX_SCALE} style={styles.center} testID="roster-ordered-by">
-          {orderLabel(view.orderedBy)}
-        </Text>
-      ) : null}
-      {view.groups.map((g, gi) => (
-        <Fragment key={g.label ?? `group-${gi}`}>
-          {g.label ? <GroupHead label={g.label} /> : null}
-          {g.rows.map((r, ri) => (
-            <RosterRow
-              key={`${r.left?.symbol ?? '-'}|${r.right?.symbol ?? '-'}|${ri}`}
-              left={half('me', r.left)}
-              right={half('opp', r.right)}
-              opponentName={opp?.name ?? ''}
-              single={!sides.opp}
-              markEmpty={g.label !== null}
-            />
-          ))}
-        </Fragment>
-      ))}
-      {card && ownership ? (
-        <PlayerCard
-          {...card.data}
-          {...ownership}
-          {...(card.pill ?? {})}
-          visible={selected !== null}
-          onClose={() => setSelected(null)}
-          onClosed={() => {
-            setShown(null);
-            const sell = pendingSell.current;
-            pendingSell.current = null;
-            if (sell) stockSheet.open(sell.symbol, { name: sell.name });
-          }}
-          sessions={sessions}
-          now={now}
-          marketOpen={marketOpen}
-          opens={opens}
+      {live.opp && raw && ledgers?.opp ? (
+        <MatchupRoster
+          left={{ userId: user.id, name: youName, isYou: true, rows: live.me.lineup, ledger: ledgers.me, unpriced: live.me.unpriced }}
+          right={{ userId: live.opp.userId, name: live.opp.name, isYou: false, rows: live.opp.lineup, ledger: ledgers.opp, unpriced: live.opp.unpriced }}
+          final={false}
+          weekEnd={derived.weekEnd}
+          env={raw}
+          roster={roster}
+          orderAsOf={orderAsOf}
+          seamResumesAt={phase?.kind === 'live_closed' ? phase.resumesAt : null}
+          seamMarketOpen={view.kind === 'scoreboard' && !view.closed}
         />
       ) : null}
     </View>
@@ -533,10 +343,5 @@ function Roster({ derived, raw, roster, myRows, theirRows, final, seamResumesAt,
 
 const styles = StyleSheet.create({
   stack: { gap: space[5] },
-  // The board: rows 6pt apart (8 on the 4pt scale), separated by space, never a line.
-  roster: { gap: space[3] },
   center: { textAlign: 'center' },
-  bye: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[5], paddingVertical: space[4] },
-  byeName: { flex: 1, minWidth: 0, fontWeight: '600' },
-  byeNameMine: { fontWeight: YOUR_NAME_WEIGHT },
 });

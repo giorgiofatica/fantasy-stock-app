@@ -13,13 +13,11 @@ import portfolioScreenSrc from '../components/money/PortfolioScreen.tsx' with { 
 import stockSearchScreenSrc from '../components/money/StockSearchScreen.tsx' with { type: 'text' };
 import stockSheetBodySrc from '../components/money/StockSheetBody.tsx' with { type: 'text' };
 
-Deno.test('wiring: the Buy a stock row has a search-icon tile in accent-tint, board #buy-a-stock', () => {
-  assertEquals(portfolioScreenSrc.includes('name="search"'), true);
-  assertEquals(portfolioScreenSrc.includes('colors.accentTint'), true);
-});
-
-Deno.test('wiring: the Buy a stock row title is in the accent colour, not the plain primary tone', () => {
-  assertEquals(portfolioScreenSrc.includes('color={colors.accent}'), true);
+Deno.test('Portfolio has no Buy a stock row: buying lives on the Stocks tab (Giorgio, 2026-11-18); a holding still opens its card with Sell', () => {
+  assertEquals(portfolioScreenSrc.includes('COPY.buyAStock'), false);
+  assertEquals(portfolioScreenSrc.includes("'/stock-search'"), false);
+  assertEquals(portfolioScreenSrc.includes('<HoldingRow'), true);
+  assertEquals(portfolioScreenSrc.includes('pendingSell'), true);
 });
 
 Deno.test("wiring: the search screen has NO title any more (board #call-buy-top, B, 2026-11-16: the top is the back arrow and the field)", () => {

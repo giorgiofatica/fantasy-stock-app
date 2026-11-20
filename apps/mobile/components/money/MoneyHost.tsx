@@ -26,7 +26,7 @@ export interface StockSheetContextValue {
 const StockSheetContext = createContext<StockSheetContextValue | undefined>(undefined);
 
 export function MoneyHostProvider({ children }: { children: ReactNode }) {
-  const [current, setCurrent] = useState<{ symbol: string; originRef: string | null; name: string | null } | null>(null);
+  const [current, setCurrent] = useState<{ symbol: string; originRef: string | null; name: string | null; startReview: 'buy' | null } | null>(null);
   // True while a trade submit is in flight: the sheet can't be dismissed then (the outcome must land).
   const [busy, setBusy] = useState(false);
   // M1: the flying row->header tile, while one is in flight. fromRect is set at open() time
@@ -39,7 +39,7 @@ export function MoneyHostProvider({ children }: { children: ReactNode }) {
     const symbol = normalizeSymbol(raw);
     if (!symbol) return; // a bad ticker never opens an empty sheet
     const o = normalizeOpenOptions(options);
-    setCurrent({ symbol, originRef: o.originRef, name: o.name });
+    setCurrent({ symbol, originRef: o.originRef, name: o.name, startReview: o.startReview });
     setSheetHeight(null);
     // The measure-fails path and Reduce Motion (DL robustness checks, M1-b for the
     // latter): either way, no rect, no transition -- the sheet still opens in place
@@ -90,7 +90,7 @@ export function MoneyHostProvider({ children }: { children: ReactNode }) {
           />
         ) : null}
       >
-        {current ? <StockSheetBody symbol={current.symbol} knownName={current.name} onDone={close} onBusyChange={setBusy} /> : null}
+        {current ? <StockSheetBody symbol={current.symbol} knownName={current.name} startReview={current.startReview} onDone={close} onBusyChange={setBusy} /> : null}
       </Sheet>
     </StockSheetContext.Provider>
   );

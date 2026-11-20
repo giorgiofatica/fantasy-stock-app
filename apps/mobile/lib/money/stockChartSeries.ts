@@ -14,6 +14,7 @@ import type { AxisSpec } from '../../components/sp/logic/chartAxis';
 import type { LinePointIn } from '../../components/sp/logic/lineChart';
 import { greyedRanges, rangeSeries, todaySessionOpen, type ChartRange } from '../chart/chartRanges';
 import type { MarketCalendarSession } from '../time/marketWeek';
+import { seasonEndClose } from './portfolioChart';
 
 export type { ChartRange } from '../chart/chartRanges';
 
@@ -115,9 +116,10 @@ export function stockLineSeries(input: {
 /**
  * A stock's line for a season that is over (Giorgio, 2026-11-18, pick A on the player card: "this is a
  * previous season. Today's pricing doesn't really matter"): Season, from the league's draft day to the
- * season's last day. Closes on or before `endEt` ONLY (a later bar is never read), no live point, and
- * `endPrice` is the last real close on or before endEt (null with none, never a guess) — the price the
- * holding's gain is measured to. The same output whenever it is read.
+ * season's last day. Closes on or before `endEt` ONLY (a later bar is never read), no live point. `endPrice` is the
+ * bounded season-end close (seasonEndClose: the last session's own bar, else a real close within five market sessions,
+ * the same decision the Portfolio's holdings use) — null with none, never a guess, and then there is NO line: a stock
+ * whose last bar is weeks before the end is not shown at an old close. The same output whenever it is read.
  */
 export function finishedStockSeries(input: {
   bars: readonly DailyBar[];
@@ -125,8 +127,8 @@ export function finishedStockSeries(input: {
   seasonStart: string | null;
 }): { points: LinePointIn[]; base: number; axis: AxisSpec; endPrice: number | null } {
   const { bars, endEt, seasonStart } = input;
-  const values = bars.filter((b) => b.close > 0 && b.date <= endEt).map((b) => ({ date: b.date, value: b.close }));
-  const last = values.reduce<{ date: string; value: number } | null>((best, v) => (!best || v.date > best.date ? v : best), null);
+  const endPrice = seasonEndClose(bars, endEt);
+  const values = endPrice == null ? [] : bars.filter((b) => b.close > 0 && b.date <= endEt).map((b) => ({ date: b.date, value: b.close }));
   const s = rangeSeries({ range: 'Season', values, live: null, liveToday: false, todayEt: endEt, seasonStart });
-  return { ...s, endPrice: last ? last.value : null };
+  return { ...s, endPrice };
 }

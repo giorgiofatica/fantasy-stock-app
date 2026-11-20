@@ -87,6 +87,11 @@ export const PAIRS: readonly ContrastPair[] = [
   ['text', 'warnTint', 'surface', 4.5, 'Text on the warn tint over a surface (no current use: the signups and bye notes read warnText since W4 Onboarding)'],
   // W4 Portfolio: the money sheet's warn panel (a refusal or a pre-review block) on the sheet's surface.
   ['warnText', 'warnTint', 'surface', 4.5, 'Money sheet warn panel (refusals, pre-review blocks)'],
+  // The yellow call, pick A (2026-11-19, board #call-yellow): the warn tokens are the accent's
+  // tint family. Two uses had no row: warnText straight on a card (no tint behind it), and the
+  // blockers card's caption, which reads text2 on the tint.
+  ['warnText', 'surface', null, 4.5, '"TBD" on the Draft time row, and the draft search\'s NOT DRAFTABLE / owned badge (on a card)'],
+  ['text2', 'warnTint', 'bg', 4.5, 'Draft blockers card: the caption under its title (on the page)'],
   // W4 Onboarding: the "✓ EMAIL CONFIRMED" chip above Pick a username (gain on its tint, on the page).
   ['gain', 'gainTint', 'bg', 4.5, 'Email confirmed chip (on the page)'],
   ['live', 'inset', null, 3, 'Live dot inside a LIVE chip (graphic)'],
@@ -111,6 +116,10 @@ export const PAIRS: readonly ContrastPair[] = [
   ['text', 'accentTint', 'bg', 4.5, 'Your-turn rest: the round line and the clock on the accent-tint card'],
   ['text2', 'accentTint', 'bg', 4.5, 'Your-turn rest: the captions on the accent-tint card'],
   ['loss', 'accentTint', 'bg', 4.5, 'Your-turn rest: the clock in the last 10 seconds'],
+  // Matchup's price notice (2026-11-19, Giorgio's pick A, the Design Lead's spec): the sentence in `text`
+  // and the info icon in `accent` on the accent tint over the page.
+  ['text', 'accentTint', 'bg', 4.5, 'Matchup price notice: the sentence'],
+  ['accent', 'accentTint', 'bg', 3, 'Matchup price notice: the info icon (graphic)'],
 
   // ── Game Night, §9C v3.1 (2026-10-12): the 50 new scored pairs. §9C names them by group
   // (your side on the card surface and on the page, the clock cell, the money page, the

@@ -64,6 +64,8 @@ Deno.test('nothing else links to the team view: exactly the standings row and th
   assertEquals(callers, [
     'app/(tabs)/league.tsx',
     'app/(tabs)/matchup.tsx',
+    // The recap's week detail: the same finished-week header (FinishedWeek), its halves as on the tab.
+    'app/matchup-week.tsx',
     'components/game/StandingsTable.tsx',
     'components/home/StandingsCard.tsx',
     'lib/game/teamLink.ts',
@@ -84,8 +86,12 @@ Deno.test('wiring: League and Home rows, and the Matchup header, route through t
   assert(m.includes('hint: teamLinkLabel({ name, isYou })'));
   assert(m.includes('openOpponent={live.opp ? openTeam(live.opp.userId, live.opp.name, false) : undefined}'));
   // All matchups' compact boards stay inert (the ruling names the Matchup header only).
-  const all = m.slice(m.indexOf('function AllMatchupsList('), m.indexOf('/** All matchups\' bye'));
+  const all = m.slice(m.indexOf('function AllMatchupsList('), m.indexOf('interface BodyProps {'));
   assert(!all.includes('openYou') && !all.includes('openOpponent'));
+  // The recap's All matchups opens the GAME (openGame), never a team.
+  const recap = SOURCES['components/game/SeasonRecap.tsx'];
+  assert(!recap.includes('openYou') && !recap.includes('openOpponent'));
+  assert(recap.includes('openGame={g.opens ? { hint: OPENS_MATCHUP_HINT, onPress: () => open(g.opens!) } : undefined}'));
 });
 
 // ── 2. the edge states ───────────────────────────────────────────────────────────
@@ -228,12 +234,12 @@ Deno.test('a manager row is a button with a hint, a 44pt target at the largest s
 
 Deno.test('the Matchup header: each WHOLE half is one button (label = its reading, hint = the Planner\'s words), the line stays text', () => {
   const sb = SOURCES['components/sp/gn/Scoreboard.tsx'];
-  assert(sb.includes('accessible={!interactive}'));
+  assert(sb.includes('accessible={!interactive && !openGame}'));
   // The half's own box is the button, with press feedback only (its shading/ring/layout are the plain half's).
   assert(sb.includes('<PressableScale testID={testID} accessibilityRole="button" accessibilityLabel={label} accessibilityHint={open.hint} onPress={open.onPress} style={style}>'));
   assert(sb.includes("label={`${team.name}${you ? ', you' : ''}, ${totalText}`}"));
   // Inert (All matchups' compact boards) keeps the single combined label.
-  assert(sb.includes('accessibilityLabel={interactive ? undefined : label}'));
+  assert(sb.includes('accessibilityLabel={interactive || openGame ? undefined : label}'));
   // The lead line stays separate text, read once the card is split.
   assert(sb.includes("importantForAccessibility={interactive ? 'auto' : 'no'}"));
 });
@@ -246,7 +252,7 @@ Deno.test('a bye half is inert (a plain View with no hint), and the compact All-
   const m = SOURCES['app/(tabs)/matchup.tsx'];
   // The bye scoreboard opens ONLY yours; the opponent half does not exist.
   assert(m.includes("bye={{ label: BYE_HALF, line: COPY.byeNoResult }} openYou={openTeam(user.id, youName, true)} />"));
-  const all = m.slice(m.indexOf('function AllMatchupsList('), m.indexOf("/** All matchups' bye"));
+  const all = m.slice(m.indexOf('function AllMatchupsList('), m.indexOf('interface BodyProps {'));
   assert(!all.includes('openYou') && !all.includes('openOpponent'));
   assert(all.includes('size="compact"'));
 });

@@ -6,7 +6,7 @@
  * first close, the draft/slot order. Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { rosterHalfFigures } from '../components/sp/logic/gameNight.ts';
+import { rosterHalfFigures, rosterHalfShow } from '../components/sp/logic/gameNight.ts';
 import {
   barCloseAt, cardSlotPill, closesBefore, gainsAtClose, isSlotted, lastWeekClose, orderBarsAt, orderSide, orderingClose, pairRows, recordedSlots, settlesAt,
   rosterGroups, slotGroupLabel,
@@ -143,11 +143,41 @@ Deno.test('a partly unpriced stock (sold half this week, no live price for the r
   const partial = cells(view(thu, noNvda, 'unslotted', { myTrades: [sell] }));
   const n = partial.find((c) => c!.symbol === 'NVDA')!;
   assertEquals([n.weekGain, n.weekPct], [null, null], 'the sale alone is a part, not the week');
-  assertEquals(rosterHalfFigures({ weekGain: n.weekGain, weekPct: n.weekPct }), null, 'the half is the stock alone');
+  assertEquals(rosterHalfFigures({ weekGain: n.weekGain, weekPct: n.weekPct }), null, 'no week figures');
+  assertEquals(rosterHalfShow({ weekGain: n.weekGain, weekPct: n.weekPct }), { kind: 'unknown', text: '\u2013' }, 'the "–" in its slot');
   for (const c of partial.filter((c) => c!.symbol !== 'NVDA')) assert(c!.weekGain !== null, `${c!.symbol} keeps its figure`);
   // With its live price back, the same week has the whole figure.
   const whole = cells(view(thu, thuQuote, 'unslotted', { myTrades: [sell] })).find((c) => c!.symbol === 'NVDA')!;
   assert(whole.weekGain !== null && whole.weekPct !== null);
+});
+
+Deno.test('a FULLY unpriced holding (no sale) stays on its half with no figures, on BOTH sides', () => {
+  const thu = new Date('2026-09-24T17:37:00Z');
+  const mineGone = ROBERTO_HOLDINGS[1].symbol;
+  const theirsGone = GIANLUIGI_HOLDINGS[1].symbol;
+  const quote = (s: string) => (s === mineGone || s === theirsGone ? null : thuQuote(s));
+  const g = view(thu, quote);
+  const lefts = g.flatMap((x) => x.rows.map((r) => r.left)).filter((c) => c !== null);
+  const rights = g.flatMap((x) => x.rows.map((r) => r.right)).filter((c) => c !== null);
+  assertEquals(lefts.length, ROBERTO_HOLDINGS.length, 'every stock you hold is on the roster');
+  assertEquals(rights.length, GIANLUIGI_HOLDINGS.length, 'every stock they hold too');
+  const m = lefts.find((c) => c!.symbol === mineGone)!;
+  const t = rights.find((c) => c!.symbol === theirsGone)!;
+  assertEquals([m.weekGain, m.weekPct, t.weekGain, t.weekPct], [null, null, null, null]);
+  for (const c of [m, t]) assertEquals(rosterHalfShow({ weekGain: c.weekGain, weekPct: c.weekPct }).kind, 'unknown', `${c.symbol}: "–", not left blank`);
+  for (const c of [...lefts, ...rights].filter((c) => c!.symbol !== mineGone && c!.symbol !== theirsGone)) assert(c!.weekGain !== null, c!.symbol);
+});
+
+Deno.test('a slotted league: the unpriced holding stays IN ITS SLOT (never an "Empty" slot), same group as when priced', () => {
+  const thu = new Date('2026-09-24T17:37:00Z');
+  const gone = ROBERTO_HOLDINGS[1].symbol;
+  const groupOf = (g: ReturnType<typeof view>, sym: string) => g.find((x) => x.rows.some((r) => r.left?.symbol === sym))?.label ?? 'missing';
+  const priced = view(thu, thuQuote, 'category');
+  const unpriced = view(thu, (s) => (s === gone ? null : thuQuote(s)), 'category');
+  assertEquals(groupOf(unpriced, gone), groupOf(priced, gone));
+  // The slot's shape is unchanged: the same number of your halves, none turned empty.
+  const halves = (g: ReturnType<typeof view>) => g.map((x) => [x.label, x.rows.filter((r) => r.left !== null).length]);
+  assertEquals(halves(unpriced), halves(priced));
 });
 
 Deno.test('a live update moves the numbers, never the rows (the order holds until the next close)', () => {
@@ -326,11 +356,12 @@ Deno.test('seqOf: picks by number, later buys after every pick in the order boug
 
 Deno.test('Matchup: the order reads the last CLOSE (never the live gain), and the roster waits for its order', () => {
   const src = SOURCES['app/(tabs)/matchup.tsx'];
-  assert(src.includes('const closes = useMemo(() => closesBefore(now, sessions), [now, sessions]);'));
-  assert(src.includes('barsAt: orderBarsAt(raw.now, orderAsOf, SEAM_ON),'), 'the fetch time, held to the last focus or refresh');
+  const roster = SOURCES['components/game/MatchupRoster.tsx'];
+  assert(roster.includes('const closes = useMemo(() => closesBefore(now, sessions), [now, sessions]);'));
+  assert(roster.includes('barsAt: orderBarsAt(env.now, orderAsOf, SEAM_ON),'), 'the fetch time, held to the last focus or refresh');
   assert(src.includes('useFocusEffect(useCallback(() => {\n    setOrderAsOf(new Date());'), 'a new order applies on arrival');
   assert(src.includes('setOrderAsOf(new Date());\n    await Promise.all([refresh(), mRefresh()]);'), '…and on pull to refresh');
-  assert(src.includes('if (!view) return <RosterRowsSkeleton />;'), 'no list that re-sorts once the ledger lands');
+  assert(roster.includes('if (!view) return <RosterRowsSkeleton />;'), 'no list that re-sorts once the ledger lands');
   const view = SOURCES['lib/game/matchupRosterView.ts'];
   assert(view.includes('const ordering = orderingClose({ closes, sides: opp ? [me, opp] : [me], bars, barsAt });'));
   assert(view.includes('closeGain: gains ? gains[sym] ?? null : null,'));
@@ -338,15 +369,16 @@ Deno.test('Matchup: the order reads the last CLOSE (never the live gain), and th
 });
 
 Deno.test('Matchup: nothing else — no race chart, no chyron, no old scoreboard; the centre column stays empty', () => {
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
-  assert(!/<Chyron|useLeadChyron|<MatchScoreboard|<WeekRace|TugBar/.test(src));
+  for (const f of ['app/(tabs)/matchup.tsx', 'components/game/MatchupRoster.tsx', 'components/game/FinishedWeek.tsx']) {
+    assert(!/<Chyron|useLeadChyron|<MatchScoreboard|<WeekRace|TugBar/.test(SOURCES[f]), f);
+  }
   const row = SOURCES['components/sp/gn/RosterRow.tsx'];
   assert(row.includes('<View style={{ width: CENTRE_GAP }} />'), 'the centre is a gap, nothing in it');
   assert(row.includes('const CENTRE_GAP = space[4];'));
 });
 
 Deno.test('Matchup: any stock on either side opens the player card; a half that can\'t is not pressable', () => {
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
+  const src = SOURCES['components/game/MatchupRoster.tsx'];
   assert(src.includes("left={half('me', r.left)}"));
   assert(src.includes("right={half('opp', r.right)}"));
   assert(src.includes('onPress: openable(side, c.symbol) ? () => open(side, c.symbol) : undefined'));

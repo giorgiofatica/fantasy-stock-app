@@ -4,8 +4,8 @@
 
 Every tappable element in `apps/mobile/app` and `apps/mobile/components` (the dev-only `design-gallery.tsx` excluded), with its handler and, where the code says, its destination. PRODUCT_RULES, "Nothing tappable does nothing": every control either does its job, or is not shown / disabled with its reason.
 
-- **249** tappables in **94** files.
-- **101** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
+- **269** tappables in **100** files.
+- **112** forward a prop (`prop …`): the destination is the caller's, listed at the call site.
 - **55** carry a `disabled` expression: whether its reason is visible is checked on the simulator pass (W8 part 2).
 - Static no-op check (`apps/mobile/tests-deno/no-op-handlers.test.ts`): **0** findings.
 
@@ -24,11 +24,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/(tabs)/league.tsx:457` | Button | onPress | `auto.reread` | prop auto.reread |  |
 | `app/(tabs)/league.tsx:525` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
 | `app/(tabs)/league.tsx:536` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/matchup.tsx:121` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
-| `app/(tabs)/matchup.tsx:140` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
-| `app/(tabs)/matchup.tsx:294` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
-| `app/(tabs)/matchup.tsx:315` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
-| `app/(tabs)/matchup.tsx:452` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `app/(tabs)/matchup.tsx:130` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
+| `app/(tabs)/matchup.tsx:151` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/create-account.tsx:133` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:135` | Button | onPress | `handleCreate` | fn handleCreate |  |
 | `app/create-account.tsx:140` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
@@ -61,6 +58,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/login.tsx:182` | Pressable | onPress | `inline: () => router.push('/forgot-password')` | route push('/forgot-password') |  |
 | `app/login.tsx:191` | Button | onPress | `handleSignIn` | sheet setConfirmFailedNotice(false) |  |
 | `app/login.tsx:192` | Pressable | onPress | `inline: () => router.push('/create-account')` | route push('/create-account') |  |
+| `app/matchup-week.tsx:49` | BackControl | onPress | `back` | route replace('/(tabs)/matchup'); route back |  |
+| `app/matchup-week.tsx:52` | LoadFailure | onRetry | `back` | route replace('/(tabs)/matchup'); route back |  |
+| `app/matchup-week.tsx:93` | LoadFailure | onRetry | `inline: () => { recapState.retry(); void m.refresh(); }` | fn recapState.retry |  |
+| `app/matchup-week.tsx:98` | LoadFailure | onRetry | `recapState.retry` | prop recapState.retry |  |
 | `app/pick-username.tsx:15` | UsernamePickerExit | onPress | `signOut` | fn signOut (from a hook or import) |  |
 | `app/reset-password.tsx:127` | EmptyState | onAction | `inline: () => router.replace('/')` | route replace('/') |  |
 | `app/reset-password.tsx:141` | Pressable | onPress | `handleCancel` | route replace('/') |  |
@@ -93,6 +94,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/DraftRoom.tsx:509` | SymbolSearchField | onSelect | `onSelect` | fn onSelect |  |
 | `components/game/DraftRoom.tsx:519` | Button | onPress | `draft` | fn draft | `pending` |
 | `components/game/DraftRoom.tsx:575` | Button | onPress | `room.refresh` | prop room.refresh |  |
+| `components/game/FinishedWeek.tsx:74` | LoadFailure | onRetry | `finalLines.retry` | prop finalLines.retry |  |
 | `components/game/InfoPopup.tsx:44` | Pressable | onPress | `inline: () => onOpen(info)` | fn onOpen |  |
 | `components/game/InfoPopup.tsx:87` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/game/InfoPopup.tsx:196` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
@@ -104,6 +106,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/LeaveLeagueSheets.tsx:124` | Button | onPress | `inline: () => (picked ? onTransfer(picked) : undefined)` | fn onTransfer | `!picked \|\| busy` |
 | `components/game/LeaveLeagueSheets.tsx:130` | Button | onPress | `onClose` | prop onClose (the caller's) | `busy` |
 | `components/game/LeaveLeagueSheets.tsx:143` | ChoiceRow | onPress | `inline: () => setPicked(c.userId)` | state setPicked | `busy` |
+| `components/game/MatchupRoster.tsx:186` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
+| `components/game/MatchupRoster.tsx:278` | LoadFailure | onRetry | `roster.retry` | prop roster.retry |  |
 | `components/game/QueueEditor.tsx:130` | QueueSearchRow | onPress | `inline: () => setSearchOpen(true)` | sheet setSearchOpen(true) |  |
 | `components/game/QueueEditor.tsx:135` | SymbolSearchField | onSelect | `onSelect` | sheet setSearchOpen(false) |  |
 | `components/game/QueueEditor.tsx:151` | Button | onPress | `inline: () => machine.retry()` | fn machine.retry | `view.status === 'saving'` |
@@ -126,11 +130,15 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/RenewalReview.tsx:149` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/RenewalRoster.tsx:85` | Pressable | onPress | `inline: () => setChanging(true)` | state setChanging |  |
 | `components/game/RenewalRoster.tsx:107` | Pressable | onPress | `inline: () => runSheet(p)` | fn runSheet |  |
-| `components/game/SetupRows.tsx:162` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
-| `components/game/SetupRows.tsx:189` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
-| `components/game/SetupRows.tsx:248` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
-| `components/game/SetupScaffold.tsx:100` | Pressable | onPress | `back.onPress` | prop back.onPress |  |
-| `components/game/SetupScaffold.tsx:118` | Pressable | onPress | `inline: close.disabled ? undefined : close.onPress` | — | `close.disabled` |
+| `components/game/ScheduleList.tsx:128` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/game/SeasonRecap.tsx:61` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
+| `components/game/SeasonRecap.tsx:122` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
+| `components/game/SetupRows.tsx:163` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
+| `components/game/SetupRows.tsx:190` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
+| `components/game/SetupRows.tsx:249` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
+| `components/game/SetupScaffold.tsx:100` | BackControl | onPress | `back.onPress` | prop back.onPress |  |
+| `components/game/SetupScaffold.tsx:113` | Pressable | onPress | `inline: close.disabled ? undefined : close.onPress` | — | `close.disabled` |
+| `components/game/SetupScaffold.tsx:150` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/StandingsTable.tsx:74` | ManagerRow | onPress | `inline: href ? () => router.push(href) : undefined` | route push(href) |  |
 | `components/game/Stepper.tsx:85` | Pressable | onPress | `inline: () => down && onStep(-1)` | fn onStep | `!down` |
 | `components/game/Stepper.tsx:93` | Pressable | onPress | `inline: () => up && onStep(1)` | fn onStep | `!up` |
@@ -150,38 +158,37 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/home/YourSeason.tsx:164` | PressableScale | onPress | `inline: () => router.push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF ` | route push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF : SCHEDU) |  |
 | `components/league/LeagueStates.tsx:44` | Button | onPress | `onRetry` | prop onRetry (the caller's) |  |
 | `components/league/MembersSection.tsx:63` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
-| `components/money/HoldingRow.tsx:87` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/money/HoldingRow.tsx:86` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/LoadFailure.tsx:30` | EmptyState | onAction | `onRetry` | prop onRetry (the caller's) |  |
 | `components/money/PlayerPortfolioScreen.tsx:202` | LoadFailure | onRetry | `inline: () => { seasonEnd.refresh(); retry(); }` | fn seasonEnd.refresh |  |
 | `components/money/PlayerPortfolioScreen.tsx:206` | LoadFailure | onRetry | `retry` | fn retry |  |
 | `components/money/PlayerPortfolioScreen.tsx:233` | Button | onPress | `inline: () => void findManager.find(userId)` | fn findManager.find |  |
 | `components/money/PlayerPortfolioScreen.tsx:255` | HoldingRow | onPress | `inline: canOpen(r.symbol) ? () => { setSelected(r.symbol); setShown(` | sheet setShown(r.symbol) |  |
-| `components/money/PortfolioScreen.tsx:252` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
-| `components/money/PortfolioScreen.tsx:260` | LoadFailure | onRetry | `inline: () => { seasonEnd.refresh(); data.refresh(); }` | fn seasonEnd.refresh |  |
-| `components/money/PortfolioScreen.tsx:264` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
-| `components/money/PortfolioScreen.tsx:330` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
-| `components/money/PortfolioScreen.tsx:360` | Pressable | onPress | `inline: () => router.push('/stock-search')` | route push('/stock-search') |  |
-| `components/money/PortfolioScreen.tsx:383` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
-| `components/money/PortfolioScreen.tsx:391` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
+| `components/money/PortfolioScreen.tsx:262` | Button | onPress | `inline: () => router.push('/(tabs)/league')` | route push('/(tabs)/league') |  |
+| `components/money/PortfolioScreen.tsx:270` | LoadFailure | onRetry | `inline: () => { seasonEnd.refresh(); data.refresh(); }` | fn seasonEnd.refresh |  |
+| `components/money/PortfolioScreen.tsx:274` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
+| `components/money/PortfolioScreen.tsx:340` | RangePills | onChange | `setRange` | fn setRange | `greyed` |
+| `components/money/PortfolioScreen.tsx:370` | HoldingRow | onPress | `inline: () => openRow(r.symbol, r.name)` | fn openRow |  |
+| `components/money/PortfolioScreen.tsx:378` | Pressable | onPress | `inline: () => router.push('/trade-history')` | route push('/trade-history') |  |
 | `components/money/SalePicker.tsx:85` | Pressable | onPress | `inline: () => onChoose(r.tradeId)` | fn onChoose |  |
 | `components/money/SalePicker.tsx:108` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
 | `components/money/SalePicker.tsx:115` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
-| `components/money/StockChart.tsx:127` | RangePills | onChange | `setPicked` | state setPicked | `greyed` |
-| `components/money/StockSearchScreen.tsx:120` | Pressable | onPress | `inline: () => router.back()` | route back |  |
-| `components/money/StockSearchScreen.tsx:161` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
-| `components/money/StockSearchScreen.tsx:194` | SearchRow | onPress | `inline: () => handleSelect(item)` | fn handleSelect |  |
-| `components/money/StockSearchScreen.tsx:250` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/money/StockSheetBody.tsx:358` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:471` | TradeReviewPanel | onRetry | `retryReview` | fn retryReview |  |
-| `components/money/StockSheetBody.tsx:493` | Button | onPress | `inline: () => { data.refresh(); void openReview(open.kind); }` | fn data.refresh |  |
-| `components/money/StockSheetBody.tsx:495` | Button | onPress | `inline: () => setOpen(null)` | sheet setOpen(null) |  |
-| `components/money/StockSheetBody.tsx:544` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
-| `components/money/StockSheetBody.tsx:550` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
-| `components/money/StockSheetBody.tsx:580` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:619` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
-| `components/money/StockSheetBody.tsx:648` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
-| `components/money/TradeHistoryScreen.tsx:134` | SegmentedControl | onChange | `choose` | fn choose |  |
-| `components/money/TradeHistoryScreen.tsx:146` | LoadFailure | onRetry | `ledger.refresh` | prop ledger.refresh |  |
+| `components/money/StockChart.tsx:130` | RangePills | onChange | `setPicked` | state setPicked | `greyed` |
+| `components/money/StockSearchScreen.tsx:129` | Pressable | onPress | `inline: () => router.back()` | route back |  |
+| `components/money/StockSearchScreen.tsx:170` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
+| `components/money/StockSearchScreen.tsx:203` | SearchRow | onPress | `inline: () => handleSelect(item)` | fn handleSelect |  |
+| `components/money/StockSearchScreen.tsx:257` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/money/StockSheetBody.tsx:390` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
+| `components/money/StockSheetBody.tsx:507` | TradeReviewPanel | onRetry | `retryReview` | fn retryReview |  |
+| `components/money/StockSheetBody.tsx:529` | Button | onPress | `inline: () => { data.refresh(); void openReview(open.kind); }` | fn data.refresh |  |
+| `components/money/StockSheetBody.tsx:531` | Button | onPress | `inline: () => setOpen(null)` | sheet setOpen(null) |  |
+| `components/money/StockSheetBody.tsx:583` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
+| `components/money/StockSheetBody.tsx:589` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
+| `components/money/StockSheetBody.tsx:620` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
+| `components/money/StockSheetBody.tsx:659` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
+| `components/money/StockSheetBody.tsx:685` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/money/TradeHistoryScreen.tsx:132` | SegmentedControl | onChange | `choose` | fn choose |  |
+| `components/money/TradeHistoryScreen.tsx:144` | LoadFailure | onRetry | `ledger.refresh` | prop ledger.refresh |  |
 | `components/money/TradeReviewPanel.tsx:131` | Button | onPress | `onSubmit` | prop onSubmit (the caller's) | `!p.button.enabled` |
 | `components/money/TradeReviewPanel.tsx:137` | Button | onPress | `onDone` | prop onDone (the caller's) |  |
 | `components/money/TradeReviewPanel.tsx:140` | Button | onPress | `inline: () => onNextStep(nextStep)` | fn onNextStep |  |
@@ -235,10 +242,10 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/shell/SheetBar.tsx:128` | Pressable | onPress | `rename.onBegin` | prop rename.onBegin |  |
 | `components/shell/SheetBar.tsx:183` | Pressable | onPress | `inline: inert ? undefined : save.onPress` | — |  |
 | `components/shell/ShellHeader.tsx:56` | Pressable | onPress | `inline: () => router.push(profileHref(profileFromPathname(pathname))` | route push(profileHref(profileFromPathname(pathname))) |  |
-| `components/shell/ShellTabBar.tsx:108` | TabItem | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/shell/ShellTabBar.tsx:109` | TabItem | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
-| `components/shell/ShellTabBar.tsx:151` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/shell/ShellTabBar.tsx:152` | Pressable | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
+| `components/shell/ShellTabBar.tsx:110` | TabItem | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/shell/ShellTabBar.tsx:111` | TabItem | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
+| `components/shell/ShellTabBar.tsx:153` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/shell/ShellTabBar.tsx:154` | Pressable | onLongPress | `onLongPress` | prop onLongPress (the caller's) |  |
 | `components/shell/SocialSignIn.tsx:107` | Button | onPress | `inline: () => run('google')` | fn run | `busy === 'apple'` |
 | `components/shell/TakeoverLanding.tsx:93` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
 | `components/shell/TakeoverLanding.tsx:94` | Link | onPress | `onNotNow` | prop onNotNow (the caller's) |  |
@@ -258,9 +265,22 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/sp/ListRow.tsx:59` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/sp/SegmentedControl.tsx:95` | Pressable | onPress | `inline: () => choose(option.value)` | fn choose |  |
 | `components/sp/gn/ManagerRow.tsx:171` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/sp/gn/PlayerCard.tsx:130` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
-| `components/sp/gn/PlayerCard.tsx:185` | PressableScale | onPress | `action.onPress` | prop action.onPress | `action.disabled` |
+| `components/sp/gn/PlayerCard.tsx:129` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/sp/gn/PlayerCard.tsx:184` | PressableScale | onPress | `action.onPress` | prop action.onPress | `action.disabled` |
 | `components/sp/gn/RangePills.tsx:55` | Pressable | onPress | `inline: () => { if (selected \|\| dead) return; Haptics.selectionAsync` | fn onChange | `dead` |
-| `components/sp/gn/RosterRow.tsx:169` | PressableScale | onPress | `half.onPress` | prop half.onPress |  |
-| `components/sp/gn/Scoreboard.tsx:118` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
+| `components/sp/gn/RosterRow.tsx:173` | PressableScale | onPress | `half.onPress` | prop half.onPress |  |
+| `components/sp/gn/Scoreboard.tsx:154` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
+| `components/sp/gn/Scoreboard.tsx:165` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
 | `components/sp/gn/SegmentTabs.tsx:41` | Pressable | onPress | `inline: () => { if (selected) return; Haptics.selectionAsync().catch` | fn onChange |  |
+| `components/stocks/StocksScreen.tsx:143` | ChipRow | onSelect | `list.selectCategory` | prop list.selectCategory |  |
+| `components/stocks/StocksScreen.tsx:145` | SearchField | onChange | `inline: (q) => dispatchControl({ type: 'type', query: q })` | fn dispatchControl |  |
+| `components/stocks/StocksScreen.tsx:179` | Pressable | onPress | `onSearch` | prop onSearch (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:202` | StockChip | onPress | `inline: () => onSelect(c.categoryId)` | fn onSelect |  |
+| `components/stocks/StocksScreen.tsx:221` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:270` | Pressable | onPress | `onCancel` | prop onCancel (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:291` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
+| `components/stocks/StocksScreen.tsx:307` | SearchRow | onPress | `inline: () => select(item)` | fn select |  |
+| `components/stocks/StocksScreen.tsx:371` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
+| `components/stocks/StocksScreen.tsx:409` | Pressable | onPress | `retry` | fn retry (from a hook or import) |  |
+| `components/stocks/StocksScreen.tsx:468` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:474` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |

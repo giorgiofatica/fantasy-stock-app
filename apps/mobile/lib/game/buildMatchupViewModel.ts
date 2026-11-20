@@ -8,9 +8,9 @@
  */
 import { liveWeekScore } from '../home/liveWeekScore';
 import { toLiveSnapshots, toLiveTrades, type GetHomeLeagueResult } from '../home/buildHomeViewModel';
-import { lineupRows, type LineupRow } from './lineupLedger';
+import { lineupRows, pricedTotal, type LineupRow } from './lineupLedger';
 import { leaderOf, type Leader } from './leadChange';
-import { serverVerdict, weekResult, type WeekResult } from './weekResult';
+import { serverVerdict, weekResult, type ServerVerdict, type WeekResult } from './weekResult';
 
 export interface MatchupInput {
   data: GetHomeLeagueResult;
@@ -27,6 +27,10 @@ export interface SideView {
   pct: number;
   unpriced: string[];
   lineup: LineupRow[];
+  /** The side's live total as the Scoreboard shows it: the sum of the rows of the stocks that have
+   * a live price (lineupLedger.pricedTotal). Always a number (Giorgio, PR #562); an unpriced stock is
+   * "–" on its row and named in the price notice. */
+  total: number;
 }
 
 export interface MatchupLiveViewModel {
@@ -34,7 +38,7 @@ export interface MatchupLiveViewModel {
   me: SideView;
   opp: SideView | null;
   leader: Leader | null;
-  /** Absolute dollar gap; null with no opponent. */
+  /** Absolute dollar gap between the two totals; null with no opponent. */
   leadDollars: number | null;
 }
 
@@ -49,6 +53,7 @@ function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResul
   const tds = toLiveTrades(trades);
   const live = liveWeekScore(snaps, tds, input.quote);
   const { name, isBot } = nameOf(input.data, userId);
+  const lineup = lineupRows(live.bySymbol, live.gain);
   return {
     userId,
     name,
@@ -56,7 +61,8 @@ function side(input: MatchupInput, userId: string, snapshots: GetHomeLeagueResul
     gain: live.gain,
     pct: live.pct,
     unpriced: live.unpriced,
-    lineup: lineupRows(live.bySymbol, live.gain),
+    lineup,
+    total: pricedTotal(lineup, live.unpriced),
   };
 }
 
@@ -78,12 +84,13 @@ export function buildMatchupLive(input: MatchupInput): MatchupLiveViewModel {
     return { hasOpponent: false, me, opp: null, leader: null, leadDollars: null };
   }
   const opp = side(input, oppUserId, cw.opponent_snapshots, cw.opponent_trades);
+  // Who leads, from the two totals the Scoreboard shows (the priced sums).
   return {
     hasOpponent: true,
     me,
     opp,
-    leader: leaderOf(me.gain, opp.gain),
-    leadDollars: Math.abs(me.gain - opp.gain),
+    leader: leaderOf(me.total, opp.total),
+    leadDollars: Math.abs(me.total - opp.total),
   };
 }
 
@@ -93,13 +100,15 @@ export function buildMatchupLive(input: MatchupInput): MatchupLiveViewModel {
  * decider (lib/game/weekResult). Null until both post: nothing reads final
  * before it is. My side is team1 or team2, whichever I am.
  */
-export function finalGains(data: GetHomeLeagueResult, myUserId: string): { me: number; opp: number; result: WeekResult } | null {
+export function finalGains(data: GetHomeLeagueResult, myUserId: string): { me: number; opp: number; result: WeekResult; verdict: ServerVerdict | undefined } | null {
   const cw = data.current_week;
   const m = data.matchups.find((row) => row.week_number === cw.week_number) ?? null;
   if (!m || (m.team1_user_id !== myUserId && m.team2_user_id !== myUserId)) return null;
   const isMe1 = m.team1_user_id === myUserId;
   const me = isMe1 ? m.team1_gain : m.team2_gain;
   const opp = isMe1 ? m.team2_gain : m.team1_gain;
-  const result = weekResult({ myGain: me, oppGain: opp, verdict: serverVerdict(m, myUserId) });
-  return me === null || opp === null || result === null ? null : { me, opp, result };
+  const verdict = serverVerdict(m, myUserId);
+  const result = weekResult({ myGain: me, oppGain: opp, verdict });
+  // The verdict rides along for the Scoreboard's final line (never the dollars' winner).
+  return me === null || opp === null || result === null ? null : { me, opp, result, verdict };
 }

@@ -301,14 +301,16 @@ Deno.test('RosterRow: VoiceOver says whose half it is ("Yours, …" / "{name}, �
   const src = strip(SOURCES['components/sp/gn/RosterRow.tsx']);
   assert(strip(SOURCES['components/sp/logic/gameNight.ts']).includes('return `${whose}, ${half.ticker}, ${half.company},'));
   assert(src.includes('const a11y = rosterHalfLabel(whose, half);'));
-  assert(SOURCES['app/(tabs)/matchup.tsx'].includes('opponentName={opp.name}'));
+  assert(SOURCES['components/game/MatchupRoster.tsx'].includes('opponentName={right.name}'));
 });
 
 Deno.test('Matchup: Sell hands off to the stock sheet only once the card has left; theirs shows no dead Save', () => {
-  const src = SOURCES['app/(tabs)/matchup.tsx'];
+  const src = SOURCES['components/game/MatchupRoster.tsx'];
   assert(src.includes('if (sell) stockSheet.open(sell.symbol, { name: sell.name });'));
   assert(src.indexOf('stockSheet.open(') > src.indexOf('onClosed={() => {'));
-  assert(src.includes("ownership = { owner: { name: opp.name }, save: null };"), 'no watchlist exists yet: Save hidden, never dead');
+  assert(src.includes("ownership = { owner: { name: owner.name }, save: null };"), 'no watchlist exists yet: Save hidden, never dead');
+  // Whoever isn't you owns the card's stock: on the tab the right side, in another pair's game either side.
+  assert(src.includes('if (owner && !owner.isYou) {'));
   assert(SOURCES['components/sp/Sheet.tsx'].includes('onClosedRef.current?.();'));
 });
 
@@ -327,6 +329,7 @@ Deno.test('XL: the card keeps its TWO figure columns at every size and caps its 
   assert((row.match(/maxFontSizeMultiplier=\{ROW_TEXT_MAX_SCALE\}/g) ?? []).length >= 2, 'ticker and company capped');
   assert(row.includes('maxFontSizeMultiplier={PCT_MAX_SCALE}') && row.includes('const PCT_MAX_SCALE = 1.3;'), 'the percent never outgrows the gain');
   assert(row.includes('stacked ? [styles.numStacked, mirror ? styles.alignEnd : styles.alignStart]'), 'stacked numbers on the outer edge, no 64% cap');
-  assert(SOURCES['app/(tabs)/matchup.tsx'].includes('maxFontSizeMultiplier={LINE_MAX_SCALE}>{note}'), 'the unpriced note capped too');
+  // The unpriced note is gone from Matchup (an unknown total counts nothing at cost: the "–" says it).
+  assert(!SOURCES['app/(tabs)/matchup.tsx'].includes('{note}') && !SOURCES['app/(tabs)/matchup.tsx'].includes('unpricedNote'), 'no at-cost note on Matchup');
   assert(row.includes('minimumFontScale={0.7}') && 17 * 0.7 >= 11, 'a seven-figure week shrinks, never under 11pt');
 });

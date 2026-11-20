@@ -3,8 +3,8 @@
  * scale, never by iOS's adjustsFontSizeToFit (Design Lead gate, 2026-11-18: on the finished manager portfolio at
  * AX5 the FIRST row's disc and value drew at ~40%, under their own floors, 4 of 4; RosterRow documents the same
  * failure). Pinned:
- *   - an unmeasured row is full size (never shrinks on a guess), a measured one never goes under its own floor
- *     (0.85 for the disc, 0.75 for the value) and never over 1;
+ *   - an unmeasured row is full size (never shrinks on a guess), a measured value never goes under its own
+ *     floor (0.75) and never over 1; the disc's ticker has NO floor (pick A, 2026-11-19: ticker-badge-fit.test.ts);
  *   - the disc's room is a constant (40pt circle, 2pt padding), so its scale needs no layout pass at all;
  *   - the value's room is the trail's 45% of the measured row, at the capped scale (1.3×);
  *   - HoldingRow carries no adjustsFontSizeToFit, measures its own row, and uses these two scales.
@@ -12,7 +12,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
-  DISC_MIN_SCALE, DISC_PADDING, DISC_PT, DISC_SIZE, DISC_TEXT_ROOM, discTickerScale, flooredFitScale, tickerWidth, TRAIL_SHARE, VALUE_MIN_SCALE, valueScale,
+  DISC_EXCEPTION_MIN_SCALE, DISC_PADDING, DISC_PT, DISC_SIZE, DISC_TEXT_ROOM, discTickerScale, flooredFitScale, tickerWidth, TRAIL_SHARE, VALUE_MIN_SCALE, valueScale,
 } from '../components/sp/logic/holdingFit.ts';
 import { space } from '../constants/tokens/space.ts';
 
@@ -27,10 +27,10 @@ Deno.test('a fit is clamped to [floor, 1]: never under its own floor, never enla
   assertEquals(flooredFitScale(200, 100, 0.75), 1);
   assertEquals(flooredFitScale(90, 100, 0.75), 0.9);
   assertEquals(flooredFitScale(1, 100, 0.75), 0.75, 'the floor, not ~0.01 (the AX5 first-row bug)');
-  assertEquals(flooredFitScale(1, 100, DISC_MIN_SCALE), DISC_MIN_SCALE);
+  assertEquals(flooredFitScale(1, 100, DISC_EXCEPTION_MIN_SCALE), 0.01, 'the disc has no floor: it fits');
 });
 
-Deno.test('the disc: real glyph widths (Archivo ExtraBold at 13pt), a constant room, the 0.85 floor', () => {
+Deno.test('the disc: real glyph widths (Archivo ExtraBold at 13pt), a constant room, no floor (pick A)', () => {
   assertEquals(DISC_TEXT_ROOM, 36);
   // Widths measured from assets/fonts/archivo/Archivo-ExtraBold.ttf (fontTools hmtx): pin them to a tenth of a point.
   const measured: Record<string, number> = { V: 9.5, KO: 20.5, XOM: 32.0, WMT: 33.4, MMM: 35.6, AAPL: 36.6, TSLA: 35.6, NFLX: 36.2, PLTR: 35.7, NVDA: 39.2, AMZN: 40.7, MSFT: 38.1, GOOGL: 50.3, 'BRK.B': 43.3 };
@@ -45,16 +45,17 @@ Deno.test('the disc: real glyph widths (Archivo ExtraBold at 13pt), a constant r
   assertEquals(Math.round(discTickerScale('NVDA') * 1000) / 1000, 0.918);
   assertEquals(Math.round(discTickerScale('AMZN') * 1000) / 1000, 0.885);
   assertEquals(Math.round(discTickerScale('MSFT') * 1000) / 1000, 0.946);
-  // Five letters hit the floor (11pt, §9B): never smaller.
-  for (const t of ['GOOGL', 'BRK.B']) assertEquals(discTickerScale(t), DISC_MIN_SCALE, t);
-  assertEquals(Math.round(13 * DISC_MIN_SCALE * 100) / 100, 11.05, 'the floor is the §9B 11pt');
-  assertEquals(discTickerScale('ZZZZZZZZ'), DISC_MIN_SCALE, 'a very long ticker is the floor, never below');
+  // Five letters used to stop at the 0.85 floor and get cut to "GO…"; with pick A they shrink to fit.
+  assertEquals(Math.round(discTickerScale('GOOGL') * 1000) / 1000, 0.715);
+  assertEquals(Math.round(discTickerScale('BRK.B') * 1000) / 1000, 0.832);
+  assertEquals(DISC_EXCEPTION_MIN_SCALE, 0);
 });
 
-Deno.test('the disc room matches HoldingRow\'s styles (40pt circle, space[1] padding)', () => {
+Deno.test('the disc room matches TickerBadge\'s styles (a `size` circle, space[1] padding)', () => {
   assertEquals(DISC_PADDING, space[1]);
-  const row = Deno.readTextFileSync(new URL('../components/money/HoldingRow.tsx', import.meta.url));
-  assert(/disc: \{\s*width: 40,\s*height: 40,[\s\S]*?paddingHorizontal: space\[1\],/.test(row));
+  const badge = Deno.readTextFileSync(new URL('../components/sp/gn/TickerBadge.tsx', import.meta.url));
+  assert(/badge: \{[\s\S]*?paddingHorizontal: space\[1\],/.test(badge));
+  assert(badge.includes('{ width: size, height: size, borderRadius: size / 2,'));
   assertEquals(DISC_SIZE, 40);
 });
 
@@ -73,7 +74,7 @@ Deno.test('HoldingRow: no adjustsFontSizeToFit; it measures its row and uses bot
   const row = Deno.readTextFileSync(new URL('../components/money/HoldingRow.tsx', import.meta.url));
   assert(!/adjustsFontSizeToFit\s*[=\s>]/.test(row.replace(/\/\/.*$/gm, '')), 'iOS is never asked to fit a row text');
   assert(row.includes('onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}'));
-  assert(row.includes('fontSize: DISC_PT * discTickerScale(row.symbol)'));
+  assert(row.includes('<TickerBadge symbol={row.symbol} />'), 'the shared badge (pick A fit)');
   assert(row.includes('fontSize: VALUE_PT * valueScale(rowWidth, row.valueText, fontScale)'));
   assert(/trail: \{[\s\S]*?maxWidth: '45%',/.test(row), 'TRAIL_SHARE is the trail\'s own maxWidth');
 });

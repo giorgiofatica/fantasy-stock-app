@@ -28,6 +28,7 @@ import { SheetBody } from '@/components/sp/Sheet';
 import { Icon } from '@/components/sp/Icon';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
+import { TickerBadge } from '@/components/sp/gn/TickerBadge';
 import { keepMoney, keepTime } from '@/lib/game/keepDots';
 import { formatGainPair, formatMoney } from '@/components/sp/logic/money';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -56,8 +57,9 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { reviewPresentation } from '@/lib/money/reviewPresentation';
 import { canDismiss } from '@/lib/money/reviewMachine';
 import { decideTradeGate, type TradeGate } from '@/lib/money/tradeGate';
-import { isSeasonOver } from '@/lib/weekStatus';
-import { companyLine, stockSheetModel } from '@/lib/money/stockSheetModel';
+import { getSeasonPhase, isSeasonOver } from '@/lib/weekStatus';
+import { companyLine, noProceedsKnown, proceedsSettled, stockSheetModel } from '@/lib/money/stockSheetModel';
+import { shouldStartReview } from '@/lib/money/stockSheetApi';
 import { buyBody, previewBody, sellBody } from '@/lib/money/tradeBodies';
 import { useStockSheetData } from '@/lib/money/useStockSheetData';
 import { usePortfolioLedger } from '@/lib/money/usePortfolioLedger';
@@ -81,15 +83,6 @@ const SHEET_GUTTER = space[6];
 /** The gate of a season that is over: closed, with no open time (never stale, so it never refetches). */
 const SEASON_OVER_GATE: TradeGate = { open: false, reason: 'closed', stale: false, nextOpenAt: null };
 
-/** The badge's ticker, sized by length rather than by `adjustsFontSizeToFit`: inside the sheet's scroll view iOS
- * shrank that text to a fraction of its size on a sheet that overflows by a little (found at Large on a held stock,
- * 2026-10-19). Up to four characters are at the token size; five or more take the old fit's floor (0.85), so they
- * always fit the 52pt disc. */
-const TICKER_TILE_SIZE = { fontSize: 13, lineHeight: 16 } as const;
-const TICKER_TILE_LONG = { fontSize: 11, lineHeight: 14 } as const;
-function tickerTileSize(symbol: string) {
-  return symbol.length >= 5 ? TICKER_TILE_LONG : TICKER_TILE_SIZE;
-}
 
 /** The sheet's small text follows Dynamic Type to 1.6× (the player card's ceiling), so the price
  * stays the sheet's loudest text at XXXL. */
@@ -136,11 +129,14 @@ interface OpenReview {
 export function StockSheetBody({
   symbol,
   knownName = null,
+  startReview = null,
   onDone,
   onBusyChange,
 }: {
   symbol: string;
   knownName?: string | null;
+  /** "buy": open straight into the buy review when a buy is allowed (the Stocks list's "+"); see shouldStartReview. */
+  startReview?: 'buy' | null;
   onDone: () => void;
   /** Reports a submit in flight, so the host can lock the sheet's dismiss paths. */
   onBusyChange?: (busy: boolean) => void;
@@ -207,11 +203,18 @@ export function StockSheetBody({
   const [choice, setChoice] = useState<'buy' | 'sell' | null>(null);
   const [open, setOpen] = useState<OpenReview | null>(null);
   // "Which sale pays for this?": the sales a per-slot buy can be paid from, and the one chosen.
+  // fixed_notional: the sale proceeds that fund a buy, read ONCE when the sheet's facts are ready (the preview the review makes too),
+  // so a buy with nothing to invest is disabled BEFORE the review. null = not read (or unreadable): never guessed.
+  const [proceeds, setProceeds] = useState<{ sources: PreviewSource[] | null } | null>(null);
   const [picking, setPicking] = useState<{ sources: PreviewSource[]; chosen: string | null } | null>(null);
   const trade = useTradeSubmit();
   const lastData = useRef<unknown>(null);
   // DEV capture only: the latest openReview / submit / selected choice, for captureScript.
   const openReviewRef = useRef<((kind: ReviewKind) => Promise<void>) | null>(null);
+  // The review the "+" asked for: wanted until it has been started (or ruled out) once for this sheet.
+  const startReviewRef = useRef<{ wanted: 'buy' | null; ready: boolean; go: () => void } | null>(null);
+  const startedReview = useRef(false);
+  const buyAllowedRef = useRef<{ enabled: boolean; gateOpen: boolean }>({ enabled: false, gateOpen: false });
   const submitRef = useRef<(() => Promise<void>) | null>(null);
   const choiceRef = useRef<ReviewKind>('buy');
 
@@ -220,6 +223,10 @@ export function StockSheetBody({
   // are disabled before a review, never at the server.
   const seasonOver = isSeasonOver(activeLeague, now, marketCalendar);
   const gate = seasonOver ? SEASON_OVER_GATE : decideTradeGate(now, market);
+  // The draft isn't done (the app's phase check): no trade can start, so Review is disabled before the tap, with the
+  // existing "Trading opens after the draft." line. Not while there is no league (the dev fixtures), never guessed.
+  const seasonPhase = activeLeague ? getSeasonPhase(activeLeague, now, marketCalendar) : null;
+  const preDraft = seasonPhase === 'pre_draft' || seasonPhase === 'drafting';
   const opensLabel = !seasonOver && market?.next_open_at ? marketOpensLabel(market.next_open_at) : null;
 
   async function buildReview(kind: ReviewKind, pickedId: string | null = null): Promise<OpenReview> {
@@ -307,6 +314,31 @@ export function StockSheetBody({
   useEffect(() => {
     onBusyChange?.(busy);
   }, [busy, onBusyChange]);
+
+  useEffect(() => {
+    if (!sheetLeague || sheetLeague.stake_mode !== 'fixed_notional' || data.status !== 'ready') return;
+    let live = true;
+    void fetchPreview(previewBody(sheetLeague.id)).then((p) => {
+      if (live) setProceeds({ sources: p && p.stakeMode === 'fixed_notional' ? p.sources : null });
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetLeague?.id, sheetLeague?.stake_mode, data.status, symbol]);
+
+  // The "+" asked to land in the buy review: decided ONCE, at the first render with the facts ready. A buy that is allowed starts
+  // its review; one that is not leaves the plain sheet with its reason, and stays so (a market that opens later never pops a
+  // review the person did not see coming).
+  useEffect(() => {
+    startedReview.current = false;
+  }, [symbol, startReview]);
+  useEffect(() => {
+    const s = startReviewRef.current;
+    if (!s || startedReview.current || s.wanted !== 'buy' || !s.ready) return;
+    startedReview.current = true;
+    if (shouldStartReview(s.wanted, s.ready, buyAllowedRef.current.enabled, buyAllowedRef.current.gateOpen)) s.go();
+  });
 
   // A review open when the market closes swaps to closed at once (the server's refusal wins a race).
   useEffect(() => {
@@ -415,6 +447,9 @@ export function StockSheetBody({
   // DEV capture only: this render's openReview / submit (they close over `open`), set before
   // any early return below so a scripted Submit sees the open review.
   openReviewRef.current = (kind) => openReview(kind);
+  // The "+" on the Stocks list asks to land IN the buy review: once, when the facts are ready and a buy is allowed
+  // (shouldStartReview). Otherwise the sheet is the plain sheet with its own reason under a disabled Review buy.
+  startReviewRef.current = { wanted: startReview, ready: data.status === 'ready' && proceedsSettled(sheetLeague?.stake_mode, proceeds !== null), go: () => void openReview('buy') };
   submitRef.current = submitNow;
 
   const model = stockSheetModel({
@@ -425,12 +460,13 @@ export function StockSheetBody({
     held: data.facts.held,
     owner: data.facts.owner,
     draft: data.facts.draft,
-    gate: { open: gate.open, opensLabel, seasonOver },
+    gate: { open: gate.open, opensLabel, seasonOver, preDraft },
     leagueName: data.leagueName ?? '',
     lastCloseLabel: null,
     acquisition,
     budgetLeft,
     rosterFull,
+    noProceeds: noProceedsKnown(sheetLeague?.stake_mode, proceeds?.sources ?? null),
   });
 
   if (picking) {
@@ -513,6 +549,7 @@ export function StockSheetBody({
   // this same sheet instance held a different, owned stock must never leak
   // through once the sheet is showing something you don't hold.
   const held = data.facts.held != null;
+  buyAllowedRef.current = { enabled: model.buy.enabled, gateOpen: gate.open };
   const selected = held ? (choice ?? model.selected) : 'buy';
   choiceRef.current = selected;
   const action = selected === 'buy' ? model.buy : model.sell;
@@ -530,11 +567,13 @@ export function StockSheetBody({
   // sits exactly where the button sat inline; at XXXL the body scrolls and this stays reachable.
   const footer = (
     <>
+      {/* A finished season draws NO control and no line (model.controlsShown is false): only the credit below. */}
       {/* E-3 (3e UX audit): a buy the server would refuse is named BEFORE the review, in the
           warn panel; the button stays visible and disabled under it (board #buy-a-stock). */}
-      {warnBlock ? <WarnPanel text={keepMoney(warnBlock)} /> : null}
+      {model.controlsShown && warnBlock ? <WarnPanel text={keepMoney(warnBlock)} /> : null}
 
-      {/* The one action, always drawn: enabled, or disabled with its reason beside it. */}
+      {/* The one action, always drawn (a live league): enabled, or disabled with its reason beside it. */}
+      {model.controlsShown ? (
       <View style={styles.actionWrap}>
         <Button
           label={reviewLabel}
@@ -556,6 +595,7 @@ export function StockSheetBody({
         ) : null}
         {model.marketNote ? <Text variant="caption" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{model.marketNote}</Text> : null}
       </View>
+      ) : null}
 
       <Text variant="caption" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary" style={styles.center}>{COPY.alpacaCredit}</Text>
     </>
@@ -611,7 +651,7 @@ export function StockSheetBody({
           <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} tone="secondary">{ownerLine}</Text>
         )}
 
-        {held ? (
+        {held && model.controlsShown ? (
           <SegmentedControl
             shape="pill"
             options={[{ label: 'Buy', value: 'buy' }, { label: 'Sell', value: 'sell' }]}
@@ -620,7 +660,7 @@ export function StockSheetBody({
           />
         ) : null}
 
-        {selected === 'sell' && model.sell.summary ? (
+        {model.controlsShown && selected === 'sell' && model.sell.summary ? (
           <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} style={[styles.bold, styles.tabular]}>{keepMoney(model.sell.summary)}</Text>
         ) : null}
       </View>
@@ -631,12 +671,9 @@ export function StockSheetBody({
 /** The player card's header, shared so the stock looks the same from every entry point
  * (PRODUCT_RULES, sell-from-search A): the ticker badge, the ticker, the company, the ×. */
 function SheetHeader({ symbol, company, onClose }: { symbol: string; company: string; onClose: () => void }) {
-  const { colors } = useTheme();
   return (
     <View style={styles.header}>
-      <View style={[styles.badge, { backgroundColor: colors.inset }]}>
-        <Text variant="ticker.tile" allowFontScaling={false} numberOfLines={1} style={tickerTileSize(symbol)}>{symbol}</Text>
-      </View>
+      <TickerBadge symbol={symbol} size={52} />
       <View style={styles.headText}>
         <Text variant="ticker.card" accessibilityRole="header">{symbol}</Text>
         {company ? <Text variant="callout" tone="secondary" numberOfLines={1} maxFontSizeMultiplier={1.6}>{company}</Text> : null}
@@ -675,7 +712,6 @@ const styles = StyleSheet.create({
   stack: { gap: space[5] },
   footer: { gap: space[5], paddingHorizontal: SHEET_GUTTER, paddingBottom: space[7] },
   header: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
-  badge: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[1] },
   headText: { flex: 1, minWidth: 0, gap: space[1] },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   priceBlock: { gap: space[1] },
