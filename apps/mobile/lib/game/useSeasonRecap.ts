@@ -43,7 +43,7 @@ export function useSeasonRecap(
         if (SEAM_ON && CAPTURE_DELAY_MS > 0) await new Promise((r) => setTimeout(r, CAPTURE_DELAY_MS));
         const res = await seamTable('matchups_season', () => supabase
           .from('matchups')
-          .select('week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end', { count: 'exact' })
+          .select('week_number, team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end, outcome_reason, team1_percent_gain, team2_percent_gain', { count: 'exact' })
           .eq('league_id', leagueId));
         if (res.error) throw res.error;
         const data = (res.data ?? []) as RecapMatchup[];

@@ -43,7 +43,7 @@ export function useAllMatchups(
       try {
         const matchupsRes = await seamTable('matchups_week', () => supabase
           .from('matchups')
-          .select('team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end', { count: 'exact' })
+          .select('team1_user_id, team2_user_id, team1_gain, team2_gain, winner_user_id, is_tie, is_playoff, week_start, week_end, outcome_reason, team1_percent_gain, team2_percent_gain', { count: 'exact' })
           .eq('league_id', leagueId)
           .eq('week_number', week));
         requests += 1;

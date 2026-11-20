@@ -102,7 +102,7 @@ Deno.test('wiring: the four finished boards pass the verdict; VoiceOver follows 
   assert(tab.includes('          final={r.final}\n          verdict={r.verdict}\n'), 'the live tab\'s All matchups');
   assert(SOURCES['components/game/SeasonRecap.tsx'].includes('                  final\n                  verdict={g.verdict}\n'));
   const sb = SOURCES['components/sp/gn/Scoreboard.tsx'];
-  assert(sb.includes('const model = opponent ? scoreboardModel(you, opponent, final, verdict) : null;'));
+  assert(sb.includes('const model = opponent ? scoreboardModel(you, opponent, final, verdict, outcome) : null;'));
   assert(sb.includes('const showLine = showLineProp && !unscored && line !== null;'));
   // The spoken label carries the line only when it is shown.
   assert(sb.includes("${showLine ? ` ${line}.` : ''}"));

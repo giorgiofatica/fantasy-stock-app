@@ -15,6 +15,7 @@ import { playoffRoundLabelForWeek, playoffRoundShortName } from '../playoffs';
 import { seasonTileWeekLabel } from '../home/homeCopy';
 import { checkRowsComplete } from './readGuard';
 import { serverVerdict, weekResult, type ServerVerdict, type WeekResult } from './weekResult';
+import { recordedOutcome, type OutcomeColumns, type RecordedOutcome } from './outcomeLine';
 
 /** A `matchups` row, as useSeasonRecap reads it. */
 export interface RecapMatchup {
@@ -28,6 +29,10 @@ export interface RecapMatchup {
   is_playoff: boolean;
   week_start: string | null;
   week_end: string | null;
+  /** The stored reason and percents (20261208000000); absent on an older response = NULL. */
+  outcome_reason?: OutcomeColumns['outcome_reason'];
+  team1_percent_gain?: OutcomeColumns['team1_percent_gain'];
+  team2_percent_gain?: OutcomeColumns['team2_percent_gain'];
 }
 
 /** What a row opens: app/matchup-week (league, week, a = the left side, b = the right). */
@@ -76,6 +81,9 @@ export interface RecapGame {
   final: boolean;
   /** The server's verdict from side a (a posted two-sided game): the card's final line comes from it. */
   verdict?: ServerVerdict;
+  /** The stored reason from side a (a posted two-sided game): the card's line is keyed on it. The
+   * recap ROWS (`mine`) carry no reason (Giorgio, 2026-11-19, A: "no reason word on the row"). */
+  outcome?: RecordedOutcome;
   opens: RecapOpen | null;
 }
 
@@ -201,6 +209,7 @@ export function buildRecap(input: RecapInput): SeasonRecap {
       mine: isMine,
       final,
       verdict: bId === null || !final ? undefined : serverVerdict(m, aId),
+      outcome: bId === null || !final ? undefined : recordedOutcome(m, aId),
       opens: bId === null || !final ? null : { week: m.week_number, a: aId, b: bId },
     };
     const w = weeks.get(m.week_number) ?? { week: m.week_number, label: label(m), isPlayoff: m.is_playoff, games: [] };
@@ -251,6 +260,8 @@ export interface RecapGameDetail {
   result: WeekResult;
   /** The server's verdict from side a: the card's final line comes from it, never the dollars. */
   verdict: ServerVerdict | undefined;
+  /** The stored reason from side a: the card's line is keyed on it (lib/game/outcomeLine). */
+  outcome?: RecordedOutcome;
   weekStart: string | null;
   weekEnd: string | null;
 }
@@ -268,6 +279,7 @@ export function recapGameDetail(matchups: readonly RecapMatchup[], week: number,
     bGain: (aIsT1 ? m.team2_gain : m.team1_gain)!,
     result,
     verdict: serverVerdict(m, a),
+    outcome: recordedOutcome(m, a),
     weekStart: m.week_start,
     weekEnd: m.week_end,
   };
