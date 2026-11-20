@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import { useAuth } from '../useAuth';
 import { useHomeLeague } from '../home/useHomeLeague';
 import { matchupView, type MatchupView } from './matchupPhase';
-import { buildMatchupLive, finalGains, type MatchupLiveViewModel } from './buildMatchupViewModel';
+import { buildMatchupLive, finalCardRow, finalGains, type FinalCardRow, type MatchupLiveViewModel } from './buildMatchupViewModel';
 import { etDateParts } from '../time/etParts';
 
 /** Today's ET calendar date (YYYY-MM-DD): the trading day the chyron measures against. */
@@ -24,6 +24,8 @@ export interface MatchupDerived {
   live: MatchupLiveViewModel;
   /** The server's gains once both post; null until then ("Scoring…"). */
   final: ReturnType<typeof finalGains>;
+  /** The finished week's matchup row as the RPC gave it (the keys of useFinalOutcome's second read). */
+  finalRow: FinalCardRow | null;
   weekStart: string | null;
   weekEnd: string | null;
   week: number;
@@ -50,6 +52,7 @@ export function useMatchup(leagueId: string | null) {
       view: matchupView(home.viewModel.phase),
       live,
       final: finalGains(raw.data, user.id),
+      finalRow: finalCardRow(raw.data, user.id),
       weekStart: row?.week_start ?? null,
       weekEnd: row?.week_end ?? null,
       week: cw.week_number,

@@ -24,8 +24,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/(tabs)/league.tsx:457` | Button | onPress | `auto.reread` | prop auto.reread |  |
 | `app/(tabs)/league.tsx:525` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
 | `app/(tabs)/league.tsx:536` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/matchup.tsx:135` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
-| `app/(tabs)/matchup.tsx:156` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
+| `app/(tabs)/matchup.tsx:142` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
+| `app/(tabs)/matchup.tsx:163` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/create-account.tsx:133` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:135` | Button | onPress | `handleCreate` | fn handleCreate |  |
 | `app/create-account.tsx:140` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |

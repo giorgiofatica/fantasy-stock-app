@@ -79,18 +79,49 @@ export function recordedOutcome(row: OutcomeColumns, leftUserId: string): Record
   return { reason, leftIs, leftPercent: leftIs === 'team1' ? p1 : p2, rightPercent: leftIs === 'team1' ? p2 : p1 };
 }
 
-/** The outcome for `userId`'s game among a week's rows, oriented to userId as the left side. */
-export function outcomeFromRows(rows: readonly OutcomeColumns[], userId: string): RecordedOutcome | undefined {
-  for (const row of rows) {
-    const o = recordedOutcome(row, userId);
-    if (o) return o;
-  }
-  return undefined;
+/** The matchup the CARD shows, exactly as get_home_league gave it (apps/mobile/lib/game/buildMatchupViewModel
+ * finalCardRow) plus its league. The second read (useFinalOutcome) is keyed on it, and the reason is believed
+ * only while that read agrees with it. `team2` is never null here: a bye or an unfilled playoff slot makes no read. */
+export interface CardMatchup {
+  leagueId: string;
+  week: number;
+  team1: string;
+  team2: string;
+  winner: string | null | undefined;
+  isTie: boolean | null | undefined;
 }
 
-/** useFinalOutcome's read key: league A's reason never shows under league B's card. */
-export function finalOutcomeKey(leagueId: string, week: number, userId: string): string {
-  return `${leagueId}:${week}:${userId}`;
+/** What the second read returns: the outcome columns plus the result it must agree with. */
+export interface OutcomeRead extends OutcomeColumns {
+  winner_user_id?: string | null;
+  is_tie?: boolean | null;
+}
+
+/** useFinalOutcome's key: everything the read and the agreement depend on. A card that changes (re-scored,
+ * another league) is a new read, and a stale state never shows under a different card. */
+export function outcomeReadKey(c: CardMatchup): string {
+  return JSON.stringify([c.leagueId, c.week, c.team1, c.team2, c.winner ?? null, c.isTie === true]);
+}
+
+/** The ONE row for this card among what a read returned, or null: zero rows, or more than one (maybeSingle's
+ * own error is the real path's guard; this holds the seam and any fixture to the same rule). Keys are compared
+ * exactly as given, no trimming or case change. */
+export function pickOutcomeRow(rows: readonly OutcomeRead[], c: CardMatchup): OutcomeRead | null {
+  const hit = rows.filter((r) => r.team1_user_id === c.team1 && r.team2_user_id === c.team2);
+  return hit.length === 1 ? hit[0] : null;
+}
+
+/** The recorded outcome for the card's LEFT side, or undefined (#566's rule) unless the read agrees with the card:
+ * its winner_user_id equals the card's and its is_tie equals the card's tie (scored or re-scored between the two
+ * reads, a stale cache, and a card with no verdict all disagree). The winner's NAME never comes from here: finalLine
+ * takes it from the card's verdict. The percents come from this same row, and finalLine states a percent tiebreak
+ * only with both present. */
+export function agreedOutcome(c: CardMatchup, row: OutcomeRead | null | undefined, leftUserId: string): RecordedOutcome | undefined {
+  if (!row || c.winner === undefined) return undefined;
+  if (row.team1_user_id !== c.team1 || row.team2_user_id !== c.team2) return undefined;
+  if (row.winner_user_id !== c.winner) return undefined;
+  if ((row.is_tie === true) !== (c.isTie === true)) return undefined;
+  return recordedOutcome(row, leftUserId);
 }
 
 export interface FinalLine {

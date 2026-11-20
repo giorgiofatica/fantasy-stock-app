@@ -6,7 +6,8 @@
  * helper does not state keeps #566's rule. Run: `deno test .`
  */
 import { assert, assertEquals, assertFalse } from 'jsr:@std/assert';
-import { finalLine, interimFinalLine, outcomeFromRows, recordedOutcome, type OutcomeColumns, type RecordedOutcome } from '../lib/game/outcomeLine.ts';
+import { agreedOutcome, finalLine, interimFinalLine, outcomeReadKey, pickOutcomeRow, recordedOutcome, type CardMatchup, type OutcomeColumns, type OutcomeRead, type RecordedOutcome } from '../lib/game/outcomeLine.ts';
+import { finalCardRow } from '../lib/game/buildMatchupViewModel.ts';
 import { scoreboardModel } from '../components/sp/logic/gameNight.ts';
 import { NBSP, keepMoney, keepOutcomeLine } from '../lib/game/keepDots.ts';
 import { serverVerdict, type ServerVerdict } from '../lib/game/weekResult.ts';
@@ -149,8 +150,6 @@ Deno.test('recordedOutcome: orientation, string numerics, absent fields, a user 
   const none = recordedOutcome({ team1_user_id: 'r', team2_user_id: 'p' }, 'r')!;
   assertEquals([none.reason, none.leftPercent, none.rightPercent], [null, null, null]);
   assertEquals(recordedOutcome({ team1_user_id: 'r', team2_user_id: 'p' }, 'x'), undefined);
-  assertEquals(outcomeFromRows([{ team1_user_id: 'a', team2_user_id: 'b' }, base({ outcome_reason: 'dollar_gain' })], 'p')?.reason, 'dollar_gain');
-  assertEquals(outcomeFromRows([], 'p'), undefined);
 });
 
 Deno.test('scoreboardModel: FINAL goes through the helper, LIVE is unchanged', () => {
@@ -236,7 +235,7 @@ Deno.test('wiring: every read that feeds a finished card selects the new columns
   assert(SOURCES['lib/game/useAllMatchups.ts'].includes(`week_start, week_end, ${COLS}'`), 'All matchups (live tab)');
   assert(SOURCES['lib/game/useSeasonRecap.ts'].includes(`week_start, week_end, ${COLS}'`), 'the recap + week detail');
   assert(SOURCES['lib/game/useFinalOutcome.ts'].includes("supabase.from('matchups').select(FINAL_OUTCOME_COLUMNS)"), 'the tab\'s finished week');
-  assert(SOURCES['lib/game/useFinalOutcome.ts'].includes("export const FINAL_OUTCOME_COLUMNS = 'team1_user_id, team2_user_id, outcome_reason, team1_percent_gain, team2_percent_gain'"));
+  assert(SOURCES['lib/game/useFinalOutcome.ts'].includes("export const FINAL_OUTCOME_COLUMNS = 'team1_user_id, team2_user_id, outcome_reason, team1_percent_gain, team2_percent_gain, winner_user_id, is_tie'"));
   // No RPC change: the hook reads the table, never an RPC, and get_home_league's shape is untouched here.
   assertFalse(/\.rpc\(|seamRpc/.test(SOURCES['lib/game/useFinalOutcome.ts']));
 });
@@ -245,7 +244,7 @@ Deno.test('wiring: the finished-week view and both All matchups pass the outcome
   assert(SOURCES['components/game/FinishedWeek.tsx'].includes('        verdict={verdict}\n        outcome={outcome}\n'), 'FinishedWeek -> Scoreboard');
   assert(SOURCES['app/matchup-week.tsx'].includes('outcome={detail.outcome}'), 'the recap\'s week detail');
   const tab = SOURCES['app/(tabs)/matchup.tsx'];
-  assert(tab.includes('useFinalOutcome(activeLeagueId'), 'the tab reads it');
+  assert(tab.includes('useFinalOutcome(cardMatchup)'), 'the tab reads it');
   // Each call site on its OWN slice (a whole-file includes() is satisfied by either one alone).
   const finalAt = tab.indexOf("if (view.kind === 'final' && final) {");
   const liveAt = tab.lastIndexOf('<Scoreboard');
@@ -324,4 +323,135 @@ Deno.test('wiring: Scoreboard applies keepOutcomeLine at the render only, to rea
   // The spoken label reads the plain `line`.
   assert(sb.includes("${showLine ? ` ${line}.` : ''}"));
   assert(!/accessibilityLabel[^\n]*keepOutcomeLine/.test(sb));
+});
+
+// ── the Matchup tab's second read: one matchup, the two reads must agree ───────────────────────
+// The card's winner and tie come from get_home_league; the reason from a second read of the table. The line
+// NAMES the winner, so the reason is believed only while the two agree (Planner, 2026-11-20).
+const CARD: CardMatchup = { leagueId: 'L1', week: 14, team1: 'r', team2: 'p', winner: 'p', isTie: false };
+const row = (extra: Partial<OutcomeRead> = {}): OutcomeRead => ({
+  team1_user_id: 'r', team2_user_id: 'p', winner_user_id: 'p', is_tie: false, outcome_reason: 'percent_tiebreak',
+  team1_percent_gain: 0.74, team2_percent_gain: 1.76, ...extra,
+});
+const tabLine = (c: CardMatchup, r: OutcomeRead | null | undefined, verdict: ServerVerdict | undefined) =>
+  finalLine({ ...R, gain: 10 }, { ...P, gain: 10 }, verdict, agreedOutcome(c, r, 'r'));
+
+Deno.test('AGREE: the read\'s winner and tie equal the card\'s: the reason line, the winner named from the card', () => {
+  assertEquals(tabLine(CARD, row(), 'opponent').line, 'Paolo M. won the tiebreak, +1.76% to +0.74%');
+  // A tie on both sides agrees too (is_tie true === true, no winner).
+  const tie = { ...CARD, winner: null, isTie: true };
+  assertEquals(tabLine(tie, row({ winner_user_id: null, is_tie: true, outcome_reason: 'regular_season_true_tie' }), 'nobody').line, 'Dead even');
+  // null and false is_tie are the same "not a tie" (the table's NULL on an unscored row, the RPC's false).
+  assertEquals(tabLine({ ...CARD, isTie: null }, row({ is_tie: false }), 'opponent').line, 'Paolo M. won the tiebreak, +1.76% to +0.74%');
+});
+
+Deno.test('DISAGREE: a different winner, a different tie, or a card with no verdict gives #566\'s rule, never the read\'s reason', () => {
+  // Re-scored between the two reads: the table now says Roberto won, the card still says Paolo.
+  assertEquals(agreedOutcome(CARD, row({ winner_user_id: 'r' }), 'r'), undefined);
+  assertEquals(tabLine(CARD, row({ winner_user_id: 'r' }), 'opponent').line, null); // level dollars: #566 shows nothing
+  // The read says tie, the card says a winner (and the reverse).
+  assertEquals(agreedOutcome(CARD, row({ winner_user_id: null, is_tie: true }), 'r'), undefined);
+  assertEquals(agreedOutcome({ ...CARD, winner: null, isTie: true }, row(), 'r'), undefined);
+  // A winner the read names who is not the card's, even if both are "the other team".
+  assertEquals(agreedOutcome({ ...CARD, winner: 'x' }, row(), 'r'), undefined);
+  // The card carries no verdict at all (an older RPC): nothing to agree with.
+  assertEquals(agreedOutcome({ ...CARD, winner: undefined }, row(), 'r'), undefined);
+  // The read lacks the result columns entirely.
+  assertEquals(agreedOutcome(CARD, { team1_user_id: 'r', team2_user_id: 'p', outcome_reason: 'percent_tiebreak', team1_percent_gain: 1, team2_percent_gain: 2 }, 'r'), undefined);
+  // Not the card's teams.
+  assertEquals(agreedOutcome(CARD, row({ team2_user_id: 'q' }), 'r'), undefined);
+});
+
+Deno.test('DISAGREE, the edges: each of winner and tie is checked on its own, and an absent result never agrees with an absent card', () => {
+  // Same winner (none), but the read says tie and the card says not (and the reverse): is_tie alone disagrees.
+  const noWinner = { ...CARD, winner: null, isTie: false };
+  assertEquals(agreedOutcome(noWinner, row({ winner_user_id: null, is_tie: true }), 'r'), undefined);
+  assertEquals(agreedOutcome({ ...noWinner, isTie: true }, row({ winner_user_id: null, is_tie: false }), 'r'), undefined);
+  // The card names Paolo; the read names no winner and no tie (a row scored back to unscored): winner alone disagrees.
+  assertEquals(agreedOutcome(CARD, row({ winner_user_id: null, is_tie: false }), 'r'), undefined);
+  // An old RPC (no verdict on the card) and a read with no result columns are both "absent": that is not agreement.
+  const bare: OutcomeRead = { team1_user_id: 'r', team2_user_id: 'p', outcome_reason: 'percent_tiebreak', team1_percent_gain: 0.74, team2_percent_gain: 1.76 };
+  assertEquals(agreedOutcome({ ...CARD, winner: undefined }, bare, 'r'), undefined);
+  assertEquals(agreedOutcome({ ...CARD, winner: undefined, isTie: undefined }, bare, 'r'), undefined);
+});
+
+Deno.test('the winner\'s NAME is the card\'s, never the read\'s alone', () => {
+  // The read agrees on "p" (Paolo) and says percent_tiebreak: the name is the card's verdict (Paolo), and the
+  // percents are the SAME row's, winner's first.
+  const m = tabLine(CARD, row(), 'opponent');
+  assertEquals(m.leader, 'opp');
+  assert(m.line!.startsWith('Paolo M. won'));
+  // Were the verdict the other way, a disagreeing read cannot rename the winner.
+  assertEquals(tabLine(CARD, row({ winner_user_id: 'r' }), 'opponent').leader, 'opp');
+});
+
+Deno.test('PERCENTS MISSING: percent_tiebreak without both percents from the same row gives no line', () => {
+  assertEquals(tabLine(CARD, row({ team1_percent_gain: null }), 'opponent').line, null);
+  assertEquals(tabLine(CARD, row({ team2_percent_gain: null }), 'opponent').line, null);
+  assertEquals(tabLine(CARD, row({ team1_percent_gain: null, team2_percent_gain: null }), 'opponent').line, null);
+  assertEquals(tabLine(CARD, row({ team1_percent_gain: undefined, team2_percent_gain: undefined }), 'opponent').line, null);
+});
+
+Deno.test('NO ROW / NULL / not_recorded / unresolved: #566\'s rule', () => {
+  assertEquals(agreedOutcome(CARD, null, 'r'), undefined);
+  assertEquals(agreedOutcome(CARD, undefined, 'r'), undefined);
+  for (const reason of [null, 'not_recorded', 'playoff_seed_unresolved', 'invented']) {
+    const got = tabLine(CARD, row({ outcome_reason: reason }), 'opponent');
+    assertEquals(got, interimFinalLine({ ...R, gain: 10 }, { ...P, gain: 10 }, 'opponent'), String(reason));
+  }
+});
+
+Deno.test('MORE THAN ONE ROW, ZERO ROWS: pickOutcomeRow takes exactly one match on both team ids, exactly as given', () => {
+  assertEquals(pickOutcomeRow([row()], CARD), row());
+  assertEquals(pickOutcomeRow([], CARD), null); // zero rows
+  assertEquals(pickOutcomeRow([row(), row({ outcome_reason: 'dollar_gain' })], CARD), null); // more than one: no guess
+  // Other games of the same league-week never match; the card's one row still does.
+  assertEquals(pickOutcomeRow([row({ team1_user_id: 'a', team2_user_id: 'b' }), row()], CARD), row());
+  // No trimming, no case changes.
+  assertEquals(pickOutcomeRow([row({ team1_user_id: 'R' })], CARD), null);
+  assertEquals(pickOutcomeRow([row({ team2_user_id: 'p ' })], CARD), null);
+});
+
+Deno.test('the read key covers everything the card shows: a re-scored or other card is a new read', () => {
+  const k = outcomeReadKey(CARD);
+  assertEquals(outcomeReadKey({ ...CARD }), k);
+  for (const c of [{ ...CARD, leagueId: 'L2' }, { ...CARD, week: 13 }, { ...CARD, team1: 'a' }, { ...CARD, team2: 'a' }, { ...CARD, winner: 'r' }, { ...CARD, isTie: true }]) {
+    assert(outcomeReadKey(c) !== k);
+  }
+});
+
+Deno.test('TEAM 2 MISSING (a bye, an unfilled playoff slot): the card has no matchup to read, so no read is made', () => {
+  const data = (team2: string | null, extra = {}) => ({
+    current_week: { week_number: 14 },
+    matchups: [{ week_number: 14, team1_user_id: 'r', team2_user_id: team2, team1_gain: 5, team2_gain: null, winner_user_id: null, is_tie: false, ...extra }],
+  }) as unknown as Parameters<typeof finalCardRow>[0];
+  // The row as given, keys and result untouched.
+  assertEquals(finalCardRow(data('p', { winner_user_id: 'p', is_tie: false }), 'r'), { week: 14, team1: 'r', team2: 'p', winner: 'p', isTie: false });
+  // team2 null is carried as null; the tab builds NO card from it (the source guard below) and so makes no read.
+  assertEquals(finalCardRow(data(null), 'r')?.team2, null);
+  assertEquals(finalCardRow(data('p'), 'someone-else'), null);
+  const tab = SOURCES['app/(tabs)/matchup.tsx'];
+  assert(tab.includes("fv.view.kind === 'final' && fv.final && fr && fr.team2 !== null\n    ? { leagueId: activeLeagueId"), 'a card only for a finished week with a team 2');
+  assert(tab.includes('    : null;\n  const outcomeRead = useFinalOutcome(cardMatchup);'));
+  assert(tab.includes('const outcome = user && cardMatchup ? agreedOutcome(cardMatchup, outcomeRead, user.id) : undefined;'));
+  // The hook makes no read for a null card.
+  const hook = SOURCES['lib/game/useFinalOutcome.ts'];
+  assert(hook.includes('if (!card || key === null) return;'));
+});
+
+Deno.test('the second read: one matchup by its four keys with maybeSingle, { error } checked, no retry, finished weeks only', () => {
+  const hook = SOURCES['lib/game/useFinalOutcome.ts'];
+  // On CODE lines only: the header comment names maybeSingle too.
+  const hookCode = hook.split('\n').filter((l) => !/^\s*(\*|\/\/|\/\*)/.test(l)).join('\n');
+  for (const k of [".eq('league_id', card.leagueId)", ".eq('week_number', card.week)", ".eq('team1_user_id', card.team1)", ".eq('team2_user_id', card.team2)", '.maybeSingle()']) assert(hookCode.includes(k), k);
+  // supabase-js resolves { data, error }: the error is read, and it clears the row (#566's rule).
+  assert(hook.includes('if (res.error) {') && hook.includes('setState({ key, row: undefined });'));
+  assert(hook.includes('.then((r) => ({ data: r.data ? [r.data as unknown as OutcomeRead] : [], error: r.error }))'), 'maybeSingle\'s own error is passed on');
+  // A row is taken only through pickOutcomeRow (exactly one match).
+  assert(hook.includes('pickOutcomeRow(res.data ?? [], card) ?? undefined'));
+  // No retry loop of any kind.
+  const code = hook.split('\n').filter((l) => !/^\s*(\*|\/\/|\/\*)/.test(l)).join('\n');
+  assertFalse(/setInterval|setTimeout|retry|attempt|while\s*\(|for\s*\(/.test(code), 'no retry loop');
+  // Finished weeks only: the card is built from the finished-week view alone.
+  assert(SOURCES['app/(tabs)/matchup.tsx'].includes("fv && fv.view.kind === 'final' && fv.final && fr"));
 });

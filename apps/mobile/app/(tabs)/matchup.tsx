@@ -24,7 +24,7 @@ import { useCaptureAction } from '@/lib/money/captureScript';
 import { useRevealOnce, type RevealState } from '@/lib/game/useRevealOnce';
 import { useAllMatchups } from '@/lib/game/useAllMatchups';
 import { useFinalOutcome } from '@/lib/game/useFinalOutcome';
-import type { RecordedOutcome } from '@/lib/game/outcomeLine';
+import { agreedOutcome, type CardMatchup, type RecordedOutcome } from '@/lib/game/outcomeLine';
 import { useFinalLineups, type FinalLineupsState } from '@/lib/game/useFinalLineups';
 import type { AllMatchupRow } from '@/lib/game/allMatchups';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
@@ -93,9 +93,16 @@ function MatchupScreen() {
   const finalSides = fv && fv.view.kind === 'final' && fv.final && fv.live.opp && user && fv.weekStart && fv.weekEnd
     ? { mine: user.id, theirs: fv.live.opp.userId, myGain: fv.final.me, theirGain: fv.final.opp, windowStart: fv.weekStart, windowEnd: fv.weekEnd }
     : null;
-  // Why the finished week was decided as it was (the stored reason): a direct read of the matchups table,
-  // since get_home_league carries no such column. Read only for a finished week.
-  const outcome = useFinalOutcome(activeLeagueId, fv?.week ?? null, user?.id ?? null, !!(fv && fv.view.kind === 'final' && fv.final));
+  // Why the finished week was decided as it was (the stored reason): get_home_league carries no such column, so
+  // ONE second read of the matchups table, keyed on the RPC row's own league / week / team ids (useFinalOutcome).
+  // Only for a finished week, and never for a row with no team 2 (a bye, an unfilled playoff slot). The reason
+  // shows only while that read's winner and tie equal the card's (agreedOutcome); the winner's name is the card's.
+  const fr = fv?.finalRow ?? null;
+  const cardMatchup: CardMatchup | null = activeLeagueId && fv && fv.view.kind === 'final' && fv.final && fr && fr.team2 !== null
+    ? { leagueId: activeLeagueId, week: fr.week, team1: fr.team1, team2: fr.team2, winner: fr.winner, isTie: fr.isTie }
+    : null;
+  const outcomeRead = useFinalOutcome(cardMatchup);
+  const outcome = user && cardMatchup ? agreedOutcome(cardMatchup, outcomeRead, user.id) : undefined;
   const finalLines = useFinalLineups(activeLeagueId, fv?.week ?? null, finalSides, finalSides !== null);
   const roster = useRosterData(activeLeagueId, user?.id ?? null, fv?.live.opp?.userId ?? null);
   // This week's two ledgers (Home's current week), for the roster and the withheld view.
