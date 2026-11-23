@@ -2,36 +2,36 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "5a1360e4c1bc1820fc57fd8ea35a0cc1722c8bdf",
-    "commitShort": "5a1360e4",
+    "commit": "cba5df5c8f642049194caacf659710fb18636c71",
+    "commitShort": "cba5df5c",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/watchlist-held-leaves",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "??",
-        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql"
+        "code": "M",
+        "path": "docs/architecture/db-snapshot.json"
       }
     ],
-    "timestamp": "2026-11-23T22:35:45Z",
-    "sourceHash": "sha256:739efe445590c6cadb12eeb49373379f064ee72549f87d37bc65d0d8d5485e76",
+    "timestamp": "2026-11-23T22:37:50Z",
+    "sourceHash": "sha256:74d6b5f15b682f2cc30af162972d7abbe3b7db7e80a4d3d6aa16df123dd01867",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-11-23T18:29:25Z",
-    "ageHours": 4.1,
-    "ageDays": 0.2,
+    "capturedAt": "2026-11-23T22:16:38Z",
+    "ageHours": 0.4,
+    "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:ef346abb9ed9b9597cfb7e2b8eb6b7c62f6d6b22e26f8e293f38e91b84feca47",
+    "hash": "sha256:cd2c34a27b62eaf82affedd34f09ce903884bb5fb702883e3f312d421d6c62f4",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
-      "functions": 140,
-      "tables": 41,
-      "cronJobs": 14
+      "functions": 142,
+      "tables": 42,
+      "cronJobs": 15
     }
   },
   "layers": [
@@ -325,6 +325,34 @@
       "source": {
         "path": "supabase/migrations/20261116000001_purge_rate_limit_counters.sql",
         "line": 36
+      }
+    },
+    {
+      "layer": "trigger",
+      "facts": {
+        "schedule": "*/5 * * * *",
+        "active": true,
+        "username": "postgres",
+        "target": "rank-top-movers",
+        "sendsApikey": true
+      },
+      "db": null,
+      "declared": {
+        "schedule": "*/5 * * * *",
+        "definedIn": [
+          "supabase/migrations/20261210000001_schedule_rank_top_movers.sql:28"
+        ]
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "cron.rank_top_movers",
+      "label": "rank_top_movers",
+      "sublabel": "*/5 * * * *",
+      "kind": "cron-job",
+      "source": {
+        "path": "supabase/migrations/20261210000001_schedule_rank_top_movers.sql",
+        "line": 28
       }
     },
     {
@@ -5584,7 +5612,32 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "securityDefiner": true,
+        "searchPath": "public, pg_temp",
+        "grants": [
+          {
+            "role": "postgres",
+            "privileges": [
+              "EXECUTE"
+            ]
+          },
+          {
+            "role": "authenticated",
+            "privileges": [
+              "EXECUTE"
+            ]
+          }
+        ],
+        "grantsRaw": [
+          "postgres=X/postgres",
+          "authenticated=X/postgres"
+        ],
+        "anonCallable": false,
+        "authenticatedCallable": true,
+        "owner": "postgres",
+        "volatility": "volatile"
+      },
       "declared": {
         "definedIn": [
           "supabase/migrations/20261210000000_top_movers.sql:199"
@@ -5592,20 +5645,12 @@
         "latestDefinition": "supabase/migrations/20261210000000_top_movers.sql",
         "redefinitions": 1
       },
-      "drift": [
-        {
-          "field": "existence",
-          "declared": "created by migration",
-          "live": "ABSENT from prod snapshot",
-          "severity": "high",
-          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-        }
-      ],
+      "drift": [],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "pg.get_league_top_movers",
-      "label": "get_league_top_movers()",
-      "sublabel": "not in snapshot",
+      "label": "get_league_top_movers(p_league_id uuid)",
+      "sublabel": "SECURITY DEFINER · authenticated",
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261210000000_top_movers.sql",
@@ -7440,7 +7485,32 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "securityDefiner": true,
+        "searchPath": "public, pg_temp",
+        "grants": [
+          {
+            "role": "postgres",
+            "privileges": [
+              "EXECUTE"
+            ]
+          },
+          {
+            "role": "service_role",
+            "privileges": [
+              "EXECUTE"
+            ]
+          }
+        ],
+        "grantsRaw": [
+          "postgres=X/postgres",
+          "service_role=X/postgres"
+        ],
+        "anonCallable": false,
+        "authenticatedCallable": false,
+        "owner": "postgres",
+        "volatility": "volatile"
+      },
       "declared": {
         "definedIn": [
           "supabase/migrations/20261210000000_top_movers.sql:124"
@@ -7448,20 +7518,12 @@
         "latestDefinition": "supabase/migrations/20261210000000_top_movers.sql",
         "redefinitions": 1
       },
-      "drift": [
-        {
-          "field": "existence",
-          "declared": "created by migration",
-          "live": "ABSENT from prod snapshot",
-          "severity": "high",
-          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-        }
-      ],
+      "drift": [],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "pg.replace_top_movers",
-      "label": "replace_top_movers()",
-      "sublabel": "not in snapshot",
+      "label": "replace_top_movers(p_ranked_at timestamp with time zone, p_set_size integer, p_fresh_count integer, p_symbols text[], p_change_pcts numeric[])",
+      "sublabel": "SECURITY DEFINER · service_role",
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261210000000_top_movers.sql",
@@ -10353,19 +10415,31 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "rlsEnabled": true,
+        "rlsForced": false,
+        "policies": []
+      },
       "declared": {
         "touchedBy": [
           "supabase/migrations/20261210000000_top_movers.sql"
         ],
         "rlsEnabled": true
       },
-      "drift": [],
+      "drift": [
+        {
+          "field": "policies",
+          "declared": "n/a",
+          "live": "RLS on, ZERO policies",
+          "severity": "low",
+          "note": "RLS with no policies denies all access except to roles that bypass RLS (service_role, table owner). This is the correct shape for a service-role-only table — confirm that is the intent."
+        }
+      ],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "tbl.top_movers",
       "label": "top_movers",
-      "sublabel": "not in snapshot",
+      "sublabel": "RLS · 0 policies",
       "kind": "table",
       "source": {
         "path": "supabase/migrations/20261210000000_top_movers.sql",
@@ -12187,6 +12261,18 @@
       "payload": "net.http_post · apikey from vault cron_apikey",
       "callSites": [
         "supabase/migrations/20261108000000_cron_explicit_timeouts.sql:228"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.cron.rank_top_movers->fn.rank-top-movers",
+      "from": "cron.rank_top_movers",
+      "to": "fn.rank-top-movers",
+      "protocol": "pg-net-http",
+      "payload": "net.http_post · apikey from vault cron_apikey",
+      "callSites": [
+        "supabase/migrations/20261210000001_schedule_rank_top_movers.sql:28"
       ]
     },
     {
@@ -24594,28 +24680,8 @@
   ],
   "drift": [
     {
-      "node": "pg.get_league_top_movers",
-      "label": "get_league_top_movers()",
-      "groupKey": "existence",
-      "field": "existence",
-      "declared": "created by migration",
-      "live": "ABSENT from prod snapshot",
-      "severity": "high",
-      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-    },
-    {
       "node": "pg.league_held_positions",
       "label": "league_held_positions()",
-      "groupKey": "existence",
-      "field": "existence",
-      "declared": "created by migration",
-      "live": "ABSENT from prod snapshot",
-      "severity": "high",
-      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-    },
-    {
-      "node": "pg.replace_top_movers",
-      "label": "replace_top_movers()",
       "groupKey": "existence",
       "field": "existence",
       "declared": "created by migration",
@@ -24954,6 +25020,16 @@
       "note": "RLS with no policies denies all access except to roles that bypass RLS (service_role, table owner). This is the correct shape for a service-role-only table — confirm that is the intent."
     },
     {
+      "node": "tbl.top_movers",
+      "label": "top_movers",
+      "groupKey": "policies",
+      "field": "policies",
+      "declared": "n/a",
+      "live": "RLS on, ZERO policies",
+      "severity": "low",
+      "note": "RLS with no policies denies all access except to roles that bypass RLS (service_role, table owner). This is the correct shape for a service-role-only table — confirm that is the intent."
+    },
+    {
       "node": "tbl.trades",
       "label": "trades",
       "groupKey": "public-role-policies-gated",
@@ -24975,24 +25051,6 @@
     }
   ],
   "deadCode": [
-    {
-      "node": "fn.rank-top-movers",
-      "label": "rank-top-movers",
-      "kind": "edge-function",
-      "source": "supabase/functions/rank-top-movers/index.ts:29",
-      "outbound": [
-        "ext.alpaca-data",
-        "mod.rank-top-movers/deps",
-        "mod.rank-top-movers/handler",
-        "mod.rank-top-movers/run",
-        "pg.replace_top_movers",
-        "tbl.cron_job_status",
-        "tbl.cron_job_status",
-        "tbl.cron_job_status",
-        "tbl.symbols"
-      ],
-      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
-    },
     {
       "node": "pg._account_deletion_apple_rank",
       "label": "_account_deletion_apple_rank(p_state text)",
@@ -25390,7 +25448,7 @@
     },
     {
       "node": "pg.get_league_top_movers",
-      "label": "get_league_top_movers()",
+      "label": "get_league_top_movers(p_league_id uuid)",
       "kind": "pg-function",
       "source": "supabase/migrations/20261210000000_top_movers.sql:199",
       "outbound": [
@@ -25821,18 +25879,6 @@
   },
   "unverified": [
     {
-      "scope": "pg.replace_top_movers",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
-      "scope": "pg.get_league_top_movers",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
       "scope": "pg.league_held_positions",
       "claim": "function exists in prod",
       "reason": "Present in migrations, absent from db-snapshot.json.",
@@ -25852,12 +25898,6 @@
     },
     {
       "scope": "tbl.notification_log",
-      "claim": "table exists in prod",
-      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot."
-    },
-    {
-      "scope": "tbl.top_movers",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
       "resolve": "Re-capture the snapshot."
@@ -25949,13 +25989,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 352,
-    "edges": 846,
+    "nodes": 353,
+    "edges": 847,
     "flows": 7,
-    "drift": 38,
-    "driftHigh": 4,
-    "deadCode": 65,
-    "unverified": 21
+    "drift": 37,
+    "driftHigh": 2,
+    "deadCode": 64,
+    "unverified": 18
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -26645,6 +26685,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=false"
     ],
-    "dbSnapshot": "sha256:ef346abb9ed9b9597cfb7e2b8eb6b7c62f6d6b22e26f8e293f38e91b84feca47"
+    "dbSnapshot": "sha256:cd2c34a27b62eaf82affedd34f09ce903884bb5fb702883e3f312d421d6c62f4"
   }
 }
