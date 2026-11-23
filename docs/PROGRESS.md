@@ -28,10 +28,10 @@ Entries begin with the Recorder's first pass.
 (Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. It was ~17:5xZ when I wrote this.)
 
 **Shipped**
-- **The watchlist server is APPLIED in prod, about 18:2xZ (#595; migration `20261209000000`; Giorgio ran it, the Orchestrator verified; I ran none of it).** The dry run listed only that file. By data: the `schema_migrations` row; RLS on, no `anon` or `PUBLIC`, `authenticated` has select, insert and delete only; three own-row policies; the two functions `SECURITY DEFINER`, pinned, executable by `authenticated` only, and the trigger function by `postgres` only; the 50-cap, cascades and trigger present; the effect test passed as a member, an outsider and `anon` (the 51st save refused, everything rolled back). `public.watchlist` has 0 rows. Ids kept out of the repo. **Not shown:** any app use; no client exists. **Still to come: the `db-snapshot.json` re-capture and a map regenerate.** `local/deploy` is at `f6df4115` (I read it).
+- **The watchlist server is APPLIED in prod, about 18:2xZ (#595; migration `20261209000000`; Giorgio ran it, the Orchestrator verified; I ran none of it).** The dry run listed only that file. By data: the `schema_migrations` row; RLS on, no `anon` or `PUBLIC`, `authenticated` has select, insert and delete only; three own-row policies; the two functions `SECURITY DEFINER`, pinned, executable by `authenticated` only, and the trigger function by `postgres` only; the 50-cap, cascades and trigger present; the effect test passed as a member, an outsider and `anon` (the 51st save refused, everything rolled back). `public.watchlist` has 0 rows. Ids kept out of the repo. **Not shown:** any app use; no client exists. **The db-snapshot was then re-captured (2026-11-23T18:29:25Z) and is on `main` (#598, merged 18:40:10Z); the map has 34 drift rows, none high (I counted); STATUS item 41 is closed.** `local/deploy` is at `f6df4115` (I read it).
 
 **Merged, not confirmed live**
-- **#594 (18:05:02Z, `61aaa3ea`, the Stocks-tab lists board and its rules), #595 (18:11:23Z, `47b05d65`, the watchlist server) and #596 (18:17:50Z, `f6df4115`, the plan's three settled points).** Main's CI is `success` on `f6df4115`, `47b05d65` and `61aaa3ea`. Only #279 (draft) is open.
+- **#594 (18:05:02Z, `61aaa3ea`, the Stocks-tab lists board and its rules), #595 (18:11:23Z, `47b05d65`, the watchlist server) and #596 (18:17:50Z, `f6df4115`, the plan's three settled points).** Main's CI is `success` on `f6df4115`, `47b05d65` and `61aaa3ea`. Then #597 (18:28:09Z, `65fb06aa`, my record, both commits) and #598 (18:40:10Z, `5163f525`, the snapshot re-capture and the plan's points 4 and 5). Only #279 (draft) is open.
 
 **Decided**
 - **"Yes to all the words" on the Stocks tab lists board (`#call-stocks-tab-lists`, #594) (Giorgio, via the Design Lead; in `docs/PRODUCT_RULES.md` via #594, which dates it 2026-11-22 Pacific).** Seven new words (Available, Watching, Top movers, "Star a stock to watch it here.", "No claims pending.", "+11.2% Fri", "MON 9:30 AM ET"). Two things the board drew without asking are the Design Lead's rulings, not his picks: a claim is the palette's rust, and the waiver order is the first row of Claims.
@@ -46,7 +46,7 @@ Entries begin with the Recorder's first pass.
 **Next**
 - **Monday 14:35Z's `snapshot-week-start` has passed; I have no report of its outcome.** The Orchestrator checks its logs.
 - The rest of Stocks part 3 (claims, the Top movers job, the screens) is not started as far as I know; then build 18; then the Expo upgrade.
-- The `db-snapshot.json` re-capture and a map regenerate (the Orchestrator will send them).
+- **Running (the Orchestrator's account; no pull request seen yet): the watchlist app (WS3), the Top movers server (WS4) and the `record-trade` list preview.** A `record-trade` deploy is needed before build 18 for the preview (STATUS item 42); then build 18; then the Expo upgrade.
 
 ## 2026-11-22
 
