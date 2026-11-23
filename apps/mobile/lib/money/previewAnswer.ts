@@ -1,17 +1,19 @@
 /**
  * previewAnswer: reads record-trade's preview reply (pure; recordTrade.ts does the call).
  *
- * Three outcomes, kept apart:
+ * The outcomes, kept apart:
  *   - ok: the preview body (funding, the slot map, and given a price the slot a buy would fill);
- *   - refused, not_draftable: the server's preview now answers as the buy would for a stock the buy refuses
- *     (docs/plans/2026-11-18-stocks-tab.md, part 3, point 7, corrected 2026-11-23). The sheet words it with
- *     the buy's own mapper (refusals.ts), so the two sentences cannot drift;
- *   - null: anything else. That includes both pacing answers, on purpose: the per-minute 429 `rate_limited`
- *     (an invoke error) and the hour/day cap's 200 `preview_limited` (record-trade/preview-gate.ts) keep
- *     today's wording (COPY.cantReach). The app's one pacing sentence talks about trades and is wrong for an
- *     hourly limit; the Design Lead's words for preview_limited go to Giorgio first. Only reasons listed in
- *     PREVIEW_REFUSALS are ever surfaced.
+ *   - refused, not_draftable: the preview answers as the buy would for a stock the buy refuses
+ *     (docs/plans/2026-11-18-stocks-tab.md, part 3, point 7). The sheet words it with the buy's own
+ *     mapper (refusals.ts), so the two sentences cannot drift;
+ *   - refused, paced: the per-minute limiter's 429 `rate_limited` (an invoke error; its body is read the way
+ *     the buy reads it, functionRefusal.ts) and the hour/day cap's 200 `preview_limited`. Each gets an
+ *     approved "Too many tries" line (pacedPreviewLine; PRODUCT_RULES "Too many taps on 'Review buy'", B);
+ *   - null: anything else (a transport failure, a 5xx, any other reason): "Couldn't reach trading".
+ * Only reasons listed here are ever surfaced. A `rate_limited` counts only as the edge limiter's 429.
  */
+import { functionOk, readFunctionRefusal } from '../functionRefusal';
+import { TOO_MANY_TRIES_LATER, TOO_MANY_TRIES_WAIT } from '../tooManyTries';
 import { parsePreviewSlots, parseSlotShape, type PreviewSlot, type SlotShape } from './tierContract';
 
 export interface PreviewResult {
@@ -28,24 +30,31 @@ export interface PreviewResult {
 }
 
 /** The preview refusals the app words. Every other refusal reads as "couldn't reach" (null). */
-export const PREVIEW_REFUSALS = ['not_draftable'] as const;
-export type PreviewRefusal = (typeof PREVIEW_REFUSALS)[number];
+export type PreviewRefusal = 'not_draftable' | 'rate_limited' | 'preview_limited';
 
 export type PreviewAnswer =
   | { kind: 'ok'; preview: PreviewResult }
   | { kind: 'refused'; reason: PreviewRefusal };
 
-/** `supabase.functions.invoke`'s result. A non-2xx (a 429, a 500) arrives as `error`, with no data. */
-export function readPreviewAnswer(result: { data: unknown; error: unknown }): PreviewAnswer | null {
-  const { data, error } = result;
-  if (error || !data || typeof data !== 'object') return null;
-  const d = data as Record<string, unknown>;
-  if (d.ok === false) {
-    const reason = d.reason;
-    return typeof reason === 'string' && (PREVIEW_REFUSALS as readonly string[]).includes(reason)
-      ? { kind: 'refused', reason: reason as PreviewRefusal }
-      : null;
+/** A paced buy review's line: the short wait for the per-minute limit, the long one for the hour/day cap.
+ * Null for any other reason. The approved lines are shared (lib/tooManyTries.ts), never copied. */
+export function pacedPreviewLine(reason: PreviewRefusal): string | null {
+  if (reason === 'rate_limited') return TOO_MANY_TRIES_WAIT;
+  if (reason === 'preview_limited') return TOO_MANY_TRIES_LATER;
+  return null;
+}
+
+/** `supabase.functions.invoke`'s result. A non-2xx (a 429, a 500) arrives as `error`, its body on the Response. */
+export async function readPreviewAnswer(result: { data: unknown; error: unknown }): Promise<PreviewAnswer | null> {
+  const r = await readFunctionRefusal(result.data, result.error);
+  if (r.transport) return null;
+  if (!functionOk(r)) {
+    if (r.reason === 'not_draftable' && r.status === null) return { kind: 'refused', reason: 'not_draftable' };
+    if (r.reason === 'preview_limited' && r.status === null) return { kind: 'refused', reason: 'preview_limited' };
+    if (r.reason === 'rate_limited' && r.status === 429) return { kind: 'refused', reason: 'rate_limited' };
+    return null;
   }
+  const d = r.body;
   if (d.ok !== true || !Array.isArray(d.sources)) return null;
   const sources: PreviewResult['sources'] = [];
   for (const s of d.sources as unknown[]) {
