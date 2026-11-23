@@ -45,6 +45,10 @@
 //   counters a buy or a sell never touches; past either it answers 200
 //   {ok:false, reason:'preview_limited'} (not the per-minute 429 rate_limited). The list applies the gate per row.
 //
+// CLAIMS HOLD (Stocks tab part 3, workstream 6; claims-hold.ts): while a league's
+//   claims are being processed at the open, a buy or a sell answers 200
+//   {ok:false, reason:'claims_processing'}. Lifts by itself 10 minutes after the open.
+//
 // CONCURRENCY (2026-10-05): validation runs here in TS, but the INSERT is
 //   record_trade_atomic — a league-wide lock + compare-and-swap of every
 //   league-scoped input the validator read (trades/drafts id sets, rules,
@@ -96,6 +100,7 @@ import {
   unhandled,
 } from './commit.ts';
 import { fetchDraftableAmong, fetchIsDraftable, paceCategoryPreview, previewRefusal } from './preview-gate.ts';
+import { claimsHoldRefusal } from './claims-hold.ts';
 import { MAX_PREVIEW_ROWS, parsePreviewRows, type PreviewRowAnswer, type PreviewRowRequest, previewRows } from './preview-list.ts';
 import {
   decideMarketGate,
@@ -407,6 +412,15 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     if (memErr) return json({ ok: false, reason: 'unhandled' }, 500);
     if (!member) return json({ ok: false, reason: 'not_a_member' }, 403);
+
+    // ---- The claims hold (claims-hold.ts, 20261211000000) --------------------
+    // A buy or a sell waits while this league's claims are processed at the open:
+    // 200 claims_processing. Lifts by itself at open + 10 minutes; fail-open on a
+    // read error. The preview is never held.
+    if (action === 'buy' || action === 'sell') {
+      const held = await claimsHoldRefusal(admin, leagueId);
+      if (held) return json(held);
+    }
 
     // ---- Preview gate: the buy's own not_draftable refusal ------------------
     // A single preview naming a stock answers as the buy would (preview-gate.ts):

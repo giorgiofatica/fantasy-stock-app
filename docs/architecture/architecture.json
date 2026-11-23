@@ -2,26 +2,58 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "62fe4e214f70e510d49788346b9c299ab8ec5080",
-    "commitShort": "62fe4e21",
+    "commit": "01dce36984cac3d8db6bf472634356d5a568243f",
+    "commitShort": "01dce369",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "docs/record-and-snapshot-1123",
+    "branch": "feat/claims-server",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "docs/architecture/db-snapshot.json"
+        "path": "supabase/config.toml"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/claims-run/"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/process-week-results/index.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/process-week-results/waiver-reset.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/record-trade/claims-hold.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/record-trade/claims-hold.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/record-trade/index.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261211000000_claims.sql"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261211000001_schedule_claims_run.sql"
       }
     ],
-    "timestamp": "2026-11-23T22:17:08Z",
-    "sourceHash": "sha256:3b6588681b185367ce4ecba45b81fc1f8a35046fd174a6a8b7e956ad003963aa",
+    "timestamp": "2026-11-23T22:51:54Z",
+    "sourceHash": "sha256:2b53ce098d23cc24ab415ee551230d6e08cfe464ef532634287ca4b1fcee9bdf",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T22:16:38Z",
-    "ageHours": 0,
+    "ageHours": 0.6,
     "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
@@ -563,6 +595,44 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:220",
+        "authGuard": null,
+        "userGuard": null,
+        "localModules": [
+          "deps.ts",
+          "handler.ts",
+          "plan.ts",
+          "run.ts"
+        ],
+        "tests": [
+          "handler.test.ts",
+          "plan.test.ts",
+          "run.test.ts"
+        ],
+        "envVars": [
+          "SB_SECRET_KEY_INTERNAL",
+          "SUPABASE_URL"
+        ],
+        "lines": 42
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "fn.claims-run",
+      "label": "claims-run",
+      "sublabel": "verify_jwt=false",
+      "kind": "edge-function",
+      "source": {
+        "path": "supabase/functions/claims-run/index.ts",
+        "line": 27
+      }
+    },
+    {
+      "layer": "edge",
+      "facts": {
+        "verifyJwt": false,
         "verifyJwtSource": "supabase/config.toml:130",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
@@ -763,7 +833,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:289",
+        "verifyJwtSource": "supabase/config.toml:299",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
@@ -951,7 +1021,8 @@
           "scoring-eligibility.ts",
           "season-completion.ts",
           "season-transition.ts",
-          "user-score.ts"
+          "user-score.ts",
+          "waiver-reset.ts"
         ],
         "tests": [
           "grouping.test.ts",
@@ -970,7 +1041,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 1286
+        "lines": 1327
       },
       "db": null,
       "declared": null,
@@ -983,7 +1054,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/process-week-results/index.ts",
-        "line": 393
+        "line": 394
       }
     },
     {
@@ -1062,16 +1133,18 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:239",
+        "verifyJwtSource": "supabase/config.toml:249",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
+          "claims-hold.ts",
           "commit.ts",
           "gate.ts",
           "preview-gate.ts",
           "preview-list.ts"
         ],
         "tests": [
+          "claims-hold.test.ts",
           "commit.test.ts",
           "gate.test.ts",
           "preview-list.test.ts"
@@ -1083,7 +1156,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 597
+        "lines": 611
       },
       "db": null,
       "declared": null,
@@ -1096,7 +1169,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/record-trade/index.ts",
-        "line": 302
+        "line": 307
       }
     },
     {
@@ -1245,7 +1318,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:294",
+        "verifyJwtSource": "supabase/config.toml:304",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
@@ -1274,7 +1347,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:299",
+        "verifyJwtSource": "supabase/config.toml:309",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
@@ -1309,7 +1382,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:334",
+        "verifyJwtSource": "supabase/config.toml:344",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
@@ -1341,7 +1414,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:225",
+        "verifyJwtSource": "supabase/config.toml:235",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
@@ -1367,6 +1440,63 @@
       "source": {
         "path": "supabase/functions/validate-and-record-pick/index.ts",
         "line": 140
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": false
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.claims-run/deps",
+      "label": "deps.ts",
+      "sublabel": "claims-run",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/claims-run/deps.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.claims-run/handler",
+      "label": "handler.ts",
+      "sublabel": "claims-run",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/claims-run/handler.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.claims-run/run",
+      "label": "run.ts",
+      "sublabel": "claims-run",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/claims-run/run.ts",
+        "line": 1
       }
     },
     {
@@ -1809,6 +1939,25 @@
     {
       "layer": "module",
       "facts": {
+        "hasTests": false
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.process-week-results/waiver-reset",
+      "label": "waiver-reset.ts",
+      "sublabel": "process-week-results",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/process-week-results/waiver-reset.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
         "hasTests": true
       },
       "db": null,
@@ -1860,6 +2009,25 @@
       "kind": "edge-module",
       "source": {
         "path": "supabase/functions/rank-top-movers/run.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.record-trade/claims-hold",
+      "label": "claims-hold.ts",
+      "sublabel": "record-trade",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/record-trade/claims-hold.ts",
         "line": 1
       }
     },
@@ -2114,6 +2282,68 @@
       "source": {
         "path": "supabase/migrations/20261125000003_account_deletions_ledger.sql",
         "line": 126
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:203"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg._claims_holdings",
+      "label": "_claims_holdings()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 203
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:228"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg._claims_season_end",
+      "label": "_claims_season_end()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 228
       }
     },
     {
@@ -2725,6 +2955,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:246"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg._waiver_order_fill",
+      "label": "_waiver_order_fill()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 246
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -3294,6 +3555,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:494"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.cancel_claim",
+      "label": "cancel_claim()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 494
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -3537,6 +3829,161 @@
       "source": {
         "path": "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql",
         "line": 121
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:287"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.claims_before_insert",
+      "label": "claims_before_insert()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 287
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:586"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.claims_hold_active",
+      "label": "claims_hold_active()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 586
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:530"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.claims_run_day",
+      "label": "claims_run_day()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 530
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:558"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.claims_run_state",
+      "label": "claims_run_state()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 558
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:629"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.commit_claims_run",
+      "label": "commit_claims_run()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 629
       }
     },
     {
@@ -5186,10 +5633,11 @@
       "declared": {
         "definedIn": [
           "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:91",
-          "supabase/migrations/20261115000000_run_it_back_lineage.sql:58"
+          "supabase/migrations/20261115000000_run_it_back_lineage.sql:58",
+          "supabase/migrations/20261211000000_claims.sql:921"
         ],
-        "latestDefinition": "supabase/migrations/20261115000000_run_it_back_lineage.sql",
-        "redefinitions": 2
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 3
       },
       "drift": [],
       "annotation": null,
@@ -5199,8 +5647,8 @@
       "sublabel": "SECURITY DEFINER · service_role",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261115000000_run_it_back_lineage.sql",
-        "line": 58
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 921
       }
     },
     {
@@ -7031,6 +7479,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:343"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.place_claim",
+      "label": "place_claim()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 343
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -7496,6 +7975,37 @@
       "source": {
         "path": "supabase/migrations/20261210000000_top_movers.sql",
         "line": 124
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261211000000_claims.sql:861"
+        ],
+        "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.reset_due_waiver_orders",
+      "label": "reset_due_waiver_orders()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 861
       }
     },
     {
@@ -8921,6 +9431,50 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "touchedBy": [
+          "supabase/migrations/20261211000000_claims.sql"
+        ],
+        "rlsEnabled": true
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": false,
+      "id": "tbl.claims",
+      "label": "claims",
+      "sublabel": "not in snapshot",
+      "kind": "table",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 102
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "touchedBy": [
+          "supabase/migrations/20261211000000_claims.sql"
+        ],
+        "rlsEnabled": true
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": false,
+      "id": "tbl.claims_runs",
+      "label": "claims_runs",
+      "sublabel": "not in snapshot",
+      "kind": "table",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 145
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "rlsEnabled": true,
         "rlsForced": false,
@@ -9628,7 +10182,8 @@
           "supabase/migrations/20261110000000_transfer_commissioner.sql",
           "supabase/migrations/20261111000000_draft_auto_start.sql",
           "supabase/migrations/20261115000001_run_it_back_notifications.sql",
-          "supabase/migrations/20261125000006_take_over_team.sql"
+          "supabase/migrations/20261125000006_take_over_team.sql",
+          "supabase/migrations/20261211000000_claims.sql"
         ],
         "rlsEnabled": true
       },
@@ -10500,6 +11055,50 @@
       "source": {
         "path": "supabase/migrations/20251210100000_create_user_profiles.sql",
         "line": 2
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "touchedBy": [
+          "supabase/migrations/20261211000000_claims.sql"
+        ],
+        "rlsEnabled": true
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": false,
+      "id": "tbl.waiver_order",
+      "label": "waiver_order",
+      "sublabel": "not in snapshot",
+      "kind": "table",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 78
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "touchedBy": [
+          "supabase/migrations/20261211000000_claims.sql"
+        ],
+        "rlsEnabled": true
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": false,
+      "id": "tbl.waiver_order_meta",
+      "label": "waiver_order_meta",
+      "sublabel": "not in snapshot",
+      "kind": "table",
+      "source": {
+        "path": "supabase/migrations/20261211000000_claims.sql",
+        "line": 94
       }
     },
     {
@@ -12273,6 +12872,192 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.fn.claims-run->mod.claims-run/deps",
+      "from": "fn.claims-run",
+      "to": "mod.claims-run/deps",
+      "protocol": "esm-import",
+      "payload": "import from './deps.ts'",
+      "callSites": [
+        "supabase/functions/claims-run/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->mod.claims-run/handler",
+      "from": "fn.claims-run",
+      "to": "mod.claims-run/handler",
+      "protocol": "esm-import",
+      "payload": "import from './handler.ts'",
+      "callSites": [
+        "supabase/functions/claims-run/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->mod.claims-run/run",
+      "from": "fn.claims-run",
+      "to": "mod.claims-run/run",
+      "protocol": "esm-import",
+      "payload": "import from './run.ts'",
+      "callSites": [
+        "supabase/functions/claims-run/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->pg.claims_run_day",
+      "from": "fn.claims-run",
+      "to": "pg.claims_run_day",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('claims_run_day')",
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:42"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->pg.claims_run_state",
+      "from": "fn.claims-run",
+      "to": "pg.claims_run_state",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('claims_run_state')",
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:59"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->pg.commit_claims_run",
+      "from": "fn.claims-run",
+      "to": "pg.commit_claims_run",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('commit_claims_run')",
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:155"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.cron_job_status",
+      "from": "fn.claims-run",
+      "to": "tbl.cron_job_status",
+      "protocol": "postgrest-select",
+      "payload": ".from('cron_job_status').select('status, error_message')",
+      "columns": [
+        "status, error_message"
+      ],
+      "callSites": [
+        "supabase/functions/_shared/job-status-io.ts:149"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.cron_job_status#update",
+      "from": "fn.claims-run",
+      "to": "tbl.cron_job_status",
+      "protocol": "postgrest-update",
+      "payload": ".from('cron_job_status').update()",
+      "columns": [],
+      "callSites": [
+        "supabase/functions/_shared/job-status-io.ts:198"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.cron_job_status#upsert",
+      "from": "fn.claims-run",
+      "to": "tbl.cron_job_status",
+      "protocol": "postgrest-upsert",
+      "payload": ".from('cron_job_status').upsert()",
+      "columns": [],
+      "callSites": [
+        "supabase/functions/_shared/job-status-io.ts:99"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.drafts",
+      "from": "fn.claims-run",
+      "to": "tbl.drafts",
+      "protocol": "postgrest-select",
+      "payload": ".from('drafts').select('id, user_id, symbol, entry_price, quantity, pick_number, slot_id')",
+      "columns": [
+        "id, user_id, symbol, entry_price, quantity, pick_number, slot_id"
+      ],
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:80"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.league_draft_slots",
+      "from": "fn.claims-run",
+      "to": "tbl.league_draft_slots",
+      "protocol": "postgrest-select",
+      "payload": ".from('league_draft_slots').select('id, slot_index, slot_count, price_min, price_max, category_id')",
+      "columns": [
+        "id, slot_index, slot_count, price_min, price_max, category_id"
+      ],
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:100"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.leagues",
+      "from": "fn.claims-run",
+      "to": "tbl.leagues",
+      "protocol": "postgrest-select",
+      "payload": ".from('leagues').select()",
+      "columns": [],
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:69"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.matchups",
+      "from": "fn.claims-run",
+      "to": "tbl.matchups",
+      "protocol": "postgrest-select",
+      "payload": ".from('matchups').select('week_end, is_playoff')",
+      "columns": [
+        "week_end, is_playoff"
+      ],
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:74"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.claims-run->tbl.trades",
+      "from": "fn.claims-run",
+      "to": "tbl.trades",
+      "protocol": "postgrest-select",
+      "payload": ".from('trades').select('id, user_id, symbol, action, quantity, price, total_value, created_at, funded_by_trade_id, slot_id')",
+      "columns": [
+        "id, user_id, symbol, action, quantity, price, total_value, created_at, funded_by_trade_id, slot_id"
+      ],
+      "callSites": [
+        "supabase/functions/claims-run/deps.ts:89"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.fn.delete-account->mod.delete-account/run",
       "from": "fn.delete-account",
       "to": "mod.delete-account/run",
@@ -13102,6 +13887,18 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.fn.process-week-results->mod.process-week-results/waiver-reset",
+      "from": "fn.process-week-results",
+      "to": "mod.process-week-results/waiver-reset",
+      "protocol": "esm-import",
+      "payload": "import from './waiver-reset.ts'",
+      "callSites": [
+        "supabase/functions/process-week-results/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.fn.process-week-results->pg.complete_league_season",
       "from": "fn.process-week-results",
       "to": "pg.complete_league_season",
@@ -13120,7 +13917,19 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('league_standings_ranked')",
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:144"
+        "supabase/functions/process-week-results/index.ts:145"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.process-week-results->pg.reset_due_waiver_orders",
+      "from": "fn.process-week-results",
+      "to": "pg.reset_due_waiver_orders",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('reset_due_waiver_orders')",
+      "callSites": [
+        "supabase/functions/process-week-results/waiver-reset.ts:31"
       ]
     },
     {
@@ -13132,7 +13941,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('start_league_playoffs')",
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:175"
+        "supabase/functions/process-week-results/index.ts:176"
       ]
     },
     {
@@ -13188,7 +13997,7 @@
         "user_id, symbol, entry_price, quantity"
       ],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:655"
+        "supabase/functions/process-week-results/index.ts:672"
       ]
     },
     {
@@ -13203,7 +14012,7 @@
         "*"
       ],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:1086"
+        "supabase/functions/process-week-results/index.ts:1103"
       ]
     },
     {
@@ -13216,7 +14025,7 @@
       "payload": ".from('league_standings').insert()",
       "columns": [],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:1110"
+        "supabase/functions/process-week-results/index.ts:1127"
       ]
     },
     {
@@ -13229,7 +14038,7 @@
       "payload": ".from('league_standings').update()",
       "columns": [],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:1095"
+        "supabase/functions/process-week-results/index.ts:1112"
       ]
     },
     {
@@ -13246,9 +14055,9 @@
         "id, playoff_teams"
       ],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:1180",
-        "supabase/functions/process-week-results/index.ts:268",
-        "supabase/functions/process-week-results/index.ts:349",
+        "supabase/functions/process-week-results/index.ts:1197",
+        "supabase/functions/process-week-results/index.ts:269",
+        "supabase/functions/process-week-results/index.ts:350",
         "supabase/functions/process-week-results/season-completion.ts:173"
       ]
     },
@@ -13262,8 +14071,8 @@
       "payload": ".from('leagues').update()",
       "columns": [],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:1234",
-        "supabase/functions/process-week-results/index.ts:1252"
+        "supabase/functions/process-week-results/index.ts:1251",
+        "supabase/functions/process-week-results/index.ts:1269"
       ]
     },
     {
@@ -13284,12 +14093,12 @@
         "week_end"
       ],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:1194",
-        "supabase/functions/process-week-results/index.ts:150",
-        "supabase/functions/process-week-results/index.ts:239",
-        "supabase/functions/process-week-results/index.ts:285",
-        "supabase/functions/process-week-results/index.ts:365",
-        "supabase/functions/process-week-results/index.ts:479",
+        "supabase/functions/process-week-results/index.ts:1211",
+        "supabase/functions/process-week-results/index.ts:151",
+        "supabase/functions/process-week-results/index.ts:240",
+        "supabase/functions/process-week-results/index.ts:286",
+        "supabase/functions/process-week-results/index.ts:366",
+        "supabase/functions/process-week-results/index.ts:480",
         "supabase/functions/process-week-results/season-completion.ts:192"
       ]
     },
@@ -13303,8 +14112,8 @@
       "payload": ".from('matchups').update()",
       "columns": [],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:1030",
-        "supabase/functions/process-week-results/index.ts:221"
+        "supabase/functions/process-week-results/index.ts:1047",
+        "supabase/functions/process-week-results/index.ts:222"
       ]
     },
     {
@@ -13319,8 +14128,8 @@
         "user_id, symbol, action, quantity, price, created_at"
       ],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:626",
-        "supabase/functions/process-week-results/index.ts:668"
+        "supabase/functions/process-week-results/index.ts:643",
+        "supabase/functions/process-week-results/index.ts:685"
       ]
     },
     {
@@ -13335,7 +14144,7 @@
         "user_id, symbol, quantity, week_start_price, week_end_price, entered_mid_week"
       ],
       "callSites": [
-        "supabase/functions/process-week-results/index.ts:568"
+        "supabase/functions/process-week-results/index.ts:585"
       ]
     },
     {
@@ -13469,6 +14278,18 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.fn.record-trade->mod.record-trade/claims-hold",
+      "from": "fn.record-trade",
+      "to": "mod.record-trade/claims-hold",
+      "protocol": "esm-import",
+      "payload": "import from './claims-hold.ts'",
+      "callSites": [
+        "supabase/functions/record-trade/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.fn.record-trade->mod.record-trade/commit",
       "from": "fn.record-trade",
       "to": "mod.record-trade/commit",
@@ -13523,9 +14344,21 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('check_and_bump_rate_limit')",
       "callSites": [
-        "supabase/functions/record-trade/index.ts:176",
-        "supabase/functions/record-trade/index.ts:179",
+        "supabase/functions/record-trade/index.ts:181",
+        "supabase/functions/record-trade/index.ts:184",
         "supabase/functions/record-trade/preview-gate.ts:72"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.record-trade->pg.claims_hold_active",
+      "from": "fn.record-trade",
+      "to": "pg.claims_hold_active",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('claims_hold_active')",
+      "callSites": [
+        "supabase/functions/record-trade/claims-hold.ts:28"
       ]
     },
     {
@@ -13537,7 +14370,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('record_trade_atomic')",
       "callSites": [
-        "supabase/functions/record-trade/index.ts:571"
+        "supabase/functions/record-trade/index.ts:585"
       ]
     },
     {
@@ -13552,7 +14385,7 @@
         "id, user_id, symbol, entry_price, quantity, pick_number, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:250"
+        "supabase/functions/record-trade/index.ts:255"
       ]
     },
     {
@@ -13567,7 +14400,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:275"
+        "supabase/functions/record-trade/index.ts:280"
       ]
     },
     {
@@ -13582,7 +14415,7 @@
         "user_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:403"
+        "supabase/functions/record-trade/index.ts:408"
       ]
     },
     {
@@ -13595,8 +14428,8 @@
       "payload": ".from('leagues').select()",
       "columns": [],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:239",
-        "supabase/functions/record-trade/index.ts:387"
+        "supabase/functions/record-trade/index.ts:244",
+        "supabase/functions/record-trade/index.ts:392"
       ]
     },
     {
@@ -13611,7 +14444,7 @@
         "session_date, open_et, close_et"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:156"
+        "supabase/functions/record-trade/index.ts:161"
       ]
     },
     {
@@ -13626,7 +14459,7 @@
         "covered_from, covered_through"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:155"
+        "supabase/functions/record-trade/index.ts:160"
       ]
     },
     {
@@ -13641,7 +14474,7 @@
         "week_end, is_playoff"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:204"
+        "supabase/functions/record-trade/index.ts:209"
       ]
     },
     {
@@ -13657,7 +14490,7 @@
         "symbol, is_draftable"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:530",
+        "supabase/functions/record-trade/index.ts:544",
         "supabase/functions/record-trade/preview-gate.ts:102",
         "supabase/functions/record-trade/preview-gate.ts:122"
       ]
@@ -13674,7 +14507,7 @@
         "id, user_id, symbol, action, quantity, price, total_value, created_at, funded_by_trade_id, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:259"
+        "supabase/functions/record-trade/index.ts:264"
       ]
     },
     {
@@ -13689,7 +14522,7 @@
         "symbol"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:463"
+        "supabase/functions/record-trade/index.ts:477"
       ]
     },
     {
@@ -14360,6 +15193,45 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg._claims_holdings->tbl.drafts",
+      "from": "pg._claims_holdings",
+      "to": "tbl.drafts",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT drafts (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:208"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._claims_holdings->tbl.trades",
+      "from": "pg._claims_holdings",
+      "to": "tbl.trades",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT trades (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:213"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._claims_season_end->tbl.matchups",
+      "from": "pg._claims_season_end",
+      "to": "tbl.matchups",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT matchups (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:233"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg._draft_order_finalize->tbl.league_draft_order_meta",
       "from": "pg._draft_order_finalize",
       "to": "tbl.league_draft_order_meta",
@@ -14970,6 +15842,86 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg._waiver_order_fill->tbl.league_draft_order",
+      "from": "pg._waiver_order_fill",
+      "to": "tbl.league_draft_order",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_draft_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:265"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._waiver_order_fill->tbl.league_members",
+      "from": "pg._waiver_order_fill",
+      "to": "tbl.league_members",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_members (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:263"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._waiver_order_fill->tbl.waiver_order",
+      "from": "pg._waiver_order_fill",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:255",
+        "supabase/migrations/20261211000000_claims.sql:264",
+        "supabase/migrations/20261211000000_claims.sql:270"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._waiver_order_fill->tbl.waiver_order_meta#insert",
+      "from": "pg._waiver_order_fill",
+      "to": "tbl.waiver_order_meta",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT waiver_order_meta (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:275"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._waiver_order_fill->tbl.waiver_order#delete",
+      "from": "pg._waiver_order_fill",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:270"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg._waiver_order_fill->tbl.waiver_order#insert",
+      "from": "pg._waiver_order_fill",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:271"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.account_deletion_apple_token->tbl.account_deletions",
       "from": "pg.account_deletion_apple_token",
       "to": "tbl.account_deletions",
@@ -15338,6 +16290,32 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.cancel_claim->tbl.claims",
+      "from": "pg.cancel_claim",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:514"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.cancel_claim->tbl.league_members",
+      "from": "pg.cancel_claim",
+      "to": "tbl.league_members",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_members (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:506"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.cancel_league_renewal->tbl.leagues",
       "from": "pg.cancel_league_renewal",
       "to": "tbl.leagues",
@@ -15400,6 +16378,233 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261202000000_draft_turn_lease_and_escalation_claim.sql:86"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_before_insert->tbl.claims",
+      "from": "pg.claims_before_insert",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:313"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_before_insert->tbl.league_members",
+      "from": "pg.claims_before_insert",
+      "to": "tbl.league_members",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_members (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:295"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_hold_active->tbl.claims",
+      "from": "pg.claims_hold_active",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:603"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_hold_active->tbl.claims_runs",
+      "from": "pg.claims_hold_active",
+      "to": "tbl.claims_runs",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims_runs (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:600"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_run_day->tbl.claims",
+      "from": "pg.claims_run_day",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:543"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_run_day->tbl.claims_runs",
+      "from": "pg.claims_run_day",
+      "to": "tbl.claims_runs",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims_runs (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:545"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_run_state->tbl.claims",
+      "from": "pg.claims_run_state",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:572"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_run_state->tbl.claims_runs",
+      "from": "pg.claims_run_state",
+      "to": "tbl.claims_runs",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims_runs (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:566"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.claims_run_state->tbl.waiver_order",
+      "from": "pg.claims_run_state",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:576"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.claims",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:678",
+        "supabase/migrations/20261211000000_claims.sql:707",
+        "supabase/migrations/20261211000000_claims.sql:730",
+        "supabase/migrations/20261211000000_claims.sql:778"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.claims_runs",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.claims_runs",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims_runs (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:670"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.claims_runs#insert",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.claims_runs",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT claims_runs (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:836"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.league_notifications#insert",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.league_notifications",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT league_notifications (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:821"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.trades",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.trades",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT trades (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:786",
+        "supabase/migrations/20261211000000_claims.sql:789"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.waiver_order",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:687",
+        "supabase/migrations/20261211000000_claims.sql:776",
+        "supabase/migrations/20261211000000_claims.sql:831"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.waiver_order#delete",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:831"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.commit_claims_run->tbl.waiver_order#insert",
+      "from": "pg.commit_claims_run",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:832"
       ]
     },
     {
@@ -16360,7 +17565,9 @@
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:127",
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:131",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:94",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:98"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:98",
+        "supabase/migrations/20261211000000_claims.sql:957",
+        "supabase/migrations/20261211000000_claims.sql:961"
       ]
     },
     {
@@ -16374,7 +17581,8 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:241",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:208"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:208",
+        "supabase/migrations/20261211000000_claims.sql:1071"
       ]
     },
     {
@@ -16388,7 +17596,8 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:237",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:204"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:204",
+        "supabase/migrations/20261211000000_claims.sql:1067"
       ]
     },
     {
@@ -16402,7 +17611,8 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:229",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:196"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:196",
+        "supabase/migrations/20261211000000_claims.sql:1059"
       ]
     },
     {
@@ -16416,7 +17626,8 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:108",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:75"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:75",
+        "supabase/migrations/20261211000000_claims.sql:938"
       ]
     },
     {
@@ -16430,7 +17641,8 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:245",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:212"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:212",
+        "supabase/migrations/20261211000000_claims.sql:1075"
       ]
     },
     {
@@ -16444,7 +17656,8 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:207",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:174"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:174",
+        "supabase/migrations/20261211000000_claims.sql:1037"
       ]
     },
     {
@@ -16458,7 +17671,8 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:220",
-        "supabase/migrations/20261115000000_run_it_back_lineage.sql:187"
+        "supabase/migrations/20261115000000_run_it_back_lineage.sql:187",
+        "supabase/migrations/20261211000000_claims.sql:1050"
       ]
     },
     {
@@ -18205,6 +19419,74 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.place_claim->tbl.claims",
+      "from": "pg.place_claim",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:422",
+        "supabase/migrations/20261211000000_claims.sql:427",
+        "supabase/migrations/20261211000000_claims.sql:432",
+        "supabase/migrations/20261211000000_claims.sql:471"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.place_claim->tbl.claims#insert",
+      "from": "pg.place_claim",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:446"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.place_claim->tbl.league_members",
+      "from": "pg.place_claim",
+      "to": "tbl.league_members",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_members (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:370"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.place_claim->tbl.leagues",
+      "from": "pg.place_claim",
+      "to": "tbl.leagues",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT leagues (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:391"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.place_claim->tbl.symbols",
+      "from": "pg.place_claim",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:406"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.postpone_league_draft->tbl.draft_postponements",
       "from": "pg.postpone_league_draft",
       "to": "tbl.draft_postponements",
@@ -18804,6 +20086,123 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.league_draft_order",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.league_draft_order",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_draft_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:894"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.league_members",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.league_members",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_members (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:891"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.leagues",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.leagues",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT leagues (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:872"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.matchups",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.matchups",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT matchups (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:880"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.waiver_order",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:897"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.waiver_order_meta",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.waiver_order_meta",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT waiver_order_meta (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:881"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.waiver_order_meta#insert",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.waiver_order_meta",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT waiver_order_meta (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:900"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.waiver_order#delete",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:897"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.reset_due_waiver_orders->tbl.waiver_order#insert",
+      "from": "pg.reset_due_waiver_orders",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:898"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.respond_to_renewal->tbl.league_members",
       "from": "pg.respond_to_renewal",
       "to": "tbl.league_members",
@@ -18969,6 +20368,32 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261125000005_scrub_deleted_manager.sql:250"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.scrub_deleted_manager->tbl.claims",
+      "from": "pg.scrub_deleted_manager",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261125000005_scrub_deleted_manager.sql:225"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.scrub_deleted_manager->tbl.claims#delete",
+      "from": "pg.scrub_deleted_manager",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261125000005_scrub_deleted_manager.sql:225"
       ]
     },
     {
@@ -19978,6 +21403,19 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.take_over_team->tbl.claims#update",
+      "from": "pg.take_over_team",
+      "to": "tbl.claims",
+      "protocol": "plpgsql-update",
+      "payload": "UPDATE claims (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261125000006_take_over_team.sql:514"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.take_over_team->tbl.drafts",
       "from": "pg.take_over_team",
       "to": "tbl.drafts",
@@ -20194,6 +21632,19 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261125000006_take_over_team.sql:500"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.take_over_team->tbl.waiver_order#update",
+      "from": "pg.take_over_team",
+      "to": "tbl.waiver_order",
+      "protocol": "plpgsql-update",
+      "payload": "UPDATE waiver_order (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261125000006_take_over_team.sql:510"
       ]
     },
     {
@@ -20417,6 +21868,19 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261005000001_signup_username_trigger.sql:88"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.tbl.claims->pg.claims_before_insert",
+      "from": "tbl.claims",
+      "to": "pg.claims_before_insert",
+      "protocol": "pg-trigger",
+      "payload": "trigger on claims",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261211000000_claims.sql:328"
       ]
     },
     {
@@ -24012,7 +25476,7 @@
           "edge": "e.fn.process-week-results->tbl.cron_job_status#upsert",
           "detail": "Job marked running before any work, and ended in exactly one terminal status by runJob. Written through the same-day overwrite rule, so the 22:00Z / Saturday no-op heals cannot replace the 21:15Z run's result.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:443"
+            "supabase/functions/process-week-results/index.ts:444"
           ]
         },
         {
@@ -24020,7 +25484,7 @@
           "edge": "e.fn.process-week-results->tbl.matchups",
           "detail": "Pending matchups: team1_gain IS NULL, week_end in the past, league_type=matchup. The NULL filter is what makes a re-run idempotent.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:498"
+            "supabase/functions/process-week-results/index.ts:499"
           ]
         },
         {
@@ -24028,7 +25492,7 @@
           "edge": "e.fn.process-week-results->mod.process-week-results/grouping",
           "detail": "One batch per (league_id, week_number), sorted week-ascending. Grouping by league alone was the original bug; the sort is load-bearing for week advancement.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:548",
+            "supabase/functions/process-week-results/index.ts:565",
             "supabase/functions/process-week-results/grouping.ts:49"
           ]
         },
@@ -24037,7 +25501,7 @@
           "edge": "e.fn.process-week-results->tbl.week_snapshots",
           "detail": "Per batch. Presence of any row sets hasSnapshots; any week_end_price sets hasWeekEndPrices.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:569"
+            "supabase/functions/process-week-results/index.ts:586"
           ]
         },
         {
@@ -24045,7 +25509,7 @@
           "edge": "e.fn.process-week-results->mod.process-week-results/scoring-eligibility",
           "detail": "GUARDS 1 & 2 — decideBatchScoring. A snapshot-less batch is skipped whole: stale_no_snapshots (>72h) or no_snapshots_week_gt_1. Freshness is checked first, and that order is load-bearing for ops labelling.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:734",
+            "supabase/functions/process-week-results/index.ts:751",
             "supabase/functions/process-week-results/scoring-eligibility.ts:218"
           ]
         },
@@ -24054,7 +25518,7 @@
           "edge": "e.fn.process-week-results->tbl.trades",
           "detail": "Mid-week trades inside [weekStart, weekEnd], then a second read bounded to week_end so a post-week sale cannot empty holdings and flip a win to an auto-loss.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:629"
+            "supabase/functions/process-week-results/index.ts:646"
           ]
         },
         {
@@ -24062,7 +25526,7 @@
           "edge": "e.fn.process-week-results->tbl.drafts",
           "detail": "Fallback scorer input — only reachable at week 1.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:655"
+            "supabase/functions/process-week-results/index.ts:672"
           ]
         },
         {
@@ -24077,7 +25541,7 @@
           "edge": "e.fn.process-week-results->mod.process-week-results/scoring-eligibility",
           "detail": "GUARD 3a — decideUserScorer picks full | legacy | fallback | unscoreable per user. A snapshot-less user past week 1 is unscoreable: cumulative-from-entry is all-time P/L, not a weekly delta.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:690",
+            "supabase/functions/process-week-results/index.ts:707",
             "supabase/functions/process-week-results/scoring-eligibility.ts:321"
           ]
         },
@@ -24086,7 +25550,7 @@
           "edge": "e.fn.process-week-results->mod.process-week-results/scoring-eligibility",
           "detail": "GUARD 3b — decideMatchupScoring refuses any matchup containing an unscoreable participant. Byes gate on team1 only. Refused matchups keep team1_gain NULL and stay pending.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:912",
+            "supabase/functions/process-week-results/index.ts:929",
             "supabase/functions/process-week-results/scoring-eligibility.ts:371"
           ]
         },
@@ -24095,7 +25559,7 @@
           "edge": "e.fn.process-week-results->tbl.matchups#update",
           "detail": "Winner written: regular-season bye = no result, empty portfolio = auto-loss, else dollar gain, tiebreak percent then playoff seed. A playoff winner then fills its next-round slot BY ADDRESS (playoff_round_number, bracket_position), conditional on the slot being empty.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:1034"
+            "supabase/functions/process-week-results/index.ts:1051"
           ]
         },
         {
@@ -24103,7 +25567,7 @@
           "edge": "e.fn.process-week-results->tbl.league_standings#update",
           "detail": "Read-then-increment, not transactional and NOT reversible. This irreversibility is the entire reason guards 1-3 refuse rather than fabricate.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:1097"
+            "supabase/functions/process-week-results/index.ts:1114"
           ]
         },
         {
@@ -24111,7 +25575,7 @@
           "edge": "e.fn.process-week-results->tbl.leagues#update",
           "detail": "current_week re-read per batch and advanced only when the batch IS the current week — so a guard-skipped week blocks advancement instead of being stepped over.",
           "files": [
-            "supabase/functions/process-week-results/index.ts:1191"
+            "supabase/functions/process-week-results/index.ts:1208"
           ]
         },
         {
@@ -24305,7 +25769,7 @@
           "edge": "e.fn.record-trade->pg.check_and_bump_rate_limit",
           "detail": "Per-user and per-IP buckets.",
           "files": [
-            "supabase/functions/record-trade/index.ts:176"
+            "supabase/functions/record-trade/index.ts:181"
           ]
         },
         {
@@ -24321,7 +25785,7 @@
           "edge": "e.fn.record-trade->tbl.symbols",
           "detail": "is_draftable gate for buys (bypassed only when the commissioner set allow_undraftable).",
           "files": [
-            "supabase/functions/record-trade/index.ts:530"
+            "supabase/functions/record-trade/index.ts:544"
           ]
         },
         {
@@ -24517,6 +25981,116 @@
     }
   ],
   "drift": [
+    {
+      "node": "pg._claims_holdings",
+      "label": "_claims_holdings()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg._claims_season_end",
+      "label": "_claims_season_end()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg._waiver_order_fill",
+      "label": "_waiver_order_fill()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.cancel_claim",
+      "label": "cancel_claim()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.claims_before_insert",
+      "label": "claims_before_insert()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.claims_hold_active",
+      "label": "claims_hold_active()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.claims_run_day",
+      "label": "claims_run_day()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.claims_run_state",
+      "label": "claims_run_state()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.commit_claims_run",
+      "label": "commit_claims_run()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.place_claim",
+      "label": "place_claim()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.reset_due_waiver_orders",
+      "label": "reset_due_waiver_orders()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
     {
       "node": "tbl.categories",
       "label": "categories",
@@ -24870,6 +26444,29 @@
   ],
   "deadCode": [
     {
+      "node": "fn.claims-run",
+      "label": "claims-run",
+      "kind": "edge-function",
+      "source": "supabase/functions/claims-run/index.ts:27",
+      "outbound": [
+        "mod.claims-run/deps",
+        "mod.claims-run/handler",
+        "mod.claims-run/run",
+        "pg.claims_run_day",
+        "pg.claims_run_state",
+        "pg.commit_claims_run",
+        "tbl.cron_job_status",
+        "tbl.cron_job_status",
+        "tbl.cron_job_status",
+        "tbl.drafts",
+        "tbl.league_draft_slots",
+        "tbl.leagues",
+        "tbl.matchups",
+        "tbl.trades"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg._account_deletion_apple_rank",
       "label": "_account_deletion_apple_rank(p_state text)",
       "kind": "pg-function",
@@ -24885,6 +26482,27 @@
       "outbound": [
         "tbl.account_deletions",
         "tbl.account_deletions"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
+      "node": "pg._claims_holdings",
+      "label": "_claims_holdings()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261211000000_claims.sql:203",
+      "outbound": [
+        "tbl.drafts",
+        "tbl.trades"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
+      "node": "pg._claims_season_end",
+      "label": "_claims_season_end()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261211000000_claims.sql:228",
+      "outbound": [
+        "tbl.matchups"
       ],
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
@@ -25057,6 +26675,21 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg._waiver_order_fill",
+      "label": "_waiver_order_fill()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261211000000_claims.sql:246",
+      "outbound": [
+        "tbl.league_draft_order",
+        "tbl.league_members",
+        "tbl.waiver_order",
+        "tbl.waiver_order_meta",
+        "tbl.waiver_order",
+        "tbl.waiver_order"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.account_deletion_apple_revoked",
       "label": "account_deletion_apple_revoked(p_user_id uuid)",
       "kind": "pg-function",
@@ -25163,6 +26796,17 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg.cancel_claim",
+      "label": "cancel_claim()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261211000000_claims.sql:494",
+      "outbound": [
+        "tbl.claims",
+        "tbl.league_members"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.cancel_league_renewal",
       "label": "cancel_league_renewal(p_league_id uuid)",
       "kind": "pg-function",
@@ -25251,7 +26895,7 @@
       "node": "pg.finalize_league_draft",
       "label": "finalize_league_draft(p_league_id uuid, p_member_ids text[], p_league_start timestamp with time zone, p_league_end timestamp with time zone, p_matchups jsonb)",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261115000000_run_it_back_lineage.sql:58",
+      "source": "supabase/migrations/20261211000000_claims.sql:921",
       "outbound": [
         "tbl.league_members",
         "tbl.league_seasons",
@@ -25349,6 +26993,20 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg.place_claim",
+      "label": "place_claim()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261211000000_claims.sql:343",
+      "outbound": [
+        "tbl.claims",
+        "tbl.claims",
+        "tbl.league_members",
+        "tbl.leagues",
+        "tbl.symbols"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.postpone_league_draft",
       "label": "postpone_league_draft(p_league_id uuid, p_draft_date timestamp with time zone, p_stage text, p_reason text, p_blockers jsonb, p_expect jsonb)",
       "kind": "pg-function",
@@ -25410,6 +27068,8 @@
       "outbound": [
         "tbl.account_deletions",
         "tbl.account_deletions",
+        "tbl.claims",
+        "tbl.claims",
         "tbl.draft_queue",
         "tbl.draft_queue",
         "tbl.league_invites",
@@ -25686,6 +27346,72 @@
   },
   "unverified": [
     {
+      "scope": "pg._claims_holdings",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg._claims_season_end",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg._waiver_order_fill",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.claims_before_insert",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.place_claim",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.cancel_claim",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.claims_run_day",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.claims_run_state",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.claims_hold_active",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.commit_claims_run",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.reset_due_waiver_orders",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -25693,6 +27419,30 @@
     },
     {
       "scope": "tbl.notification_log",
+      "claim": "table exists in prod",
+      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot."
+    },
+    {
+      "scope": "tbl.waiver_order",
+      "claim": "table exists in prod",
+      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot."
+    },
+    {
+      "scope": "tbl.waiver_order_meta",
+      "claim": "table exists in prod",
+      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot."
+    },
+    {
+      "scope": "tbl.claims",
+      "claim": "table exists in prod",
+      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot."
+    },
+    {
+      "scope": "tbl.claims_runs",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
       "resolve": "Re-capture the snapshot."
@@ -25784,16 +27534,17 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 351,
-    "edges": 841,
+    "nodes": 372,
+    "edges": 906,
     "flows": 7,
-    "drift": 35,
-    "driftHigh": 0,
-    "deadCode": 63,
-    "unverified": 16
+    "drift": 46,
+    "driftHigh": 11,
+    "deadCode": 69,
+    "unverified": 31
   },
   "sourceIndex": {
     "edgeFunctions": [
+      "claims-run[deps.ts,handler.ts,plan.ts,run.ts]",
       "delete-account[run.ts]",
       "draft-autopick-sweep[]",
       "draft-control[rules.ts]",
@@ -25805,10 +27556,10 @@
       "join-league[takeover.ts]",
       "leave-league[logic.ts]",
       "preview-league[inviter.ts,reason.ts,shape.ts]",
-      "process-week-results[grouping.ts,job-status.ts,outcome-record.ts,playoff-progression.ts,scoring-eligibility.ts,season-completion.ts,season-transition.ts,user-score.ts]",
+      "process-week-results[grouping.ts,job-status.ts,outcome-record.ts,playoff-progression.ts,scoring-eligibility.ts,season-completion.ts,season-transition.ts,user-score.ts,waiver-reset.ts]",
       "quote[]",
       "rank-top-movers[deps.ts,handler.ts,rank.ts,run.ts,snapshots.ts]",
-      "record-trade[commit.ts,gate.ts,preview-gate.ts,preview-list.ts]",
+      "record-trade[claims-hold.ts,commit.ts,gate.ts,preview-gate.ts,preview-list.ts]",
       "refresh-market-calendar[plan.ts,run.ts]",
       "refresh-symbols[]",
       "snapshot-week-end[close.ts]",
@@ -25937,6 +27688,9 @@
       "supabase/functions/_shared/draft-write.ts:895 -> record_live_prices",
       "supabase/functions/_shared/market-guard.ts:48 -> check_and_bump_rate_limit",
       "supabase/functions/_shared/turn-lease.ts:54 -> claim_draft_turn_lease",
+      "supabase/functions/claims-run/deps.ts:155 -> commit_claims_run",
+      "supabase/functions/claims-run/deps.ts:42 -> claims_run_day",
+      "supabase/functions/claims-run/deps.ts:59 -> claims_run_state",
       "supabase/functions/delete-account/index.ts:47 -> check_and_bump_rate_limit",
       "supabase/functions/delete-account/index.ts:50 -> check_and_bump_rate_limit",
       "supabase/functions/delete-account/index.ts:89 -> check_and_bump_rate_limit",
@@ -25963,13 +27717,15 @@
       "supabase/functions/leave-league/index.ts:68 -> check_and_bump_rate_limit",
       "supabase/functions/preview-league/index.ts:34 -> check_and_bump_rate_limit",
       "supabase/functions/preview-league/index.ts:37 -> check_and_bump_rate_limit",
-      "supabase/functions/process-week-results/index.ts:144 -> league_standings_ranked",
-      "supabase/functions/process-week-results/index.ts:175 -> start_league_playoffs",
+      "supabase/functions/process-week-results/index.ts:145 -> league_standings_ranked",
+      "supabase/functions/process-week-results/index.ts:176 -> start_league_playoffs",
       "supabase/functions/process-week-results/season-completion.ts:134 -> complete_league_season",
+      "supabase/functions/process-week-results/waiver-reset.ts:31 -> reset_due_waiver_orders",
       "supabase/functions/rank-top-movers/deps.ts:65 -> replace_top_movers",
-      "supabase/functions/record-trade/index.ts:176 -> check_and_bump_rate_limit",
-      "supabase/functions/record-trade/index.ts:179 -> check_and_bump_rate_limit",
-      "supabase/functions/record-trade/index.ts:571 -> record_trade_atomic",
+      "supabase/functions/record-trade/claims-hold.ts:28 -> claims_hold_active",
+      "supabase/functions/record-trade/index.ts:181 -> check_and_bump_rate_limit",
+      "supabase/functions/record-trade/index.ts:184 -> check_and_bump_rate_limit",
+      "supabase/functions/record-trade/index.ts:585 -> record_trade_atomic",
       "supabase/functions/record-trade/preview-gate.ts:72 -> check_and_bump_rate_limit",
       "supabase/functions/refresh-market-calendar/index.ts:166 -> apply_market_calendar",
       "supabase/functions/snapshot-week-end/index.ts:129 -> schedule_snapshot_retry",
@@ -26155,6 +27911,11 @@
       "supabase/functions/_shared/push.ts:56 -> push_tokens.select",
       "supabase/functions/_shared/push.ts:62 -> user_profiles.select",
       "supabase/functions/_shared/turn-lease.ts:78 -> draft_turn_leases.delete",
+      "supabase/functions/claims-run/deps.ts:100 -> league_draft_slots.select",
+      "supabase/functions/claims-run/deps.ts:69 -> leagues.select",
+      "supabase/functions/claims-run/deps.ts:74 -> matchups.select",
+      "supabase/functions/claims-run/deps.ts:80 -> drafts.select",
+      "supabase/functions/claims-run/deps.ts:89 -> trades.select",
       "supabase/functions/delete-account/index.ts:71 -> rate_limit_counters.select",
       "supabase/functions/draft-control/index.ts:174 -> leagues.select",
       "supabase/functions/draft-control/index.ts:182 -> league_members.select",
@@ -26178,40 +27939,40 @@
       "supabase/functions/preview-league/index.ts:86 -> league_invites.select",
       "supabase/functions/preview-league/index.ts:89 -> leagues.select",
       "supabase/functions/preview-league/inviter.ts:36 -> user_profiles.select",
-      "supabase/functions/process-week-results/index.ts:1030 -> matchups.update",
-      "supabase/functions/process-week-results/index.ts:1086 -> league_standings.select",
-      "supabase/functions/process-week-results/index.ts:1095 -> league_standings.update",
-      "supabase/functions/process-week-results/index.ts:1110 -> league_standings.insert",
-      "supabase/functions/process-week-results/index.ts:1180 -> leagues.select",
-      "supabase/functions/process-week-results/index.ts:1194 -> matchups.select",
-      "supabase/functions/process-week-results/index.ts:1234 -> leagues.update",
-      "supabase/functions/process-week-results/index.ts:1252 -> leagues.update",
-      "supabase/functions/process-week-results/index.ts:150 -> matchups.select",
-      "supabase/functions/process-week-results/index.ts:221 -> matchups.update",
-      "supabase/functions/process-week-results/index.ts:239 -> matchups.select",
-      "supabase/functions/process-week-results/index.ts:268 -> leagues.select",
-      "supabase/functions/process-week-results/index.ts:285 -> matchups.select",
-      "supabase/functions/process-week-results/index.ts:349 -> leagues.select",
-      "supabase/functions/process-week-results/index.ts:365 -> matchups.select",
-      "supabase/functions/process-week-results/index.ts:479 -> matchups.select",
-      "supabase/functions/process-week-results/index.ts:568 -> week_snapshots.select",
-      "supabase/functions/process-week-results/index.ts:626 -> trades.select",
-      "supabase/functions/process-week-results/index.ts:655 -> drafts.select",
-      "supabase/functions/process-week-results/index.ts:668 -> trades.select",
+      "supabase/functions/process-week-results/index.ts:1047 -> matchups.update",
+      "supabase/functions/process-week-results/index.ts:1103 -> league_standings.select",
+      "supabase/functions/process-week-results/index.ts:1112 -> league_standings.update",
+      "supabase/functions/process-week-results/index.ts:1127 -> league_standings.insert",
+      "supabase/functions/process-week-results/index.ts:1197 -> leagues.select",
+      "supabase/functions/process-week-results/index.ts:1211 -> matchups.select",
+      "supabase/functions/process-week-results/index.ts:1251 -> leagues.update",
+      "supabase/functions/process-week-results/index.ts:1269 -> leagues.update",
+      "supabase/functions/process-week-results/index.ts:151 -> matchups.select",
+      "supabase/functions/process-week-results/index.ts:222 -> matchups.update",
+      "supabase/functions/process-week-results/index.ts:240 -> matchups.select",
+      "supabase/functions/process-week-results/index.ts:269 -> leagues.select",
+      "supabase/functions/process-week-results/index.ts:286 -> matchups.select",
+      "supabase/functions/process-week-results/index.ts:350 -> leagues.select",
+      "supabase/functions/process-week-results/index.ts:366 -> matchups.select",
+      "supabase/functions/process-week-results/index.ts:480 -> matchups.select",
+      "supabase/functions/process-week-results/index.ts:585 -> week_snapshots.select",
+      "supabase/functions/process-week-results/index.ts:643 -> trades.select",
+      "supabase/functions/process-week-results/index.ts:672 -> drafts.select",
+      "supabase/functions/process-week-results/index.ts:685 -> trades.select",
       "supabase/functions/process-week-results/season-completion.ts:173 -> leagues.select",
       "supabase/functions/process-week-results/season-completion.ts:192 -> matchups.select",
       "supabase/functions/rank-top-movers/deps.ts:41 -> symbols.select",
-      "supabase/functions/record-trade/index.ts:155 -> market_calendar_coverage.select",
-      "supabase/functions/record-trade/index.ts:156 -> market_calendar.select",
-      "supabase/functions/record-trade/index.ts:204 -> matchups.select",
-      "supabase/functions/record-trade/index.ts:239 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:250 -> drafts.select",
-      "supabase/functions/record-trade/index.ts:259 -> trades.select",
-      "supabase/functions/record-trade/index.ts:275 -> league_draft_slots.select",
-      "supabase/functions/record-trade/index.ts:387 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:403 -> league_members.select",
-      "supabase/functions/record-trade/index.ts:463 -> watchlist.select",
-      "supabase/functions/record-trade/index.ts:530 -> symbols.select",
+      "supabase/functions/record-trade/index.ts:160 -> market_calendar_coverage.select",
+      "supabase/functions/record-trade/index.ts:161 -> market_calendar.select",
+      "supabase/functions/record-trade/index.ts:209 -> matchups.select",
+      "supabase/functions/record-trade/index.ts:244 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:255 -> drafts.select",
+      "supabase/functions/record-trade/index.ts:264 -> trades.select",
+      "supabase/functions/record-trade/index.ts:280 -> league_draft_slots.select",
+      "supabase/functions/record-trade/index.ts:392 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:408 -> league_members.select",
+      "supabase/functions/record-trade/index.ts:477 -> watchlist.select",
+      "supabase/functions/record-trade/index.ts:544 -> symbols.select",
       "supabase/functions/record-trade/preview-gate.ts:102 -> symbols.select",
       "supabase/functions/record-trade/preview-gate.ts:122 -> symbols.select",
       "supabase/functions/refresh-symbols/index.ts:171 -> symbols.upsert",
@@ -26452,9 +28213,12 @@
       "20261208000000_matchup_outcome_reason.sql",
       "20261209000000_watchlist.sql",
       "20261210000000_top_movers.sql",
-      "20261210000001_schedule_rank_top_movers.sql"
+      "20261210000001_schedule_rank_top_movers.sql",
+      "20261211000000_claims.sql",
+      "20261211000001_schedule_claims_run.sql"
     ],
     "config": [
+      "claims-run=false",
       "delete-account=false",
       "draft-autopick-sweep=false",
       "draft-control=false",
