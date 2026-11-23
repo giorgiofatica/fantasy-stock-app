@@ -2,26 +2,38 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "bffc97a1de09b2646329e8a75709ebefeee29edb",
-    "commitShort": "bffc97a1",
+    "commit": "00484c5ec5f52d6f8339f1d5e91787b030f21728",
+    "commitShort": "00484c5e",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/watchlist-app",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "docs/architecture/db-snapshot.json"
+        "path": "supabase/functions/record-trade/commit.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/record-trade/index.ts"
+      },
+      {
+        "code": "A",
+        "path": "supabase/functions/record-trade/preview-list.test.ts"
+      },
+      {
+        "code": "A",
+        "path": "supabase/functions/record-trade/preview-list.ts"
       }
     ],
-    "timestamp": "2026-11-23T19:51:10Z",
-    "sourceHash": "sha256:7310a7bad11c29e9907f739c2d5424648faa186ca3bc92f5978cd2634e62e84b",
+    "timestamp": "2026-11-23T20:11:00Z",
+    "sourceHash": "sha256:fb527282e8dfce241794441488054cf5de86f39c24604fe3f41d9fc7b72a2df7",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T18:29:25Z",
-    "ageHours": 1.4,
+    "ageHours": 1.7,
     "ageDays": 0.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -999,11 +1011,13 @@
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
           "commit.ts",
-          "gate.ts"
+          "gate.ts",
+          "preview-list.ts"
         ],
         "tests": [
           "commit.test.ts",
-          "gate.test.ts"
+          "gate.test.ts",
+          "preview-list.test.ts"
         ],
         "envVars": [
           "ALPACA_API_KEY",
@@ -1012,7 +1026,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 515
+        "lines": 562
       },
       "db": null,
       "declared": null,
@@ -1025,7 +1039,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/record-trade/index.ts",
-        "line": 280
+        "line": 285
       }
     },
     {
@@ -1770,6 +1784,25 @@
       "kind": "edge-module",
       "source": {
         "path": "supabase/functions/record-trade/gate.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.record-trade/preview-list",
+      "label": "preview-list.ts",
+      "sublabel": "record-trade",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/record-trade/preview-list.ts",
         "line": 1
       }
     },
@@ -13069,14 +13102,26 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.fn.record-trade->mod.record-trade/preview-list",
+      "from": "fn.record-trade",
+      "to": "mod.record-trade/preview-list",
+      "protocol": "esm-import",
+      "payload": "import from './preview-list.ts'",
+      "callSites": [
+        "supabase/functions/record-trade/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.fn.record-trade->pg.check_and_bump_rate_limit",
       "from": "fn.record-trade",
       "to": "pg.check_and_bump_rate_limit",
       "protocol": "postgrest-rpc",
       "payload": "rpc('check_and_bump_rate_limit')",
       "callSites": [
-        "supabase/functions/record-trade/index.ts:164",
-        "supabase/functions/record-trade/index.ts:167"
+        "supabase/functions/record-trade/index.ts:169",
+        "supabase/functions/record-trade/index.ts:172"
       ]
     },
     {
@@ -13088,7 +13133,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('record_trade_atomic')",
       "callSites": [
-        "supabase/functions/record-trade/index.ts:489"
+        "supabase/functions/record-trade/index.ts:536"
       ]
     },
     {
@@ -13103,7 +13148,7 @@
         "id, user_id, symbol, entry_price, quantity, pick_number, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:234"
+        "supabase/functions/record-trade/index.ts:239"
       ]
     },
     {
@@ -13118,7 +13163,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:259"
+        "supabase/functions/record-trade/index.ts:264"
       ]
     },
     {
@@ -13133,7 +13178,7 @@
         "user_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:371"
+        "supabase/functions/record-trade/index.ts:386"
       ]
     },
     {
@@ -13146,8 +13191,8 @@
       "payload": ".from('leagues').select()",
       "columns": [],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:223",
-        "supabase/functions/record-trade/index.ts:355"
+        "supabase/functions/record-trade/index.ts:228",
+        "supabase/functions/record-trade/index.ts:370"
       ]
     },
     {
@@ -13162,7 +13207,7 @@
         "session_date, open_et, close_et"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:144"
+        "supabase/functions/record-trade/index.ts:149"
       ]
     },
     {
@@ -13177,7 +13222,7 @@
         "covered_from, covered_through"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:143"
+        "supabase/functions/record-trade/index.ts:148"
       ]
     },
     {
@@ -13192,7 +13237,7 @@
         "week_end, is_playoff"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:192"
+        "supabase/functions/record-trade/index.ts:197"
       ]
     },
     {
@@ -13207,7 +13252,7 @@
         "is_draftable"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:448"
+        "supabase/functions/record-trade/index.ts:495"
       ]
     },
     {
@@ -13222,7 +13267,22 @@
         "id, user_id, symbol, action, quantity, price, total_value, created_at, funded_by_trade_id, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:243"
+        "supabase/functions/record-trade/index.ts:248"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.record-trade->tbl.watchlist",
+      "from": "fn.record-trade",
+      "to": "tbl.watchlist",
+      "protocol": "postgrest-select",
+      "payload": ".from('watchlist').select('symbol')",
+      "columns": [
+        "symbol"
+      ],
+      "callSites": [
+        "supabase/functions/record-trade/index.ts:430"
       ]
     },
     {
@@ -23707,7 +23767,7 @@
           "edge": "e.fn.record-trade->pg.check_and_bump_rate_limit",
           "detail": "Per-user and per-IP buckets.",
           "files": [
-            "supabase/functions/record-trade/index.ts:164"
+            "supabase/functions/record-trade/index.ts:169"
           ]
         },
         {
@@ -23715,7 +23775,7 @@
           "edge": "e.fn.record-trade->tbl.leagues",
           "detail": "League rules: stake mode, budget, notional, allow_undraftable.",
           "files": [
-            "supabase/functions/record-trade/commit.ts:217"
+            "supabase/functions/record-trade/commit.ts:219"
           ]
         },
         {
@@ -23723,7 +23783,7 @@
           "edge": "e.fn.record-trade->tbl.symbols",
           "detail": "is_draftable gate for buys (bypassed only when the commissioner set allow_undraftable).",
           "files": [
-            "supabase/functions/record-trade/index.ts:448"
+            "supabase/functions/record-trade/index.ts:495"
           ]
         },
         {
@@ -23731,7 +23791,7 @@
           "edge": "e.fn.record-trade->tbl.trades",
           "detail": "Validated by the shared pure module (_shared/draft-validation.ts), filled at the server-fetched price. KNOWN RACE: two concurrent buys can both pass validation — needs an atomic SECURITY DEFINER RPC.",
           "files": [
-            "supabase/functions/record-trade/commit.ts:240"
+            "supabase/functions/record-trade/commit.ts:242"
           ]
         }
       ],
@@ -25160,8 +25220,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 341,
-    "edges": 818,
+    "nodes": 342,
+    "edges": 820,
     "flows": 7,
     "drift": 34,
     "driftHigh": 0,
@@ -25183,7 +25243,7 @@
       "preview-league[inviter.ts,reason.ts,shape.ts]",
       "process-week-results[grouping.ts,job-status.ts,outcome-record.ts,playoff-progression.ts,scoring-eligibility.ts,season-completion.ts,season-transition.ts,user-score.ts]",
       "quote[]",
-      "record-trade[commit.ts,gate.ts]",
+      "record-trade[commit.ts,gate.ts,preview-list.ts]",
       "refresh-market-calendar[plan.ts,run.ts]",
       "refresh-symbols[]",
       "snapshot-week-end[close.ts]",
@@ -25341,9 +25401,9 @@
       "supabase/functions/process-week-results/index.ts:144 -> league_standings_ranked",
       "supabase/functions/process-week-results/index.ts:175 -> start_league_playoffs",
       "supabase/functions/process-week-results/season-completion.ts:134 -> complete_league_season",
-      "supabase/functions/record-trade/index.ts:164 -> check_and_bump_rate_limit",
-      "supabase/functions/record-trade/index.ts:167 -> check_and_bump_rate_limit",
-      "supabase/functions/record-trade/index.ts:489 -> record_trade_atomic",
+      "supabase/functions/record-trade/index.ts:169 -> check_and_bump_rate_limit",
+      "supabase/functions/record-trade/index.ts:172 -> check_and_bump_rate_limit",
+      "supabase/functions/record-trade/index.ts:536 -> record_trade_atomic",
       "supabase/functions/refresh-market-calendar/index.ts:166 -> apply_market_calendar",
       "supabase/functions/snapshot-week-end/index.ts:129 -> schedule_snapshot_retry",
       "supabase/functions/snapshot-week-start/index.ts:157 -> schedule_snapshot_retry",
@@ -25573,16 +25633,17 @@
       "supabase/functions/process-week-results/index.ts:668 -> trades.select",
       "supabase/functions/process-week-results/season-completion.ts:173 -> leagues.select",
       "supabase/functions/process-week-results/season-completion.ts:192 -> matchups.select",
-      "supabase/functions/record-trade/index.ts:143 -> market_calendar_coverage.select",
-      "supabase/functions/record-trade/index.ts:144 -> market_calendar.select",
-      "supabase/functions/record-trade/index.ts:192 -> matchups.select",
-      "supabase/functions/record-trade/index.ts:223 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:234 -> drafts.select",
-      "supabase/functions/record-trade/index.ts:243 -> trades.select",
-      "supabase/functions/record-trade/index.ts:259 -> league_draft_slots.select",
-      "supabase/functions/record-trade/index.ts:355 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:371 -> league_members.select",
-      "supabase/functions/record-trade/index.ts:448 -> symbols.select",
+      "supabase/functions/record-trade/index.ts:148 -> market_calendar_coverage.select",
+      "supabase/functions/record-trade/index.ts:149 -> market_calendar.select",
+      "supabase/functions/record-trade/index.ts:197 -> matchups.select",
+      "supabase/functions/record-trade/index.ts:228 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:239 -> drafts.select",
+      "supabase/functions/record-trade/index.ts:248 -> trades.select",
+      "supabase/functions/record-trade/index.ts:264 -> league_draft_slots.select",
+      "supabase/functions/record-trade/index.ts:370 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:386 -> league_members.select",
+      "supabase/functions/record-trade/index.ts:430 -> watchlist.select",
+      "supabase/functions/record-trade/index.ts:495 -> symbols.select",
       "supabase/functions/refresh-symbols/index.ts:171 -> symbols.upsert",
       "supabase/functions/snapshot-week-end/index.ts:193 -> trades.select",
       "supabase/functions/snapshot-week-end/index.ts:220 -> matchups.select",
