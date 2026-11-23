@@ -124,7 +124,7 @@ const SURFACES: { surface: string; file: string; pin: string; strings: string[] 
   },
   { surface: 'Trade history rows', file: 'components/money/TradeHistoryScreen.tsx', pin: '{keepTime(keepMoney(detail))}', strings: [`Mon 8:30 PM ET · ${formatShares(6.8942)} sh at ${formatMoney(290.1)}`, formatMoney(2000.01)] },
   { surface: 'Sale picker', file: 'components/money/SalePicker.tsx', pin: '{keepMoney(formatMoney(r.amount))}', strings: [formatMoney(2194.91), formatMoney(1500)] },
-  { surface: 'Stock search price', file: 'components/money/StockSearchScreen.tsx', pin: '{keepMoney(formatMoney(item.price))}', strings: [formatMoney(1234.56), formatMoney(912.3)] },
+  { surface: 'Stock search price', file: 'components/stocks/SearchRow.tsx', pin: '{keepMoney(formatMoney(item.price))}', strings: [formatMoney(1234.56), formatMoney(912.3)] },
   { surface: 'Draft room strip caption', file: 'components/game/DraftRoom.tsx', pin: 'caption={keepMoney(keepDots(caption))}', strings: [keepDots(rosterCaption(1, 6, { stakeMode: 'fixed_notional', notionalPerSlot: 2000 })), keepDots(rosterCaption(2, 6, { stakeMode: 'budget_cap', budgetLeft: 1240.5 }))] },
   { surface: 'Draft complete caption', file: 'components/game/DraftComplete.tsx', pin: '{keepMoney(keepDots(rosterPickCaption(r)))}', strings: [keepDots(rosterPickCaption({ round: 2, pick: 11 }))] },
   { surface: 'This week lead', file: 'components/home/ThisWeekCard.tsx', pin: '{keepMoney(formatMoney(gap))}', strings: [`You lead by ${formatMoney(123.15)}`, `You lead by ${formatMoney(1234567.89)}`] },
@@ -191,10 +191,10 @@ Deno.test('single-line money is left alone: the hero numbers and the shrink / nu
 const SITE_COUNTS: Record<string, number> = {
   'app/create-league.tsx': 1, 'app/join-league.tsx': 2, 'components/game/DraftComplete.tsx': 1, 'components/game/DraftRoom.tsx': 2,
   'components/game/RenewalReview.tsx': 1, 'components/game/ScheduleList.tsx': 2, 'components/home/ThisWeekCard.tsx': 1, 'components/home/YourSeason.tsx': 1,
-  'components/money/PortfolioScreen.tsx': 2, 'components/money/SalePicker.tsx': 1, 'components/money/StockSearchScreen.tsx': 1,
+  'components/money/PortfolioScreen.tsx': 2, 'components/money/SalePicker.tsx': 1,
   'components/money/StockSheetBody.tsx': 4, 'components/money/TradeHistoryScreen.tsx': 2, 'components/money/TradeReviewPanel.tsx': 5,
   'components/sp/gn/ManagerRow.tsx': 4, 'components/sp/gn/PlayerCard.tsx': 1, 'components/sp/gn/Scoreboard.tsx': 1,
-  'components/stocks/StocksScreen.tsx': 1,
+  'components/stocks/SearchRow.tsx': 1, 'components/stocks/StocksScreen.tsx': 1,
 };
 
 Deno.test('every wrapping site is wired: the exact keepMoney( count per file, and no other file uses it', () => {

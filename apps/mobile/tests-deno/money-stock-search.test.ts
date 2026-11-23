@@ -1,6 +1,6 @@
 /**
  * Hermetic tests for lib/money/stressFixture.ts's search catalog (3e STEP 2:
- * the stock-search fixture seam). Run with: cd apps/mobile/tests-deno && deno test .
+ * the search fixture seam). Run with: cd apps/mobile/tests-deno && deno test .
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { filterStressSearchCatalog } from '../lib/money/stressFixture.ts';

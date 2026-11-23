@@ -2,30 +2,122 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "abd584e2455c502843aba9cd513644cb22e51f91",
-    "commitShort": "abd584e2",
+    "commit": "4e227b3b97a6bce283479d53990cc742d4edca82",
+    "commitShort": "4e227b3b",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "fix/ax5-playoff-lines-stake-dash",
+    "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
+        "path": "apps/mobile/app/_layout.tsx"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/app/stock-search.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/components/game/SetupRows.tsx"
+        "path": "apps/mobile/components/money/PlayerPortfolioScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/keepDots.ts"
+        "path": "apps/mobile/components/money/PortfolioScreen.tsx"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/components/money/StockSearchScreen.tsx"
       },
       {
         "code": "A",
-        "path": "apps/mobile/tests-deno/ax5-playoff-lines-stake-dash.test.ts"
+        "path": "apps/mobile/components/stocks/SearchRow.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/components/stocks/StocksScreen.tsx"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/game/playerCardModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/fixtureMode.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stressFixture.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/useMoneyStockSearch.ts"
+      },
+      {
+        "code": "A",
+        "path": "apps/mobile/lib/stocks/useSearchOwnership.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/board-picks-1116.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/input-remount-key.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/keep-money.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/league-weeks.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c9-board-defects.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-finished-card.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-fixture-mode.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-stock-search-ownership.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-stock-search.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/player-card-model.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/route-declarations.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/ticker-badge-fit.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-23T05:35:09Z",
+    "timestamp": "2026-11-23T05:48:14Z",
     "sourceHash": "sha256:729aad60454ea7d46977d4f0603a56787f96ea0e381289e054ab7c1a50ac1233",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -33,7 +125,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 101.4,
+    "ageHours": 101.6,
     "ageDays": 4.2,
     "staleAfterDays": 14,
     "stale": false,

@@ -122,7 +122,7 @@ Deno.test('E9: row text is MEASURED, never fitted by iOS (adjustsFontSizeToFit o
   assertMatch(screen, /fontSize: VALUE_PT \* valueScale\(rowWidth, priceText, fontScale\)/);
   assertMatch(screen, /const \[rowWidth, setRowWidth\] = useState<number \| null>\(null\);/, 'null until laid out: full size');
   // The shared search row (reused for search results) is measured too.
-  const search = SOURCES['components/money/StockSearchScreen.tsx'];
+  const search = SOURCES['components/stocks/SearchRow.tsx'];
   assertFalse(/adjustsFontSizeToFit/.test(code(search)));
   assertMatch(search, /<TickerBadge symbol=\{item\.symbol\} style=\{off \? styles\.dim : null\} \/>/);
 });
@@ -136,6 +136,20 @@ Deno.test('C: the search icon is first in the chip row; searching swaps the row 
   assertMatch(screen, /<SearchRow key=\{item\.symbol\} item=\{item\} status=\{suffix\}/);
   assertMatch(screen, /useSearchOwnership\(\)/, 'an owned stock is marked by the existing ownership rule ("Owned by {name}")');
   assertMatch(screen, /Cancel<\/Text>/);
+});
+
+Deno.test('the search rows come from the Stocks modules, and the retired stock-search screen is gone (2026-11-22 clean-up)', () => {
+  // The Stocks tab renders its rows and ownership marks through the moved modules ...
+  assertMatch(screen, /import \{ SearchRow \} from '@\/components\/stocks\/SearchRow';/);
+  assertMatch(screen, /import \{ useSearchOwnership \} from '@\/lib\/stocks\/useSearchOwnership';/);
+  assertMatch(SOURCES['components/stocks/SearchRow.tsx'], /export function SearchRow\(/);
+  assertMatch(SOURCES['lib/stocks/useSearchOwnership.ts'], /export function useSearchOwnership\(\): \(symbol: string\) => OwnershipSuffix/);
+  // ... and nothing imports from, or is left of, the old screen: no file, no route file, no other source names it.
+  assertFalse('components/money/StockSearchScreen.tsx' in SOURCES);
+  assertFalse('app/stock-search.tsx' in SOURCES);
+  for (const [path, text] of Object.entries(SOURCES)) {
+    assertFalse(/StockSearchScreen|['"`]\/stock-search['"`]/.test(code(text)), `${path} still names the retired screen or its route`);
+  }
 });
 
 Deno.test('"All" is the default chip, and a chip passes its category id to the list', () => {

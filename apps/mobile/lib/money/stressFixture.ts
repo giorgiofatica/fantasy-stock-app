@@ -37,7 +37,7 @@ export interface StressSearchItem {
   is_draftable: boolean;
 }
 
-/** Every stress-drafted symbol (S001..S096), for the stock-search fixture seam. */
+/** Every stress-drafted symbol (S001..S096), for the search fixture seam. */
 const STRESS_SEARCH_CATALOG: StressSearchItem[] = (() => {
   const items: StressSearchItem[] = [];
   for (let pick = 1; pick <= STRESS_MANAGERS * STRESS_ROUNDS; pick++) {

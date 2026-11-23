@@ -151,10 +151,12 @@ Deno.test('PlayerCard: Week gain from cardWeekFigure; the dash alone (no percent
 });
 
 Deno.test('Portfolio and the manager portfolio key the card on the league type', () => {
-  // A season that is over draws no week figure at all (the card hides it), so its weekGain is a plain 0 there.
-  for (const [f, over] of [['components/money/PortfolioScreen.tsx', 'chartEnd'], ['components/money/PlayerPortfolioScreen.tsx', 'finished']]) {
+  // A season that is over has no week, so its weekGain is null through cardWeekGain (never a stand-in 0:
+  // "$0.00 this week" for a week that does not exist). The card hides the figure there as well.
+  for (const [f, over] of [['components/money/PortfolioScreen.tsx', 'chartEnd != null'], ['components/money/PlayerPortfolioScreen.tsx', 'finished']]) {
     const src = strip(SOURCES[f]);
-    assert(src.includes(`weekGain: ${over} ? 0 : stockWeek(shown, snapshots, trades, price).gain,`), f);
+    assert(src.includes(`weekGain: cardWeekGain(${over}, () => stockWeek(shown, snapshots, trades, price).gain),`), f);
+    assert(!/weekGain:[^\n]*\?\s*0\s*:/.test(src), `${f}: no 0 for "no week"`);
     assert(src.includes('hasWeeks: leagueHasWeeks(activeLeague?.league_type),'), f);
   }
 });

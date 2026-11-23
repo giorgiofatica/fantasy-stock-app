@@ -2,7 +2,7 @@
  * S-15: every route file must be DECLARED in app/_layout.tsx. expo-router
  * auto-adds an undeclared route file as an unguarded screen -- outside both
  * Stack.Protected guards -- so it is reachable signed out (a deep link). That
- * is how app/stock-search.tsx sat open. This test enumerates the route files
+ * is how app/stock-search.tsx sat open (the route is gone since 2026-11-22). This test enumerates the route files
  * from the generated source manifest, so a NEW route file fails here until it
  * is declared -- ONCE the manifest is regenerated. LIMIT: this suite runs
  * without --allow-read, so it cannot list app/ itself; a route file added
@@ -31,17 +31,17 @@ function routeNames(): string[] {
 
 Deno.test('every route file in app/ has a Stack.Screen in app/_layout.tsx', () => {
   const routes = routeNames();
-  assert(routes.includes('stock-search') && routes.includes('(tabs)') && routes.includes('login'), 'manifest enumeration broke');
+  assert(routes.includes('trade-history') && routes.includes('(tabs)') && routes.includes('login'), 'manifest enumeration broke');
   const undeclared = routes.filter((r) => !layout.includes(`<Stack.Screen name="${r}"`));
   assertEquals(undeclared, [], 'undeclared routes are auto-added OUTSIDE the sign-in guards');
 });
 
-Deno.test('stock-search is declared inside the signed-in, username-set guard', () => {
-  const signedIn = layout.indexOf('<Stack.Protected guard={signedIn}>');
-  const hasUsername = layout.indexOf('<Stack.Protected guard={!needsUsername}>', signedIn);
-  const at = layout.indexOf('<Stack.Screen name="stock-search"');
-  const outsideBoth = layout.indexOf('<Stack.Screen name="reset-password"');
-  assert(signedIn > 0 && hasUsername > signedIn && outsideBoth > 0);
-  assert(at > hasUsername && at < outsideBoth, 'stock-search must sit inside guard={signedIn} > guard={!needsUsername}');
-  assertEquals((layout.match(/name="stock-search"/g) ?? []).length, 1);
+Deno.test('the retired stock-search route is gone: no route file, no Stack.Screen, no link or Stack option naming it', () => {
+  assertEquals(routeNames().includes('stock-search'), false);
+  assertEquals(layout.includes('name="stock-search"'), false);
+  // The Stocks tab (app/(tabs)/stocks.tsx) is where buying starts; nothing in the app reaches for the old route.
+  for (const [path, text] of Object.entries(SOURCES)) {
+    if (!/^(app|components|lib)\//.test(path)) continue;
+    assertEquals(/['"`]\/stock-search['"`]/.test(text), false, `${path} navigates to /stock-search`);
+  }
 });
