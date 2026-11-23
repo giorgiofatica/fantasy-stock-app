@@ -490,11 +490,33 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
      and 500 a day per person, the watchlist's own numbers, on counters of its own so a buy
      or a sell is never refused by them. This is for the full-universe league, where every
      stock can be bought and so every stock must be answerable: any member can create one.
-     A preview with no stock named reads no category and is not counted.
-   - **No screen changes.** The app never asks about a stock it shows as "Not in this
-     league's list" (search does not let it be tapped). If the answer is a refusal all the
-     same, the app already has the words for both: "This stock isn't in this league's
-     list." and its line for too many requests.
+     The counter sits beside the read it protects: a preview is counted only when it reads
+     a category (a stock is named AND the league has a category slot). The gate above is
+     wider on purpose: it applies to every preview that names a stock, so the preview
+     always answers as the buy would, in leagues with no slots too.
+   - **CORRECTED 2026-11-23: a screen does change, and the app changes with it.** This
+     point first said "No screen changes... the app already has the words for both". That
+     was the Planner's error, caught by the worker before any code: the words exist, but
+     the preview never shows them. The app turns ANY refused preview into "Couldn't reach
+     trading. Check your connection and try again." (`recordTrade.ts` returns null unless
+     `ok` is true; `StockSheetBody.tsx` words null as `cantReach`). So with the gate alone,
+     Buy on a stock that can't be bought would blame the connection.
+     - The app maps the preview's `not_draftable` to the sentence the buy already shows
+       for it, "{symbol} isn't in this league's list of stocks.", through the same mapper
+       the buy uses (`refusals.ts`), so the two cannot drift. It appears before the review,
+       where the board already puts a slot refusal. Existing approved words, earlier.
+     - Where it can be seen: a race on today's app (a stock stops being draftable between
+       the list loading and the tap), and, once Watching ships, the Buy on a row that reads
+       "No longer tradable".
+     - A paced preview keeps today's wording for now, which is the same connection
+       sentence the 30-a-minute refusal already gets. It is wrong, and it is not new. The
+       app's one sentence for pacing ("Too many trades in a row. Wait a moment and try
+       again.") would be wrong in a different way for an hourly limit, so it is not reused.
+       The Design Lead words a paced preview, and those words go to Giorgio.
+     - Whether Buy should be offered at all on a stock that can't be bought is a look, so
+       it is the Design Lead's to draw and Giorgio's to pick. It does not hold this fix.
+     - Order: the app change ships in build 18. The server change may be deployed before
+       it: on build 17 the gate is reachable only by the race, and reads as it would today.
    - The list preview (#600) keeps its own rule, saved stocks only, and applies the same
      gate to each stock in the list.
    - The watchlist migration's note on pacing (`20261209000000`) is not rewritten: applied
@@ -505,6 +527,21 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
      stock gets the buy's refusal and no `would_fill`, with the category read not made; the
      same stock in a full-universe league is answered; the 201st named preview in an hour
      is refused while a buy still goes through; a preview with no stock is never counted.
+8. **Top movers, the server's readings** (#602, reported 2026-11-23; all four accepted):
+   - "The 100 biggest moves either way" is the top 100 by the size of the move, up and down
+     in one list. That is what the chip shows: biggest move first, whichever way.
+   - The reader's pool is exactly Available's (draftable, priced, owned by nobody in the
+     league). A ranked stock that stops being draftable drops out of the read.
+   - The read is paced as the Stocks list is (20 a minute, 120 an hour, 600 a day); past a
+     limit the chip shows "Stocks didn't load". No new words.
+   - **An empty answer shows "Stocks didn't load", with Try again.** The read returns the
+     ranking's time on each row, so zero rows carry no time and the app cannot tell "no
+     ranking has ever been written" from "this league owns every ranked stock". Both mean
+     there is no ranking to show, which is what the plan already says for a ranking that
+     is too old. The second cause needs one league to hold every ranked stock that is
+     still available, and is accepted as it stands. The first is real once: between the
+     deploy and the job's first run. So the hand-off's check by data confirms a ranking
+     exists before Giorgio opens the chip.
 
 ### Risks
 
