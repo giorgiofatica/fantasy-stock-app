@@ -470,6 +470,41 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
      stranded row; another manager's saved copy of the same stock is untouched; a save of a
      held stock is refused on both insert paths; a trade still succeeds when there is no
      row to remove.
+7. **The single preview answers slot fit only for a stock the buy would accept.** Found by
+   the security review of the list preview (#600), and already in production before it:
+   `record-trade`'s `preview`, given a `symbol` and a `price`, reads that stock's category
+   and answers `would_fill` for ANY stock, with no check that the stock can be bought. In a
+   league with category slots that tells a member whether any stock belongs to a category,
+   at the function's 30 calls a minute and with no hourly or daily limit. Giorgio's rule is
+   "I don't want people to be able to scrape anything" (2026-10-08), so it is closed, not
+   accepted:
+   - **The preview applies the buy's own gate first.** For a stock the buy would refuse as
+     `not_draftable` (not draftable, in a league that has not turned on the full universe),
+     the preview answers that same refusal and never reads or returns the category fit.
+     One rule, shared with the buy; not a list of "stocks the caller can see".
+   - **Why this gate and not "saved or visible".** The stock's sheet opens on stocks that
+     are not saved, and the buy must still show its slot line there. What the gate leaves
+     answerable is the draftable stocks, whose categories the paced Stocks list already
+     returns to any member. What it closes is the rest: the stocks no paced read returns.
+   - **A preview that names a stock is paced by the hour and the day as well**, 200 an hour
+     and 500 a day per person, the watchlist's own numbers, on counters of its own so a buy
+     or a sell is never refused by them. This is for the full-universe league, where every
+     stock can be bought and so every stock must be answerable: any member can create one.
+     A preview with no stock named reads no category and is not counted.
+   - **No screen changes.** The app never asks about a stock it shows as "Not in this
+     league's list" (search does not let it be tapped). If the answer is a refusal all the
+     same, the app already has the words for both: "This stock isn't in this league's
+     list." and its line for too many requests.
+   - The list preview (#600) keeps its own rule, saved stocks only, and applies the same
+     gate to each stock in the list.
+   - The watchlist migration's note on pacing (`20261209000000`) is not rewritten: applied
+     migrations are not edited. The claim becomes true when this ships; until then it is
+     overstated, and `STATUS.md` says so (the Recorder).
+   - It is `record-trade` code and rides the same deploy as #600 if it is ready; if not,
+     #600 does not wait for it. Opus, with the security reviewer. Tests: a non-draftable
+     stock gets the buy's refusal and no `would_fill`, with the category read not made; the
+     same stock in a full-universe league is answered; the 201st named preview in an hour
+     is refused while a buy still goes through; a preview with no stock is never counted.
 
 ### Risks
 
