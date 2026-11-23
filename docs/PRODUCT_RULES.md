@@ -1613,6 +1613,16 @@ building anything, and don't reopen a rule without him.
       a named colour of its own in the theme, with the rust as its value. It does not point
       at the warning colour or at the Retail category's colour, so changing either of those
       later cannot change a claim without anyone deciding to.
+    - **A stock he has a claim on does not look like an available stock** (the same day, his
+      next message: "but i agree, if i have a claim on a stock it shouldnt still show as the
+      same color as an available stock", and his reason: "otherwise a user will be
+      confused"). The board already draws this on Watching: the
+      claimed stock loses its plus and reads "Claimed · fills Mon 9:30 AM ET" (approved
+      2026-10-09). The board does not draw the same stock on Available, where it still
+      appears, because claims are blind and nobody else may learn of it. The Planner's
+      reading: Available treats it as Watching does (no plus, the "Claimed" line in place of
+      "name · category"), for the claiming manager only. If the Design Lead draws it any
+      other way, that drawing goes to him first.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
