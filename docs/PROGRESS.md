@@ -42,12 +42,14 @@ Entries begin with the Recorder's first pass.
 
 - **THE ORDER (Giorgio, typed to the Planner 2026-11-22; #591, open): "I would actually want to get those four elements in the build. And then from there, we do the build and then we do the upgrade."** His earlier pick "A" (build 18 first, then the upgrade) stands, extended by the four elements. He also corrected the Planner: "That's not my own reasoning." (recorded in #591).
 
+- **TRENDING IS "B": today's top movers across the whole market (Giorgio, typed to the Planner 2026-11-22 after A/B mockups; #591, open).** A (most bought or claimed in seven days, our own data) and "A now, B later" were not picked. He was told B needs a current price for every stock, so build 18 waits on the supplier. That does not send the enquiry: his 2026-11-19 words stand, nobody contacts a supplier until he says so. The watchlist and the claims do not depend on a supplier (the Orchestrator's account).
+
 **Found**
 - **STATUS item 37 is CLOSED, with a limit (the Orchestrator's account of Giorgio's read-only query of 2026-11-22; I ran nothing):** `not_recorded` 78 (the backfill), `dollar_gain` 8, no NULL row. So a real run after the 2026-11-20 deploy scored 8 matchups and wrote a reason on each. **All 8 are `dollar_gain`: no tiebreak, no-stocks or seed reason has been written in prod yet (tests only), and the percent columns were not read.**
 - **A correction:** prod is not only finished test leagues. 8 matchups were scored, so at least one league is in season; which league is unread. `CLAUDE.md`'s dated 2026-09-24 line about test leagues is now out of date and is not mine to edit (STATUS item 39).
 
 **Waiting on Giorgio**
-- The supplier enquiry (his to send when ready); his decisions on the two Stocks elements with none yet (trending and most-active lists; re-sorting), the Planner taking them one at a time, trending first.
+- **The supplier enquiry (his to send; on the critical path for build 18 now that trending is picked; the Planner is asking him whether he is ready)**; his decision on re-sorting (none yet), and the small open points on trending (chip name and place, number of rows, league-only).
 
 **Next**
 - **Build 18 now waits only on Giorgio's word to cut it** (the Planner is asking him; the Orchestrator's account) (superseded the same evening, below).
