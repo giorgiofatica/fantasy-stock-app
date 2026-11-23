@@ -217,6 +217,8 @@ const READERS: Record<string, 'caller' | 'service' | 'helper'> = {
   'supabase/functions/_shared/draft-write.ts': 'helper',
   // record-trade's preview gate (plan part 3 point 7): is_draftable, read with the admin client index.ts hands it.
   'supabase/functions/record-trade/preview-gate.ts': 'helper',
+  // rank-top-movers (cron, no caller): reads the 500 largest with the client index.ts hands it.
+  'supabase/functions/rank-top-movers/deps.ts': 'helper',
 };
 
 function walk(dir: URL, out: string[] = []): string[] {
