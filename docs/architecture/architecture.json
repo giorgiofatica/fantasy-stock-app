@@ -2,92 +2,36 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "ed64160127a481822b9ec007054bea06e1e6b5d6",
-    "commitShort": "ed641601",
+    "commit": "62fe4e214f70e510d49788346b9c299ab8ec5080",
+    "commitShort": "62fe4e21",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/watchlist-app",
+    "branch": "docs/record-and-snapshot-1123",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/components/money/StockSheetBody.tsx"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/account/deleteCopy.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/leaveLeague.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/join/joinPreview.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/money/previewAnswer.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/money/recordTrade.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/lib/tooManyTries.ts"
-      },
-      {
-        "code": "A",
-        "path": "apps/mobile/tests-deno/preview-refusal.test.ts"
-      },
-      {
-        "code": "UU",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/draft-validation.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/_shared/draft-validation.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/record-trade/index.ts"
-      },
-      {
-        "code": "A",
-        "path": "supabase/functions/record-trade/preview-gate.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/record-trade/preview-list.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/record-trade/preview-list.ts"
+        "path": "docs/architecture/db-snapshot.json"
       }
     ],
-    "timestamp": "2026-11-23T22:02:08Z",
-    "sourceHash": "sha256:9f9ed7446d12222b49bff6e71f7462b9d19ab7a57bb09e4ae2946174f29691e4",
+    "timestamp": "2026-11-23T22:17:08Z",
+    "sourceHash": "sha256:3b6588681b185367ce4ecba45b81fc1f8a35046fd174a6a8b7e956ad003963aa",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
-    "capturedAt": "2026-11-23T18:29:25Z",
-    "ageHours": 3.5,
-    "ageDays": 0.1,
+    "capturedAt": "2026-11-23T22:16:38Z",
+    "ageHours": 0,
+    "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
-    "hash": "sha256:ef346abb9ed9b9597cfb7e2b8eb6b7c62f6d6b22e26f8e293f38e91b84feca47",
+    "hash": "sha256:cd2c34a27b62eaf82affedd34f09ce903884bb5fb702883e3f312d421d6c62f4",
     "database": "postgres",
     "postgresVersion": "17.4",
     "counts": {
-      "functions": 140,
-      "tables": 41,
-      "cronJobs": 14
+      "functions": 142,
+      "tables": 42,
+      "cronJobs": 15
     }
   },
   "layers": [
@@ -381,6 +325,34 @@
       "source": {
         "path": "supabase/migrations/20261116000001_purge_rate_limit_counters.sql",
         "line": 36
+      }
+    },
+    {
+      "layer": "trigger",
+      "facts": {
+        "schedule": "*/5 * * * *",
+        "active": true,
+        "username": "postgres",
+        "target": "rank-top-movers",
+        "sendsApikey": true
+      },
+      "db": null,
+      "declared": {
+        "schedule": "*/5 * * * *",
+        "definedIn": [
+          "supabase/migrations/20261210000001_schedule_rank_top_movers.sql:28"
+        ]
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "cron.rank_top_movers",
+      "label": "rank_top_movers",
+      "sublabel": "*/5 * * * *",
+      "kind": "cron-job",
+      "source": {
+        "path": "supabase/migrations/20261210000001_schedule_rank_top_movers.sql",
+        "line": 28
       }
     },
     {
@@ -5640,7 +5612,32 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "securityDefiner": true,
+        "searchPath": "public, pg_temp",
+        "grants": [
+          {
+            "role": "postgres",
+            "privileges": [
+              "EXECUTE"
+            ]
+          },
+          {
+            "role": "authenticated",
+            "privileges": [
+              "EXECUTE"
+            ]
+          }
+        ],
+        "grantsRaw": [
+          "postgres=X/postgres",
+          "authenticated=X/postgres"
+        ],
+        "anonCallable": false,
+        "authenticatedCallable": true,
+        "owner": "postgres",
+        "volatility": "volatile"
+      },
       "declared": {
         "definedIn": [
           "supabase/migrations/20261210000000_top_movers.sql:199"
@@ -5648,20 +5645,12 @@
         "latestDefinition": "supabase/migrations/20261210000000_top_movers.sql",
         "redefinitions": 1
       },
-      "drift": [
-        {
-          "field": "existence",
-          "declared": "created by migration",
-          "live": "ABSENT from prod snapshot",
-          "severity": "high",
-          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-        }
-      ],
+      "drift": [],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "pg.get_league_top_movers",
-      "label": "get_league_top_movers()",
-      "sublabel": "not in snapshot",
+      "label": "get_league_top_movers(p_league_id uuid)",
+      "sublabel": "SECURITY DEFINER · authenticated",
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261210000000_top_movers.sql",
@@ -7464,7 +7453,32 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "securityDefiner": true,
+        "searchPath": "public, pg_temp",
+        "grants": [
+          {
+            "role": "postgres",
+            "privileges": [
+              "EXECUTE"
+            ]
+          },
+          {
+            "role": "service_role",
+            "privileges": [
+              "EXECUTE"
+            ]
+          }
+        ],
+        "grantsRaw": [
+          "postgres=X/postgres",
+          "service_role=X/postgres"
+        ],
+        "anonCallable": false,
+        "authenticatedCallable": false,
+        "owner": "postgres",
+        "volatility": "volatile"
+      },
       "declared": {
         "definedIn": [
           "supabase/migrations/20261210000000_top_movers.sql:124"
@@ -7472,20 +7486,12 @@
         "latestDefinition": "supabase/migrations/20261210000000_top_movers.sql",
         "redefinitions": 1
       },
-      "drift": [
-        {
-          "field": "existence",
-          "declared": "created by migration",
-          "live": "ABSENT from prod snapshot",
-          "severity": "high",
-          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-        }
-      ],
+      "drift": [],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "pg.replace_top_movers",
-      "label": "replace_top_movers()",
-      "sublabel": "not in snapshot",
+      "label": "replace_top_movers(p_ranked_at timestamp with time zone, p_set_size integer, p_fresh_count integer, p_symbols text[], p_change_pcts numeric[])",
+      "sublabel": "SECURITY DEFINER · service_role",
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261210000000_top_movers.sql",
@@ -10344,19 +10350,31 @@
     {
       "layer": "db",
       "facts": {},
-      "db": null,
+      "db": {
+        "rlsEnabled": true,
+        "rlsForced": false,
+        "policies": []
+      },
       "declared": {
         "touchedBy": [
           "supabase/migrations/20261210000000_top_movers.sql"
         ],
         "rlsEnabled": true
       },
-      "drift": [],
+      "drift": [
+        {
+          "field": "policies",
+          "declared": "n/a",
+          "live": "RLS on, ZERO policies",
+          "severity": "low",
+          "note": "RLS with no policies denies all access except to roles that bypass RLS (service_role, table owner). This is the correct shape for a service-role-only table — confirm that is the intent."
+        }
+      ],
       "annotation": null,
-      "verified": false,
+      "verified": true,
       "id": "tbl.top_movers",
       "label": "top_movers",
-      "sublabel": "not in snapshot",
+      "sublabel": "RLS · 0 policies",
       "kind": "table",
       "source": {
         "path": "supabase/migrations/20261210000000_top_movers.sql",
@@ -12178,6 +12196,18 @@
       "payload": "net.http_post · apikey from vault cron_apikey",
       "callSites": [
         "supabase/migrations/20261108000000_cron_explicit_timeouts.sql:228"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.cron.rank_top_movers->fn.rank-top-movers",
+      "from": "cron.rank_top_movers",
+      "to": "fn.rank-top-movers",
+      "protocol": "pg-net-http",
+      "payload": "net.http_post · apikey from vault cron_apikey",
+      "callSites": [
+        "supabase/migrations/20261210000001_schedule_rank_top_movers.sql:28"
       ]
     },
     {
@@ -24488,26 +24518,6 @@
   ],
   "drift": [
     {
-      "node": "pg.get_league_top_movers",
-      "label": "get_league_top_movers()",
-      "groupKey": "existence",
-      "field": "existence",
-      "declared": "created by migration",
-      "live": "ABSENT from prod snapshot",
-      "severity": "high",
-      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-    },
-    {
-      "node": "pg.replace_top_movers",
-      "label": "replace_top_movers()",
-      "groupKey": "existence",
-      "field": "existence",
-      "declared": "created by migration",
-      "live": "ABSENT from prod snapshot",
-      "severity": "high",
-      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
-    },
-    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -24828,6 +24838,16 @@
       "note": "RLS with no policies denies all access except to roles that bypass RLS (service_role, table owner). This is the correct shape for a service-role-only table — confirm that is the intent."
     },
     {
+      "node": "tbl.top_movers",
+      "label": "top_movers",
+      "groupKey": "policies",
+      "field": "policies",
+      "declared": "n/a",
+      "live": "RLS on, ZERO policies",
+      "severity": "low",
+      "note": "RLS with no policies denies all access except to roles that bypass RLS (service_role, table owner). This is the correct shape for a service-role-only table — confirm that is the intent."
+    },
+    {
       "node": "tbl.trades",
       "label": "trades",
       "groupKey": "public-role-policies-gated",
@@ -24849,24 +24869,6 @@
     }
   ],
   "deadCode": [
-    {
-      "node": "fn.rank-top-movers",
-      "label": "rank-top-movers",
-      "kind": "edge-function",
-      "source": "supabase/functions/rank-top-movers/index.ts:29",
-      "outbound": [
-        "ext.alpaca-data",
-        "mod.rank-top-movers/deps",
-        "mod.rank-top-movers/handler",
-        "mod.rank-top-movers/run",
-        "pg.replace_top_movers",
-        "tbl.cron_job_status",
-        "tbl.cron_job_status",
-        "tbl.cron_job_status",
-        "tbl.symbols"
-      ],
-      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
-    },
     {
       "node": "pg._account_deletion_apple_rank",
       "label": "_account_deletion_apple_rank(p_state text)",
@@ -25264,7 +25266,7 @@
     },
     {
       "node": "pg.get_league_top_movers",
-      "label": "get_league_top_movers()",
+      "label": "get_league_top_movers(p_league_id uuid)",
       "kind": "pg-function",
       "source": "supabase/migrations/20261210000000_top_movers.sql:199",
       "outbound": [
@@ -25684,18 +25686,6 @@
   },
   "unverified": [
     {
-      "scope": "pg.replace_top_movers",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
-      "scope": "pg.get_league_top_movers",
-      "claim": "function exists in prod",
-      "reason": "Present in migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
-    },
-    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -25703,12 +25693,6 @@
     },
     {
       "scope": "tbl.notification_log",
-      "claim": "table exists in prod",
-      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
-      "resolve": "Re-capture the snapshot."
-    },
-    {
-      "scope": "tbl.top_movers",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
       "resolve": "Re-capture the snapshot."
@@ -25800,13 +25784,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 350,
-    "edges": 840,
+    "nodes": 351,
+    "edges": 841,
     "flows": 7,
-    "drift": 36,
-    "driftHigh": 2,
-    "deadCode": 64,
-    "unverified": 19
+    "drift": 35,
+    "driftHigh": 0,
+    "deadCode": 63,
+    "unverified": 16
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -26495,6 +26479,6 @@
       "ticker-quotes=false",
       "validate-and-record-pick=false"
     ],
-    "dbSnapshot": "sha256:ef346abb9ed9b9597cfb7e2b8eb6b7c62f6d6b22e26f8e293f38e91b84feca47"
+    "dbSnapshot": "sha256:cd2c34a27b62eaf82affedd34f09ce903884bb5fb702883e3f312d421d6c62f4"
   }
 }
