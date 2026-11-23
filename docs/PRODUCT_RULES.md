@@ -1718,6 +1718,50 @@ building anything, and don't reopen a rule without him.
       person, and the message is shown only when the repair is impossible. A message that
       is correct (a company really was delisted) is not a fault to fix.
     - The plan for it is the Planner's to write and his to approve. Not built.
+  - **Claims work as ESPN's waiver wire does, except daily; a manager orders their own
+    claims** (2026-11-23, said in the Planner's chat when asked to choose how a claim on a
+    stock with no price at the open should behave; his words in full: "Okay, this is how it
+    should work. Once again, if you need to, please ask the researcher to look into how the
+    waiver wire works for like ESPN before a week has kicked off. So, for example, in ESPN,
+    Tuesday afternoon, I can put a claim on a player. I put the claim in. I get a multiple
+    claims. I get to order the priority. But come Wednesday morning, the app will run all
+    those claims. Let's say I put a claim in for someone and I get them. But let's say I
+    put a claim in for the same player as someone else, but they had a higher waiver wire
+    priority, then they got the player and I didn't. So it has to work the same way, except
+    it happens daily. So if close a market, let's say right now it's Monday at 3 p.m. I
+    want to put a claim in where I drop NVIDIA and I pick up AMD. I'm not going to know if
+    I have that until Tuesday when the market opens. When the market opens, it executes the
+    trade where it drops NVIDIA at whatever price NVIDIA is, and then it picks up AMD at
+    that opening price. That's how it has to work. It has to be automatic at markets open.
+    Let's say I did that, but someone else with a higher waiver priority claimed AMD. I
+    don't get it. It doesn't sell NVIDIA. I get to keep it. I just keep NVIDIA because I
+    don't get to pick up AMD.").
+    - He then sent ESPN's own rules page for it:
+      `https://www.espn.com/fantasy/football/ffl/story?page=fflruleswaiverwalk` (dated
+      2007; read by the Planner 2026-11-23). What it states, and what is built to match:
+      a contested player goes to the team with the best waiver position; the team that
+      gets a player moves to the last position and the others move up; the order is reset
+      each week to the reverse of the standings; waivers are processed daily; a player
+      nobody claimed is a free agent, and picking one up does not change the order.
+    - What the page does not say and he does: "I get a multiple claims. I get to order the
+      priority." Several claims are built (five at most). Ordering them is NOT: the run
+      takes a manager's claims in the order they were placed. That is a gap, to be planned.
+    - Already built as he describes (the claims server, #608): claims only while the market
+      is closed; nobody knows the outcome before the open; the sale and the buy both at
+      the open; a claim that loses sells nothing.
+    - **The Planner's reading, not his pick, for the stock with no price at the open:**
+      "It has to be automatic at markets open" and "at whatever price NVIDIA is" mean the
+      claim does not wait through the morning. It tries for today's price inside the 10
+      minutes the league is held, then fills at the last known price (option B of the
+      three shown to him). He was told this reading and can overrule it.
+  - **The hold on trading while claims run is a known, limited exception to "claims are
+    blind"** (2026-11-23, found by the security review of the claims server; told to him
+    in the Planner's chat the same day, and not objected to). For at most 10 minutes after
+    the open, a member who tries to trade in a league whose claims are being run reads
+    "Claims are being processed. Try again in a minute." So they learn that someone in the
+    league has a claim that day: not who, not how many, not which stock. It is the October
+    plan's design and its approved sentence. The fully blind alternative, holding every
+    league every morning whether it has claims or not, was not taken.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
