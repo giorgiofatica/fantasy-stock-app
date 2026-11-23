@@ -2,30 +2,21 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "d54e6bed7436de6cfcf7e925918f6d26884c05b5",
-    "commitShort": "d54e6bed",
+    "commit": "ab3c7b4d787c5f516603697de014ff52ec61adc8",
+    "commitShort": "ab3c7b4d",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "supabase/functions/rank-top-movers/deps.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/rank-top-movers/deps.ts"
-      }
-    ],
-    "timestamp": "2026-11-23T20:09:59Z",
-    "sourceHash": "sha256:cb2a903b111ac449cbc3b279093dde8d085db6c19f0fa11fbaa72e9e35f61e98",
+    "branch": "fix/record-trade-preview-gate",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-23T20:18:31Z",
+    "sourceHash": "sha256:9c14906d3f04eeda50210cfe351d00f676f5518054cfe39aa36a3b39d332d5d3",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T18:29:25Z",
-    "ageHours": 1.7,
+    "ageHours": 1.8,
     "ageDays": 0.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -1044,6 +1035,7 @@
         "localModules": [
           "commit.ts",
           "gate.ts",
+          "preview-gate.ts",
           "preview-list.ts"
         ],
         "tests": [
@@ -1058,7 +1050,7 @@
           "SB_SECRET_KEY_INTERNAL",
           "SUPABASE_URL"
         ],
-        "lines": 562
+        "lines": 597
       },
       "db": null,
       "declared": null,
@@ -1071,7 +1063,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/record-trade/index.ts",
-        "line": 285
+        "line": 302
       }
     },
     {
@@ -1873,6 +1865,25 @@
       "kind": "edge-module",
       "source": {
         "path": "supabase/functions/record-trade/gate.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": false
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.record-trade/preview-gate",
+      "label": "preview-gate.ts",
+      "sublabel": "record-trade",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/record-trade/preview-gate.ts",
         "line": 1
       }
     },
@@ -13340,6 +13351,18 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.fn.record-trade->mod.record-trade/preview-gate",
+      "from": "fn.record-trade",
+      "to": "mod.record-trade/preview-gate",
+      "protocol": "esm-import",
+      "payload": "import from './preview-gate.ts'",
+      "callSites": [
+        "supabase/functions/record-trade/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.fn.record-trade->mod.record-trade/preview-list",
       "from": "fn.record-trade",
       "to": "mod.record-trade/preview-list",
@@ -13358,8 +13381,9 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('check_and_bump_rate_limit')",
       "callSites": [
-        "supabase/functions/record-trade/index.ts:169",
-        "supabase/functions/record-trade/index.ts:172"
+        "supabase/functions/record-trade/index.ts:176",
+        "supabase/functions/record-trade/index.ts:179",
+        "supabase/functions/record-trade/preview-gate.ts:72"
       ]
     },
     {
@@ -13371,7 +13395,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('record_trade_atomic')",
       "callSites": [
-        "supabase/functions/record-trade/index.ts:536"
+        "supabase/functions/record-trade/index.ts:571"
       ]
     },
     {
@@ -13386,7 +13410,7 @@
         "id, user_id, symbol, entry_price, quantity, pick_number, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:239"
+        "supabase/functions/record-trade/index.ts:250"
       ]
     },
     {
@@ -13401,7 +13425,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:264"
+        "supabase/functions/record-trade/index.ts:275"
       ]
     },
     {
@@ -13416,7 +13440,7 @@
         "user_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:386"
+        "supabase/functions/record-trade/index.ts:403"
       ]
     },
     {
@@ -13429,8 +13453,8 @@
       "payload": ".from('leagues').select()",
       "columns": [],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:228",
-        "supabase/functions/record-trade/index.ts:370"
+        "supabase/functions/record-trade/index.ts:239",
+        "supabase/functions/record-trade/index.ts:387"
       ]
     },
     {
@@ -13445,7 +13469,7 @@
         "session_date, open_et, close_et"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:149"
+        "supabase/functions/record-trade/index.ts:156"
       ]
     },
     {
@@ -13460,7 +13484,7 @@
         "covered_from, covered_through"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:148"
+        "supabase/functions/record-trade/index.ts:155"
       ]
     },
     {
@@ -13475,7 +13499,7 @@
         "week_end, is_playoff"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:197"
+        "supabase/functions/record-trade/index.ts:204"
       ]
     },
     {
@@ -13487,10 +13511,13 @@
       "protocol": "postgrest-select",
       "payload": ".from('symbols').select('is_draftable')",
       "columns": [
-        "is_draftable"
+        "is_draftable",
+        "symbol, is_draftable"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:495"
+        "supabase/functions/record-trade/index.ts:530",
+        "supabase/functions/record-trade/preview-gate.ts:102",
+        "supabase/functions/record-trade/preview-gate.ts:122"
       ]
     },
     {
@@ -13505,7 +13532,7 @@
         "id, user_id, symbol, action, quantity, price, total_value, created_at, funded_by_trade_id, slot_id"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:248"
+        "supabase/functions/record-trade/index.ts:259"
       ]
     },
     {
@@ -13520,7 +13547,7 @@
         "symbol"
       ],
       "callSites": [
-        "supabase/functions/record-trade/index.ts:430"
+        "supabase/functions/record-trade/index.ts:463"
       ]
     },
     {
@@ -22439,8 +22466,8 @@
       "protocol": "https-invoke",
       "payload": "functions.invoke('record-trade')",
       "callSites": [
-        "apps/mobile/lib/money/recordTrade.ts:34",
-        "apps/mobile/lib/money/recordTrade.ts:81"
+        "apps/mobile/lib/money/recordTrade.ts:35",
+        "apps/mobile/lib/money/recordTrade.ts:73"
       ]
     },
     {
@@ -24068,7 +24095,7 @@
           "edge": "e.ui.money.recordTrade->fn.record-trade",
           "detail": "The ONLY trade write path since DR-001 Phase 3: the client-INSERT policy on trades was dropped (20260811000002). In-code getUser() is the auth boundary (verify_jwt=false since Phase 4b). The same function answers the review's advisory preview (slot map, would_fill — which ignores the budget, so the client refuses an over-budget buy itself).",
           "files": [
-            "apps/mobile/lib/money/recordTrade.ts:34"
+            "apps/mobile/lib/money/recordTrade.ts:35"
           ]
         },
         {
@@ -24076,7 +24103,7 @@
           "edge": "e.fn.record-trade->pg.check_and_bump_rate_limit",
           "detail": "Per-user and per-IP buckets.",
           "files": [
-            "supabase/functions/record-trade/index.ts:169"
+            "supabase/functions/record-trade/index.ts:176"
           ]
         },
         {
@@ -24092,7 +24119,7 @@
           "edge": "e.fn.record-trade->tbl.symbols",
           "detail": "is_draftable gate for buys (bypassed only when the commissioner set allow_undraftable).",
           "files": [
-            "supabase/functions/record-trade/index.ts:495"
+            "supabase/functions/record-trade/index.ts:530"
           ]
         },
         {
@@ -25419,7 +25446,7 @@
         "surface": "client",
         "name": "callRecordTrade",
         "file": "apps/mobile/lib/money/recordTrade.ts",
-        "line": 22,
+        "line": 23,
         "kind": "seam-stub",
         "detail": "invoke:record-trade"
       },
@@ -25626,8 +25653,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 346,
-    "edges": 835,
+    "nodes": 347,
+    "edges": 836,
     "flows": 7,
     "drift": 36,
     "driftHigh": 2,
@@ -25650,7 +25677,7 @@
       "process-week-results[grouping.ts,job-status.ts,outcome-record.ts,playoff-progression.ts,scoring-eligibility.ts,season-completion.ts,season-transition.ts,user-score.ts]",
       "quote[]",
       "rank-top-movers[deps.ts,handler.ts,rank.ts,run.ts,snapshots.ts]",
-      "record-trade[commit.ts,gate.ts,preview-list.ts]",
+      "record-trade[commit.ts,gate.ts,preview-gate.ts,preview-list.ts]",
       "refresh-market-calendar[plan.ts,run.ts]",
       "refresh-symbols[]",
       "snapshot-week-end[close.ts]",
@@ -25680,8 +25707,8 @@
       "apps/mobile/lib/invite/invitePreviewApi.ts:14 -> invite-preview",
       "apps/mobile/lib/money/priceReads.ts:45 -> quote",
       "apps/mobile/lib/money/priceReads.ts:60 -> historical-bars",
-      "apps/mobile/lib/money/recordTrade.ts:34 -> record-trade",
-      "apps/mobile/lib/money/recordTrade.ts:81 -> record-trade",
+      "apps/mobile/lib/money/recordTrade.ts:35 -> record-trade",
+      "apps/mobile/lib/money/recordTrade.ts:73 -> record-trade",
       "apps/mobile/lib/money/useStockChartData.ts:62 -> historical-bars",
       "apps/mobile/lib/money/useStockSheetData.ts:139 -> ticker-quotes",
       "apps/mobile/lib/money/useStockSheetData.ts:155 -> symbol-name",
@@ -25805,9 +25832,10 @@
       "supabase/functions/process-week-results/index.ts:175 -> start_league_playoffs",
       "supabase/functions/process-week-results/season-completion.ts:134 -> complete_league_season",
       "supabase/functions/rank-top-movers/deps.ts:65 -> replace_top_movers",
-      "supabase/functions/record-trade/index.ts:169 -> check_and_bump_rate_limit",
-      "supabase/functions/record-trade/index.ts:172 -> check_and_bump_rate_limit",
-      "supabase/functions/record-trade/index.ts:536 -> record_trade_atomic",
+      "supabase/functions/record-trade/index.ts:176 -> check_and_bump_rate_limit",
+      "supabase/functions/record-trade/index.ts:179 -> check_and_bump_rate_limit",
+      "supabase/functions/record-trade/index.ts:571 -> record_trade_atomic",
+      "supabase/functions/record-trade/preview-gate.ts:72 -> check_and_bump_rate_limit",
       "supabase/functions/refresh-market-calendar/index.ts:166 -> apply_market_calendar",
       "supabase/functions/snapshot-week-end/index.ts:129 -> schedule_snapshot_retry",
       "supabase/functions/snapshot-week-start/index.ts:157 -> schedule_snapshot_retry",
@@ -26038,17 +26066,19 @@
       "supabase/functions/process-week-results/season-completion.ts:173 -> leagues.select",
       "supabase/functions/process-week-results/season-completion.ts:192 -> matchups.select",
       "supabase/functions/rank-top-movers/deps.ts:41 -> symbols.select",
-      "supabase/functions/record-trade/index.ts:148 -> market_calendar_coverage.select",
-      "supabase/functions/record-trade/index.ts:149 -> market_calendar.select",
-      "supabase/functions/record-trade/index.ts:197 -> matchups.select",
-      "supabase/functions/record-trade/index.ts:228 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:239 -> drafts.select",
-      "supabase/functions/record-trade/index.ts:248 -> trades.select",
-      "supabase/functions/record-trade/index.ts:264 -> league_draft_slots.select",
-      "supabase/functions/record-trade/index.ts:370 -> leagues.select",
-      "supabase/functions/record-trade/index.ts:386 -> league_members.select",
-      "supabase/functions/record-trade/index.ts:430 -> watchlist.select",
-      "supabase/functions/record-trade/index.ts:495 -> symbols.select",
+      "supabase/functions/record-trade/index.ts:155 -> market_calendar_coverage.select",
+      "supabase/functions/record-trade/index.ts:156 -> market_calendar.select",
+      "supabase/functions/record-trade/index.ts:204 -> matchups.select",
+      "supabase/functions/record-trade/index.ts:239 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:250 -> drafts.select",
+      "supabase/functions/record-trade/index.ts:259 -> trades.select",
+      "supabase/functions/record-trade/index.ts:275 -> league_draft_slots.select",
+      "supabase/functions/record-trade/index.ts:387 -> leagues.select",
+      "supabase/functions/record-trade/index.ts:403 -> league_members.select",
+      "supabase/functions/record-trade/index.ts:463 -> watchlist.select",
+      "supabase/functions/record-trade/index.ts:530 -> symbols.select",
+      "supabase/functions/record-trade/preview-gate.ts:102 -> symbols.select",
+      "supabase/functions/record-trade/preview-gate.ts:122 -> symbols.select",
       "supabase/functions/refresh-symbols/index.ts:171 -> symbols.upsert",
       "supabase/functions/snapshot-week-end/index.ts:193 -> trades.select",
       "supabase/functions/snapshot-week-end/index.ts:220 -> matchups.select",
