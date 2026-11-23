@@ -13,7 +13,7 @@ import { markFixtureAnswer } from './renewalFixture';
 import { draftRoomClockRead, parseDraftRoomVariant, roomVariantAfterAutoPick } from './seamRoom';
 import { FIXTURE_TAKEOVER_CODE, parseTakeoverFixture, seatify, takeoverFixtureFor, takeoverInviteFixture } from './seamAccountDeletion';
 import { pendingTakeover } from '../invite/pendingTakeoverStore';
-import { parseStocksKnob, seamStocksRead, seamStockPrices, seamTickerQuote, seamWatchlistRead, seamWatchlistWrite } from '../stocks/seamStocks';
+import { parseStocksKnob, seamStocksRead, seamStockPrices, seamListPreview, seamTickerQuote, seamWatchlistRead, seamWatchlistWrite } from '../stocks/seamStocks';
 
 /** DEV captures (account deletion): the seat reads as the label (EXPO_PUBLIC_DELETED_SEAT=1) and the takeover answers (EXPO_PUBLIC_TAKEOVER_FIXTURE). Seam only. */
 const DELETED_SEAT = DELETED_SEAT_FIXTURE;
@@ -95,6 +95,10 @@ export async function seamInvoke(fn: string, opts: { body: Record<string, unknow
       if (asked.every((x) => x in seamStockPrices() || STOCKS_KNOB.noPrice)) {
         return { data: { prices: Object.fromEntries(asked.filter((x) => x in prices).map((x) => [x, (prices as Record<string, number>)[x]])) }, error: null };
       }
+    }
+    if (fn === 'record-trade' && opts.body.action === 'preview' && Array.isArray(opts.body.rows)) {
+      // The Watching rows' slot lines: the list preview (one call per screen).
+      return seamListPreview(opts.body, STOCKS_KNOB);
     }
     if (fn === 'ticker-quotes' && typeof opts.body.symbol === 'string') {
       // The Watching rows' single-symbol lookup (price and previous close): the catalogue's example prices.

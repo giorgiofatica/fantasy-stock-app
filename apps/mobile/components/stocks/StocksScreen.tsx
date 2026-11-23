@@ -59,7 +59,7 @@ import { useStocksList } from '@/lib/stocks/useStocksList';
 import { useRowPrices } from '@/lib/stocks/useRowPrices';
 import { useSearchOwnership } from '@/lib/stocks/useSearchOwnership';
 import { useWatchlist, type UseWatchlist } from '@/lib/stocks/useWatchlist';
-import { SWITCH_SEGMENTS, isSaved, type StocksView } from '@/lib/stocks/watchlist';
+import { SWITCH_SEGMENTS, isSaved, showsSearchStar, type StocksView } from '@/lib/stocks/watchlist';
 import { shortWeekdayEt } from '@/lib/stocks/rowQuotes';
 import { lastSessionCloseBefore } from '@/lib/time/marketWeek';
 import {
@@ -132,6 +132,7 @@ export function StocksScreen() {
         <StocksBody
           list={list}
           wl={wl}
+          leagueId={leagueId}
           view={view}
           onView={setView}
           onStar={onStar}
@@ -164,6 +165,7 @@ function useCategories(): ChipCategory[] | null {
 function StocksBody({
   list,
   wl,
+  leagueId,
   view,
   onView,
   onStar,
@@ -175,6 +177,7 @@ function StocksBody({
 }: {
   list: ReturnType<typeof useStocksList>;
   wl: UseWatchlist;
+  leagueId: string | null;
   view: StocksView;
   onView: (v: StocksView) => void;
   onStar: (symbol: string) => void;
@@ -192,7 +195,7 @@ function StocksBody({
       {/* The switch, the same control as Matchup's "My matchup | All matchups" (board #call-stocks-tab-lists). */}
       <SegmentedControl options={options} value={view} onChange={(v) => onView(v === 'watching' ? 'watching' : 'available')} />
       {view === 'watching' ? (
-        <WatchingList watch={wl.watch} allowUndraftable={allowUndraftable} seasonOver={seasonOver} dayWord={dayWord} onToggle={onStar} onRetry={wl.reload} />
+        <WatchingList leagueId={leagueId} watch={wl.watch} allowUndraftable={allowUndraftable} seasonOver={seasonOver} dayWord={dayWord} onToggle={onStar} onRetry={wl.reload} />
       ) : (
       <>
       {control.mode === 'chips' ? (
@@ -362,8 +365,9 @@ function SearchResults({ query, wl, onStar }: { query: string; wl: UseWatchlist;
       <View style={styles.results}>
         {results.map((item) => {
           const suffix = !item.selectable ? { text: COPY.notInLeagueList, mine: false } : ownershipFor(item.symbol);
-          // No star on a stock you own ("there probably shouldn't be a save option if you already have the stock"), none on a stock that is not in the list.
-          const star = item.selectable && !suffix.mine ? { saved: isSaved(wl.watch, item.symbol), onPress: () => onStar(item.symbol) } : undefined;
+          // The star (board #call-search-star): a free stock, "Owned by {name}" and "No free slot" have one; "You own this" has none (Giorgio, 2026-11-23),
+          // and neither does "Not in this league's list" (it can never be bought or claimed here).
+          const star = showsSearchStar(item.selectable, suffix.mine) ? { saved: isSaved(wl.watch, item.symbol), onPress: () => onStar(item.symbol) } : undefined;
           return <SearchRow key={item.symbol} item={item} status={suffix} star={star} onPress={() => select(item)} />;
         })}
       </View>

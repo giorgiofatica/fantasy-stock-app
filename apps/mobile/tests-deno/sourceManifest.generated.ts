@@ -543,38 +543,40 @@ import s539 from '../lib/stocks/useRowPrices.ts' with { type: 'text' };
 import s540 from '../lib/stocks/useRowQuotes.ts' with { type: 'text' };
 import s541 from '../lib/stocks/useSearchOwnership.ts' with { type: 'text' };
 import s542 from '../lib/stocks/useStocksList.ts' with { type: 'text' };
-import s543 from '../lib/stocks/useWatchlist.ts' with { type: 'text' };
-import s544 from '../lib/stocks/watchlist.ts' with { type: 'text' };
-import s545 from '../lib/stocks/watchlistStore.ts' with { type: 'text' };
-import s546 from '../lib/supabase.ts' with { type: 'text' };
-import s547 from '../lib/symbolSearch.ts' with { type: 'text' };
-import s548 from '../lib/time/etParts.ts' with { type: 'text' };
-import s549 from '../lib/time/marketWeek.ts' with { type: 'text' };
-import s550 from '../lib/useAuth.ts' with { type: 'text' };
-import s551 from '../lib/useLeagues.ts' with { type: 'text' };
-import s552 from '../lib/usePortfolio.ts' with { type: 'text' };
-import s553 from '../lib/useStockNames.ts' with { type: 'text' };
-import s554 from '../lib/useStockPrices.ts' with { type: 'text' };
-import s555 from '../lib/useSymbolSearch.ts' with { type: 'text' };
-import s556 from '../lib/uuid.ts' with { type: 'text' };
-import s557 from '../lib/weekStatus.ts' with { type: 'text' };
-import s558 from '../constants/Colors.ts' with { type: 'text' };
-import s559 from '../constants/brand.ts' with { type: 'text' };
-import s560 from '../constants/confirmEmailCopy.ts' with { type: 'text' };
-import s561 from '../constants/passwordRules.ts' with { type: 'text' };
-import s562 from '../constants/theme/colors.ts' with { type: 'text' };
-import s563 from '../constants/theme/index.ts' with { type: 'text' };
-import s564 from '../constants/theme/shadows.ts' with { type: 'text' };
-import s565 from '../constants/theme/spacing.ts' with { type: 'text' };
-import s566 from '../constants/theme/typography.ts' with { type: 'text' };
-import s567 from '../constants/tokens/color.ts' with { type: 'text' };
-import s568 from '../constants/tokens/contrastPairs.ts' with { type: 'text' };
-import s569 from '../constants/tokens/elevation.ts' with { type: 'text' };
-import s570 from '../constants/tokens/index.ts' with { type: 'text' };
-import s571 from '../constants/tokens/motion.ts' with { type: 'text' };
-import s572 from '../constants/tokens/radius.ts' with { type: 'text' };
-import s573 from '../constants/tokens/space.ts' with { type: 'text' };
-import s574 from '../constants/tokens/type.ts' with { type: 'text' };
+import s543 from '../lib/stocks/useWatchSlots.ts' with { type: 'text' };
+import s544 from '../lib/stocks/useWatchlist.ts' with { type: 'text' };
+import s545 from '../lib/stocks/watchSlots.ts' with { type: 'text' };
+import s546 from '../lib/stocks/watchlist.ts' with { type: 'text' };
+import s547 from '../lib/stocks/watchlistStore.ts' with { type: 'text' };
+import s548 from '../lib/supabase.ts' with { type: 'text' };
+import s549 from '../lib/symbolSearch.ts' with { type: 'text' };
+import s550 from '../lib/time/etParts.ts' with { type: 'text' };
+import s551 from '../lib/time/marketWeek.ts' with { type: 'text' };
+import s552 from '../lib/useAuth.ts' with { type: 'text' };
+import s553 from '../lib/useLeagues.ts' with { type: 'text' };
+import s554 from '../lib/usePortfolio.ts' with { type: 'text' };
+import s555 from '../lib/useStockNames.ts' with { type: 'text' };
+import s556 from '../lib/useStockPrices.ts' with { type: 'text' };
+import s557 from '../lib/useSymbolSearch.ts' with { type: 'text' };
+import s558 from '../lib/uuid.ts' with { type: 'text' };
+import s559 from '../lib/weekStatus.ts' with { type: 'text' };
+import s560 from '../constants/Colors.ts' with { type: 'text' };
+import s561 from '../constants/brand.ts' with { type: 'text' };
+import s562 from '../constants/confirmEmailCopy.ts' with { type: 'text' };
+import s563 from '../constants/passwordRules.ts' with { type: 'text' };
+import s564 from '../constants/theme/colors.ts' with { type: 'text' };
+import s565 from '../constants/theme/index.ts' with { type: 'text' };
+import s566 from '../constants/theme/shadows.ts' with { type: 'text' };
+import s567 from '../constants/theme/spacing.ts' with { type: 'text' };
+import s568 from '../constants/theme/typography.ts' with { type: 'text' };
+import s569 from '../constants/tokens/color.ts' with { type: 'text' };
+import s570 from '../constants/tokens/contrastPairs.ts' with { type: 'text' };
+import s571 from '../constants/tokens/elevation.ts' with { type: 'text' };
+import s572 from '../constants/tokens/index.ts' with { type: 'text' };
+import s573 from '../constants/tokens/motion.ts' with { type: 'text' };
+import s574 from '../constants/tokens/radius.ts' with { type: 'text' };
+import s575 from '../constants/tokens/space.ts' with { type: 'text' };
+import s576 from '../constants/tokens/type.ts' with { type: 'text' };
 
 // [path, text] pairs, not a path-keyed object literal (see the generator).
 const ENTRIES: [string, string][] = [
@@ -1121,38 +1123,40 @@ const ENTRIES: [string, string][] = [
   ['lib/stocks/useRowQuotes.ts', s540],
   ['lib/stocks/useSearchOwnership.ts', s541],
   ['lib/stocks/useStocksList.ts', s542],
-  ['lib/stocks/useWatchlist.ts', s543],
-  ['lib/stocks/watchlist.ts', s544],
-  ['lib/stocks/watchlistStore.ts', s545],
-  ['lib/supabase.ts', s546],
-  ['lib/symbolSearch.ts', s547],
-  ['lib/time/etParts.ts', s548],
-  ['lib/time/marketWeek.ts', s549],
-  ['lib/useAuth.ts', s550],
-  ['lib/useLeagues.ts', s551],
-  ['lib/usePortfolio.ts', s552],
-  ['lib/useStockNames.ts', s553],
-  ['lib/useStockPrices.ts', s554],
-  ['lib/useSymbolSearch.ts', s555],
-  ['lib/uuid.ts', s556],
-  ['lib/weekStatus.ts', s557],
-  ['constants/Colors.ts', s558],
-  ['constants/brand.ts', s559],
-  ['constants/confirmEmailCopy.ts', s560],
-  ['constants/passwordRules.ts', s561],
-  ['constants/theme/colors.ts', s562],
-  ['constants/theme/index.ts', s563],
-  ['constants/theme/shadows.ts', s564],
-  ['constants/theme/spacing.ts', s565],
-  ['constants/theme/typography.ts', s566],
-  ['constants/tokens/color.ts', s567],
-  ['constants/tokens/contrastPairs.ts', s568],
-  ['constants/tokens/elevation.ts', s569],
-  ['constants/tokens/index.ts', s570],
-  ['constants/tokens/motion.ts', s571],
-  ['constants/tokens/radius.ts', s572],
-  ['constants/tokens/space.ts', s573],
-  ['constants/tokens/type.ts', s574],
+  ['lib/stocks/useWatchSlots.ts', s543],
+  ['lib/stocks/useWatchlist.ts', s544],
+  ['lib/stocks/watchSlots.ts', s545],
+  ['lib/stocks/watchlist.ts', s546],
+  ['lib/stocks/watchlistStore.ts', s547],
+  ['lib/supabase.ts', s548],
+  ['lib/symbolSearch.ts', s549],
+  ['lib/time/etParts.ts', s550],
+  ['lib/time/marketWeek.ts', s551],
+  ['lib/useAuth.ts', s552],
+  ['lib/useLeagues.ts', s553],
+  ['lib/usePortfolio.ts', s554],
+  ['lib/useStockNames.ts', s555],
+  ['lib/useStockPrices.ts', s556],
+  ['lib/useSymbolSearch.ts', s557],
+  ['lib/uuid.ts', s558],
+  ['lib/weekStatus.ts', s559],
+  ['constants/Colors.ts', s560],
+  ['constants/brand.ts', s561],
+  ['constants/confirmEmailCopy.ts', s562],
+  ['constants/passwordRules.ts', s563],
+  ['constants/theme/colors.ts', s564],
+  ['constants/theme/index.ts', s565],
+  ['constants/theme/shadows.ts', s566],
+  ['constants/theme/spacing.ts', s567],
+  ['constants/theme/typography.ts', s568],
+  ['constants/tokens/color.ts', s569],
+  ['constants/tokens/contrastPairs.ts', s570],
+  ['constants/tokens/elevation.ts', s571],
+  ['constants/tokens/index.ts', s572],
+  ['constants/tokens/motion.ts', s573],
+  ['constants/tokens/radius.ts', s574],
+  ['constants/tokens/space.ts', s575],
+  ['constants/tokens/type.ts', s576],
 ];
 
 /** Every app source file, by path relative to apps/mobile, as text. */

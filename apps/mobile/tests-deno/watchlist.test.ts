@@ -21,6 +21,7 @@ import {
   parseWatchlist,
   setWatchlistArgs,
   settleToggle,
+  showsSearchStar,
   showsStar,
   starLabel,
   statusLine,
@@ -166,14 +167,25 @@ Deno.test('rule 1: "No longer tradable" is is_draftable false AND the league has
 });
 
 // ── rule 2: the order of the status line ──
-const base: StatusInput = { owner: null, isDraftable: true, allowUndraftable: false, roomless: false };
-Deno.test('rule 2: ownership beats "No longer tradable", which beats the slot lines', () => {
-  const dead = { isDraftable: false, allowUndraftable: false, roomless: true };
-  assertEquals(statusLine({ ...base, ...dead, owner: { kind: 'me' } }), { text: 'You own this', mine: true });
-  assertEquals(statusLine({ ...base, ...dead, owner: { kind: 'other', name: 'Gianluigi B.' } }), { text: 'Owned by Gianluigi B.', mine: false });
-  assertEquals(statusLine({ ...base, ...dead }).text, 'No longer tradable'); // beats "No free slot"
-  assertEquals(statusLine({ ...base, roomless: true }).text, 'No free slot');
-  assertEquals(statusLine(base).text, 'Available');
+const base: StatusInput = { owner: null, isDraftable: true, allowUndraftable: false, slotLine: null, roomless: false };
+const FITS = { text: 'Available · fits your $100\u2013$200 slot', full: false };
+const FULL = { text: 'No free $400 or more slot', full: true };
+Deno.test('rule 2: who else owns it beats "No longer tradable", which beats the slot lines', () => {
+  const dead = { isDraftable: false, allowUndraftable: false, roomless: true, slotLine: FITS };
+  assertEquals(statusLine({ ...base, ...dead, owner: { name: 'Gianluigi B.' } }), { text: 'Owned by Gianluigi B.', kind: 'owned' });
+  assertEquals(statusLine({ ...base, ...dead }), { text: 'No longer tradable', kind: 'untradable' }); // beats the slot lines
+  assertEquals(statusLine({ ...base, roomless: true }), { text: 'No free slot', kind: 'full' });
+  assertEquals(statusLine(base), { text: 'Available', kind: 'available' });
+});
+
+Deno.test('"You own this" is gone from Watching: a stock you hold is left out of the view, never a row', () => {
+  assertEquals(COPY.youOwnThis, 'You own this'); // still the search row's word
+  const w = watch({ symbols: ['NVDA', 'AAPL', 'AMGN'], rows: [row('NVDA'), row('AAPL'), row('AMGN')] });
+  assertEquals(watchingRows(w, (s) => s === 'NVDA').map((r) => r.symbol), ['AAPL', 'AMGN']);
+  // while the ledger is not known nothing is hidden on a guess
+  assertEquals(watchingRows(w).map((r) => r.symbol), ['NVDA', 'AAPL', 'AMGN']);
+  // a watched stock that was bought is only left out of the view; the app never unsaves it (the server does, on a buy and on a sale)
+  assertEquals(w.symbols, ['NVDA', 'AAPL', 'AMGN']);
 });
 
 Deno.test('rule 2: a full-universe league never says "No longer tradable" for the flag alone', () => {
@@ -181,22 +193,47 @@ Deno.test('rule 2: a full-universe league never says "No longer tradable" for th
 });
 
 Deno.test('an owner whose name is not resolved reads "Owned by another manager"', () => {
-  assertEquals(statusLine({ ...base, owner: { kind: 'other', name: null } }).text, 'Owned by another manager');
+  assertEquals(statusLine({ ...base, owner: { name: null } }).text, 'Owned by another manager');
 });
 
-Deno.test('the "+" on a Watching row: only a stock you can get, and never in a finished season', () => {
+Deno.test('the server\'s slot line wins over the interim lines; no answer falls back to "No free slot" (every slot held) or plain "Available"', () => {
+  assertEquals(statusLine({ ...base, slotLine: FITS }), { text: FITS.text, kind: 'available' });
+  assertEquals(statusLine({ ...base, slotLine: FULL }), { text: FULL.text, kind: 'full' });
+  assertEquals(statusLine({ ...base, slotLine: FITS, roomless: true }).text, FITS.text);
+  assertEquals(statusLine({ ...base, slotLine: null, roomless: false }).text, 'Available');
+});
+
+Deno.test('the "+" on a Watching row: a stock you can get (the server named its slot or not), never a full, owned or untradable one, never in a finished season', () => {
   assertEquals(watchRowHasPlus(statusLine(base), false), true);
+  assertEquals(watchRowHasPlus(statusLine({ ...base, slotLine: FITS }), false), true);
   assertEquals(watchRowHasPlus(statusLine(base), true), false);
-  assertEquals(watchRowHasPlus(statusLine({ ...base, owner: { kind: 'me' } }), false), false);
+  assertEquals(watchRowHasPlus(statusLine({ ...base, owner: { name: 'P' } }), false), false);
   assertEquals(watchRowHasPlus(statusLine({ ...base, isDraftable: false }), false), false);
   assertEquals(watchRowHasPlus(statusLine({ ...base, roomless: true }), false), false);
+  assertEquals(watchRowHasPlus(statusLine({ ...base, slotLine: FULL }), false), false);
 });
 
-Deno.test('no star on a stock you own; one on an unowned stock and on another manager\'s', () => {
+Deno.test('no star on a stock you own, anywhere: a free stock and another manager\'s have one', () => {
   assertEquals(showsStar(true), false);
   assertEquals(showsStar(false), true);
   assertEquals(starLabel('AMGN', false), 'Save AMGN');
   assertEquals(starLabel('AMGN', true), 'Saved AMGN');
+});
+
+Deno.test('the search star (board #call-search-star): free, "Owned by {name}" and "No free slot" have one; "You own this" and "Not in this league\'s list" have none', () => {
+  assertEquals(showsSearchStar(true, false), true); // free / owned by someone else / no free slot (none of them is "mine")
+  assertEquals(showsSearchStar(true, true), false); // You own this (his ruling overrides the board)
+  assertEquals(showsSearchStar(false, false), false); // Not in this league's list
+});
+
+Deno.test('a save of a stock you hold is refused by the server with its own reason: a plain failure, the star reverts, no words (a race-only case)', () => {
+  const r = parseSaveResult({ data: { ok: false, reason: 'already_owned' }, error: null });
+  assertEquals(r, { ok: false, reason: 'failed' });
+  const tap = applyToggle(watch(), 'NVDA')!;
+  const after = settleToggle(tap.next, 'NVDA', tap.want, r);
+  assertEquals(isSaved(after, 'NVDA'), false);
+  assertEquals(after.refusal, null);
+  assertEquals(failureWords(r.ok ? 'failed' : r.reason), null);
 });
 
 Deno.test('the switch: the board\'s words in the board\'s order (Claims joins in workstream 7)', () => {
@@ -416,8 +453,72 @@ Deno.test('quote store: a read that THROWS is a failed read, and its lane is fre
   assertEquals(store.peek('B'), { status: 'ready', price: 10, changePct: 0 });
 });
 
+// ── the slot lines: the server's list preview, mapped to the board's words ──
+import { askableRows, listPreviewBody, parseListPreview, LIST_PREVIEW_MAX } from '../lib/stocks/watchSlots.ts';
+
+const LOW = { slot_id: 's1', slot_index: 0, slot_count: 3, price_min: 100, price_max: 200, category_id: null };
+const MID = { slot_id: 's2', slot_index: 1, slot_count: 3, price_min: 200, price_max: 400, category_id: null };
+const HIGH = { slot_id: 's3', slot_index: 2, slot_count: 3, price_min: 400, price_max: null, category_id: null };
+const resolve = (id: string) => (id === 'cat-tech' ? 'Tech' : null);
+const asked = [{ symbol: 'AMGN', price: 187.2 }, { symbol: 'COST', price: 920.55 }, { symbol: 'AAPL', price: 211.42 }];
+const shown = (m: Record<string, number>) => (s: string) => m[s];
+const answer = (rows: unknown[], slots: unknown[] = [{ ...LOW, held: [], open: 1 }, { ...MID, held: [], open: 1 }, { ...HIGH, held: ['NVDA'], open: 0 }]) => ({ ok: true, stake_mode: 'price_tiers', slots, rows });
+
+Deno.test('listPreviewBody: one call per screen, rows only (never a top-level symbol or price); askableRows keeps usable prices, deduped, at most 50', () => {
+  assertEquals(listPreviewBody('L1', asked), { action: 'preview', league_id: 'L1', rows: asked });
+  assertEquals(askableRows([{ symbol: 'a', price: 10 }, { symbol: 'A', price: 11 }, { symbol: 'B', price: 0 }, { symbol: 'C', price: null }, { symbol: 'D', price: Number.NaN }, { symbol: 'E', price: -2 }]), [{ symbol: 'A', price: 10 }]);
+  assertEquals(askableRows(Array.from({ length: 60 }, (_, i) => ({ symbol: `S${i}`, price: 10 }))).length, LIST_PREVIEW_MAX);
+});
+
+Deno.test('parseListPreview: would_fill = slot -> "Available · fits your {band}"; no room -> "No free {the one full band}"; null -> no answer', () => {
+  const data = answer([
+    { symbol: 'AMGN', price: 187.2, would_fill: LOW },
+    { symbol: 'COST', price: 920.55, would_fill: null, open_slots: [LOW, MID] },
+    null,
+  ]);
+  const m = parseListPreview(data, asked, shown({ AMGN: 187.2, COST: 920.55, AAPL: 211.42 }), resolve);
+  assertEquals(m.get('AMGN'), { text: 'Available \u00b7 fits your $100\u2013$200 slot', full: false, price: 187.2 });
+  assertEquals(m.get('COST'), { text: 'No free $400 or more slot', full: true, price: 920.55 });
+  assertEquals(m.has('AAPL'), false); // null: the row reads what the app can tell (plain "Available")
+});
+
+Deno.test('parseListPreview: "No free slot" (no band) when no single full price-band slot holds the price', () => {
+  const noRoom = (slots: unknown[]) => parseListPreview(answer([null, { symbol: 'COST', price: 920.55, would_fill: null, open_slots: [] }, null], slots), asked, shown({ COST: 920.55 }), resolve).get('COST')!.text;
+  assertEquals(noRoom([{ ...LOW, held: [], open: 1 }, { ...HIGH, held: ['NVDA'], open: 1 }]), 'No free slot'); // the slot holding it has room: nothing to name
+  assertEquals(noRoom([{ ...HIGH, held: ['A'], open: 0 }, { ...HIGH, slot_id: 's9', held: ['B'], open: 0 }]), 'No free slot'); // two full slots hold it: not named
+  assertEquals(noRoom([{ ...HIGH, category_id: 'cat-tech', held: ['A'], open: 0 }]), 'No free slot'); // a category slot is not a price band alone
+  assertEquals(noRoom([]), 'No free slot');
+});
+
+Deno.test('parseListPreview: a category slot fits only with a resolved name; an unresolved one is no answer, never "Category"', () => {
+  const rows = [{ symbol: 'AMGN', price: 187.2, would_fill: { ...LOW, category_id: 'cat-tech' } }, null, null];
+  assertEquals(parseListPreview(answer(rows), asked, shown({ AMGN: 187.2 }), resolve).get('AMGN')!.text, 'Available \u00b7 fits your $100\u2013$200 Tech slot');
+  const unresolved = [{ symbol: 'AMGN', price: 187.2, would_fill: { ...LOW, category_id: 'cat-unknown' } }, null, null];
+  assertEquals(parseListPreview(answer(unresolved), asked, shown({ AMGN: 187.2 }), resolve).has('AMGN'), false);
+});
+
+Deno.test('parseListPreview: an answer for a price the row is no longer showing is dropped (re-asked on the next refresh)', () => {
+  const rows = [{ symbol: 'AMGN', price: 187.2, would_fill: LOW }, null, null];
+  assertEquals(parseListPreview(answer(rows), asked, shown({ AMGN: 188.0 }), resolve).size, 0);
+  assertEquals(parseListPreview(answer(rows), asked, () => null, resolve).size, 0);
+});
+
+Deno.test('parseListPreview: anything that is not the list answer is no answer for every row, never a guess', () => {
+  const ok = [{ symbol: 'AMGN', price: 187.2, would_fill: LOW }, null, null];
+  const one = (data: unknown) => parseListPreview(data, asked, shown({ AMGN: 187.2 }), resolve).size;
+  assertEquals(one(answer(ok)), 1);
+  assertEquals(one(null), 0);
+  assertEquals(one({ ok: true, stake_mode: 'price_tiers', slots: [] }), 0); // the function before it learned the list: an ordinary preview, no `rows`
+  assertEquals(one({ ...answer(ok), ok: false }), 0); // a refusal (draft_not_completed, season_completed)
+  assertEquals(one(answer(ok.slice(0, 2))), 0); // length differs
+  assertEquals(one(answer([{ symbol: 'ZZZ', price: 187.2, would_fill: LOW }, null, null])), 0); // another symbol in that place
+  assertEquals(one(answer([{ symbol: 'AMGN', price: 1, would_fill: LOW }, null, null])), 0); // echoed another price
+  assertEquals(one(answer([{ symbol: 'AMGN', price: 187.2, would_fill: { nope: 1 } }, null, null])), 0); // a slot that is not a slot
+  assertEquals(one(answer([{ symbol: 'AMGN', price: 187.2 }, null, null])), 0); // would_fill missing
+});
+
 // ── the capture seam's watchlist (DEV only): behaves as the server would ──
-import { parseStocksKnob, resetSeamWatchlist, seamTickerQuote, seamWatchlistRead, seamWatchlistWrite } from '../lib/stocks/seamStocks.ts';
+import { parseStocksKnob, resetSeamWatchlist, seamListPreview, seamTickerQuote, seamWatchlistRead, seamWatchlistWrite } from '../lib/stocks/seamStocks.ts';
 
 Deno.test('seam: the saved set starts seeded, a star changes it as the server would, and each knob refuses as named', () => {
   resetSeamWatchlist();
@@ -446,4 +547,44 @@ Deno.test('seam: the single-symbol quote answers price and previous close; a del
   assert(seamTickerQuote('SQ', parseStocksKnob('')).error);
   assert(seamTickerQuote('ZZZZ', parseStocksKnob('')).error);
   assert(seamTickerQuote('AMGN', parseStocksKnob('noprice')).error);
+});
+
+Deno.test('seam: the list preview answers a tier league with its third slot full, in order and length; nolist fails it', () => {
+  const body = { rows: [{ symbol: 'AMGN', price: 150 }, { symbol: 'COST', price: 920 }, { symbol: 'X', price: 0 }] };
+  const d = seamListPreview(body, parseStocksKnob('')).data as { ok: boolean; rows: ({ would_fill: { price_min: number } | null } | null)[] };
+  assertEquals(d.rows.length, 3);
+  assertEquals(d.rows[0]!.would_fill!.price_min, 100);
+  assertEquals(d.rows[1]!.would_fill, null);
+  assertEquals(d.rows[2], null);
+  assert(seamListPreview(body, parseStocksKnob('nolist')).error);
+  const m = parseListPreview(d, [{ symbol: 'AMGN', price: 150 }, { symbol: 'COST', price: 920 }, { symbol: 'X', price: 0 }], (s) => ({ AMGN: 150, COST: 920, X: 0 } as Record<string, number>)[s], () => null);
+  assertEquals(m.get('AMGN')!.text, 'Available \u00b7 fits your $100\u2013$200 slot');
+  assertEquals(m.get('COST')!.text, 'No free $400 or more slot');
+});
+
+// ── wiring guards (the suite's pattern for RN-only code) ──
+import { SOURCES } from './sourceManifest.generated.ts';
+
+Deno.test('wiring: no Save in the sheet on a stock you hold; Watching leaves held stocks out; the app unsaves ONLY on a star tap, never on a buy', () => {
+  const sheet = SOURCES['components/money/StockSheetBody.tsx'];
+  assert(/save=\{!held && watchLeagueId \?/.test(sheet), 'the sheet header\'s Save is gated on !held');
+  const watching = SOURCES['components/stocks/WatchingList.tsx'];
+  assert(/watchingRows\(watch, \(sym\) => ownership\.ownerFor\(sym\)\?\.kind === 'me'\)/.test(watching), 'Watching drops a stock the caller holds');
+  assert(!/You own this|youOwnThis|youText/.test(watching), 'no "You own this" status on Watching');
+  // set_watchlist is called from ONE place (the store's write), and only by a star tap's toggle
+  const callers = Object.entries(SOURCES).filter(([, src]) => /'set_watchlist'/.test(src.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''))).map(([p]) => p).sort();
+  assertEquals(callers, ['lib/game/seamCalls.ts', 'lib/stocks/useWatchlist.ts']);
+  for (const path of ['lib/money/useTradeSubmit.ts', 'lib/money/recordTrade.ts', 'lib/money/usePortfolioLedger.ts']) {
+    assert(!/watchlist/i.test(SOURCES[path] ?? ''), `${path} never touches the watchlist`);
+  }
+  // the search star goes through the one rule
+  assert(/showsSearchStar\(item\.selectable, suffix\.mine\)/.test(SOURCES['components/stocks/StocksScreen.tsx']));
+});
+
+Deno.test('wiring: the slot lines are ONE list call per screen of rows (never the single preview per row) through the seam, error-checked, paced at a minute', () => {
+  const hook = SOURCES['lib/stocks/useWatchSlots.ts'];
+  assert(/seamInvoke\('record-trade', \{ body: listPreviewBody\(leagueId, sent\) \}\)/.test(hook));
+  assert(/if \(!res\.error\) data = res\.data;/.test(hook), 'a { error } is no answer');
+  assert(/SLOT_MIN_GAP_MS = 60_000/.test(hook));
+  assert(!/previewBody\(/.test(SOURCES['components/stocks/WatchingList.tsx']), 'no single preview per row');
 });

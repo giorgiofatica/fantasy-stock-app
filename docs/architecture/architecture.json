@@ -2,12 +2,16 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "fe7154a6fe2d53dbea47a716389ec65f3766be3f",
-    "commitShort": "fe7154a6",
+    "commit": "161e0e789cf1f9156bef9e608a166fe9374b8710",
+    "commitShort": "161e0e78",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/watchlist-app",
     "dirty": true,
     "dirtyPaths": [
+      {
+        "code": "M",
+        "path": "apps/mobile/components/stocks/SearchRow.tsx"
+      },
       {
         "code": "M",
         "path": "apps/mobile/components/stocks/StocksScreen.tsx"
@@ -25,19 +29,39 @@
         "path": "apps/mobile/lib/stocks/seamStocks.ts"
       },
       {
+        "code": "??",
+        "path": "apps/mobile/lib/stocks/useWatchSlots.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/stocks/watchlist.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/lib/stocks/watchSlots.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-stock-search-ownership.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
         "code": "M",
         "path": "apps/mobile/tests-deno/watchlist.test.ts"
       }
     ],
-    "timestamp": "2026-11-23T18:56:32Z",
-    "sourceHash": "sha256:b4e8159ebe06beed532a3bbe04bf76a58badb39452437d729cf14d05edc720a4",
+    "timestamp": "2026-11-23T19:01:49Z",
+    "sourceHash": "sha256:87120c31163689ab86f07e5a0cb8a18ad86939758fe289c03c322f745eba736d",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 114.7,
+    "ageHours": 114.8,
     "ageDays": 4.8,
     "staleAfterDays": 14,
     "stale": false,
@@ -11523,6 +11547,23 @@
       "drift": [],
       "annotation": null,
       "verified": true,
+      "id": "ui.stocks.useWatchSlots",
+      "label": "useWatchSlots.ts",
+      "sublabel": "mobile/lib/stocks/useWatchSlots.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/lib/stocks/useWatchSlots.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
       "id": "ui.tests-deno.account-deletion-wiring.test",
       "label": "account-deletion-wiring.test.ts",
       "sublabel": "mobile/tests-deno/account-deletion-wiring.test.ts",
@@ -20678,7 +20719,7 @@
       "payload": ".from('league_members').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:158"
+        "apps/mobile/lib/game/seamCalls.ts:162"
       ]
     },
     {
@@ -20691,7 +20732,7 @@
       "payload": ".from('leagues').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:152"
+        "apps/mobile/lib/game/seamCalls.ts:156"
       ]
     },
     {
@@ -20704,7 +20745,7 @@
       "payload": ".from('leagues').update()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:115"
+        "apps/mobile/lib/game/seamCalls.ts:119"
       ]
     },
     {
@@ -22916,6 +22957,21 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.ui.stocks.useWatchSlots->fn.record-trade",
+      "from": "ui.stocks.useWatchSlots",
+      "to": "fn.record-trade",
+      "protocol": "https-invoke",
+      "payload": "functions.invoke('record-trade')",
+      "callSites": [
+        "apps/mobile/lib/stocks/useWatchSlots.ts:41"
+      ],
+      "via": [
+        "seamInvoke"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.ui.tests-deno.account-deletion-wiring.test->pg.deleted_manager_label",
       "from": "ui.tests-deno.account-deletion-wiring.test",
       "to": "pg.deleted_manager_label",
@@ -24907,7 +24963,7 @@
         "surface": "client",
         "name": "seamInsertLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 147,
+        "line": 151,
         "kind": "seam-stub",
         "detail": "leagues.insert"
       },
@@ -24915,7 +24971,7 @@
         "surface": "client",
         "name": "seamInsertMember",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 155,
+        "line": 159,
         "kind": "seam-stub",
         "detail": "league_members.insert"
       },
@@ -24923,7 +24979,7 @@
         "surface": "client",
         "name": "seamInvoke",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 106,
+        "line": 110,
         "kind": "forwarder:invoke",
         "detail": "argument 0 is the function name"
       },
@@ -24939,7 +24995,7 @@
         "surface": "client",
         "name": "seamSaveLeagueSlots",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 161,
+        "line": 165,
         "kind": "seam-stub",
         "detail": "league_draft_slots.delete, league_draft_slots.insert"
       },
@@ -24955,7 +25011,7 @@
         "surface": "client",
         "name": "seamUpdateLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 112,
+        "line": 116,
         "kind": "seam-stub",
         "detail": "leagues.update"
       },
@@ -25104,8 +25160,8 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 340,
-    "edges": 816,
+    "nodes": 341,
+    "edges": 817,
     "flows": 7,
     "drift": 37,
     "driftHigh": 3,
@@ -25165,6 +25221,7 @@
       "apps/mobile/lib/money/useTradeSubmit.ts:35 -> record-trade (via callRecordTrade)",
       "apps/mobile/lib/stocks/useRowPrices.ts:26 -> quote (via seamInvoke)",
       "apps/mobile/lib/stocks/useRowQuotes.ts:17 -> ticker-quotes (via seamInvoke)",
+      "apps/mobile/lib/stocks/useWatchSlots.ts:41 -> record-trade (via seamInvoke)",
       "apps/mobile/lib/useStockNames.ts:13 -> symbol-name",
       "apps/mobile/lib/useStockPrices.ts:32 -> ticker-quotes",
       "apps/mobile/lib/useSymbolSearch.ts:85 -> symbols-search",
@@ -25330,9 +25387,9 @@
       "apps/mobile/lib/categoryData.ts:138 -> league_draft_slots.insert",
       "apps/mobile/lib/categoryData.ts:145 -> league_draft_slots.select",
       "apps/mobile/lib/categoryData.ts:65 -> categories.select",
-      "apps/mobile/lib/game/seamCalls.ts:115 -> leagues.update",
-      "apps/mobile/lib/game/seamCalls.ts:152 -> leagues.insert",
-      "apps/mobile/lib/game/seamCalls.ts:158 -> league_members.insert",
+      "apps/mobile/lib/game/seamCalls.ts:119 -> leagues.update",
+      "apps/mobile/lib/game/seamCalls.ts:156 -> leagues.insert",
+      "apps/mobile/lib/game/seamCalls.ts:162 -> league_members.insert",
       "apps/mobile/lib/game/useAllMatchups.ts:45 -> matchups.select",
       "apps/mobile/lib/game/useAllMatchups.ts:58 -> week_snapshots.select",
       "apps/mobile/lib/game/useAllMatchups.ts:68 -> trades.select",

@@ -150,16 +150,34 @@ export function applyRead(w: LeagueWatch, rows: WatchRow[]): LeagueWatch {
   return { ...w, status: 'ready', rows, symbols: [...fromServer.filter((s) => !drop.has(s)), ...keep] };
 }
 
-/** Rows the Watching view draws: the last read's rows still saved, so an unstarred row leaves at once (the tap's state). */
-export function watchingRows(w: LeagueWatch): WatchRow[] {
-  return w.rows.filter((r) => w.symbols.includes(r.symbol));
+/**
+ * Rows the Watching view draws: the last read's rows still saved (so an unstarred row leaves at once, the tap's state), WITHOUT a stock
+ * the caller holds (Giorgio, 2026-11-23: it is in the portfolio, so it does not belong in the watchlist too). The app knows what you hold;
+ * `heldByMe` says so per symbol and is false while the ledger is not known (nothing is hidden on a guess). The server removes the saved
+ * row on a buy; until it does, the row is only left out of the view, never unsaved from here.
+ */
+export function watchingRows(w: LeagueWatch, heldByMe: (symbol: string) => boolean = () => false): WatchRow[] {
+  return w.rows.filter((r) => w.symbols.includes(r.symbol) && !heldByMe(r.symbol));
 }
 
 // ── The star on a row ────────────────────────────────────────────────────────────────────────
 
-/** "there probably shouldn't be a save option if you already have the stock" (PRODUCT_RULES): a star on unowned stocks and on other managers' stocks, never on yours. */
+/**
+ * Giorgio, 2026-11-23: "no star for something you own. its in your portfolio so shouldnt need to be in the watchlist too". NO star and
+ * NO Save on a stock you hold, anywhere (a list row, a search result, the stock sheet's header). A free stock and another manager's
+ * stock (you can watch it until they sell) keep theirs. The app NEVER unsaves on a buy: the server removes the row, on a buy and on a sale.
+ */
 export function showsStar(ownedByMe: boolean): boolean {
   return !ownedByMe;
+}
+
+/**
+ * A search result's star (board #call-search-star, 2026-11-23): on a free stock, on "Owned by {name}" and on "No free slot"; none on
+ * "You own this" (his ruling overrides the board) and none on "Not in this league's list" (it can never be bought or claimed here,
+ * so watching it would do nothing; the row is already greyed and cannot be tapped).
+ */
+export function showsSearchStar(selectable: boolean, ownedByMe: boolean): boolean {
+  return selectable && showsStar(ownedByMe);
 }
 
 /** The star's VoiceOver label: the board's Save / Saved words. */
@@ -178,31 +196,36 @@ export function noLongerTradable(isDraftable: boolean, allowUndraftable: boolean
 }
 
 export interface StatusInput {
-  /** Who holds it in this league: me, another manager (name may be unresolved), or nobody. */
-  owner: { kind: 'me' } | { kind: 'other'; name: string | null } | null;
+  /** Who else holds it in this league (another manager; the name may be unresolved), or nobody. A stock YOU hold never reaches the Watching view (watchingRows). */
+  owner: { name: string | null } | null;
   isDraftable: boolean;
   allowUndraftable: boolean;
-  /** Budget / tier leagues: every slot of yours is held, so a buy has nowhere to go (useSearchOwnership's roomless). */
+  /** The server's slot line for this row, when it answered ("Available · fits your $100–$200 slot", "No free $400+ slot"), else null (watchSlots.ts). */
+  slotLine: { text: string; full: boolean } | null;
+  /** Budget / tier leagues: every slot of yours is held, so a buy has nowhere to go (useSearchOwnership's roomless). The line when the server gave none. */
   roomless: boolean;
 }
 
+export type StatusKind = 'owned' | 'untradable' | 'full' | 'available';
+
 /**
- * The one status line, in the Planner's order when two apply (PRODUCT_RULES / the plan, "Settled during the build" 1):
- * who owns it first ("You own this", "Owned by {name}": a holder can always sell), then "No longer tradable", then the slot lines.
- * The slot lines here are the ones the app can already tell without asking the server which tier slot a price fits:
- * "No free slot" when every slot is held, else "Available". The tier band text ("fits your $100–$200 slot") needs the server's verdict.
+ * The one status line, in the Planner's order when two apply (the plan, "Settled during the build" 1): who owns it first ("Owned by {name}":
+ * a holder can sell it), then "No longer tradable", then the slot lines. "You own this" is not a Watching status any more: a stock you hold is left
+ * out of the view. The slot line is the SERVER's when it answered (a list preview, one call per screen; the app never computes a tier fit);
+ * without one it is what the app can already tell: "No free slot" when every slot is held, else plain "Available".
+ * `kind` drives the "+": a stock you can get ('available', whether or not the server named its slot) keeps it.
  */
-export function statusLine(input: StatusInput): { text: string; mine: boolean } {
-  if (input.owner?.kind === 'me') return { text: COPY.youOwnThis, mine: true };
-  if (input.owner?.kind === 'other') return { text: COPY.ownedBy(input.owner.name ?? 'another manager'), mine: false };
-  if (noLongerTradable(input.isDraftable, input.allowUndraftable)) return { text: COPY.noLongerTradable, mine: false };
-  if (input.roomless) return { text: COPY.noFreeSlot, mine: false };
-  return { text: COPY.availableStatus, mine: false };
+export function statusLine(input: StatusInput): { text: string; kind: StatusKind } {
+  if (input.owner) return { text: COPY.ownedBy(input.owner.name ?? 'another manager'), kind: 'owned' };
+  if (noLongerTradable(input.isDraftable, input.allowUndraftable)) return { text: COPY.noLongerTradable, kind: 'untradable' };
+  if (input.slotLine) return { text: input.slotLine.text, kind: input.slotLine.full ? 'full' : 'available' };
+  if (input.roomless) return { text: COPY.noFreeSlot, kind: 'full' };
+  return { text: COPY.availableStatus, kind: 'available' };
 }
 
-/** The "+" on a Watching row: a stock you can get keeps it; a held, owned, untradable or slotless stock has none. */
-export function watchRowHasPlus(status: { text: string }, seasonOver: boolean): boolean {
-  return !seasonOver && status.text === COPY.availableStatus;
+/** The "+" on a Watching row: a stock you can get keeps it; an owned, untradable or slotless stock has none; none in a finished season. */
+export function watchRowHasPlus(status: { kind: StatusKind }, seasonOver: boolean): boolean {
+  return !seasonOver && status.kind === 'available';
 }
 
 // ── The switch ───────────────────────────────────────────────────────────────────────────────

@@ -4,8 +4,9 @@
  *
  * A row: the "+" at the left when the stock can be bought, the ticker disc, the ticker and ONE status line (no company name:
  * October ruling 13c, so a row with a button stays at two lines), the live price with today's change under it, the star at the
- * right edge. The status line (watchlist.ts statusLine) is, in the Planner's order: who owns it, then "No longer tradable", then
- * the slot lines. A price we do not have reads "–" (never $0.00). Nothing saved: the star and "Star a stock to watch it here."
+ * right edge. The status line (watchlist.ts statusLine) is, in the Planner's order: who else owns it ("Owned by {name}"), then
+ * "No longer tradable", then the slot lines (the server's, from the list preview: useWatchSlots). A stock YOU hold is not listed at all
+ * (Giorgio, 2026-11-23: it is in your portfolio). A price we do not have reads "–" (never $0.00). Nothing to show: the star and "Star a stock to watch it here."
  *
  * The read returns NO price (the accurate-prices rule): each row takes its price AND its change from the live lookup, for the
  * rows on screen only (useRowQuotes). While the market is closed the change is the last session's, named by its day ("+1.4% Fri").
@@ -27,19 +28,26 @@ import { useStockSheet } from '@/components/money/MoneyHost';
 import { StarButton } from '@/components/stocks/StarButton';
 import { Skeleton } from '@/components/Skeleton';
 import { priceLabel } from '@/lib/game/queueRow';
+import { useWatchSlots } from '@/lib/stocks/useWatchSlots';
 import { keepMoney } from '@/lib/game/keepDots';
 import { COPY } from '@/lib/money/moneyCopy';
 import { useStockOwnership } from '@/lib/stocks/useSearchOwnership';
 import { useRowQuotes } from '@/lib/stocks/useRowQuotes';
 import { ROW_TEXT_MAX_SCALE, priceUnderName, symbolsOnScreen } from '@/lib/stocks/stocksList';
 import { changeSpoken, changeText, changeTone, type RowQuote } from '@/lib/stocks/rowQuotes';
-import { statusLine, watchRowHasPlus, watchingRows, type LeagueWatch, type WatchRow as WatchRowData } from '@/lib/stocks/watchlist';
+import { statusLine, watchRowHasPlus, watchingRows, type LeagueWatch, type StatusKind, type WatchRow as WatchRowData } from '@/lib/stocks/watchlist';
 
 const PLUS_DISC = 26;
+
+/** The price a row is showing: the live lookup's, or null ("–"). */
+function priceOf(q: RowQuote | undefined): number | null {
+  return q && q.status === 'ready' ? q.price : null;
+}
 const SKELETON_ROWS = 5;
 const SEARCH_TEXT_MAX_SCALE = 1.6;
 
 export interface WatchingListProps {
+  leagueId: string | null;
   watch: LeagueWatch;
   allowUndraftable: boolean;
   seasonOver: boolean;
@@ -49,18 +57,21 @@ export interface WatchingListProps {
   onRetry: () => void;
 }
 
-export function WatchingList({ watch, allowUndraftable, seasonOver, dayWord, onToggle, onRetry }: WatchingListProps) {
+export function WatchingList({ leagueId, watch, allowUndraftable, seasonOver, dayWord, onToggle, onRetry }: WatchingListProps) {
   const { colors } = useTheme();
   const { open } = useStockSheet();
   const ownership = useStockOwnership();
   const fold = useScrollFold();
-  const rows = watchingRows(watch);
+  // A stock you hold is left out (watchlist.ts watchingRows); nothing is hidden while the ledger is unknown.
+  const rows = watchingRows(watch, (sym) => ownership.ownerFor(sym)?.kind === 'me');
   const listRef = useRef<View>(null);
   const boxes = useRef(new Map<string, { y: number; height: number }>());
   const latest = useRef(rows);
   latest.current = rows;
   const [onScreen, setOnScreen] = useState<string[]>([]);
   const quoteOf = useRowQuotes(onScreen);
+  // The server's slot lines: ONE list call for the rows that show a price (never one per row), each answer kept only for the price it was given for.
+  const slotOf = useWatchSlots(leagueId, rows.map((r) => ({ symbol: r.symbol, price: priceOf(quoteOf(r.symbol)) })));
 
   const measure = useCallback(() => {
     const vp = fold?.viewport() ?? null;
@@ -84,8 +95,10 @@ export function WatchingList({ watch, allowUndraftable, seasonOver, dayWord, onT
   if (watch.status === 'failed' && rows.length === 0) {
     return <LoadFailure title={COPY.stockSearchLoadTitle} message={COPY.loadRetryMessage} onRetry={onRetry} />;
   }
-  if ((watch.status === 'idle' || watch.status === 'loading') && rows.length === 0 && watch.symbols.length === 0) return <WatchSkeleton />;
-  if (watch.symbols.length === 0) {
+  // Saved but not yet named by the read (a first read in flight, or a just-saved stock): the skeleton, never a blank or the empty state.
+  const unnamed = watch.symbols.some((s) => !watch.rows.some((r) => r.symbol === s));
+  if (rows.length === 0 && (watch.status === 'idle' || watch.status === 'loading' || unnamed) && !(watch.status === 'ready' && watch.symbols.length === 0)) return <WatchSkeleton />;
+  if (rows.length === 0) {
     return (
       <View style={styles.empty} testID="stocks-watching-empty">
         <Icon name="star" size="title" tone="text2" />
@@ -93,14 +106,18 @@ export function WatchingList({ watch, allowUndraftable, seasonOver, dayWord, onT
       </View>
     );
   }
-  // Saved, but the read that names them has not landed (a just-saved stock): the skeleton rows stand in, never a blank.
-  if (rows.length === 0) return <WatchSkeleton />;
-
   return (
     <View ref={listRef} collapsable={false}>
       {rows.map((r) => {
         const owner = ownership.ownerFor(r.symbol);
-        const status = statusLine({ owner: owner ?? null, isDraftable: r.isDraftable, allowUndraftable, roomless: ownership.roomless });
+        const slot = slotOf(r.symbol, priceOf(quoteOf(r.symbol)));
+        const status = statusLine({
+          owner: owner?.kind === 'other' ? { name: owner.name } : null,
+          isDraftable: r.isDraftable,
+          allowUndraftable,
+          slotLine: slot ? { text: slot.text, full: slot.full } : null,
+          roomless: ownership.roomless,
+        });
         return (
           <WatchRow
             key={r.symbol}
@@ -136,7 +153,7 @@ function WatchRow({
   onBox,
 }: {
   row: WatchRowData;
-  status: { text: string; mine: boolean };
+  status: { text: string; kind: StatusKind };
   plus: boolean;
   quote: RowQuote | undefined;
   dayWord: string | null;
@@ -199,10 +216,9 @@ function WatchRow({
             testID="stocks-watch-status"
             variant="caption"
             maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE}
-            color={status.mine ? colors.youText : undefined}
-            tone={status.mine ? undefined : 'secondary'}
+            tone="secondary"
             numberOfLines={2}
-            style={status.mine ? styles.extraBold : styles.bold}
+            style={styles.bold}
           >
             {status.text}
           </Text>

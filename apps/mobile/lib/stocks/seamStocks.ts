@@ -21,6 +21,7 @@
  *   saverate     every save answers rate_limited (the star reverts; no words)
  *   savefail     every save fails with a transport-shaped error (the star reverts; no words)
  *   savehang     a save never answers (the optimistic star, held, for a still)
+ *   nolist       the slot lines' list preview fails (the rows keep the interim lines)
  * Combine with a comma ("page2_fail,noprice").
  */
 import type { ChipCategory } from './stocksList';
@@ -83,6 +84,7 @@ export interface StocksKnob {
   saveRate: boolean;
   saveFail: boolean;
   saveHang: boolean;
+  noList: boolean;
 }
 
 /** Pure: the knob's flags (a comma-separated list; unknown words are ignored). */
@@ -90,7 +92,7 @@ export function parseStocksKnob(raw: string | null | undefined): StocksKnob {
   const set = new Set((raw ?? '').split(',').map((s) => s.trim().toLowerCase()));
   return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small'), proceeds: set.has('proceeds'),
     watchEmpty: set.has('watchempty'), watchFail: set.has('watchfail'), watchLoading: set.has('watchloading'),
-    saveFull: set.has('savefull'), saveRate: set.has('saverate'), saveFail: set.has('savefail'), saveHang: set.has('savehang'),
+    saveFull: set.has('savefull'), saveRate: set.has('saverate'), saveFail: set.has('savefail'), saveHang: set.has('savehang'), noList: set.has('nolist'),
   };
 }
 
@@ -201,4 +203,35 @@ export function seamTickerQuote(symbol: string, knob: StocksKnob): ReadResult {
   for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 997;
   const pct = ((h % 49) - 24) / 10;
   return { data: { symbol: s, price, prevClose: Math.round((price / (1 + pct / 100)) * 100) / 100 }, error: null };
+}
+
+/**
+ * record-trade's LIST preview (PR #600) as the capture seam answers it: a tier league with three price slots ($100-$200, $200-$400, $400 or more),
+ * the third FULL. A priced row under $400 fits its slot; one at $400 or more gets would_fill null (no room); a symbol that is not asked with a
+ * usable price is null. `nolist` makes the call fail (the rows keep the interim lines).
+ */
+export function seamListPreview(body: Record<string, unknown>, knob: StocksKnob): ReadResult {
+  if (knob.noList) return { data: null, error: { message: 'fixture: the list preview failed', code: 'FIXTURE' } };
+  const slot = (i: number, min: number | null, max: number | null) => ({ slot_id: `seam-slot-${i}`, slot_index: i, slot_count: 3, price_min: min, price_max: max, category_id: null });
+  const low = slot(0, 100, 200);
+  const mid = slot(1, 200, 400);
+  const high = slot(2, 400, null);
+  const rows = Array.isArray(body.rows) ? (body.rows as { symbol?: unknown; price?: unknown }[]) : [];
+  return {
+    data: {
+      ok: true,
+      stake_mode: 'price_tiers',
+      sources: [],
+      slots: [{ ...low, held: [], open: 1 }, { ...mid, held: [], open: 1 }, { ...high, held: ['NVDA'], open: 0 }],
+      unplaced: [],
+      rows: rows.map((r) => {
+        const symbol = typeof r.symbol === 'string' ? r.symbol : '';
+        const price = typeof r.price === 'number' ? r.price : NaN;
+        if (!symbol || !Number.isFinite(price) || price <= 0) return null;
+        if (price >= 400) return { symbol, price, would_fill: null, open_slots: [low, mid] };
+        return { symbol, price, would_fill: price < 200 ? low : mid };
+      }),
+    },
+    error: null,
+  };
 }

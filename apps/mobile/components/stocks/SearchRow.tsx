@@ -56,7 +56,7 @@ export function SearchRow({ item, status, star, onPress }: { item: ShapedSearchR
       {item.price != null ? (
         <Text variant="score.sm" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={[styles.price, styles.bold, off ? styles.dim : null]}>{keepMoney(formatMoney(item.price))}</Text>
       ) : null}
-      {off ? <View style={styles.chevronSpace} /> : <Icon name="chevronRight" size="callout" tone="text2" />}
+      {off ? <View style={styles.chevronSpace} /> : star ? null : <Icon name="chevronRight" size="callout" tone="text2" />}
     </>
   );
   if (off) {
