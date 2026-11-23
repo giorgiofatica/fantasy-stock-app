@@ -1684,6 +1684,14 @@ building anything, and don't reopen a rule without him.
       app can tell the two cases apart and is wired to these lines, a paced review still
       reads "Couldn't reach trading. Check your connection and try again.", which is wrong
       and is known.
+  - **A claim that fills sends a notification the next morning** (2026-11-23, said in the
+    Planner's chat: "Yes, there should be a notification when a stock is successfully
+    claimed the next morning. I agree with that."). He was answering the Planner's line
+    that push notifications for claim results are in the approved October plan ("Each is a
+    push") and are built before build 18, as a step after the main claims work.
+    - His words name the claim that fills. The October plan, approved 2026-10-09, also
+      sends one for a claim that loses and one for a claim that fails; that stands, and he
+      was told so in the same message.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
