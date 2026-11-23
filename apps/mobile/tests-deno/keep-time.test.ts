@@ -153,7 +153,7 @@ Deno.test('the copy itself is unchanged: the plain strings still carry plain spa
 // consumer, so there is no render to guard.
 const RENDER_SITES: Record<string, RegExp[]> = {
   'components/home/ThisWeekCard.tsx': [/\{keepTime\(keepWeek\(rightLabel\)\)\}/],
-  'components/home/HomeHero.tsx': [/ · \{keepTime\(preSeasonLabel\)\}<\/Text>/],
+  'components/home/HomeHero.tsx': [/<Text variant="callout" tone="secondary">\{keepTime\(preSeasonLabel\)\}<\/Text>/],
   'components/home/PhaseMessageCard.tsx': [/\{keepTime\(line\)\}/],
   'components/home/PreDraftCard.tsx': [/\{keepTime\(dateLabel!\)\}/],
   'components/game/DraftComplete.tsx': [/finished \? keepTime\(keepWeek\(weekLine\)\)/],

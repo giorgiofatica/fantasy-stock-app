@@ -96,9 +96,9 @@ Deno.test('RollingGainPair: the colour reaches the numbers and brackets only; th
 
 Deno.test('Home hero: "season gain" and "today" (and the dot before today) are grey; the numbers take the sign colour', () => {
   const hero = src(HERO);
-  assert(hero.includes('<Text variant="callout" tone="secondary"> {HERO_SEASON_GAIN_LABEL}</Text>'));
-  assert(hero.includes('<Text variant="callout" tone="secondary"> {HERO_TODAY_LABEL}</Text>'));
-  assert(hero.includes('<Text variant="callout" tone="secondary"> · </Text>'));
+  assert(hero.includes('<Text variant="callout" tone="secondary">{HERO_SEASON_GAIN_LABEL}</Text>'));
+  assert(hero.includes('<Text variant="callout" tone="secondary">{HERO_TODAY_LABEL}</Text>'));
+  assert(hero.includes('<Text variant="callout" tone="secondary">{HERO_DOT}</Text>'));
   // Every coloured Text on the gain row is a bracket; no word is.
   const row = hero.slice(hero.indexOf('<RollingMoney text={gainDollarsText}'), hero.indexOf('{preSeasonLabel == null && caption'));
   const coloured = row.match(/<Text variant="callout" style=\{\{ color: (?:gainColor|todayColor)[^\n]*<\/Text>/g) ?? [];

@@ -57,13 +57,13 @@ Deno.test('the hero sub-line: "+$X (+Y%) season gain · +$Z today", the brackets
   // Game Night (the board's HeroText): the numbers at 700 in their sign's colour, the words at 500 in text2.
   const subLine = [
     '<RollingMoney text={gainDollarsText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />',
-    '<Text variant="callout" style={{ color: gainColor, fontWeight: \'700\' }}> {GAIN_PAIR_OPEN}</Text>',
+    '<Text variant="callout" style={{ color: gainColor, fontWeight: \'700\' }}>{GAIN_PAIR_OPEN}</Text>',
     '<RollingMoney text={gainPctText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />',
     '<Text variant="callout" style={{ color: gainColor, fontWeight: \'700\' }}>{GAIN_PAIR_CLOSE}</Text>',
-    '<Text variant="callout" tone="secondary"> {HERO_SEASON_GAIN_LABEL}</Text>',
-    '<Text variant="callout" tone="secondary"> · </Text>',
+    '<Text variant="callout" tone="secondary">{HERO_SEASON_GAIN_LABEL}</Text>',
+    '<Text variant="callout" tone="secondary">{HERO_DOT}</Text>',
     '<RollingMoney text={todayText} size="callout" color={todayColor} rollKey={leagueId} fontWeight="700" />',
-    '<Text variant="callout" tone="secondary"> {HERO_TODAY_LABEL}</Text>',
+    '<Text variant="callout" tone="secondary">{HERO_TODAY_LABEL}</Text>',
   ];
   let at = 0;
   for (const piece of subLine) {
