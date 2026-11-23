@@ -1623,6 +1623,31 @@ building anything, and don't reopen a rule without him.
       reading: Available treats it as Watching does (no plus, the "Claimed" line in place of
       "name · category"), for the claiming manager only. If the Design Lead draws it any
       other way, that drawing goes to him first.
+  - **No star on a stock you own; a stock you own is not in your watchlist** (2026-11-23,
+    typed in the Planner's chat, in answer to the Design Lead's board `#call-search-star`,
+    branch `design/search-star-1123`: "no star for something you own. its in your portfolio
+    so shouldnt need to be in the watchlist too").
+    - The board asked "yes or no" on a star in search results, on every result he could
+      ever watch: a free stock, "You own this", "Owned by {name}" and "No free slot"; and no
+      star on "Not in this league's list". His answer struck one of the four. The Planner
+      reads the rest as a yes, and has told him so: a star on a free stock, on "Owned by
+      {name}" and on "No free slot"; none on "You own this" or "Not in this league's list".
+    - His reason is about the watchlist, not about search, so the rule holds wherever a
+      star can appear: the stock's sheet shows no Save for a stock you own.
+    - This overrules two things: the Design Lead's "a star on every result you could ever
+      watch", and the October plan's status line "You own this" on the watchlist, which can
+      no longer occur there.
+    - The watchlist's server, live since 2026-11-23 (`20261209000000`), does not know this
+      rule: it accepts a save of a stock the caller holds. It needs a change.
+    - **A watched stock you buy leaves your watchlist for good (A)** (the same day, two
+      drawings in the Planner's chat; typed there: "A"). After you sell it, it is an
+      ordinary free stock with an empty star; star it again to watch it again. B (hidden
+      while you own it, back in the watchlist after the sale, keeping its place among the
+      50) was not picked. The Planner's recommendation was A.
+      - Told to him with the drawings: A needs a small server change and one more database
+        push, because the server removes the stock when you come to own it; a stock can
+        become yours by a buy, by a claim that fills at the open, or by a draft pick, and
+        two of those can happen with the app closed.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58

@@ -1,6 +1,6 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
-Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone; Part 3 (the watchlist, claims and top movers) is Approved (Giorgio, 2026-11-22: "Yeah, that plan looks good. Let's implement it.") and Building: its step 2, the watchlist server (#595), is merged and applied (migration `20261209000000`, 2026-11-23, checked by data); the claims, the Top movers job and the screens are NOT built; no build carries any of it
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone; Part 3 (the watchlist, claims and top movers) is Approved (Giorgio, 2026-11-22: "Yeah, that plan looks good. Let's implement it.") and Building: its step 2, the watchlist server (#595), is merged and applied (migration `20261209000000`, 2026-11-23, checked by data); the db-snapshot is re-captured (#598); the watchlist app, the Top movers server and a `record-trade` list preview are being built (the Orchestrator's account), none merged; the claims run is not started as far as I know; no build carries any of it
 Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: 5021a5bb
 
 **Revised 2026-11-18, the same day, after a later ruling.** Giorgio: "we can't be showing a
@@ -429,6 +429,82 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
    star there. A stock found by search is saved from its sheet, which the board does draw.
    The Design Lead draws the search rows with a star, and that drawing goes to Giorgio as a
    yes or no before build 18.
+   ANSWERED 2026-11-23 (`docs/PRODUCT_RULES.md`): a star on a free stock, on "Owned by
+   {name}" and on "No free slot"; none on "You own this" or "Not in this league's list".
+6. **A stock you own is never on your watchlist** (his rulings, 2026-11-23: "no star for
+   something you own. its in your portfolio so shouldnt need to be in the watchlist too",
+   then "A": a watched stock you buy leaves the watchlist for good). The watchlist's server
+   (`20261209000000`, applied 2026-11-23) was built before this rule and accepts a save of
+   a held stock. One small migration brings it in line:
+   - **"Holds" is the rule the Stocks list already uses** (`20261207000100`): the net of
+     draft picks and trades, per manager and per stock, above the same threshold as
+     `leagueOwnedSymbols`. Never "does any row exist". `drafts.user_id` is text and
+     `trades.user_id` is uuid, so the casts are needed.
+   - **A save of a stock the caller holds is refused**, in the trigger so every insert path
+     is covered, and `set_watchlist` answers a reason of its own for it. The app never
+     offers that star, so the reason gets no words: it is a save that did not go through.
+   - **Coming to own a stock removes it from that manager's watchlist in that league.** It
+     is done in the database, on every path that creates a holding (a buy, a claim that
+     fills, a draft pick, an auto-pick), not by the app and not inside one function only,
+     so a new path cannot forget it. It must never be able to fail a trade or a pick.
+   - **A sale removes it too**, if a row is somehow still there. A save and a buy can cross
+     in the same instant and leave a watched stock that is also held; without this, that
+     row would come back into view after the sale, which is option B, the one he did not
+     pick.
+   - **The read leaves out a stock the caller holds**, so a row stranded by that same race
+     is never shown while it is held. A stranded row still takes one of the 50 places
+     until the sale removes it; the write should clear the caller's held rows before it
+     counts, so the cap never refuses because of a row nobody can see.
+   - **Rows already saved and held are removed by the migration**, with a count taken first
+     in the hand-off's read-only checks (the table is one day old).
+   - A pending claim does not make a stock held: it stays in Watching as "Claimed · fills
+     Mon 9:30 AM ET" until the run. If the claim wins, the trade removes it.
+   - The October status line "You own this" on Watching no longer occurs. "Owned by
+     {name}" stays.
+   - Its own migration and its own small pull request, on Opus with both reviewers (it
+     touches the tables every trade writes to). Its timestamp must be later than every
+     migration applied when it is pushed, or `db push` refuses it as out of order; the
+     Orchestrator picks it. It is pushed before build 18, and can share a push with the top
+     movers migration if both are merged by then.
+   - Tests: the three ways of coming to own a stock each remove the row; a sale removes a
+     stranded row; another manager's saved copy of the same stock is untouched; a save of a
+     held stock is refused on both insert paths; a trade still succeeds when there is no
+     row to remove.
+7. **The single preview answers slot fit only for a stock the buy would accept.** Found by
+   the security review of the list preview (#600), and already in production before it:
+   `record-trade`'s `preview`, given a `symbol` and a `price`, reads that stock's category
+   and answers `would_fill` for ANY stock, with no check that the stock can be bought. In a
+   league with category slots that tells a member whether any stock belongs to a category,
+   at the function's 30 calls a minute and with no hourly or daily limit. Giorgio's rule is
+   "I don't want people to be able to scrape anything" (2026-10-08), so it is closed, not
+   accepted:
+   - **The preview applies the buy's own gate first.** For a stock the buy would refuse as
+     `not_draftable` (not draftable, in a league that has not turned on the full universe),
+     the preview answers that same refusal and never reads or returns the category fit.
+     One rule, shared with the buy; not a list of "stocks the caller can see".
+   - **Why this gate and not "saved or visible".** The stock's sheet opens on stocks that
+     are not saved, and the buy must still show its slot line there. What the gate leaves
+     answerable is the draftable stocks, whose categories the paced Stocks list already
+     returns to any member. What it closes is the rest: the stocks no paced read returns.
+   - **A preview that names a stock is paced by the hour and the day as well**, 200 an hour
+     and 500 a day per person, the watchlist's own numbers, on counters of its own so a buy
+     or a sell is never refused by them. This is for the full-universe league, where every
+     stock can be bought and so every stock must be answerable: any member can create one.
+     A preview with no stock named reads no category and is not counted.
+   - **No screen changes.** The app never asks about a stock it shows as "Not in this
+     league's list" (search does not let it be tapped). If the answer is a refusal all the
+     same, the app already has the words for both: "This stock isn't in this league's
+     list." and its line for too many requests.
+   - The list preview (#600) keeps its own rule, saved stocks only, and applies the same
+     gate to each stock in the list.
+   - The watchlist migration's note on pacing (`20261209000000`) is not rewritten: applied
+     migrations are not edited. The claim becomes true when this ships; until then it is
+     overstated, and `STATUS.md` says so (the Recorder).
+   - It is `record-trade` code and rides the same deploy as #600 if it is ready; if not,
+     #600 does not wait for it. Opus, with the security reviewer. Tests: a non-draftable
+     stock gets the buy's refusal and no `would_fill`, with the category read not made; the
+     same stock in a full-universe league is answered; the 201st named preview in an hour
+     is refused while a buy still goes through; a preview with no stock is never counted.
 
 ### Risks
 
