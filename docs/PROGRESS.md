@@ -23,6 +23,30 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-23
+
+(Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. It was ~17:5xZ when I wrote this.)
+
+**Shipped**
+- Nothing is recorded as reaching players or prod today. `local/deploy` is at `3131732a` (I read it).
+
+**Merged, not confirmed live**
+- Nothing merged since 07:15Z (#593). Open: #594 (the Design Lead's Stocks-tab lists board) and **#595 (the watchlist server: table, RLS, a 50-cap save, a price-free reader; migration `20261209000000`, NOT applied)**.
+
+**Decided**
+- **"Yes to all the words" on the Stocks tab lists board (`#call-stocks-tab-lists`, #594) (Giorgio, via the Design Lead, 2026-11-23; the Orchestrator's account).**
+
+**Found**
+- **A known, deferred gap (STATUS item 40; the security review's declined finding 3):** `take_over_team` does not delete a seat's stray watchlist rows. Today the design keeps the invariant (the scrub deletes them with the seat; a trigger refuses saves into a deleted seat); if it broke, a takeover would fail loudly, not hand over a deleted person's saves. The fix re-creates `take_over_team`, so it is deferred.
+
+**Waiting on Giorgio**
+- His pushes and deploys for the watchlist (STATUS item 41) when #595 merges; the supplier enquiry (his to send when ready; not on build 18's path).
+
+**Next**
+- **Monday 14:35Z's `snapshot-week-start` has passed; I have no report of its outcome.** The Orchestrator checks its logs.
+- The rest of Stocks part 3 (claims, the Top movers job, the screens) is not started as far as I know; then build 18; then the Expo upgrade.
+- After #595 is applied: the `proacl` checks and the db-snapshot re-capture.
+
 ## 2026-11-22
 
 (Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. Nothing was recorded on 2026-11-21.)
@@ -35,6 +59,8 @@ Entries begin with the Recorder's first pass.
 
 - **The six before-build pieces are ALL MERGED, in no build (05:11Z to 06:12Z on 11-23 UTC, the evening of 11-22 Pacific; I read each on GitHub):** #584 (`f451c721`, my record, all three commits), #585 (`75ea4c8a`, the unreachable stock-search screen removed), #586 (`14da268a`, a finished season's card has no week gain: null, not 0), #587 (`9ad6bc3e`, a share count stays on one line with its "sh"), #588 (`233eb4b3`, AX5: playoff status lines capped, the stake note never starts a line with a dash), #589 (`3131732a`, a wrapped gain line never starts with a space). None touches `supabase/`, web, scripts or CI; `local/deploy` is still at `5419051c`; nothing deployed; no build. Main's CI is `success` on `3131732a`, `233eb4b3` and `9ad6bc3e`. Only #279 (draft) is open.
 
+- **Late evening, 06:52Z to 07:16Z on 11-23 UTC (I read each on GitHub):** #591 (`cd1dfc0c`, the rules for the order, trending "B" and the upgrade timing), #592 (`61315595`, my record, all commits including the supplier correction), #593 (`d9063765`, the Planner's two plans: Stocks tab part 3 and the Expo SDK 58 upgrade, both approved). Main's CI is `success` on `d9063765`. `local/deploy` is at `3131732a`; nothing deployed.
+
 **Decided**
 - **BUILD 18 IS HELD AGAIN (Giorgio to the Planner, 2026-11-22: "lets tackle the items you listed before we do another build").** He then added two more items (typed to the Planner the same day: "yes add both"), so **build 18 waits on exactly six pieces (the Orchestrator's account):** a wrapped gain line's indent; "N sh" on one line (both Design Lead chips); remove the unreachable stock-search screen; the finished-season card's `weekGain` 0 → null; the live Matchup tab's playoff status lines capped at the AX5 text size; the stake note's line never starts with "—". The outcome-reason data check (STATUS item 37) is done and is not one of the six. The Planner's earlier reading, not his words, was that phone-pass leftovers and the bigger items do not block. The last two are offered as one chip, and the clean-ups are offered; none is started.
 
@@ -43,6 +69,8 @@ Entries begin with the Recorder's first pass.
 - **THE ORDER (Giorgio, typed to the Planner 2026-11-22; #591, open): "I would actually want to get those four elements in the build. And then from there, we do the build and then we do the upgrade."** His earlier pick "A" (build 18 first, then the upgrade) stands, extended by the four elements. He also corrected the Planner: "That's not my own reasoning." (recorded in #591).
 
 - **TRENDING IS "B": today's top movers, built from the current source over a defined set (Giorgio, typed to the Planner 2026-11-22; #591, open, at its rewritten head).** A (most bought or claimed in seven days) and "A now, B later" were not picked. **CORRECTION: I first recorded that the pick put the price supplier on build 18's critical path; that was wrong.** He questioned it, the Planner read the code and he was right: `quote` already computes the change from the snapshot (I checked `quote/index.ts`) and `enrich-symbols` already pulls batched snapshots. He approved ("this works"): rank a defined set (for example the 500 largest companies, by the size we already hold), skip any stock whose latest trade is too old, refresh every few minutes while the market is open. Only the whole market would need a supplier. The supplier enquiry stays unsent and his to send ("we wont send out yet ill ask when ready").
+
+- **Both plans APPROVED (Giorgio, 2026-11-22):** Stocks tab part 3, "Yeah, that plan looks good. Let's implement it."; the Expo SDK 54 to 58 upgrade, "approved, we'll start it after build 18". Neither is started beyond #595 (see 2026-11-23).
 
 **Found**
 - **STATUS item 37 is CLOSED, with a limit (the Orchestrator's account of Giorgio's read-only query of 2026-11-22; I ran nothing):** `not_recorded` 78 (the backfill), `dollar_gain` 8, no NULL row. So a real run after the 2026-11-20 deploy scored 8 matchups and wrote a reason on each. **All 8 are `dollar_gain`: no tiebreak, no-stocks or seed reason has been written in prod yet (tests only), and the percent columns were not read.**
