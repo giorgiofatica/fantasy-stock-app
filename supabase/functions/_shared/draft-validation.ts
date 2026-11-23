@@ -694,6 +694,27 @@ export function resolveFunding(
   return { ok: false, reason: 'no_proceeds' };
 }
 
+/**
+ * THE is_draftable gate (DR-001), reason `not_draftable`: a symbol the catalog
+ * marks not draftable is refused unless the league opted into the full universe
+ * (leagues.allow_undraftable). One function, so every path that answers "could
+ * this be bought?" answers it the same way: a draft pick (validatePick), a
+ * post-draft buy (validateTradeAdd), and record-trade's previews, single and
+ * list (plan 2026-11-18-stocks-tab.md, part 3, "Settled during the build" point
+ * 7: a preview of a stock the buy would refuse answers that refusal and never
+ * its category fit).
+ *
+ * Only an explicit `false` refuses: undefined is draftable, so rule tests that
+ * do not exercise this stay green. A caller reading the symbols row passes
+ * `row?.is_draftable === true` (a missing row is NOT draftable).
+ */
+export function refusesAsNotDraftable(
+  isDraftable: boolean | undefined,
+  rules: Pick<LeagueRules, 'allowUndraftable'>,
+): boolean {
+  return isDraftable === false && !rules.allowUndraftable;
+}
+
 export type PickRefusal =
   | 'draft_complete'
   | 'not_your_turn'
@@ -752,7 +773,7 @@ export function validatePick(i: PickInputs): PickDecision {
 
   // is_draftable gate (DR-001 draftable-universe filter): a non-draftable symbol
   // is refused unless the commissioner opted the league into the full universe.
-  if (i.isDraftable === false && !i.rules.allowUndraftable) {
+  if (refusesAsNotDraftable(i.isDraftable, i.rules)) {
     return { legal: false, reason: 'not_draftable' };
   }
 
@@ -883,7 +904,7 @@ export function validateTradeAdd(i: TradeAddInputs): TradeDecision {
   // is_draftable gate (DR-001): same as the draft path — a post-draft BUY of a
   // non-draftable symbol is refused unless the league allows the full universe.
   // (A SELL/drop never checks this — you can always exit a position.)
-  if (i.isDraftable === false && !i.rules.allowUndraftable) {
+  if (refusesAsNotDraftable(i.isDraftable, i.rules)) {
     return { legal: false, reason: 'not_draftable' };
   }
 

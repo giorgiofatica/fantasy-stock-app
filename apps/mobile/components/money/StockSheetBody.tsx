@@ -49,7 +49,9 @@ import { formatShares } from '@/lib/money/formatShares';
 import { myHoldingsFromLedger, stockPosition } from '@/lib/money/portfolioModel';
 import { COPY } from '@/lib/money/moneyCopy';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
-import { fetchPreview, type TradeBody } from '@/lib/money/recordTrade';
+import { fetchPreview, fetchPreviewAnswer, type TradeBody } from '@/lib/money/recordTrade';
+import { pacedPreviewLine } from '@/lib/money/previewAnswer';
+import { refusalCopy } from '@/lib/money/refusals';
 import { buyReviewOneShare, buyReviewPerSlot, buyReviewTier, sellReview, settledReview, type TradeReview } from '@/lib/money/reviewModel';
 import { fillsSlotLine, tierRefusalSentence } from '@/lib/money/tierContract';
 import { categoryNameOf, loadCategoryNames } from '@/lib/money/categoryNames';
@@ -125,6 +127,9 @@ interface OpenReview {
   warn?: boolean;
   /** Per-slot buy with more than one sale to pay from: the picker comes first. */
   needsPicker?: boolean;
+  /** A paced buy review (the preview's per-minute 429 or its hour/day cap): the review does not open; this
+   * line goes in the sheet's warn panel above an ENABLED Review buy (PRODUCT_RULES, "Too many taps", B). */
+  paced?: string;
   sources?: PreviewSource[];
 }
 
@@ -213,6 +218,9 @@ export function StockSheetBody({
   const seasonStart = useMemo(() => seasonStartOf(draftDone, ledgerState.ledger?.activity), [draftDone, ledgerState.ledger]);
   const [choice, setChoice] = useState<'buy' | 'sell' | null>(null);
   const [open, setOpen] = useState<OpenReview | null>(null);
+  // A paced buy review's "Too many tries" line, shown above Review buy until the next tap (the retry).
+  const [paced, setPaced] = useState<string | null>(null);
+  useEffect(() => { setPaced(null); }, [symbol]);
   // "Which sale pays for this?": the sales a per-slot buy can be paid from, and the one chosen.
   // fixed_notional: the sale proceeds that fund a buy, read ONCE when the sheet's facts are ready (the preview the review makes too),
   // so a buy with nothing to invest is disabled BEFORE the review. null = not read (or unreadable): never guessed.
@@ -294,8 +302,17 @@ export function StockSheetBody({
     }
     if (league.stake_mode === 'price_tiers' || league.stake_mode === 'budget_cap') {
       // The server decides the slot and the refusal. The client asks (advisory) and words the answer; it never computes fit.
-      const check = await fetchPreview(previewBody(league.id, { price, symbol }));
-      if (!check) return { kind, review: null, body: null, error: COPY.cantReach, loading: false };
+      const answer = await fetchPreviewAnswer(previewBody(league.id, { price, symbol }));
+      if (!answer) return { kind, review: null, body: null, error: COPY.cantReach, loading: false };
+      if (answer.kind === 'refused') {
+        // Paced (too many taps): no review; the approved "Too many tries" line above an enabled Review buy.
+        const pacedLine = pacedPreviewLine(answer.reason);
+        if (pacedLine) return { kind, review: null, body: null, error: null, loading: false, paced: pacedLine };
+        // A stock the buy would refuse as not_draftable: the buy's own sentence, through the buy's own mapper,
+        // before the review, where a slot refusal goes (plan part 3, point 7).
+        return { kind, review: null, body: null, error: refusalCopy(answer.reason, { symbol: symbol.toUpperCase() }).message, loading: false, warn: true };
+      }
+      const check = answer.preview;
       await loadCategoryNames();
       if (check.wouldFill === null) {
         // The refusal comes BEFORE the review, per the board.
@@ -405,8 +422,15 @@ export function StockSheetBody({
 
   async function openReview(kind: ReviewKind, pickedId: string | null = null) {
     trade.reset();
+    setPaced(null);
     setOpen({ kind, review: null, body: null, error: null, loading: true });
     const next = await buildReview(kind, pickedId);
+    if (next.paced) {
+      // Back to the sheet: the line sits above Review buy, which stays enabled as the retry.
+      setOpen(null);
+      setPaced(next.paced);
+      return;
+    }
     if (next.needsPicker && next.sources) {
       setOpen(null);
       setPicking({ sources: next.sources, chosen: defaultSourceId(next.sources) });
@@ -582,6 +606,8 @@ export function StockSheetBody({
       {/* E-3 (3e UX audit): a buy the server would refuse is named BEFORE the review, in the
           warn panel; the button stays visible and disabled under it (board #buy-a-stock). */}
       {model.controlsShown && warnBlock ? <WarnPanel text={keepMoney(warnBlock)} /> : null}
+      {/* A paced buy review (too many taps): the same panel, but Review buy below stays ENABLED as the retry. */}
+      {model.controlsShown && !warnBlock && selected === 'buy' && paced ? <WarnPanel text={paced} /> : null}
 
       {/* The 51st save: the board's words (October plan, 2026-10-09), in the refusal panel, above the action. Any other failed save says nothing. */}
       {watchState.refusal === 'watchlist_full' ? <WarnPanel text={COPY.watchlistFull} /> : null}

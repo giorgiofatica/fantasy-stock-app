@@ -11,6 +11,7 @@
  */
 import type { FunctionRefusal } from '../functionRefusal';
 import { etTimeLabel } from './autoStart';
+import { TOO_MANY_TRIES_WAIT } from '../tooManyTries';
 
 export function leaveLeagueEnabled(flag: string | undefined): boolean {
   return flag === '1';
@@ -181,7 +182,7 @@ const REFUSAL_LINES: Record<string, string> = {
   not_member: "You're not in this league anymore.",
   successor_not_allowed: DIDNT_GO_THROUGH,
   bad_request: DIDNT_GO_THROUGH,
-  rate_limited: 'Too many tries. Wait a moment, then try again.',
+  rate_limited: TOO_MANY_TRIES_WAIT,
   not_authenticated: 'Your session ended. Sign in again.',
 };
 export const LEAVE_REFUSAL_REASONS: readonly string[] = Object.keys(REFUSAL_LINES);

@@ -27,6 +27,10 @@
 //     an unsaved symbol's category is never even looked up. Without this, one
 //     call would hand out the category fit of 50 arbitrary stocks, which is the
 //     disclosure the watchlist's save pacing (20261209000000, PACING) closes.
+//   - The buy's own draftable gate, per row (plan point 7, preview-gate.ts):
+//     a saved symbol the buy would refuse as not_draftable gets null, and its
+//     category is never read. Watching already words that row "No longer
+//     tradable" from the watchlist read's own flag, so null says nothing new.
 //   - Bounded: at most MAX_PREVIEW_ROWS rows (the watchlist cap). More is a
 //     bad_request, not a silent truncation (a truncated answer would read as
 //     "Available" for the rows past the cut).
@@ -34,7 +38,7 @@
 //     price against the live ledger. No writes.
 //   - A row with no answer is null: a league with no slots, a price that did
 //     not load (missing, zero, negative, not a number), a symbol not on the
-//     caller's watchlist, a symbol of a shape the table cannot hold, or (a
+//     caller's watchlist, a symbol the buy would refuse as not_draftable, a symbol of a shape the table cannot hold, or (a
 //     category league) a symbol whose eligibility did not come back. The app
 //     reads null as plain "Available". A READ ERROR is not a null: it is the
 //     preview's 500, so a failure never reads as the routine "no answer".
@@ -43,13 +47,14 @@
 // supabase-js clients in, preview-list.test.ts wires fakes.
 import {
   type LedgerState,
+  rulesFromLeague,
   type SlotBody,
   slotsFromRows,
   type Step,
   unhandled,
   wouldFillBody,
 } from './commit.ts';
-import { userSlotOccupancy } from '../_shared/draft-validation.ts';
+import { refusesAsNotDraftable, userSlotOccupancy } from '../_shared/draft-validation.ts';
 
 /** The watchlist cap (watchlist.cap_index is 1..50): a screen of saved rows. */
 export const MAX_PREVIEW_ROWS = 50;
@@ -106,8 +111,13 @@ export interface RowReads {
   /** Of `symbols`, the ones on the CALLER's watchlist in this league, read
    * under the caller's identity (RLS). ok:false on a read error. */
   savedAmong(symbols: string[]): PromiseLike<{ ok: true; saved: Set<string> } | { ok: false }>;
+  /** Of `symbols` (saved symbols only), the ones symbols.is_draftable marks
+   * true; a symbol with no row is absent (= not draftable, as for the buy).
+   * ok:false on a read error. preview-gate.ts fetchDraftableAmong. */
+  draftableAmong(symbols: string[]): PromiseLike<{ ok: true; draftable: Set<string> } | { ok: false }>;
   /** Category eligibility per symbol (fetchEligibleCategoryIdsBatch). Called
-   * ONLY with saved symbols, and only in a league with category slots. Throws
+   * ONLY with saved symbols that pass the draftable gate, and only in a league
+   * with category slots. Throws
    * on a read error, as that helper does. */
   eligibilityFor(symbols: string[]): Promise<Map<string, Set<string>>>;
 }
@@ -120,7 +130,9 @@ export function answerPreviewRows(
   state: LedgerState,
   userId: string,
   rows: PreviewRowRequest[],
-  saved: Set<string>,
+  /** The symbols that may be answered: saved by the caller AND not refused by
+   * the draftable gate (previewRows computes it). Anything else is null. */
+  answerable: Set<string>,
   eligibility: Map<string, Set<string>>,
 ): Array<PreviewRowAnswer | null> {
   const slots = slotsFromRows(state.slots ?? []);
@@ -128,7 +140,7 @@ export function answerPreviewRows(
   const hasCategorySlots = slots.some((s) => s.categoryId != null);
   const occ = userSlotOccupancy(userId, slots, state.picks, state.trades, state.heldEligibility);
   return rows.map((r) => {
-    if (r.symbol == null || r.price == null || !saved.has(r.symbol)) return null;
+    if (r.symbol == null || r.price == null || !answerable.has(r.symbol)) return null;
     // A category league needs the symbol's eligibility; without it the answer
     // would be a guess (flex-only), so the row gets none.
     const elig = hasCategorySlots ? eligibility.get(r.symbol) : new Set<string>();
@@ -140,7 +152,8 @@ export function answerPreviewRows(
 /**
  * The list answer, with the reads in the order the disclosure rule needs:
  * nothing at all for a slot-less league; the caller's saved set first (under
- * their identity); category eligibility only for saved symbols. A read error
+ * their identity); then the draftable gate over saved symbols; category
+ * eligibility only for saved symbols the gate lets through. A read error
  * is the preview's 500 (never a page of nulls that reads as "Available").
  */
 export async function previewRows(
@@ -159,10 +172,18 @@ export async function previewRows(
   if (!savedRes.ok) return { ok: false, reply: unhandled() };
   // Only what was asked can count as saved, whatever the read returned.
   const saved = new Set([...savedRes.saved].filter((s) => asked.includes(s)));
+  if (saved.size === 0) return { ok: true, value: rows.map(() => null) };
+
+  // The buy's own gate (refusesAsNotDraftable), per saved symbol, BEFORE any
+  // category read: a stock the buy would refuse gets no answer and no lookup.
+  const draftRes = await reads.draftableAmong([...saved]);
+  if (!draftRes.ok) return { ok: false, reply: unhandled() };
+  const rules = rulesFromLeague(state.league);
+  const answerable = new Set([...saved].filter((s) => !refusesAsNotDraftable(draftRes.draftable.has(s), rules)));
 
   let eligibility = new Map<string, Set<string>>();
-  if (saved.size > 0 && slots.some((s) => s.categoryId != null)) {
-    eligibility = await reads.eligibilityFor([...saved]);
+  if (answerable.size > 0 && slots.some((s) => s.categoryId != null)) {
+    eligibility = await reads.eligibilityFor([...answerable]);
   }
-  return { ok: true, value: answerPreviewRows(state, userId, rows, saved, eligibility) };
+  return { ok: true, value: answerPreviewRows(state, userId, rows, answerable, eligibility) };
 }

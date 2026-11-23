@@ -14,6 +14,13 @@
  *      for saved symbols, refuses an over-long list before any league read,
  *      and refuses a request naming both shapes.
  *
+ *   3. The GATE and the PACING (plan part 3 point 7, preview-gate.ts): a preview
+ *      naming a stock the buy would refuse as not_draftable answers that refusal
+ *      and reads no category; a preview that reads a category is counted on its
+ *      own hour/day buckets (past either: 200 preview_limited, not the minute's
+ *      429 rate_limited); a buy and a sell run (to a recorded trade) with
+ *      those buckets exhausted.
+ *
  * The fake PostgREST models the watchlist's RLS: a watchlist read that does not
  * carry the signed-in user's token sees no rows. Every token is fabricated.
  *
@@ -59,6 +66,18 @@ interface World {
   watchlistError?: boolean;
   /** the category-override read fails (fetchEligibleCategoryIds* throw on it) */
   eligibilityError?: boolean;
+  /** symbols.is_draftable false for these (every other catalog symbol is true) */
+  undraftable?: string[];
+  /** catalog symbols with no industry (unclassified), beyond `industries` */
+  extraSymbols?: string[];
+  /** a read of symbols.is_draftable fails */
+  draftableError?: boolean;
+  /** the rate limiter's counters, `${bucket}|${subject}` -> hits (it really counts) */
+  counters: Map<string, number>;
+  /** the limiter answers an error for these buckets */
+  limiterError?: string[];
+  /** today is a full-day trading session (buys and sells pass the market gate) */
+  marketOpen?: boolean;
 }
 
 const LO = { id: 's-lo', slot_index: 0, slot_count: 1, price_min: 0, price_max: 200, category_id: null };
@@ -90,6 +109,7 @@ function tierWorld(over: Partial<World> = {}): World {
     ],
     industries: { AAPL: 'Tech Hardware', MSFT: 'Software', TSLA: 'Autos', GOOG: 'Interactive Media', XOM: 'Oil' },
     rules: { 'Tech Hardware': TECH, Software: TECH, 'Interactive Media': TECH },
+    counters: new Map(),
     ...over,
   };
 }
@@ -104,6 +124,8 @@ interface Seen {
   query: URLSearchParams;
   authorization: string | null;
   apikey: string | null;
+  /** an rpc's JSON arguments */
+  rpcBody?: Record<string, unknown>;
 }
 
 const json = (b: unknown, status = 200, extra: Record<string, string> = {}) =>
@@ -113,6 +135,27 @@ const json = (b: unknown, status = 200, extra: Record<string, string> = {}) =>
 const rowsResponse = (rows: unknown[]) =>
   json(rows, 200, { 'content-range': rows.length ? `0-${rows.length - 1}/${rows.length}` : '*/0' });
 
+/** An `in.(...)` list as PostgREST parses it: values may be double-quoted
+ * (supabase-js quotes any value holding , ( or )). */
+function parseInList(v: string): string[] {
+  const body = v.slice(4, -1);
+  const out: string[] = [];
+  let cur = '';
+  let quoted = false;
+  for (const ch of body) {
+    if (ch === '"') { quoted = !quoted; continue; }
+    if (ch === ',' && !quoted) { out.push(cur); cur = ''; continue; }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+/** Today's date in New York, as market_calendar keys it. */
+function etToday(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+
 /** eq./in. filters, as PostgREST reads them from the query string. */
 function filterRows<T extends Record<string, unknown>>(rows: T[], q: URLSearchParams): T[] {
   return rows.filter((r) => {
@@ -120,8 +163,7 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], q: URLSearchPa
       if (k === 'select' || k === 'order' || k === 'offset' || k === 'limit') continue;
       if (v.startsWith('eq.')) { if (String(r[k]) !== v.slice(3)) return false; continue; }
       if (v.startsWith('in.(')) {
-        const list = v.slice(4, -1).split(',').map((s) => s.replace(/^"|"$/g, ''));
-        if (!list.includes(String(r[k]))) return false;
+        if (!parseInList(v).includes(String(r[k]))) return false;
         continue;
       }
     }
@@ -131,10 +173,11 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], q: URLSearchPa
 
 function install(world: World, seen: Seen[]): () => void {
   const original = globalThis.fetch;
-  // deno-lint-ignore require-await
   globalThis.fetch = (async (input: Request | URL | string, init?: RequestInit) => {
     const req = input instanceof Request ? input : new Request(String(input), init);
     const url = new URL(req.url);
+    // Alpaca's latest trade: every symbol fills at $150.
+    if (url.hostname === 'data.alpaca.markets') return json({ trade: { p: 150 } });
     if (url.pathname === '/auth/v1/user') {
       return req.headers.get('Authorization') === `Bearer ${USER_JWT}`
         ? json({ id: USER_ID, aud: 'authenticated', role: 'authenticated' })
@@ -142,12 +185,33 @@ function install(world: World, seen: Seen[]): () => void {
     }
     const table = url.pathname.replace(/^\/rest\/v1\//, '');
     seen.push({ method: req.method, table, query: url.searchParams, authorization: req.headers.get('Authorization'), apikey: req.headers.get('apikey') });
-    if (table.startsWith('rpc/')) return json(true); // the rate limiter: under the limit
+    if (table.startsWith('rpc/')) {
+      // Take this call's entry BEFORE awaiting: concurrent rpcs (the two pacing
+      // bumps run in parallel) would otherwise all write the last entry.
+      const entry = seen[seen.length - 1];
+      const args = await req.json().catch(() => ({})) as Record<string, unknown>;
+      entry.rpcBody = args;
+      if (table === 'rpc/check_and_bump_rate_limit') {
+        // The real limiter's contract: bump, then true while hits <= p_limit.
+        if (world.limiterError?.includes(String(args.p_bucket))) return json({ code: 'XX000', message: 'boom' }, 500);
+        const key = `${args.p_bucket}|${args.p_subject}`;
+        const hits = (world.counters.get(key) ?? 0) + 1;
+        world.counters.set(key, hits);
+        return json(hits <= Number(args.p_limit));
+      }
+      if (table === 'rpc/record_trade_atomic') {
+        return json({ ok: true, trade: { id: 'new-trade', symbol: args.p_symbol, action: args.p_action, price: args.p_price } });
+      }
+      return json({ code: 'PGRST202', message: `unexpected rpc ${table}` }, 404);
+    }
     const single = (req.headers.get('accept') ?? '').includes('vnd.pgrst.object');
     const q = url.searchParams;
     switch (table) {
-      case 'market_calendar_coverage': return json(null); // never refreshed -> market: null (deterministic)
-      case 'market_calendar': return rowsResponse([]);
+      // Never refreshed -> market: null (deterministic), unless the world opens it.
+      case 'market_calendar_coverage':
+        return json(world.marketOpen ? { covered_from: etToday(), covered_through: etToday() } : null);
+      case 'market_calendar':
+        return rowsResponse(world.marketOpen ? [{ session_date: etToday(), open_et: '00:00:00', close_et: '23:59:59' }] : []);
       case 'leagues': return json(single ? world.league : [world.league]);
       case 'league_members': return json(single ? { user_id: USER_ID } : [{ user_id: USER_ID }]);
       case 'matchups': return rowsResponse([]);
@@ -165,7 +229,14 @@ function install(world: World, seen: Seen[]): () => void {
       case 'symbol_category_overrides':
         return world.eligibilityError ? json({ code: 'XX000', message: 'boom' }, 500) : rowsResponse([]);
       case 'symbols': {
-        const all = Object.entries(world.industries).map(([symbol, gics_industry]) => ({ symbol, gics_industry }));
+        if (world.draftableError && (q.get('select') ?? '').includes('is_draftable')) {
+          return json({ code: 'XX000', message: 'boom' }, 500);
+        }
+        const off = new Set(world.undraftable ?? []);
+        const all = [
+          ...Object.entries(world.industries).map(([symbol, gics_industry]) => ({ symbol, gics_industry })),
+          ...(world.extraSymbols ?? []).map((symbol) => ({ symbol, gics_industry: null })),
+        ].map((r) => ({ ...r, is_draftable: !off.has(r.symbol) }));
         const rows = filterRows(all, q);
         return single ? json(rows[0] ?? null) : rowsResponse(rows);
       }
@@ -349,6 +420,8 @@ Deno.test({ name: 'list preview: the watchlist is read with the CALLER\'s token 
 Deno.test({ name: 'list preview: a saved symbol with $ / ^ / = (the table allows them) is answered like any other', ...opts, async fn() {
   const world = tierWorld();
   for (const symbol of ['BF$B', '^GSPC', 'ABC=W', 'A,B']) world.watchlist.push({ league_id: LEAGUE_ID, user_id: USER_ID, symbol });
+  // In the catalog and draftable, so the buy's gate (point 7) lets them through.
+  world.extraSymbols = ['BF$B', '^GSPC', 'ABC=W', 'A,B'];
   const r = await call(world, {
     action: 'preview', league_id: LEAGUE_ID,
     rows: [{ symbol: 'AAPL', price: 150 }, { symbol: 'bf$b', price: 150 }, { symbol: '^GSPC', price: 150 }, { symbol: 'ABC=W', price: 150 }, { symbol: 'A,B', price: 150 }],
@@ -452,4 +525,182 @@ Deno.test({ name: 'list preview (category league): an eligibility read error is 
   });
   assertEquals(r.status, 500);
   assertEquals(r.body, { ok: false, reason: 'unhandled' });
+}});
+
+// ---------------------------------------------------------------------------
+// 3. The gate and the pacing (plan part 3 point 7, preview-gate.ts)
+// ---------------------------------------------------------------------------
+
+const HOUR = 'record-trade-preview-hour';
+const DAY = 'record-trade-preview-day';
+const CATEGORY_TABLES = ['symbol_category_overrides', 'category_rules'];
+const NOT_DRAFTABLE = JSON.stringify({ ok: false, reason: 'not_draftable' });
+
+/** The preview buckets' bumps in one call (the buy/sell limiter's are not). */
+const previewBumps = (seen: Seen[]) =>
+  seen.filter((s) => s.table === 'rpc/check_and_bump_rate_limit' && String(s.rpcBody?.p_bucket).startsWith('record-trade-preview'));
+/** Any read that looks up a category: the overrides, the rules, or symbols.gics_industry. */
+const categoryReads = (seen: Seen[]) =>
+  seen.filter((s) => CATEGORY_TABLES.includes(s.table) || (s.table === 'symbols' && (s.query.get('select') ?? '').includes('gics_industry')));
+const catWorld = (over: Partial<World> = {}) => tierWorld({ slots: [CAT, FLEX], drafts: [], ...over });
+const hits = (world: World, bucket: string) => world.counters.get(`${bucket}|user:${USER_ID}`) ?? 0;
+
+Deno.test({ name: 'gate: a not-draftable stock gets the buy\'s own refusal, no would_fill, and its category is never read', ...opts, async fn() {
+  const world = catWorld({ undraftable: ['XOM'] });
+  const r = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'XOM', price: 90 });
+  assertEquals(r.status, 200);
+  assertEquals(r.text, NOT_DRAFTABLE);
+  assertEquals(categoryReads(r.seen), [], 'the category read is never made');
+  assertEquals(r.seen.filter((s) => ['drafts', 'trades', 'league_draft_slots'].includes(s.table)), [], 'answered before the ledger read');
+  assertEquals(previewBumps(r.seen), [], 'no category read, so not counted');
+}});
+
+Deno.test({ name: 'gate: the refusal is the BUY\'s, byte for byte (same body as a buy of that stock)', ...opts, async fn() {
+  const world = catWorld({ undraftable: ['XOM'], marketOpen: true });
+  const preview = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'XOM', price: 90 });
+  const buy = await call(world, { action: 'buy', league_id: LEAGUE_ID, symbol: 'XOM' });
+  assertEquals(buy.status, preview.status);
+  assertEquals(buy.text, preview.text);
+}});
+
+Deno.test({ name: 'gate: applies to every preview naming a stock (price tiers, and a slot-less budget_cap league too)', ...opts, async fn() {
+  const tiers = await call(tierWorld({ undraftable: ['AAPL'] }), { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(tiers.text, NOT_DRAFTABLE);
+  const budget = await call(tierWorld({ undraftable: ['AAPL'], slots: [], league: league({ stake_mode: 'budget_cap', budget_amount: 1000 }) }), {
+    action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150,
+  });
+  assertEquals(budget.text, NOT_DRAFTABLE);
+  // A symbol named with no price is still a stock named.
+  const noPrice = await call(catWorld({ undraftable: ['XOM'] }), { action: 'preview', league_id: LEAGUE_ID, symbol: 'XOM' });
+  assertEquals(noPrice.text, NOT_DRAFTABLE);
+  assertEquals(categoryReads(noPrice.seen), []);
+}});
+
+Deno.test({ name: 'gate: a stock with no catalog row is not draftable, as for the buy', ...opts, async fn() {
+  const r = await call(catWorld(), { action: 'preview', league_id: LEAGUE_ID, symbol: 'NOPE', price: 10 });
+  assertEquals(r.text, NOT_DRAFTABLE);
+  assertEquals(categoryReads(r.seen), []);
+}});
+
+Deno.test({ name: 'gate: the same stock in a full-universe league (allow_undraftable) is answered, and counted once', ...opts, async fn() {
+  const world = catWorld({ undraftable: ['XOM'], league: league({ allow_undraftable: true }) });
+  const r = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'XOM', price: 90 });
+  assertEquals(r.status, 200);
+  assertEquals(r.body.ok, true);
+  assertEquals(r.body.would_fill, { slot_id: 's-flex', slot_index: 1, slot_count: 1, price_min: null, price_max: null, category_id: null });
+  assertEquals([hits(world, HOUR), hits(world, DAY)], [1, 1]);
+}});
+
+Deno.test({ name: 'gate: an is_draftable read error is a 500 (single and list), never an answer or a refusal', ...opts, async fn() {
+  const single = await call(catWorld({ draftableError: true }), { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(single.status, 500);
+  assertEquals(single.body, { ok: false, reason: 'unhandled' });
+  assertEquals(categoryReads(single.seen), []);
+  const list = await call(catWorld({ draftableError: true }), { action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'AAPL', price: 150 }] });
+  assertEquals(list.status, 500);
+  assertEquals(list.body, { ok: false, reason: 'unhandled' });
+}});
+
+Deno.test({ name: 'pacing: a category preview bumps its OWN hour (200) and day (500) buckets, per person', ...opts, async fn() {
+  const world = catWorld();
+  const r = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(r.status, 200);
+  assertEquals(previewBumps(r.seen).map((s) => s.rpcBody), [
+    { p_bucket: HOUR, p_subject: `user:${USER_ID}`, p_limit: 200, p_window_seconds: 3600 },
+    { p_bucket: DAY, p_subject: `user:${USER_ID}`, p_limit: 500, p_window_seconds: 86400 },
+  ]);
+  // Bumped through the service-role client (the limiter is service_role-only).
+  for (const s of previewBumps(r.seen)) assertEquals(s.apikey, SECRET);
+}});
+
+Deno.test({ name: 'pacing: the 200th category preview in the hour is answered, the 201st gets preview_limited with no category read', ...opts, async fn() {
+  const world = catWorld();
+  world.counters.set(`${HOUR}|user:${USER_ID}`, 199);
+  const ok = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(ok.status, 200);
+  assertEquals(ok.body.ok, true);
+  const refused = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  // Its own reason, as a 200 refusal: distinguishable from the per-minute 429 rate_limited.
+  assertEquals(refused.status, 200);
+  assertEquals(refused.text, JSON.stringify({ ok: false, reason: 'preview_limited' }));
+  assertEquals(categoryReads(refused.seen), [], 'refused before the read it protects');
+}});
+
+Deno.test({ name: 'pacing: the 501st category preview in the day is refused', ...opts, async fn() {
+  const world = catWorld();
+  world.counters.set(`${DAY}|user:${USER_ID}`, 500);
+  const r = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(r.status, 200);
+  assertEquals(r.text, JSON.stringify({ ok: false, reason: 'preview_limited' }));
+  assertEquals(categoryReads(r.seen), []);
+}});
+
+Deno.test({ name: 'pacing: with both preview buckets exhausted, a buy and a sell still go through (and never touch them)', ...opts, async fn() {
+  const world = catWorld({
+    marketOpen: true,
+    drafts: [{ id: 'd1', user_id: USER_ID, symbol: 'XOM', entry_price: 90, quantity: 1, pick_number: 1, slot_id: 's-flex' }],
+  });
+  world.counters.set(`${HOUR}|user:${USER_ID}`, 10_000);
+  world.counters.set(`${DAY}|user:${USER_ID}`, 10_000);
+  const paced = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(paced.body, { ok: false, reason: 'preview_limited' }, 'the preview is refused');
+  const buy = await call(world, { action: 'buy', league_id: LEAGUE_ID, symbol: 'AAPL' });
+  assertEquals(buy.status, 200);
+  assertEquals(buy.body.ok, true, buy.text);
+  assertEquals(buy.seen.filter((s) => s.table === 'rpc/record_trade_atomic').length, 1, 'the buy was recorded');
+  assertEquals(previewBumps(buy.seen), []);
+  const sell = await call(world, { action: 'sell', league_id: LEAGUE_ID, symbol: 'XOM' });
+  assertEquals(sell.status, 200);
+  assertEquals(sell.body.ok, true, sell.text);
+  assertEquals(previewBumps(sell.seen), []);
+}});
+
+Deno.test({ name: 'pacing: NOT counted when no category is read (no stock named; a price-tier league; the list preview)', ...opts, async fn() {
+  const world = catWorld();
+  await call(world, { action: 'preview', league_id: LEAGUE_ID });
+  await call(world, { action: 'preview', league_id: LEAGUE_ID, price: 150 });
+  await call(world, { action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'AAPL', price: 150 }] });
+  const tiers = tierWorld();
+  await call(tiers, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals([hits(world, HOUR), hits(world, DAY), hits(tiers, HOUR), hits(tiers, DAY)], [0, 0, 0, 0]);
+  // A symbol-less preview stays answerable with the buckets exhausted.
+  world.counters.set(`${HOUR}|user:${USER_ID}`, 10_000);
+  const r = await call(world, { action: 'preview', league_id: LEAGUE_ID });
+  assertEquals(r.status, 200);
+  assertEquals(r.body.ok, true);
+}});
+
+Deno.test({ name: 'pacing: a limiter error is a 500 (fail-closed), never preview_limited and never an unpaced read', ...opts, async fn() {
+  for (const bucket of [HOUR, DAY]) {
+    const r = await call(catWorld({ limiterError: [bucket] }), { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+    assertEquals(r.status, 500, bucket);
+    assertEquals(r.body, { ok: false, reason: 'unhandled' });
+    assertEquals(categoryReads(r.seen), [], `${bucket}: no category read`);
+  }
+}});
+
+Deno.test({ name: 'list preview: the gate per row: a saved not-draftable stock is null and its category is never read', ...opts, async fn() {
+  const world = catWorld({ undraftable: ['MSFT'] });
+  const r = await call(world, { action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'AAPL', price: 150 }, { symbol: 'MSFT', price: 150 }] });
+  assertEquals(r.status, 200);
+  const rows = r.body.rows as Array<{ would_fill: { slot_id: string } | null } | null>;
+  assertEquals(rows[0]?.would_fill?.slot_id, 's-cat');
+  assertEquals(rows[1], null);
+  for (const s of categoryReads(r.seen)) {
+    const filter = s.query.get('symbol') ?? s.query.get('gics_industry') ?? '';
+    assert(!/MSFT|Software/.test(filter), `${s.table} was asked about a not-draftable stock: ${filter}`);
+  }
+  // In a full-universe league the same saved stock is answered.
+  const full = await call(catWorld({ undraftable: ['MSFT'], league: league({ allow_undraftable: true }) }), {
+    action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'MSFT', price: 150 }],
+  });
+  assertEquals((full.body.rows as Array<{ would_fill: { slot_id: string } } | null>)[0]?.would_fill?.slot_id, 's-cat');
+}});
+
+Deno.test({ name: 'pacing: the per-minute limiter still answers its own 429 rate_limited (the two are told apart)', ...opts, async fn() {
+  const world = catWorld();
+  world.counters.set(`record-trade|user:${USER_ID}`, 30);
+  const r = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(r.status, 429);
+  assertEquals(r.body, { ok: false, reason: 'rate_limited' });
 }});
