@@ -9,18 +9,19 @@
 -- writes a real trade row, all rolled back. Run it outside trading hours. Its PASS / FAIL line
 -- prints a league id and two member ids: read it, do not paste it into a ticket or a chat.
 
--- A. The functions (CLAUDE.md: proacl, never the migration's word). EXPECT five rows:
+-- A. The functions (CLAUDE.md: proacl, never the migration's word). EXPECT six rows:
 --    get_league_watchlist        | t | {"search_path=public, pg_temp"}                  | {postgres=X/postgres,authenticated=X/postgres}
 --    league_held_positions       | f | {"search_path=public, pg_temp"}                  | {postgres=X/postgres}
 --    set_watchlist               | t | {"search_path=public, pg_temp"}                  | {postgres=X/postgres,authenticated=X/postgres}
 --    watchlist_before_insert     | t | {"search_path=public, pg_temp"}                  | {postgres=X/postgres}
 --    watchlist_leaves_on_holding | t | {"search_path=public, pg_temp",lock_timeout=2s}  | {postgres=X/postgres}
+--    watchlist_row_stale         | f | {"search_path=public, pg_temp"}                  | {postgres=X/postgres}
 --  (No anon, no service_role, and no entry starting "=", which would be PUBLIC.)
 SELECT proname, prosecdef, proconfig, proacl
   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
  WHERE n.nspname = 'public'
    AND proname IN ('get_league_watchlist', 'league_held_positions', 'set_watchlist',
-                   'watchlist_before_insert', 'watchlist_leaves_on_holding')
+                   'watchlist_before_insert', 'watchlist_leaves_on_holding', 'watchlist_row_stale')
  ORDER BY proname;
 
 -- B. The removal triggers, on BOTH holding tables. EXPECT two rows, each enabled (O):
@@ -31,11 +32,13 @@ SELECT tgrelid::regclass::text AS tbl, tgname, tgenabled, pg_get_triggerdef(oid)
  WHERE tgname IN ('trg_drafts_watchlist_leaves', 'trg_trades_watchlist_leaves')
  ORDER BY tgname;
 
--- C. The cleanup took. EXPECT saved_and_held = 0 (the preflight's statement 1 answers 0 too).
-SELECT count(*) AS saved_and_held
+-- C. The cleanup took. EXPECT saved_and_held_or_stale = 0 (the preflight's statement 1 answers
+--    0 too).
+SELECT count(*) AS saved_and_held_or_stale
   FROM public.watchlist w
  WHERE EXISTS (SELECT 1 FROM public.league_held_positions(w.league_id, w.user_id) h
-                WHERE h.symbol = w.symbol);
+                WHERE h.symbol = w.symbol)
+    OR public.watchlist_row_stale(w.league_id, w.user_id, w.symbol, w.created_at);
 
 -- D. EFFECT, on a real league and real accounts; the verdict is the error text,
 --    'WATCHLIST HELD EFFECT TEST: PASS ...'. Everything rolls back.
@@ -45,7 +48,10 @@ SELECT count(*) AS saved_and_held
 --      b. as M (signed in), a save of S1 answers reason 'held', and a direct insert is refused
 --         with PT409 'watchlist_held';
 --      c. the reader does not return S1;
---      d. a SELL row for S2 removes M's S2 row.
+--      d. a SELL row for S2 removes M's S2 row;
+--      e. STALE (the post-sale invariant): M sells S3, and a saved S3 row dated BEFORE that
+--         sale is still there (as if the sale's delete had been skipped): the reader does
+--         not return it, M's next call clears it, and a fresh save of S3 is shown.
 do $$
 declare
   v_league uuid;
@@ -53,6 +59,7 @@ declare
   v_m2     text;
   v_s1     text;
   v_s2     text;
+  v_s3     text;
   v_res    jsonb;
   v_n      int;
   v_msg    text;
@@ -79,8 +86,14 @@ begin
              and not exists (select 1 from watchlist w where w.league_id = v_league
                               and w.user_id in (v_m, v_m2) and w.symbol = y.symbol)
            order by y.symbol limit 2) s;
-  if v_s1 is null or v_s1 = v_s2 then
-    raise exception 'WATCHLIST HELD EFFECT TEST: SETUP FAIL -- fewer than two free symbols';
+  select y.symbol into v_s3 from symbols y
+   where y.symbol = upper(y.symbol) and length(y.symbol) between 1 and 12 and y.symbol not in (v_s1, v_s2)
+     and not exists (select 1 from public.league_held_positions(v_league) h where h.symbol = y.symbol)
+     and not exists (select 1 from watchlist w where w.league_id = v_league
+                      and w.user_id in (v_m, v_m2) and w.symbol = y.symbol)
+   order by y.symbol limit 1;
+  if v_s1 is null or v_s1 = v_s2 or v_s3 is null then
+    raise exception 'WATCHLIST HELD EFFECT TEST: SETUP FAIL -- fewer than three free symbols';
   end if;
   select count(*) into v_n from watchlist where league_id = v_league and user_id = v_m;
   if v_n > 48 then
@@ -136,9 +149,30 @@ begin
     v_fail := v_fail || ' d:sale-left-row';
   end if;
 
+  -- e. STALE. The sale first, then a row for S3 saved (as the owner) and dated an hour before it.
+  insert into public.trades (league_id, user_id, symbol, action, quantity, price, total_value)
+  values (v_league, v_m::uuid, v_s3, 'sell', 1, 1, 1);
+  insert into public.watchlist (league_id, user_id, symbol) values (v_league, v_m, v_s3);
+  update public.watchlist set created_at = now() - interval '1 hour'
+   where league_id = v_league and user_id = v_m and symbol = v_s3;
+  perform set_config('role', 'authenticated', true);
+  if exists (select 1 from public.get_league_watchlist(v_league) r where r.symbol = v_s3) then
+    v_fail := v_fail || ' e:reader-shows-stale';
+  end if;
+  v_res := public.set_watchlist(v_league, v_s2, false);  -- any call of M's clears it
+  if not coalesce((v_res ->> 'ok')::boolean, false) then v_fail := v_fail || ' e:unsave(' || v_res::text || ')'; end if;
+  if exists (select 1 from watchlist where league_id = v_league and user_id = v_m and symbol = v_s3) then
+    v_fail := v_fail || ' e:stale-row-not-cleared';
+  end if;
+  v_res := public.set_watchlist(v_league, v_s3, true);  -- a fresh save after the sale
+  if not coalesce((v_res ->> 'ok')::boolean, false) then v_fail := v_fail || ' e:resave(' || v_res::text || ')'; end if;
+  if not exists (select 1 from public.get_league_watchlist(v_league) r where r.symbol = v_s3) then
+    v_fail := v_fail || ' e:fresh-save-after-sale-hidden';
+  end if;
+
   if v_fail = '' then
-    raise exception 'WATCHLIST HELD EFFECT TEST: PASS (league %, member % bought %, sold %; member % kept %) -- rolled back',
-      v_league, v_m, v_s1, v_s2, v_m2, v_s1;
+    raise exception 'WATCHLIST HELD EFFECT TEST: PASS (league %, member % bought %, sold % and %; member % kept %) -- rolled back',
+      v_league, v_m, v_s1, v_s2, v_s3, v_m2, v_s1;
   end if;
   raise exception 'WATCHLIST HELD EFFECT TEST: FAIL --%', v_fail;
 end $$;

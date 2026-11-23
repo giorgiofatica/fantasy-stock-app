@@ -5,7 +5,7 @@
  * the freeze guards) and the real record_trade function run alongside the change.
  *
  * What it proves, each path EXERCISED (a migration applying says nothing about its bodies):
- *   - grants by proacl for all five touched functions; DEFINER/INVOKER and search_path as designed;
+ *   - grants by proacl for all six touched functions; DEFINER/INVOKER and search_path as designed;
  *     the removal trigger's lock_timeout; both triggers AFTER INSERT OR UPDATE OF the owner columns;
  *   - "holds" is ONE rule: league_held_positions agrees with the Stocks list
  *     (get_league_available_stocks, 20261207000100) and with the buy path's leagueOwnedSymbols
@@ -21,6 +21,10 @@
  *   - a SALE removes a crossed (stranded) row; a partial sale that still holds keeps it out; after a
  *     full sale the stock can be saved again (A, not B);
  *   - the reader omits a held stock; the 50 cap does not count a held (stranded) row;
+ *   - STALE, the post-sale invariant (Copilot on #606): a row saved before a FULL sale whose delete was
+ *     skipped is never shown, is cleared by the next set_watchlist and by the migration's cleanup;
+ *     a fresh save after a sale IS shown; another manager's trade or pick never makes my row stale;
+ *     a pick alone makes a row stale; a NULL clock and an exact tie never do (strict >);
  *   - a trade and a pick still succeed with nothing to remove, and when the removal itself FAILS
  *     (a test-only trigger makes the delete raise): the row stays, the reader hides it;
  *   - a pending claim (a stand-in claims table: claims are not built yet) does not make a stock held;
@@ -51,7 +55,7 @@ const L = '00000000-0000-4000-8000-00000000d001';
 type Row = any;
 
 const NAMED = ['AAA', 'BBB', 'CCC', 'DDD', 'EEE', 'FFF', 'GGG', 'HHH', 'III', 'JJJ', 'KKK', 'LLL', 'MMM', 'NNN',
-  'OOO', 'PPP', 'QQQ', 'RRR', 'SSS', 'TTT'];
+  'OOO', 'PPP', 'QQQ', 'RRR', 'SSS', 'TTT', 'UUU', 'VVV', 'WWW', 'XXX', 'YYY', 'ZZZ', 'ZZA'];
 const PLAIN = Array.from({ length: 55 }, (_, i) => `P${String(i + 1).padStart(2, '0')}`);
 
 /** Split a checks/preflight file into its statements (top-level ';' at a line end; a DO block is one). */
@@ -162,21 +166,29 @@ Deno.test({
     await q(`update leagues set draft_status = 'completed' where id = $1`, [L]);
     assertEquals((await trade(A, 'BBB', 'sell', 1)).ok, true, 'the pre-migration sale');
     for (const [u, s] of [[A, 'AAA'], [A, 'BBB'], [B, 'AAA'], [B, 'CCC']]) assertEquals((await save(u, s)).ok, true, `${u} ${s}`);
+    //   B saved P54, then bought it and sold it all -> not held, but STALE: the cleanup deletes it
+    //   (dated a minute back so the order never rests on a millisecond clock).
+    assertEquals((await save(B, 'P54')).ok, true);
+    await q(`update public.watchlist set created_at = created_at - interval '1 minute' where user_id = $1 and symbol = 'P54'`, [B]);
+    assertEquals((await trade(B, 'P54', 'buy', 1)).ok, true);
+    assertEquals((await trade(B, 'P54', 'sell', 1)).ok, true);
 
     const preflight = statements(await Deno.readTextFile(PREFLIGHT_URL));
-    assertEquals(preflight.length, 2, 'the preflight is two statements');
-    const [{ saved_and_held: before }] = await q(preflight[0]);
-    assertEquals(Number(before), 2, 'the preflight counts the two saved-and-held rows');
-    const listed = (await q(preflight[1])).map((r: Row) => `${r.user_id}:${r.symbol}`);
-    assertEquals(listed, [`${A}:AAA`, `${B}:CCC`]);
+    assertEquals(preflight.length, 3, 'the preflight is three statements');
+    const [clocks] = await q(preflight[2]);
+    assertEquals([Number(clocks.future_trades), Number(clocks.future_picks)], [0, 0], 'no future-dated pick or trade');
+    const [{ saved_and_held_or_stale: before }] = await q(preflight[0]);
+    assertEquals(Number(before), 3, 'the preflight counts the two saved-and-held rows and the stale one');
+    const listed = (await q(preflight[1])).map((r: Row) => `${r.user_id}:${r.symbol}:${r.held}:${r.stale}`);
+    assertEquals(listed, [`${A}:AAA:true:false`, `${B}:CCC:true:false`, `${B}:P54:false:true`]);
 
     const applied = await applyFrom(db, VERSION);
     assert(applied.includes(`${VERSION}_watchlist_held_leaves.sql`), 'the migration under test applied');
 
     await t.step('the cleanup deleted exactly what the preflight counted', async () => {
       assertEquals(await rows(A), ['BBB'], 'A: held AAA gone, fully sold BBB kept');
-      assertEquals(await rows(B), ['AAA'], 'B: held CCC gone, its copy of AAA (held by A) kept');
-      const [{ saved_and_held: after }] = await q(preflight[0]);
+      assertEquals(await rows(B), ['AAA'], 'B: held CCC and stale P54 gone, its copy of AAA (held by A) kept');
+      const [{ saved_and_held_or_stale: after }] = await q(preflight[0]);
       assertEquals(Number(after), 0, 'the preflight counts 0 after the push');
     });
 
@@ -185,7 +197,7 @@ Deno.test({
                              from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                             where n.nspname = 'public'
                               and proname in ('get_league_watchlist', 'set_watchlist', 'watchlist_before_insert',
-                                              'league_held_positions', 'watchlist_leaves_on_holding')
+                                              'league_held_positions', 'watchlist_leaves_on_holding', 'watchlist_row_stale')
                             order by proname`);
       assertEquals(fns.map((r: Row) => [r.proname, r.prosecdef, r.cfg, r.acl]), [
         ['get_league_watchlist', true, '{"search_path=public, pg_temp"}', '{postgres=X/postgres,authenticated=X/postgres}'],
@@ -193,14 +205,16 @@ Deno.test({
         ['set_watchlist', true, '{"search_path=public, pg_temp"}', '{postgres=X/postgres,authenticated=X/postgres}'],
         ['watchlist_before_insert', true, '{"search_path=public, pg_temp"}', '{postgres=X/postgres}'],
         ['watchlist_leaves_on_holding', true, '{"search_path=public, pg_temp",lock_timeout=2s}', '{postgres=X/postgres}'],
+        ['watchlist_row_stale', false, '{"search_path=public, pg_temp"}', '{postgres=X/postgres}'],
       ]);
       const [ov] = await q(`select count(*)::int n from pg_proc where proname in ('get_league_watchlist', 'set_watchlist',
-                              'watchlist_before_insert', 'league_held_positions', 'watchlist_leaves_on_holding')`);
-      assertEquals(ov.n, 5, 'one overload each');
+                              'watchlist_before_insert', 'league_held_positions', 'watchlist_leaves_on_holding', 'watchlist_row_stale')`);
+      assertEquals(ov.n, 6, 'one overload each');
       for (const role of ['anon', 'authenticated', 'service_role']) {
         const [r] = await q(`select has_function_privilege($1, 'public.league_held_positions(uuid, text)', 'EXECUTE') h,
-                                    has_function_privilege($1, 'public.watchlist_leaves_on_holding()', 'EXECUTE') t`, [role]);
-        assertEquals([r.h, r.t], [false, false], `${role} executes neither helper`);
+                                    has_function_privilege($1, 'public.watchlist_leaves_on_holding()', 'EXECUTE') t,
+                                    has_function_privilege($1, 'public.watchlist_row_stale(uuid, text, text, timestamptz)', 'EXECUTE') s`, [role]);
+        assertEquals([r.h, r.t, r.s], [false, false, false], `${role} executes no helper`);
       }
       const trg = await q(`select tgrelid::regclass::text rel, tgname, tgenabled, pg_get_triggerdef(oid) def from pg_trigger
                             where tgname in ('trg_drafts_watchlist_leaves', 'trg_trades_watchlist_leaves') order by tgname`);
@@ -392,6 +406,80 @@ Deno.test({
       assertEquals(await rows(B), ['AAA']);
     });
 
+    await t.step('STALE: a full sale whose delete was skipped leaves a row that is never shown, then cleared', async () => {
+      // A crossing: A's save of UUU was dated before A's buy (the buy's delete never saw it).
+      assertEquals((await trade(A, 'UUU', 'buy', 1)).ok, true);
+      await strand(A, 'UUU');
+      await q(`update public.watchlist set created_at = created_at - interval '1 hour' where user_id = $1 and symbol = 'UUU'`, [A]);
+      // The FULL sale, with its delete skipped (as when another transaction held the row's lock
+      // and rolled back, or the caught-error path kept it).
+      await db.exec(`alter table public.trades disable trigger trg_trades_watchlist_leaves`);
+      try {
+        assertEquals((await trade(A, 'UUU', 'sell', 1)).ok, true);
+      } finally {
+        await db.exec(`alter table public.trades enable trigger trg_trades_watchlist_leaves`);
+      }
+      assertEquals((await rows(A)).includes('UUU'), true, 'the row survived the sale');
+      assertEquals((await q(`select symbol from public.league_held_positions($1, $2)`, [L, A])).map((r: Row) => r.symbol)
+        .includes('UUU'), false, 'and UUU is no longer held');
+      assertEquals((await read(A)).includes('UUU'), false, 'the reader still never shows it (not B)');
+      // Any write of A's clears it, and its count never included it.
+      const r = await save(A, 'VVV', false);
+      assertEquals(r, { ok: true, saved: false, count: (await rows(A)).filter((s) => s !== 'UUU').length });
+      assertEquals((await rows(A)).includes('UUU'), false, 'cleared by the next set_watchlist');
+      // After the sale it is an ordinary free stock: a fresh save is shown.
+      assertEquals((await save(A, 'UUU')).ok, true);
+      assertEquals((await read(A)).includes('UUU'), true, 'a fresh save after the sale is shown');
+      assertEquals((await save(A, 'UUU', false)).ok, true);
+      // Stale is per manager: B buying a stock A saved never hides A's row.
+      assertEquals((await save(A, 'WWW')).ok, true);
+      assertEquals((await trade(B, 'WWW', 'buy', 1)).ok, true);
+      assertEquals((await read(A)).includes('WWW'), true, 'A watches a stock B owns');
+      assertEquals((await save(A, 'WWW', false)).ok, true);
+    });
+
+    await t.step('STALE edges: a pick alone, a NULL clock, an exact tie, another manager\'s pick', async () => {
+      /** Rows written with every trigger off, so only the stale rule is in play. */
+      const raw = async (sql: string, p: unknown[]) => {
+        await db.exec(`set session_replication_role = replica`);
+        try {
+          await q(sql, p);
+        } finally {
+          await db.exec(`set session_replication_role = origin`);
+        }
+      };
+      const savedAt = async (sym: string) =>
+        (await one(`select created_at::text t from public.watchlist where league_id = $1 and user_id = $2 and symbol = $3`, [L, A, sym])).t;
+      for (const s of ['XXX', 'YYY', 'ZZZ', 'ZZA']) assertEquals((await save(A, s)).ok, true);
+      await q(`update public.watchlist set created_at = created_at - interval '1 hour' where user_id = $1 and symbol in ('XXX', 'YYY', 'ZZZ', 'ZZA')`, [A]);
+      // XXX: a sale dated BEFORE the save and a pick AFTER it (net 0, not held): stale by the pick alone.
+      await raw(`insert into trades (league_id, user_id, symbol, action, quantity, price, total_value, created_at)
+                 values ($1, $2, 'XXX', 'sell', 1, 10, 10, now() - interval '2 hours')`, [L, A]);
+      await raw(`insert into drafts (league_id, user_id, symbol, entry_price, quantity, round, pick_number, pick_source)
+                 values ($1, $2, 'XXX', 10, 1, 1, 900, 'manual')`, [L, A]);
+      // YYY: a buy and a sale with NULL clocks: unknown is not "after", so the row stays shown.
+      await raw(`insert into trades (league_id, user_id, symbol, action, quantity, price, total_value, created_at)
+                 values ($1, $2, 'YYY', 'buy', 1, 10, 10, null), ($1, $2, 'YYY', 'sell', 1, 10, 10, null)`, [L, A]);
+      // ZZZ: a buy and a sale stamped EXACTLY at the save: a tie is not "after" (strict >).
+      const t0 = await savedAt('ZZZ');
+      await raw(`insert into trades (league_id, user_id, symbol, action, quantity, price, total_value, created_at)
+                 values ($1, $2, 'ZZZ', 'buy', 1, 10, 10, $3::timestamptz), ($1, $2, 'ZZZ', 'sell', 1, 10, 10, $3::timestamptz)`, [L, A, t0]);
+      // ZZA: another manager picks it after A saved it: A's row is untouched by the stale rule.
+      await raw(`insert into drafts (league_id, user_id, symbol, entry_price, quantity, round, pick_number, pick_source)
+                 values ($1, $2, 'ZZA', 10, 1, 1, 901, 'manual')`, [L, B]);
+      const shown = await read(A);
+      assertEquals(['XXX', 'YYY', 'ZZZ', 'ZZA'].filter((s) => shown.includes(s)), ['YYY', 'ZZZ', 'ZZA']);
+      // One microsecond later than the save IS after.
+      await raw(`update trades set created_at = $3::timestamptz + interval '1 microsecond'
+                  where league_id = $1 and user_id = $2 and symbol = 'ZZZ'`, [L, A, t0]);
+      assertEquals((await read(A)).includes('ZZZ'), false);
+      // A stale row never counts toward the cap: the write clears both and answers the rest.
+      const before = (await rows(A)).length;
+      const r = await save(A, 'VVV', false);
+      assertEquals(r, { ok: true, saved: false, count: before - 2 }, 'XXX and ZZZ cleared before counting');
+      for (const s of ['YYY', 'ZZA']) assertEquals((await save(A, s, false)).ok, true);
+    });
+
     await t.step('edges: another league, a trades UPDATE, a lower-case pick, a legacy SKIP row, a re-run', async () => {
       // A trade in ANOTHER league never touches this league's row.
       const L2 = '00000000-0000-4000-8000-00000000d002';
@@ -429,7 +517,7 @@ Deno.test({
       const snap = async () => ({
         wl: await q(`select * from public.watchlist order by league_id, user_id, symbol`),
         acl: await q(`select proname, proacl::text from pg_proc where proname in ('get_league_watchlist', 'set_watchlist',
-                       'watchlist_before_insert', 'league_held_positions', 'watchlist_leaves_on_holding') order by proname`),
+                       'watchlist_before_insert', 'league_held_positions', 'watchlist_leaves_on_holding', 'watchlist_row_stale') order by proname`),
         trg: await q(`select tgname from pg_trigger where tgname like 'trg_%watchlist%' order by tgname`),
       });
       const before = await snap();
@@ -444,9 +532,9 @@ Deno.test({
       const effect = stmts.pop()!;
       assert(/^do \$\$/i.test(effect), 'the effect block is last');
       const [fns, trg, leftover] = [await q(stmts[0]), await q(stmts[1]), await q(stmts[2])];
-      assertEquals(fns.length, 5);
+      assertEquals(fns.length, 6);
       assertEquals(trg.length, 2);
-      assertEquals(Number(leftover[0].saved_and_held), 0);
+      assertEquals(Number(leftover[0].saved_and_held_or_stale), 0);
       const before = await q(`select * from public.watchlist order by league_id, user_id, symbol`);
       const tradesBefore = (await one(`select count(*)::int n from trades`)).n;
       const r = await refusal(() => db.exec(effect));

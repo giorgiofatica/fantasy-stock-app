@@ -1684,6 +1684,40 @@ building anything, and don't reopen a rule without him.
       app can tell the two cases apart and is wired to these lines, a paced review still
       reads "Couldn't reach trading. Check your connection and try again.", which is wrong
       and is known.
+  - **A claim that fills sends a notification the next morning** (2026-11-23, said in the
+    Planner's chat: "Yes, there should be a notification when a stock is successfully
+    claimed the next morning. I agree with that."). He was answering the Planner's line
+    that push notifications for claim results are in the approved October plan ("Each is a
+    push") and are built before build 18, as a step after the main claims work.
+    - His words name the claim that fills. The October plan, approved 2026-10-09, also
+      sends one for a claim that loses and one for a claim that fails; that stands, and he
+      was told so in the same message.
+  - **The two failed-claim messages (both A)** (2026-11-23, four drawings in the Planner's
+    chat; said there: "Yeah, I agree both 2A or both A options."). Each is a bold line with
+    "Nothing was bought." under it, as the board draws a failed claim; when the claim named
+    a sale, the second line is "Your {symbol} was not sold.", as the board draws a lost one.
+    - The stock left the league's list before the claim ran: **"AAPL isn't in this
+      league's list of stocks"**. 1B, the October plan's "AAPL is no longer tradable", was
+      not picked.
+    - Our system did not process claims that morning: **"Claims weren't processed on
+      Monday"**, with the day the claim should have run. 2B ("Something went wrong on our
+      side on Monday") was not picked.
+    - The same words are the body of the push for that failed claim.
+  - **Those messages are fallbacks; the system fixes the cause by itself** (the same
+    message, his words in full: "Now, my only thing is that kind of like we can't have
+    happen where there's like a missed, like a stock's not showing its price or something
+    like that. We really need to make sure that messages like the stock isn't in this
+    league's list or claims weren't processed on Monday. Like those really cannot be
+    happening. I understand we have them as fallbacks, but like we need to have some sort
+    of also trigger to where if something like that's occurring, there's an automatic fix
+    being done in place.").
+    - It joins his 2026-11-17 rule, "There should always be a price for a stock", where he
+      chose an automatic fallback over an alert and over a person stepping in.
+    - What it asks for, in the Planner's reading: wherever a claim, a price or the stock
+      list can fail for a reason that is ours, something notices and repairs it without a
+      person, and the message is shown only when the repair is impossible. A message that
+      is correct (a company really was delisted) is not a fault to fix.
+    - The plan for it is the Planner's to write and his to approve. Not built.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
