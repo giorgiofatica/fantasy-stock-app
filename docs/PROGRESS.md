@@ -23,6 +23,26 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-22
+
+(Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. Nothing was recorded on 2026-11-21.)
+
+**Shipped**
+- Nothing is recorded as reaching players or prod since 2026-11-20. Nothing has merged since 2026-11-20 20:24Z (I read the log).
+
+**Merged, not confirmed live**
+- **#582 (2026-11-20T20:16:07Z, `fbf5eda1`): the phone shows why a finished week was won, keyed on the stored `outcome_reason`.** Mobile only (I read the file list); in no build. **#583 (20:24:25Z, `5419051c`): my record**, with `a89a3402`. Main's CI is `success` on `5419051c` and `fbf5eda1`.
+
+**Decided**
+- **BUILD 18 IS HELD AGAIN (Giorgio to the Planner, 2026-11-22: "lets tackle the items you listed before we do another build").** The Planner's reading, not his words, and being confirmed: the items are the outcome-reason data check (STATUS item 37), the Design Lead's two chips (a wrapped gain line's indent; "N sh" on one line), and two clean-ups (remove the unreachable stock-search screen; #545's finished-season `weekGain` 0 → null). Phone-pass leftovers and the bigger items do not block.
+
+**Waiting on Giorgio**
+- His confirmation of the Planner's reading of the list; the supplier enquiry (his to send when ready); the January SDK start.
+
+**Next**
+- The two clean-ups are offered as chips, not started; the Design Lead's two chips; item 37's data check needs a real scored week.
+- **Mon 2026-11-23, 14:35Z: `snapshot-week-start`, the first scheduled run with the always-a-price step**, if a league has a week to start; the Orchestrator checks its logs.
+
 ## 2026-11-20
 
 (Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so.)
