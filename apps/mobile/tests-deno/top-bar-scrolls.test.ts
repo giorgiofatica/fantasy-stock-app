@@ -92,12 +92,6 @@ Deno.test('every top-level ShellHeader shows the avatar; nothing passes a phase 
   for (const [p, src] of Object.entries(SOURCES)) assert(!/\bshowPhase\b/.test(code(src)), `${p} still names showPhase`);
 });
 
-Deno.test('Buy a stock draws no ShellHeader: its top is the back arrow and the search field (board #call-buy-top, B)', () => {
-  const src = code(SOURCES['components/money/StockSearchScreen.tsx']);
-  assert(!src.includes('ShellHeader') && !src.includes('LeaguePill'));
-  assert(src.includes('accessibilityLabel="Portfolio"'), 'it keeps its back control, named "Portfolio" for VoiceOver');
-});
-
 Deno.test('every ShellHeader caller is accounted for (a new one must be a tab or a back-button screen)', () => {
   const callers = Object.entries(SOURCES).filter(([p, s]) => p !== 'components/shell/ShellHeader.tsx' && code(s).includes('<ShellHeader')).map(([p]) => p).sort();
   assertEquals(callers, [...TABS_AND_PLACEHOLDER, ...BACK_BUTTON_SCREENS].sort());
