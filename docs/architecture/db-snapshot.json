@@ -1207,6 +1207,33 @@
         {
             "acl": [
                 "postgres=arwdDxtm/postgres",
+                "service_role=arwdDxtm/postgres"
+            ],
+            "name": "top_movers",
+            "policies": [
+            ],
+            "rlsForced": false,
+            "columnAcls": {
+            },
+            "rlsEnabled": true,
+            "checkConstraints": [
+                {
+                    "name": "top_movers_gate",
+                    "definition": "CHECK (((set_size > 0) AND ((fresh_count >= 1) AND (fresh_count <= set_size)) AND (((fresh_count)::bigint * 10) >= ((set_size)::bigint * 9))))"
+                },
+                {
+                    "name": "top_movers_rank_range",
+                    "definition": "CHECK (((rank >= 1) AND (rank <= 100)))"
+                },
+                {
+                    "name": "top_movers_symbol_shape",
+                    "definition": "CHECK ((btrim(symbol) <> ''::text))"
+                }
+            ]
+        },
+        {
+            "acl": [
+                "postgres=arwdDxtm/postgres",
                 "anon=arwd/postgres",
                 "authenticated=arwd/postgres",
                 "service_role=arwdDxtm/postgres"
@@ -1468,6 +1495,15 @@
             "jobname": "purge_rate_limit_counters",
             "database": "postgres",
             "schedule": "37 4 * * *",
+            "username": "postgres"
+        },
+        {
+            "jobid": 53,
+            "active": true,
+            "command": "\n  select net.http_post(\n    url     := 'https://haiaaifjcclsvmkfqgmd.supabase.co/functions/v1/rank-top-movers',\n    headers := jsonb_build_object(\n      'Content-Type', 'application/json',\n      'apikey', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_apikey' limit 1)\n    ),\n    body    := '{}'::jsonb,\n    timeout_milliseconds := 180000\n  )\n  where exists (select 1 from public.market_session_status() s where s.status = 'open');\n  ",
+            "jobname": "rank_top_movers",
+            "database": "postgres",
+            "schedule": "*/5 * * * *",
             "username": "postgres"
         },
         {
@@ -2655,6 +2691,21 @@
                 "authenticated=X/postgres"
             ],
             "args": "p_league_id uuid",
+            "name": "get_league_top_movers",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
+            "args": "p_league_id uuid",
             "name": "get_league_watchlist",
             "owner": "postgres",
             "proconfig": [
@@ -3221,6 +3272,21 @@
         {
             "acl": [
                 "postgres=X/postgres",
+                "service_role=X/postgres"
+            ],
+            "args": "p_ranked_at timestamp with time zone, p_set_size integer, p_fresh_count integer, p_symbols text[], p_change_pcts numeric[]",
+            "name": "replace_top_movers",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
                 "authenticated=X/postgres"
             ],
             "args": "p_league_id uuid, p_response text",
@@ -3592,7 +3658,7 @@
             "securityDefiner": true
         }
     ],
-    "capturedAt": "2026-11-23T18:29:25Z",
+    "capturedAt": "2026-11-23T22:16:38Z",
     "publications": [
         {
             "table": "drafts",
