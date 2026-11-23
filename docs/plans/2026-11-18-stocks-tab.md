@@ -547,6 +547,55 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
      still available, and is accepted as it stands. The first is real once: between the
      deploy and the job's first run. So the hand-off's check by data confirms a ranking
      exists before Giorgio opens the chip.
+9. **The claims run, the server's design questions** (workstream 6, its design note,
+   2026-11-23; answered from the October plan and his rules, before any of the run is
+   written):
+   - **"At the opening price" is this session's price, never yesterday's.** The shared
+     price chain's first stage is the latest trade with no time limit, so seconds after
+     the open a thinly traded stock's "price" can be the previous day's last print. The run
+     does not use it. It uses the week-start pricing's rule (`fetchWeekPrices`): today's
+     daily bar's open; failing that a trade made since this session opened; failing that a
+     sane midpoint from this session; never a lone bid or ask, never a print from before
+     the open. The stock bought and the stock sold are both priced this way.
+     - What "the open" is: the first price our source shows in the session. Our source
+       sees a small share of the market's trades, so this can differ from the exchange's
+       official opening print, and a quiet stock may show nothing for a while. That is a
+       limit of the current source, known and told to Giorgio.
+     - A stock with no price yet holds that league's run until 3 minutes after the open
+       (the worker's number, inside the 10-minute hold); then that claim fails with no
+       price and the rest proceed. The October plan's "per claim, never per league" stands
+       for the outcome; only the wait is shared.
+     - A run that comes late in the day still fills at the open, not at the price of the
+       moment it happens to run.
+   - **If the first claimant cannot take the stock, the next claimant in the order gets
+     it.** The October plan's steps named the winner by order first and tried the trade
+     second, which would leave the stock with nobody and tell the others "{name} claimed
+     AAPL" about a claim that failed. His rule is that the order decides "like fantasy
+     football", and there a claim that cannot be completed is passed over. A manager is
+     told they lost only to someone who actually got the stock.
+   - **A manager moves to the back the moment a claim of theirs fills, inside the same
+     run** (his rule: "any successful claim... moves you to the back"). So a second claim
+     by the same manager is judged from the back of the order. The run takes, each time,
+     the manager nearest the front who still has a claim waiting, and their earliest-placed
+     claim. A claim that fails or loses moves nobody.
+   - **One sale funds one claim.** `place_claim` refuses a sale that already funds another
+     pending claim of the same manager, and the composer does not offer it. Two claims on
+     one sale would be "this one, or else that one", which the October plan left out
+     ("claims with ranked fallbacks: later if asked"). If that leaves the composer with
+     nothing to offer, what it says is the Design Lead's to draw (workstream 7).
+   - **Pushes: the rows now, the delivery as its own step, both before build 18.** The
+     October plan is approved with "Each is a push". Workstream 6 writes the notification
+     rows. Delivering them is a separate small server step after it, so the riskiest deploy
+     of this part is not widened. The words of a push are the approved endings; how they
+     split into a title and a body is the Design Lead's. Two reasons have no approved
+     words yet and go to Giorgio with the claims screens: a claim on a stock that left the
+     league's list (the October "AAPL is no longer tradable", overtaken by his 2026-11-23
+     pick), and a claim whose day passed without a run.
+   - A day that passes with no run fails its claims; they are never carried to another
+     day's open (the October plan's open question 2).
+   - The run answers the cron at once and works in the background, or finishes in well
+     under a second when there is nothing to do: it is called every minute, and a slow
+     answer holds every other scheduled job behind it (the 2026-11-11 lesson).
 
 ### Risks
 

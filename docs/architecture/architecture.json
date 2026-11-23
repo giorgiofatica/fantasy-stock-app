@@ -2,51 +2,19 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "01dce36984cac3d8db6bf472634356d5a568243f",
-    "commitShort": "01dce369",
+    "commit": "b0ec9ace07d3107a8a79a3e4d194d40ff5a9e63f",
+    "commitShort": "b0ec9ace",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/claims-server",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "M",
-        "path": "supabase/config.toml"
-      },
-      {
-        "code": "??",
-        "path": "supabase/functions/claims-run/"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/process-week-results/index.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/functions/process-week-results/waiver-reset.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/functions/record-trade/claims-hold.test.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/functions/record-trade/claims-hold.ts"
-      },
-      {
-        "code": "M",
-        "path": "supabase/functions/record-trade/index.ts"
-      },
-      {
-        "code": "??",
-        "path": "supabase/migrations/20261211000000_claims.sql"
-      },
-      {
-        "code": "??",
-        "path": "supabase/migrations/20261211000001_schedule_claims_run.sql"
+        "code": "A",
+        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql"
       }
     ],
-    "timestamp": "2026-11-23T22:51:54Z",
-    "sourceHash": "sha256:2b53ce098d23cc24ab415ee551230d6e08cfe464ef532634287ca4b1fcee9bdf",
+    "timestamp": "2026-11-23T22:52:54Z",
+    "sourceHash": "sha256:6ab668339dbddea27df8ac386a2805cef2aa2808ee1c0c745dee8a3413560b47",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
@@ -6136,10 +6104,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261209000000_watchlist.sql:292"
+          "supabase/migrations/20261209000000_watchlist.sql:292",
+          "supabase/migrations/20261210500000_watchlist_held_leaves.sql:362"
         ],
-        "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "redefinitions": 2
       },
       "drift": [],
       "annotation": null,
@@ -6149,8 +6118,8 @@
       "sublabel": "SECURITY DEFINER · authenticated",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261209000000_watchlist.sql",
-        "line": 292
+        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "line": 362
       }
     },
     {
@@ -6898,6 +6867,37 @@
       "source": {
         "path": "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql",
         "line": 275
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261210500000_watchlist_held_leaves.sql:113"
+        ],
+        "latestDefinition": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.league_held_positions",
+      "label": "league_held_positions()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "line": 113
       }
     },
     {
@@ -8403,10 +8403,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261209000000_watchlist.sql:215"
+          "supabase/migrations/20261209000000_watchlist.sql:215",
+          "supabase/migrations/20261210500000_watchlist_held_leaves.sql:263"
         ],
-        "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "redefinitions": 2
       },
       "drift": [],
       "annotation": null,
@@ -8416,8 +8417,8 @@
       "sublabel": "SECURITY DEFINER · authenticated",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261209000000_watchlist.sql",
-        "line": 215
+        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "line": 263
       }
     },
     {
@@ -9195,10 +9196,11 @@
       },
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261209000000_watchlist.sql:126"
+          "supabase/migrations/20261209000000_watchlist.sql:126",
+          "supabase/migrations/20261210500000_watchlist_held_leaves.sql:190"
         ],
-        "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
-        "redefinitions": 1
+        "latestDefinition": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "redefinitions": 2
       },
       "drift": [],
       "annotation": null,
@@ -9208,8 +9210,39 @@
       "sublabel": "SECURITY DEFINER · owner only",
       "kind": "pg-function",
       "source": {
-        "path": "supabase/migrations/20261209000000_watchlist.sql",
-        "line": 126
+        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "line": 190
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261210500000_watchlist_held_leaves.sql:150"
+        ],
+        "latestDefinition": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.watchlist_leaves_on_holding",
+      "label": "watchlist_leaves_on_holding()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql",
+        "line": 150
       }
     },
     {
@@ -18246,7 +18279,8 @@
       "payload": "SELECT categories (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:310"
+        "supabase/migrations/20261209000000_watchlist.sql:310",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:380"
       ]
     },
     {
@@ -18259,7 +18293,8 @@
       "payload": "SELECT category_rules (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:312"
+        "supabase/migrations/20261209000000_watchlist.sql:312",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:382"
       ]
     },
     {
@@ -18272,7 +18307,8 @@
       "payload": "SELECT symbol_category_overrides (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:309"
+        "supabase/migrations/20261209000000_watchlist.sql:309",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:379"
       ]
     },
     {
@@ -18285,7 +18321,8 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:317"
+        "supabase/migrations/20261209000000_watchlist.sql:317",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:387"
       ]
     },
     {
@@ -18298,7 +18335,8 @@
       "payload": "SELECT watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:316"
+        "supabase/migrations/20261209000000_watchlist.sql:316",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:386"
       ]
     },
     {
@@ -18938,6 +18976,32 @@
         "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:285",
         "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:292",
         "supabase/migrations/20261128000000_reconfirm_clears_at_four.sql:301"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.league_held_positions->tbl.drafts",
+      "from": "pg.league_held_positions",
+      "to": "tbl.drafts",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT drafts (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:120"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.league_held_positions->tbl.trades",
+      "from": "pg.league_held_positions",
+      "to": "tbl.trades",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT trades (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:129"
       ]
     },
     {
@@ -20921,7 +20985,8 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:233"
+        "supabase/migrations/20261209000000_watchlist.sql:233",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:281"
       ]
     },
     {
@@ -20934,7 +20999,8 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:255"
+        "supabase/migrations/20261209000000_watchlist.sql:255",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:316"
       ]
     },
     {
@@ -20950,7 +21016,13 @@
         "supabase/migrations/20261209000000_watchlist.sql:250",
         "supabase/migrations/20261209000000_watchlist.sql:258",
         "supabase/migrations/20261209000000_watchlist.sql:272",
-        "supabase/migrations/20261209000000_watchlist.sql:276"
+        "supabase/migrations/20261209000000_watchlist.sql:276",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:297",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:300",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:311",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:324",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:342",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:346"
       ]
     },
     {
@@ -20963,7 +21035,9 @@
       "payload": "DELETE watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:272"
+        "supabase/migrations/20261209000000_watchlist.sql:272",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:297",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:342"
       ]
     },
     {
@@ -20976,7 +21050,8 @@
       "payload": "INSERT watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:265"
+        "supabase/migrations/20261209000000_watchlist.sql:265",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:332"
       ]
     },
     {
@@ -21841,7 +21916,8 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:148"
+        "supabase/migrations/20261209000000_watchlist.sql:148",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:212"
       ]
     },
     {
@@ -21854,7 +21930,35 @@
       "payload": "SELECT watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:162"
+        "supabase/migrations/20261209000000_watchlist.sql:162",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:232"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.watchlist_leaves_on_holding->tbl.watchlist",
+      "from": "pg.watchlist_leaves_on_holding",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:154",
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:157"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.watchlist_leaves_on_holding->tbl.watchlist#delete",
+      "from": "pg.watchlist_leaves_on_holding",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:154"
       ]
     },
     {
@@ -21933,6 +22037,19 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261106000002_drafts_refuse_new_skip.sql:61"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.tbl.drafts->pg.watchlist_leaves_on_holding",
+      "from": "tbl.drafts",
+      "to": "pg.watchlist_leaves_on_holding",
+      "protocol": "pg-trigger",
+      "payload": "trigger on drafts",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:180"
       ]
     },
     {
@@ -22432,6 +22549,19 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20260810000003_create_categories_tables.sql:92"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.tbl.trades->pg.watchlist_leaves_on_holding",
+      "from": "tbl.trades",
+      "to": "pg.watchlist_leaves_on_holding",
+      "protocol": "pg-trigger",
+      "payload": "trigger on trades",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210500000_watchlist_held_leaves.sql:185"
       ]
     },
     {
@@ -26072,6 +26202,16 @@
       "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
     },
     {
+      "node": "pg.league_held_positions",
+      "label": "league_held_positions()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "pg.place_claim",
       "label": "place_claim()",
       "groupKey": "existence",
@@ -26084,6 +26224,16 @@
     {
       "node": "pg.reset_due_waiver_orders",
       "label": "reset_due_waiver_orders()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.watchlist_leaves_on_holding",
+      "label": "watchlist_leaves_on_holding()",
       "groupKey": "existence",
       "field": "existence",
       "declared": "created by migration",
@@ -26963,6 +27113,17 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg.league_held_positions",
+      "label": "league_held_positions()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261210500000_watchlist_held_leaves.sql:113",
+      "outbound": [
+        "tbl.drafts",
+        "tbl.trades"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.league_participant_display_name",
       "label": "league_participant_display_name(p_league_id uuid, p_user_id text)",
       "kind": "pg-function",
@@ -27346,6 +27507,18 @@
   },
   "unverified": [
     {
+      "scope": "pg.league_held_positions",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.watchlist_leaves_on_holding",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "pg._claims_holdings",
       "claim": "function exists in prod",
       "reason": "Present in migrations, absent from db-snapshot.json.",
@@ -27534,13 +27707,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 372,
-    "edges": 906,
+    "nodes": 374,
+    "edges": 912,
     "flows": 7,
-    "drift": 46,
-    "driftHigh": 11,
-    "deadCode": 69,
-    "unverified": 31
+    "drift": 48,
+    "driftHigh": 13,
+    "deadCode": 70,
+    "unverified": 33
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -28214,6 +28387,7 @@
       "20261209000000_watchlist.sql",
       "20261210000000_top_movers.sql",
       "20261210000001_schedule_rank_top_movers.sql",
+      "20261210500000_watchlist_held_leaves.sql",
       "20261211000000_claims.sql",
       "20261211000001_schedule_claims_run.sql"
     ],
