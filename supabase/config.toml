@@ -202,6 +202,16 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/draft-order-notify/index.ts"
 
+# Top movers (docs/plans/2026-11-18-stocks-tab.md, Part 3): ranks today's biggest moves
+# among the 500 largest companies every 5 minutes while the market is open, into
+# public.top_movers (20261210000000). CRON ONLY: verify_jwt=false and the shared
+# constant-time apikey guard (../_shared/cron-auth.ts, SB_SECRET_KEY_CRON, fail-closed)
+# is the whole auth boundary. Scheduled by 20261210000001 (market_calendar-gated).
+[functions.rank-top-movers]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/rank-top-movers/index.ts"
+
 # In-house simulator (DR-001 Phase 3): server-side draft legality gate. RLS on
 # drafts remains the membership backstop; this function is the single legality
 # gate + write path the clients use. verify_jwt=true (until Phase 4b) + in-code getUser() +
