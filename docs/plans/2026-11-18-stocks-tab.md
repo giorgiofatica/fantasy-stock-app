@@ -310,6 +310,9 @@ the current price against the previous session's close.
 
 **The freshness check.** A stock whose latest trade is older than 15 minutes is left out of
 the ranking for that run. (The Planner's number, inside his "too old"; easy to change.)
+A stock whose snapshot has no latest trade, or no previous close, is left out in the same
+way: a missing figure never ranks. The source's reference does not mark either field as
+always present, and it sees about 2.5% of market volume (the Researcher, 2026-11-22).
 
 **The ranking is written whole or not at all.** If any batch fails, or fewer than 90% of the
 set came back with a fresh trade, the run keeps the previous ranking and reports itself
@@ -349,8 +352,12 @@ Portfolio. Ranked fallback claims. Anything on the web app.
 1. The Design Lead's board for the switch, the star, the Watching and Claims views and the
    Top movers chip at his text size, with every new word listed for him. Blocks the client
    workstreams only.
-2. The current source's limits on the snapshot request (stocks per call, calls per minute),
-   with the Researcher. It sets the batch size; it does not change the design.
+2. ANSWERED 2026-11-22 (the Researcher; read through a summary, so no wording is quoted
+   here): the source documents no limit on stocks per snapshot call, so the job keeps our
+   own batch of 50 (ten calls per refresh for 500 stocks) and claims no documented number.
+   The one documented rate is 200 calls a minute on the Basic plan; whether snapshot calls
+   count under it is not stated. Two calls a minute is far below it, and the job logs the
+   rate-limit headers the source returns and treats a refusal as a failed batch.
 3. Where the league's waiver order is shown (the October plan says everyone can see it): the
    board.
 
