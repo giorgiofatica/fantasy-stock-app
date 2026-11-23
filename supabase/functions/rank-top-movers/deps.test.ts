@@ -49,6 +49,7 @@ Deno.test('readSet: the 500 largest active, draftable, priced, sized stocks, tie
     ['select', 'symbol'],
     ['eq', 'active', true],
     ['eq', 'is_draftable', true],
+    ['eq', 'price_unsupported', false],
     ['not', 'last_price', 'is', null],
     ['not', 'market_cap', 'is', null],
     ['order', 'market_cap', { ascending: false }],
@@ -77,7 +78,8 @@ Deno.test('writeRanking: sends the whole ranking; reads written / kept / error /
   );
   // supabase-js resolves a Postgres error; it is checked, not assumed away.
   assertEquals(await makeRankDeps(fakeDb({ rpcError: { code: '22023' } }).db, 'k', 's', noFetch).writeRanking(args), { ok: false, error: '22023' });
-  for (const data of [null, {}, { written: 'yes' }, [1]]) {
+  // A keep is believed only with the SQL's own reason; anything else is a failed write.
+  for (const data of [null, {}, { written: 'yes' }, [1], { written: false }, { written: false, reason: 'other' }, { written: false, reason: 1 }]) {
     assertEquals((await makeRankDeps(fakeDb({ rpcData: data }).db, 'k', 's', noFetch).writeRanking(args)).ok, false, JSON.stringify(data));
   }
 });

@@ -42,6 +42,11 @@ export function makeRankDeps(
         .select('symbol')
         .eq('active', true)
         .eq('is_draftable', true)
+        // price_unsupported (NOT NULL, default false) marks a symbol the price source
+        // cannot quote; the backfill sets it without clearing an old last_price. One
+        // such symbol makes the all-or-nothing snapshots call refuse its whole batch of
+        // 50, so it must never enter the set (Copilot on #602).
+        .eq('price_unsupported', false)
         .not('last_price', 'is', null)
         .not('market_cap', 'is', null)
         .order('market_cap', { ascending: false })
@@ -67,8 +72,11 @@ export function makeRankDeps(
       if (error) return { ok: false, error: error.code ?? error.message ?? 'error' };
       const reply = data as { written?: unknown; reason?: unknown } | null;
       if (reply?.written === true) return { ok: true, written: true };
-      if (reply?.written === false) {
-        return { ok: true, written: false, reason: typeof reply.reason === 'string' ? reply.reason : undefined };
+      // Kept only for the ONE reason the SQL gives for keeping (a newer ranking
+      // exists). Any other or missing reason is not proof the ranking is current,
+      // so it is a failed write, never a success (Copilot on #602).
+      if (reply?.written === false && reply.reason === 'newer_ranking_exists') {
+        return { ok: true, written: false, reason: 'newer_ranking_exists' };
       }
       // Neither: never read an unknown reply as a write.
       return { ok: false, error: 'unexpected reply' };

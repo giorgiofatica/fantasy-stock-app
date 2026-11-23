@@ -2,38 +2,30 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "39b84cb76290aaefec8cb84ff9d3160cadc6032a",
-    "commitShort": "39b84cb7",
+    "commit": "d54e6bed7436de6cfcf7e925918f6d26884c05b5",
+    "commitShort": "d54e6bed",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/commit.ts"
+        "path": "supabase/functions/rank-top-movers/deps.test.ts"
       },
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/index.ts"
-      },
-      {
-        "code": "A",
-        "path": "supabase/functions/record-trade/preview-list.test.ts"
-      },
-      {
-        "code": "A",
-        "path": "supabase/functions/record-trade/preview-list.ts"
+        "path": "supabase/functions/rank-top-movers/deps.ts"
       }
     ],
-    "timestamp": "2026-11-23T19:59:56Z",
-    "sourceHash": "sha256:7384227e38aa55f5102ce47d89602e20e60d708136ebf6476665c51663c34df5",
+    "timestamp": "2026-11-23T20:09:59Z",
+    "sourceHash": "sha256:cb2a903b111ac449cbc3b279093dde8d085db6c19f0fa11fbaa72e9e35f61e98",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T18:29:25Z",
-    "ageHours": 1.5,
+    "ageHours": 1.7,
     "ageDays": 0.1,
     "staleAfterDays": 14,
     "stale": false,
@@ -13262,7 +13254,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('replace_top_movers')",
       "callSites": [
-        "supabase/functions/rank-top-movers/deps.ts:60"
+        "supabase/functions/rank-top-movers/deps.ts:65"
       ]
     },
     {
@@ -25812,7 +25804,7 @@
       "supabase/functions/process-week-results/index.ts:144 -> league_standings_ranked",
       "supabase/functions/process-week-results/index.ts:175 -> start_league_playoffs",
       "supabase/functions/process-week-results/season-completion.ts:134 -> complete_league_season",
-      "supabase/functions/rank-top-movers/deps.ts:60 -> replace_top_movers",
+      "supabase/functions/rank-top-movers/deps.ts:65 -> replace_top_movers",
       "supabase/functions/record-trade/index.ts:169 -> check_and_bump_rate_limit",
       "supabase/functions/record-trade/index.ts:172 -> check_and_bump_rate_limit",
       "supabase/functions/record-trade/index.ts:536 -> record_trade_atomic",
