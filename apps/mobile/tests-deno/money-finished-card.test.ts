@@ -98,6 +98,18 @@ Deno.test('live card is unchanged: Price, Week gain, six ranges and the action a
   assert(src('../components/money/PortfolioScreen.tsx').includes('seasonEnd={chartEnd}'), 'chartEnd is null for a live league');
 });
 
+Deno.test('call sites: Portfolio and a manager\'s team pass weekGain null (cardWeekGain) once the season is over, never 0', () => {
+  const p = src('../components/money/PortfolioScreen.tsx');
+  // The same gate as the card's own seasonEnd={chartEnd}: data and drawing agree on "over".
+  assert(p.includes('weekGain: cardWeekGain(chartEnd != null, () => stockWeek(shown, snapshots, trades, price).gain),'), 'Portfolio');
+  assert(p.includes('seasonEnd={chartEnd}'));
+  const t = src('../components/money/PlayerPortfolioScreen.tsx');
+  assert(t.includes('weekGain: cardWeekGain(finished, () => stockWeek(shown, snapshots, trades, price).gain),'), 'team');
+  assert(t.includes('seasonEnd={finished ? endEt : null}'));
+  // No stand-in zero for the week anywhere in either screen.
+  for (const s of [p, t]) assert(!/weekGain:[^\n]*\?\s*0\s*:/.test(s) && !/weekGain:\s*0\b/.test(s), 'a 0 standing in for "no week"');
+});
+
 Deno.test('call sites: Portfolio, a manager\'s team and Matchup all close Sell once the season is over', () => {
   const p = src('../components/money/PortfolioScreen.tsx');
   assert(p.includes('ownership = card.data.held > 0 && !chartEnd'), 'Portfolio: no onSell when finished');

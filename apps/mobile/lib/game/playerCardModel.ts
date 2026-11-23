@@ -182,6 +182,17 @@ export interface PlayerCardData {
   held: number;
 }
 
+/**
+ * The card's Week gain input. A season that is over has no current week, so the card has no week
+ * gain: null ("no week"), never a stand-in 0, which says "$0.00 this week" (CLAUDE.md, "Overloaded
+ * NULLs": a 0 for "no value" is the same bug; Giorgio, 2026-11-18: a missing number never shows as
+ * zero). The card hides the figure in a finished season anyway (its seasonEnd); the data now says
+ * the same thing. A live season reads its own week, and only then (the read is skipped when over).
+ */
+export function cardWeekGain(seasonOver: boolean, liveWeek: () => number | null): number | null {
+  return seasonOver ? null : liveWeek();
+}
+
 export function playerCardData(input: {
   symbol: string;
   company: string;

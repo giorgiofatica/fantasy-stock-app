@@ -41,7 +41,7 @@ import { useRosterData } from '@/lib/game/useRosterData';
 import { useMemberSnapshots } from '@/lib/game/useMemberSnapshots';
 import { memberSnapshots, memberTrades } from '@/lib/game/memberWeek';
 import { cardSlotPill, etDateOf, weekSessions } from '@/lib/game/matchupRoster';
-import { openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
+import { cardWeekGain, openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
 import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
 import { seasonEndCloses } from '@/lib/money/portfolioChart';
 import { mondayOf } from '@/lib/money/portfolioChart';
@@ -163,8 +163,8 @@ export function PlayerPortfolioScreen({ userId, username }: { userId: string; us
       snapshots,
       trades,
       // An unknown week is null (the card's "–"), never a stand-in $0.00; a league without weeks
-      // (Duration) has no week figure at all. A season that is over draws no week figure (the card hides it).
-      weekGain: finished ? 0 : stockWeek(shown, snapshots, trades, price).gain,
+      // (Duration) has no week figure at all. A season that is over has no week: null, not 0 (the card hides it).
+      weekGain: cardWeekGain(finished, () => stockWeek(shown, snapshots, trades, price).gain),
       hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
       bars: finished ? [] : data.bars[shown] ?? raw.bars[shown] ?? [],

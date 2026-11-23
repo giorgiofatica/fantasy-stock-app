@@ -58,7 +58,7 @@ import { useHomeLeague } from '@/lib/home/useHomeLeague';
 import { toLiveSnapshots, toLiveTrades } from '@/lib/home/buildHomeViewModel';
 import { useRosterData } from '@/lib/game/useRosterData';
 import { cardSlotPill, etDateOf, weekSessions } from '@/lib/game/matchupRoster';
-import { openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
+import { cardWeekGain, openingOf, playerCardData, stockWeek } from '@/lib/game/playerCardModel';
 import { leagueHasWeeks } from '@/lib/game/leagueWeeks';
 import { SEAM_ON } from '@/lib/game/devSeam';
 import { decideTradeGate } from '@/lib/money/tradeGate';
@@ -197,8 +197,8 @@ export function PortfolioScreen() {
       snapshots,
       trades,
       // An unknown week is null (the card's "–"), never a stand-in $0.00; a league without weeks
-      // (Duration) has no week figure at all. A season that is over draws no week figure (the card hides it).
-      weekGain: chartEnd ? 0 : stockWeek(shown, snapshots, trades, price).gain,
+      // (Duration) has no week figure at all. A season that is over has no week: null, not 0 (the card hides it).
+      weekGain: cardWeekGain(chartEnd != null, () => stockWeek(shown, snapshots, trades, price).gain),
       hasWeeks: leagueHasWeeks(activeLeague?.league_type),
       price,
       // The capture seam: the fixture's own daily path through Wednesday, then Home's bars
