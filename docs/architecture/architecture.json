@@ -2,27 +2,39 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "61315595b9cfe70064a468a394b8c60ccc2d8c50",
-    "commitShort": "61315595",
+    "commit": "65fb06aa81b938091d8e5d96e803f8d909745a9c",
+    "commitShort": "65fb06aa",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/watchlist-server",
+    "branch": "feat/top-movers-server",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "AM",
-        "path": "supabase/migrations/20261209000000_watchlist.sql"
+        "code": "M",
+        "path": "supabase/config.toml"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/rank-top-movers/"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261210000000_top_movers.sql"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261210000001_schedule_rank_top_movers.sql"
       }
     ],
-    "timestamp": "2026-11-23T07:32:52Z",
-    "sourceHash": "sha256:ff93958f86fa59f3fb1e96d9b5fa4804eefec0c9cad72d8e27aeb4d2f74f2360",
+    "timestamp": "2026-11-23T18:46:43Z",
+    "sourceHash": "sha256:022d08f836726b61fff012933336fb08aa1614967f84350750dd0420424dcc7b",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 103.3,
-    "ageDays": 4.3,
+    "ageHours": 114.5,
+    "ageDays": 4.8,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
@@ -735,7 +747,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:279",
+        "verifyJwtSource": "supabase/config.toml:289",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
@@ -994,7 +1006,44 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:229",
+        "verifyJwtSource": "supabase/config.toml:210",
+        "authGuard": null,
+        "userGuard": null,
+        "localModules": [
+          "deps.ts",
+          "handler.ts",
+          "rank.ts",
+          "run.ts",
+          "snapshots.ts"
+        ],
+        "tests": [
+          "deps.test.ts",
+          "handler.test.ts",
+          "rank.test.ts",
+          "run.test.ts"
+        ],
+        "envVars": [],
+        "lines": 43
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "fn.rank-top-movers",
+      "label": "rank-top-movers",
+      "sublabel": "verify_jwt=false",
+      "kind": "edge-function",
+      "source": {
+        "path": "supabase/functions/rank-top-movers/index.ts",
+        "line": 29
+      }
+    },
+    {
+      "layer": "edge",
+      "facts": {
+        "verifyJwt": false,
+        "verifyJwtSource": "supabase/config.toml:239",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
@@ -1174,7 +1223,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:284",
+        "verifyJwtSource": "supabase/config.toml:294",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
@@ -1203,7 +1252,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:289",
+        "verifyJwtSource": "supabase/config.toml:299",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [
@@ -1238,7 +1287,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:324",
+        "verifyJwtSource": "supabase/config.toml:334",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
@@ -1270,7 +1319,7 @@
       "layer": "edge",
       "facts": {
         "verifyJwt": false,
-        "verifyJwtSource": "supabase/config.toml:215",
+        "verifyJwtSource": "supabase/config.toml:225",
         "authGuard": null,
         "userGuard": "in-code getUser (a real signed-in user)",
         "localModules": [],
@@ -1732,6 +1781,63 @@
       "kind": "edge-module",
       "source": {
         "path": "supabase/functions/process-week-results/user-score.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.rank-top-movers/deps",
+      "label": "deps.ts",
+      "sublabel": "rank-top-movers",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/rank-top-movers/deps.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.rank-top-movers/handler",
+      "label": "handler.ts",
+      "sublabel": "rank-top-movers",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/rank-top-movers/handler.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "module",
+      "facts": {
+        "hasTests": true
+      },
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
+      "id": "mod.rank-top-movers/run",
+      "label": "run.ts",
+      "sublabel": "rank-top-movers",
+      "kind": "edge-module",
+      "source": {
+        "path": "supabase/functions/rank-top-movers/run.ts",
         "line": 1
       }
     },
@@ -5449,7 +5555,38 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261209000000_watchlist.sql:290"
+          "supabase/migrations/20261210000000_top_movers.sql:199"
+        ],
+        "latestDefinition": "supabase/migrations/20261210000000_top_movers.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.get_league_top_movers",
+      "label": "get_league_top_movers()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261210000000_top_movers.sql",
+        "line": 199
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261209000000_watchlist.sql:292"
         ],
         "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
         "redefinitions": 1
@@ -5471,7 +5608,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261209000000_watchlist.sql",
-        "line": 290
+        "line": 292
       }
     },
     {
@@ -7222,6 +7359,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261210000000_top_movers.sql:124"
+        ],
+        "latestDefinition": "supabase/migrations/20261210000000_top_movers.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.replace_top_movers",
+      "label": "replace_top_movers()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261210000000_top_movers.sql",
+        "line": 124
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -7589,7 +7757,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261209000000_watchlist.sql:213"
+          "supabase/migrations/20261209000000_watchlist.sql:215"
         ],
         "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
         "redefinitions": 1
@@ -7611,7 +7779,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261209000000_watchlist.sql",
-        "line": 213
+        "line": 215
       }
     },
     {
@@ -8371,7 +8539,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261209000000_watchlist.sql:124"
+          "supabase/migrations/20261209000000_watchlist.sql:126"
         ],
         "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
         "redefinitions": 1
@@ -8393,7 +8561,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261209000000_watchlist.sql",
-        "line": 124
+        "line": 126
       }
     },
     {
@@ -10044,6 +10212,28 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "touchedBy": [
+          "supabase/migrations/20261210000000_top_movers.sql"
+        ],
+        "rlsEnabled": true
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": false,
+      "id": "tbl.top_movers",
+      "label": "top_movers",
+      "sublabel": "not in snapshot",
+      "kind": "table",
+      "source": {
+        "path": "supabase/migrations/20261210000000_top_movers.sql",
+        "line": 88
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "rlsEnabled": true,
         "rlsForced": false,
@@ -10181,7 +10371,7 @@
       "kind": "table",
       "source": {
         "path": "supabase/migrations/20261209000000_watchlist.sql",
-        "line": 101
+        "line": 103
       }
     },
     {
@@ -12910,6 +13100,122 @@
       "payload": "https://data.alpaca.markets/v2",
       "callSites": [
         "supabase/functions/quote/index.ts:46"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->ext.alpaca-data",
+      "from": "fn.rank-top-movers",
+      "to": "ext.alpaca-data",
+      "protocol": "vendor-https",
+      "payload": "https://data.alpaca.markets/v2/stocks/snapshots",
+      "callSites": [
+        "supabase/functions/rank-top-movers/snapshots.ts:21"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->mod.rank-top-movers/deps",
+      "from": "fn.rank-top-movers",
+      "to": "mod.rank-top-movers/deps",
+      "protocol": "esm-import",
+      "payload": "import from './deps.ts'",
+      "callSites": [
+        "supabase/functions/rank-top-movers/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->mod.rank-top-movers/handler",
+      "from": "fn.rank-top-movers",
+      "to": "mod.rank-top-movers/handler",
+      "protocol": "esm-import",
+      "payload": "import from './handler.ts'",
+      "callSites": [
+        "supabase/functions/rank-top-movers/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->mod.rank-top-movers/run",
+      "from": "fn.rank-top-movers",
+      "to": "mod.rank-top-movers/run",
+      "protocol": "esm-import",
+      "payload": "import from './run.ts'",
+      "callSites": [
+        "supabase/functions/rank-top-movers/index.ts"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->pg.replace_top_movers",
+      "from": "fn.rank-top-movers",
+      "to": "pg.replace_top_movers",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('replace_top_movers')",
+      "callSites": [
+        "supabase/functions/rank-top-movers/deps.ts:60"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->tbl.cron_job_status",
+      "from": "fn.rank-top-movers",
+      "to": "tbl.cron_job_status",
+      "protocol": "postgrest-select",
+      "payload": ".from('cron_job_status').select('status, error_message')",
+      "columns": [
+        "status, error_message"
+      ],
+      "callSites": [
+        "supabase/functions/_shared/job-status-io.ts:149"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->tbl.cron_job_status#update",
+      "from": "fn.rank-top-movers",
+      "to": "tbl.cron_job_status",
+      "protocol": "postgrest-update",
+      "payload": ".from('cron_job_status').update()",
+      "columns": [],
+      "callSites": [
+        "supabase/functions/_shared/job-status-io.ts:198"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->tbl.cron_job_status#upsert",
+      "from": "fn.rank-top-movers",
+      "to": "tbl.cron_job_status",
+      "protocol": "postgrest-upsert",
+      "payload": ".from('cron_job_status').upsert()",
+      "columns": [],
+      "callSites": [
+        "supabase/functions/_shared/job-status-io.ts:99"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.fn.rank-top-movers->tbl.symbols",
+      "from": "fn.rank-top-movers",
+      "to": "tbl.symbols",
+      "protocol": "postgrest-select",
+      "payload": ".from('symbols').select('symbol')",
+      "columns": [
+        "symbol"
+      ],
+      "callSites": [
+        "supabase/functions/rank-top-movers/deps.ts:41"
       ]
     },
     {
@@ -16337,6 +16643,97 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.get_league_top_movers->tbl.categories",
+      "from": "pg.get_league_top_movers",
+      "to": "tbl.categories",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT categories (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:258"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_top_movers->tbl.category_rules",
+      "from": "pg.get_league_top_movers",
+      "to": "tbl.category_rules",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT category_rules (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:260"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_top_movers->tbl.drafts",
+      "from": "pg.get_league_top_movers",
+      "to": "tbl.drafts",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT drafts (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:229"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_top_movers->tbl.symbol_category_overrides",
+      "from": "pg.get_league_top_movers",
+      "to": "tbl.symbol_category_overrides",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbol_category_overrides (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:257"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_top_movers->tbl.symbols",
+      "from": "pg.get_league_top_movers",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:247"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_top_movers->tbl.top_movers",
+      "from": "pg.get_league_top_movers",
+      "to": "tbl.top_movers",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT top_movers (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:246"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_top_movers->tbl.trades",
+      "from": "pg.get_league_top_movers",
+      "to": "tbl.trades",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT trades (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:237"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.get_league_watchlist->tbl.categories",
       "from": "pg.get_league_watchlist",
       "to": "tbl.categories",
@@ -16344,7 +16741,7 @@
       "payload": "SELECT categories (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:308"
+        "supabase/migrations/20261209000000_watchlist.sql:310"
       ]
     },
     {
@@ -16357,7 +16754,7 @@
       "payload": "SELECT category_rules (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:310"
+        "supabase/migrations/20261209000000_watchlist.sql:312"
       ]
     },
     {
@@ -16370,7 +16767,7 @@
       "payload": "SELECT symbol_category_overrides (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:307"
+        "supabase/migrations/20261209000000_watchlist.sql:309"
       ]
     },
     {
@@ -16383,7 +16780,7 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:315"
+        "supabase/migrations/20261209000000_watchlist.sql:317"
       ]
     },
     {
@@ -16396,7 +16793,7 @@
       "payload": "SELECT watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:314"
+        "supabase/migrations/20261209000000_watchlist.sql:316"
       ]
     },
     {
@@ -18076,6 +18473,46 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.replace_top_movers->tbl.top_movers",
+      "from": "pg.replace_top_movers",
+      "to": "tbl.top_movers",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT top_movers (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:173",
+        "supabase/migrations/20261210000000_top_movers.sql:179"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.replace_top_movers->tbl.top_movers#delete",
+      "from": "pg.replace_top_movers",
+      "to": "tbl.top_movers",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE top_movers (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:179"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.replace_top_movers->tbl.top_movers#insert",
+      "from": "pg.replace_top_movers",
+      "to": "tbl.top_movers",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT top_movers (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261210000000_top_movers.sql:180"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.respond_to_renewal->tbl.league_members",
       "from": "pg.respond_to_renewal",
       "to": "tbl.league_members",
@@ -18768,7 +19205,7 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:231"
+        "supabase/migrations/20261209000000_watchlist.sql:233"
       ]
     },
     {
@@ -18781,7 +19218,7 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:253"
+        "supabase/migrations/20261209000000_watchlist.sql:255"
       ]
     },
     {
@@ -18794,10 +19231,10 @@
       "payload": "SELECT watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:248",
-        "supabase/migrations/20261209000000_watchlist.sql:256",
-        "supabase/migrations/20261209000000_watchlist.sql:270",
-        "supabase/migrations/20261209000000_watchlist.sql:274"
+        "supabase/migrations/20261209000000_watchlist.sql:250",
+        "supabase/migrations/20261209000000_watchlist.sql:258",
+        "supabase/migrations/20261209000000_watchlist.sql:272",
+        "supabase/migrations/20261209000000_watchlist.sql:276"
       ]
     },
     {
@@ -18810,7 +19247,7 @@
       "payload": "DELETE watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:270"
+        "supabase/migrations/20261209000000_watchlist.sql:272"
       ]
     },
     {
@@ -18823,7 +19260,7 @@
       "payload": "INSERT watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:263"
+        "supabase/migrations/20261209000000_watchlist.sql:265"
       ]
     },
     {
@@ -19662,7 +20099,7 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:146"
+        "supabase/migrations/20261209000000_watchlist.sql:148"
       ]
     },
     {
@@ -19675,7 +20112,7 @@
       "payload": "SELECT watchlist (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:160"
+        "supabase/migrations/20261209000000_watchlist.sql:162"
       ]
     },
     {
@@ -20265,7 +20702,7 @@
       "payload": "trigger on watchlist",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261209000000_watchlist.sql:190"
+        "supabase/migrations/20261209000000_watchlist.sql:192"
       ]
     },
     {
@@ -23712,8 +24149,28 @@
   ],
   "drift": [
     {
+      "node": "pg.get_league_top_movers",
+      "label": "get_league_top_movers()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "pg.get_league_watchlist",
       "label": "get_league_watchlist()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.replace_top_movers",
+      "label": "replace_top_movers()",
       "groupKey": "existence",
       "field": "existence",
       "declared": "created by migration",
@@ -24083,6 +24540,24 @@
     }
   ],
   "deadCode": [
+    {
+      "node": "fn.rank-top-movers",
+      "label": "rank-top-movers",
+      "kind": "edge-function",
+      "source": "supabase/functions/rank-top-movers/index.ts:29",
+      "outbound": [
+        "ext.alpaca-data",
+        "mod.rank-top-movers/deps",
+        "mod.rank-top-movers/handler",
+        "mod.rank-top-movers/run",
+        "pg.replace_top_movers",
+        "tbl.cron_job_status",
+        "tbl.cron_job_status",
+        "tbl.cron_job_status",
+        "tbl.symbols"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
     {
       "node": "pg._account_deletion_apple_rank",
       "label": "_account_deletion_apple_rank(p_state text)",
@@ -24479,10 +24954,26 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg.get_league_top_movers",
+      "label": "get_league_top_movers()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261210000000_top_movers.sql:199",
+      "outbound": [
+        "tbl.categories",
+        "tbl.category_rules",
+        "tbl.drafts",
+        "tbl.symbol_category_overrides",
+        "tbl.symbols",
+        "tbl.top_movers",
+        "tbl.trades"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.get_league_watchlist",
       "label": "get_league_watchlist()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261209000000_watchlist.sql:290",
+      "source": "supabase/migrations/20261209000000_watchlist.sql:292",
       "outbound": [
         "tbl.categories",
         "tbl.category_rules",
@@ -24666,7 +25157,7 @@
       "node": "pg.set_watchlist",
       "label": "set_watchlist()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261209000000_watchlist.sql:213",
+      "source": "supabase/migrations/20261209000000_watchlist.sql:215",
       "outbound": [
         "tbl.league_members",
         "tbl.symbols",
@@ -24930,6 +25421,18 @@
       "resolve": "Re-capture the snapshot, or confirm the migration was applied."
     },
     {
+      "scope": "pg.replace_top_movers",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.get_league_top_movers",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -24943,6 +25446,12 @@
     },
     {
       "scope": "tbl.watchlist",
+      "claim": "table exists in prod",
+      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot."
+    },
+    {
+      "scope": "tbl.top_movers",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
       "resolve": "Re-capture the snapshot."
@@ -25034,13 +25543,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 338,
-    "edges": 813,
+    "nodes": 345,
+    "edges": 832,
     "flows": 7,
-    "drift": 37,
-    "driftHigh": 3,
-    "deadCode": 64,
-    "unverified": 20
+    "drift": 39,
+    "driftHigh": 5,
+    "deadCode": 66,
+    "unverified": 23
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -25057,6 +25566,7 @@
       "preview-league[inviter.ts,reason.ts,shape.ts]",
       "process-week-results[grouping.ts,job-status.ts,outcome-record.ts,playoff-progression.ts,scoring-eligibility.ts,season-completion.ts,season-transition.ts,user-score.ts]",
       "quote[]",
+      "rank-top-movers[deps.ts,handler.ts,rank.ts,run.ts,snapshots.ts]",
       "record-trade[commit.ts,gate.ts]",
       "refresh-market-calendar[plan.ts,run.ts]",
       "refresh-symbols[]",
@@ -25211,6 +25721,7 @@
       "supabase/functions/process-week-results/index.ts:144 -> league_standings_ranked",
       "supabase/functions/process-week-results/index.ts:175 -> start_league_playoffs",
       "supabase/functions/process-week-results/season-completion.ts:134 -> complete_league_season",
+      "supabase/functions/rank-top-movers/deps.ts:60 -> replace_top_movers",
       "supabase/functions/record-trade/index.ts:164 -> check_and_bump_rate_limit",
       "supabase/functions/record-trade/index.ts:167 -> check_and_bump_rate_limit",
       "supabase/functions/record-trade/index.ts:489 -> record_trade_atomic",
@@ -25443,6 +25954,7 @@
       "supabase/functions/process-week-results/index.ts:668 -> trades.select",
       "supabase/functions/process-week-results/season-completion.ts:173 -> leagues.select",
       "supabase/functions/process-week-results/season-completion.ts:192 -> matchups.select",
+      "supabase/functions/rank-top-movers/deps.ts:41 -> symbols.select",
       "supabase/functions/record-trade/index.ts:143 -> market_calendar_coverage.select",
       "supabase/functions/record-trade/index.ts:144 -> market_calendar.select",
       "supabase/functions/record-trade/index.ts:192 -> matchups.select",
@@ -25689,7 +26201,9 @@
       "20261207000000_record_trade_season_end_by_date.sql",
       "20261207000100_league_available_stocks.sql",
       "20261208000000_matchup_outcome_reason.sql",
-      "20261209000000_watchlist.sql"
+      "20261209000000_watchlist.sql",
+      "20261210000000_top_movers.sql",
+      "20261210000001_schedule_rank_top_movers.sql"
     ],
     "config": [
       "delete-account=false",
@@ -25705,6 +26219,7 @@
       "preview-league=false",
       "process-week-results=false",
       "quote=false",
+      "rank-top-movers=false",
       "record-trade=false",
       "refresh-market-calendar=false",
       "refresh-symbols=false",
