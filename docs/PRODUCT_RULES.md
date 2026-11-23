@@ -1593,6 +1593,36 @@ building anything, and don't reopen a rule without him.
         question 3.
     - Also settled by the board: Top movers while the market is closed takes no extra
       line; the day goes on the figure ("+11.2% Fri").
+  - **A claim has a colour of its own, never the warning colour: the rust (A)** (2026-11-23,
+    typed in the Planner's chat: "warning and claim should not have the same color. i lean
+    A"). This makes the Design Lead's rust his pick, and adds a rule.
+    - What he was shown, in two drawings: A, the plus after the close in the rust
+      (`#A34C1B` Light, `#F9A781` Dark), as on the board; B, the brown drawn on 2026-11-18,
+      which was the old warning colour (`#784900` Light, the yellow `#FAC547` Dark); and C,
+      the plus staying teal after the close, with the word "Claim" on the next screen
+      carrying the meaning. B and C were not picked.
+    - He asked first "why are we deviating from our normal color scheme?". The answer given:
+      the 2026-11-18 brown was the warning colour on loan; warnings became teal on
+      2026-11-19, so a claim left alone would have turned the same teal as Buy.
+    - Told to him, and A leaned to all the same: in Dark the rust's peach sits close to the
+      pink of a down day. Not objected to; if it bothers him on a phone, a browner Dark
+      shade is a new call for him, not a quiet change.
+    - The Planner's recommendation was C, slightly. Recorded so the pick is not read as the
+      Planner's.
+    - For the build (the Planner's reading of his rule, not his words): a claim's colour is
+      a named colour of its own in the theme, with the rust as its value. It does not point
+      at the warning colour or at the Retail category's colour, so changing either of those
+      later cannot change a claim without anyone deciding to.
+    - **A stock he has a claim on does not look like an available stock** (the same day, his
+      next message: "but i agree, if i have a claim on a stock it shouldnt still show as the
+      same color as an available stock", and his reason: "otherwise a user will be
+      confused"). The board already draws this on Watching: the
+      claimed stock loses its plus and reads "Claimed · fills Mon 9:30 AM ET" (approved
+      2026-10-09). The board does not draw the same stock on Available, where it still
+      appears, because claims are blind and nobody else may learn of it. The Planner's
+      reading: Available treats it as Watching does (no plus, the "Claimed" line in place of
+      "name · category"), for the claiming manager only. If the Design Lead draws it any
+      other way, that drawing goes to him first.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
