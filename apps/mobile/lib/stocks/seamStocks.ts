@@ -22,6 +22,13 @@
  *   savefail     every save fails with a transport-shaped error (the star reverts; no words)
  *   savehang     a save never answers (the optimistic star, held, for a still)
  *   nolist       the slot lines' list preview fails (the rows keep the interim lines)
+ * Top movers (plan part 3, workstream 5; the ranking is the catalogue's own largest-move order, 3 minutes old):
+ *   moversfail   the movers read fails (the existing "Stocks didn't load")
+ *   moversrate   the movers read answers PT429 (paced: the same state)
+ *   moversempty  the movers read answers no rows (the same state)
+ *   moversold    the ranking is 45 minutes old (open: the same state; closed: shown)
+ *   moversloading the movers read never answers (the skeleton)
+ *   marketclosed the market reads closed, the last session's day is "Fri" (the rows say "+11.2% Fri")
  * Combine with a comma ("page2_fail,noprice").
  */
 import type { ChipCategory } from './stocksList';
@@ -85,6 +92,12 @@ export interface StocksKnob {
   saveFail: boolean;
   saveHang: boolean;
   noList: boolean;
+  moversFail: boolean;
+  moversRate: boolean;
+  moversEmpty: boolean;
+  moversOld: boolean;
+  moversLoading: boolean;
+  marketClosed: boolean;
 }
 
 /** Pure: the knob's flags (a comma-separated list; unknown words are ignored). */
@@ -93,6 +106,7 @@ export function parseStocksKnob(raw: string | null | undefined): StocksKnob {
   return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small'), proceeds: set.has('proceeds'),
     watchEmpty: set.has('watchempty'), watchFail: set.has('watchfail'), watchLoading: set.has('watchloading'),
     saveFull: set.has('savefull'), saveRate: set.has('saverate'), saveFail: set.has('savefail'), saveHang: set.has('savehang'), noList: set.has('nolist'),
+    moversFail: set.has('moversfail'), moversRate: set.has('moversrate'), moversEmpty: set.has('moversempty'), moversOld: set.has('moversold'), moversLoading: set.has('moversloading'), marketClosed: set.has('marketclosed'),
   };
 }
 
@@ -190,6 +204,11 @@ export function resetSeamWatchlist(): void {
   watchSaved = null;
 }
 
+/** The movers the capture ranks: the board's six, biggest move first (up or down), then the catalogue's names. */
+const MOVERS_ORDER: readonly string[] = ['AMD', 'INTC', 'SNOW', 'PANW', 'NOW', 'ADBE', 'NKE', 'PFE'];
+/** Their changes in percent, biggest move first, up or down (the board's figures). */
+const MOVER_CHANGES: readonly number[] = [11.2, -9.8, 8.4, -7.1, 6.6, -6.2, 5.4, -4.9];
+
 /**
  * The single-symbol lookup (`ticker-quotes`) the Watching rows read: price and previous close. The change is a deterministic
  * per-symbol figure between -2.4% and +2.4% (so captures are repeatable); SQ answers an error ("–", no change line); `noprice` answers none.
@@ -201,7 +220,9 @@ export function seamTickerQuote(symbol: string, knob: StocksKnob): ReadResult {
   if (price === undefined) return { data: null, error: { message: 'fixture: unknown symbol', code: 'FIXTURE' } };
   let h = 7;
   for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 997;
-  const pct = ((h % 49) - 24) / 10;
+  // A ranked mover has a mover's change (the board's: +11.2%, -9.8%, ...); every other stock a small one.
+  const moverAt = MOVERS_ORDER.indexOf(s);
+  const pct = moverAt >= 0 ? MOVER_CHANGES[moverAt] : ((h % 49) - 24) / 10;
   return { data: { symbol: s, price, prevClose: Math.round((price / (1 + pct / 100)) * 100) / 100 }, error: null };
 }
 
@@ -234,4 +255,27 @@ export function seamListPreview(body: Record<string, unknown>, knob: StocksKnob)
     },
     error: null,
   };
+}
+
+// ── Top movers (plan part 3, workstream 5) ──────────────────────────────────────────────────────
+
+/** The last close the `marketclosed` capture reads (a Friday): the closed rows say "Fri". */
+export const SEAM_LAST_CLOSE_ISO = '2026-11-20T21:00:00.000Z';
+
+/**
+ * `get_league_top_movers` as the capture seam answers it: the ranking in the server's order, each row `place, symbol, name, category_ids,
+ * ranked_at`, and NO price or change. `moversold` dates the ranking 45 minutes back, `marketclosed` dates it at the last close.
+ * `null` = never answers.
+ */
+export function seamTopMoversRead(knob: StocksKnob, nowMs: number): ReadResult | null {
+  if (knob.moversLoading) return null;
+  if (knob.moversFail) return { data: null, error: { message: 'fixture: the movers read failed', code: 'FIXTURE' } };
+  if (knob.moversRate) return { data: null, error: { message: 'get_league_top_movers: rate limited', code: 'PT429' } };
+  if (knob.moversEmpty) return { data: [], error: null };
+  const rankedAt = new Date(knob.marketClosed ? Date.parse(SEAM_LAST_CLOSE_ISO) : nowMs - (knob.moversOld ? 45 : 3) * 60_000).toISOString();
+  const rows = MOVERS_ORDER.flatMap((symbol, i) => {
+    const c = CATALOGUE.find(([s]) => s === symbol);
+    return c ? [{ place: i + 1, symbol, name: c[1], category_ids: [c[2]], ranked_at: rankedAt }] : [];
+  });
+  return { data: rows, error: null };
 }
