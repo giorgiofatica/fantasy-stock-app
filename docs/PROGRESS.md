@@ -28,10 +28,12 @@ Entries begin with the Recorder's first pass.
 (Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. Nothing was recorded on 2026-11-21.)
 
 **Shipped**
-- Nothing is recorded as reaching players or prod since 2026-11-20. Nothing has merged since 2026-11-20 20:24Z (I read the log).
+- Nothing is recorded as reaching players or prod since 2026-11-20. (Nothing had merged between 2026-11-20 20:24Z and the evening of 11-22 Pacific; then the six before-build pieces merged, below.)
 
 **Merged, not confirmed live**
 - **#582 (2026-11-20T20:16:07Z, `fbf5eda1`): the phone shows why a finished week was won, keyed on the stored `outcome_reason`.** Mobile only (I read the file list); in no build. **#583 (20:24:25Z, `5419051c`): my record**, with `a89a3402`. Main's CI is `success` on `5419051c` and `fbf5eda1`.
+
+- **The six before-build pieces are ALL MERGED, in no build (05:11Z to 06:12Z on 11-23 UTC, the evening of 11-22 Pacific; I read each on GitHub):** #584 (`f451c721`, my record, all three commits), #585 (`75ea4c8a`, the unreachable stock-search screen removed), #586 (`14da268a`, a finished season's card has no week gain: null, not 0), #587 (`9ad6bc3e`, a share count stays on one line with its "sh"), #588 (`233eb4b3`, AX5: playoff status lines capped, the stake note never starts a line with a dash), #589 (`3131732a`, a wrapped gain line never starts with a space). None touches `supabase/`, web, scripts or CI; `local/deploy` is still at `5419051c`; nothing deployed; no build. Main's CI is `success` on `3131732a`, `233eb4b3` and `9ad6bc3e`. Only #279 (draft) is open.
 
 **Decided**
 - **BUILD 18 IS HELD AGAIN (Giorgio to the Planner, 2026-11-22: "lets tackle the items you listed before we do another build").** He then added two more items (typed to the Planner the same day: "yes add both"), so **build 18 waits on exactly six pieces (the Orchestrator's account):** a wrapped gain line's indent; "N sh" on one line (both Design Lead chips); remove the unreachable stock-search screen; the finished-season card's `weekGain` 0 → null; the live Matchup tab's playoff status lines capped at the AX5 text size; the stake note's line never starts with "—". The outcome-reason data check (STATUS item 37) is done and is not one of the six. The Planner's earlier reading, not his words, was that phone-pass leftovers and the bigger items do not block. The last two are offered as one chip, and the clean-ups are offered; none is started.
@@ -44,7 +46,7 @@ Entries begin with the Recorder's first pass.
 - The supplier enquiry (his to send when ready); the January SDK start.
 
 **Next**
-- The two clean-ups are offered as chips, not started; the Design Lead's two chips; item 37's data check is done (2026-11-22; see Found).
+- **Build 18 now waits only on Giorgio's word to cut it** (the Planner is asking him; the Orchestrator's account). All six pieces are merged; none is yet seen on a phone. Item 37's data check is done (see Found).
 - **Mon 2026-11-23, 14:35Z: `snapshot-week-start`, the first scheduled run with the always-a-price step**, if a league has a week to start; the Orchestrator checks its logs.
 
 ## 2026-11-20
