@@ -1511,6 +1511,18 @@ building anything, and don't reopen a rule without him.
     - A correction he made, kept here so it is not repeated: the Planner had presented
       "the rest after the upgrade" as following from his own reasoning. His words: "That's
       not my own reasoning."
+  - **Trending on the Stocks tab is today's top movers (B)** (2026-11-22, A/B mockups in
+    the Planner's chat; typed there: "B"). The list ranks stocks by today's price change
+    across the whole market, each row with its price and "+11.2% today" in its sign
+    colour. A (the stocks managers bought or claimed most in the past seven days, from our
+    own data) was not picked, and neither was "A now and B later".
+    - Told to him before he picked: B needs a current price for every stock, which is the
+      price supplier; A needed no supplier; and with B, build 18 waits on the supplier.
+    - What the pick does NOT do: it does not send the enquiry or choose a supplier. His
+      2026-11-19 words still hold ("we wont send out yet ill ask when ready"): nobody
+      contacts a supplier until he says so.
+    - Not decided: the chip's name and where it sits; how many rows; whether it lists only
+      stocks available in this league.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
