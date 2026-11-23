@@ -30,6 +30,16 @@ export function keepDots(line: string, keepWhole = KEEP_WHOLE): string {
 }
 
 /**
+ * keepDash (Giorgio, 2026-11-22, "yes add both"; the dot rule's twin for "—"): a dash may END a line and NEVER start one.
+ * At AX5 League settings' stake note wrapped as "…no stake mode yet / — drafting is blocked…". The space BEFORE each " — "
+ * becomes a no-break space, so the dash stays with the word before it and the line breaks AFTER the dash. Display only (the
+ * words are unchanged; the copy, shared and tested verbatim, keeps its plain space). Idempotent.
+ */
+export function keepDash(line: string): string {
+  return line.replace(/ — /g, `${NBSP}— `);
+}
+
+/**
  * keepDots for ONE phrase inside a longer sentence ("The draft is {when}. The draft order is set an hour
  * before."): only the phrase gets the no-break spaces, so the sentence's own words wrap freely around it.
  * keepDots on the whole sentence would glue its 24-character first segment ("The draft is Sat, Oct 10")
