@@ -354,14 +354,16 @@ Deno.test({
     await q(`update league_renewal_responses set status = 'in', decided_by = 'player', responded_at = now() where league_id = $1`, [LRS]);
     await start(LRS); await finish(LRS);
 
-    // The waiver-wire plan's tables, as that plan specifies them (not on main yet): the scrub and
-    // the takeover reach them dynamically, so they must work once they exist.
-    await q(`create table public.watchlist (league_id uuid, user_id text, symbol text, primary key (league_id, user_id, symbol))`);
+    // The waiver-wire plan's tables: the scrub and the takeover reach them dynamically, so they
+    // must work once they exist. watchlist is the REAL table since 20261209000000 (its saved
+    // symbol must exist in symbols, and its seat in league_members); claims and waiver_order
+    // are still stand-ins shaped as that plan specifies them (not on main yet).
+    await q(`insert into symbols (symbol, name) values ('AAPL', 'Apple Inc.') on conflict (symbol) do nothing`);
     // claims keys its user as uuid, the others as text: the dynamic SQL must take both.
     await q(`create table public.claims (id uuid primary key default gen_random_uuid(), league_id uuid, user_id uuid,
              symbol text, status text check (status in ('pending','won','lost','failed','cancelled')))`);
     await q(`create table public.waiver_order (league_id uuid, user_id text, position smallint, primary key (league_id, user_id))`);
-    await q(`insert into watchlist values ($1, $2, 'AAPL'), ($1, $3, 'AAPL')`, [LMID, A, B]);
+    await q(`insert into watchlist (league_id, user_id, symbol) values ($1, $2, 'AAPL'), ($1, $3, 'AAPL')`, [LMID, A, B]);
     await q(`insert into claims (league_id, user_id, symbol, status) values ($1, $2, 'NVDA', 'pending'), ($1, $2, 'TSLA', 'won'),
              ($1, $3, 'NVDA', 'pending')`, [LMID, A, B]);
     await q(`insert into waiver_order values ($1, $2, 1), ($1, $3, 2)`, [LMID, A, B]);
