@@ -54,10 +54,17 @@ import { userSlotOccupancy } from '../_shared/draft-validation.ts';
 /** The watchlist cap (watchlist.cap_index is 1..50): a screen of saved rows. */
 export const MAX_PREVIEW_ROWS = 50;
 
-/** A symbol the list will look up: the table's own shape (upper case, 1-12
- * characters), restricted further to characters that are plain in a
- * PostgREST `in.(...)` filter. Anything else simply gets no answer. */
-const SYMBOL_RE = /^[A-Z0-9][A-Z0-9.\-/]{0,11}$/;
+/** A symbol the list will consider: exactly the watchlist table's own shape
+ * (watchlist_symbol_shape: upper case, 1-12 characters), so every symbol a
+ * manager can save can be answered, including real `$`, `^`, `=` and hyphenated
+ * forms. No narrower character set is needed: the saved set is read WITHOUT a
+ * symbol filter (index.ts) and matched here in memory, so no requested string
+ * ever reaches a PostgREST filter; category eligibility is then read only for
+ * symbols that came back from the watchlist table itself. */
+function symbolShapeOk(sym: string): boolean {
+  const n = Array.from(sym).length;
+  return n >= 1 && n <= 12 && sym === sym.toUpperCase();
+}
 
 /** One requested row after parsing. null = that half is unusable, so the row
  * gets no answer (it is never an error: a price that did not load is normal). */
@@ -87,7 +94,7 @@ export function parsePreviewRows(raw: unknown): { ok: true; rows: PreviewRowRequ
     const sym = typeof o.symbol === 'string' ? o.symbol.trim().toUpperCase() : '';
     const p = typeof o.price === 'number' || typeof o.price === 'string' ? Number(o.price) : NaN;
     return {
-      symbol: SYMBOL_RE.test(sym) ? sym : null,
+      symbol: symbolShapeOk(sym) ? sym : null,
       price: Number.isFinite(p) && p > 0 ? p : null,
     };
   });

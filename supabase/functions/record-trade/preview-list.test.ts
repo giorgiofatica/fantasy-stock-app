@@ -96,9 +96,13 @@ Deno.test('parsePreviewRows: elements parse leniently — an unusable symbol or 
     { symbol: 'GOOG', price: true },
     { price: 10 },                           // no symbol
     { symbol: 'TOOLONGSYMBOL', price: 10 },  // 13 chars: the table cannot hold it
-    { symbol: 'A,B', price: 10 },            // a character that is not plain in an in.() filter
+    { symbol: 'A,B', price: 10 },            // the table's shape allows it; it never reaches a filter
     { symbol: 'A"B', price: 10 },
     { symbol: 'BRK.B', price: 10 },
+    { symbol: 'bf$b', price: 10 },           // real $ / ^ / = forms the table can hold
+    { symbol: '^GSPC', price: 10 },
+    { symbol: 'ABC=W', price: 10 },
+    { symbol: '', price: 10 },               // empty after trim: the table cannot hold it
     'AAPL',
     null,
     [1, 2],
@@ -115,9 +119,13 @@ Deno.test('parsePreviewRows: elements parse leniently — an unusable symbol or 
     row('GOOG', null),
     row(null, 10),
     row(null, 10),
-    row(null, 10),
-    row(null, 10),
+    row('A,B', 10),
+    row('A"B', 10),
     row('BRK.B', 10),
+    row('BF$B', 10),
+    row('^GSPC', 10),
+    row('ABC=W', 10),
+    row(null, 10),
     row(null, null),
     row(null, null),
     row(null, null),

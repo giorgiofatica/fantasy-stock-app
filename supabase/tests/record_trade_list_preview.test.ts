@@ -342,7 +342,25 @@ Deno.test({ name: 'list preview: the watchlist is read with the CALLER\'s token 
   assertEquals(reads[0].apikey, PUBLISHABLE);
   assertEquals(reads[0].query.get('league_id'), `eq.${LEAGUE_ID}`);
   assertEquals(reads[0].query.get('user_id'), `eq.${USER_ID}`);
-  assertEquals(reads[0].query.get('symbol'), 'in.(AAPL)');
+  // The whole saved set is read: no requested string is spliced into a filter.
+  assertEquals(reads[0].query.get('symbol'), null);
+}});
+
+Deno.test({ name: 'list preview: a saved symbol with $ / ^ / = (the table allows them) is answered like any other', ...opts, async fn() {
+  const world = tierWorld();
+  for (const symbol of ['BF$B', '^GSPC', 'ABC=W', 'A,B']) world.watchlist.push({ league_id: LEAGUE_ID, user_id: USER_ID, symbol });
+  const r = await call(world, {
+    action: 'preview', league_id: LEAGUE_ID,
+    rows: [{ symbol: 'AAPL', price: 150 }, { symbol: 'bf$b', price: 150 }, { symbol: '^GSPC', price: 150 }, { symbol: 'ABC=W', price: 150 }, { symbol: 'A,B', price: 150 }],
+  });
+  assertEquals(r.status, 200);
+  const rows = r.body.rows as Array<{ symbol: string; would_fill: unknown } | null>;
+  assert(rows[0] !== null, 'AAPL is answered');
+  for (const [i, sym] of [[1, 'BF$B'], [2, '^GSPC'], [3, 'ABC=W'], [4, 'A,B']] as const) {
+    assert(rows[i] !== null, `${sym} is saved and gets an answer`);
+    assertEquals(rows[i]?.symbol, sym);
+    assertEquals(rows[i]?.would_fill, rows[0]?.would_fill, `${sym} fits as AAPL does at the same price`);
+  }
 }});
 
 Deno.test({ name: 'list preview (category league): eligibility is read only for SAVED symbols', ...opts, async fn() {

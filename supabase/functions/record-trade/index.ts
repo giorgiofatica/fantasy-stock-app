@@ -89,7 +89,7 @@ import {
   type TradeRequest,
   unhandled,
 } from './commit.ts';
-import { parsePreviewRows, type PreviewRowAnswer, type PreviewRowRequest, previewRows } from './preview-list.ts';
+import { MAX_PREVIEW_ROWS, parsePreviewRows, type PreviewRowAnswer, type PreviewRowRequest, previewRows } from './preview-list.ts';
 import {
   decideMarketGate,
   marketLabel,
@@ -421,13 +421,17 @@ Deno.serve(async (req: Request) => {
           // Under the CALLER's identity (the publishable-key client carrying
           // their token), so the watchlist table's RLS — user_id = auth.uid()
           // and is_member — decides what counts as saved. The user_id filter
-          // repeats it. At most 50 symbols: no pagination needed.
-          savedAmong: async (syms) => {
+          // repeats it. The caller's WHOLE saved set in this league is read
+          // (at most 50 rows: watchlist.cap_index is 1..50) with no symbol
+          // filter, and previewRows keeps only what was asked: no requested
+          // string is ever spliced into a PostgREST filter, so every symbol the
+          // table can hold ($, ^, =, ...) is answerable.
+          savedAmong: async (_syms) => {
             const { data, error } = await authed.from('watchlist')
               .select('symbol')
               .eq('league_id', leagueId)
               .eq('user_id', user.id)
-              .in('symbol', syms);
+              .limit(MAX_PREVIEW_ROWS);
             if (error) {
               console.error('record-trade: watchlist read error', error.code ?? '');
               return { ok: false as const };
