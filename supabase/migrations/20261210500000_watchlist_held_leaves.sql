@@ -25,8 +25,41 @@
 --      no words (the app never offers that star).
 --   5. get_league_watchlist  re-created from 20261209000000's body plus ONE marked addition:
 --      a stock the caller holds is left out, so a stranded row is never shown while held.
---   6. A one-off cleanup: rows already saved AND held are deleted. Count them first with
---      docs/security/2026-11-23-watchlist-held-preflight.sql (read-only).
+--   6. A one-off cleanup: rows already saved AND held, and STALE rows (below), are deleted.
+--      Count them first with docs/security/2026-11-23-watchlist-held-preflight.sql (read-only).
+--
+-- STALE: THE POST-SALE INVARIANT (Copilot on #606, 2026-11-23; the trigger alone is a fast path,
+--   not a guarantee). The trigger can leave a row behind: its delete is skipped when another
+--   transaction holds the row lock and that transaction then rolls back; its caught-error path
+--   keeps the row; and a save that crossed a sale is invisible to the sale's delete. While the
+--   stock is held the read hides that row, but after a FULL sale nothing did, so the old star
+--   came back: B, the option he did not pick. So a row is also hidden, cleared and deleted
+--   when it is STALE: the same manager has ANY drafts or trades row for that league and stock
+--   recorded strictly AFTER the row was saved (watchlist_row_stale). Under A that is exactly
+--   "the stock was picked, bought or sold since you saved it", and every one of those ends the
+--   save for good.
+--   - The clocks: drafts.recorded_at (timestamptz NOT NULL DEFAULT now(), the pick clock's
+--     column; not drafts.created_at, which was made out of band, 20261010000000) and
+--     trades.created_at (timestamptz DEFAULT now(); record_trade never sets it). Both are their
+--     transaction's start. A NULL trades.created_at never makes a row stale (unknown is not
+--     "after").
+--   - The save's own time is now clock_timestamp() at the insert, not now() (the ONE changed
+--     line in watchlist_before_insert, marked): the insert runs after set_watchlist's held
+--     check saw any sale already committed, so a fresh save after a sale is always later than
+--     that sale and is never hidden. With now() (the save transaction's start) a sale committing
+--     in the few milliseconds between that start and the check would have hidden a legitimate
+--     re-save.
+--   - ONE RESIDUAL, accepted (supabase review): a buy that started before a save and committed
+--     after it (so its delete missed the save), followed by a FULL sale whose transaction also
+--     started before that save's insert and then queued behind the buy on record_trade's
+--     league lock (up to 5 s). The sale's created_at is its transaction start, earlier than
+--     the save, so the row is neither deleted nor stale and shows after the sale. It needs a
+--     buy, a star and a sale of the same stock by one manager inside one lock wait. Closing it
+--     would mean record_trade stamping trades.created_at with clock_timestamp(), a change to
+--     the trade path that this migration does not make.
+--   - Strictly after (>), not at-or-after: a tie is a simultaneous save and trade, and the
+--     failure that direction is a shown row (only if the trigger also failed), never a hidden
+--     legitimate save.
 --
 -- HOLDS (CLAUDE.md, the all-or-nothing family: never "does any row exist"): the rule the
 --   Stocks list (20261207000100) and top movers (20261210000000) already use, and the buy
@@ -89,13 +122,13 @@
 --   rolls them back anyway). After the identity gate, so the answer only ever describes the
 --   caller's own seat. PT409 maps to HTTP 409 through PostgREST.
 --
--- GRANTS (CLAUDE.md, "Postgres function grants"): every function SECURITY DEFINER (the
---   helper is SECURITY INVOKER: it is only called by the definer functions here, runs as their
---   owner, and if it were ever granted it would see only what RLS shows the caller), search_path
+-- GRANTS (CLAUDE.md, "Postgres function grants"): every function SECURITY DEFINER (the two
+--   helpers are SECURITY INVOKER: they are only called by the definer functions here, run as their
+--   owner, and if one were ever granted it would see only what RLS shows the caller), search_path
 --   pinned; EXECUTE revoked BY NAME from public, anon, authenticated and service_role;
 --   set_watchlist and get_league_watchlist granted back to authenticated only, exactly as
 --   20261209000000 left them. CREATE OR REPLACE keeps an ACL; the grants are restated anyway
---   and the test asserts proacl for all five functions.
+--   and the test asserts proacl for all six functions.
 --
 -- POST-PUSH CHECKS: docs/security/2026-11-23-watchlist-held-checks.sql (read-only; its effect
 --   block always ends in RAISE, so it rolls back). The test runs it on the full chain.
@@ -145,6 +178,36 @@ $$;
 
 comment on function public.league_held_positions(uuid, text) is
   'Who holds what in a league (20261210500000): per manager and stock, draft quantity + buys - sells > 1e-9 (the Stocks list''s rule, 20261207000100). Optional manager filter. Called only by the watchlist functions; no API role may execute it.';
+
+-- 1b. STALE: picked, bought or sold since it was saved (see the header) ---------------------
+create or replace function public.watchlist_row_stale(
+  p_league_id uuid,
+  p_user_id   text,
+  p_symbol    text,
+  p_saved_at  timestamptz
+)
+returns boolean
+language sql
+stable
+security invoker
+set search_path = public, pg_temp
+as $$
+  select exists (select 1 from public.drafts d
+                  where d.league_id = p_league_id
+                    and d.user_id::text = p_user_id
+                    and d.symbol is not null
+                    and upper(d.symbol) = p_symbol
+                    and upper(d.symbol) <> 'SKIP'
+                    and d.recorded_at > p_saved_at)
+      or exists (select 1 from public.trades t
+                  where t.league_id = p_league_id
+                    and t.user_id::text = p_user_id
+                    and upper(t.symbol) = p_symbol
+                    and t.created_at > p_saved_at)
+$$;
+
+comment on function public.watchlist_row_stale(uuid, text, text, timestamptz) is
+  'A saved watchlist row is stale (20261210500000) when its manager has a drafts or trades row for that league and stock recorded strictly after it was saved: picked, bought or sold since (A: it leaves for good). Called only by the watchlist functions; no API role may execute it.';
 
 -- 2. Coming to own (or selling) a stock removes it from that manager's watchlist -----------
 create or replace function public.watchlist_leaves_on_holding()
@@ -254,7 +317,7 @@ begin
   end if;
 
   new.cap_index := v_free;
-  new.created_at := now();
+  new.created_at := clock_timestamp();  -- 20261210500000: was now(); see the header's STALE
   return new;
 end;
 $$;
@@ -299,8 +362,9 @@ begin
   end if;
 
   -- 20261210500000: clear the caller's rows for stocks they hold (a save and a buy that
-  -- crossed can strand one), so every count below, and the 50 cap, sees only rows the
-  -- reader can show. SKIP LOCKED, as in the removal trigger: a row locked by an in-flight
+  -- crossed can strand one) and their STALE rows (picked, bought or sold since saved; see
+  -- the header), so every count below, and the 50 cap, sees only rows the reader can show,
+  -- and a re-save after a sale finds no old row in its way. SKIP LOCKED, as in the removal trigger: a row locked by an in-flight
   -- trade is being deleted by that trade's trigger, so this call never waits on it while
   -- holding the seat lock (security review).
   delete from public.watchlist w
@@ -308,7 +372,8 @@ begin
            select x.league_id, x.user_id, x.symbol
              from public.watchlist x
             where x.league_id = p_league_id and x.user_id = v_uid
-              and x.symbol in (select h.symbol from public.league_held_positions(p_league_id, v_uid) h)
+              and (x.symbol in (select h.symbol from public.league_held_positions(p_league_id, v_uid) h)
+                   or public.watchlist_row_stale(p_league_id, v_uid, x.symbol, x.created_at))
               for update skip locked);
 
   if p_saved then
@@ -398,21 +463,29 @@ begin
       join public.symbols s on s.symbol = w.symbol
      where w.league_id = p_league_id
        and w.user_id = v_uid::text
-       -- 20261210500000: a stock the caller holds is never shown.
+       -- 20261210500000: a stock the caller holds is never shown, nor a STALE row (picked,
+       -- bought or sold since it was saved).
        and not exists (select 1 from public.league_held_positions(p_league_id, v_uid::text) h
                         where h.symbol = w.symbol)
+       and not public.watchlist_row_stale(p_league_id, v_uid::text, w.symbol, w.created_at)
      order by w.created_at desc, w.symbol collate "C";
 end;
 $$;
 
--- 6. One-off cleanup: rows already saved AND held ------------------------------------------
---    (Counted first by docs/security/2026-11-23-watchlist-held-preflight.sql.)
+-- 6. One-off cleanup: rows already saved AND held, and STALE rows -------------------------
+--    (Counted first by docs/security/2026-11-23-watchlist-held-preflight.sql.) A stale row
+--    here is one saved before the rule existed and then picked, bought or sold: under A it
+--    left the watchlist when that happened.
 delete from public.watchlist w
  where exists (select 1 from public.league_held_positions(w.league_id, w.user_id) h
-                where h.symbol = w.symbol);
+                where h.symbol = w.symbol)
+    or public.watchlist_row_stale(w.league_id, w.user_id, w.symbol, w.created_at);
 
 -- 7. Grants (CLAUDE.md: REVOKE FROM PUBLIC leaves Supabase's explicit per-role grants) -----
 revoke all on function public.league_held_positions(uuid, text)
+  from public, anon, authenticated, service_role;
+
+revoke all on function public.watchlist_row_stale(uuid, text, text, timestamptz)
   from public, anon, authenticated, service_role;
 
 revoke all on function public.watchlist_leaves_on_holding()
