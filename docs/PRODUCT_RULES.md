@@ -1684,6 +1684,113 @@ building anything, and don't reopen a rule without him.
       app can tell the two cases apart and is wired to these lines, a paced review still
       reads "Couldn't reach trading. Check your connection and try again.", which is wrong
       and is known.
+  - **A claim that fills sends a notification the next morning** (2026-11-23, said in the
+    Planner's chat: "Yes, there should be a notification when a stock is successfully
+    claimed the next morning. I agree with that."). He was answering the Planner's line
+    that push notifications for claim results are in the approved October plan ("Each is a
+    push") and are built before build 18, as a step after the main claims work.
+    - His words name the claim that fills. The October plan, approved 2026-10-09, also
+      sends one for a claim that loses and one for a claim that fails; that stands, and he
+      was told so in the same message.
+  - **The two failed-claim messages (both A)** (2026-11-23, four drawings in the Planner's
+    chat; said there: "Yeah, I agree both 2A or both A options."). Each is a bold line with
+    "Nothing was bought." under it, as the board draws a failed claim; when the claim named
+    a sale, the second line is "Your {symbol} was not sold.", as the board draws a lost one.
+    - The stock left the league's list before the claim ran: **"AAPL isn't in this
+      league's list of stocks"**. 1B, the October plan's "AAPL is no longer tradable", was
+      not picked.
+    - Our system did not process claims that morning: **"Claims weren't processed on
+      Monday"**, with the day the claim should have run. 2B ("Something went wrong on our
+      side on Monday") was not picked.
+    - The same words are the body of the push for that failed claim.
+  - **Those messages are fallbacks; the system fixes the cause by itself** (the same
+    message, his words in full: "Now, my only thing is that kind of like we can't have
+    happen where there's like a missed, like a stock's not showing its price or something
+    like that. We really need to make sure that messages like the stock isn't in this
+    league's list or claims weren't processed on Monday. Like those really cannot be
+    happening. I understand we have them as fallbacks, but like we need to have some sort
+    of also trigger to where if something like that's occurring, there's an automatic fix
+    being done in place.").
+    - It joins his 2026-11-17 rule, "There should always be a price for a stock", where he
+      chose an automatic fallback over an alert and over a person stepping in.
+    - What it asks for, in the Planner's reading: wherever a claim, a price or the stock
+      list can fail for a reason that is ours, something notices and repairs it without a
+      person, and the message is shown only when the repair is impossible. A message that
+      is correct (a company really was delisted) is not a fault to fix.
+    - The plan for it is the Planner's to write and his to approve. Not built.
+  - **Claims work as ESPN's waiver wire does, except daily; a manager orders their own
+    claims** (2026-11-23, said in the Planner's chat when asked to choose how a claim on a
+    stock with no price at the open should behave; his words in full: "Okay, this is how it
+    should work. Once again, if you need to, please ask the researcher to look into how the
+    waiver wire works for like ESPN before a week has kicked off. So, for example, in ESPN,
+    Tuesday afternoon, I can put a claim on a player. I put the claim in. I get a multiple
+    claims. I get to order the priority. But come Wednesday morning, the app will run all
+    those claims. Let's say I put a claim in for someone and I get them. But let's say I
+    put a claim in for the same player as someone else, but they had a higher waiver wire
+    priority, then they got the player and I didn't. So it has to work the same way, except
+    it happens daily. So if close a market, let's say right now it's Monday at 3 p.m. I
+    want to put a claim in where I drop NVIDIA and I pick up AMD. I'm not going to know if
+    I have that until Tuesday when the market opens. When the market opens, it executes the
+    trade where it drops NVIDIA at whatever price NVIDIA is, and then it picks up AMD at
+    that opening price. That's how it has to work. It has to be automatic at markets open.
+    Let's say I did that, but someone else with a higher waiver priority claimed AMD. I
+    don't get it. It doesn't sell NVIDIA. I get to keep it. I just keep NVIDIA because I
+    don't get to pick up AMD.").
+    - He then sent ESPN's own rules page for it:
+      `https://www.espn.com/fantasy/football/ffl/story?page=fflruleswaiverwalk` (dated
+      2007; read by the Planner 2026-11-23). What it states, and what is built to match:
+      a contested player goes to the team with the best waiver position; the team that
+      gets a player moves to the last position and the others move up; the order is reset
+      each week to the reverse of the standings; waivers are processed daily; a player
+      nobody claimed is a free agent, and picking one up does not change the order.
+    - What the page does not say and he does: "I get a multiple claims. I get to order the
+      priority." Several claims are built (five at most). Ordering them is NOT: the run
+      takes a manager's claims in the order they were placed. That is a gap, to be planned.
+    - Already built as he describes (the claims server, #608): claims only while the market
+      is closed; nobody knows the outcome before the open; the sale and the buy both at
+      the open; a claim that loses sells nothing.
+    - **The Planner's reading, not his pick, for the stock with no price at the open:**
+      "It has to be automatic at markets open" and "at whatever price NVIDIA is" mean the
+      claim does not wait through the morning. It tries for today's price inside the 10
+      minutes the league is held, then fills at the last known price (option B of the
+      three shown to him). He was told this reading and can overrule it.
+    - **Ordering, and two claims on one sale: his answer the same day** (asked whether two
+      of his claims may sell the same stock, a first choice and a fallback; his words in
+      full: "Yeah, so if I have multiple claims going, I should get to reorder them to
+      whatever I choose to be my top priority. So then, and then it works as like a round
+      system where if by the time it gets to me, if my first priority has already been
+      taken by someone else, my second priority moves up. So like that kind of logic, if
+      that makes sense. Yes, because in theory, in ESPN, let's say I want to pick up Justin
+      Jefferson, say he's on the waivers, and I say I want to drop Christian McCaffrey for
+      it. But then I make a second claim where I want to pick up Aaron Rodgers and drop
+      Christian McCaffrey. Now, if that first one goes through, obviously the second one
+      can't because I've already dropped Christian McCaffrey, so it's like void. But if
+      that first one doesn't go through and it comes around again, and in order to pick up
+      Aaron Rodgers, I need to drop Christian McCaffrey. Since I didn't drop him to pick up
+      Justin Jefferson, it should go through.").
+      - So: a manager sets the order of their own claims; two of their claims may name the
+        same stock to sell; if the first fills, the second is void; if the first does not,
+        the second gets its turn.
+      - "A round system": when it is a manager's turn and their first choice is already
+        taken, their next choice is tried. The run built in #608 already walks this way
+        (the manager nearest the front, their next waiting claim); it takes a manager's
+        claims in the order placed, which becomes the order they set.
+      - What the other apps say (the Researcher, 2026-11-23,
+        `docs/research/2026-11-23-espn-waiver-claim-ordering.md`): ESPN's current support
+        page states the control, "Reorder claims by dragging them into your preferred
+        priority", and nothing about two claims on one drop; Yahoo and Sleeper both accept
+        it and void the later claim when the earlier one succeeds.
+      - Not asked, and unchanged: one claim per stock per manager, and five pending at
+        most (the October plan).
+      - Still to be shown to him: the control for reordering, and what a void claim says.
+  - **The hold on trading while claims run is a known, limited exception to "claims are
+    blind"** (2026-11-23, found by the security review of the claims server; told to him
+    in the Planner's chat the same day, and not objected to). For at most 10 minutes after
+    the open, a member who tries to trade in a league whose claims are being run reads
+    "Claims are being processed. Try again in a minute." So they learn that someone in the
+    league has a claim that day: not who, not how many, not which stock. It is the October
+    plan's design and its approved sentence. The fully blind alternative, holding every
+    league every morning whether it has claims or not, was not taken.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
