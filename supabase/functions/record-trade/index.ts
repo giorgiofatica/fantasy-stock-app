@@ -34,6 +34,10 @@
 //   returns `slots` (the caller's slot map: each slot + the symbols held in it
 //   + free capacity), `unplaced`, and — given `price` — `would_fill` (the slot a
 //   buy at that price would take, or null + `open_slots`).
+//   LIST (2026-11-23, plan part 3 point 4): given `rows: [{symbol, price}]`
+//   instead of `symbol`/`price`, it answers would_fill per row, only for
+//   symbols on the caller's own watchlist in that league — preview-list.ts.
+//   A request without `rows` takes exactly the single path above.
 //
 // CONCURRENCY (2026-10-05): validation runs here in TS, but the INSERT is
 //   record_trade_atomic — a league-wide lock + compare-and-swap of every
@@ -85,6 +89,7 @@ import {
   type TradeRequest,
   unhandled,
 } from './commit.ts';
+import { parsePreviewRows, type PreviewRowAnswer, type PreviewRowRequest, previewRows } from './preview-list.ts';
 import {
   decideMarketGate,
   marketLabel,
@@ -345,6 +350,16 @@ Deno.serve(async (req: Request) => {
     if ((action === 'buy' || action === 'sell') && !symbol) {
       return json({ ok: false, reason: 'bad_request' }, 400);
     }
+    // The LIST preview (preview-list.ts): `rows` replaces the single `symbol` /
+    // `price`, so a request naming both shapes is refused rather than guessed
+    // at. Without `rows` nothing below changes for a preview.
+    let listRows: PreviewRowRequest[] | null = null;
+    if (action === 'preview' && body.rows !== undefined) {
+      if (body.symbol != null || body.price != null) return json({ ok: false, reason: 'bad_request' }, 400);
+      const parsed = parsePreviewRows(body.rows);
+      if (!parsed.ok) return json({ ok: false, reason: 'bad_request' }, 400);
+      listRows = parsed.rows;
+    }
     // fixed_notional only: which of the caller's own open sales a buy
     // reinvests. Validated as "actually one of theirs" by validateTradeAdd
     // (via resolveFunding), not here.
@@ -398,8 +413,35 @@ Deno.serve(async (req: Request) => {
       // for category leagues) — the slot a buy would fill. Advisory only.
       const probePrice = body.price == null ? undefined : Number(body.price);
       const slotInfo = slotPreview(first.value, user.id, probePrice);
+      // LIST preview only: `rows`, appended last. Absent (the spread adds
+      // nothing) for a single preview, whose body is unchanged.
+      let listInfo: { rows?: Array<PreviewRowAnswer | null> } = {};
+      if (listRows) {
+        const answered = await previewRows(first.value, user.id, listRows, {
+          // Under the CALLER's identity (the publishable-key client carrying
+          // their token), so the watchlist table's RLS — user_id = auth.uid()
+          // and is_member — decides what counts as saved. The user_id filter
+          // repeats it. At most 50 symbols: no pagination needed.
+          savedAmong: async (syms) => {
+            const { data, error } = await authed.from('watchlist')
+              .select('symbol')
+              .eq('league_id', leagueId)
+              .eq('user_id', user.id)
+              .in('symbol', syms);
+            if (error) {
+              console.error('record-trade: watchlist read error', error.code ?? '');
+              return { ok: false as const };
+            }
+            return { ok: true as const, saved: new Set((data ?? []).map((r: { symbol: unknown }) => String(r.symbol))) };
+          },
+          // Saved symbols only (previewRows' order). Throws on a read error -> 500.
+          eligibilityFor: (syms) => fetchEligibleCategoryIdsBatch(admin, syms),
+        });
+        if (!answered.ok) return json(answered.reply.body, answered.reply.status);
+        listInfo = { rows: answered.value };
+      }
       if (league.stake_mode !== 'fixed_notional') {
-        return json({ ok: true, stake_mode: league.stake_mode ?? null, stake: null, unfilled_slots: 0, sources: [], market, ...slotInfo });
+        return json({ ok: true, stake_mode: league.stake_mode ?? null, stake: null, unfilled_slots: 0, sources: [], market, ...slotInfo, ...listInfo });
       }
       const notional = league.notional_per_slot == null ? 1000 : Number(league.notional_per_slot);
       const funding = fixedNotionalFunding(user.id, picks, trades);
@@ -411,6 +453,7 @@ Deno.serve(async (req: Request) => {
         sources: funding.open.map((o) => ({ trade_id: o.tradeId, symbol: o.symbol, amount: o.amount })),
         market,
         ...slotInfo,
+        ...listInfo,
       });
     }
 

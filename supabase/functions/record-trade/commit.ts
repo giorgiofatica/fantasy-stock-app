@@ -23,6 +23,7 @@ import {
   type LeagueRules,
   type PickRow,
   type Slot,
+  type SlotOccupancy,
   type TradeRow,
   userSlotOccupancy,
   validateTradeAdd,
@@ -185,6 +186,7 @@ export interface TradePlan {
 }
 
 /** A slot as the client sees it: numerics normalised, snake_case. */
+export type SlotBody = ReturnType<typeof slotBody>;
 export function slotBody(s: Pick<Slot, 'id' | 'slotIndex' | 'slotCount' | 'priceMin' | 'priceMax' | 'categoryId'>) {
   return {
     slot_id: s.id,
@@ -296,11 +298,26 @@ export function slotPreview(
     unplaced: view.unplaced,
   };
   if (probePrice != null && Number.isFinite(probePrice) && probePrice > 0) {
-    const d = decideBuySlot(slots, occ, probePrice, state.eligibleCategories);
-    out.would_fill = d.ok ? slotBody(d.slot) : null;
-    if (!d.ok) out.open_slots = d.openSlots.map(slotBody);
+    Object.assign(out, wouldFillBody(slots, occ, probePrice, state.eligibleCategories));
   }
   return out;
+}
+
+/**
+ * The answer to "would a buy at `price` take one of my slots?", as the preview
+ * words it: `would_fill` is the slot (decideBuySlot, the buy's own rule), or
+ * null with `open_slots` naming the slots that still have room. Shared by the
+ * single preview (slotPreview above) and the list preview (preview-list.ts),
+ * so the two can never word the same decision differently.
+ */
+export function wouldFillBody(
+  slots: Slot[],
+  occ: SlotOccupancy,
+  price: number,
+  eligibility: Set<string>,
+): { would_fill: SlotBody | null; open_slots?: SlotBody[] } {
+  const d = decideBuySlot(slots, occ, price, eligibility);
+  return d.ok ? { would_fill: slotBody(d.slot) } : { would_fill: null, open_slots: d.openSlots.map(slotBody) };
 }
 
 // ---------------------------------------------------------------------------
