@@ -10,6 +10,7 @@ import { useTheme } from '@/components/sp/ThemeProvider';
 import { WARN_TEXT_MAX_SCALE } from '@/components/sp/WarnPanel';
 import { fontScaleKey } from '@/components/sp/logic/remeasureKey';
 import { isStacked, nextBrokeAt, subAfterValue, valueLinesAt } from '@/lib/game/labelBreaks';
+import { keepDash } from '@/lib/game/keepDots';
 
 // 3c-2 — the row vocabulary of the board's setup frames (DraftSettingsScreen,
 // RibReview: a card of `ks-rows`, each a callout-weight key, a muted value and
@@ -291,9 +292,9 @@ export function WarnNote({ title, line, alert = false }: { title: string; line?:
       style={[styles.warn, { backgroundColor: colors.warnTint, borderColor: colors.warnLine }]}
     >
       <Text variant="callout" maxFontSizeMultiplier={WARN_TEXT_MAX_SCALE} color={colors.warnText} style={styles.key}>
-        {title}
+        {keepDash(title)}
       </Text>
-      {line ? <Text variant="caption" maxFontSizeMultiplier={WARN_TEXT_MAX_SCALE} color={colors.warnText}>{line}</Text> : null}
+      {line ? <Text variant="caption" maxFontSizeMultiplier={WARN_TEXT_MAX_SCALE} color={colors.warnText}>{keepDash(line)}</Text> : null}
     </View>
   );
 }

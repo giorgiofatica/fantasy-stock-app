@@ -24,8 +24,8 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `app/(tabs)/league.tsx:457` | Button | onPress | `auto.reread` | prop auto.reread |  |
 | `app/(tabs)/league.tsx:525` | Button | onPress | `queue.refresh` | prop queue.refresh |  |
 | `app/(tabs)/league.tsx:536` | SettingRow | onPress | `inline: () => router.push({ pathname: '/league-settings', params: { ` | route push({ pathname: '/league-settings', params: { leagueId) |  |
-| `app/(tabs)/matchup.tsx:142` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
-| `app/(tabs)/matchup.tsx:163` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
+| `app/(tabs)/matchup.tsx:143` | SegmentedControl | onChange | `inline: (v) => setSegment(v === 'all' ? 'all' : 'mine')` | state setSegment |  |
+| `app/(tabs)/matchup.tsx:164` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `app/create-account.tsx:133` | Button | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
 | `app/create-account.tsx:135` | Button | onPress | `handleCreate` | fn handleCreate |  |
 | `app/create-account.tsx:140` | Pressable | onPress | `inline: () => router.replace('/login')` | route replace('/login') |  |
@@ -133,9 +133,9 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/game/ScheduleList.tsx:128` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/game/SeasonRecap.tsx:61` | LoadFailure | onRetry | `state.retry` | prop state.retry |  |
 | `components/game/SeasonRecap.tsx:123` | ScheduleWeekRow | onPress | `inline: r.opens ? () => open(r.opens!) : undefined` | fn open |  |
-| `components/game/SetupRows.tsx:163` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
-| `components/game/SetupRows.tsx:190` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
-| `components/game/SetupRows.tsx:249` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
+| `components/game/SetupRows.tsx:164` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
+| `components/game/SetupRows.tsx:191` | Pressable | onPress | `onPress` | prop onPress (the caller's) | `disabled` |
+| `components/game/SetupRows.tsx:250` | Switch | onValueChange | `onValueChange` | prop onValueChange (the caller's) | `disabled` |
 | `components/game/SetupScaffold.tsx:100` | BackControl | onPress | `back.onPress` | prop back.onPress |  |
 | `components/game/SetupScaffold.tsx:113` | Pressable | onPress | `inline: close.disabled ? undefined : close.onPress` | — | `close.disabled` |
 | `components/game/SetupScaffold.tsx:150` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
@@ -158,7 +158,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/home/YourSeason.tsx:165` | PressableScale | onPress | `inline: () => router.push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF ` | route push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF : SCHEDU) |  |
 | `components/league/LeagueStates.tsx:44` | Button | onPress | `onRetry` | prop onRetry (the caller's) |  |
 | `components/league/MembersSection.tsx:63` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
-| `components/money/HoldingRow.tsx:86` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/money/HoldingRow.tsx:87` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/LoadFailure.tsx:30` | EmptyState | onAction | `onRetry` | prop onRetry (the caller's) |  |
 | `components/money/PlayerPortfolioScreen.tsx:202` | LoadFailure | onRetry | `inline: () => { seasonEnd.refresh(); retry(); }` | fn seasonEnd.refresh |  |
 | `components/money/PlayerPortfolioScreen.tsx:206` | LoadFailure | onRetry | `retry` | fn retry |  |

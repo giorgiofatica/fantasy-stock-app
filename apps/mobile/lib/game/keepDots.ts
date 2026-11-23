@@ -30,6 +30,16 @@ export function keepDots(line: string, keepWhole = KEEP_WHOLE): string {
 }
 
 /**
+ * keepDash (Giorgio, 2026-11-22, "yes add both"; the dot rule's twin for "—"): a dash may END a line and NEVER start one.
+ * At AX5 League settings' stake note wrapped as "…no stake mode yet / — drafting is blocked…". The space BEFORE each " — "
+ * becomes a no-break space, so the dash stays with the word before it and the line breaks AFTER the dash. Display only (the
+ * words are unchanged; the copy, shared and tested verbatim, keeps its plain space). Idempotent.
+ */
+export function keepDash(line: string): string {
+  return line.replace(/ — /g, `${NBSP}— `);
+}
+
+/**
  * keepDots for ONE phrase inside a longer sentence ("The draft is {when}. The draft order is set an hour
  * before."): only the phrase gets the no-break spaces, so the sentence's own words wrap freely around it.
  * keepDots on the whole sentence would glue its 24-character first segment ("The draft is Sat, Oct 10")
@@ -81,6 +91,18 @@ export function keepMoney(text: string): string {
     if (amount === undefined) return Array.from(match).join(WORD_JOINER); // a percent
     return Array.from(amount).join(WORD_JOINER) + (unit ? unit.replace(/^( (?:a|per)) /, `$1${NBSP}`) : '');
   });
+}
+
+/**
+ * keepShares (Design Lead P3, 2026-11-22; at AX5 Trade history's detail line broke "10.0705" / "sh"): a share count and its
+ * unit "sh" are ONE phrase, like keepMoney's amount and unit. A no-break space goes between the count's last digit and "sh",
+ * so a line breaks BEFORE the count, never between it and its unit. Matches a digit, one plain space, then "sh" as a whole
+ * word ("10.0705 sh", "1,234 sh", "Sell all 6.8942 sh ≈ $2,194.91"), so "5 shares" and "5 shy" are untouched. Display only:
+ * the copy and every accessibilityLabel keep the plain space (and VoiceOver's spoken "shares", see historyShareDetail).
+ * Apply at the render, never to the string a width estimate or a test compares. Idempotent.
+ */
+export function keepShares(text: string): string {
+  return text.replace(/(\d) sh(?![A-Za-z])/g, `$1${NBSP}sh`);
 }
 
 /**

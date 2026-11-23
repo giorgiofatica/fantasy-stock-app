@@ -66,6 +66,9 @@ function parse(raw: string | undefined): ShellFixture | null {
 /** DEV captures only: Serie A Traders is a budget-cap league (EXPO_PUBLIC_SLOT_FIXTURE=refuse). */
 const SLOT_REFUSE_LEAGUE: boolean = __DEV__ ? process.env.EXPO_PUBLIC_SLOT_FIXTURE === 'refuse' : false;
 
+/** DEV captures only: Serie A Traders is a legacy league with NO stake mode (EXPO_PUBLIC_SHELL_NO_STAKE=1), for League settings' "no stake mode yet" note. */
+const NO_STAKE_LEAGUE: boolean = __DEV__ ? process.env.EXPO_PUBLIC_SHELL_NO_STAKE === '1' : false;
+
 export const SHELL_FIXTURE: ShellFixture | null = __DEV__ ? parse(process.env.EXPO_PUBLIC_SHELL_FIXTURE) : null;
 
 if (SHELL_FIXTURE) {
@@ -190,6 +193,8 @@ export function fixtureLeagues(fixture: ShellFixture, renewalCaller: RenewalCall
       playoff_teams: 8,
       // DEV captures (lib/game/slotFixture.ts, SLOT_FIXTURE=refuse): a budget-cap league, for the League settings Save stills.
       ...(SLOT_REFUSE_LEAGUE ? { stake_mode: 'budget_cap' as const, budget_amount: 2500 } : {}),
+      // DEV captures (SHELL_NO_STAKE=1): a legacy league with no stake mode chosen.
+      ...(NO_STAKE_LEAGUE ? { stake_mode: null } : {}),
       ...memberOver,
     }),
     league({
