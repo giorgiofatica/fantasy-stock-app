@@ -34,6 +34,8 @@ Entries begin with the Recorder's first pass.
 
 - **TOP MOVERS is LIVE in prod, about 20:2xZ on 11-23 (Giorgio ran it, the Orchestrator verified; I ran none of it; `local/deploy` is at `944eb18a`, which I read).** `rank-top-movers` deployed (13 of 13 files byte-identical; a no-credential POST returned our own 401); migrations `20261210000000` and `20261210000001` applied (the dry run listed only those two); checks by query: both `schema_migrations` rows, the table with RLS on and only `service_role` privilege, the two functions' ACLs, the 5 constraints, the cron job `*/5` open-only with a 180 s timeout. **By data: the first tick at 20:20Z wrote the ranking:** 100 rows, set 500, fresh 459 (91.8%, above the 90% gate but close), moves 5.02% to 31.45%, `cron_job_status` success. **Still to do (STATUS item 45):** the effect test after the 21:00Z close, the db-snapshot re-capture (the map shows 2 HIGH rows), and watching the fresh share.
 
+- **Evening, 20:41Z to 22:17Z (the Orchestrator's account of Giorgio's runs; I read the merges, the code, the attempts and the snapshot):** **#604 (`8797c65d`) shipped plan point 7: the preview applies the buy's own `not_draftable` refusal first and a named-stock preview is paced 200 an hour and 500 a day; `record-trade` was redeployed at `5a1360e4`, 11 of 11 byte-identical.** **Top movers' block G passed as real roles; the db-snapshot was re-captured at 22:16:38Z (in #605): 35 drift rows, none high.** **#601 (`5a1360e4`, the watchlist app) merged, in no build.** **Main's CI: `8797c65d`'s first attempt failed on a flake (the Orchestrator: a minute-bucket straddle in `scrape_hardening`), the re-run passed; `5a1360e4` is green.** STATUS items 43 and 45.
+
 **Merged, not confirmed live**
 - **#594 (18:05:02Z, `61aaa3ea`, the Stocks-tab lists board and its rules), #595 (18:11:23Z, `47b05d65`, the watchlist server) and #596 (18:17:50Z, `f6df4115`, the plan's three settled points).** Main's CI is `success` on `f6df4115`, `47b05d65` and `61aaa3ea`. Then #597 (18:28:09Z, `65fb06aa`, my record, both commits) and #598 (18:40:10Z, `5163f525`, the snapshot re-capture and the plan's points 4 and 5). Only #279 (draft) is open.
 
@@ -58,7 +60,7 @@ Entries begin with the Recorder's first pass.
 **Next**
 - **Monday 14:35Z's `snapshot-week-start` has passed; I have no report of its outcome.** The Orchestrator checks its logs.
 - The rest of Stocks part 3 (claims, the Top movers job, the screens) is not started as far as I know; then build 18; then the Expo upgrade.
-- **Open: the watchlist app (#601, draft).** Still to come before build 18: option A's migration and database push (item 44), point 7's preview gate and another `record-trade` deploy (item 43), the Top movers effect test, snapshot re-capture and freshness watch (item 45), and the phone pass that checks the list preview's effect; then build 18; then the Expo upgrade.
+- **Still to come before build 18 (the Orchestrator's account): option A's server change (the chip is not started; a migration and a `db push`, item 44) and the claims (WS6 and WS7); the phone pass that checks both `record-trade` deploys' effect; the fresh-share watch (item 45).** Then build 18; then the Expo upgrade.
 
 ## 2026-11-22
 
