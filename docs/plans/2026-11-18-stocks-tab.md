@@ -351,17 +351,17 @@ Portfolio. Ranked fallback claims. Anything on the web app.
 
 ### Open, and who settles it
 
-1. The Design Lead's board for the switch, the star, the Watching and Claims views and the
-   Top movers chip at his text size, with every new word listed for him. Blocks the client
-   workstreams only.
+1. ANSWERED 2026-11-22: the Design Lead's board `#call-stocks-tab-lists` is drawn, and he
+   approved its seven new words ("yes to all the words"; the list is in
+   `docs/PRODUCT_RULES.md`). The client workstreams build from that board.
 2. ANSWERED 2026-11-22 (the Researcher; read through a summary, so no wording is quoted
    here): the source documents no limit on stocks per snapshot call, so the job keeps our
    own batch of 50 (ten calls per refresh for 500 stocks) and claims no documented number.
    The one documented rate is 200 calls a minute on the Basic plan; whether snapshot calls
    count under it is not stated. Two calls a minute is far below it, and the job logs the
    rate-limit headers the source returns and treats a refusal as a failed batch.
-3. Where the league's waiver order is shown (the October plan says everyone can see it): the
-   board.
+3. ANSWERED 2026-11-22 by the board (the Design Lead's ruling, drawn and explained, not a
+   pick): the waiver order is the first row of Claims, the whole order on a tap.
 
 ### Risks
 

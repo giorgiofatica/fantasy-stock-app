@@ -397,6 +397,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-stocks-tab-lists', title: 'The Stocks tab\u2019s lists', decision: '"yes to all the words": Available, Watching, Top movers, "Star a stock to watch it here.", "No claims pending.", "+11.2% Fri" and "MON 9:30 AM ET", on the board as drawn (the switch, the star, Watching, claiming after the close in the palette\u2019s rust brown, Claims with the waiver order on its first row, Top movers).', date: '2026-11-22', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSStocksTabListsArchived },
     { id: 'call-result-colour', title: 'W, L and T colours outside the recap', decision: '"A and keep blue". Letters A: W, L and T bold in the normal ink on Home\u2019s season tiles, League \u203a Schedule and the Matchup \u201ci\u201d popup, as in the recap; the money keeps its sign colour. Banner 1: a week you won stays blue (your colour). No new words.', date: '2026-11-20', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSResultColourArchived },
     { id: 'call-tiebreak-words', title: 'The words when dollars don\u2019t decide a week', decision: 'The line: A, the winner first ("Paolo M. won the tiebreak, +1.76% to +0.74%"); the words wait on the server storing why a week was decided. The recap row: his own option, neither 1 nor 2: W, L and T in bold neutral ink, the figure keeps its sign colour, no reason word on the row (built, #574).', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSTiebreakWordsArchived },
     { id: 'call-yellow', title: 'The yellow warnings', decision: 'A: the teal tint, in all five kinds of place (the refusal panel, Home\u2019s \u201ccan\u2019t start yet\u201d card and its stepper ring, the stake-mode note, a TBD draft time, the draft search\u2019s badge). Only the three warning colours change, both themes. The gold medal and the Property colour stay. No new words.', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSYellowArchived },
@@ -589,6 +590,7 @@
           {window.KSYellow ? <window.KSYellow /> : null}
           {window.KSTiebreakWords ? <window.KSTiebreakWords /> : null}
           {window.KSResultColour ? <window.KSResultColour /> : null}
+          {window.KSStocksTabLists ? <window.KSStocksTabLists /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
