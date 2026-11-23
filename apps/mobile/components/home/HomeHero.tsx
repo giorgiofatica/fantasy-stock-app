@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-use-before-define -- RN styles-at-bottom idiom: `styles` is declared below and only referenced inside the render, which runs after module init, so there is no TDZ. See CLAUDE.md ("ESLint (mobile)"). */
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
-import { space } from '@/constants/tokens';
+import { space, type } from '@/constants/tokens';
 import { Text } from '@/components/sp/Text';
 import { keepTime } from '@/lib/game/keepDots';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { useMotion } from '@/components/sp/motion';
 import { Icon } from '@/components/sp/Icon';
+import { gainGap } from '@/components/sp/logic/gainGap';
 import { formatGainPair, formatMoney, formatPercent, GAIN_PAIR_CLOSE, GAIN_PAIR_OPEN, isZeroMoney } from '@/components/sp/logic/money';
 import { RollingMoney } from '@/components/home/RollingMoney';
 import { HERO_SEASON_GAIN_LABEL, HERO_TODAY_LABEL, heroAccessibilityLabel, heroUnpricedCaption } from '@/lib/home/homeCopy';
@@ -100,6 +101,9 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
     transform: reduced ? [] : [{ translateY: (1 - enterProgress.value) * 8 }],
   }));
 
+  // One space's width at the callout size (logic/gainGap.ts): the gap between the gain line's units, given to the row.
+  const { fontScale } = useWindowDimensions();
+  const gap = gainGap(type.callout.fontSize, fontScale);
   const gainColor = isZeroMoney(seasonGainDollars) ? colors.zero : seasonGainDollars > 0 ? colors.gain : colors.loss;
   const todayColor = today == null ? colors.text2 : isZeroMoney(today) ? colors.zero : today > 0 ? colors.gain : colors.loss;
 
@@ -157,29 +161,41 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
         <RollingMoney text={valueText} size="hero" rollKey={leagueId} />
 
         {!lines.gainLine ? null : preSeasonLabel != null ? (
-          <View style={styles.gainRow}>
-            <RollingMoney text={formatMoney(0, { sign: 'always' })} size="callout" color={colors.zero} rollKey={leagueId} fontWeight="700" />
-            <Text variant="callout" tone="secondary"> · {keepTime(preSeasonLabel)}</Text>
+          <View style={[styles.gainRow, { columnGap: gap }]} testID="hero-gain-row">
+            {/* The dot stays with the figure before it (a dot may end a line, never start one), and the gaps are
+                the row's, not spaces in the strings: a wrapped line starts flush (P3, 2026-11-22). */}
+            <View style={[styles.unit, { columnGap: gap }]}>
+              <RollingMoney text={formatMoney(0, { sign: 'always' })} size="callout" color={colors.zero} rollKey={leagueId} fontWeight="700" />
+              <Text variant="callout" tone="secondary">{HERO_DOT}</Text>
+            </View>
+            <Text variant="callout" tone="secondary">{keepTime(preSeasonLabel)}</Text>
           </View>
         ) : (
-          <View style={styles.gainRow}>
+          <View style={[styles.gainRow, { columnGap: gap }]} testID="hero-gain-row">
             <RollingMoney text={gainDollarsText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />
             {/* The percent in brackets (Giorgio, 2026-11-17, pick A): "(" and ")" travel with the percent as
                 ONE non-wrapping unit, so a wrapped line never strands a bracket. Only the numbers and
                 their brackets take the gain colour; the words stay grey (2026-11-18, pick A). */}
             <View style={styles.pctUnit}>
-              <Text variant="callout" style={{ color: gainColor, fontWeight: '700' }}> {GAIN_PAIR_OPEN}</Text>
+              <Text variant="callout" style={{ color: gainColor, fontWeight: '700' }}>{GAIN_PAIR_OPEN}</Text>
               <RollingMoney text={gainPctText} size="callout" color={gainColor} rollKey={leagueId} fontWeight="700" />
               <Text variant="callout" style={{ color: gainColor, fontWeight: '700' }}>{GAIN_PAIR_CLOSE}</Text>
             </View>
-            <Text variant="callout" tone="secondary"> {HERO_SEASON_GAIN_LABEL}</Text>
+            {/* P3 (2026-11-22): the gaps between the units are the row's `columnGap`, never a space inside a
+                string, so a wrapped line starts flush. The dot is glued to "season gain" in one non-wrapping
+                unit: it may end a line, never start one. */}
             {todayText ? (
               <>
-                <Text variant="callout" tone="secondary"> · </Text>
+                <View style={[styles.unit, { columnGap: gap }]}>
+                  <Text variant="callout" tone="secondary">{HERO_SEASON_GAIN_LABEL}</Text>
+                  <Text variant="callout" tone="secondary">{HERO_DOT}</Text>
+                </View>
                 <RollingMoney text={todayText} size="callout" color={todayColor} rollKey={leagueId} fontWeight="700" />
-                <Text variant="callout" tone="secondary"> {HERO_TODAY_LABEL}</Text>
+                <Text variant="callout" tone="secondary">{HERO_TODAY_LABEL}</Text>
               </>
-            ) : null}
+            ) : (
+              <Text variant="callout" tone="secondary">{HERO_SEASON_GAIN_LABEL}</Text>
+            )}
           </View>
         )}
 
@@ -193,6 +209,9 @@ export function HomeHero({ leagueId, rank, totalPlayers, record, weekOrRound, va
     </Animated.View>
   );
 }
+
+/** The grey dot between two facts on the gain row ("season gain · +$Z today"), a unit of its own so it can be glued. */
+const HERO_DOT = '·';
 
 const styles = StyleSheet.create({
   wrap: {
@@ -215,6 +234,11 @@ const styles = StyleSheet.create({
     gap: space[2],
   },
   pctUnit: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  // Two things that never wrap apart (a figure and its dot, "season gain" and its dot).
+  unit: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },

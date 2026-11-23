@@ -295,13 +295,13 @@ Deno.test('(e) the break rule: the figures are one non-wrapping run, the period 
     assert(!t.keptWords.includes(' ') && t.keptWords.replaceAll(NBSP, ' ') === RANGE_WORDS[range], `${range}: the phrase never breaks`);
     assertEquals(t.figures.replace(' (', ' ('), `${t.money} (${t.pct})`);
   }
-  // The component (RollingGainPair): [nowrap group: money, " (", percent, ")"] then the phrase, in a wrapping
-  // row, so the only break is between the two groups. The gap before the bracket and before the phrase is a
-  // no-break space, so neither can start a line.
+  // The component (RollingGainPair): [nowrap group: money, (percent in brackets)] then the phrase, in a wrapping
+  // row, so the only break is between the two groups. The gaps are the rows' `columnGap`, not a space in a
+  // string (P3, 2026-11-22: a leading space survives a wrap), so a wrapped line starts flush.
   const src = strip(gainPairSrc);
   assert(/row: \{ flexDirection: 'row', flexWrap: 'wrap'/.test(src) && /nowrap: \{ flexDirection: 'row'/.test(src) && !/flexWrap: 'wrap'[^}]*nowrap/.test(src));
-  assert(src.includes('{`${NBSP}${GAIN_PAIR_OPEN}`}') && src.includes('{`${NBSP}${words}`}'));
-  assert(src.indexOf('<View style={styles.nowrap}>') < src.indexOf('text={money}') && src.indexOf('text={pct}') < src.indexOf('{words ? ('));
+  assert(src.includes('>{GAIN_PAIR_OPEN}</Text>') && src.includes('>{words}</Text>') && !src.includes('NBSP'), 'no space character stands in for the gap');
+  assert(src.indexOf('testID="gain-pair-figures"') < src.indexOf('text={money}') && src.indexOf('text={pct}') < src.indexOf('{words ? ('));
 });
 
 Deno.test('(f) the gain follows the range: tapping a pill changes the line, the gain and the axis together (one source)', () => {
