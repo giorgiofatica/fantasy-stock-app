@@ -2,22 +2,27 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "9936237c24788301f0bc59a87b1f6bdb7e547c3a",
-    "commitShort": "9936237c",
+    "commit": "61315595b9cfe70064a468a394b8c60ccc2d8c50",
+    "commitShort": "61315595",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
-    "dirty": false,
-    "dirtyPaths": [],
-    "timestamp": "2026-11-23T06:07:09Z",
-    "sourceHash": "sha256:729aad60454ea7d46977d4f0603a56787f96ea0e381289e054ab7c1a50ac1233",
+    "branch": "feat/watchlist-server",
+    "dirty": true,
+    "dirtyPaths": [
+      {
+        "code": "AM",
+        "path": "supabase/migrations/20261209000000_watchlist.sql"
+      }
+    ],
+    "timestamp": "2026-11-23T07:32:52Z",
+    "sourceHash": "sha256:ff93958f86fa59f3fb1e96d9b5fa4804eefec0c9cad72d8e27aeb4d2f74f2360",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 101.9,
-    "ageDays": 4.2,
+    "ageHours": 103.3,
+    "ageDays": 4.3,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
@@ -5441,6 +5446,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261209000000_watchlist.sql:290"
+        ],
+        "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.get_league_watchlist",
+      "label": "get_league_watchlist()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261209000000_watchlist.sql",
+        "line": 290
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": false,
         "searchPath": "public, pg_temp",
@@ -7550,6 +7586,37 @@
     {
       "layer": "db",
       "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261209000000_watchlist.sql:213"
+        ],
+        "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.set_watchlist",
+      "label": "set_watchlist()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261209000000_watchlist.sql",
+        "line": 213
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
       "db": {
         "securityDefiner": true,
         "searchPath": "public, pg_temp",
@@ -8296,6 +8363,37 @@
       "source": {
         "path": "supabase/migrations/20251210100000_create_user_profiles.sql",
         "line": 34
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "definedIn": [
+          "supabase/migrations/20261209000000_watchlist.sql:124"
+        ],
+        "latestDefinition": "supabase/migrations/20261209000000_watchlist.sql",
+        "redefinitions": 1
+      },
+      "drift": [
+        {
+          "field": "existence",
+          "declared": "created by migration",
+          "live": "ABSENT from prod snapshot",
+          "severity": "high",
+          "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+        }
+      ],
+      "annotation": null,
+      "verified": false,
+      "id": "pg.watchlist_before_insert",
+      "label": "watchlist_before_insert()",
+      "sublabel": "not in snapshot",
+      "kind": "pg-function",
+      "source": {
+        "path": "supabase/migrations/20261209000000_watchlist.sql",
+        "line": 124
       }
     },
     {
@@ -10062,6 +10160,28 @@
       "source": {
         "path": "supabase/migrations/20251210100000_create_user_profiles.sql",
         "line": 2
+      }
+    },
+    {
+      "layer": "db",
+      "facts": {},
+      "db": null,
+      "declared": {
+        "touchedBy": [
+          "supabase/migrations/20261209000000_watchlist.sql"
+        ],
+        "rlsEnabled": true
+      },
+      "drift": [],
+      "annotation": null,
+      "verified": false,
+      "id": "tbl.watchlist",
+      "label": "watchlist",
+      "sublabel": "not in snapshot",
+      "kind": "table",
+      "source": {
+        "path": "supabase/migrations/20261209000000_watchlist.sql",
+        "line": 101
       }
     },
     {
@@ -16217,6 +16337,71 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.get_league_watchlist->tbl.categories",
+      "from": "pg.get_league_watchlist",
+      "to": "tbl.categories",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT categories (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:308"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_watchlist->tbl.category_rules",
+      "from": "pg.get_league_watchlist",
+      "to": "tbl.category_rules",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT category_rules (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:310"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_watchlist->tbl.symbol_category_overrides",
+      "from": "pg.get_league_watchlist",
+      "to": "tbl.symbol_category_overrides",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbol_category_overrides (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:307"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_watchlist->tbl.symbols",
+      "from": "pg.get_league_watchlist",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:315"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.get_league_watchlist->tbl.watchlist",
+      "from": "pg.get_league_watchlist",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:314"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.get_portfolio_ledger->tbl.league_members",
       "from": "pg.get_portfolio_ledger",
       "to": "tbl.league_members",
@@ -18310,6 +18495,32 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.scrub_deleted_manager->tbl.watchlist",
+      "from": "pg.scrub_deleted_manager",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261125000005_scrub_deleted_manager.sql:222"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.scrub_deleted_manager->tbl.watchlist#delete",
+      "from": "pg.scrub_deleted_manager",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261125000005_scrub_deleted_manager.sql:222"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.pg.set_draft_order->tbl.league_draft_order",
       "from": "pg.set_draft_order",
       "to": "tbl.league_draft_order",
@@ -18545,6 +18756,74 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20261007000000_username_write_path.sql:134"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.set_watchlist->tbl.league_members",
+      "from": "pg.set_watchlist",
+      "to": "tbl.league_members",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_members (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:231"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.set_watchlist->tbl.symbols",
+      "from": "pg.set_watchlist",
+      "to": "tbl.symbols",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT symbols (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:253"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.set_watchlist->tbl.watchlist",
+      "from": "pg.set_watchlist",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:248",
+        "supabase/migrations/20261209000000_watchlist.sql:256",
+        "supabase/migrations/20261209000000_watchlist.sql:270",
+        "supabase/migrations/20261209000000_watchlist.sql:274"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.set_watchlist->tbl.watchlist#delete",
+      "from": "pg.set_watchlist",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-delete",
+      "payload": "DELETE watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:270"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.set_watchlist->tbl.watchlist#insert",
+      "from": "pg.set_watchlist",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-insert",
+      "payload": "INSERT watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:263"
       ]
     },
     {
@@ -19376,6 +19655,32 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.pg.watchlist_before_insert->tbl.league_members",
+      "from": "pg.watchlist_before_insert",
+      "to": "tbl.league_members",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT league_members (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:146"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.pg.watchlist_before_insert->tbl.watchlist",
+      "from": "pg.watchlist_before_insert",
+      "to": "tbl.watchlist",
+      "protocol": "plpgsql-select",
+      "payload": "SELECT watchlist (inside function body)",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:160"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.tbl.auth->pg.handle_new_user_profile",
       "from": "tbl.auth",
       "to": "pg.handle_new_user_profile",
@@ -19948,6 +20253,19 @@
       "derivedFrom": "sql-body",
       "callSites": [
         "supabase/migrations/20251210100000_create_user_profiles.sql:44"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
+      "id": "e.tbl.watchlist->pg.watchlist_before_insert",
+      "from": "tbl.watchlist",
+      "to": "pg.watchlist_before_insert",
+      "protocol": "pg-trigger",
+      "payload": "trigger on watchlist",
+      "derivedFrom": "sql-body",
+      "callSites": [
+        "supabase/migrations/20261209000000_watchlist.sql:190"
       ]
     },
     {
@@ -23394,6 +23712,36 @@
   ],
   "drift": [
     {
+      "node": "pg.get_league_watchlist",
+      "label": "get_league_watchlist()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.set_watchlist",
+      "label": "set_watchlist()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
+      "node": "pg.watchlist_before_insert",
+      "label": "watchlist_before_insert()",
+      "groupKey": "existence",
+      "field": "existence",
+      "declared": "created by migration",
+      "live": "ABSENT from prod snapshot",
+      "severity": "high",
+      "note": "A migration creates this function but it is not in the live catalog. Either the migration was never pushed, or it was later dropped."
+    },
+    {
       "node": "tbl.categories",
       "label": "categories",
       "groupKey": "authenticated-role-policies-ungated",
@@ -24131,6 +24479,20 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
+      "node": "pg.get_league_watchlist",
+      "label": "get_league_watchlist()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261209000000_watchlist.sql:290",
+      "outbound": [
+        "tbl.categories",
+        "tbl.category_rules",
+        "tbl.symbol_category_overrides",
+        "tbl.symbols",
+        "tbl.watchlist"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
       "node": "pg.heal_account_deletions",
       "label": "heal_account_deletions(p_min_age interval, p_limit integer)",
       "kind": "pg-function",
@@ -24277,7 +24639,9 @@
         "tbl.push_tokens",
         "tbl.push_tokens",
         "tbl.user_profiles",
-        "tbl.user_profiles"
+        "tbl.user_profiles",
+        "tbl.watchlist",
+        "tbl.watchlist"
       ],
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
@@ -24295,6 +24659,20 @@
         "tbl.league_members",
         "tbl.league_renewal_responses",
         "tbl.leagues"
+      ],
+      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
+    },
+    {
+      "node": "pg.set_watchlist",
+      "label": "set_watchlist()",
+      "kind": "pg-function",
+      "source": "supabase/migrations/20261209000000_watchlist.sql:213",
+      "outbound": [
+        "tbl.league_members",
+        "tbl.symbols",
+        "tbl.watchlist",
+        "tbl.watchlist",
+        "tbl.watchlist"
       ],
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
@@ -24534,6 +24912,24 @@
   },
   "unverified": [
     {
+      "scope": "pg.watchlist_before_insert",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.set_watchlist",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
+      "scope": "pg.get_league_watchlist",
+      "claim": "function exists in prod",
+      "reason": "Present in migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot, or confirm the migration was applied."
+    },
+    {
       "scope": "tbl.broker_credentials",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
@@ -24541,6 +24937,12 @@
     },
     {
       "scope": "tbl.notification_log",
+      "claim": "table exists in prod",
+      "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
+      "resolve": "Re-capture the snapshot."
+    },
+    {
+      "scope": "tbl.watchlist",
       "claim": "table exists in prod",
       "reason": "Referenced in code or migrations, absent from db-snapshot.json.",
       "resolve": "Re-capture the snapshot."
@@ -24632,13 +25034,13 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 334,
-    "edges": 798,
+    "nodes": 338,
+    "edges": 813,
     "flows": 7,
-    "drift": 34,
-    "driftHigh": 0,
-    "deadCode": 62,
-    "unverified": 16
+    "drift": 37,
+    "driftHigh": 3,
+    "deadCode": 64,
+    "unverified": 20
   },
   "sourceIndex": {
     "edgeFunctions": [
@@ -25286,7 +25688,8 @@
       "20261206000000_symbols_column_grant.sql",
       "20261207000000_record_trade_season_end_by_date.sql",
       "20261207000100_league_available_stocks.sql",
-      "20261208000000_matchup_outcome_reason.sql"
+      "20261208000000_matchup_outcome_reason.sql",
+      "20261209000000_watchlist.sql"
     ],
     "config": [
       "delete-account=false",
