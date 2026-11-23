@@ -17,7 +17,8 @@ import { MATCHUP_FIXTURE_VARIANT, PORTFOLIO_STAKE_VARIANT, SEAM_ON } from '@/lib
  * new read, and never a new RPC). Budget and tier leagues: a buy needs a free slot; with every slot of yours held,
  * a free stock can't be bought until you sell (the sheet's own rosterFull rule), so its row says "No free slot".
  */
-export function useSearchOwnership(): (symbol: string) => OwnershipSuffix {
+/** The league ledger's facts for one symbol, and whether every slot of yours is held: ONE read behind the search row's suffix and the Watching row's status line. */
+function useLedgerFacts() {
   const { activeLeague } = useLeagueContext();
   const { user } = useSession();
   const leagueId = activeLeague?.id ?? (MONEY_FIXTURE ? FIXTURE_LEAGUE_ID : null);
@@ -32,10 +33,39 @@ export function useSearchOwnership(): (symbol: string) => OwnershipSuffix {
     && (league.stake_mode === 'budget_cap' || league.stake_mode === 'price_tiers')
     && myHoldingsFromLedger(ledgerState.ledger, userId).length >= league.num_rounds;
 
-  function ownershipFor(symbol: string): OwnershipSuffix {
-    if (!ledgerState.ledger || !userId) return { text: null, mine: false };
-    const facts = deriveStockSheetFacts({ symbol, userId, ...sheetInputsFromLedger(ledgerState.ledger) });
-    return ownershipSuffix(facts.owner, facts.conflict, roomless);
+  /** Null until the ledger (or the caller) is known: nothing is claimed about who owns it. */
+  function factsFor(symbol: string) {
+    if (!ledgerState.ledger || !userId) return null;
+    return deriveStockSheetFacts({ symbol, userId, ...sheetInputsFromLedger(ledgerState.ledger) });
   }
-  return ownershipFor;
+  return { factsFor, roomless };
+}
+
+export function useSearchOwnership(): (symbol: string) => OwnershipSuffix {
+  const { factsFor, roomless } = useLedgerFacts();
+  return (symbol) => {
+    const facts = factsFor(symbol);
+    return facts ? ownershipSuffix(facts.owner, facts.conflict, roomless) : { text: null, mine: false };
+  };
+}
+
+export interface StockOwnership {
+  /** Who holds the stock in this league: me, another manager, or nobody (a ledger conflict reads as nobody: never a guess). `undefined` until the ledger has loaded. */
+  ownerFor: (symbol: string) => { kind: 'me' } | { kind: 'other'; name: string | null } | null | undefined;
+  /** Budget / tier leagues: every slot of yours is held, so a buy has nowhere to go. */
+  roomless: boolean;
+}
+
+/** The facts the Watching row's status line is built from (watchlist.ts statusLine). */
+export function useStockOwnership(): StockOwnership {
+  const { factsFor, roomless } = useLedgerFacts();
+  return {
+    roomless,
+    ownerFor: (symbol) => {
+      const facts = factsFor(symbol);
+      if (!facts) return undefined;
+      if (facts.conflict || !facts.owner) return null;
+      return facts.owner.kind === 'me' ? { kind: 'me' } : { kind: 'other', name: facts.owner.name ?? null };
+    },
+  };
 }
