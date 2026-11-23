@@ -1,6 +1,6 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
-Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone; Part 3 (the watchlist, claims and top movers) is a DRAFT (2026-11-22), not approved
 Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: 5021a5bb
 
 **Revised 2026-11-18, the same day, after a later ruling.** Giorgio: "we can't be showing a
@@ -250,3 +250,156 @@ specs the states above first.
 | Backend read path | Opus, with a `security-reviewer` and a `supabase-reviewer` pass | A new `SECURITY DEFINER` read over a locked table, grants, and a partial-state query |
 | Design | Design Lead's default | Layout from references |
 | Mobile | Sonnet | UI over an existing sheet and search |
+
+## Part 3: the watchlist, claims and top movers
+
+Status of this part: DRAFT, not approved (2026-11-22). The directions are picked; the plan
+waits for Giorgio's approval and nothing in it is built until then.
+
+### Why this part exists
+
+Giorgio, 2026-11-22: "I don't want to just throw in a stocks tab that's like halfway done...
+I would actually want to get those four elements in the build. And then from there, we do
+the build and then we do the upgrade." The four elements were the star and the watchlist,
+claims after the close, trending lists, and re-sorting. The order is his: these, then build
+18, then the Expo upgrade.
+
+### Decisions
+
+| # | Question | Decision | Date |
+|---|---|---|---|
+| 1 | The watchlist and claims: what they are and how they work | The October plan, as approved, [`2026-10-08-trading-window-and-watchlist.md`](2026-10-08-trading-window-and-watchlist.md): its decisions 1 to 11 and 13 stand | 2026-10-09 |
+| 2 | Where they live | A switch at the top of the tab: Available, Watching, Claims. A star on every stock row. Replaces the October plan's decision 12 | 2026-11-22, "B" |
+| 3 | Trending | Today's top movers | 2026-11-22, "B" |
+| 4 | Where top movers get their numbers | From the current source, with no supplier: "Rank only a defined set, for example the 500 largest companies"; "Skip any stock whose latest trade is too old, so a stale number can never rank"; "Refresh every few minutes while the market is open" | 2026-11-22, "this works" |
+| 5 | Re-sorting | None. Largest companies first, only | 2026-11-22, "B" |
+
+### What changes from the October plan
+
+The October plan was written before the tab, before the accurate-prices rule and before the
+`symbols` lockdown. Everything in it stands except these:
+
+| October plan | Now | Why |
+|---|---|---|
+| The watchlist is a tab inside "Buy a stock" plus a "Watching" section on Portfolio | The Watching view of the Stocks tab. No Portfolio section (the Planner's reading of his 2026-11-16 pick, "the watchlist... in a tab of their own") | Decision 2 |
+| Claim sits where Buy sits, in "Buy a stock" | The same rule on the tab: while the market is closed, the plus and the sheet's main button open the claim, not the buy | "Buy a stock" is gone (part 2) |
+| The watchlist read joins `symbols.last_price` and shows price and day change from it | The read returns the saved stocks with name and category and NO price. Each row gets its price and today's change from the live lookup, as the Stocks list does | "A price shown to a manager is the stock's current price" (2026-11-18); `symbols` is readable only through reader functions since `20261206000000` |
+| The run reads "the quote source `record-trade` uses" | The one shared price chain (`_shared/alpaca-price.ts`: trade, then bar, then a sane midpoint, then the last daily close; never a lone bid or ask) | The week-start ask-price bug (2026-11-17) |
+| Claims need a completed draft | And an unfinished season: no claim is placed or filled once the season is over by date | "A finished season is closed to buying and selling" (2026-11-18) |
+| Migration ranges 20261117 and 20261119 | The Orchestrator assigns new ranges after `20261208000000` | Those ranges are in the past |
+
+Unchanged and worth restating, because the build rests on them: claims are blind (RLS, not
+UI); one claim per stock per manager and at most 5 pending; 50 saved stocks per manager per
+league; the run happens at the open, before live trading, one transaction per league with a
+row that makes a retry safe; every trade goes through `public."record_trade_atomic"`; the
+hold on live trading is per league and lifts by itself after 10 minutes.
+
+### Top movers: how it works
+
+**The set.** The 500 largest companies by `symbols.market_cap` among stocks that are active,
+draftable and priced. 4,400 of the 10,472 draftable stocks carry a size (his read-only count,
+2026-11-22). The other 6,072 can never rank, and say so wherever the list is described.
+
+**The job.** A scheduled job, every 5 minutes while the market is open (driven by
+`market_calendar`, not a fixed clock), on the pattern of the other cron functions: the cron
+key guard, `runJob` so every exit writes a terminal status, an explicit `pg_net` timeout, and
+an immediate 202 with the work in the background so it never holds the queue for the other
+jobs (the 2026-11-11 lesson). It asks the current source for the snapshot of each stock in
+the set, in batches, and for each works out today's change with the same chain `quote` uses:
+the current price against the previous session's close.
+
+**The freshness check.** A stock whose latest trade is older than 15 minutes is left out of
+the ranking for that run. (The Planner's number, inside his "too old"; easy to change.)
+
+**The ranking is written whole or not at all.** If any batch fails, or fewer than 90% of the
+set came back with a fresh trade, the run keeps the previous ranking and reports itself
+partial. A ranking drawn from a subset is never published as the market's (CLAUDE.md,
+"all-or-nothing": the verdict's scope must match the evidence's).
+
+**What is stored.** The ranked symbols with the time of the ranking, the 100 biggest moves
+either way. No price is read back from this table for display.
+
+**What the tab shows.** The "Top movers" chip sits under Available, so it lists movers that
+nobody in this league owns, up to 25 rows, biggest move first whether up or down. A reader
+function for signed-in league members returns the ordered symbols with name and category
+(nothing scrapable: no anonymous access, no price). Each row then takes its price and
+"+11.2% today" from the live lookup, so the order can be a few minutes old and the numbers
+are current.
+
+**When the ranking is old.** While the market is open, a ranking more than 20 minutes old is
+not shown as current: the chip's list shows the existing "didn't load" state. While the
+market is closed, the list shows the last session's ranking; whether it needs a line saying
+so is the Design Lead's board (new words go to Giorgio).
+
+**With a supplier later.** The set widens to every stock and nothing on the screen changes.
+Nobody contacts a supplier for this (his 2026-11-19 words stand).
+
+### Scope
+
+In: the watchlist (table, RLS, the save write, the read, the star, the Watching view); claims
+(the October plan's tables, the place and cancel writes, the run at the open, the hold on
+live trading, the waiver order and its weekly reset, the three notifications, the composer,
+the Claims view); top movers (the job, its table and read, the chip).
+
+Out: re-sorting (decision 5). A price supplier. Price alerts. A "Watching" section on
+Portfolio. Ranked fallback claims. Anything on the web app.
+
+### Open, and who settles it
+
+1. The Design Lead's board for the switch, the star, the Watching and Claims views and the
+   Top movers chip at his text size, with every new word listed for him. Blocks the client
+   workstreams only.
+2. The current source's limits on the snapshot request (stocks per call, calls per minute),
+   with the Researcher. It sets the batch size; it does not change the design.
+3. Where the league's waiver order is shown (the October plan says everyone can see it): the
+   board.
+
+### Risks
+
+- **This is the largest change to trading since the draft.** The claims run and the hold
+  touch `record-trade`, `finalize_league_draft` and `process-week-results`. Each is
+  re-created from `main`'s current body and only added to. None of it is deployed on a
+  Friday afternoon, when the week is scored.
+- **A dead claims job must never close a league's trading.** The hold lifts by itself; the
+  job reports `failed`; a late run fails only the claims that live trades made impossible.
+- **A wrong top mover.** Guarded by the set, the freshness check and the whole-or-nothing
+  ranking. A stock that ranks still shows only live numbers.
+- **Testing the run for real** needs a market open and two managers claiming the same stock.
+  It is a phone-pass step with the test accounts, not something a unit test can stand in for.
+- **Size.** Three database pushes and at least four function deploys, in an order. Build 18
+  waits for all of it.
+
+### Workstreams, in order
+
+Each server workstream ends with Giorgio's prod steps and a check by data before the next
+starts. At most about four pull requests open at a time.
+
+| # | Workstream | Model | His steps after it |
+|---|---|---|---|
+| 1 | The board (Design Lead) | Design Lead | A pick, and a yes on new words |
+| 2 | Watchlist, server | Opus, with the security and Supabase reviewers | `db push` |
+| 3 | Watchlist, app (the switch, the star, Watching) | Sonnet | none |
+| 4 | Top movers, server | Opus | `db push`, one deploy, then a look at the ranking by data |
+| 5 | Top movers, app (the chip) | Sonnet | none |
+| 6 | Claims, server (tables, writes, the run, the hold, the order and its reset, notifications) | Opus, with both reviewers | `db push`, then deploys of `claims-run`, `record-trade` and `process-week-results`, each byte-verified |
+| 7 | Claims, app (the composer, Claims, the endings) | Sonnet | none |
+
+Then build 18, the phone pass on it, and the Expo upgrade.
+
+### Done means
+
+1. Every "Done means" of the October plan, read against the table of changes above.
+2. On a phone: the switch shows Available, Watching and Claims; a star saves a stock for this
+   league only; Watching lists it with a current price; the watchlist of another league is
+   separate.
+3. After the close, the plus opens a claim; the claim shows under Claims and can be
+   cancelled; at the next open it fills, loses or fails with its reason, and a notification
+   says which.
+4. Two test managers claim the same stock: the one earlier in the waiver order gets it, and
+   moves to the back.
+5. Top movers lists only stocks nobody in the league owns, each with a current price and
+   today's change; with the job stopped, the list says it did not load and does not show an
+   old ranking as current.
+6. By data, after each server step: the tables and grants exist as designed (`proacl`, not
+   the migration's word); the claims run wrote a row for the day; the ranking's time is
+   within the last few minutes while the market is open.
