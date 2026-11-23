@@ -43,7 +43,7 @@ Entries begin with the Recorder's first pass.
 
 - **#599 (19:51:12Z, `c53510f8`, my record `cb132c60` and the own-star rule, option A, the search-star board and plan point 7) and #600 (19:58:58Z, `ac293fdf`, the `record-trade` list preview).** **Then #602 (20:14:57Z, `944eb18a`, the Top movers server) and #603 (20:21:16Z, `8c9f1c4d`, docs, carrying my record as `45bd2860`).** Main's CI is `success` on `ac293fdf` and `c53510f8`. Open: #601 (the watchlist app, draft), #602 (the Top movers server) and #603 (docs).
 
-- **#605 (22:23:27Z, `01dce369`, my record and the 22:16:38Z snapshot) and #606 (23:11:13Z, `0564e63d`, option A).** Main's CI is `success` on both. #609 (docs: a manager orders their own claims, two may sell the same stock, plus the waiver-ordering research) also merged at 23:18:19Z (`3d734c83`). Open (the Orchestrator's account): #607 (the Top movers chip, draft) and #608 (the claims server).
+- **#605 (22:23:27Z, `01dce369`, my record and the 22:16:38Z snapshot) and #606 (23:11:13Z, `0564e63d`, option A).** Main's CI is `success` on both. #609 (docs: a manager orders their own claims, two may sell the same stock, plus the waiver-ordering research) also merged at 23:18:19Z (`3d734c83`). Open (the Orchestrator's account): #607 (the Top movers chip, draft; its conflicts cleared at `e0069fff`) and #608 (the claims server, built and out of draft ~23:25Z, head `6cf306e0`; not merged, not applied, not deployed).
 
 **Decided**
 - **"Yes to all the words" on the Stocks tab lists board (`#call-stocks-tab-lists`, #594) (Giorgio, via the Design Lead; in `docs/PRODUCT_RULES.md` via #594, which dates it 2026-11-22 Pacific).** Seven new words (Available, Watching, Top movers, "Star a stock to watch it here.", "No claims pending.", "+11.2% Fri", "MON 9:30 AM ET"). Two things the board drew without asking are the Design Lead's rulings, not his picks: a claim is the palette's rust, and the waiver order is the first row of Claims.
@@ -68,7 +68,7 @@ Entries begin with the Recorder's first pass.
 **Next**
 - **Monday 14:35Z's `snapshot-week-start` has passed; I have no report of its outcome.** The Orchestrator checks its logs.
 - The rest of Stocks part 3 (claims, the Top movers job, the screens) is not started as far as I know; then build 18; then the Expo upgrade.
-- **Still to come before build 18 (the Orchestrator's account): the claims (the server #608, the run, the notifications, the screens), the Top movers chip, the snapshot re-capture after the claims push, the phone pass that checks the `record-trade` deploys' effect, and the fresh-share watch (item 45).** Then build 18; then the Expo upgrade.
+- **Still to come before build 18 (the Orchestrator's account): the claims (the server and run in #608, built and open; the notifications; the screens), the Top movers chip, the snapshot re-capture after the claims push, the phone pass that checks the `record-trade` deploys' effect, and the fresh-share watch (item 45).** Then build 18; then the Expo upgrade.
 
 ## 2026-11-22
 
