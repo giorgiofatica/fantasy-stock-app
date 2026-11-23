@@ -28,24 +28,25 @@ Entries begin with the Recorder's first pass.
 (Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so. It was ~17:5xZ when I wrote this.)
 
 **Shipped**
-- Nothing is recorded as reaching players or prod today. `local/deploy` is at `3131732a` (I read it).
+- **The watchlist server is APPLIED in prod, about 18:2xZ (#595; migration `20261209000000`; Giorgio ran it, the Orchestrator verified; I ran none of it).** The dry run listed only that file. By data: the `schema_migrations` row; RLS on, no `anon` or `PUBLIC`, `authenticated` has select, insert and delete only; three own-row policies; the two functions `SECURITY DEFINER`, pinned, executable by `authenticated` only, and the trigger function by `postgres` only; the 50-cap, cascades and trigger present; the effect test passed as a member, an outsider and `anon` (the 51st save refused, everything rolled back). `public.watchlist` has 0 rows. Ids kept out of the repo. **Not shown:** any app use; no client exists. **Still to come: the `db-snapshot.json` re-capture and a map regenerate.** `local/deploy` is at `f6df4115` (I read it).
 
 **Merged, not confirmed live**
-- Nothing merged since 07:15Z (#593). Open: #594 (the Design Lead's Stocks-tab lists board) and **#595 (the watchlist server: table, RLS, a 50-cap save, a price-free reader; migration `20261209000000`, NOT applied)**.
+- **#594 (18:05:02Z, `61aaa3ea`, the Stocks-tab lists board and its rules), #595 (18:11:23Z, `47b05d65`, the watchlist server) and #596 (18:17:50Z, `f6df4115`, the plan's three settled points).** Main's CI is `success` on `f6df4115`, `47b05d65` and `61aaa3ea`. Only #279 (draft) is open.
 
 **Decided**
-- **"Yes to all the words" on the Stocks tab lists board (`#call-stocks-tab-lists`, #594) (Giorgio, via the Design Lead, 2026-11-23; the Orchestrator's account).**
+- **"Yes to all the words" on the Stocks tab lists board (`#call-stocks-tab-lists`, #594) (Giorgio, via the Design Lead; in `docs/PRODUCT_RULES.md` via #594, which dates it 2026-11-22 Pacific).** Seven new words (Available, Watching, Top movers, "Star a stock to watch it here.", "No claims pending.", "+11.2% Fri", "MON 9:30 AM ET"). Two things the board drew without asking are the Design Lead's rulings, not his picks: a claim is the palette's rust, and the waiver order is the first row of Claims.
+- **A claim has a colour of its own, never the warning colour: the rust (pick A)** (Giorgio, 2026-11-23, typed in the Planner's chat: "warning and claim should not have the same color. i lean A"; in `docs/PRODUCT_RULES.md` via #596). B (the old warning brown) and C (the plus stays teal after the close) were not picked. Told to him: in Dark the rust's peach sits close to the pink of a down day; if it bothers him on a phone it is a new call for him.
 
 **Found**
 - **A known, deferred gap (STATUS item 40; the security review's declined finding 3):** `take_over_team` does not delete a seat's stray watchlist rows. Today the design keeps the invariant (the scrub deletes them with the seat; a trigger refuses saves into a deleted seat); if it broke, a takeover would fail loudly, not hand over a deleted person's saves. The fix re-creates `take_over_team`, so it is deferred.
 
 **Waiting on Giorgio**
-- His pushes and deploys for the watchlist (STATUS item 41) when #595 merges; the supplier enquiry (his to send when ready; not on build 18's path).
+- The supplier enquiry (his to send when ready; not on build 18's path). The watchlist's prod step is done.
 
 **Next**
 - **Monday 14:35Z's `snapshot-week-start` has passed; I have no report of its outcome.** The Orchestrator checks its logs.
 - The rest of Stocks part 3 (claims, the Top movers job, the screens) is not started as far as I know; then build 18; then the Expo upgrade.
-- After #595 is applied: the `proacl` checks and the db-snapshot re-capture.
+- The `db-snapshot.json` re-capture and a map regenerate (the Orchestrator will send them).
 
 ## 2026-11-22
 
