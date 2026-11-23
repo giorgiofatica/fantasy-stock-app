@@ -1,6 +1,6 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
-Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone; Part 3 (the watchlist, claims and top movers) is a DRAFT (2026-11-22), not approved
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone; Part 3 (the watchlist, claims and top movers) is Approved (Giorgio, 2026-11-22: "Yeah, that plan looks good. Let's implement it.") and not built
 Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: 5021a5bb
 
 **Revised 2026-11-18, the same day, after a later ruling.** Giorgio: "we can't be showing a
@@ -253,8 +253,10 @@ specs the states above first.
 
 ## Part 3: the watchlist, claims and top movers
 
-Status of this part: DRAFT, not approved (2026-11-22). The directions are picked; the plan
-waits for Giorgio's approval and nothing in it is built until then.
+Status of this part: Approved (Giorgio, 2026-11-22, typed in the Planner's chat after the
+summary of this part: "Yeah, that plan looks good. Let's implement it."). Not built.
+Approving the plan is not approval of any prod step; each push and deploy is his when it
+comes.
 
 ### Why this part exists
 

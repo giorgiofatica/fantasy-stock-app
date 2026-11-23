@@ -1564,6 +1564,9 @@ building anything, and don't reopen a rule without him.
     each row showed its current price. The Planner recommended A; he picked B. The chips
     narrow the list and search finds a stock. This settles the fourth of the four
     elements: there is nothing to build for it.
+  - **The plan for the three that are built is approved** (2026-11-22): Part 3 of
+    `docs/plans/2026-11-18-stocks-tab.md` (the watchlist, claims and top movers). His
+    words: "Yeah, that plan looks good. Let's implement it."
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
