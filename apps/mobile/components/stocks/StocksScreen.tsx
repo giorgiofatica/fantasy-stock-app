@@ -35,7 +35,7 @@ import { ShellHeader } from '@/components/shell/ShellHeader';
 import { useScrollFold } from '@/components/shell/scrollFold';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { useStockSheet } from '@/components/money/MoneyHost';
-import { SearchRow, useSearchOwnership } from '@/components/money/StockSearchScreen';
+import { SearchRow } from '@/components/stocks/SearchRow';
 import { Skeleton } from '@/components/Skeleton';
 import { keepMoney } from '@/lib/game/keepDots';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -49,6 +49,7 @@ import type { ShapedSearchResult } from '@/lib/symbolSearch';
 import { SEAM_STOCK_CATEGORIES } from '@/lib/stocks/seamStocks';
 import { useStocksList } from '@/lib/stocks/useStocksList';
 import { useRowPrices } from '@/lib/stocks/useRowPrices';
+import { useSearchOwnership } from '@/lib/stocks/useSearchOwnership';
 import {
   CHIP_TEXT_MAX_SCALE,
   ROW_TEXT_MAX_SCALE,
@@ -68,7 +69,7 @@ import {
   type ListRow,
 } from '@/lib/stocks/stocksList';
 
-/** Search's text follows Dynamic Type to 1.6× (the sheet's ceiling); rows keep their 1.3× (StockSearchScreen's rule). */
+/** Search's text follows Dynamic Type to 1.6× (the sheet's ceiling); rows keep their 1.3× (SearchRow's rule). */
 const SEARCH_TEXT_MAX_SCALE = 1.6;
 /** The search field's text size (pt, before Dynamic Type): the style below and the scale-aware props both read it. */
 const SEARCH_INPUT_FONT_SIZE = 17;

@@ -139,7 +139,7 @@ export type SearchFixtureBehavior =
   | { kind: 'normal' };
 
 /**
- * What the stock-search screen's fixture should do for one search attempt
+ * What the search fixture should do for one search attempt
  * (E-1/E-2, 3e UX audit): 'fail' surfaces as the same `error: true` state a
  * thrown symbols-search call produces (lib/symbolSearch.ts's
  * shapeSearchOutcome), never a clean "no matches"; 'delay' holds the loading
