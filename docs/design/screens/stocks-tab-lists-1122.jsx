@@ -411,5 +411,6 @@
     );
   }
 
-  window.KSStocksTabLists = () => <CallStocksTabLists />;
+  window.KSStocksTabLists = () => null;
+  window.KSStocksTabListsArchived = () => <CallStocksTabLists archived decidedNote={<><b>Decided 2026-11-22:</b> “yes to all the words”. Every new word above is approved, on the board as drawn.</>} />;
 })();
