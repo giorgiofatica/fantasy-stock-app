@@ -1516,11 +1516,27 @@ building anything, and don't reopen a rule without him.
     across the whole market, each row with its price and "+11.2% today" in its sign
     colour. A (the stocks managers bought or claimed most in the past seven days, from our
     own data) was not picked, and neither was "A now and B later".
-    - Told to him before he picked: B needs a current price for every stock, which is the
-      price supplier; A needed no supplier; and with B, build 18 waits on the supplier.
-    - What the pick does NOT do: it does not send the enquiry or choose a supplier. His
-      2026-11-19 words still hold ("we wont send out yet ill ask when ready"): nobody
-      contacts a supplier until he says so.
+    - **It is built now, on the stocks where our data is good, with no supplier** (the
+      same day). The Planner had told him B needed the price supplier and that build 18
+      would wait on it. He questioned that: "can't we just look at, we calculate the
+      percentage moves already... why can't we just have a cron job or something work and
+      figure out what the top movers are? I don't see why that requires anything else than
+      the information that we already have." He was right; the Planner had overstated it.
+      The app already works out a stock's change today from the current source, and a
+      scheduled job can rank a set of stocks. What needs a supplier is only the WHOLE
+      market: the current source sees one small exchange, so a rarely traded stock's
+      latest trade can be hours old, and those stocks are the ones that top a whole-market
+      list. The version put to him, to which he answered "this works":
+      - "Rank only a defined set, for example the 500 largest companies. We already hold
+        company size; it's how the Stocks list is sorted."
+      - "Skip any stock whose latest trade is too old, so a stale number can never rank."
+      - "Refresh every few minutes while the market is open."
+    - So trending does NOT put the price supplier on the path to build 18. His 2026-11-19
+      words on the supplier are untouched ("we wont send out yet ill ask when ready"). With
+      a supplier later, the same list widens to the whole market.
+    - The Planner's choices inside that, to settle in the plan and not his words: the set
+      is the 500 largest (his "this works" covered "for example"); how old is "too old";
+      what the list shows when the market is closed.
     - Not decided: the chip's name and where it sits; how many rows; whether it lists only
       stocks available in this league.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
