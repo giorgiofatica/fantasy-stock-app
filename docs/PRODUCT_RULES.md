@@ -1754,6 +1754,35 @@ building anything, and don't reopen a rule without him.
       claim does not wait through the morning. It tries for today's price inside the 10
       minutes the league is held, then fills at the last known price (option B of the
       three shown to him). He was told this reading and can overrule it.
+    - **Ordering, and two claims on one sale: his answer the same day** (asked whether two
+      of his claims may sell the same stock, a first choice and a fallback; his words in
+      full: "Yeah, so if I have multiple claims going, I should get to reorder them to
+      whatever I choose to be my top priority. So then, and then it works as like a round
+      system where if by the time it gets to me, if my first priority has already been
+      taken by someone else, my second priority moves up. So like that kind of logic, if
+      that makes sense. Yes, because in theory, in ESPN, let's say I want to pick up Justin
+      Jefferson, say he's on the waivers, and I say I want to drop Christian McCaffrey for
+      it. But then I make a second claim where I want to pick up Aaron Rodgers and drop
+      Christian McCaffrey. Now, if that first one goes through, obviously the second one
+      can't because I've already dropped Christian McCaffrey, so it's like void. But if
+      that first one doesn't go through and it comes around again, and in order to pick up
+      Aaron Rodgers, I need to drop Christian McCaffrey. Since I didn't drop him to pick up
+      Justin Jefferson, it should go through.").
+      - So: a manager sets the order of their own claims; two of their claims may name the
+        same stock to sell; if the first fills, the second is void; if the first does not,
+        the second gets its turn.
+      - "A round system": when it is a manager's turn and their first choice is already
+        taken, their next choice is tried. The run built in #608 already walks this way
+        (the manager nearest the front, their next waiting claim); it takes a manager's
+        claims in the order placed, which becomes the order they set.
+      - What the other apps say (the Researcher, 2026-11-23,
+        `docs/research/2026-11-23-espn-waiver-claim-ordering.md`): ESPN's current support
+        page states the control, "Reorder claims by dragging them into your preferred
+        priority", and nothing about two claims on one drop; Yahoo and Sleeper both accept
+        it and void the later claim when the earlier one succeeds.
+      - Not asked, and unchanged: one claim per stock per manager, and five pending at
+        most (the October plan).
+      - Still to be shown to him: the control for reordering, and what a void claim says.
   - **The hold on trading while claims run is a known, limited exception to "claims are
     blind"** (2026-11-23, found by the security review of the claims server; told to him
     in the Planner's chat the same day, and not objected to). For at most 10 minutes after

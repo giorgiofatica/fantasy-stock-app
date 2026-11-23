@@ -596,6 +596,36 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
    - The run answers the cron at once and works in the background, or finishes in well
      under a second when there is nothing to do: it is called every minute, and a slow
      answer holds every other scheduled job behind it (the 2026-11-11 lesson).
+10. **A manager orders their own claims, and two may sell the same stock** (his rulings,
+    2026-11-23, in `docs/PRODUCT_RULES.md`; the research is
+    `docs/research/2026-11-23-espn-waiver-claim-ordering.md`). Built after the claims
+    server (#608) as its own change; #608 does not wait for it.
+    - **The order.** Each pending claim has a place in its manager's own list, 1 to 5. A
+      new claim goes last. A write sets the whole order at once for the caller's own
+      pending claims in one league, and is refused once that day's run has started, as
+      cancel is. Cancelling a claim closes the gap.
+    - **The run uses it.** Where the run takes "their earliest-placed claim" (point 9), it
+      takes the first in the manager's order. Nothing else in the walk changes: the
+      manager nearest the front goes next, a filled claim sends them to the back at once,
+      a claim that loses or cannot be completed moves nobody and their next one is tried.
+    - **One sale, two claims.** Point 9's refusal ('sale_in_use') is removed. At the run, a
+      claim whose named sale was already used by an earlier claim of the same manager in
+      that run is void: nothing is bought, nothing is sold, the order is unchanged. If the
+      earlier claim did not fill, the sale is still theirs and the later claim runs
+      normally. In a tier league this is what makes a second choice possible at all, since
+      only a sale in the same tier can pay for the buy.
+    - **Cash leagues.** Two claims paid from the budget need no rule: each fills if the
+      budget still covers it, and the second fails as over budget if it does not.
+    - **Unchanged:** one claim per stock per manager; five pending at most.
+    - **The app (workstream 7).** The Claims list shows the order and lets the manager
+      change it; ESPN's control is a drag. The Design Lead draws it, with what a void claim
+      reads, and both go to Giorgio. The Planner's recommendation for the void claim: it
+      shows in the Claims list and sends no push, because the manager got their first
+      choice and a second message about it is noise.
+    - **Tests.** A's first choice is taken by a manager ahead of them and A's second fills
+      in the same turn; two claims on one sale, first fills, second void with the sale
+      made once; first loses, second fills with that sale; a reorder after the run has
+      started is refused; another manager cannot reorder or see the order.
 
 ### Risks
 
