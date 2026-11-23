@@ -10,6 +10,7 @@ import { CategoryPill, ROW_PILL_MAX_SCALE } from '@/components/sp/gn/CategoryPil
 import type { Category } from '@/components/sp/logic/gameNight';
 import { VALUE_PT, valueScale } from '@/components/sp/logic/holdingFit';
 import { TickerBadge } from '@/components/sp/gn/TickerBadge';
+import { keepShares } from '@/lib/game/keepDots';
 import type { HoldingRow as HoldingRowData } from '@/lib/money/portfolioView';
 
 // Stockpile — <HoldingRow>, Game Night (W4 Portfolio; the board's Portfolio frame, A): one
@@ -63,7 +64,7 @@ export const HoldingRow = forwardRef<View, HoldingRowProps>(function HoldingRow(
             {row.name}
           </Text>
           <Text testID="holding-row-shares" variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} numberOfLines={1} style={styles.shares}>
-            {`${NBSP}· ${row.quantityText}${NBSP}sh`}
+            {`${NBSP}· ${keepShares(`${row.quantityText} sh`)}`}
           </Text>
         </View>
       </View>

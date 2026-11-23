@@ -84,6 +84,18 @@ export function keepMoney(text: string): string {
 }
 
 /**
+ * keepShares (Design Lead P3, 2026-11-22; at AX5 Trade history's detail line broke "10.0705" / "sh"): a share count and its
+ * unit "sh" are ONE phrase, like keepMoney's amount and unit. A no-break space goes between the count's last digit and "sh",
+ * so a line breaks BEFORE the count, never between it and its unit. Matches a digit, one plain space, then "sh" as a whole
+ * word ("10.0705 sh", "1,234 sh", "Sell all 6.8942 sh ≈ $2,194.91"), so "5 shares" and "5 shy" are untouched. Display only:
+ * the copy and every accessibilityLabel keep the plain space (and VoiceOver's spoken "shares", see historyShareDetail).
+ * Apply at the render, never to the string a width estimate or a test compares. Idempotent.
+ */
+export function keepShares(text: string): string {
+  return text.replace(/(\d) sh(?![A-Za-z])/g, `$1${NBSP}sh`);
+}
+
+/**
  * keepWeek (Design Lead P2, 2026-11-03; checklist §5): "Week 10" is ONE phrase. At AX5 Home's Standings header broke
  * "Through Week" / "10", which reads as two things; a no-break space between the word and its number keeps them on
  * one line, wherever the rest of the sentence wraps ("Through Week 10", "You win Week 6", "Week 7 starts Mon 9:30 AM

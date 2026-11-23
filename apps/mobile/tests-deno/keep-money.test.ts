@@ -115,14 +115,14 @@ const SURFACES: { surface: string; file: string; pin: string; strings: string[] 
     strings: [COPY.perSlotAtDraft(formatMoney(2000.01)), formatMoney(12345.67), COPY.oneSaleReady(formatMoney(3538500), 'S049'), COPY.twoSalesReady(formatMoney(2194.91), 'NVDA', formatMoney(1890.12), 'TSLA'), COPY.budgetLeftToSpend(formatMoney(1240))],
   },
   {
-    surface: 'Stock sheet', file: 'components/money/StockSheetBody.tsx', pin: '{keepMoney(model.sell.summary)}',
+    surface: 'Stock sheet', file: 'components/money/StockSheetBody.tsx', pin: '{keepMoney(keepShares(model.sell.summary))}',
     strings: [`${formatMoney(11.69, { sign: 'always' })} · ${formatPercent(3.81, { sign: 'always' })}`, `${formatMoney(-194.9, { sign: 'always' })} · ${formatPercent(-9.74, { sign: 'always' })}`, formatMoney(1234567.89), COPY.sellAll(formatShares(6.8942), formatMoney(2194.91))],
   },
   {
     surface: 'Trade review panel', file: 'components/money/TradeReviewPanel.tsx', pin: '{keepMoney(review.card)}',
     strings: [COPY.vsSlotStart(formatMoney(2000.01)), `${formatMoney(2194.91)} ${COPY.slotCashStays}`, COPY.buyOutcome(formatMoney(2000), 'NVDA'), `${formatMoney(318.37)} · ${COPY.marketPrice}`],
   },
-  { surface: 'Trade history rows', file: 'components/money/TradeHistoryScreen.tsx', pin: '{keepTime(keepMoney(detail))}', strings: [`Mon 8:30 PM ET · ${formatShares(6.8942)} sh at ${formatMoney(290.1)}`, formatMoney(2000.01)] },
+  { surface: 'Trade history rows', file: 'components/money/TradeHistoryScreen.tsx', pin: '{keepTime(keepMoney(keepShares(detail)))}', strings: [`Mon 8:30 PM ET · ${formatShares(6.8942)} sh at ${formatMoney(290.1)}`, formatMoney(2000.01)] },
   { surface: 'Sale picker', file: 'components/money/SalePicker.tsx', pin: '{keepMoney(formatMoney(r.amount))}', strings: [formatMoney(2194.91), formatMoney(1500)] },
   { surface: 'Stock search price', file: 'components/stocks/SearchRow.tsx', pin: '{keepMoney(formatMoney(item.price))}', strings: [formatMoney(1234.56), formatMoney(912.3)] },
   { surface: 'Draft room strip caption', file: 'components/game/DraftRoom.tsx', pin: 'caption={keepMoney(keepDots(caption))}', strings: [keepDots(rosterCaption(1, 6, { stakeMode: 'fixed_notional', notionalPerSlot: 2000 })), keepDots(rosterCaption(2, 6, { stakeMode: 'budget_cap', budgetLeft: 1240.5 }))] },
