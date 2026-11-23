@@ -34,14 +34,14 @@ Entries begin with the Recorder's first pass.
 - **#582 (2026-11-20T20:16:07Z, `fbf5eda1`): the phone shows why a finished week was won, keyed on the stored `outcome_reason`.** Mobile only (I read the file list); in no build. **#583 (20:24:25Z, `5419051c`): my record**, with `a89a3402`. Main's CI is `success` on `5419051c` and `fbf5eda1`.
 
 **Decided**
-- **BUILD 18 IS HELD AGAIN (Giorgio to the Planner, 2026-11-22: "lets tackle the items you listed before we do another build").** The Planner's reading, not his words, and being confirmed: the items are the outcome-reason data check (STATUS item 37, since done),  the Design Lead's two chips (a wrapped gain line's indent; "N sh" on one line), and two clean-ups (remove the unreachable stock-search screen; #545's finished-season `weekGain` 0 → null). Phone-pass leftovers and the bigger items do not block.
+- **BUILD 18 IS HELD AGAIN (Giorgio to the Planner, 2026-11-22: "lets tackle the items you listed before we do another build").** He then added two more items (typed to the Planner the same day: "yes add both"), so **build 18 waits on exactly six pieces (the Orchestrator's account):** a wrapped gain line's indent; "N sh" on one line (both Design Lead chips); remove the unreachable stock-search screen; the finished-season card's `weekGain` 0 → null; the live Matchup tab's playoff status lines capped at the AX5 text size; the stake note's line never starts with "—". The outcome-reason data check (STATUS item 37) is done and is not one of the six. The Planner's earlier reading, not his words, was that phone-pass leftovers and the bigger items do not block. The last two are offered as one chip, and the clean-ups are offered; none is started.
 
 **Found**
 - **STATUS item 37 is CLOSED, with a limit (the Orchestrator's account of Giorgio's read-only query of 2026-11-22; I ran nothing):** `not_recorded` 78 (the backfill), `dollar_gain` 8, no NULL row. So a real run after the 2026-11-20 deploy scored 8 matchups and wrote a reason on each. **All 8 are `dollar_gain`: no tiebreak, no-stocks or seed reason has been written in prod yet (tests only), and the percent columns were not read.**
 - **A correction:** prod is not only finished test leagues. 8 matchups were scored, so at least one league is in season; which league is unread. `CLAUDE.md`'s dated 2026-09-24 line about test leagues is now out of date and is not mine to edit (STATUS item 39).
 
 **Waiting on Giorgio**
-- His confirmation of the Planner's reading of the list; the supplier enquiry (his to send when ready); the January SDK start.
+- The supplier enquiry (his to send when ready); the January SDK start.
 
 **Next**
 - The two clean-ups are offered as chips, not started; the Design Lead's two chips; item 37's data check is done (2026-11-22; see Found).
