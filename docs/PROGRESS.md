@@ -40,16 +40,18 @@ Entries begin with the Recorder's first pass.
 
 - **The Xcode 27 / Expo SDK 58 upgrade is NOT waiting for January (Giorgio, typed 2026-11-22, relayed via the Planner and the Orchestrator).** His words, as relayed: "So I don't really understand why we would wait… I'm more of the mindset of, well, if we need to do an update, let's just nip it in the bud, especially since this thing isn't live yet. There's no one else but me. So I think now is the time to do these kind of updates." The January date recorded on 2026-11-18 is superseded; Apple's April 2027 deadline is not. The Planner is writing the plan: not approved, nothing started. Not yet in `docs/PRODUCT_RULES.md` or a plan on `main` (I searched).
 
+- **THE ORDER (Giorgio, typed to the Planner 2026-11-22; #591, open): "I would actually want to get those four elements in the build. And then from there, we do the build and then we do the upgrade."** His earlier pick "A" (build 18 first, then the upgrade) stands, extended by the four elements. He also corrected the Planner: "That's not my own reasoning." (recorded in #591).
+
 **Found**
 - **STATUS item 37 is CLOSED, with a limit (the Orchestrator's account of Giorgio's read-only query of 2026-11-22; I ran nothing):** `not_recorded` 78 (the backfill), `dollar_gain` 8, no NULL row. So a real run after the 2026-11-20 deploy scored 8 matchups and wrote a reason on each. **All 8 are `dollar_gain`: no tiebreak, no-stocks or seed reason has been written in prod yet (tests only), and the percent columns were not read.**
 - **A correction:** prod is not only finished test leagues. 8 matchups were scored, so at least one league is in season; which league is unread. `CLAUDE.md`'s dated 2026-09-24 line about test leagues is now out of date and is not mine to edit (STATUS item 39).
 
 **Waiting on Giorgio**
-- The supplier enquiry (his to send when ready); and whether build 18 is cut from today's `main` before the SDK upgrade, as a baseline (the recommendation of the Planner and the Orchestrator, not decided).
+- The supplier enquiry (his to send when ready); his decisions on the two Stocks elements with none yet (trending and most-active lists; re-sorting), the Planner taking them one at a time, trending first.
 
 **Next**
-- **Build 18 now waits only on Giorgio's word to cut it** (the Planner is asking him; the Orchestrator's account), with one open question: cut it from today's `main` BEFORE the SDK upgrade, as a baseline (recommended by the Planner and the Orchestrator, not decided).
-- **The SDK 58 upgrade plan** is being written by the Planner; not approved, nothing started. All six pieces are merged; none is yet seen on a phone. Item 37's data check is done (see Found).
+- **Build 18 now waits only on Giorgio's word to cut it** (the Planner is asking him; the Orchestrator's account) (superseded the same evening, below).
+- **NEW ORDER (Giorgio, typed to the Planner 2026-11-22; rules text in #591, open): four Stocks-tab elements, then build 18, then the Expo SDK 58 upgrade.** The four: the star and watchlist; claims after the close (the waiver wire); trending and most-active lists; re-sorting. The first two are the approved October plan, not built; the last two have no decisions. Build 18 is HELD AGAIN and is a large piece of work away (tables, RLS, a claims run at the open, pushes, screens, prod steps; the Orchestrator's account). The SDK plan is being written by the Planner; not approved, nothing started. All six pieces are merged; none is yet seen on a phone. Item 37's data check is done (see Found).
 - **Mon 2026-11-23, 14:35Z: `snapshot-week-start`, the first scheduled run with the always-a-price step**, if a league has a week to start; the Orchestrator checks its logs.
 
 ## 2026-11-20

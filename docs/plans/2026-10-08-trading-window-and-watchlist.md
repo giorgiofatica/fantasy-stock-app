@@ -1,6 +1,6 @@
 # Trading window, watchlist and claims (the waiver wire)
 
-Status: Approved (Giorgio, 2026-10-09: "C and approved"); decision 12 (where the watchlist lives) superseded 2026-11-16 by a 5th bottom tab, "B" (`docs/PRODUCT_RULES.md`, #477), which Giorgio named "Stocks" on 2026-11-18; the revision is [`2026-11-18-stocks-tab.md`](2026-11-18-stocks-tab.md) (part 1 approved 2026-11-18); the tab's screen is merged (#563, 2026-11-19) and in NO build.
+Status: Approved (Giorgio, 2026-10-09: "C and approved"); decision 12 (where the watchlist lives) superseded 2026-11-16 by a 5th bottom tab, "B" (`docs/PRODUCT_RULES.md`, #477), which Giorgio named "Stocks" on 2026-11-18; the revision is [`2026-11-18-stocks-tab.md`](2026-11-18-stocks-tab.md) (part 1 approved 2026-11-18); the tab's screen is merged (#563, 2026-11-19) and in NO build; Giorgio ruled on 2026-11-22 (#591, open) that this plan's star and watchlist and its claims after the close are two of four Stocks-tab elements to be built BEFORE build 18, and the Expo upgrade comes after build 18; none of this plan is built.
 Planner session: "Planner" (Fable 5.1), 2026-10-08/09 · Orchestrator hand-off: —
 
 ## Goal
