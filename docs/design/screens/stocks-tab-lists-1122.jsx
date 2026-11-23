@@ -412,5 +412,5 @@
   }
 
   window.KSStocksTabLists = () => null;
-  window.KSStocksTabListsArchived = () => <CallStocksTabLists archived decidedNote={<><b>Decided 2026-11-22:</b> “yes to all the words”. Every new word above is approved, on the board as drawn.</>} />;
+  window.KSStocksTabListsArchived = () => <CallStocksTabLists archived decidedNote={<><b>Decided 2026-11-22:</b> “yes to all the words”. Every new word above is approved, on the board as drawn. <b>Changed 2026-11-23:</b> “ok then b”: the Watching row of a stock that can’t be bought reads “Not in this league’s list”, search’s existing line, not the “No longer tradable” drawn above (SQ). And a stock you own gets no star and never appears in Watching (#call-search-star), so the NVDA “You own this” row drawn above isn’t in the app.</>} />;
 })();
