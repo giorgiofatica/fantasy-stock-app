@@ -1557,6 +1557,13 @@ building anything, and don't reopen a rule without him.
     - Recorded for the build: 4,400 of the 10,472 draftable stocks carry a company size
       (his read-only count, 2026-11-22). The other 6,072 cannot rank in Top movers and sort
       to the end of the list.
+  - **The list is not re-sortable: largest companies first, only (B)** (2026-11-22, A/B
+    mockups in the Planner's chat; typed there: "B"). A was a sort control under the chips
+    (Largest first; Price, high to low; Price, low to high; A to Z), with the order taken
+    from the price the server last saved for each stock (up to about two days old) while
+    each row showed its current price. The Planner recommended A; he picked B. The chips
+    narrow the list and search finds a stock. This settles the fourth of the four
+    elements: there is nothing to build for it.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
