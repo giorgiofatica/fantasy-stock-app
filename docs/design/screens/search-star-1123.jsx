@@ -35,7 +35,7 @@
     );
   }
 
-  function Search({ t = 'light', x = 1, stars = true, label }) {
+  function Search({ t = 'light', x = 1, stars = true, ownStar = true, label }) {
     return (
       <Th t={t}>
         <div className="ks-device" role="img" aria-label={label}>
@@ -59,7 +59,7 @@
                     {st ? priceEl : null}
                   </span>
                   {st ? null : priceEl}
-                  {stars ? (off ? <span style={{ width: 36, flex: '0 0 36px' }} /> : <Star on={saved} x={x} />) : null}
+                  {stars ? (off || (!ownStar && kind === 'mine') ? <span style={{ width: 36, flex: '0 0 36px' }} /> : <Star on={saved} x={x} />) : null}
                 </div>
               );
             })}
@@ -96,7 +96,8 @@
           <li>{archived ? decidedNote : <><b>Answer with:</b> yes or no.</>}</li>
         </ul>
         <div className="b-concepts b-concepts--three">{[
-          fig('q1', 'Search with the star', <Search label="Stock search with stars" />, 'JNJ’s star is filled: you saved it.'),
+          ...(archived ? [fig('qd', 'As decided', <Search ownStar={false} label="Stock search with stars, as decided: none on a stock you own" />, 'No star on JBL (you own it) or JOBY (not in the list).')] : []),
+          fig('q1', archived ? 'As drawn (not picked for “You own this”)' : 'Search with the star', <Search label="Stock search with stars" />, 'JNJ’s star is filled: you saved it.'),
           fig('q2', 'Your text size', <Search x={AX5} label="Stock search with stars, largest text size" />, 'The price drops under the company, as built; the star stays at the right.'),
           fig('q3', 'Dark', <Search t="dark" label="Stock search with stars, Dark" />),
           fig('q0', 'Search today', <Search stars={false} label="Stock search today, no stars" />, 'As built, for comparison.'),
@@ -105,5 +106,6 @@
     );
   }
 
-  window.KSSearchStar = () => <CallSearchStar />;
+  window.KSSearchStar = () => null;
+  window.KSSearchStarArchived = () => <CallSearchStar archived decidedNote={<><b>Decided 2026-11-23, in his words:</b> “no star for something you own. its in your portfolio so shouldnt need to be in the watchlist too”. A star on a free stock, “Owned by …” and “No free slot”; none on “You own this” or “Not in this league’s list”. It holds everywhere: no Save on the sheet of a stock you own, and Watching never lists one.</>} />;
 })();
