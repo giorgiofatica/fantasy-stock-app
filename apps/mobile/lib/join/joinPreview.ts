@@ -17,6 +17,7 @@
 import { draftDateTimeLabel } from '../home/draftCountdown';
 import { stakesLine } from '../stakesLine';
 import { INVITE_COPY } from '../invite/inviteCopy';
+import { TOO_MANY_TRIES_WAIT } from '../tooManyTries';
 
 /** Why a league that exists still can't be joined. Mirrors previewJoinReason's
  * vocabulary (supabase/functions/preview-league/reason.ts) plus `left_league`,
@@ -42,7 +43,7 @@ export const JOIN_COPY = {
   /** Board: "no connection" (under the field). Also used for any 5xx / unknown failure. */
   unreachable: "Couldn't reach the league. Check your connection, then try again.",
   /** NEW (Orchestrator-suggested): the server's 429, never its body text. */
-  rateLimited: 'Too many tries. Wait a moment, then try again.',
+  rateLimited: TOO_MANY_TRIES_WAIT, // hoisted to lib/tooManyTries.ts (shared with leave and the buy review)
   /** A refusal reason this app doesn't know yet (an older client against a newer server). Design Lead, #125. */
   unknownBlock: "You can't join this league right now. Ask your commissioner to check the invite.",
   /** The draft has no date yet (the board's sample always has one). Approved, #125. */

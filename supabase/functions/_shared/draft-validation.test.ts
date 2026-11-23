@@ -16,6 +16,7 @@
 
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
+  refusesAsNotDraftable,
   assignSlot,
   describeSlots,
   checkStoredOrder,
@@ -1212,4 +1213,14 @@ Deno.test('slotAccepts: a price tierPrice cannot judge (NaN, ~1e19+) accepts NO 
   }
   // ordinary prices are unaffected, including a no-bounds slot
   assertEquals(slotAccepts(open, 5, NO_CATS), true);
+});
+
+// refusesAsNotDraftable: THE one not_draftable test (validatePick, validateTradeAdd
+// and record-trade's previews all call it; plan part 3 point 7).
+Deno.test('refusesAsNotDraftable: refuses only an explicit false, and only without the full universe', () => {
+  assertEquals(refusesAsNotDraftable(false, { allowUndraftable: false }), true);
+  assertEquals(refusesAsNotDraftable(false, {}), true, 'allowUndraftable undefined = gate enforced');
+  assertEquals(refusesAsNotDraftable(false, { allowUndraftable: true }), false, 'full universe: answered');
+  assertEquals(refusesAsNotDraftable(true, { allowUndraftable: false }), false);
+  assertEquals(refusesAsNotDraftable(undefined, { allowUndraftable: false }), false, 'undefined = draftable');
 });
