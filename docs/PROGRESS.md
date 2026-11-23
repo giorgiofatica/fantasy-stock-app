@@ -34,13 +34,17 @@ Entries begin with the Recorder's first pass.
 - **#582 (2026-11-20T20:16:07Z, `fbf5eda1`): the phone shows why a finished week was won, keyed on the stored `outcome_reason`.** Mobile only (I read the file list); in no build. **#583 (20:24:25Z, `5419051c`): my record**, with `a89a3402`. Main's CI is `success` on `5419051c` and `fbf5eda1`.
 
 **Decided**
-- **BUILD 18 IS HELD AGAIN (Giorgio to the Planner, 2026-11-22: "lets tackle the items you listed before we do another build").** The Planner's reading, not his words, and being confirmed: the items are the outcome-reason data check (STATUS item 37), the Design Lead's two chips (a wrapped gain line's indent; "N sh" on one line), and two clean-ups (remove the unreachable stock-search screen; #545's finished-season `weekGain` 0 → null). Phone-pass leftovers and the bigger items do not block.
+- **BUILD 18 IS HELD AGAIN (Giorgio to the Planner, 2026-11-22: "lets tackle the items you listed before we do another build").** The Planner's reading, not his words, and being confirmed: the items are the outcome-reason data check (STATUS item 37, since done),  the Design Lead's two chips (a wrapped gain line's indent; "N sh" on one line), and two clean-ups (remove the unreachable stock-search screen; #545's finished-season `weekGain` 0 → null). Phone-pass leftovers and the bigger items do not block.
+
+**Found**
+- **STATUS item 37 is CLOSED, with a limit (the Orchestrator's account of Giorgio's read-only query of 2026-11-22; I ran nothing):** `not_recorded` 78 (the backfill), `dollar_gain` 8, no NULL row. So a real run after the 2026-11-20 deploy scored 8 matchups and wrote a reason on each. **All 8 are `dollar_gain`: no tiebreak, no-stocks or seed reason has been written in prod yet (tests only), and the percent columns were not read.**
+- **A correction:** prod is not only finished test leagues. 8 matchups were scored, so at least one league is in season; which league is unread. `CLAUDE.md`'s dated 2026-09-24 line about test leagues is now out of date and is not mine to edit (STATUS item 39).
 
 **Waiting on Giorgio**
 - His confirmation of the Planner's reading of the list; the supplier enquiry (his to send when ready); the January SDK start.
 
 **Next**
-- The two clean-ups are offered as chips, not started; the Design Lead's two chips; item 37's data check needs a real scored week.
+- The two clean-ups are offered as chips, not started; the Design Lead's two chips; item 37's data check is done (2026-11-22; see Found).
 - **Mon 2026-11-23, 14:35Z: `snapshot-week-start`, the first scheduled run with the always-a-price step**, if a league has a week to start; the Orchestrator checks its logs.
 
 ## 2026-11-20
@@ -49,7 +53,7 @@ Entries begin with the Recorder's first pass.
 
 **Shipped**
 - **The server now records why a week was won (#580): migration `20261208000000` APPLIED and `process-week-results` DEPLOYED, about 19:2xZ** (Giorgio ran them, the Orchestrator verified; I ran none of it). The dry run listed only the migration. His query: 3 columns, 2 constraints, 78 scored rows backfilled to `'not_recorded'`, `scored_but_null` 0, `stale_reason` 0. The deployed function, downloaded and compared by the Orchestrator: 17 files identical to `origin/main`, including `outcome-record.ts`. I read the migration (no grants, functions, policies or cron changed) and that `local/deploy` is at `6d5669bc`.
-- **Not shown:** a new scored week carrying a real reason (STATUS item 37); the Orchestrator says no league in prod is mid-season, so it may wait.
+- **Not shown:** a new scored week carrying a real reason (STATUS item 37); the Orchestrator then said no league in prod was mid-season, which was wrong (see 2026-11-22).
 
 **Merged, not confirmed live**
 - **#579 (18:12:10Z, `fa98ddf8`): W, L and T bold in the normal ink on Home, Schedule and the Matchup popup; mobile, in no build.** Also merged today (I read each on GitHub): #575 (the tiebreak-words board, 17:16:56Z), #576 (the outcome-reason plan, 17:38:18Z), #577 (my record, 17:41:49Z, with `4197cdd0`), #578 (the result-colour board, 17:50:17Z), #581 (my record, 19:34:22Z, with `0f81a456`; main's CI `success`, run 44803390060). Main's CI is `success` on `fa98ddf8` and `723b460b`; on `6d5669bc` it finished `success` (run 44800783093; I re-read it just before handing off).
