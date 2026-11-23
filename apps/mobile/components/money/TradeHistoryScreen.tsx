@@ -20,7 +20,7 @@ import { space } from '@/constants/tokens';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { Skeleton } from '@/components/Skeleton';
-import { keepMoney, keepTime } from '@/lib/game/keepDots';
+import { keepMoney, keepShares, keepTime } from '@/lib/game/keepDots';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
 import { TickerBadge } from '@/components/sp/gn/TickerBadge';
@@ -67,7 +67,7 @@ function ItemRow({ item }: { item: HistoryItem }) {
       <TickerBadge symbol={item.symbol} />
       <View style={styles.itemLead}>
         <Text variant="callout" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.extraBold}>{label}</Text>
-        <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.tabular}>{keepTime(keepMoney(detail))}</Text>
+        <Text variant="caption" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.tabular}>{keepTime(keepMoney(keepShares(detail)))}</Text>
       </View>
       {total != null ? (
         <Text variant="score.sm" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={styles.money}>{keepMoney(formatMoney(total))}</Text>

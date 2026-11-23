@@ -29,7 +29,7 @@ import { Icon } from '@/components/sp/Icon';
 import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { Text } from '@/components/sp/Text';
 import { TickerBadge } from '@/components/sp/gn/TickerBadge';
-import { keepMoney, keepTime } from '@/lib/game/keepDots';
+import { keepMoney, keepShares, keepTime } from '@/lib/game/keepDots';
 import { formatGainPair, formatMoney } from '@/components/sp/logic/money';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { MONEY_FIXTURE, MONEY_FIXTURE_CONFIG, MONEY_PRE_DRAFT } from '@/lib/money/devFixture';
@@ -661,7 +661,7 @@ export function StockSheetBody({
         ) : null}
 
         {model.controlsShown && selected === 'sell' && model.sell.summary ? (
-          <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} style={[styles.bold, styles.tabular]}>{keepMoney(model.sell.summary)}</Text>
+          <Text variant="callout" maxFontSizeMultiplier={SHEET_TEXT_MAX_SCALE} style={[styles.bold, styles.tabular]}>{keepMoney(keepShares(model.sell.summary))}</Text>
         ) : null}
       </View>
     </SheetBody>

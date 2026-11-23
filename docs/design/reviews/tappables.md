@@ -158,7 +158,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/home/YourSeason.tsx:165` | PressableScale | onPress | `inline: () => router.push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF ` | route push(tileTargetsMatchup(tile) ? THIS_WEEK_HREF : SCHEDU) |  |
 | `components/league/LeagueStates.tsx:44` | Button | onPress | `onRetry` | prop onRetry (the caller's) |  |
 | `components/league/MembersSection.tsx:63` | Button | onPress | `onFind` | prop onFind (the caller's) |  |
-| `components/money/HoldingRow.tsx:86` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/money/HoldingRow.tsx:87` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/money/LoadFailure.tsx:30` | EmptyState | onAction | `onRetry` | prop onRetry (the caller's) |  |
 | `components/money/PlayerPortfolioScreen.tsx:202` | LoadFailure | onRetry | `inline: () => { seasonEnd.refresh(); retry(); }` | fn seasonEnd.refresh |  |
 | `components/money/PlayerPortfolioScreen.tsx:206` | LoadFailure | onRetry | `retry` | fn retry |  |

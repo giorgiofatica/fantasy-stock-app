@@ -166,7 +166,7 @@ const RENDER_SITES: Record<string, RegExp[]> = {
   'components/money/TradeReviewPanel.tsx': [/<WarnPanel text=\{keepTime\(p\.message\)\} \/>/, /accessibilityRole="alert">\{keepTime\(p\.message\)\}/],
   'components/money/StockSheetBody.tsx': [/\{keepTime\(keepMoney\(action\.reason\)\)\}/],
   'components/money/PortfolioScreen.tsx': [/\{keepTime\(preDraft\.hook\.label\)\}/],
-  'components/money/TradeHistoryScreen.tsx': [/\{keepTime\(keepMoney\(detail\)\)\}/],
+  'components/money/TradeHistoryScreen.tsx': [/\{keepTime\(keepMoney\(keepShares\(detail\)\)\)\}/],
   'app/(tabs)/matchup.tsx': [/\{keepTime\(preSeasonStartsLabel\(/],
   'app/league-settings.tsx': [/value=\{keepDots\(draftDateValue\)\}/],
 };
