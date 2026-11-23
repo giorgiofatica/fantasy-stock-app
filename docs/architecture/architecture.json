@@ -2,10 +2,10 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "adf323b3540615bba98ebaf99bb1b37f9f764e2e",
-    "commitShort": "adf323b3",
+    "commit": "abd584e2455c502843aba9cd513644cb22e51f91",
+    "commitShort": "abd584e2",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/matchup-outcome-reason-phone",
+    "branch": "fix/ax5-playoff-lines-stake-dash",
     "dirty": true,
     "dirtyPaths": [
       {
@@ -14,35 +14,27 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/buildMatchupViewModel.ts"
+        "path": "apps/mobile/components/game/SetupRows.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/outcomeLine.ts"
+        "path": "apps/mobile/lib/game/keepDots.ts"
       },
       {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useFinalOutcome.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/lib/game/useMatchup.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/outcome-line.test.ts"
+        "code": "A",
+        "path": "apps/mobile/tests-deno/ax5-playoff-lines-stake-dash.test.ts"
       }
     ],
-    "timestamp": "2026-11-20T19:56:12Z",
-    "sourceHash": "sha256:000c7e36970b97a8af32889b94b178a975c3eacf365eb02f6be833337b54ad7e",
+    "timestamp": "2026-11-23T05:35:09Z",
+    "sourceHash": "sha256:729aad60454ea7d46977d4f0603a56787f96ea0e381289e054ab7c1a50ac1233",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 43.7,
-    "ageDays": 1.8,
+    "ageHours": 101.4,
+    "ageDays": 4.2,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",
@@ -21263,7 +21255,7 @@
         "id, slug, name, is_misc"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:107"
+        "apps/mobile/app/(tabs)/matchup.tsx:108"
       ],
       "via": [
         "useRosterData"
@@ -21281,7 +21273,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:107"
+        "apps/mobile/app/(tabs)/matchup.tsx:108"
       ],
       "via": [
         "useRosterData"
@@ -21299,7 +21291,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:107"
+        "apps/mobile/app/(tabs)/matchup.tsx:108"
       ],
       "via": [
         "useRosterData"
@@ -21317,7 +21309,7 @@
         "user_id, symbol, slot_id, created_at"
       ],
       "callSites": [
-        "apps/mobile/app/(tabs)/matchup.tsx:107"
+        "apps/mobile/app/(tabs)/matchup.tsx:108"
       ],
       "via": [
         "useRosterData"
@@ -24844,10 +24836,10 @@
       "supabase/functions/validate-and-record-pick/index.ts:131 -> check_and_bump_rate_limit"
     ],
     "tableOps": [
-      "apps/mobile/app/(tabs)/matchup.tsx:107 -> categories.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:107 -> drafts.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:107 -> league_draft_slots.select (via useRosterData)",
-      "apps/mobile/app/(tabs)/matchup.tsx:107 -> trades.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:108 -> categories.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:108 -> drafts.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:108 -> league_draft_slots.select (via useRosterData)",
+      "apps/mobile/app/(tabs)/matchup.tsx:108 -> trades.select (via useRosterData)",
       "apps/mobile/app/create-league.tsx:208 -> leagues.insert (via seamInsertLeague)",
       "apps/mobile/app/create-league.tsx:235 -> league_members.insert (via seamInsertMember)",
       "apps/mobile/app/create-league.tsx:245 -> league_draft_slots.delete (via seamSaveLeagueSlots)",

@@ -46,6 +46,7 @@ import { toLiveSnapshots, toLiveTrades } from '@/lib/home/buildHomeViewModel';
 import { BYE_HALF } from '@/lib/game/matchupRosterView';
 import { useRosterData, type RosterData } from '@/lib/game/useRosterData';
 import { keepTime } from '@/lib/game/keepDots';
+import { ROW_TEXT_CAP } from '@/components/game/ScheduleList';
 
 // Matchup (W4, Game Night). Giorgio, 2026-10-12: "a fantasy-football matchup, nothing
 // else" — the Scoreboard (names, avatars, the two totals, "{leader} leads by $X"; YOUR half
@@ -281,7 +282,7 @@ function MatchupBody({ status, derived, phase, onRefresh, raw, reveal, finalLine
       : view.kind === 'playoff_pending' ? playoffPendingLine(view.round)
       : view.kind === 'eliminated' ? eliminatedLabel(view.round)
       : "You didn't make the playoffs.";
-    return <Text variant="callout" tone="secondary">{line}</Text>;
+    return <Text variant="callout" tone="secondary" maxFontSizeMultiplier={ROW_TEXT_CAP}>{line}</Text>;
   }
 
   // After the season: the recap (Giorgio, 2026-11-18, look A). MatchupScreen draws it in place
