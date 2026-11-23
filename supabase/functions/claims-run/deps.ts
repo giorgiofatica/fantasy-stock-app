@@ -23,6 +23,21 @@ import type { CommitReply, Ledger, LeagueState, Prices, R, RunDay, RunDeps } fro
 /** The leagues columns record-trade reads (index.ts LEAGUE_COLUMNS). */
 export const LEAGUE_COLUMNS = 'id, num_rounds, draft_status, season_status, stake_mode, budget_amount, notional_per_slot, allow_undraftable';
 
+/**
+ * SEAM 3 (plan.ts lists all three): the is_draftable facts the run's not_draftable test reads, for
+ * every claimed stock, in ONE place. Today: symbols.is_draftable as it stands (record-trade's own
+ * read, fetchDraftableAmong: a missing row is not draftable). The not_draftable TEST itself stays
+ * the buy path's (refusesAsNotDraftable inside decideTrade); only where its input comes from may
+ * change (e.g. a fresh re-check of the stock's data just before the run).
+ */
+export function readClaimDraftability(
+  // deno-lint-ignore no-explicit-any
+  admin: any,
+  symbols: string[],
+): Promise<{ ok: true; draftable: Set<string> } | { ok: false }> {
+  return fetchDraftableAmong(admin, symbols);
+}
+
 const errText = (e: unknown) => {
   const x = e as { code?: string; message?: string } | null;
   return x?.code ?? x?.message ?? String(e);
@@ -105,7 +120,7 @@ export function makeRunDeps(
       const slots = (slotData ?? []) as SlotRow[];
 
       const claimed = [...new Set(claims.map((c) => c.symbol))].sort();
-      const dr = await fetchDraftableAmong(admin, claimed);
+      const dr = await readClaimDraftability(admin, claimed);
       if (!dr.ok) return { ok: false, error: 'is_draftable read failed' };
 
       let eligibility = new Map<string, Set<string>>();

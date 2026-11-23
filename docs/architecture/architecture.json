@@ -2,26 +2,42 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "b0ec9ace07d3107a8a79a3e4d194d40ff5a9e63f",
-    "commitShort": "b0ec9ace",
+    "commit": "de0d81cb81f62ae910ed07b652ecc1d0aaa01dd3",
+    "commitShort": "de0d81cb",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/claims-server",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "A",
-        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql"
+        "code": "M",
+        "path": "supabase/functions/claims-run/deps.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/claims-run/plan.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/claims-run/plan.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/functions/claims-run/run.ts"
+      },
+      {
+        "code": "M",
+        "path": "supabase/migrations/20261211000000_claims.sql"
       }
     ],
-    "timestamp": "2026-11-23T22:52:54Z",
-    "sourceHash": "sha256:6ab668339dbddea27df8ac386a2805cef2aa2808ee1c0c745dee8a3413560b47",
+    "timestamp": "2026-11-23T22:56:48Z",
+    "sourceHash": "sha256:a186e50442b9fe74f69bb653a78ba56b00fd7fb9a06ab004deb6c8bd29d026f6",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T22:16:38Z",
-    "ageHours": 0.6,
+    "ageHours": 0.7,
     "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
@@ -2258,7 +2274,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:203"
+          "supabase/migrations/20261211000000_claims.sql:205"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -2280,7 +2296,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 203
+        "line": 205
       }
     },
     {
@@ -2289,7 +2305,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:228"
+          "supabase/migrations/20261211000000_claims.sql:230"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -2311,7 +2327,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 228
+        "line": 230
       }
     },
     {
@@ -2926,7 +2942,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:246"
+          "supabase/migrations/20261211000000_claims.sql:248"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -2948,7 +2964,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 246
+        "line": 248
       }
     },
     {
@@ -3526,7 +3542,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:494"
+          "supabase/migrations/20261211000000_claims.sql:503"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -3548,7 +3564,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 494
+        "line": 503
       }
     },
     {
@@ -3805,7 +3821,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:287"
+          "supabase/migrations/20261211000000_claims.sql:289"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -3827,7 +3843,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 287
+        "line": 289
       }
     },
     {
@@ -3836,7 +3852,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:586"
+          "supabase/migrations/20261211000000_claims.sql:598"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -3858,7 +3874,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 586
+        "line": 598
       }
     },
     {
@@ -3867,7 +3883,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:530"
+          "supabase/migrations/20261211000000_claims.sql:542"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -3889,7 +3905,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 530
+        "line": 542
       }
     },
     {
@@ -3898,7 +3914,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:558"
+          "supabase/migrations/20261211000000_claims.sql:570"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -3920,7 +3936,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 558
+        "line": 570
       }
     },
     {
@@ -3929,7 +3945,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:629"
+          "supabase/migrations/20261211000000_claims.sql:641"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -3951,7 +3967,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 629
+        "line": 641
       }
     },
     {
@@ -5602,7 +5618,7 @@
         "definedIn": [
           "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:91",
           "supabase/migrations/20261115000000_run_it_back_lineage.sql:58",
-          "supabase/migrations/20261211000000_claims.sql:921"
+          "supabase/migrations/20261211000000_claims.sql:949"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 3
@@ -5616,7 +5632,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 921
+        "line": 949
       }
     },
     {
@@ -7482,7 +7498,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:343"
+          "supabase/migrations/20261211000000_claims.sql:347"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -7504,7 +7520,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 343
+        "line": 347
       }
     },
     {
@@ -7983,7 +7999,7 @@
       "db": null,
       "declared": {
         "definedIn": [
-          "supabase/migrations/20261211000000_claims.sql:861"
+          "supabase/migrations/20261211000000_claims.sql:889"
         ],
         "latestDefinition": "supabase/migrations/20261211000000_claims.sql",
         "redefinitions": 1
@@ -8005,7 +8021,7 @@
       "kind": "pg-function",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 861
+        "line": 889
       }
     },
     {
@@ -9480,7 +9496,7 @@
       "kind": "table",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 102
+        "line": 104
       }
     },
     {
@@ -9502,7 +9518,7 @@
       "kind": "table",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 145
+        "line": 147
       }
     },
     {
@@ -11131,7 +11147,7 @@
       "kind": "table",
       "source": {
         "path": "supabase/migrations/20261211000000_claims.sql",
-        "line": 94
+        "line": 96
       }
     },
     {
@@ -12947,7 +12963,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('claims_run_day')",
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:42"
+        "supabase/functions/claims-run/deps.ts:57"
       ]
     },
     {
@@ -12959,7 +12975,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('claims_run_state')",
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:59"
+        "supabase/functions/claims-run/deps.ts:74"
       ]
     },
     {
@@ -12971,7 +12987,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('commit_claims_run')",
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:155"
+        "supabase/functions/claims-run/deps.ts:170"
       ]
     },
     {
@@ -13027,7 +13043,7 @@
         "id, user_id, symbol, entry_price, quantity, pick_number, slot_id"
       ],
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:80"
+        "supabase/functions/claims-run/deps.ts:95"
       ]
     },
     {
@@ -13042,7 +13058,7 @@
         "id, slot_index, slot_count, price_min, price_max, category_id"
       ],
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:100"
+        "supabase/functions/claims-run/deps.ts:115"
       ]
     },
     {
@@ -13055,7 +13071,7 @@
       "payload": ".from('leagues').select()",
       "columns": [],
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:69"
+        "supabase/functions/claims-run/deps.ts:84"
       ]
     },
     {
@@ -13070,7 +13086,7 @@
         "week_end, is_playoff"
       ],
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:74"
+        "supabase/functions/claims-run/deps.ts:89"
       ]
     },
     {
@@ -13085,7 +13101,7 @@
         "id, user_id, symbol, action, quantity, price, total_value, created_at, funded_by_trade_id, slot_id"
       ],
       "callSites": [
-        "supabase/functions/claims-run/deps.ts:89"
+        "supabase/functions/claims-run/deps.ts:104"
       ]
     },
     {
@@ -15233,7 +15249,7 @@
       "payload": "SELECT drafts (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:208"
+        "supabase/migrations/20261211000000_claims.sql:210"
       ]
     },
     {
@@ -15246,7 +15262,7 @@
       "payload": "SELECT trades (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:213"
+        "supabase/migrations/20261211000000_claims.sql:215"
       ]
     },
     {
@@ -15259,7 +15275,7 @@
       "payload": "SELECT matchups (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:233"
+        "supabase/migrations/20261211000000_claims.sql:235"
       ]
     },
     {
@@ -15882,7 +15898,7 @@
       "payload": "SELECT league_draft_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:265"
+        "supabase/migrations/20261211000000_claims.sql:267"
       ]
     },
     {
@@ -15895,7 +15911,7 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:263"
+        "supabase/migrations/20261211000000_claims.sql:265"
       ]
     },
     {
@@ -15908,9 +15924,9 @@
       "payload": "SELECT waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:255",
-        "supabase/migrations/20261211000000_claims.sql:264",
-        "supabase/migrations/20261211000000_claims.sql:270"
+        "supabase/migrations/20261211000000_claims.sql:257",
+        "supabase/migrations/20261211000000_claims.sql:266",
+        "supabase/migrations/20261211000000_claims.sql:272"
       ]
     },
     {
@@ -15923,7 +15939,7 @@
       "payload": "INSERT waiver_order_meta (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:275"
+        "supabase/migrations/20261211000000_claims.sql:277"
       ]
     },
     {
@@ -15936,7 +15952,7 @@
       "payload": "DELETE waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:270"
+        "supabase/migrations/20261211000000_claims.sql:272"
       ]
     },
     {
@@ -15949,7 +15965,7 @@
       "payload": "INSERT waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:271"
+        "supabase/migrations/20261211000000_claims.sql:273"
       ]
     },
     {
@@ -16330,7 +16346,7 @@
       "payload": "SELECT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:514"
+        "supabase/migrations/20261211000000_claims.sql:526"
       ]
     },
     {
@@ -16343,7 +16359,7 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:506"
+        "supabase/migrations/20261211000000_claims.sql:518"
       ]
     },
     {
@@ -16423,7 +16439,7 @@
       "payload": "SELECT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:313"
+        "supabase/migrations/20261211000000_claims.sql:315"
       ]
     },
     {
@@ -16436,7 +16452,7 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:295"
+        "supabase/migrations/20261211000000_claims.sql:297"
       ]
     },
     {
@@ -16449,7 +16465,7 @@
       "payload": "SELECT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:603"
+        "supabase/migrations/20261211000000_claims.sql:615"
       ]
     },
     {
@@ -16462,7 +16478,7 @@
       "payload": "SELECT claims_runs (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:600"
+        "supabase/migrations/20261211000000_claims.sql:612"
       ]
     },
     {
@@ -16475,7 +16491,7 @@
       "payload": "SELECT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:543"
+        "supabase/migrations/20261211000000_claims.sql:555"
       ]
     },
     {
@@ -16488,7 +16504,7 @@
       "payload": "SELECT claims_runs (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:545"
+        "supabase/migrations/20261211000000_claims.sql:557"
       ]
     },
     {
@@ -16501,7 +16517,7 @@
       "payload": "SELECT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:572"
+        "supabase/migrations/20261211000000_claims.sql:584"
       ]
     },
     {
@@ -16514,7 +16530,7 @@
       "payload": "SELECT claims_runs (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:566"
+        "supabase/migrations/20261211000000_claims.sql:578"
       ]
     },
     {
@@ -16527,7 +16543,7 @@
       "payload": "SELECT waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:576"
+        "supabase/migrations/20261211000000_claims.sql:588"
       ]
     },
     {
@@ -16540,10 +16556,10 @@
       "payload": "SELECT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:678",
-        "supabase/migrations/20261211000000_claims.sql:707",
-        "supabase/migrations/20261211000000_claims.sql:730",
-        "supabase/migrations/20261211000000_claims.sql:778"
+        "supabase/migrations/20261211000000_claims.sql:690",
+        "supabase/migrations/20261211000000_claims.sql:734",
+        "supabase/migrations/20261211000000_claims.sql:754",
+        "supabase/migrations/20261211000000_claims.sql:802"
       ]
     },
     {
@@ -16556,7 +16572,7 @@
       "payload": "SELECT claims_runs (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:670"
+        "supabase/migrations/20261211000000_claims.sql:682"
       ]
     },
     {
@@ -16569,7 +16585,7 @@
       "payload": "INSERT claims_runs (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:836"
+        "supabase/migrations/20261211000000_claims.sql:860"
       ]
     },
     {
@@ -16582,7 +16598,7 @@
       "payload": "INSERT league_notifications (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:821"
+        "supabase/migrations/20261211000000_claims.sql:845"
       ]
     },
     {
@@ -16595,8 +16611,8 @@
       "payload": "SELECT trades (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:786",
-        "supabase/migrations/20261211000000_claims.sql:789"
+        "supabase/migrations/20261211000000_claims.sql:810",
+        "supabase/migrations/20261211000000_claims.sql:813"
       ]
     },
     {
@@ -16609,9 +16625,9 @@
       "payload": "SELECT waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:687",
-        "supabase/migrations/20261211000000_claims.sql:776",
-        "supabase/migrations/20261211000000_claims.sql:831"
+        "supabase/migrations/20261211000000_claims.sql:699",
+        "supabase/migrations/20261211000000_claims.sql:800",
+        "supabase/migrations/20261211000000_claims.sql:855"
       ]
     },
     {
@@ -16624,7 +16640,7 @@
       "payload": "DELETE waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:831"
+        "supabase/migrations/20261211000000_claims.sql:855"
       ]
     },
     {
@@ -16637,7 +16653,7 @@
       "payload": "INSERT waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:832"
+        "supabase/migrations/20261211000000_claims.sql:856"
       ]
     },
     {
@@ -17599,8 +17615,8 @@
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:131",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:94",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:98",
-        "supabase/migrations/20261211000000_claims.sql:957",
-        "supabase/migrations/20261211000000_claims.sql:961"
+        "supabase/migrations/20261211000000_claims.sql:985",
+        "supabase/migrations/20261211000000_claims.sql:989"
       ]
     },
     {
@@ -17615,7 +17631,7 @@
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:241",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:208",
-        "supabase/migrations/20261211000000_claims.sql:1071"
+        "supabase/migrations/20261211000000_claims.sql:1099"
       ]
     },
     {
@@ -17630,7 +17646,7 @@
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:237",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:204",
-        "supabase/migrations/20261211000000_claims.sql:1067"
+        "supabase/migrations/20261211000000_claims.sql:1095"
       ]
     },
     {
@@ -17645,7 +17661,7 @@
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:229",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:196",
-        "supabase/migrations/20261211000000_claims.sql:1059"
+        "supabase/migrations/20261211000000_claims.sql:1087"
       ]
     },
     {
@@ -17660,7 +17676,7 @@
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:108",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:75",
-        "supabase/migrations/20261211000000_claims.sql:938"
+        "supabase/migrations/20261211000000_claims.sql:966"
       ]
     },
     {
@@ -17675,7 +17691,7 @@
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:245",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:212",
-        "supabase/migrations/20261211000000_claims.sql:1075"
+        "supabase/migrations/20261211000000_claims.sql:1103"
       ]
     },
     {
@@ -17690,7 +17706,7 @@
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:207",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:174",
-        "supabase/migrations/20261211000000_claims.sql:1037"
+        "supabase/migrations/20261211000000_claims.sql:1065"
       ]
     },
     {
@@ -17705,7 +17721,7 @@
       "callSites": [
         "supabase/migrations/20260926000000_finalize_league_draft_rpc.sql:220",
         "supabase/migrations/20261115000000_run_it_back_lineage.sql:187",
-        "supabase/migrations/20261211000000_claims.sql:1050"
+        "supabase/migrations/20261211000000_claims.sql:1078"
       ]
     },
     {
@@ -19490,10 +19506,10 @@
       "payload": "SELECT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:422",
-        "supabase/migrations/20261211000000_claims.sql:427",
-        "supabase/migrations/20261211000000_claims.sql:432",
-        "supabase/migrations/20261211000000_claims.sql:471"
+        "supabase/migrations/20261211000000_claims.sql:431",
+        "supabase/migrations/20261211000000_claims.sql:436",
+        "supabase/migrations/20261211000000_claims.sql:441",
+        "supabase/migrations/20261211000000_claims.sql:480"
       ]
     },
     {
@@ -19506,7 +19522,7 @@
       "payload": "INSERT claims (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:446"
+        "supabase/migrations/20261211000000_claims.sql:455"
       ]
     },
     {
@@ -19519,7 +19535,7 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:370"
+        "supabase/migrations/20261211000000_claims.sql:379"
       ]
     },
     {
@@ -19532,7 +19548,7 @@
       "payload": "SELECT leagues (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:391"
+        "supabase/migrations/20261211000000_claims.sql:400"
       ]
     },
     {
@@ -19545,7 +19561,7 @@
       "payload": "SELECT symbols (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:406"
+        "supabase/migrations/20261211000000_claims.sql:415"
       ]
     },
     {
@@ -20157,7 +20173,7 @@
       "payload": "SELECT league_draft_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:894"
+        "supabase/migrations/20261211000000_claims.sql:922"
       ]
     },
     {
@@ -20170,7 +20186,7 @@
       "payload": "SELECT league_members (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:891"
+        "supabase/migrations/20261211000000_claims.sql:919"
       ]
     },
     {
@@ -20183,7 +20199,7 @@
       "payload": "SELECT leagues (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:872"
+        "supabase/migrations/20261211000000_claims.sql:900"
       ]
     },
     {
@@ -20196,7 +20212,7 @@
       "payload": "SELECT matchups (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:880"
+        "supabase/migrations/20261211000000_claims.sql:908"
       ]
     },
     {
@@ -20209,7 +20225,7 @@
       "payload": "SELECT waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:897"
+        "supabase/migrations/20261211000000_claims.sql:925"
       ]
     },
     {
@@ -20222,7 +20238,7 @@
       "payload": "SELECT waiver_order_meta (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:881"
+        "supabase/migrations/20261211000000_claims.sql:909"
       ]
     },
     {
@@ -20235,7 +20251,7 @@
       "payload": "INSERT waiver_order_meta (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:900"
+        "supabase/migrations/20261211000000_claims.sql:928"
       ]
     },
     {
@@ -20248,7 +20264,7 @@
       "payload": "DELETE waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:897"
+        "supabase/migrations/20261211000000_claims.sql:925"
       ]
     },
     {
@@ -20261,7 +20277,7 @@
       "payload": "INSERT waiver_order (inside function body)",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:898"
+        "supabase/migrations/20261211000000_claims.sql:926"
       ]
     },
     {
@@ -21984,7 +22000,7 @@
       "payload": "trigger on claims",
       "derivedFrom": "sql-body",
       "callSites": [
-        "supabase/migrations/20261211000000_claims.sql:328"
+        "supabase/migrations/20261211000000_claims.sql:330"
       ]
     },
     {
@@ -26639,7 +26655,7 @@
       "node": "pg._claims_holdings",
       "label": "_claims_holdings()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261211000000_claims.sql:203",
+      "source": "supabase/migrations/20261211000000_claims.sql:205",
       "outbound": [
         "tbl.drafts",
         "tbl.trades"
@@ -26650,7 +26666,7 @@
       "node": "pg._claims_season_end",
       "label": "_claims_season_end()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261211000000_claims.sql:228",
+      "source": "supabase/migrations/20261211000000_claims.sql:230",
       "outbound": [
         "tbl.matchups"
       ],
@@ -26828,7 +26844,7 @@
       "node": "pg._waiver_order_fill",
       "label": "_waiver_order_fill()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261211000000_claims.sql:246",
+      "source": "supabase/migrations/20261211000000_claims.sql:248",
       "outbound": [
         "tbl.league_draft_order",
         "tbl.league_members",
@@ -26949,7 +26965,7 @@
       "node": "pg.cancel_claim",
       "label": "cancel_claim()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261211000000_claims.sql:494",
+      "source": "supabase/migrations/20261211000000_claims.sql:503",
       "outbound": [
         "tbl.claims",
         "tbl.league_members"
@@ -27045,7 +27061,7 @@
       "node": "pg.finalize_league_draft",
       "label": "finalize_league_draft(p_league_id uuid, p_member_ids text[], p_league_start timestamp with time zone, p_league_end timestamp with time zone, p_matchups jsonb)",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261211000000_claims.sql:921",
+      "source": "supabase/migrations/20261211000000_claims.sql:949",
       "outbound": [
         "tbl.league_members",
         "tbl.league_seasons",
@@ -27157,7 +27173,7 @@
       "node": "pg.place_claim",
       "label": "place_claim()",
       "kind": "pg-function",
-      "source": "supabase/migrations/20261211000000_claims.sql:343",
+      "source": "supabase/migrations/20261211000000_claims.sql:347",
       "outbound": [
         "tbl.claims",
         "tbl.claims",
@@ -27861,9 +27877,9 @@
       "supabase/functions/_shared/draft-write.ts:895 -> record_live_prices",
       "supabase/functions/_shared/market-guard.ts:48 -> check_and_bump_rate_limit",
       "supabase/functions/_shared/turn-lease.ts:54 -> claim_draft_turn_lease",
-      "supabase/functions/claims-run/deps.ts:155 -> commit_claims_run",
-      "supabase/functions/claims-run/deps.ts:42 -> claims_run_day",
-      "supabase/functions/claims-run/deps.ts:59 -> claims_run_state",
+      "supabase/functions/claims-run/deps.ts:170 -> commit_claims_run",
+      "supabase/functions/claims-run/deps.ts:57 -> claims_run_day",
+      "supabase/functions/claims-run/deps.ts:74 -> claims_run_state",
       "supabase/functions/delete-account/index.ts:47 -> check_and_bump_rate_limit",
       "supabase/functions/delete-account/index.ts:50 -> check_and_bump_rate_limit",
       "supabase/functions/delete-account/index.ts:89 -> check_and_bump_rate_limit",
@@ -28084,11 +28100,11 @@
       "supabase/functions/_shared/push.ts:56 -> push_tokens.select",
       "supabase/functions/_shared/push.ts:62 -> user_profiles.select",
       "supabase/functions/_shared/turn-lease.ts:78 -> draft_turn_leases.delete",
-      "supabase/functions/claims-run/deps.ts:100 -> league_draft_slots.select",
-      "supabase/functions/claims-run/deps.ts:69 -> leagues.select",
-      "supabase/functions/claims-run/deps.ts:74 -> matchups.select",
-      "supabase/functions/claims-run/deps.ts:80 -> drafts.select",
-      "supabase/functions/claims-run/deps.ts:89 -> trades.select",
+      "supabase/functions/claims-run/deps.ts:104 -> trades.select",
+      "supabase/functions/claims-run/deps.ts:115 -> league_draft_slots.select",
+      "supabase/functions/claims-run/deps.ts:84 -> leagues.select",
+      "supabase/functions/claims-run/deps.ts:89 -> matchups.select",
+      "supabase/functions/claims-run/deps.ts:95 -> drafts.select",
       "supabase/functions/delete-account/index.ts:71 -> rate_limit_counters.select",
       "supabase/functions/draft-control/index.ts:174 -> leagues.select",
       "supabase/functions/draft-control/index.ts:182 -> league_members.select",

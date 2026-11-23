@@ -368,16 +368,17 @@ Deno.test({
     });
 
     await t.step('a pending claim does not make a stock held', async () => {
-      await db.exec(`create table public.claims (league_id uuid, user_id uuid, symbol text, status text)`);
+      // The REAL claims table since 20261211000000 (claims, workstream 6): a pending claim, written
+      // through its trigger as the owner.
       try {
-        await q(`insert into public.claims values ($1, $2, 'RRR', 'pending')`, [L, A]);
+        await q(`insert into public.claims (league_id, user_id, symbol, funded_by, run_date) values ($1, $2, 'RRR', 'cash', current_date + 1)`, [L, A]);
         assertEquals((await save(A, 'RRR')).ok, true, 'a claimed stock can be watched');
         assertEquals(await read(A), ['BBB', 'RRR'], 'and stays in Watching until the claim fills');
         // The claim fills: the claims run writes the fill as a trade, which removes it.
         assertEquals((await trade(A, 'RRR', 'buy', 1)).ok, true);
         assertEquals(await read(A), ['BBB']);
       } finally {
-        await db.exec(`drop table public.claims`);
+        await q(`delete from public.claims where league_id = $1 and symbol = 'RRR'`, [L]);
       }
     });
 

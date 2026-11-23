@@ -6,7 +6,7 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import type { DraftRow, LeagueRow, SlotRow } from '../record-trade/commit.ts';
 import type { TradeRow } from '../_shared/draft-validation.ts';
-import { type ClaimRow, type PlanInput, PRICE_WAIT_MS, planLeague } from './plan.ts';
+import { type ClaimRow, HOLD_MS, onMissedDay, onMissingPrice, type PlanInput, PRICE_WAIT_MS, planLeague } from './plan.ts';
 
 const A = 'aaaaaaaa-0000-4000-8000-000000000001';
 const B = 'bbbbbbbb-0000-4000-8000-000000000002';
@@ -270,4 +270,24 @@ Deno.test('the plan carries the order and claim set it was made on (the commit c
   const p = plan({ claims: [c], order });
   assertEquals(p.order.map((o) => o.position), [1, 2, 3]);
   assertEquals(p.claim_ids, [c.id]);
+});
+
+Deno.test('SEAM 1 onMissingPrice: wait 3 min for "no price", the whole hold for a failed request, then fail', () => {
+  const at = (ms: number, requestFailed: boolean) => onMissingPrice({ nowMs: OPEN + ms, sessionOpenMs: OPEN, requestFailed });
+  assertEquals([at(PRICE_WAIT_MS - 1, false), at(PRICE_WAIT_MS, false)], ['wait', 'fail']);
+  assertEquals([at(HOLD_MS - 1, true), at(HOLD_MS, true)], ['wait', 'fail']);
+});
+
+Deno.test('SEAM 1 in the plan: past the wait only THAT claim fails no_price; the rest of the league proceeds', () => {
+  const c1 = claim(A, 'AAPL');
+  const c2 = claim(B, 'MSFT');
+  const p = plan({ claims: [c1, c2], prices: new Map([['MSFT', 400]]), nowMs: OPEN + PRICE_WAIT_MS });
+  assertEquals([outcomeOf(p, c1.id).reason, outcomeOf(p, c2.id).status], ['no_price', 'won']);
+  const early = planLeague(input({ claims: [c1, c2], prices: new Map([['MSFT', 400]]), fetchFailed: new Set(['AAPL']), nowMs: OPEN + PRICE_WAIT_MS }));
+  assertEquals(early.kind, 'defer', 'a failed request keeps waiting past 3 minutes');
+});
+
+Deno.test('SEAM 2 onMissedDay: today, failed missed_run with the day it was due', () => {
+  const c = claim(B, 'AAPL', null, { run_date: '2026-12-11' });
+  assertEquals(onMissedDay(c), { claim_id: c.id, status: 'failed', reason: 'missed_run', detail: { due_date: '2026-12-11' } });
 });

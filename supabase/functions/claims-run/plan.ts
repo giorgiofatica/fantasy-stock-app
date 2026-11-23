@@ -27,8 +27,8 @@
 //     (trades.price is NUMERIC(10,2)). A symbol with no price: the league WAITS (defer) until
 //     PRICE_WAIT_MS after the open (the wait is shared); then THAT claim fails no_price and the rest
 //     proceed (outcomes are per claim). Never a guess.
-//   * A claim due on an EARLIER day that is still pending (the run never ran that day) fails as
-//     missed_run: never carried silently into a later day at a later price.
+//   * A claim due on an EARLIER day that is still pending (the run never ran that day): onMissedDay
+//     (today: fails missed_run, never carried silently into a later day at a later price).
 //   * The league gate (draft done, season not over by flag or by date: record-trade/gate.ts) fails
 //     every due claim with that reason.
 // Placeholder ids ('ref:<n>') stand for the rows the plan will insert; commit_claims_run maps them
@@ -49,6 +49,36 @@ import { tradeRefusalReason } from '../record-trade/gate.ts';
 
 /** How long after the open a league waits for a missing price before failing it as no_price. */
 export const PRICE_WAIT_MS = 3 * 60_000;
+/** The hold on live trading lifts this long after the open (claims_hold_active, SQL). */
+export const HOLD_MS = 10 * 60_000;
+
+// ---------------------------------------------------------------------------------------------
+// THE THREE FAILURE SEAMS. Giorgio's rule is coming (2026-11-23, via the Orchestrator): these three
+// failures "really cannot be happening", each will gain an automatic fix. Each lives in ONE function,
+// so the change is one place each:
+//   1. onMissingPrice      a claimed or sold stock has no in-session price yet (here)
+//   2. onMissedDay         a claim whose day passed with no run (here)
+//   3. readClaimDraftability  the is_draftable read the not_draftable test runs on (deps.ts)
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * SEAM 1: what a claim does while a stock it needs has no price. 'wait' holds the league's run
+ * (the wait is shared); 'fail' fails THAT claim no_price and the rest proceed (outcomes are per
+ * claim, plan point 9). A failed price REQUEST (not "no price") waits for the whole hold.
+ */
+export function onMissingPrice(a: { nowMs: number; sessionOpenMs: number; requestFailed: boolean }): 'wait' | 'fail' {
+  const waitMs = a.requestFailed ? HOLD_MS : PRICE_WAIT_MS;
+  return a.nowMs < a.sessionOpenMs + waitMs ? 'wait' : 'fail';
+}
+
+/**
+ * SEAM 2: a claim due on an EARLIER day, still pending (its day passed with no run). Today: it fails
+ * missed_run and is never carried into a later open at a later price (plan point 9).
+ * commit_claims_run does not second-guess this outcome: the rule lives here only.
+ */
+export function onMissedDay(c: ClaimRow): CommitOutcome {
+  return { claim_id: c.id, status: 'failed', reason: 'missed_run', detail: { due_date: c.run_date } };
+}
 
 export interface ClaimRow {
   id: string;
@@ -79,6 +109,8 @@ export interface PlanInput {
   order: OrderRow[];
   /** symbol -> opening price (unrounded). A symbol absent here has no price. */
   prices: Map<string, number>;
+  /** Symbols whose price REQUEST failed (not "no price"): they wait longer (onMissingPrice). */
+  fetchFailed?: Set<string>;
   /** symbols.is_draftable for every claimed symbol (absent or false = not draftable). */
   draftable: Set<string>;
   /** Category eligibility per claimed symbol (category-slot leagues; else empty). */
@@ -140,13 +172,17 @@ export function planLeague(input: PlanInput): PlanResult {
   const leagueRefusal = input.forcedLeague ??
     tradeRefusalReason(input.league, input.seasonEnd, new Date(input.nowMs));
 
-  // Wait for a missing price while the wait lasts (only for claims that would get as far as pricing).
-  if (!leagueRefusal && input.nowMs < input.sessionOpenMs + PRICE_WAIT_MS) {
+  // A missing price holds the whole league's run while onMissingPrice says 'wait' (seam 1).
+  const fetchFailed = input.fetchFailed ?? new Set<string>();
+  const priced = (s: string) => Number(input.prices.get(s)) > 0 && Math.round(Number(input.prices.get(s)) * 100) > 0;
+  if (!leagueRefusal) {
     const missing = new Set<string>();
     for (const c of due) {
       if (forced.has(c.id)) continue;
       for (const s of [c.symbol, c.sell_symbol]) {
-        if (s && !(Number(input.prices.get(s)) > 0)) missing.add(s);
+        if (s && !priced(s) && onMissingPrice({ nowMs: input.nowMs, sessionOpenMs: input.sessionOpenMs, requestFailed: fetchFailed.has(s) }) === 'wait') {
+          missing.add(s);
+        }
       }
     }
     if (missing.size > 0) return { kind: 'defer', missing: [...missing].sort() };
@@ -190,9 +226,7 @@ export function planLeague(input: PlanInput): PlanResult {
   let refN = 0;
   const runIso = new Date(input.nowMs).toISOString();
 
-  for (const c of missed) {
-    outcomes.push({ claim_id: c.id, status: 'failed', reason: 'missed_run', detail: { due_date: c.run_date } });
-  }
+  for (const c of missed) outcomes.push(onMissedDay(c));
 
   const stateWith = (t: TradeRow[], buy: boolean, symbol: string): LedgerState => ({
     league: input.league,
@@ -225,9 +259,10 @@ export function planLeague(input: PlanInput): PlanResult {
     } else {
       const buyPriceRaw = input.prices.get(c.symbol);
       const sellPriceRaw = c.sell_symbol ? input.prices.get(c.sell_symbol) : undefined;
-      if (!(Number(buyPriceRaw) > 0) || round2(Number(buyPriceRaw)) <= 0) {
+      // Past the wait (seam 1 said 'fail'): THIS claim fails no_price; the rest proceed.
+      if (!priced(c.symbol)) {
         fail(c, 'no_price', { price_symbol: c.symbol });
-      } else if (c.sell_symbol && (!(Number(sellPriceRaw) > 0) || round2(Number(sellPriceRaw)) <= 0)) {
+      } else if (c.sell_symbol && !priced(c.sell_symbol)) {
         fail(c, 'no_price', { price_symbol: c.sell_symbol });
       } else {
         const buyPrice = round2(Number(buyPriceRaw));

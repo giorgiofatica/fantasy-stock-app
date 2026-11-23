@@ -19,14 +19,15 @@
  *     re-claim after a cancel;
  *   - the waiver order: finalize_league_draft starts it as the reverse draft order, and its body is
  *     20261115000000's VERBATIM plus only the order block; members read it, outsiders do not;
- *   - the run: a contested stock to the better position, the loser told who won; a sale + buy in a
+ *   - the run: a contested stock to the better position, the loser told who won; a FILL removes the
+ *     winner's watchlist row through option A's trigger (20261210500000), a loss leaves the loser's; a sale + buy in a
  *     fixed_notional league with funded_by re-mapped to the sale just inserted; winners to the back
  *     in win order; outcomes, notices and the claims_runs row in the same transaction; a second
  *     commit is already_ran;
  *   - PARTIAL STATE: a commit refused at its SECOND step writes NOTHING (the first claim's sale and
  *     buy roll back; no claims_runs row; every claim still pending) and the re-plan on fresh reads
  *     then commits whole; a cancel between plan and commit is claims_changed; a reset between them is
- *     order_changed; a missed day's claim can only fail as missed_run; bad plans are refused;
+ *     order_changed; a missed day's claim fails missed_run (onMissedDay); bad plans are refused;
  *   - the hold: true only while open < 10 min, claims due, and no row; it lifts by the row, by the
  *     clock (open + 10 min), and is false with no claims or a closed market;
  *   - the weekly reset: reverse standings after a fully scored week; a half-scored week does not
@@ -88,7 +89,7 @@ Deno.test({
       }
       throw new Error('expected a refusal, got an answer');
     }
-    const clearPacing = () => q(`delete from rate_limit_counters where bucket like 'claims-place-%'`);
+    const clearPacing = () => q(`delete from rate_limit_counters where bucket like 'claims-%'`);
     const place = async (sub: string | null, league: string, sym: string, sell: string | null = null) => {
       await clearPacing();
       return as('authenticated', sub, async () => (await one(`select public.place_claim($1, $2, $3) r`, [league, sym, sell])).r);
@@ -291,6 +292,12 @@ Deno.test({
       assertEquals(await cancel(B, L, 'XD'), { ok: true, cancelled: true, pending: 4 });
       assertEquals(await cancel(B, L, 'XD'), { ok: true, cancelled: false, pending: 4 }, 'a second cancel is a no-op');
       assertEquals(await cancel(X, L, 'AAPL'), { ok: false, reason: 'not_a_member' });
+      // Every call is counted, refusals included: the 61st call in a minute is refused.
+      await clearPacing();
+      for (let i = 0; i < 60; i++) await as('authenticated', X, () => one(`select public.place_claim($1, 'AAPL', null) r`, [L]));
+      assertEquals((await as('authenticated', X, async () => (await one(`select public.place_claim($1, 'AAPL', null) r`, [L])).r)), { ok: false, reason: 'rate_limited' });
+      assertEquals((await as('authenticated', X, async () => (await one(`select public.cancel_claim($1, 'AAPL') r`, [L])).r)), { ok: false, reason: 'rate_limited' });
+      await clearPacing();
       assertEquals((await place(B, L, 'XD')).ok, true);
       assertEquals((await one(`select count(*)::int n from claims where league_id = $1 and user_id = $2 and status = 'pending'`, [L, B])).n, 5);
       // Clients cannot write the table directly.
@@ -365,6 +372,9 @@ Deno.test({
       assertEquals(pa.ok, true, JSON.stringify(pa));
       assertEquals((await place(C, L, 'NVDA')).ok, true);
       assertEquals((await place(B, L, 'MSFT', 'BBB')).ok, true);
+      // All three watch the stock they claimed (option A, 20261210500000: a stock you come to own
+      // leaves your watchlist, by its trigger on trades; the claims run builds no removal of its own).
+      await q(`insert into watchlist (league_id, user_id, symbol) values ($1, $2, 'NVDA'), ($1, $3, 'NVDA'), ($1, $4, 'MSFT')`, [L, A, C, B]);
       const plan = await makePlan(L, run, { NVDA: 120.004, MSFT: 400, BBB: 101.5 });
       const res = await commit(L, run, plan);
       assertEquals(res, { ok: true, won: 2, lost: 1, failed: 0, missed: 0 });
@@ -387,6 +397,9 @@ Deno.test({
       assertEquals((await as('authenticated', A, () => q(`select kind from league_notifications where kind like 'claim_%'`))).map((r: Row) => r.kind), ['claim_lost'], 'owner-only notices');
       const runRow = await one(`select claims_won, claims_lost, claims_failed, claims_missed from claims_runs where league_id = $1 and run_date = $2::date`, [L, run]);
       assertEquals([runRow.claims_won, runRow.claims_lost, runRow.claims_failed, runRow.claims_missed], [2, 1, 0, 0]);
+      // The claim FILL removed the winners' watched rows; the loser still watches the stock.
+      const watched = await q(`select user_id, symbol from watchlist where league_id = $1 order by user_id, symbol`, [L]);
+      assertEquals(watched.map((r: Row) => [r.user_id, r.symbol]), [[A, 'NVDA']], 'won: gone (B MSFT, C NVDA); lost: kept (A NVDA)');
       // A retry is a no-op.
       assertEquals(await commit(L, run, plan), { ok: false, reason: 'already_ran' });
       assertEquals((await state(L, run)).already_ran, true);
@@ -453,7 +466,7 @@ Deno.test({
       assertEquals((await one(`select count(*)::int n from trades where league_id = $1`, [L])).n, tradesBefore + 2);
     });
 
-    await t.step('the commit refuses a changed order, bad plans, and a missed day that is not failed missed_run', async () => {
+    await t.step('the commit refuses a changed order and bad plans; a missed day fails missed_run (plan.ts onMissedDay)', async () => {
       await q(`delete from claims_runs where league_id = $1`, [L]);
       await marketClosed();
       const run = await tomorrow();
@@ -474,12 +487,14 @@ Deno.test({
       assertEquals((await bad((p) => { p.steps = []; })).detail, 'won_steps');
       assertEquals((await bad((p) => { p.outcomes[0].status = 'failed'; p.outcomes[0].reason = null; p.steps = []; })).detail, 'outcomes');
       assertEquals((await commit(L, run, null)).reason, 'bad_plan');
-      // A missed day: the claim is due BEFORE the run date, so only failed/missed_run is accepted.
+      // A step for a claim outside the plan (another league's, say) or with a non-positive number.
+      const foreign = (await one(`select id::text from claims where league_id <> $1 limit 1`, [L])).id;
+      assertEquals((await bad((p) => { p.steps.push({ ...p.steps[0], ref: 'ref:99', claim_id: foreign }); })).detail, 'step_shape');
+      assertEquals((await bad((p) => { p.steps[0].quantity = 0; })).detail, 'step_shape');
+      assertEquals((await bad((p) => { p.steps[0].price = -1; })).detail, 'step_shape');
+      // A missed day: the claim is due BEFORE the run date. What happens to it is decided in ONE place
+      // (plan.ts onMissedDay, today: failed missed_run); the commit writes what the plan says.
       await q(`update claims set run_date = run_date - 3 where league_id = $1 and status = 'pending'`, [L]);
-      const st = await state(L, run);
-      const p2 = structuredClone(plan);
-      p2.claim_ids = st.claims.map((c) => c.id);
-      assertEquals((await commit(L, run, p2)).detail, 'missed_run');
       const missed = await makePlan(L, run, {});
       assertEquals(missed.outcomes.map((o) => o.reason), ['missed_run']);
       assertEquals(await commit(L, run, missed), { ok: true, won: 0, lost: 0, failed: 0, missed: 1 });

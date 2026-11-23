@@ -81,7 +81,9 @@ create table public.waiver_order (
   position   integer     not null,
   updated_at timestamptz not null default now(),
   constraint waiver_order_pkey primary key (league_id, user_id),
-  constraint waiver_order_position_key unique (league_id, position) deferrable initially deferred,
+  -- IMMEDIATE (not deferred): every writer deletes then inserts, so no deferral is needed, and an
+  -- immediate check fails inside the writer's own subtransaction (one league's reset), not at COMMIT.
+  constraint waiver_order_position_key unique (league_id, position),
   constraint waiver_order_position_check check (position >= 1),
   -- ON UPDATE CASCADE: take_over_team re-points league_members.user_id BEFORE its own update of
   -- this table, so the order row follows the seat ("waiver position", PRODUCT_RULES).
@@ -336,6 +338,8 @@ create trigger trg_claims_before_insert
 --   {ok:false, reason: not_authenticated | not_a_member | claim_market_open | calendar_unavailable |
 --     draft_not_completed | season_completed | unknown_symbol | not_draftable | symbol_owned |
 --     not_owned | already_claimed | sale_in_use | claim_limit (max 5) | invalid | rate_limited}
+-- rate_limited: past 60 calls a minute (place + cancel, every call counted, refusals included), or
+-- past 30 new claims a minute / 200 a day.
 -- not_draftable is the buy path's own test (refusesAsNotDraftable): is_draftable, unless the league
 -- allows the full universe. symbol_owned: anyone in the league holds it (holdings are public).
 -- not_owned: the named sale is not a position the caller holds. Slot fit is NOT checked here: the
@@ -371,6 +375,11 @@ begin
     return jsonb_build_object('ok', false, 'reason', 'not_authenticated');
   end if;
   v_me := v_uid::text;
+  -- Every call is counted first, refusals included (the security review: a refusal scanned the
+  -- league's ledger for free). 60 a minute across place and cancel, per person.
+  if public.check_and_bump_rate_limit('claims-write-min', 'user:' || v_me, 60, 60) is not true then
+    return jsonb_build_object('ok', false, 'reason', 'rate_limited');
+  end if;
   if p_league_id is null then
     return jsonb_build_object('ok', false, 'reason', 'not_a_member');
   end if;
@@ -506,6 +515,9 @@ declare
 begin
   if v_uid is null then
     return jsonb_build_object('ok', false, 'reason', 'not_authenticated');
+  end if;
+  if public.check_and_bump_rate_limit('claims-write-min', 'user:' || v_uid::text, 60, 60) is not true then
+    return jsonb_build_object('ok', false, 'reason', 'rate_limited');
   end if;
   if p_league_id is null or not exists (
     select 1 from public.league_members m where m.league_id = p_league_id and m.user_id = v_uid::text
@@ -698,22 +710,34 @@ begin
   end if;
 
   -- The plan's shape against the claims: one outcome per claim, exactly; steps only for won claims;
-  -- a won claim has exactly its buy, preceded by its sale when it is funded by one; a claim due on
-  -- an earlier day can only fail as missed_run.
+  -- a won claim has exactly its buy, preceded by its sale when it is funded by one. (What happens to a
+  -- claim whose day passed with no run is decided in ONE place, claims-run/plan.ts onMissedDay; the
+  -- commit does not second-guess it.)
   if jsonb_array_length(v_outcomes) <> cardinality(v_claim_ids)
      or (select count(distinct (o ->> 'claim_id')) from jsonb_array_elements(v_outcomes) o) <> cardinality(v_claim_ids)
      or exists (select 1 from jsonb_array_elements(v_outcomes) o
                  where (o ->> 'claim_id') is null or not ((o ->> 'claim_id')::uuid = any (v_claim_ids))
-                    or (o ->> 'status') not in ('won', 'lost', 'failed')
+                    or (o ->> 'status') is null or (o ->> 'status') not in ('won', 'lost', 'failed')
                     or nullif(o ->> 'reason', '') is null and (o ->> 'status') <> 'won') then
     return jsonb_build_object('ok', false, 'reason', 'bad_plan', 'detail', 'outcomes');
+  end if;
+  -- Every step belongs to a claim of THIS plan (so to a pending claim of this league, locked above),
+  -- is a sell or a buy, and carries a positive quantity and price (the security review: a step for a
+  -- claim outside the plan was otherwise never rejected).
+  if exists (select 1 from jsonb_array_elements(v_steps) e
+              where jsonb_typeof(e) <> 'object'
+                 or (e ->> 'claim_id') is null
+                 or (e ->> 'claim_id') !~ '^[0-9a-fA-F-]{36}$'
+                 or not ((e ->> 'claim_id')::uuid = any (v_claim_ids))
+                 or (e ->> 'action') is distinct from 'buy' and (e ->> 'action') is distinct from 'sell'
+                 or jsonb_typeof(e -> 'quantity') is distinct from 'number' or (e ->> 'quantity')::numeric <= 0
+                 or jsonb_typeof(e -> 'price') is distinct from 'number' or (e ->> 'price')::numeric <= 0
+                 or jsonb_typeof(e -> 'total_value') is distinct from 'number' or (e ->> 'total_value')::numeric <= 0) then
+    return jsonb_build_object('ok', false, 'reason', 'bad_plan', 'detail', 'step_shape');
   end if;
   for v_out in select * from jsonb_array_elements(v_outcomes) loop
     select * into v_claim from public.claims c where c.id = (v_out ->> 'claim_id')::uuid;
     select count(*) into v_n from jsonb_array_elements(v_steps) s where s ->> 'claim_id' = v_claim.id::text;
-    if v_claim.run_date < p_run_date and ((v_out ->> 'status') <> 'failed' or (v_out ->> 'reason') <> 'missed_run') then
-      return jsonb_build_object('ok', false, 'reason', 'bad_plan', 'detail', 'missed_run', 'claim_id', v_claim.id);
-    end if;
     if (v_out ->> 'status') = 'won' then
       if v_n <> (case when v_claim.funded_by = 'sale' then 2 else 1 end)
          or not exists (select 1 from jsonb_array_elements(v_steps) with ordinality s(e, i)
@@ -858,6 +882,10 @@ $$;
 -- through min(W, num_weeks) (last place first; the standings' own tiebreaks), then any member the
 -- ranking does not list, in reverse draft order. Idempotent: called on every process-week-results
 -- run, so a reset that failed is retried by the next run. One league's failure never stops another's.
+-- PLAYOFF WEEKS reset too (the rule as written: "after each week is scored the order resets to
+-- reverse standings"). Standings stop moving after the regular season, so a playoff week's reset puts
+-- the order back on the final standings and undoes that week's claim moves. A Planner question if
+-- that is not wanted: cap the stored week at num_weeks.
 create or replace function public.reset_due_waiver_orders()
 returns jsonb
 language plpgsql

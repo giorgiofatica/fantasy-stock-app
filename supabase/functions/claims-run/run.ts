@@ -29,11 +29,11 @@
 import { type JobRun, type JobStatusWriter, runJob } from '../_shared/run-job.ts';
 import { type DraftRow, type LeagueRow, type SlotRow } from '../record-trade/commit.ts';
 import { type TradeRow } from '../_shared/draft-validation.ts';
-import { type ClaimRow, type CommitPlan, type OrderRow, planLeague } from './plan.ts';
+import { type ClaimRow, type CommitPlan, HOLD_MS, type OrderRow, planLeague } from './plan.ts';
+
+export { HOLD_MS };
 
 export const MAX_ATTEMPTS = 4;
-/** The hold on live trading lifts this long after the open (claims_hold_active, SQL). */
-export const HOLD_MS = 10 * 60_000;
 
 /** Refusals from record_trade_atomic that close the WHOLE league, not one claim. */
 export const LEAGUE_REFUSALS = new Set(['season_completed', 'draft_not_completed', 'league_not_found']);
@@ -114,19 +114,19 @@ export async function runLeague(deps: RunDeps, leagueId: string, day: { date: st
       symbols.add(c.symbol);
       if (c.sell_symbol) symbols.add(c.sell_symbol);
     }
+    // Prices. What a missing or failed price does is decided in ONE place, plan.ts onMissingPrice
+    // (seam 1): a failed request makes every symbol "request failed", never "no price".
     let prices = new Map<string, number>();
+    let fetchFailed = new Set<string>();
     if (symbols.size > 0 && !forcedLeague) {
       const pr = await deps.prices([...symbols].sort(), day.date, day.openMs);
-      if (!pr.ok) {
-        if (deps.now().getTime() < day.openMs + HOLD_MS) return { league_id: leagueId, result: 'deferred', missing: [...symbols] };
-        return { league_id: leagueId, result: 'failed', error: `prices: ${pr.error}` };
+      if (pr.ok) {
+        prices = pr.value.prices;
+        fetchFailed = pr.value.fetchFailed;
+      } else {
+        deps.log?.('price read failed', { league_id: leagueId, error: pr.error });
+        fetchFailed = new Set(symbols);
       }
-      // A FAILED request is not "no price": wait for it while the hold lasts.
-      const failedNeeded = [...symbols].filter((s) => pr.value.fetchFailed.has(s));
-      if (failedNeeded.length > 0 && deps.now().getTime() < day.openMs + HOLD_MS) {
-        return { league_id: leagueId, result: 'deferred', missing: failedNeeded.sort() };
-      }
-      prices = pr.value.prices;
     }
 
     const nowMs = deps.now().getTime();
@@ -142,6 +142,7 @@ export async function runLeague(deps: RunDeps, leagueId: string, day: { date: st
       claims: st.value.claims,
       order: st.value.order,
       prices,
+      fetchFailed,
       draftable: ld.value.draftable,
       eligibility: ld.value.eligibility,
       heldEligibility: ld.value.heldEligibility,
