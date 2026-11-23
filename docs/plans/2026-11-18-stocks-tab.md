@@ -384,6 +384,11 @@ readings, each checked against the code. None changes an approved look or an app
      last.
    - The claims run (workstream 6) fails a claim as no longer tradable by the same test as
      the buy path, not by `active` alone.
+   - ANSWERED 2026-11-23 (`docs/PRODUCT_RULES.md`, "ok then b"): the WORDS of this line on
+     Watching are "Not in this league's list", search's line, not "No longer tradable".
+     The test above is unchanged. On the stock's own screen the Design Lead's ruling
+     stands: the buy's sentence above a disabled "Review buy" (and a disabled Claim while
+     the market is closed).
 2. **A watchlist is personal.** A hidden or deleted seat cannot save. Reading and removing
    your own saved stocks needs only membership. Taking over a team does not hand over the
    former manager's saved stocks; the new manager starts with none.

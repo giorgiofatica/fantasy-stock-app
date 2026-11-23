@@ -1648,6 +1648,24 @@ building anything, and don't reopen a rule without him.
         push, because the server removes the stock when you come to own it; a stock can
         become yours by a buy, by a claim that fills at the open, or by a draft pick, and
         two of those can happen with the app closed.
+  - **A saved stock that can't be bought reads "Not in this league's list" (B)** (2026-11-23,
+    two drawings in the Planner's chat; typed there: "ok then b"). The row in Watching
+    takes the line search already uses, and it matches the sentence the stock's own screen
+    shows ("{symbol} isn't in this league's list of stocks."). A ("No longer tradable", as
+    the board `#call-stocks-tab-lists` drew it and as the October plan worded it) was not
+    picked. The Planner's recommendation was B.
+    - Why it came up: the line is keyed on "would a buy be refused?", which is true of a
+      delisted stock and also of one under the size or price floor. The second is still
+      trading in the world, so "No longer tradable" would be false for it.
+    - One line for every cause. Different words for each cause were ruled out by the
+      Planner: the app cannot read which cause it is, and a manager can do nothing
+      different with it.
+    - He asked first whether the small grey labels in the drawing ("The row in Watching",
+      "Tap it: the stock's screen") would be in the app: "that should not be there". They
+      are not; they were the Planner's labels. The row is the ticker, the one status line
+      and the star. The stock's screen is the one sentence above a greyed "Review buy".
+    - Not asked of him yet: the October plan's failed-claim ending "AAPL is no longer
+      tradable". It gets the same question when the claims screens are built.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
