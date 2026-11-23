@@ -1494,6 +1494,35 @@ building anything, and don't reopen a rule without him.
     that depend on live market data (movers, most active) wait on the price-supplier
     decision. These go to him as mockups in the plan's revision. The names in the mockup
     ("Stocks", "Watching") were placeholders.
+  - **The Stocks tab goes into a build whole, not half done** (2026-11-22, typed in the
+    Planner's chat). The tab as built (the list, chips, search, the plus) is merged and in
+    no build. Asked whether build 18 should go out with it as it is and the rest follow
+    after the Expo upgrade, he said no: "I don't want to just throw in a stocks tab that's
+    like halfway done, that there's still major elements that are not done... if we have
+    something kind of an idea floating around, I would rather work on getting that
+    implemented into a build instead of doing a build and then having to go back and do
+    more fixes. So if anything, I would actually want to get those four elements in the
+    build. And then from there, we do the build and then we do the upgrade."
+    - The four elements, as listed to him: the star and the watchlist; claims after the
+      market closes (the waiver wire); trending and most-active lists; re-sorting the
+      list. The first two are the approved October plan
+      (`docs/plans/2026-10-08-trading-window-and-watchlist.md`), not built.
+    - The order, his: these four, then build 18, then the upgrade.
+    - A correction he made, kept here so it is not repeated: the Planner had presented
+      "the rest after the upgrade" as following from his own reasoning. His words: "That's
+      not my own reasoning."
+- **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
+  chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
+  which for this app means moving from Expo SDK 54 to 58
+  (`docs/research/2026-11-18-xcode-27-ios-27-sdk-requirement.md`). The research advised
+  starting in early January. His words: "I don't really understand why we would wait. Like
+  we're just prolonging the inevitable... if we need to do an update, let's just nip it in
+  the bud, especially since this thing isn't live yet. There's no one else but me. So I
+  think now is the time to do these kind of updates." Order, his pick "A": build 18 first
+  ("Option A will do this build first"), then the upgrade, so the upgraded build can be
+  compared against a known one. Told to him: feature work pauses while it runs, the phone
+  pass is redone after it, and the minimum iOS version rises from 15.1 to 16.4 (the iPhone
+  7 and the first iPhone SE drop off).
 - **The watchlist is per league** (2026-10-08): "by league. if im in multiple fantasy football
   leagues, each one has its own waiver wire. if i want to buy apple in one league, i may not
   be able to in another if another player has it, i already have it, or it doesnt fit my
