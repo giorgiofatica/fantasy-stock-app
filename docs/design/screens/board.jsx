@@ -397,6 +397,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-search-star', title: 'The star in search results', decision: '"no star for something you own. its in your portfolio so shouldnt need to be in the watchlist too". A star on a free stock, "Owned by \u2026" and "No free slot"; none on "You own this" (overruling the board\u2019s star on it) or "Not in this league\u2019s list". It holds everywhere: no Save on the sheet of a stock you own; Watching never lists one.', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, planner/rules-1123-own-star)', render: () => window.KSSearchStarArchived },
     { id: 'call-stocks-tab-lists', title: 'The Stocks tab\u2019s lists', decision: '"yes to all the words": Available, Watching, Top movers, "Star a stock to watch it here.", "No claims pending.", "+11.2% Fri" and "MON 9:30 AM ET", on the board as drawn (the switch, the star, Watching, claiming after the close in the palette\u2019s rust brown, Claims with the waiver order on its first row, Top movers).', date: '2026-11-22', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSStocksTabListsArchived },
     { id: 'call-result-colour', title: 'W, L and T colours outside the recap', decision: '"A and keep blue". Letters A: W, L and T bold in the normal ink on Home\u2019s season tiles, League \u203a Schedule and the Matchup \u201ci\u201d popup, as in the recap; the money keeps its sign colour. Banner 1: a week you won stays blue (your colour). No new words.', date: '2026-11-20', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSResultColourArchived },
     { id: 'call-tiebreak-words', title: 'The words when dollars don\u2019t decide a week', decision: 'The line: A, the winner first ("Paolo M. won the tiebreak, +1.76% to +0.74%"); the words wait on the server storing why a week was decided. The recap row: his own option, neither 1 nor 2: W, L and T in bold neutral ink, the figure keeps its sign colour, no reason word on the row (built, #574).', date: '2026-11-19', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSTiebreakWordsArchived },
@@ -591,6 +592,7 @@
           {window.KSTiebreakWords ? <window.KSTiebreakWords /> : null}
           {window.KSResultColour ? <window.KSResultColour /> : null}
           {window.KSStocksTabLists ? <window.KSStocksTabLists /> : null}
+          {window.KSSearchStar ? <window.KSSearchStar /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
