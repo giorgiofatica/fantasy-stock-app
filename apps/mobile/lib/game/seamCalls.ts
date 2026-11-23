@@ -13,7 +13,7 @@ import { markFixtureAnswer } from './renewalFixture';
 import { draftRoomClockRead, parseDraftRoomVariant, roomVariantAfterAutoPick } from './seamRoom';
 import { FIXTURE_TAKEOVER_CODE, parseTakeoverFixture, seatify, takeoverFixtureFor, takeoverInviteFixture } from './seamAccountDeletion';
 import { pendingTakeover } from '../invite/pendingTakeoverStore';
-import { parseStocksKnob, seamStocksRead, seamStockPrices } from '../stocks/seamStocks';
+import { parseStocksKnob, seamStocksRead, seamStockPrices, seamTickerQuote, seamWatchlistRead, seamWatchlistWrite } from '../stocks/seamStocks';
 
 /** DEV captures (account deletion): the seat reads as the label (EXPO_PUBLIC_DELETED_SEAT=1) and the takeover answers (EXPO_PUBLIC_TAKEOVER_FIXTURE). Seam only. */
 const DELETED_SEAT = DELETED_SEAT_FIXTURE;
@@ -63,6 +63,12 @@ export async function seamRpc(name: string, args: Record<string, unknown>) {
       if (!read) return new Promise<never>(() => {});
       return { ...read, count: null, status: read.error ? 500 : 200, statusText: 'fixture' };
     }
+    if (name === 'get_league_watchlist' || name === 'set_watchlist') {
+      // The watchlist: an in-memory saved set that a star changes as the server would; knobs make a read or a save fail, refuse or hang.
+      const read = name === 'get_league_watchlist' ? seamWatchlistRead(STOCKS_KNOB) : seamWatchlistWrite(args, STOCKS_KNOB);
+      if (!read) return new Promise<never>(() => {});
+      return { ...read, count: null, status: read.error ? 500 : 200, statusText: 'fixture' };
+    }
     const f = fixtureFor(name, args, roomVariant, DRAFT_START_FIXTURE);
     // A renewal adds Season 2 to the fixture league list, as the real list would.
     if (f && name === 'renew_league') markFixtureRenewed();
@@ -89,6 +95,10 @@ export async function seamInvoke(fn: string, opts: { body: Record<string, unknow
       if (asked.every((x) => x in seamStockPrices() || STOCKS_KNOB.noPrice)) {
         return { data: { prices: Object.fromEntries(asked.filter((x) => x in prices).map((x) => [x, (prices as Record<string, number>)[x]])) }, error: null };
       }
+    }
+    if (fn === 'ticker-quotes' && typeof opts.body.symbol === 'string') {
+      // The Watching rows' single-symbol lookup (price and previous close): the catalogue's example prices.
+      return seamTickerQuote(opts.body.symbol, STOCKS_KNOB);
     }
     const f = invokeFixtureFor(fn, opts.body, DRAFT_START_FIXTURE, LEAVE_FIXTURE, CAPTURE_CONFIRM_REFUSAL, CAPTURE_DRAFT_REFUSAL);
     if (f) return seatify(f, DELETED_SEAT);

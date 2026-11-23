@@ -187,7 +187,10 @@ function WatchRow({
             <Icon name="add" size="caption" tone="onAccent" />
           </View>
         </Pressable>
-      ) : null}
+      ) : (
+        // The empty slot where the "+" would be, so every row's disc lines up (the board draws it so).
+        <View style={styles.plusTarget} />
+      )}
       <PressableScale accessibilityRole="button" accessibilityLabel={label} onPress={onOpen} style={styles.rowMain} testID={`stocks-row-${row.symbol}`}>
         <TickerBadge symbol={row.symbol} />
         <View style={styles.lead}>

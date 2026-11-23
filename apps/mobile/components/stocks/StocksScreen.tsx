@@ -121,7 +121,9 @@ export function StocksScreen() {
     if (result && !result.ok && result.reason === 'watchlist_full') open(symbol, { originRef: 'stocks-star' });
   };
   // "today" while the market is open; the last close's short weekday while it is closed ("+1.4% Fri"); nothing is claimed while unknown.
-  const dayWord = market?.status === 'open' ? 'today' : market?.status === 'closed' ? shortWeekdayEt(lastSessionCloseBefore(new Date(), marketCalendar)) : null;
+  // (The capture seam has no market read, so it reads as open: the stills show the word.)
+  const marketStatus = market?.status ?? (SEAM_ON ? 'open' : undefined);
+  const dayWord = marketStatus === 'open' ? 'today' : marketStatus === 'closed' ? shortWeekdayEt(lastSessionCloseBefore(new Date(), marketCalendar)) : null;
 
   const onRefresh = view === 'watching' ? async () => wl.reload() : control.mode === 'chips' ? list.refresh : undefined;
   return (

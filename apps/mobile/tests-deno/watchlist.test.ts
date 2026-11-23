@@ -415,3 +415,35 @@ Deno.test('quote store: a read that THROWS is a failed read, and its lane is fre
   assertEquals(store.peek('A'), { status: 'ready', price: null, changePct: null });
   assertEquals(store.peek('B'), { status: 'ready', price: 10, changePct: 0 });
 });
+
+// ── the capture seam's watchlist (DEV only): behaves as the server would ──
+import { parseStocksKnob, resetSeamWatchlist, seamTickerQuote, seamWatchlistRead, seamWatchlistWrite } from '../lib/stocks/seamStocks.ts';
+
+Deno.test('seam: the saved set starts seeded, a star changes it as the server would, and each knob refuses as named', () => {
+  resetSeamWatchlist();
+  const knob = parseStocksKnob('');
+  const syms = () => (seamWatchlistRead(knob)!.data as { symbol: string }[]).map((r) => r.symbol);
+  assertEquals(syms(), ['AVGO', 'AMGN', 'COST', 'LOW', 'SQ']);
+  assertEquals(seamWatchlistWrite({ p_symbol: 'msft', p_saved: true }, knob)!.data, { ok: true, saved: true, count: 6 });
+  assertEquals(syms()[0], 'MSFT');
+  seamWatchlistWrite({ p_symbol: 'AVGO', p_saved: false }, knob);
+  assertEquals(syms().includes('AVGO'), false);
+  assertEquals(seamWatchlistWrite({ p_symbol: 'X', p_saved: true }, parseStocksKnob('savefull'))!.data, { ok: false, reason: 'watchlist_full', max: 50 });
+  assertEquals(seamWatchlistWrite({ p_symbol: 'X', p_saved: true }, parseStocksKnob('saverate'))!.data, { ok: false, reason: 'rate_limited' });
+  assertEquals(seamWatchlistWrite({ p_symbol: 'X', p_saved: true }, parseStocksKnob('savehang')), null);
+  assert(seamWatchlistWrite({ p_symbol: 'X', p_saved: true }, parseStocksKnob('savefail'))!.error);
+  resetSeamWatchlist();
+  assertEquals((seamWatchlistRead(parseStocksKnob('watchempty'))!.data as unknown[]).length, 0);
+  assert(seamWatchlistRead(parseStocksKnob('watchfail'))!.error);
+  assertEquals(seamWatchlistRead(parseStocksKnob('watchloading')), null);
+  resetSeamWatchlist();
+});
+
+Deno.test('seam: the single-symbol quote answers price and previous close; a delisted or unknown symbol answers an error', () => {
+  const ok = seamTickerQuote('amgn', parseStocksKnob('')).data as { price: number; prevClose: number };
+  assertEquals(ok.price, 282.4);
+  assert(ok.prevClose > 0);
+  assert(seamTickerQuote('SQ', parseStocksKnob('')).error);
+  assert(seamTickerQuote('ZZZZ', parseStocksKnob('')).error);
+  assert(seamTickerQuote('AMGN', parseStocksKnob('noprice')).error);
+});
