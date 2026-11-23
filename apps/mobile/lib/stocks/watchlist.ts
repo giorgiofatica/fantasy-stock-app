@@ -202,8 +202,6 @@ export interface StatusInput {
   allowUndraftable: boolean;
   /** The server's slot line for this row, when it answered ("Available · fits your $100–$200 slot", "No free $400+ slot"), else null (watchSlots.ts). */
   slotLine: { text: string; full: boolean } | null;
-  /** Budget / tier leagues: every slot of yours is held, so a buy has nowhere to go (useSearchOwnership's roomless). The line when the server gave none. */
-  roomless: boolean;
 }
 
 export type StatusKind = 'owned' | 'untradable' | 'full' | 'available';
@@ -212,14 +210,13 @@ export type StatusKind = 'owned' | 'untradable' | 'full' | 'available';
  * The one status line, in the Planner's order when two apply (the plan, "Settled during the build" 1): who owns it first ("Owned by {name}":
  * a holder can sell it), then "No longer tradable", then the slot lines. "You own this" is not a Watching status any more: a stock you hold is left
  * out of the view. The slot line is the SERVER's when it answered (a list preview, one call per screen; the app never computes a tier fit);
- * without one it is what the app can already tell: "No free slot" when every slot is held, else plain "Available".
+ * without one (no answer, an error, or the function before the list preview) the row reads plain "Available" (the Orchestrator's list, 2026-11-23).
  * `kind` drives the "+": a stock you can get ('available', whether or not the server named its slot) keeps it.
  */
 export function statusLine(input: StatusInput): { text: string; kind: StatusKind } {
   if (input.owner) return { text: COPY.ownedBy(input.owner.name ?? 'another manager'), kind: 'owned' };
   if (noLongerTradable(input.isDraftable, input.allowUndraftable)) return { text: COPY.noLongerTradable, kind: 'untradable' };
   if (input.slotLine) return { text: input.slotLine.text, kind: input.slotLine.full ? 'full' : 'available' };
-  if (input.roomless) return { text: COPY.noFreeSlot, kind: 'full' };
   return { text: COPY.availableStatus, kind: 'available' };
 }
 
