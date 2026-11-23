@@ -429,6 +429,47 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
    star there. A stock found by search is saved from its sheet, which the board does draw.
    The Design Lead draws the search rows with a star, and that drawing goes to Giorgio as a
    yes or no before build 18.
+   ANSWERED 2026-11-23 (`docs/PRODUCT_RULES.md`): a star on a free stock, on "Owned by
+   {name}" and on "No free slot"; none on "You own this" or "Not in this league's list".
+6. **A stock you own is never on your watchlist** (his rulings, 2026-11-23: "no star for
+   something you own. its in your portfolio so shouldnt need to be in the watchlist too",
+   then "A": a watched stock you buy leaves the watchlist for good). The watchlist's server
+   (`20261209000000`, applied 2026-11-23) was built before this rule and accepts a save of
+   a held stock. One small migration brings it in line:
+   - **"Holds" is the rule the Stocks list already uses** (`20261207000100`): the net of
+     draft picks and trades, per manager and per stock, above the same threshold as
+     `leagueOwnedSymbols`. Never "does any row exist". `drafts.user_id` is text and
+     `trades.user_id` is uuid, so the casts are needed.
+   - **A save of a stock the caller holds is refused**, in the trigger so every insert path
+     is covered, and `set_watchlist` answers a reason of its own for it. The app never
+     offers that star, so the reason gets no words: it is a save that did not go through.
+   - **Coming to own a stock removes it from that manager's watchlist in that league.** It
+     is done in the database, on every path that creates a holding (a buy, a claim that
+     fills, a draft pick, an auto-pick), not by the app and not inside one function only,
+     so a new path cannot forget it. It must never be able to fail a trade or a pick.
+   - **A sale removes it too**, if a row is somehow still there. A save and a buy can cross
+     in the same instant and leave a watched stock that is also held; without this, that
+     row would come back into view after the sale, which is option B, the one he did not
+     pick.
+   - **The read leaves out a stock the caller holds**, so a row stranded by that same race
+     is never shown while it is held. A stranded row still takes one of the 50 places
+     until the sale removes it; the write should clear the caller's held rows before it
+     counts, so the cap never refuses because of a row nobody can see.
+   - **Rows already saved and held are removed by the migration**, with a count taken first
+     in the hand-off's read-only checks (the table is one day old).
+   - A pending claim does not make a stock held: it stays in Watching as "Claimed · fills
+     Mon 9:30 AM ET" until the run. If the claim wins, the trade removes it.
+   - The October status line "You own this" on Watching no longer occurs. "Owned by
+     {name}" stays.
+   - Its own migration and its own small pull request, on Opus with both reviewers (it
+     touches the tables every trade writes to). Its timestamp must be later than every
+     migration applied when it is pushed, or `db push` refuses it as out of order; the
+     Orchestrator picks it. It is pushed before build 18, and can share a push with the top
+     movers migration if both are merged by then.
+   - Tests: the three ways of coming to own a stock each remove the row; a sale removes a
+     stranded row; another manager's saved copy of the same stock is untouched; a save of a
+     held stock is refused on both insert paths; a trade still succeeds when there is no
+     row to remove.
 
 ### Risks
 

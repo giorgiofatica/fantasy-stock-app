@@ -1639,9 +1639,15 @@ building anything, and don't reopen a rule without him.
       no longer occur there.
     - The watchlist's server, live since 2026-11-23 (`20261209000000`), does not know this
       rule: it accepts a save of a stock the caller holds. It needs a change.
-    - NOT decided, and asked of him the same day with two drawings: what happens to a
-      watched stock when you buy it and later sell it (gone from the watchlist for good, or
-      back in it after the sale).
+    - **A watched stock you buy leaves your watchlist for good (A)** (the same day, two
+      drawings in the Planner's chat; typed there: "A"). After you sell it, it is an
+      ordinary free stock with an empty star; star it again to watch it again. B (hidden
+      while you own it, back in the watchlist after the sale, keeping its place among the
+      50) was not picked. The Planner's recommendation was A.
+      - Told to him with the drawings: A needs a small server change and one more database
+        push, because the server removes the stock when you come to own it; a stock can
+        become yours by a buy, by a claim that fills at the open, or by a draft pick, and
+        two of those can happen with the app closed.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
