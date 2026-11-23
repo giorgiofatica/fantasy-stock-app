@@ -155,4 +155,13 @@ export const COPY = {
   twoSlotsOpen: (labelA: string, labelB: string) => `Your ${labelA} and ${labelB} slots are open.`,
   manySlotsOpen: (n: number) => `${n} of your slots are open.`,
   everySlotFilled: 'Every slot is filled. Sell a holding to free one.',
+  // The Stocks tab's watchlist (board #call-stocks-tab-lists; Giorgio's "yes to all the words", 2026-11-22). Verbatim.
+  switchAvailable: 'Available',
+  switchWatching: 'Watching',
+  watchingEmpty: 'Star a stock to watch it here.',
+  // Approved in the October plan (2026-10-09): Save / Saved (the star), the status lines, the full-list refusal.
+  save: 'Save',
+  saved: 'Saved',
+  availableStatus: 'Available',
+  watchlistFull: 'Your watchlist is full (50). Remove one to add another.',
 };

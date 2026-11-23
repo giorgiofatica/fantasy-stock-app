@@ -8,6 +8,9 @@
  *
  * Game Night: rows like Portfolio's (the ticker disc, the ticker, the status line, the company, the price at 800,
  * tabular), no rule lines between them and no sparklines.
+ *
+ * THE STAR (watchlist, plan part 3): a result you can save carries the star at its right edge, outside the row's own button
+ * (two buttons never nest). `star` is absent for a stock you own and for one that is not in the league's list.
  */
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -20,13 +23,14 @@ import { formatMoney } from '@/components/sp/logic/money';
 import { useTheme } from '@/components/sp/ThemeProvider';
 import { ROW_TEXT_MAX_SCALE } from '@/components/money/HoldingRow';
 import { TickerBadge } from '@/components/sp/gn/TickerBadge';
+import { StarButton } from '@/components/stocks/StarButton';
 import { keepMoney } from '@/lib/game/keepDots';
 import type { OwnershipSuffix } from '@/lib/money/stockSearchOwnership';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
 
 /** One result: the disc, the ticker, the status on its own line, the company; the price. A
  * stock not in the league's list is dimmed with its reason and isn't a button at all. */
-export function SearchRow({ item, status, onPress }: { item: ShapedSearchResult; status: OwnershipSuffix; onPress: () => void }) {
+export function SearchRow({ item, status, star, onPress }: { item: ShapedSearchResult; status: OwnershipSuffix; star?: { saved: boolean; onPress: () => void }; onPress: () => void }) {
   const { colors } = useTheme();
   const off = !item.selectable;
   const label = [item.symbol, item.name, status.text, item.price != null ? formatMoney(item.price) : null].filter(Boolean).join(', ');
@@ -52,7 +56,7 @@ export function SearchRow({ item, status, onPress }: { item: ShapedSearchResult;
       {item.price != null ? (
         <Text variant="score.sm" maxFontSizeMultiplier={ROW_TEXT_MAX_SCALE} style={[styles.price, styles.bold, off ? styles.dim : null]}>{keepMoney(formatMoney(item.price))}</Text>
       ) : null}
-      {off ? <View style={styles.chevronSpace} /> : <Icon name="chevronRight" size="callout" tone="text2" />}
+      {off ? <View style={styles.chevronSpace} /> : star ? null : <Icon name="chevronRight" size="callout" tone="text2" />}
     </>
   );
   if (off) {
@@ -64,15 +68,27 @@ export function SearchRow({ item, status, onPress }: { item: ShapedSearchResult;
       </View>
     );
   }
+  if (!star) {
+    return (
+      <PressableScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.row} testID={`search-row-${item.symbol}`}>
+        {content}
+      </PressableScale>
+    );
+  }
   return (
-    <PressableScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.row} testID={`search-row-${item.symbol}`}>
-      {content}
-    </PressableScale>
+    <View style={styles.withStar}>
+      <PressableScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={[styles.row, styles.grow]} testID={`search-row-${item.symbol}`}>
+        {content}
+      </PressableScale>
+      <StarButton symbol={item.symbol} saved={star.saved} onPress={star.onPress} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: space[4], paddingVertical: space[3] },
+  withStar: { flexDirection: 'row', alignItems: 'center' },
+  grow: { flex: 1, minWidth: 0 },
   lead: { flex: 1, minWidth: 0, gap: space[1] },
   price: { flexShrink: 0 },
   chevronSpace: { width: 16 },

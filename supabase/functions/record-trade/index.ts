@@ -38,6 +38,12 @@
 //   instead of `symbol`/`price`, it answers would_fill per row, only for
 //   symbols on the caller's own watchlist in that league — preview-list.ts.
 //   A request without `rows` takes exactly the single path above.
+//   GATE + PACING (2026-11-23, plan part 3 point 7, preview-gate.ts): a preview
+//   naming a stock the buy would refuse as not_draftable answers that refusal
+//   and reads no category; one that does read a category (a stock named in a
+//   league with a category slot) is paced 200/hour and 500/day per person, on
+//   counters a buy or a sell never touches; past either it answers 200
+//   {ok:false, reason:'preview_limited'} (not the per-minute 429 rate_limited). The list applies the gate per row.
 //
 // CONCURRENCY (2026-10-05): validation runs here in TS, but the INSERT is
 //   record_trade_atomic — a league-wide lock + compare-and-swap of every
@@ -89,6 +95,7 @@ import {
   type TradeRequest,
   unhandled,
 } from './commit.ts';
+import { fetchDraftableAmong, fetchIsDraftable, paceCategoryPreview, previewRefusal } from './preview-gate.ts';
 import { MAX_PREVIEW_ROWS, parsePreviewRows, type PreviewRowAnswer, type PreviewRowRequest, previewRows } from './preview-list.ts';
 import {
   decideMarketGate,
@@ -223,6 +230,10 @@ async function readLedger(
   userId: string,
   withSlots: boolean,
   league: LeagueRow | null,
+  /** Preview only: run right before the named symbol's category read, and only
+   * when that read happens (preview-gate.ts paceCategoryPreview). A refusal
+   * returns instead of reading. A buy passes nothing and is never counted. */
+  beforeSymbolCategoryRead?: () => Promise<Step<null>>,
 ): Promise<Step<LedgerState>> {
   if (!league) {
     const { data, error } = await admin.from('leagues').select(LEAGUE_COLUMNS).eq('id', leagueId).maybeSingle();
@@ -269,7 +280,13 @@ async function readLedger(
     slots = (slotData ?? []) as SlotRow[];
     // Category eligibility only when this league has category slots.
     if (slots.some((s) => s.category_id != null)) {
-      if (symbol) eligibleCategories = await fetchEligibleCategoryIds(admin, symbol);
+      if (symbol) {
+        if (beforeSymbolCategoryRead) {
+          const paced = await beforeSymbolCategoryRead();
+          if (!paced.ok) return paced;
+        }
+        eligibleCategories = await fetchEligibleCategoryIds(admin, symbol);
+      }
       // A caller's UNATTRIBUTED held positions (pre-fix trade buys, or a deleted
       // slot) are placed by entry price + category, so their eligibility is
       // needed too — at most num_rounds symbols, three reads total. Global
@@ -391,10 +408,26 @@ Deno.serve(async (req: Request) => {
     if (memErr) return json({ ok: false, reason: 'unhandled' }, 500);
     if (!member) return json({ ok: false, reason: 'not_a_member' }, 403);
 
+    // ---- Preview gate: the buy's own not_draftable refusal ------------------
+    // A single preview naming a stock answers as the buy would (preview-gate.ts):
+    // a stock the buy would refuse as not_draftable gets that refusal, BEFORE the
+    // ledger read below, so its category is never read. Every league, slot-less
+    // included. A read error is a 500, never a guess either way.
+    if (action === 'preview' && symbol && !listRows) {
+      const d = await fetchIsDraftable(admin, symbol);
+      if (!d.ok) return json({ ok: false, reason: 'unhandled' }, 500);
+      const refused = previewRefusal(d.isDraftable, league as LeagueRow);
+      if (refused) return json(refused.body, refused.status);
+    }
+
     // ---- Positions (+ slots/eligibility for a buy) --------------------------
     // Slots are read for a buy (to validate) and for a preview (to report the
     // caller's slot map / the slot a buy would fill); a sell never reads them.
-    const first = await readLedger(admin, leagueId, symbol, user.id, action === 'buy' || action === 'preview', league as LeagueRow);
+    // A preview's category read of the named stock is paced (preview-gate.ts).
+    const first = await readLedger(
+      admin, leagueId, symbol, user.id, action === 'buy' || action === 'preview', league as LeagueRow,
+      action === 'preview' ? () => paceCategoryPreview(admin, user.id) : undefined,
+    );
     if (!first.ok) return json(first.reply.body, first.reply.status);
     const { picks, trades } = first.value;
 
@@ -438,7 +471,9 @@ Deno.serve(async (req: Request) => {
             }
             return { ok: true as const, saved: new Set((data ?? []).map((r: { symbol: unknown }) => String(r.symbol))) };
           },
-          // Saved symbols only (previewRows' order). Throws on a read error -> 500.
+          // Saved symbols only: the buy's draftable gate, per row (preview-gate.ts).
+          draftableAmong: (syms) => fetchDraftableAmong(admin, syms),
+          // Saved, gate-passing symbols only (previewRows' order). Throws on a read error -> 500.
           eligibilityFor: (syms) => fetchEligibleCategoryIdsBatch(admin, syms),
         });
         if (!answered.ok) return json(answered.reply.body, answered.reply.status);

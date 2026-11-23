@@ -30,9 +30,12 @@ export interface OpenOptions {
   /** M1: the tapped row's measured screen rect (measureInWindow), for the
    * row->header flying tile. Omitted, the sheet just rises with no tile. */
   originRect?: { x: number; y: number; width: number; height: number } | null;
+  /** The opener knows this stock cannot be bought in this league (notDraftableHere: the Watching row). The sheet then names it BEFORE the review. */
+  notDraftable?: boolean;
 }
 
 export interface NormalizedOpenOptions {
+  notDraftable: boolean;
   startReview: 'buy' | null;
   name: string | null;
   originRef: string | null;
@@ -41,10 +44,10 @@ export interface NormalizedOpenOptions {
 
 /** The second argument of open(): a legacy origin-ref string, an options object, or nothing. */
 export function normalizeOpenOptions(arg?: string | null | OpenOptions): NormalizedOpenOptions {
-  if (arg == null) return { name: null, originRef: null, originRect: null, startReview: null };
-  if (typeof arg === 'string') return { name: null, originRef: arg || null, originRect: null, startReview: null };
+  if (arg == null) return { name: null, originRef: null, originRect: null, startReview: null, notDraftable: false };
+  if (typeof arg === 'string') return { name: null, originRef: arg || null, originRect: null, startReview: null, notDraftable: false };
   const name = typeof arg.name === 'string' && arg.name.trim() ? arg.name.trim() : null;
-  return { name, originRef: arg.originRef ?? null, originRect: arg.originRect ?? null, startReview: arg.startReview === 'buy' ? 'buy' : null };
+  return { name, originRef: arg.originRef ?? null, originRect: arg.originRect ?? null, startReview: arg.startReview === 'buy' ? 'buy' : null, notDraftable: arg.notDraftable === true };
 }
 
 /**

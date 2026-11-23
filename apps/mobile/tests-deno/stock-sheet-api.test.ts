@@ -21,14 +21,14 @@ Deno.test('normalizeSymbol: refuses anything that is not a plausible symbol, nev
 });
 
 Deno.test('open(): the legacy origin-ref string still works (3c compatibility)', () => {
-  assertEquals(normalizeOpenOptions('row-42'), { name: null, originRef: 'row-42', originRect: null, startReview: null });
-  assertEquals(normalizeOpenOptions(), { name: null, originRef: null, originRect: null, startReview: null });
-  assertEquals(normalizeOpenOptions(null), { name: null, originRef: null, originRect: null, startReview: null });
+  assertEquals(normalizeOpenOptions('row-42'), { name: null, originRef: 'row-42', originRect: null, startReview: null, notDraftable: false });
+  assertEquals(normalizeOpenOptions(), { name: null, originRef: null, originRect: null, startReview: null, notDraftable: false });
+  assertEquals(normalizeOpenOptions(null), { name: null, originRef: null, originRect: null, startReview: null, notDraftable: false });
 });
 
 Deno.test('open(): the options object carries the name and the origin', () => {
-  assertEquals(normalizeOpenOptions({ name: '  NVIDIA Corp ', originRef: 'lineup-3' }), { name: 'NVIDIA Corp', originRef: 'lineup-3', originRect: null, startReview: null });
-  assertEquals(normalizeOpenOptions({ originRef: 'search' }), { name: null, originRef: 'search', originRect: null, startReview: null });
+  assertEquals(normalizeOpenOptions({ name: '  NVIDIA Corp ', originRef: 'lineup-3' }), { name: 'NVIDIA Corp', originRef: 'lineup-3', originRect: null, startReview: null, notDraftable: false });
+  assertEquals(normalizeOpenOptions({ originRef: 'search' }), { name: null, originRef: 'search', originRect: null, startReview: null, notDraftable: false });
 });
 
 Deno.test('open(): a blank name is no name, so the read still happens', () => {

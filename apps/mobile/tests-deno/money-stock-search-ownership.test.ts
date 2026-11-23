@@ -63,5 +63,6 @@ Deno.test('wiring: a not-in-list row dims only its disc and price, never its rea
   assertEquals(status.includes('dim'), false);
   // Still not a button: a plain View with the disabled state, and no chevron.
   assertEquals(row.includes("accessibilityState={{ disabled: true }} testID={`search-row-off-"), true);
-  assertEquals(row.includes('{off ? <View style={styles.chevronSpace} /> : <Icon name="chevronRight"'), true);
+  // (A starred row draws no chevron: the board's search rows have the star at the right edge and nothing after it.)
+  assertEquals(row.includes('{off ? <View style={styles.chevronSpace} /> : star ? null : <Icon name="chevronRight"'), true);
 });

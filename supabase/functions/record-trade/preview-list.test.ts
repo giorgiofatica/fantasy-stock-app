@@ -43,13 +43,24 @@ function state(over: Partial<LedgerState> = {}): LedgerState {
 }
 
 /** Fake reads that record every call, so a test can assert what was looked up. */
-function reads(saved: string[], opts: { savedError?: boolean; elig?: Record<string, string[]>; eligThrows?: boolean } = {}) {
-  const calls = { savedAmong: [] as string[][], eligibilityFor: [] as string[][] };
+function reads(
+  saved: string[],
+  opts: { savedError?: boolean; elig?: Record<string, string[]>; eligThrows?: boolean; undraftable?: string[]; draftError?: boolean } = {},
+) {
+  const calls = { savedAmong: [] as string[][], draftableAmong: [] as string[][], eligibilityFor: [] as string[][] };
   const r: RowReads = {
     savedAmong: (syms) => {
       calls.savedAmong.push([...syms]);
       if (opts.savedError) return Promise.resolve({ ok: false as const });
       return Promise.resolve({ ok: true as const, saved: new Set(saved) });
+    },
+    // Every symbol is draftable unless listed in `undraftable` (a missing
+    // catalog row reads the same way: absent from the set).
+    draftableAmong: (syms) => {
+      calls.draftableAmong.push([...syms]);
+      if (opts.draftError) return Promise.resolve({ ok: false as const });
+      const off = new Set(opts.undraftable ?? []);
+      return Promise.resolve({ ok: true as const, draftable: new Set(syms.filter((x) => !off.has(x))) });
     },
     eligibilityFor: (syms) => {
       calls.eligibilityFor.push([...syms]);
@@ -179,7 +190,7 @@ Deno.test('previewRows: a league with NO slots -> every row null, and no read at
   const { r, calls } = reads(['AAPL']);
   const res = await previewRows(state({ slots: [] }), ME, [row('AAPL', 150), row('MSFT', 20)], r);
   assertEquals(res, { ok: true, value: [null, null] });
-  assertEquals(calls, { savedAmong: [], eligibilityFor: [] });
+  assertEquals(calls, { savedAmong: [], draftableAmong: [], eligibilityFor: [] });
   // slots: null (as a sell's ledger would carry) reads the same
   const res2 = await previewRows(state({ slots: null }), ME, [row('AAPL', 150)], r);
   assertEquals(res2, { ok: true, value: [null] });
@@ -189,7 +200,7 @@ Deno.test('previewRows: every price missing -> every row null, and no read at al
   const { r, calls } = reads(['AAPL']);
   const res = await previewRows(state(), ME, [row('AAPL', null), row(null, 5)], r);
   assertEquals(res, { ok: true, value: [null, null] });
-  assertEquals(calls, { savedAmong: [], eligibilityFor: [] });
+  assertEquals(calls, { savedAmong: [], draftableAmong: [], eligibilityFor: [] });
 });
 
 Deno.test('previewRows: a watchlist READ ERROR is the preview\'s 500, never a page of nulls that reads as "Available"', async () => {
@@ -213,6 +224,58 @@ Deno.test('previewRows: the answer is aligned with the request — same order, s
   assertEquals(res.value[1]?.price, 150);
   assertEquals(res.value[2]?.price, 250);
   assertEquals(res.value[3], null);
+});
+
+// ---------------------------------------------------------------------------
+// previewRows: the buy's own draftable gate, per row (plan part 3 point 7)
+// ---------------------------------------------------------------------------
+
+Deno.test('previewRows: a SAVED symbol the buy would refuse as not_draftable gets null, and its category is never read', async () => {
+  const { r, calls } = reads(['AAPL', 'PENNY'], { undraftable: ['PENNY'], elig: { AAPL: [TECH], PENNY: [TECH] } });
+  const res = await previewRows(state({ slots: [CAT, FLEX], picks: [] }), ME, [row('AAPL', 150), row('PENNY', 2)], r);
+  assert(res.ok);
+  assertEquals(res.value[0]?.would_fill?.slot_id, CAT.id);
+  assertEquals(res.value[1], null);
+  assertEquals(calls.draftableAmong, [['AAPL', 'PENNY']], 'the gate is asked about saved symbols only');
+  assertEquals(calls.eligibilityFor, [['AAPL']], 'PENNY is refused by the gate: no category read');
+});
+
+Deno.test('previewRows: the gate is asked only about SAVED symbols (never a requested string the caller has not saved)', async () => {
+  const { r, calls } = reads(['AAPL']);
+  await previewRows(state(), ME, [row('AAPL', 150), row('TSLA', 150)], r);
+  assertEquals(calls.draftableAmong, [['AAPL']]);
+});
+
+Deno.test('previewRows: in a full-universe league (allow_undraftable) a not-draftable saved stock IS answered', async () => {
+  const st = state({ slots: [CAT, FLEX], picks: [] });
+  st.league = { ...st.league, allow_undraftable: true };
+  const { r, calls } = reads(['PENNY'], { undraftable: ['PENNY'], elig: { PENNY: [TECH] } });
+  const res = await previewRows(st, ME, [row('PENNY', 2)], r);
+  assert(res.ok);
+  assertEquals(res.value[0]?.would_fill?.slot_id, CAT.id);
+  assertEquals(calls.eligibilityFor, [['PENNY']]);
+});
+
+Deno.test('previewRows: the gate refuses in a price-tier league too (the preview answers as the buy would)', async () => {
+  const { r } = reads(['AAPL', 'PENNY'], { undraftable: ['PENNY'] });
+  const res = await previewRows(state(), ME, [row('AAPL', 150), row('PENNY', 150)], r);
+  assert(res.ok);
+  assert(res.value[0] !== null);
+  assertEquals(res.value[1], null);
+});
+
+Deno.test('previewRows: every saved symbol refused by the gate -> every row null, and no category read', async () => {
+  const { r, calls } = reads(['PENNY'], { undraftable: ['PENNY'] });
+  const res = await previewRows(state({ slots: [CAT, FLEX] }), ME, [row('PENNY', 2)], r);
+  assertEquals(res, { ok: true, value: [null] });
+  assertEquals(calls.eligibilityFor, []);
+});
+
+Deno.test('previewRows: a draftable READ ERROR is the preview\'s 500, never a page of nulls or an ungated answer', async () => {
+  const { r, calls } = reads(['AAPL'], { draftError: true });
+  const res = await previewRows(state({ slots: [CAT, FLEX] }), ME, [row('AAPL', 150)], r);
+  assertEquals(res, { ok: false, reply: { status: 500, body: { ok: false, reason: 'unhandled' } } });
+  assertEquals(calls.eligibilityFor, []);
 });
 
 // ---------------------------------------------------------------------------

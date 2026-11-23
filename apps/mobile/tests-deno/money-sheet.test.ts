@@ -9,7 +9,7 @@
  *   - market closed → both actions disabled, with the open time.
  *   - unknown price → the action is disabled, never a $0 figure.
  */
-import { assertEquals } from 'jsr:@std/assert';
+import { assert, assertEquals } from 'jsr:@std/assert';
 import { stockSheetModel, type StockSheetInput } from '../lib/money/stockSheetModel.ts';
 
 const BASE: StockSheetInput = {
@@ -236,4 +236,56 @@ Deno.test('the sheet body feeds the model the one predicate (isSeasonOver), neve
   for (const t of ['{held && model.controlsShown ? (', '{model.controlsShown ? (\n      <View style={styles.actionWrap}>', '{model.controlsShown && warnBlock ?']) {
     if (!s.includes(t)) throw new Error(`controlsShown gate missing: ${t}`);
   }
+});
+
+// ── a stock that is not in this league's list: the buy is named BEFORE the review (the Watching row's "Not in this league's list"; DL ruling, 2026-11-23) ──
+import { notDraftableHere } from '../lib/money/draftable.ts';
+import { COPY } from '../lib/money/moneyCopy.ts';
+import { normalizeOpenOptions, shouldStartReview } from '../lib/money/stockSheetApi.ts';
+import { SOURCES as SHEET_SOURCES } from './sourceManifest.generated.ts';
+
+Deno.test('not_draftable: the buy is blocked before the review, with the server\'s own refusal words, and the sheet is otherwise unchanged', () => {
+  const m = stockSheetModel({ ...BASE, notDraftable: true });
+  assertEquals(m.buy, { enabled: false, reason: "NVDA isn't in this league's list of stocks.", blockedBy: 'not_draftable' });
+  assertEquals(m.buy.reason, COPY.notDraftableSymbol('NVDA'));
+  assertEquals(m.controlsShown, true); // the button is drawn (disabled), not removed
+  assertEquals(m.todayChange, stockSheetModel(BASE).todayChange); // price and change stay
+  assertEquals(stockSheetModel({ ...BASE, notDraftable: false }).buy.blockedBy, null);
+});
+
+Deno.test('not_draftable: it holds while the market is closed or the price is missing (the panel shows; Claim will sit under it), and yields to who holds it', () => {
+  const closed = stockSheetModel({ ...BASE, notDraftable: true, gate: { open: false, opensLabel: 'Mon 9:30 AM ET' } });
+  assertEquals(closed.buy.blockedBy, 'not_draftable');
+  assertEquals(stockSheetModel({ ...BASE, notDraftable: true, price: null }).buy.blockedBy, 'not_draftable');
+  assertEquals(stockSheetModel({ ...BASE, notDraftable: true, owner: { kind: 'other', name: 'Paolo M.', isBot: false } }).buy.blockedBy, 'owned');
+  assertEquals(stockSheetModel({ ...BASE, notDraftable: true, held: { quantity: 2 } }).buy.blockedBy, 'held');
+  // a finished season draws no control at all, as ever
+  assertEquals(stockSheetModel({ ...BASE, notDraftable: true, gate: { open: true, seasonOver: true } }).controlsShown, false);
+});
+
+Deno.test('not_draftable: one shared test (is_draftable false AND allow_undraftable false); a full-universe league is never blocked', () => {
+  assertEquals(notDraftableHere(false, false), true);
+  assertEquals(notDraftableHere(false, true), false); // allow_undraftable true: not blocked
+  assertEquals(notDraftableHere(true, false), false);
+  // the Watching row opens the sheet with THAT function's verdict, and nothing copies the test
+  const watching = SHEET_SOURCES['components/stocks/WatchingList.tsx'];
+  assert(/notDraftable: notDraftableHere\(r\.isDraftable, allowUndraftable\)/.test(watching));
+  for (const [path, src] of Object.entries(SHEET_SOURCES)) {
+    if (path === 'lib/money/draftable.ts') continue;
+    assert(!/!isDraftable && !allowUndraftable|!input\.isDraftable && !input\.allowUndraftable/.test(src), `${path} copies the not-draftable test`);
+  }
+});
+
+Deno.test('not_draftable: the sheet shows the refusal panel above a DISABLED Review buy (the E-3 pattern), through the opener\'s option', () => {
+  const body = SHEET_SOURCES['components/money/StockSheetBody.tsx'];
+  assert(/model\.buy\.blockedBy === 'not_draftable'\)/.test(body), 'the panel condition includes not_draftable');
+  assert(/<WarnPanel text=\{keepMoney\(warnBlock\)\} \/>/.test(body));
+  assert(/disabled=\{!\(canReview && gate\.open\)\}/.test(body), 'Review buy is disabled when the model blocks it');
+  assert(/stockSheetModel\(\{\s*symbol,\s*notDraftable,/.test(body));
+  assert(/notDraftable=\{current\.notDraftable\}/.test(SHEET_SOURCES['components/money/MoneyHost.tsx']));
+  assertEquals(normalizeOpenOptions({ notDraftable: true }).notDraftable, true);
+  assertEquals(normalizeOpenOptions('stocks-row').notDraftable, false);
+  assertEquals(normalizeOpenOptions(null).notDraftable, false);
+  // an untradable stock never starts a review by itself (the buy is not enabled)
+  assertEquals(shouldStartReview('buy', true, stockSheetModel({ ...BASE, notDraftable: true }).buy.enabled, true), false);
 });

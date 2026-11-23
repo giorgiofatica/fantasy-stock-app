@@ -194,7 +194,7 @@ const SITE_COUNTS: Record<string, number> = {
   'components/money/PortfolioScreen.tsx': 2, 'components/money/SalePicker.tsx': 1,
   'components/money/StockSheetBody.tsx': 4, 'components/money/TradeHistoryScreen.tsx': 2, 'components/money/TradeReviewPanel.tsx': 5,
   'components/sp/gn/ManagerRow.tsx': 4, 'components/sp/gn/PlayerCard.tsx': 1, 'components/sp/gn/Scoreboard.tsx': 1,
-  'components/stocks/SearchRow.tsx': 1, 'components/stocks/StocksScreen.tsx': 1,
+  'components/stocks/SearchRow.tsx': 1, 'components/stocks/StocksScreen.tsx': 1, 'components/stocks/WatchingList.tsx': 2,
 };
 
 Deno.test('every wrapping site is wired: the exact keepMoney( count per file, and no other file uses it', () => {

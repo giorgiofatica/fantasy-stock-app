@@ -13,6 +13,15 @@
  *   noprice      the live quote answers no prices (a row's "–")
  *   proceeds     the fixed-notional preview names one open sale, so a buy is possible (a CLEAN "+" -> buy review; recordTrade.ts)
  *   small        pages of 6 rows, so a page's foot is on screen (the foot states, E6/E7, without a scroll)
+ * The watchlist (plan part 3; the in-memory saved set starts with WATCH_SEED, and a star changes it as the server would):
+ *   watchempty   nothing saved ("Star a stock to watch it here.")
+ *   watchfail    the watchlist read fails (Watching's load failure; every star reads empty)
+ *   watchloading the watchlist read never answers (Watching's skeleton)
+ *   savefull     every save answers watchlist_full (the 51st: the star reverts, the sheet's panel says why)
+ *   saverate     every save answers rate_limited (the star reverts; no words)
+ *   savefail     every save fails with a transport-shaped error (the star reverts; no words)
+ *   savehang     a save never answers (the optimistic star, held, for a still)
+ *   nolist       the slot lines' list preview fails (the rows keep the interim lines)
  * Combine with a comma ("page2_fail,noprice").
  */
 import type { ChipCategory } from './stocksList';
@@ -68,12 +77,23 @@ export interface StocksKnob {
   noPrice: boolean;
   small: boolean;
   proceeds: boolean;
+  watchEmpty: boolean;
+  watchFail: boolean;
+  watchLoading: boolean;
+  saveFull: boolean;
+  saveRate: boolean;
+  saveFail: boolean;
+  saveHang: boolean;
+  noList: boolean;
 }
 
 /** Pure: the knob's flags (a comma-separated list; unknown words are ignored). */
 export function parseStocksKnob(raw: string | null | undefined): StocksKnob {
   const set = new Set((raw ?? '').split(',').map((s) => s.trim().toLowerCase()));
-  return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small'), proceeds: set.has('proceeds') };
+  return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small'), proceeds: set.has('proceeds'),
+    watchEmpty: set.has('watchempty'), watchFail: set.has('watchfail'), watchLoading: set.has('watchloading'),
+    saveFull: set.has('savefull'), saveRate: set.has('saverate'), saveFail: set.has('savefail'), saveHang: set.has('savehang'), noList: set.has('nolist'),
+  };
 }
 
 type ReadResult = { data: unknown; error: { message: string; code?: string } | null };
@@ -111,4 +131,107 @@ export function seamStocksRead(args: Record<string, unknown>, knob: StocksKnob):
 /** Test hook: forget that page2_fail has fired. */
 export function resetSeamStocks(): void {
   page2Failed = false;
+}
+
+// ── The watchlist (plan part 3) ─────────────────────────────────────────────────────────────────
+
+/** The saved stocks a capture starts with: [symbol, name, category id, is_draftable]. The catalogue's AVGO is starred on Available; SQ is a delisted name ("Not in this league's list"). */
+const WATCH_SEED: readonly [string, string, string, boolean][] = [
+  ['AVGO', 'Broadcom', 'cat-tech', true],
+  ['AMGN', 'Amgen', 'cat-health', true],
+  ['COST', 'Costco', 'cat-retail', true],
+  ['LOW', "Lowe's", 'cat-retail', true],
+  ['SQ', 'Block', 'cat-finance', false],
+];
+
+let watchSaved: string[] | null = null;
+const watchNames = new Map<string, [string, string, boolean]>(WATCH_SEED.map(([s, n, c, d]) => [s, [n, c, d]]));
+
+function savedSet(knob: StocksKnob): string[] {
+  if (watchSaved === null) watchSaved = knob.watchEmpty ? [] : WATCH_SEED.map(([s]) => s);
+  return watchSaved;
+}
+
+/** The watchlist read: the saved set, newest save first (the reader's order); `null` = never answers. */
+export function seamWatchlistRead(knob: StocksKnob): ReadResult | null {
+  if (knob.watchLoading) return null;
+  if (knob.watchFail) return { data: null, error: { message: 'fixture: the watchlist read failed', code: 'FIXTURE' } };
+  const saved = savedSet(knob);
+  const now = Date.parse('2026-11-23T18:00:00Z');
+  const rows = saved.map((symbol, i) => {
+    const cat = CATALOGUE.find(([s]) => s === symbol);
+    const seeded = watchNames.get(symbol);
+    return {
+      symbol,
+      name: cat ? cat[1] : (seeded?.[0] ?? symbol),
+      category_ids: [cat ? cat[2] : (seeded?.[1] ?? 'cat-misc')],
+      is_draftable: seeded ? seeded[2] : true,
+      saved_at: new Date(now - i * 60_000).toISOString(),
+    };
+  });
+  return { data: rows, error: null };
+}
+
+/** The write: the knob's refusal, else the saved set changes as the server's would (and answers ok with the count). `null` = never answers. */
+export function seamWatchlistWrite(args: Record<string, unknown>, knob: StocksKnob): ReadResult | null {
+  if (knob.saveHang) return null;
+  if (knob.saveFail) return { data: null, error: { message: 'fixture: the save failed', code: 'FIXTURE' } };
+  if (knob.saveFull) return { data: { ok: false, reason: 'watchlist_full', max: 50 }, error: null };
+  if (knob.saveRate) return { data: { ok: false, reason: 'rate_limited' }, error: null };
+  const symbol = String(args.p_symbol ?? '').toUpperCase();
+  const saved = savedSet(knob);
+  const next = args.p_saved === true ? (saved.includes(symbol) ? saved : [symbol, ...saved]) : saved.filter((x) => x !== symbol);
+  watchSaved = next;
+  return { data: { ok: true, saved: args.p_saved === true, count: next.length }, error: null };
+}
+
+/** Test hook: forget the in-memory saved set. */
+export function resetSeamWatchlist(): void {
+  watchSaved = null;
+}
+
+/**
+ * The single-symbol lookup (`ticker-quotes`) the Watching rows read: price and previous close. The change is a deterministic
+ * per-symbol figure between -2.4% and +2.4% (so captures are repeatable); SQ answers an error ("–", no change line); `noprice` answers none.
+ */
+export function seamTickerQuote(symbol: string, knob: StocksKnob): ReadResult {
+  const s = symbol.toUpperCase();
+  if (knob.noPrice || s === 'SQ') return { data: null, error: { message: 'fixture: no quote', code: 'FIXTURE' } };
+  const price = seamStockPrices()[s];
+  if (price === undefined) return { data: null, error: { message: 'fixture: unknown symbol', code: 'FIXTURE' } };
+  let h = 7;
+  for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 997;
+  const pct = ((h % 49) - 24) / 10;
+  return { data: { symbol: s, price, prevClose: Math.round((price / (1 + pct / 100)) * 100) / 100 }, error: null };
+}
+
+/**
+ * record-trade's LIST preview (PR #600) as the capture seam answers it: a tier league with three price slots ($100-$200, $200-$400, $400 or more),
+ * the third FULL. A priced row under $400 fits its slot; one at $400 or more gets would_fill null (no room); a symbol that is not asked with a
+ * usable price is null. `nolist` makes the call fail (the rows keep the interim lines).
+ */
+export function seamListPreview(body: Record<string, unknown>, knob: StocksKnob): ReadResult {
+  if (knob.noList) return { data: null, error: { message: 'fixture: the list preview failed', code: 'FIXTURE' } };
+  const slot = (i: number, min: number | null, max: number | null) => ({ slot_id: `seam-slot-${i}`, slot_index: i, slot_count: 3, price_min: min, price_max: max, category_id: null });
+  const low = slot(0, 100, 200);
+  const mid = slot(1, 200, 400);
+  const high = slot(2, 400, null);
+  const rows = Array.isArray(body.rows) ? (body.rows as { symbol?: unknown; price?: unknown }[]) : [];
+  return {
+    data: {
+      ok: true,
+      stake_mode: 'price_tiers',
+      sources: [],
+      slots: [{ ...low, held: [], open: 1 }, { ...mid, held: [], open: 1 }, { ...high, held: ['NVDA'], open: 0 }],
+      unplaced: [],
+      rows: rows.map((r) => {
+        const symbol = typeof r.symbol === 'string' ? r.symbol : '';
+        const price = typeof r.price === 'number' ? r.price : NaN;
+        if (!symbol || !Number.isFinite(price) || price <= 0) return null;
+        if (price >= 400) return { symbol, price, would_fill: null, open_slots: [low, mid] };
+        return { symbol, price, would_fill: price < 200 ? low : mid };
+      }),
+    },
+    error: null,
+  };
 }

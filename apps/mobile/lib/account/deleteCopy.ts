@@ -3,6 +3,8 @@
 // "Decided"). Pure, so tests-deno pins them. The seat's label is NOT here: it is the server's
 // (lib/account/deletedSeat.ts), and these lines take it as a parameter.
 
+import { TOO_MANY_TRIES_LATER } from '../tooManyTries';
+
 export const DELETE_ROW = 'Delete account'; // Profile's last row
 export const DELETE_TITLE = 'Delete your account?';
 export const DELETE_LEAD = 'This deletes your account right away.';
@@ -24,7 +26,7 @@ export const PASSWORD_WRONG = "That password isn't right. Try again.";
 /** NEW (same ruling; an Apple / Google bad_proof, under the provider button). */
 export const PROOF_UNCONFIRMED = "Couldn't confirm it's you. Try again.";
 /** NEW (same ruling; the proof rate limit, and a takeover code lockout: never understate an hour's lockout). */
-export const TRY_LATER = 'Too many tries. Try again later.';
+export const TRY_LATER = TOO_MANY_TRIES_LATER; // hoisted to lib/tooManyTries.ts (shared with the buy review)
 
 export const DELETE_FAILED = "Couldn't delete your account. Try again.";
 export const ACCOUNT_DELETED = 'Your account is deleted.'; // Sign in, once
