@@ -42,14 +42,14 @@ Entries begin with the Recorder's first pass.
 
 - **THE ORDER (Giorgio, typed to the Planner 2026-11-22; #591, open): "I would actually want to get those four elements in the build. And then from there, we do the build and then we do the upgrade."** His earlier pick "A" (build 18 first, then the upgrade) stands, extended by the four elements. He also corrected the Planner: "That's not my own reasoning." (recorded in #591).
 
-- **TRENDING IS "B": today's top movers across the whole market (Giorgio, typed to the Planner 2026-11-22 after A/B mockups; #591, open).** A (most bought or claimed in seven days, our own data) and "A now, B later" were not picked. He was told B needs a current price for every stock, so build 18 waits on the supplier. That does not send the enquiry: his 2026-11-19 words stand, nobody contacts a supplier until he says so. The watchlist and the claims do not depend on a supplier (the Orchestrator's account).
+- **TRENDING IS "B": today's top movers, built from the current source over a defined set (Giorgio, typed to the Planner 2026-11-22; #591, open, at its rewritten head).** A (most bought or claimed in seven days) and "A now, B later" were not picked. **CORRECTION: I first recorded that the pick put the price supplier on build 18's critical path; that was wrong.** He questioned it, the Planner read the code and he was right: `quote` already computes the change from the snapshot (I checked `quote/index.ts`) and `enrich-symbols` already pulls batched snapshots. He approved ("this works"): rank a defined set (for example the 500 largest companies, by the size we already hold), skip any stock whose latest trade is too old, refresh every few minutes while the market is open. Only the whole market would need a supplier. The supplier enquiry stays unsent and his to send ("we wont send out yet ill ask when ready").
 
 **Found**
 - **STATUS item 37 is CLOSED, with a limit (the Orchestrator's account of Giorgio's read-only query of 2026-11-22; I ran nothing):** `not_recorded` 78 (the backfill), `dollar_gain` 8, no NULL row. So a real run after the 2026-11-20 deploy scored 8 matchups and wrote a reason on each. **All 8 are `dollar_gain`: no tiebreak, no-stocks or seed reason has been written in prod yet (tests only), and the percent columns were not read.**
 - **A correction:** prod is not only finished test leagues. 8 matchups were scored, so at least one league is in season; which league is unread. `CLAUDE.md`'s dated 2026-09-24 line about test leagues is now out of date and is not mine to edit (STATUS item 39).
 
 **Waiting on Giorgio**
-- **The supplier enquiry (his to send; on the critical path for build 18 now that trending is picked; the Planner is asking him whether he is ready)**; his decision on re-sorting (none yet), and the small open points on trending (chip name and place, number of rows, league-only).
+- The supplier enquiry (his to send, when ready; it is NOT on build 18's path); his decision on re-sorting (none yet), and the small open points on trending (chip name and place, number of rows, league-only).
 
 **Next**
 - **Build 18 now waits only on Giorgio's word to cut it** (the Planner is asking him; the Orchestrator's account) (superseded the same evening, below).
