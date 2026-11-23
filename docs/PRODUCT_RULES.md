@@ -1567,6 +1567,32 @@ building anything, and don't reopen a rule without him.
   - **The plan for the three that are built is approved** (2026-11-22): Part 3 of
     `docs/plans/2026-11-18-stocks-tab.md` (the watchlist, claims and top movers). His
     words: "Yeah, that plan looks good. Let's implement it."
+  - **The words on the Stocks tab's lists are approved** (2026-11-22 Pacific, the Design
+    Lead's board `#call-stocks-tab-lists`, branch `design/stocks-tab-lists-1122`; typed in
+    the Design Lead's chat, read there by the Planner: "yes to all the words"). The board
+    listed seven new words "for your yes (strike any you don't want)":
+    - **"Available"**: the first view of the switch (the stocks nobody in the league owns).
+    - **"Watching"**: the second view (your saved stocks in this league).
+    - **"Top movers"**: the chip under Available.
+    - **"Star a stock to watch it here."**: Watching, when nothing is saved.
+    - **"No claims pending."**: Claims, when you have none.
+    - **"+11.2% Fri"**: a mover's or a saved stock's change while the market is closed,
+      the last session's change named by its day (the same "Fri" as "at Fri close").
+    - **"MON 9:30 AM ET"**: the small label over the endings in Claims.
+    - Reused, already approved: Claim, Claims, Save, Saved, Waiver order, Pending, Cancel,
+      the status lines, the composer's words and the three endings (the October plan,
+      2026-10-09), and "Stocks didn't load", "Check your connection, then try again.",
+      "Try again", "Market's closed. Opens Mon 9:30 AM ET." (in the app today).
+    - His yes was to the words. Two things the board drew and explained without asking,
+      which are the Design Lead's rulings and not his picks:
+      - A claim is the palette's rust brown (the Retail category's colour). His
+        2026-11-18 pick was a plus that is "brown after the close (a claim)"; the brown
+        drawn then was the warning colour, which became teal on 2026-11-19.
+      - The league's waiver order is the first row of Claims ("You're 3rd of 6 in the
+        waiver order"), and a tap shows the whole order. This settles the plan's open
+        question 3.
+    - Also settled by the board: Top movers while the market is closed takes no extra
+      line; the day goes on the figure ("+11.2% Fri").
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
