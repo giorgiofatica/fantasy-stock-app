@@ -2,22 +2,22 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "04291bf2a11ccb64e54e617ffe2774c6b391c8ff",
-    "commitShort": "04291bf2",
+    "commit": "d1599e20ad5162f4759d5329a034e787fabb9cec",
+    "commitShort": "d1599e20",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/claims-server",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/index.ts"
+        "path": "supabase/functions/claims-run/plan.test.ts"
       },
       {
         "code": "M",
-        "path": "supabase/migrations/20261211000000_claims.sql"
+        "path": "supabase/functions/claims-run/plan.ts"
       }
     ],
-    "timestamp": "2026-11-23T23:07:40Z",
+    "timestamp": "2026-11-23T23:10:49Z",
     "sourceHash": "sha256:25307ddd55745332982613cf7b4cbce37eddebb03f51ded116fb8e24151a6b9b",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1

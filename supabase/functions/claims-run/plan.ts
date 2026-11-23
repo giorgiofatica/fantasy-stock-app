@@ -6,8 +6,8 @@
 //
 // THE RULES IT APPLIES, and where each comes from:
 //   * Order (point 9 of the plan's "Settled during the build", binding): a LIVE queue. Each time,
-//     the manager nearest the front who still has a claim waiting has their earliest-placed claim
-//     processed (placed_at, then id). A claim that FILLS sends that manager to the back AT ONCE,
+//     the manager nearest the front who still has a claim waiting has their FIRST claim processed
+//     (managerClaimOrder: today the earliest placed, then the id). A claim that FILLS sends that manager to the back AT ONCE,
 //     inside the run, so their next claim is judged from the back; a failed or lost claim moves
 //     nobody. commit_claims_run replays the same moves (won outcomes are passed in win order).
 //   * A contested stock goes to the first claimant in that walk whose claim can be FILLED. One whose
@@ -60,6 +60,16 @@ export const HOLD_MS = 10 * 60_000;
 //   2. onMissedDay         a claim whose day passed with no run (here)
 //   3. readClaimDraftability  the is_draftable read the not_draftable test runs on (deps.ts)
 // ---------------------------------------------------------------------------------------------
+
+/**
+ * WHICH OF A MANAGER'S CLAIMS GOES FIRST, in ONE place: a comparator over one manager's claims
+ * (the run only ever compares claims of the same manager with it). Today: the earliest placed, then
+ * the id. A manager-ordered rank (the manager orders their own claims, ESPN-style) is a later PR;
+ * it changes this function only.
+ */
+export function managerClaimOrder(a: ClaimRow, b: ClaimRow): number {
+  return (a.placed_at < b.placed_at ? -1 : a.placed_at > b.placed_at ? 1 : 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
 
 /**
  * SEAM 1: what a claim does while a stock it needs has no price. 'wait' holds the league's run
@@ -195,10 +205,8 @@ export function planLeague(input: PlanInput): PlanResult {
   // missing from the order (never expected: the run heals the order first) queues behind it, by id.
   const queue: string[] = [...input.order].sort((a, b) => a.position - b.position).map((o) => o.user_id);
   for (const u of [...new Set(due.map((c) => c.user_id))].sort()) if (!queue.includes(u)) queue.push(u);
-  const byPlaced = (a: ClaimRow, b: ClaimRow) =>
-    (a.placed_at < b.placed_at ? -1 : a.placed_at > b.placed_at ? 1 : 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   const waiting = new Map<string, ClaimRow[]>();
-  for (const c of [...due].sort(byPlaced)) {
+  for (const c of [...due].sort(managerClaimOrder)) {
     const list = waiting.get(c.user_id);
     if (list) list.push(c);
     else waiting.set(c.user_id, [c]);

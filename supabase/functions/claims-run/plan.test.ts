@@ -6,7 +6,7 @@
 import { assert, assertEquals } from 'jsr:@std/assert';
 import type { DraftRow, LeagueRow, SlotRow } from '../record-trade/commit.ts';
 import type { TradeRow } from '../_shared/draft-validation.ts';
-import { type ClaimRow, HOLD_MS, onMissedDay, onMissingPrice, type PlanInput, PRICE_WAIT_MS, planLeague } from './plan.ts';
+import { type ClaimRow, HOLD_MS, managerClaimOrder, onMissedDay, onMissingPrice, type PlanInput, PRICE_WAIT_MS, planLeague } from './plan.ts';
 
 const A = 'aaaaaaaa-0000-4000-8000-000000000001';
 const B = 'bbbbbbbb-0000-4000-8000-000000000002';
@@ -290,4 +290,12 @@ Deno.test('SEAM 1 in the plan: past the wait only THAT claim fails no_price; the
 Deno.test('SEAM 2 onMissedDay: today, failed missed_run with the day it was due', () => {
   const c = claim(B, 'AAPL', null, { run_date: '2026-12-11' });
   assertEquals(onMissedDay(c), { claim_id: c.id, status: 'failed', reason: 'missed_run', detail: { due_date: '2026-12-11' } });
+});
+
+Deno.test('managerClaimOrder: one manager\'s claims, earliest placed first, then id (the one place a rank would change)', () => {
+  const late = claim(A, 'AAPL', null, { placed_at: '2026-12-12T22:00:00Z' });
+  const early = claim(A, 'MSFT', null, { placed_at: '2026-12-12T21:00:00Z' });
+  const tieA = { ...claim(A, 'NVDA', null, { placed_at: '2026-12-12T23:00:00Z' }), id: 'a' };
+  const tieB = { ...claim(A, 'XA', null, { placed_at: '2026-12-12T23:00:00Z' }), id: 'b' };
+  assertEquals([late, tieB, early, tieA].sort(managerClaimOrder).map((c) => c.symbol), ['MSFT', 'AAPL', 'NVDA', 'XA']);
 });
