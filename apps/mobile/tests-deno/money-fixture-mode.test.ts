@@ -80,7 +80,7 @@ Deno.test('the league settings per stake mode', () => {
   assertEquals(fixtureLeague('price_tiers').stake_mode, 'price_tiers');
 });
 
-// E-1/E-2 (3e UX audit stills): the stock-search screen's own fixture scenarios.
+// E-1/E-2 (3e UX audit stills): the search fixture's own scenarios (the Stocks tab's search reads them).
 Deno.test('searchFixtureBehavior: search_fail answers every attempt as a failure', () => {
   assertEquals(searchFixtureBehavior('search_fail'), { kind: 'fail' });
 });

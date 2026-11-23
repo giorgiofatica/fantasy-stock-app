@@ -4,7 +4,7 @@
  */
 import { assertEquals } from 'jsr:@std/assert';
 import { ownershipSuffix } from '../lib/money/stockSearchOwnership.ts';
-import searchScreenSrc from '../components/money/StockSearchScreen.tsx' with { type: 'text' };
+import searchRowSrc from '../components/stocks/SearchRow.tsx' with { type: 'text' };
 
 Deno.test('(a) mine: "You own this", mine is true', () => {
   assertEquals(ownershipSuffix({ kind: 'me' }, false), { text: 'You own this', mine: true });
@@ -29,17 +29,17 @@ Deno.test('a ledger conflict (more than one owner): no suffix, never a guess', (
 
 // C-2 (Design Lead gate): the status is its own line, never joined onto the
 // company name where a long name would truncate it with it, and `mine`
-// actually drives the colour. StockSearchScreen.tsx is a React Native
+// actually drives the colour. SearchRow.tsx (the Stocks tab's search row) is a React Native
 // component and isn't Deno-testable directly; this is a source guard, the
 // same pattern used elsewhere in this suite (e.g. the C-1 quiet-wiring test).
 Deno.test('wiring: the search row never rejoins the ownership text onto the company name', () => {
-  assertEquals(searchScreenSrc.includes('${item.name} · ${suffix}'), false);
+  assertEquals(searchRowSrc.includes('${item.name} · ${suffix}'), false);
   // W4 (Game Night row): the status is its own <Text> line, between the ticker and the company.
-  assertEquals(searchScreenSrc.includes('testID="search-row-status"'), true);
+  assertEquals(searchRowSrc.includes('testID="search-row-status"'), true);
 });
 
 Deno.test("wiring: the search row colours 'You own this' with the mine flag, not a fixed tone", () => {
-  assertEquals(searchScreenSrc.includes('status.mine ? colors.youText'), true);
+  assertEquals(searchRowSrc.includes('status.mine ? colors.youText'), true);
 });
 
 Deno.test('W4: a free stock when every slot is held reads "No free slot"; owners still win', () => {
@@ -54,7 +54,7 @@ Deno.test('W4: a free stock when every slot is held reads "No free slot"; owners
 // W4 DL gate: "Not in this league's list" — the row isn't a button; only the disc and the price
 // dim, the reason stays in text2 at FULL opacity (dimmed, it read 2.44:1 / 2.04:1).
 Deno.test('wiring: a not-in-list row dims only its disc and price, never its reason', () => {
-  const row = searchScreenSrc.slice(searchScreenSrc.indexOf('function SearchRow'));
+  const row = searchRowSrc.slice(searchRowSrc.indexOf('function SearchRow'));
   assertEquals(row.includes('<TickerBadge symbol={item.symbol} style={off ? styles.dim : null} />'), true);
   assertEquals(row.includes('off ? styles.dim : null]}>{keepMoney(formatMoney(item.price))}'), true);
   // The whole-row opacity is gone, and the status Text carries no dim.

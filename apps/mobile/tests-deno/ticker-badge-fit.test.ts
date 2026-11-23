@@ -103,7 +103,7 @@ Deno.test('the exception is local: one named constant, cited to the ruling, used
 const BADGE_HOSTS: Array<[string, string]> = [
   ['components/money/HoldingRow.tsx', '<TickerBadge symbol={row.symbol} />'],
   ['components/stocks/StocksScreen.tsx', '<TickerBadge symbol={row.symbol} />'],
-  ['components/money/StockSearchScreen.tsx', '<TickerBadge symbol={item.symbol} style={off ? styles.dim : null} />'],
+  ['components/stocks/SearchRow.tsx', '<TickerBadge symbol={item.symbol} style={off ? styles.dim : null} />'],
   ['components/money/TradeHistoryScreen.tsx', '<TickerBadge symbol={item.symbol} />'],
   ['components/money/StockSheetBody.tsx', '<TickerBadge symbol={symbol} size={52} />'],
   ['components/sp/gn/PlayerCard.tsx', '<TickerBadge symbol={ticker} size={52} />'],

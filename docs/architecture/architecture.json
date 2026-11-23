@@ -2,38 +2,98 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "adf323b3540615bba98ebaf99bb1b37f9f764e2e",
-    "commitShort": "adf323b3",
+    "commit": "5419051cfbfaa3f9f157eb8d1f8eaf08bbb983e2",
+    "commitShort": "5419051c",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/matchup-outcome-reason-phone",
+    "branch": "chore/remove-stock-search-screen",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "apps/mobile/app/(tabs)/matchup.tsx"
+        "path": "apps/mobile/app/_layout.tsx"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/app/stock-search.tsx"
+      },
+      {
+        "code": "D",
+        "path": "apps/mobile/components/money/StockSearchScreen.tsx"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/components/stocks/SearchRow.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/buildMatchupViewModel.ts"
+        "path": "apps/mobile/components/stocks/StocksScreen.tsx"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/outcomeLine.ts"
+        "path": "apps/mobile/lib/money/fixtureMode.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/useFinalOutcome.ts"
+        "path": "apps/mobile/lib/money/stressFixture.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/useMatchup.ts"
+        "path": "apps/mobile/lib/money/useMoneyStockSearch.ts"
+      },
+      {
+        "code": "??",
+        "path": "apps/mobile/lib/stocks/useSearchOwnership.ts"
       },
       {
         "code": "M",
-        "path": "apps/mobile/tests-deno/outcome-line.test.ts"
+        "path": "apps/mobile/tests-deno/board-picks-1116.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/input-remount-key.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/keep-money.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-c9-board-defects.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-fixture-mode.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-stock-search-ownership.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-stock-search.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/route-declarations.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/ticker-badge-fit.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/top-bar-scrolls.test.ts"
       }
     ],
-    "timestamp": "2026-11-20T19:56:12Z",
+    "timestamp": "2026-11-23T05:01:28Z",
     "sourceHash": "sha256:000c7e36970b97a8af32889b94b178a975c3eacf365eb02f6be833337b54ad7e",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -41,8 +101,8 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-19T00:14:08Z",
-    "ageHours": 43.7,
-    "ageDays": 1.8,
+    "ageHours": 100.8,
+    "ageDays": 4.2,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:c5895c943600c59784f5834b516d84a15d47c284a951bc348a3da705ca320242",

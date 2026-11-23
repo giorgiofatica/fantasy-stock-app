@@ -18,36 +18,7 @@ import { SOURCES } from './sourceManifest.generated.ts';
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const src = (p: string) => strip(SOURCES[p]);
 
-// ── 1. Buy a stock, B ───────────────────────────────────────────────────────
-
-Deno.test('1 Buy a stock: ONE top row (back arrow + field); no ShellHeader, no league pill, no "‹ Portfolio" link, no title', () => {
-  const s = src('components/money/StockSearchScreen.tsx');
-  assertFalse(s.includes('ShellHeader') || s.includes('LeaguePill'), 'the league pill is not on this page');
-  assertFalse(s.includes('stockSearchTitle'), 'no "Buy a stock" title');
-  assertFalse(/>Portfolio<\/Text>/.test(s), 'no "‹ Portfolio" text link');
-  const row = s.slice(s.indexOf('testID="buy-top-row"'), s.indexOf('<ScrollView'));
-  assert(row.indexOf('accessibilityLabel="Portfolio"') > 0 && row.indexOf('accessibilityLabel="Portfolio"') < row.indexOf('<TextInput'), 'the back arrow, then the field');
-  assert(row.includes('onPress={() => router.back()}'));
-  assert(s.includes('back: { width: 44, height: 44'), 'a 44pt target');
-  assert(s.includes('field: { flex: 1,'), 'the field fills the rest of the row');
-});
-
-Deno.test('1 Buy a stock: the field keeps its inset look, focus ring, autoFocus and remount; its text is capped at 1.6; a divider shows once scrolled', () => {
-  const s = src('components/money/StockSearchScreen.tsx');
-  assert(s.includes('backgroundColor: colors.inset, borderColor: focused ? colors.accent : colors.rim'));
-  assert(s.includes('autoFocus={searchRemount.autoFocus}') && s.includes('key={searchRemount.key}') && s.includes('searchRemount.fontProps(SEARCH_INPUT_FONT_SIZE)'));
-  assert(s.includes('maxFontSizeMultiplier={SEARCH_TEXT_MAX_SCALE}') && s.includes('const SEARCH_TEXT_MAX_SCALE = 1.6;'));
-  assert(s.includes('numberOfLines={1}'), 'the empty placeholder may end in "…"');
-  assert(s.includes('borderBottomColor: edge ? colors.border') && s.includes('onScroll={onScroll}'), 'the divider appears once results scroll');
-  assert(s.includes('placeholder={COPY.stockSearchPlaceholder}') && COPY.stockSearchPlaceholder === 'Search by ticker or name');
-});
-
-Deno.test('1 Buy a stock: the empty, error and no-match states stay as they were', () => {
-  const s = src('components/money/StockSearchScreen.tsx');
-  assert(s.includes('<LoadFailure title={COPY.stockSearchLoadTitle}'));
-  assert(s.includes('COPY.noStockMatches(query)') && s.includes('COPY.tryTickerOrName'));
-  assert(s.includes('query.length === 0 ?'));
-});
+// ── 1. Buy a stock, B: retired with the stock-search screen (2026-11-22); buying lives on the Stocks tab ──
 
 // ── 2. Draft card, B ────────────────────────────────────────────────────────
 
