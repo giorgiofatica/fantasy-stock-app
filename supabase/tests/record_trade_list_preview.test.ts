@@ -57,6 +57,8 @@ interface World {
   industries: Record<string, string>;
   rules: Record<string, string>;
   watchlistError?: boolean;
+  /** the category-override read fails (fetchEligibleCategoryIds* throw on it) */
+  eligibilityError?: boolean;
 }
 
 const LO = { id: 's-lo', slot_index: 0, slot_count: 1, price_min: 0, price_max: 200, category_id: null };
@@ -160,7 +162,8 @@ function install(world: World, seen: Seen[]): () => void {
         const visible = world.watchlist.filter((w) => w.user_id === caller);
         return rowsResponse(filterRows(visible, q).map((w) => ({ symbol: w.symbol })));
       }
-      case 'symbol_category_overrides': return rowsResponse([]);
+      case 'symbol_category_overrides':
+        return world.eligibilityError ? json({ code: 'XX000', message: 'boom' }, 500) : rowsResponse([]);
       case 'symbols': {
         const all = Object.entries(world.industries).map(([symbol, gics_industry]) => ({ symbol, gics_industry }));
         const rows = filterRows(all, q);
@@ -265,6 +268,37 @@ Deno.test({ name: 'single preview (fixed_notional, slot-less): unchanged body', 
     ok: true, stake_mode: 'fixed_notional', stake: 1000, unfilled_slots: 0,
     sources: [{ trade_id: 't1', symbol: 'NVDA', amount: 1055.56 }], market: null,
     slots: [], unplaced: [],
+  }));
+}});
+
+Deno.test({ name: 'single preview (category league, symbol + price): unchanged body — the path wouldFillBody was extracted from', ...opts, async fn() {
+  const world = tierWorld({ slots: [CAT, FLEX], drafts: [] });
+  const catMap = [
+    { slot_id: 's-cat', slot_index: 0, slot_count: 1, price_min: null, price_max: null, category_id: TECH, held: [], open: 1 },
+    { slot_id: 's-flex', slot_index: 1, slot_count: 1, price_min: null, price_max: null, category_id: null, held: [], open: 1 },
+  ];
+  const tech = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'AAPL', price: 150 });
+  assertEquals(tech.text, JSON.stringify({
+    ok: true, stake_mode: 'price_tiers', stake: null, unfilled_slots: 0, sources: [], market: null,
+    slots: catMap, unplaced: [],
+    would_fill: { slot_id: 's-cat', slot_index: 0, slot_count: 1, price_min: null, price_max: null, category_id: TECH },
+  }));
+  const oil = await call(world, { action: 'preview', league_id: LEAGUE_ID, symbol: 'XOM', price: 90 });
+  assertEquals(oil.text, JSON.stringify({
+    ok: true, stake_mode: 'price_tiers', stake: null, unfilled_slots: 0, sources: [], market: null,
+    slots: catMap, unplaced: [],
+    would_fill: { slot_id: 's-flex', slot_index: 1, slot_count: 1, price_min: null, price_max: null, category_id: null },
+  }));
+  // Flex held: a non-tech stock has nowhere to go -> null + the open tech slot.
+  const full = await call(tierWorld({
+    slots: [CAT, FLEX],
+    drafts: [{ id: 'd1', user_id: USER_ID, symbol: 'XOM', entry_price: 90, quantity: 1, pick_number: 1, slot_id: 's-flex' }],
+  }), { action: 'preview', league_id: LEAGUE_ID, symbol: 'XOM', price: 90 });
+  assertEquals(full.text, JSON.stringify({
+    ok: true, stake_mode: 'price_tiers', stake: null, unfilled_slots: 0, sources: [], market: null,
+    slots: [catMap[0], { ...catMap[1], held: ['XOM'], open: 0 }], unplaced: [],
+    would_fill: null,
+    open_slots: [{ slot_id: 's-cat', slot_index: 0, slot_count: 1, price_min: null, price_max: null, category_id: TECH }],
   }));
 }});
 
@@ -378,4 +412,26 @@ Deno.test({ name: 'list preview: `rows` on a buy or sell is ignored (the list is
   const without = await call(tierWorld(), { action: 'buy', league_id: LEAGUE_ID, symbol: 'AAPL' });
   assertEquals(withRows.status, without.status);
   assertEquals(withRows.text, without.text);
+}});
+
+Deno.test({ name: 'list preview (fixed_notional, slotted): the funding body is unchanged and `rows` comes last', ...opts, async fn() {
+  const world = tierWorld({ league: league({ stake_mode: 'fixed_notional', notional_per_slot: 1000 }) });
+  const single = await call(world, { action: 'preview', league_id: LEAGUE_ID });
+  const list = await call(world, { action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'AAPL', price: 150 }, { symbol: 'XOM', price: 150 }] });
+  assertEquals(list.status, 200);
+  const { rows, ...rest } = list.body;
+  assertEquals(rest, single.body, 'everything but rows is the single preview body');
+  assertEquals(Object.keys(list.body).at(-1), 'rows');
+  assertEquals(rows, [
+    { symbol: 'AAPL', price: 150, would_fill: { slot_id: 's-lo', slot_index: 0, slot_count: 1, price_min: 0, price_max: 200, category_id: null } },
+    null,
+  ]);
+}});
+
+Deno.test({ name: 'list preview (category league): an eligibility read error is a 500, never a flex-only guess', ...opts, async fn() {
+  const r = await call(tierWorld({ slots: [CAT, FLEX], drafts: [], eligibilityError: true }), {
+    action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'AAPL', price: 150 }],
+  });
+  assertEquals(r.status, 500);
+  assertEquals(r.body, { ok: false, reason: 'unhandled' });
 }});
