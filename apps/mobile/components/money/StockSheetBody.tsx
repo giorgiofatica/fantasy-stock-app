@@ -49,7 +49,8 @@ import { formatShares } from '@/lib/money/formatShares';
 import { myHoldingsFromLedger, stockPosition } from '@/lib/money/portfolioModel';
 import { COPY } from '@/lib/money/moneyCopy';
 import { marketOpensLabel } from '@/lib/money/marketOpensLabel';
-import { fetchPreview, type TradeBody } from '@/lib/money/recordTrade';
+import { fetchPreview, fetchPreviewAnswer, type TradeBody } from '@/lib/money/recordTrade';
+import { refusalCopy } from '@/lib/money/refusals';
 import { buyReviewOneShare, buyReviewPerSlot, buyReviewTier, sellReview, settledReview, type TradeReview } from '@/lib/money/reviewModel';
 import { fillsSlotLine, tierRefusalSentence } from '@/lib/money/tierContract';
 import { categoryNameOf, loadCategoryNames } from '@/lib/money/categoryNames';
@@ -283,8 +284,14 @@ export function StockSheetBody({
     }
     if (league.stake_mode === 'price_tiers' || league.stake_mode === 'budget_cap') {
       // The server decides the slot and the refusal. The client asks (advisory) and words the answer; it never computes fit.
-      const check = await fetchPreview(previewBody(league.id, { price, symbol }));
-      if (!check) return { kind, review: null, body: null, error: COPY.cantReach, loading: false };
+      const answer = await fetchPreviewAnswer(previewBody(league.id, { price, symbol }));
+      if (!answer) return { kind, review: null, body: null, error: COPY.cantReach, loading: false };
+      // A stock the buy would refuse as not_draftable: the buy's own sentence, through the buy's own mapper,
+      // before the review, where a slot refusal goes (plan part 3, point 7). A paced preview stays cantReach.
+      if (answer.kind === 'refused') {
+        return { kind, review: null, body: null, error: refusalCopy(answer.reason, { symbol: symbol.toUpperCase() }).message, loading: false, warn: true };
+      }
+      const check = answer.preview;
       await loadCategoryNames();
       if (check.wouldFill === null) {
         // The refusal comes BEFORE the review, per the board.
