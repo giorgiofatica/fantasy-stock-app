@@ -7,8 +7,8 @@
  * Run: `cd apps/mobile/tests-deno && deno test .`
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
-import { cardAction, type PlayerCardOwnership } from '../components/sp/logic/gameNight.ts';
-import { holdingRangeGain, openLots, openingOf, playerCardData, prevCloseOf, stockWeek, type HoldingLot } from '../lib/game/playerCardModel.ts';
+import { cardAction, cardWeekFigure, type PlayerCardOwnership } from '../components/sp/logic/gameNight.ts';
+import { cardWeekGain, holdingRangeGain, openLots, openingOf, playerCardData, prevCloseOf, stockWeek, type HoldingLot } from '../lib/game/playerCardModel.ts';
 import { fixtureLedger } from '../lib/game/matchupFixture.ts';
 import { rangeGain } from '../lib/chart/chartRanges.ts';
 import { stockLineSeries } from '../lib/money/stockChartSeries.ts';
@@ -171,6 +171,50 @@ Deno.test('playerCardData: Week gain is the matchup week and is NOT the 1W range
   const oneWeek = rangeGain(one.points, one.base)!;
   assert(Math.abs(d.weekGain! - oneWeek.money) > 0.01, 'the week gain and the 1W gain are different numbers');
   assertEquals(d.weekGain, 62.4);
+});
+
+// ── A finished season has no week: the card's weekGain is null, never 0 (Giorgio, 2026-11-22) ──
+
+Deno.test('cardWeekGain: a season that is over → null ("no week"), and the live week is not even read', () => {
+  let reads = 0;
+  assertEquals(cardWeekGain(true, () => { reads++; return 62.4; }), null);
+  assertEquals(cardWeekGain(true, () => { reads++; return 0; }), null);
+  assertEquals(reads, 0, 'a finished season never reads the current week');
+});
+
+Deno.test('cardWeekGain: a live season is unchanged — its own week, an unknown week, and a real flat week', () => {
+  assertEquals(cardWeekGain(false, () => 62.4), 62.4);
+  assertEquals(cardWeekGain(false, () => null), null, 'unknown stays unknown');
+  assertEquals(cardWeekGain(false, () => 0), 0, 'a real flat week is still $0.00');
+  const w = stockWeek('NVDA', snap, [], nvda.thu);
+  assertEquals(cardWeekGain(false, () => stockWeek('NVDA', snap, [], nvda.thu).gain), w.gain);
+});
+
+Deno.test('finished season: the card data carries no week (weekGain AND weekPct null), never $0.00 / +0.00%', () => {
+  const ledger = fixtureLedger('unslotted', 'me', 'g');
+  const d = playerCardData({
+    symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
+    weekGain: cardWeekGain(true, () => stockWeek('NVDA', snap, [], nvda.thu).gain), hasWeeks: true, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
+  })!;
+  assertEquals(d.weekGain, null);
+  assertEquals(d.weekPct, null, 'no percent is derived from a stand-in 0');
+  // The card's figure (were it drawn: the card hides it when the season is over) is the unknown "–", never $0.00.
+  const f = cardWeekFigure(d.weekGain, d.weekPct, d.hasWeeks)!;
+  assertEquals(f.kind, 'unknown');
+  assert(!f.value.includes('$0.00') && !f.value.includes('0.00%'));
+  // Duration (no weeks) drops it entirely, as before.
+  assertEquals(cardWeekFigure(d.weekGain, d.weekPct, false), null);
+});
+
+Deno.test('the stand-in 0 the fix removes WOULD have read "$0.00" (why null, not 0)', () => {
+  const ledger = fixtureLedger('unslotted', 'me', 'g');
+  const zero = playerCardData({
+    symbol: 'NVDA', company: 'NVIDIA', userId: 'me', activity: ledger.activity, snapshots: snap, trades: [],
+    weekGain: 0, hasWeeks: true, price: nvda.thu, bars: weekBars, now: new Date('2026-09-24T17:37:00Z'),
+  })!;
+  const f = cardWeekFigure(zero.weekGain, zero.weekPct, zero.hasWeeks)!;
+  assertEquals(f.kind, 'figure');
+  assert(f.value.includes('$0.00'), 'a 0 is a real number to the card: it says "$0.00 this week"');
 });
 
 // ── The card's range gain is the HOLDING's P/L, not per share (Design Lead gate P1, 2026-11-17) ──
