@@ -989,6 +989,14 @@
             "rlsEnabled": true,
             "checkConstraints": [
                 {
+                    "name": "matchups_outcome_reason_valid",
+                    "definition": "CHECK (((outcome_reason IS NULL) OR (outcome_reason = ANY (ARRAY['bye_no_result'::text, 'both_empty_tie'::text, 'both_empty_playoff_seed_tiebreak'::text, 'playoff_no_opponent'::text, 'team1_empty_auto_loss'::text, 'team2_empty_auto_loss'::text, 'dollar_gain'::text, 'percent_tiebreak'::text, 'playoff_seed_tiebreak'::text, 'regular_season_true_tie'::text, 'playoff_seed_unresolved'::text, 'not_recorded'::text]))))"
+                },
+                {
+                    "name": "matchups_percent_tiebreak_has_percents",
+                    "definition": "CHECK (((outcome_reason IS DISTINCT FROM 'percent_tiebreak'::text) OR ((team1_percent_gain IS NOT NULL) AND (team2_percent_gain IS NOT NULL))))"
+                },
+                {
                     "name": "matchups_playoff_address",
                     "definition": "CHECK (((COALESCE(is_playoff, false) AND (playoff_round_number IS NOT NULL) AND (bracket_position IS NOT NULL) AND (playoff_round_number >= 1) AND (bracket_position >= 0)) OR ((NOT COALESCE(is_playoff, false)) AND (playoff_round_number IS NULL) AND (bracket_position IS NULL))))"
                 },
@@ -1290,6 +1298,64 @@
                 {
                     "name": "user_profiles_username_format",
                     "definition": "CHECK (((username IS NULL) OR (username ~ '^[A-Za-z0-9_]{3,20}$'::text)))"
+                }
+            ]
+        },
+        {
+            "acl": [
+                "postgres=arwdDxtm/postgres",
+                "service_role=arwdDxtm/postgres",
+                "authenticated=ard/postgres"
+            ],
+            "name": "watchlist",
+            "policies": [
+                {
+                    "name": "watchlist_delete_own",
+                    "roles": [
+                        "authenticated"
+                    ],
+                    "using": "((user_id = (auth.uid())::text) AND is_member(league_id))",
+                    "command": "DELETE",
+                    "withCheck": null,
+                    "permissive": true
+                },
+                {
+                    "name": "watchlist_insert_own",
+                    "roles": [
+                        "authenticated"
+                    ],
+                    "using": null,
+                    "command": "INSERT",
+                    "withCheck": "((user_id = (auth.uid())::text) AND is_member(league_id))",
+                    "permissive": true
+                },
+                {
+                    "name": "watchlist_select_own",
+                    "roles": [
+                        "authenticated"
+                    ],
+                    "using": "((user_id = (auth.uid())::text) AND is_member(league_id))",
+                    "command": "SELECT",
+                    "withCheck": null,
+                    "permissive": true
+                }
+            ],
+            "rlsForced": false,
+            "columnAcls": {
+            },
+            "rlsEnabled": true,
+            "checkConstraints": [
+                {
+                    "name": "watchlist_cap_index_range",
+                    "definition": "CHECK (((cap_index >= 1) AND (cap_index <= 50)))"
+                },
+                {
+                    "name": "watchlist_not_bot",
+                    "definition": "CHECK ((user_id !~ '^bot-'::text))"
+                },
+                {
+                    "name": "watchlist_symbol_shape",
+                    "definition": "CHECK (((symbol = upper(symbol)) AND ((length(symbol) >= 1) AND (length(symbol) <= 12))))"
                 }
             ]
         },
@@ -2589,6 +2655,21 @@
                 "authenticated=X/postgres"
             ],
             "args": "p_league_id uuid",
+            "name": "get_league_watchlist",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "stable",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
+            "args": "p_league_id uuid",
             "name": "get_portfolio_ledger",
             "owner": "postgres",
             "proconfig": [
@@ -3248,6 +3329,21 @@
         {
             "acl": [
                 "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
+            "args": "p_league_id uuid, p_symbol text, p_saved boolean",
+            "name": "set_watchlist",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
                 "service_role=X/postgres"
             ],
             "args": "p_league_id uuid, p_expect jsonb",
@@ -3480,9 +3576,23 @@
             "searchPath": null,
             "volatility": "volatile",
             "securityDefiner": false
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "",
+            "name": "watchlist_before_insert",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
         }
     ],
-    "capturedAt": "2026-11-19T00:14:08Z",
+    "capturedAt": "2026-11-23T18:29:25Z",
     "publications": [
         {
             "table": "drafts",
@@ -3600,7 +3710,10 @@
                 "team2_seed",
                 "is_tie",
                 "playoff_round_number",
-                "bracket_position"
+                "bracket_position",
+                "outcome_reason",
+                "team1_percent_gain",
+                "team2_percent_gain"
             ],
             "publication": "supabase_realtime"
         },
