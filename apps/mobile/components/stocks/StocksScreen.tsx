@@ -18,12 +18,18 @@
  * Edge states (the Design Lead's spec, from existing copy: no new words): before the draft, during it and after the
  * close the "+" is drawn and the sheet says why a buy can't start (draftNotCompleted, marketClosedOpens, ...); a full
  * roster or no free slot is the sheet's own reason; a FINISHED season starts no buy (no "+": showsBuyPlus).
+ *
+ * THE WATCHLIST (plan part 3, workstream 3; board #call-stocks-tab-lists). A switch under the header: Available (all of the
+ * above), Watching (the stocks you saved in this league, WatchingList). Claims joins the switch in workstream 7. Every row
+ * carries a star at its right edge (the "+" stays at the left): a tap flips it at once and a save that does not go through
+ * puts it back (watchlist.ts). A stock you own gets no star in search; a full list (50) opens the stock's sheet, which says so.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 
 import { radius, space } from '@/constants/tokens';
 import { Icon } from '@/components/sp/Icon';
+import { SegmentedControl } from '@/components/sp/SegmentedControl';
 import { PressableScale } from '@/components/sp/PressableScale';
 import { Text } from '@/components/sp/Text';
 import { useTheme } from '@/components/sp/ThemeProvider';
@@ -36,6 +42,8 @@ import { useScrollFold } from '@/components/shell/scrollFold';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { useStockSheet } from '@/components/money/MoneyHost';
 import { SearchRow } from '@/components/stocks/SearchRow';
+import { StarButton } from '@/components/stocks/StarButton';
+import { WatchingList } from '@/components/stocks/WatchingList';
 import { Skeleton } from '@/components/Skeleton';
 import { keepMoney } from '@/lib/game/keepDots';
 import { useLeagueContext } from '@/lib/LeagueContext';
@@ -50,6 +58,10 @@ import { SEAM_STOCK_CATEGORIES } from '@/lib/stocks/seamStocks';
 import { useStocksList } from '@/lib/stocks/useStocksList';
 import { useRowPrices } from '@/lib/stocks/useRowPrices';
 import { useSearchOwnership } from '@/lib/stocks/useSearchOwnership';
+import { useWatchlist, type UseWatchlist } from '@/lib/stocks/useWatchlist';
+import { SWITCH_SEGMENTS, isSaved, type StocksView } from '@/lib/stocks/watchlist';
+import { shortWeekdayEt } from '@/lib/stocks/rowQuotes';
+import { lastSessionCloseBefore } from '@/lib/time/marketWeek';
 import {
   CHIP_TEXT_MAX_SCALE,
   ROW_TEXT_MAX_SCALE,
@@ -81,26 +93,48 @@ const PLUS_DISC = 26;
 
 export function StocksScreen() {
   const { colors } = useTheme();
-  const { activeLeague, marketCalendar } = useLeagueContext();
+  const { activeLeague, marketCalendar, market } = useLeagueContext();
   const leagueId = activeLeague?.id ?? null;
   const list = useStocksList(leagueId);
+  const wl = useWatchlist(leagueId);
+  const [view, setView] = useState<StocksView>('available');
   const [control, setControl] = useState<ControlRow>({ mode: 'chips', query: '' });
   const dispatchControl = useCallback((action: Parameters<typeof controlReducer>[1]) => setControl((c) => controlReducer(c, action)), []);
 
   // DEV capture only (captureScript): the same handlers a tap runs.
   useCaptureAction('chip', (id) => list.selectCategory(id && id !== 'all' ? id : null));
   useCaptureAction('searchopen', () => dispatchControl({ type: 'open_search' }));
+  useCaptureAction('view', (v) => setView(v === 'watching' ? 'watching' : 'available'));
+  useCaptureAction('star', (sym) => {
+    if (sym) void onStar(sym);
+  });
   useCaptureAction('query', (q) => {
     dispatchControl({ type: 'open_search' });
     dispatchControl({ type: 'type', query: q ?? '' });
   });
 
-  const onRefresh = control.mode === 'chips' ? list.refresh : undefined;
+  // A save that does not go through puts its star back (the store). Only a FULL list has words, and the board draws them on the stock's
+  // sheet: the sheet opens on that stock, where its Save panel reads the refusal. Every other failure (rate_limited too) says nothing.
+  const { open } = useStockSheet();
+  const onStar = async (symbol: string) => {
+    const result = await wl.toggle(symbol);
+    if (result && !result.ok && result.reason === 'watchlist_full') open(symbol, { originRef: 'stocks-star' });
+  };
+  // "today" while the market is open; the last close's short weekday while it is closed ("+1.4% Fri"); nothing is claimed while unknown.
+  const dayWord = market?.status === 'open' ? 'today' : market?.status === 'closed' ? shortWeekdayEt(lastSessionCloseBefore(new Date(), marketCalendar)) : null;
+
+  const onRefresh = view === 'watching' ? async () => wl.reload() : control.mode === 'chips' ? list.refresh : undefined;
   return (
     <View style={[styles.screen, { backgroundColor: colors.moneyBg }]}>
       <BarsRefresh onRefresh={onRefresh} header={<ShellHeader title="Stocks" showAvatar />} fadeColor={colors.moneyBg} contentContainerStyle={styles.content}>
         <StocksBody
           list={list}
+          wl={wl}
+          view={view}
+          onView={setView}
+          onStar={onStar}
+          dayWord={dayWord}
+          allowUndraftable={!!activeLeague?.allow_undraftable}
           control={control}
           dispatchControl={dispatchControl}
           seasonOver={isSeasonOver(activeLeague, new Date(), marketCalendar)}
@@ -127,28 +161,49 @@ function useCategories(): ChipCategory[] | null {
 
 function StocksBody({
   list,
+  wl,
+  view,
+  onView,
+  onStar,
+  dayWord,
+  allowUndraftable,
   control,
   dispatchControl,
   seasonOver,
 }: {
   list: ReturnType<typeof useStocksList>;
+  wl: UseWatchlist;
+  view: StocksView;
+  onView: (v: StocksView) => void;
+  onStar: (symbol: string) => void;
+  dayWord: string | null;
+  allowUndraftable: boolean;
   control: ControlRow;
   dispatchControl: (a: Parameters<typeof controlReducer>[1]) => void;
   seasonOver: boolean;
 }) {
   const categories = useCategories();
   const chips = useMemo(() => chipsFrom(categories ?? []), [categories]);
+  const options = SWITCH_SEGMENTS.map((x) => ({ label: x.label, value: x.view }));
   return (
     <View style={styles.body}>
+      {/* The switch, the same control as Matchup's "My matchup | All matchups" (board #call-stocks-tab-lists). */}
+      <SegmentedControl options={options} value={view} onChange={(v) => onView(v === 'watching' ? 'watching' : 'available')} />
+      {view === 'watching' ? (
+        <WatchingList watch={wl.watch} allowUndraftable={allowUndraftable} seasonOver={seasonOver} dayWord={dayWord} onToggle={onStar} onRetry={wl.reload} />
+      ) : (
+      <>
       {control.mode === 'chips' ? (
         <ChipRow chips={chips} selected={list.state.categoryId} onSelect={list.selectCategory} onSearch={() => dispatchControl({ type: 'open_search' })} />
       ) : (
         <SearchField query={control.query} onChange={(q) => dispatchControl({ type: 'type', query: q })} onCancel={() => dispatchControl({ type: 'cancel' })} />
       )}
       {control.mode === 'chips' ? (
-        <AvailableList list={list} categories={categories ?? []} seasonOver={seasonOver} />
+        <AvailableList list={list} categories={categories ?? []} seasonOver={seasonOver} wl={wl} onStar={onStar} />
       ) : (
-        <SearchResults query={control.query} />
+        <SearchResults query={control.query} wl={wl} onStar={onStar} />
+      )}
+      </>
       )}
     </View>
   );
@@ -277,7 +332,7 @@ function SearchField({ query, onChange, onCancel }: { query: string; onChange: (
 
 // ── Search: the existing search's results, with prices; an owned stock is marked ──────────
 
-function SearchResults({ query }: { query: string }) {
+function SearchResults({ query, wl, onStar }: { query: string; wl: UseWatchlist; onStar: (symbol: string) => void }) {
   const { open } = useStockSheet();
   const { results, loading, error, retry } = useMoneyStockSearch(query, '');
   const ownershipFor = useSearchOwnership();
@@ -305,7 +360,9 @@ function SearchResults({ query }: { query: string }) {
       <View style={styles.results}>
         {results.map((item) => {
           const suffix = !item.selectable ? { text: COPY.notInLeagueList, mine: false } : ownershipFor(item.symbol);
-          return <SearchRow key={item.symbol} item={item} status={suffix} onPress={() => select(item)} />;
+          // No star on a stock you own ("there probably shouldn't be a save option if you already have the stock"), none on a stock that is not in the list.
+          const star = item.selectable && !suffix.mine ? { saved: isSaved(wl.watch, item.symbol), onPress: () => onStar(item.symbol) } : undefined;
+          return <SearchRow key={item.symbol} item={item} status={suffix} star={star} onPress={() => select(item)} />;
         })}
       </View>
       {/* The Alpaca credit on every price surface (PRODUCT_RULES), under the results. */}
@@ -316,7 +373,7 @@ function SearchResults({ query }: { query: string }) {
 
 // ── The list ─────────────────────────────────────────────────────────────────────────────────
 
-function AvailableList({ list, categories, seasonOver }: { list: ReturnType<typeof useStocksList>; categories: ChipCategory[]; seasonOver: boolean }) {
+function AvailableList({ list, categories, seasonOver, wl, onStar }: { list: ReturnType<typeof useStocksList>; categories: ChipCategory[]; seasonOver: boolean; wl: UseWatchlist; onStar: (symbol: string) => void }) {
   const { open } = useStockSheet();
   const { colors } = useTheme();
   const { state, loadMore, retry } = list;
@@ -391,6 +448,8 @@ function AvailableList({ list, categories, seasonOver }: { list: ReturnType<type
             category={rowCategoryName(row.categoryIds, categories)}
             priceText={rowPriceText(priceOf(row.symbol))}
             plus={plus}
+            saved={isSaved(wl.watch, row.symbol)}
+            onStar={() => onStar(row.symbol)}
             onOpen={() => openSheet(row, 'stocks-row')}
             onPlus={() => openSheet(row, 'stocks-plus', true)}
             onBox={(b) => {
@@ -427,6 +486,8 @@ function StockRow({
   category,
   priceText,
   plus,
+  saved,
+  onStar,
   onOpen,
   onPlus,
   onBox,
@@ -435,6 +496,8 @@ function StockRow({
   category: string | null;
   priceText: string;
   plus: boolean;
+  saved: boolean;
+  onStar: () => void;
   onOpen: () => void;
   onPlus: () => void;
   onBox: (b: { y: number; height: number }) => void;
@@ -482,6 +545,8 @@ function StockRow({
         {under ? null : <View style={styles.trail}>{price}</View>}
         {plus ? null : <Icon name="chevronRight" size="callout" tone="text2" />}
       </PressableScale>
+      {/* The star: the right edge, never beside the "+" (board). */}
+      <StarButton symbol={row.symbol} saved={saved} onPress={onStar} />
     </View>
   );
 }

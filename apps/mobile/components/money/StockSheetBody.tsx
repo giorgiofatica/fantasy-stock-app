@@ -75,6 +75,8 @@ import { weekSessions } from '@/lib/game/matchupRoster';
 import { mondayOf } from '@/lib/money/portfolioChart';
 import { HOME_FIXTURE } from '@/lib/home/devFixture';
 import { useCaptureAction } from '@/lib/money/captureScript';
+import { useWatchlist, watchlistStore } from '@/lib/stocks/useWatchlist';
+import { isSaved as isStockSaved, starLabel } from '@/lib/stocks/watchlist';
 import { openingOf } from '@/lib/game/playerCardModel';
 import { acquisitionLine } from '@/components/sp/logic/gameNight';
 
@@ -143,6 +145,15 @@ export function StockSheetBody({
 }) {
   const data = useStockSheetData(symbol, knownName);
   const { market: contextMarket, activeLeague, marketCalendar } = useLeagueContext();
+  // The watchlist's Save (board #call-stocks-tab-lists, section 2): one store with the Stocks tab's stars. A full list (50) is read
+  // from the store's refusal and drawn as the board's panel; it is forgotten when the sheet closes.
+  const watchLeagueId = activeLeague?.id ?? null;
+  const { watch: watchState, toggle: toggleSave } = useWatchlist(watchLeagueId);
+  useEffect(() => {
+    return () => {
+      if (watchLeagueId) watchlistStore.clearRefusal(watchLeagueId);
+    };
+  }, [watchLeagueId]);
   const { user } = useSession();
   const { colors } = useTheme();
   const router = useRouter();
@@ -572,6 +583,9 @@ export function StockSheetBody({
           warn panel; the button stays visible and disabled under it (board #buy-a-stock). */}
       {model.controlsShown && warnBlock ? <WarnPanel text={keepMoney(warnBlock)} /> : null}
 
+      {/* The 51st save: the board's words (October plan, 2026-10-09), in the refusal panel, above the action. Any other failed save says nothing. */}
+      {watchState.refusal === 'watchlist_full' ? <WarnPanel text={COPY.watchlistFull} /> : null}
+
       {/* The one action, always drawn (a live league): enabled, or disabled with its reason beside it. */}
       {model.controlsShown ? (
       <View style={styles.actionWrap}>
@@ -605,7 +619,13 @@ export function StockSheetBody({
     <SheetBody contentContainerStyle={styles.scrollContent} footerStyle={styles.footer} footer={footer}>
       <View accessibilityRole="summary" style={styles.stack}>
         {/* The company line, or none: never the ticker repeated under itself. */}
-        <SheetHeader symbol={symbol} company={companyLine(model.name || cleanCompanyName(data.companyName), symbol)} onClose={onDone} />
+        <SheetHeader
+          symbol={symbol}
+          company={companyLine(model.name || cleanCompanyName(data.companyName), symbol)}
+          onClose={onDone}
+          // "Save shows on unowned stocks and on other managers' stocks; never on yours" (PRODUCT_RULES): none on a stock you hold.
+          save={!held && watchLeagueId ? { saved: isStockSaved(watchState, symbol), onPress: () => void toggleSave(symbol) } : undefined}
+        />
 
         {/* The price: the sheet's standout, in `money` (44/500, §9C rule 5). */}
         <View style={styles.priceBlock}>
@@ -670,7 +690,8 @@ export function StockSheetBody({
 
 /** The player card's header, shared so the stock looks the same from every entry point
  * (PRODUCT_RULES, sell-from-search A): the ticker badge, the ticker, the company, the ×. */
-function SheetHeader({ symbol, company, onClose }: { symbol: string; company: string; onClose: () => void }) {
+function SheetHeader({ symbol, company, onClose, save }: { symbol: string; company: string; onClose: () => void; save?: { saved: boolean; onPress: () => void } }) {
+  const { colors } = useTheme();
   return (
     <View style={styles.header}>
       <TickerBadge symbol={symbol} size={52} />
@@ -678,6 +699,21 @@ function SheetHeader({ symbol, company, onClose }: { symbol: string; company: st
         <Text variant="ticker.card" accessibilityRole="header">{symbol}</Text>
         {company ? <Text variant="callout" tone="secondary" numberOfLines={1} maxFontSizeMultiplier={1.6}>{company}</Text> : null}
       </View>
+      {/* The watchlist's Save / Saved, in the header, far from Buy (board #call-stocks-tab-lists, section 2). */}
+      {save ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={starLabel(symbol, save.saved)}
+          accessibilityState={{ selected: save.saved }}
+          onPress={save.onPress}
+          hitSlop={6}
+          style={[styles.save, save.saved ? { backgroundColor: colors.accentTint } : { borderColor: colors.borderStrong, borderWidth: 1.5 }]}
+          testID="sheet-save"
+        >
+          <Icon name={save.saved ? 'starFilled' : 'star'} size="callout" tone={save.saved ? 'accent' : 'text'} />
+          <Text variant="callout" maxFontSizeMultiplier={1.3} color={save.saved ? colors.accent : undefined} numberOfLines={1} style={styles.bold}>{save.saved ? COPY.saved : COPY.save}</Text>
+        </Pressable>
+      ) : null}
       {/* C-9 (Design Lead gate, key screen 5): the × close icon, not "Done" text. */}
       <Pressable
         accessibilityRole="button"
@@ -714,6 +750,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   headText: { flex: 1, minWidth: 0, gap: space[1] },
   close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  save: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: space[2], paddingHorizontal: space[4], borderRadius: radius.pill },
   priceBlock: { gap: space[1] },
   noPrice: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
   textButton: { minHeight: 44, justifyContent: 'center' },
