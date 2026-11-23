@@ -35,6 +35,8 @@
 --   * a partial unique index (league, user, symbol) WHERE pending, so a re-claim after a loss or a
 --     cancel is allowed (a plain unique would be the all-or-nothing trap the October plan names).
 --   * a partial unique index (league, user, sell_symbol) WHERE pending: one sale funds one claim.
+-- PRECONDITION: 20261210500000 (option A: league_held_positions and the watchlist trigger that
+--   removes a watched stock when a claim fills) is applied first.
 --   * the trigger takes the seat's league_members row FOR NO KEY UPDATE (the watchlist's lock).
 --
 -- THE RUN (supabase/functions/claims-run). Validation is the buy path's own TypeScript
@@ -199,30 +201,10 @@ alter table public.league_notifications
 
 -- 4. Helpers -------------------------------------------------------------------------------------
 
--- Net holdings per manager per stock in a league: the rule the Stocks list uses (20261207000100):
--- drafts (SKIP ignored) plus buys minus sells, upper-cased, kept where > 1e-9. drafts.user_id is
--- text and trades.user_id is uuid, so both are cast (CLAUDE.md, cross-table position queries).
-create or replace function public._claims_holdings(p_league_id uuid)
-returns table (user_id text, symbol text, quantity numeric)
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select h.uid, h.sym, sum(h.q)
-    from (
-      select d.user_id::text as uid, upper(d.symbol) as sym, coalesce(d.quantity, 0)::numeric as q
-        from public.drafts d
-       where d.league_id = p_league_id and d.symbol is not null and upper(d.symbol) <> 'SKIP'
-      union all
-      select t.user_id::text, upper(t.symbol),
-             case when t.action = 'sell' then -coalesce(t.quantity, 0)::numeric else coalesce(t.quantity, 0)::numeric end
-        from public.trades t
-       where t.league_id = p_league_id and t.symbol is not null
-    ) h
-   group by h.uid, h.sym
-  having sum(h.q) > 0.000000001;
-$$;
+-- HOLDINGS: public.league_held_positions(league, user) (20261210500000, option A) is the ONE
+-- definition of "holds" (drafts minus SKIP, plus buys, minus sells, > 1e-9, with the casts). The
+-- claims functions call it; there is no second copy here. It is security invoker and granted to no
+-- API role; the definer functions below call it as their owner.
 
 -- The season's end BY DATE, as record_trade_atomic (20261207000000) reads it: the latest week_end,
 -- counted only when the whole schedule is written (a playoff row exists and no week_end is NULL).
@@ -428,11 +410,11 @@ begin
   if v_draftable is not true and v_league.allow_undraftable is not true then
     return jsonb_build_object('ok', false, 'reason', 'not_draftable');
   end if;
-  if exists (select 1 from public._claims_holdings(p_league_id) h where h.symbol = v_sym) then
+  if exists (select 1 from public.league_held_positions(p_league_id) h where h.symbol = v_sym) then
     return jsonb_build_object('ok', false, 'reason', 'symbol_owned');
   end if;
   if v_sell is not null and not exists (
-    select 1 from public._claims_holdings(p_league_id) h where h.user_id = v_me and h.symbol = v_sell
+    select 1 from public.league_held_positions(p_league_id, v_me) h where h.symbol = v_sell
   ) then
     return jsonb_build_object('ok', false, 'reason', 'not_owned');
   end if;
@@ -1142,7 +1124,6 @@ $$;
 
 -- 11. Grants (CLAUDE.md: REVOKE FROM PUBLIC leaves Supabase's explicit per-role grants) -------------
 
-revoke all on function public._claims_holdings(uuid)                    from public, anon, authenticated, service_role;
 revoke all on function public._claims_season_end(uuid)                  from public, anon, authenticated, service_role;
 revoke all on function public._waiver_order_fill(uuid)                  from public, anon, authenticated, service_role;
 revoke all on function public.claims_before_insert()                    from public, anon, authenticated, service_role;

@@ -32,9 +32,9 @@ SELECT tablename, policyname, cmd, roles, qual
  WHERE schemaname = 'public' AND tablename IN ('claims', 'claims_runs', 'waiver_order', 'waiver_order_meta')
  ORDER BY tablename, policyname;
 
--- C. The functions (CLAUDE.md: proacl, never the migration's word). EXPECT twelve rows, every
+-- C. The functions (CLAUDE.md: proacl, never the migration's word). EXPECT eleven rows, every
 --    prosecdef t and proconfig {"search_path=public, pg_temp"}, and proacl:
---    _claims_holdings, _claims_season_end, _waiver_order_fill, claims_before_insert
+--    _claims_season_end, _waiver_order_fill, claims_before_insert
 --                                    {postgres=X/postgres}
 --    cancel_claim, place_claim       {postgres=X/postgres,authenticated=X/postgres}
 --    claims_hold_active, claims_run_day, claims_run_state, commit_claims_run,
@@ -44,7 +44,7 @@ SELECT tablename, policyname, cmd, roles, qual
 SELECT proname, prosecdef, proconfig, proacl
   FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
  WHERE n.nspname = 'public'
-   AND proname IN ('_claims_holdings', '_claims_season_end', '_waiver_order_fill', 'claims_before_insert',
+   AND proname IN ('_claims_season_end', '_waiver_order_fill', 'claims_before_insert',
                    'place_claim', 'cancel_claim', 'claims_run_day', 'claims_run_state', 'claims_hold_active',
                    'commit_claims_run', 'reset_due_waiver_orders', 'finalize_league_draft')
  ORDER BY proname;
@@ -137,7 +137,7 @@ begin
   select array_agg(s.symbol order by s.symbol) into v_syms
     from (select y.symbol from symbols y
            where y.is_draftable is true and y.symbol = upper(y.symbol) and length(y.symbol) between 1 and 12
-             and not exists (select 1 from public._claims_holdings(v_league) h where h.symbol = y.symbol)
+             and not exists (select 1 from public.league_held_positions(v_league) h where h.symbol = y.symbol)
            order by y.symbol limit 7) s;
   if coalesce(cardinality(v_syms), 0) < 7 then
     raise exception 'CLAIMS EFFECT TEST: SETUP FAIL -- fewer than 7 free draftable symbols';

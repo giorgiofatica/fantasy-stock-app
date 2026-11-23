@@ -189,7 +189,7 @@ Deno.test({
       const fns = await q(`select proname, prosecdef, proconfig::text cfg, proacl::text acl
                              from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                             where n.nspname = 'public' and proname in (
-                              '_claims_holdings', '_claims_season_end', '_waiver_order_fill', 'claims_before_insert',
+                              '_claims_season_end', '_waiver_order_fill', 'claims_before_insert',
                               'place_claim', 'cancel_claim', 'claims_run_day', 'claims_run_state', 'claims_hold_active',
                               'commit_claims_run', 'reset_due_waiver_orders', 'finalize_league_draft')
                             order by proname`);
@@ -198,7 +198,6 @@ Deno.test({
       const SR = '{postgres=X/postgres,service_role=X/postgres}';
       const AUTH = '{postgres=X/postgres,authenticated=X/postgres}';
       assertEquals(fns.map((r: Row) => [r.proname, r.prosecdef, r.cfg, r.acl]), [
-        ['_claims_holdings', true, SP, NOBODY],
         ['_claims_season_end', true, SP, NOBODY],
         ['_waiver_order_fill', true, SP, NOBODY],
         ['cancel_claim', true, SP, AUTH],
