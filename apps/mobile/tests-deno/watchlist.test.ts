@@ -167,13 +167,14 @@ Deno.test('rule 1: "No longer tradable" is is_draftable false AND the league has
 });
 
 // ── rule 2: the order of the status line ──
-const base: StatusInput = { owner: null, isDraftable: true, allowUndraftable: false, slotLine: null };
+const base: StatusInput = { owner: null, isDraftable: true, allowUndraftable: false, slotLine: null, roomless: false };
 const FITS = { text: 'Available · fits your $100\u2013$200 slot', full: false };
 const FULL = { text: 'No free $400 or more slot', full: true };
 Deno.test('rule 2: who else owns it beats "No longer tradable", which beats the slot lines', () => {
-  const dead = { isDraftable: false, allowUndraftable: false, slotLine: FITS };
+  const dead = { isDraftable: false, allowUndraftable: false, roomless: true, slotLine: FITS };
   assertEquals(statusLine({ ...base, ...dead, owner: { name: 'Gianluigi B.' } }), { text: 'Owned by Gianluigi B.', kind: 'owned' });
   assertEquals(statusLine({ ...base, ...dead }), { text: 'No longer tradable', kind: 'untradable' }); // beats the slot lines
+  assertEquals(statusLine({ ...base, roomless: true }), { text: 'No free slot', kind: 'full' });
   assertEquals(statusLine(base), { text: 'Available', kind: 'available' });
 });
 
@@ -195,10 +196,11 @@ Deno.test('an owner whose name is not resolved reads "Owned by another manager"'
   assertEquals(statusLine({ ...base, owner: { name: null } }).text, 'Owned by another manager');
 });
 
-Deno.test('the server\'s slot line is the slot line; no answer (an error, an old function, a null row) reads plain "Available"', () => {
+Deno.test('the server\'s slot line wins over the interim lines; no answer falls back to "No free slot" (every slot held) or plain "Available"', () => {
   assertEquals(statusLine({ ...base, slotLine: FITS }), { text: FITS.text, kind: 'available' });
   assertEquals(statusLine({ ...base, slotLine: FULL }), { text: FULL.text, kind: 'full' });
-  assertEquals(statusLine({ ...base, slotLine: null }), { text: 'Available', kind: 'available' });
+  assertEquals(statusLine({ ...base, slotLine: FITS, roomless: true }).text, FITS.text);
+  assertEquals(statusLine({ ...base, slotLine: null, roomless: false }).text, 'Available');
 });
 
 Deno.test('the "+" on a Watching row: a stock you can get (the server named its slot or not), never a full, owned or untradable one, never in a finished season', () => {
@@ -207,6 +209,7 @@ Deno.test('the "+" on a Watching row: a stock you can get (the server named its 
   assertEquals(watchRowHasPlus(statusLine(base), true), false);
   assertEquals(watchRowHasPlus(statusLine({ ...base, owner: { name: 'P' } }), false), false);
   assertEquals(watchRowHasPlus(statusLine({ ...base, isDraftable: false }), false), false);
+  assertEquals(watchRowHasPlus(statusLine({ ...base, roomless: true }), false), false);
   assertEquals(watchRowHasPlus(statusLine({ ...base, slotLine: FULL }), false), false);
 });
 

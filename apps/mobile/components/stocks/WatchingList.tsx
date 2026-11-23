@@ -116,6 +116,7 @@ export function WatchingList({ leagueId, watch, allowUndraftable, seasonOver, da
           isDraftable: r.isDraftable,
           allowUndraftable,
           slotLine: slot ? { text: slot.text, full: slot.full } : null,
+          roomless: ownership.roomless,
         });
         return (
           <WatchRow
