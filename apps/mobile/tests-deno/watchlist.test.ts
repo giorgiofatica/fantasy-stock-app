@@ -9,6 +9,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import { COPY } from '../lib/money/moneyCopy.ts';
+import { notDraftableHere } from '../lib/money/draftable.ts';
 import {
   WATCHLIST_MAX,
   applyRead,
@@ -16,7 +17,6 @@ import {
   emptyWatch,
   failureWords,
   isSaved,
-  noLongerTradable,
   parseSaveResult,
   parseWatchlist,
   setWatchlistArgs,
@@ -159,21 +159,21 @@ Deno.test('watchingRows: an unstarred row leaves the view at once; a just-saved 
 });
 
 // ── rule 1: the no-longer-tradable test is the buy path's own ──
-Deno.test('rule 1: "No longer tradable" is is_draftable false AND the league has NOT allowed undraftable stocks', () => {
-  assertEquals(noLongerTradable(false, false), true);
-  assertEquals(noLongerTradable(false, true), false); // a full-universe league: the flag alone never shows the line
-  assertEquals(noLongerTradable(true, false), false);
-  assertEquals(noLongerTradable(true, true), false);
+Deno.test('rule 1: the not-in-this-league\'s-list test is is_draftable false AND the league has NOT allowed undraftable stocks (ONE function, shared with the sheet)', () => {
+  assertEquals(notDraftableHere(false, false), true);
+  assertEquals(notDraftableHere(false, true), false); // a full-universe league: the flag alone never shows the line
+  assertEquals(notDraftableHere(true, false), false);
+  assertEquals(notDraftableHere(true, true), false);
 });
 
 // ── rule 2: the order of the status line ──
 const base: StatusInput = { owner: null, isDraftable: true, allowUndraftable: false, slotLine: null, roomless: false };
 const FITS = { text: 'Available · fits your $100\u2013$200 slot', full: false };
 const FULL = { text: 'No free $400 or more slot', full: true };
-Deno.test('rule 2: who else owns it beats "No longer tradable", which beats the slot lines', () => {
+Deno.test('rule 2: who else owns it beats "Not in this league\'s list", which beats the slot lines', () => {
   const dead = { isDraftable: false, allowUndraftable: false, roomless: true, slotLine: FITS };
   assertEquals(statusLine({ ...base, ...dead, owner: { name: 'Gianluigi B.' } }), { text: 'Owned by Gianluigi B.', kind: 'owned' });
-  assertEquals(statusLine({ ...base, ...dead }), { text: 'No longer tradable', kind: 'untradable' }); // beats the slot lines
+  assertEquals(statusLine({ ...base, ...dead }), { text: "Not in this league's list", kind: 'untradable' }); // beats the slot lines
   assertEquals(statusLine({ ...base, roomless: true }), { text: 'No free slot', kind: 'full' });
   assertEquals(statusLine(base), { text: 'Available', kind: 'available' });
 });
@@ -188,7 +188,7 @@ Deno.test('"You own this" is gone from Watching: a stock you hold is left out of
   assertEquals(w.symbols, ['NVDA', 'AAPL', 'AMGN']);
 });
 
-Deno.test('rule 2: a full-universe league never says "No longer tradable" for the flag alone', () => {
+Deno.test('rule 2: a full-universe league never says "Not in this league\'s list" for the flag alone', () => {
   assertEquals(statusLine({ ...base, isDraftable: false, allowUndraftable: true }).text, 'Available');
 });
 
@@ -587,4 +587,13 @@ Deno.test('wiring: the slot lines are ONE list call per screen of rows (never th
   assert(/if \(!res\.error\) data = res\.data;/.test(hook), 'a { error } is no answer');
   assert(/SLOT_MIN_GAP_MS = 60_000/.test(hook));
   assert(!/previewBody\(/.test(SOURCES['components/stocks/WatchingList.tsx']), 'no single preview per row');
+});
+
+Deno.test('Giorgio, "ok then b": the Watching row\'s line for a stock that cannot be bought is the EXISTING COPY.notInLeagueList, one line for every cause; no "No longer tradable" string is left', () => {
+  assertEquals(COPY.notInLeagueList, "Not in this league's list");
+  assertEquals('noLongerTradable' in COPY, false);
+  assertEquals(statusLine({ ...base, isDraftable: false }).text, COPY.notInLeagueList);
+  for (const [path, src] of Object.entries(SOURCES)) {
+    if (path.startsWith('lib/') || path.startsWith('components/')) assert(!/No longer tradable|noLongerTradable/.test(src), `${path} still says "No longer tradable"`);
+  }
 });

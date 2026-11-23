@@ -132,11 +132,14 @@ export function StockSheetBody({
   symbol,
   knownName = null,
   startReview = null,
+  notDraftable = false,
   onDone,
   onBusyChange,
 }: {
   symbol: string;
   knownName?: string | null;
+  /** The opener says this stock cannot be bought in this league (the Watching row; lib/money/draftable.ts): the buy is named before the review. */
+  notDraftable?: boolean;
   /** "buy": open straight into the buy review when a buy is allowed (the Stocks list's "+"); see shouldStartReview. */
   startReview?: 'buy' | null;
   onDone: () => void;
@@ -465,6 +468,7 @@ export function StockSheetBody({
 
   const model = stockSheetModel({
     symbol,
+    notDraftable,
     companyName: data.companyName,
     price: data.price,
     prevClose: data.prevClose,
@@ -569,7 +573,7 @@ export function StockSheetBody({
   const ownerLine = `${model.ownershipLine}${model.ownerBadge ? ` · ${model.ownerBadge}` : ''}`;
   // The pre-review blocks that get the warn panel (the board: owned by another manager; W4:
   // over the budget, a full roster). Every other reason is the caption beside the button.
-  const warnBlock = selected === 'buy' && (model.buy.blockedBy === 'owned' || model.buy.blockedBy === 'budget' || model.buy.blockedBy === 'full')
+  const warnBlock = selected === 'buy' && (model.buy.blockedBy === 'owned' || model.buy.blockedBy === 'budget' || model.buy.blockedBy === 'full' || model.buy.blockedBy === 'not_draftable')
     ? (model.buy.blockedBy === 'owned' && data.facts.owner?.kind === 'other' ? COPY.ownerBlocksBuy(data.facts.owner.name ?? 'another manager', symbol) : model.buy.reason)
     : null;
 

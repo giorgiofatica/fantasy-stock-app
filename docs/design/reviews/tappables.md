@@ -174,16 +174,16 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/money/SalePicker.tsx:108` | Button | onPress | `onUse` | prop onUse (the caller's) | `!chosen` |
 | `components/money/SalePicker.tsx:115` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/money/StockChart.tsx:130` | RangePills | onChange | `setPicked` | state setPicked | `greyed` |
-| `components/money/StockSheetBody.tsx:401` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:518` | TradeReviewPanel | onRetry | `retryReview` | fn retryReview |  |
-| `components/money/StockSheetBody.tsx:540` | Button | onPress | `inline: () => { data.refresh(); void openReview(open.kind); }` | fn data.refresh |  |
-| `components/money/StockSheetBody.tsx:542` | Button | onPress | `inline: () => setOpen(null)` | sheet setOpen(null) |  |
-| `components/money/StockSheetBody.tsx:597` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
-| `components/money/StockSheetBody.tsx:603` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
-| `components/money/StockSheetBody.tsx:640` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
-| `components/money/StockSheetBody.tsx:679` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
-| `components/money/StockSheetBody.tsx:708` | Pressable | onPress | `save.onPress` | prop save.onPress |  |
-| `components/money/StockSheetBody.tsx:721` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
+| `components/money/StockSheetBody.tsx:404` | LoadFailure | onRetry | `data.refresh` | prop data.refresh |  |
+| `components/money/StockSheetBody.tsx:522` | TradeReviewPanel | onRetry | `retryReview` | fn retryReview |  |
+| `components/money/StockSheetBody.tsx:544` | Button | onPress | `inline: () => { data.refresh(); void openReview(open.kind); }` | fn data.refresh |  |
+| `components/money/StockSheetBody.tsx:546` | Button | onPress | `inline: () => setOpen(null)` | sheet setOpen(null) |  |
+| `components/money/StockSheetBody.tsx:601` | Button | onPress | `inline: () => openReview(selected)` | fn openReview | `!(canReview && gate.open)` |
+| `components/money/StockSheetBody.tsx:607` | Button | onPress | `inline: () => handleNextStep('pick_stock')` | fn handleNextStep |  |
+| `components/money/StockSheetBody.tsx:644` | Pressable | onPress | `data.refresh` | prop data.refresh |  |
+| `components/money/StockSheetBody.tsx:683` | SegmentedControl | onChange | `inline: (v) => setChoice(v as 'buy' \| 'sell')` | state setChoice |  |
+| `components/money/StockSheetBody.tsx:712` | Pressable | onPress | `save.onPress` | prop save.onPress |  |
+| `components/money/StockSheetBody.tsx:725` | Pressable | onPress | `onClose` | prop onClose (the caller's) |  |
 | `components/money/TradeHistoryScreen.tsx:132` | SegmentedControl | onChange | `choose` | fn choose |  |
 | `components/money/TradeHistoryScreen.tsx:144` | LoadFailure | onRetry | `ledger.refresh` | prop ledger.refresh |  |
 | `components/money/TradeReviewPanel.tsx:131` | Button | onPress | `onSubmit` | prop onSubmit (the caller's) | `!p.button.enabled` |
@@ -288,7 +288,7 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/stocks/StocksScreen.tsx:538` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
 | `components/stocks/StocksScreen.tsx:544` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |
 | `components/stocks/StocksScreen.tsx:555` | StarButton | onPress | `onStar` | prop onStar (the caller's) |  |
-| `components/stocks/WatchingList.tsx:96` | LoadFailure | onRetry | `onRetry` | prop onRetry (the caller's) |  |
-| `components/stocks/WatchingList.tsx:202` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
-| `components/stocks/WatchingList.tsx:211` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |
-| `components/stocks/WatchingList.tsx:229` | StarButton | onPress | `onStar` | prop onStar (the caller's) |  |
+| `components/stocks/WatchingList.tsx:97` | LoadFailure | onRetry | `onRetry` | prop onRetry (the caller's) |  |
+| `components/stocks/WatchingList.tsx:204` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
+| `components/stocks/WatchingList.tsx:213` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |
+| `components/stocks/WatchingList.tsx:231` | StarButton | onPress | `onStar` | prop onStar (the caller's) |  |

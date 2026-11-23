@@ -14,6 +14,7 @@
  * Only `watchlist_full` has words (the board's, on the stock sheet); `rate_limited` and every other refusal get NONE
  * (the Planner's rule 3): the star simply returns to empty.
  */
+import { notDraftableHere } from '../money/draftable';
 import { COPY } from '../money/moneyCopy';
 
 /** The most stocks a manager may save in one league (the server's cap_index range). */
@@ -25,7 +26,7 @@ export interface WatchRow {
   name: string;
   /** Our categories, in display order; empty = unclassified (the client's Misc). */
   categoryIds: string[];
-  /** The server's draftable flag. Read with `noLongerTradable`, never alone. */
+  /** The server's draftable flag. Read with `notDraftableHere` (lib/money/draftable.ts), never alone. */
   isDraftable: boolean;
   savedAt: string | null;
 }
@@ -42,7 +43,7 @@ export function parseWatchlist(data: unknown): WatchRow[] | null {
       symbol: r.symbol.trim().toUpperCase(),
       name: typeof r.name === 'string' ? r.name.trim() : '',
       categoryIds: Array.isArray(r.category_ids) ? r.category_ids.filter((c): c is string => typeof c === 'string') : [],
-      // A missing flag is "draftable": the line says "No longer tradable" only on a flag the server sent as false.
+      // A missing flag is "draftable": the not-in-this-league's-list line shows only on a flag the server sent as false.
       isDraftable: r.is_draftable !== false,
       savedAt: typeof r.saved_at === 'string' ? r.saved_at : null,
     });
@@ -187,14 +188,6 @@ export function starLabel(symbol: string, saved: boolean): string {
 
 // ── A Watching row's status line ─────────────────────────────────────────────────────────────
 
-/**
- * "No longer tradable" is the buy path's own test (_shared/draft-validation.ts, reason not_draftable): the server's draftable flag is false AND
- * the league has not turned on "Allow non-draftable stocks (full universe)". In a full-universe league the flag alone never shows the line.
- */
-export function noLongerTradable(isDraftable: boolean, allowUndraftable: boolean): boolean {
-  return !isDraftable && !allowUndraftable;
-}
-
 export interface StatusInput {
   /** Who else holds it in this league (another manager; the name may be unresolved), or nobody. A stock YOU hold never reaches the Watching view (watchingRows). */
   owner: { name: string | null } | null;
@@ -210,14 +203,15 @@ export type StatusKind = 'owned' | 'untradable' | 'full' | 'available';
 
 /**
  * The one status line, in the Planner's order when two apply (the plan, "Settled during the build" 1): who owns it first ("Owned by {name}":
- * a holder can sell it), then "No longer tradable", then the slot lines. "You own this" is not a Watching status any more: a stock you hold is left
+ * a holder can sell it), then "Not in this league's list", then the slot lines. "You own this" is not a Watching status any more: a stock you hold is left
  * out of the view. The slot line is the SERVER's when it answered (a list preview, one call per screen; the app never computes a tier fit);
  * without one it is what the app can already tell: "No free slot" when every slot is held, else plain "Available".
  * `kind` drives the "+": a stock you can get ('available', whether or not the server named its slot) keeps it.
  */
 export function statusLine(input: StatusInput): { text: string; kind: StatusKind } {
   if (input.owner) return { text: COPY.ownedBy(input.owner.name ?? 'another manager'), kind: 'owned' };
-  if (noLongerTradable(input.isDraftable, input.allowUndraftable)) return { text: COPY.noLongerTradable, kind: 'untradable' };
+  // One line for every cause (Giorgio, 2026-11-23, "ok then b"): the existing "Not in this league's list", the same words as the search row. The test is the buy path's own.
+  if (notDraftableHere(input.isDraftable, input.allowUndraftable)) return { text: COPY.notInLeagueList, kind: 'untradable' };
   if (input.slotLine) return { text: input.slotLine.text, kind: input.slotLine.full ? 'full' : 'available' };
   if (input.roomless) return { text: COPY.noFreeSlot, kind: 'full' };
   return { text: COPY.availableStatus, kind: 'available' };

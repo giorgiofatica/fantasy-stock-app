@@ -5,7 +5,7 @@
  * A row: the "+" at the left when the stock can be bought, the ticker disc, the ticker and ONE status line (no company name:
  * October ruling 13c, so a row with a button stays at two lines), the live price with today's change under it, the star at the
  * right edge. The status line (watchlist.ts statusLine) is, in the Planner's order: who else owns it ("Owned by {name}"), then
- * "No longer tradable", then the slot lines (the server's, from the list preview: useWatchSlots). A stock YOU hold is not listed at all
+ * "Not in this league's list" (a stock that cannot be bought here), then the slot lines (the server's, from the list preview: useWatchSlots). A stock YOU hold is not listed at all
  * (Giorgio, 2026-11-23: it is in your portfolio). A price we do not have reads "–" (never $0.00). Nothing to show: the star and "Star a stock to watch it here."
  *
  * The read returns NO price (the accurate-prices rule): each row takes its price AND its change from the live lookup, for the
@@ -28,6 +28,7 @@ import { useStockSheet } from '@/components/money/MoneyHost';
 import { StarButton } from '@/components/stocks/StarButton';
 import { Skeleton } from '@/components/Skeleton';
 import { priceLabel } from '@/lib/game/queueRow';
+import { notDraftableHere } from '@/lib/money/draftable';
 import { useWatchSlots } from '@/lib/stocks/useWatchSlots';
 import { keepMoney } from '@/lib/game/keepDots';
 import { COPY } from '@/lib/money/moneyCopy';
@@ -126,7 +127,8 @@ export function WatchingList({ leagueId, watch, allowUndraftable, seasonOver, da
             plus={watchRowHasPlus(status, seasonOver)}
             quote={quoteOf(r.symbol)}
             dayWord={dayWord}
-            onOpen={() => open(r.symbol, { name: r.name, originRef: 'stocks-row' })}
+            // A stock that is not in this league's list opens the sheet to look; the sheet names the blocked buy before the review (one test, lib/money/draftable.ts).
+            onOpen={() => open(r.symbol, { name: r.name, originRef: 'stocks-row', notDraftable: notDraftableHere(r.isDraftable, allowUndraftable) })}
             onPlus={() => open(r.symbol, { name: r.name, originRef: 'stocks-plus', startReview: 'buy' })}
             onStar={() => onToggle(r.symbol)}
             onBox={(b) => {

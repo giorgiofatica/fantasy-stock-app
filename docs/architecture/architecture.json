@@ -2,30 +2,62 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "00484c5ec5f52d6f8339f1d5e91787b030f21728",
-    "commitShort": "00484c5e",
+    "commit": "f49b13946bc31f6b918fdcd9f6c30cef3df79dc3",
+    "commitShort": "f49b1394",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "",
+    "branch": "feat/watchlist-app",
     "dirty": true,
     "dirtyPaths": [
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/commit.ts"
+        "path": "apps/mobile/components/money/MoneyHost.tsx"
       },
       {
         "code": "M",
-        "path": "supabase/functions/record-trade/index.ts"
+        "path": "apps/mobile/components/money/StockSheetBody.tsx"
       },
       {
-        "code": "A",
-        "path": "supabase/functions/record-trade/preview-list.test.ts"
+        "code": "M",
+        "path": "apps/mobile/components/stocks/WatchingList.tsx"
       },
       {
-        "code": "A",
-        "path": "supabase/functions/record-trade/preview-list.ts"
+        "code": "??",
+        "path": "apps/mobile/lib/money/draftable.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/moneyCopy.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stockSheetApi.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/money/stockSheetModel.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/stocks/seamStocks.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/lib/stocks/watchlist.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/money-sheet.test.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
+      },
+      {
+        "code": "M",
+        "path": "apps/mobile/tests-deno/watchlist.test.ts"
       }
     ],
-    "timestamp": "2026-11-23T20:11:00Z",
+    "timestamp": "2026-11-23T20:38:05Z",
     "sourceHash": "sha256:fb527282e8dfce241794441488054cf5de86f39c24604fe3f41d9fc7b72a2df7",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -33,7 +65,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T18:29:25Z",
-    "ageHours": 1.7,
+    "ageHours": 2.1,
     "ageDays": 0.1,
     "staleAfterDays": 14,
     "stale": false,

@@ -59,6 +59,8 @@ export interface StockSheetInput {
    * no cash is free to invest. The buy is disabled BEFORE the review, like a full roster, with the existing line "Every slot is
    * invested. Sell a holding to free one." (see noProceedsKnown). Unset while the preview is unread or unreadable: never guessed. */
   noProceeds?: boolean;
+  /** The opener says this stock cannot be bought in this league (notDraftableHere: is_draftable false AND the league has not allowed undraftable stocks). */
+  notDraftable?: boolean;
 }
 
 /** True only when the league is fixed-notional AND its preview was read AND it named no sale proceeds (`sources` null = not read). */
@@ -83,7 +85,7 @@ export interface StockSheetModel {
   /** blockedBy names WHY buy is disabled, so the sheet can show the right
    * pre-review block (E-3, 3e UX audit): 'owned' gets a warn card and a
    * visible disabled Review buy, the others keep the plain caption. */
-  buy: ActionState & { blockedBy: 'closed' | 'price' | 'owned' | 'held' | 'full' | 'budget' | null };
+  buy: ActionState & { blockedBy: 'closed' | 'price' | 'owned' | 'held' | 'full' | 'budget' | 'not_draftable' | null };
   sell: ActionState & { summary: string | null };
   /** False in a finished season: the sheet draws no Buy | Sell segment, no Review button and no reason line. */
   controlsShown: boolean;
@@ -130,6 +132,13 @@ export function stockSheetModel(input: StockSheetInput): StockSheetModel {
   if (buyReason === null && input.rosterFull) {
     buyReason = COPY.rosterFull;
     buyBlockedBy = 'full';
+  }
+  // A stock that is not in this league's list can never be bought here, whatever the market is doing: the buy is named BEFORE the review, in the refusal panel
+  // (the server's own refusal words, notDraftableSymbol), with the button visible and disabled. It beats the closed / price lines (the panel shows while the market is
+  // closed too) and yields to who holds it, as the Watching row's status order does. The price, chart and Save stay; only the buy is blocked.
+  if (!seasonOver && input.notDraftable && !otherOwned && !held) {
+    buyReason = COPY.notDraftableSymbol(input.symbol.toUpperCase());
+    buyBlockedBy = 'not_draftable';
   }
   // A fixed-notional league with every slot held and no sale proceeds: nothing is free to invest (the review would only refuse).
   if (buyReason === null && input.noProceeds) {

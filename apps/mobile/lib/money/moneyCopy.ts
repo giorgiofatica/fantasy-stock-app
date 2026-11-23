@@ -163,6 +163,5 @@ export const COPY = {
   save: 'Save',
   saved: 'Saved',
   availableStatus: 'Available',
-  noLongerTradable: 'No longer tradable',
   watchlistFull: 'Your watchlist is full (50). Remove one to add another.',
 };

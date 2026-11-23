@@ -135,7 +135,7 @@ export function resetSeamStocks(): void {
 
 // ── The watchlist (plan part 3) ─────────────────────────────────────────────────────────────────
 
-/** The saved stocks a capture starts with: [symbol, name, category id, is_draftable]. The catalogue's AVGO is starred on Available; SQ is a delisted name ("No longer tradable"). */
+/** The saved stocks a capture starts with: [symbol, name, category id, is_draftable]. The catalogue's AVGO is starred on Available; SQ is a delisted name ("Not in this league's list"). */
 const WATCH_SEED: readonly [string, string, string, boolean][] = [
   ['AVGO', 'Broadcom', 'cat-tech', true],
   ['AMGN', 'Amgen', 'cat-health', true],
