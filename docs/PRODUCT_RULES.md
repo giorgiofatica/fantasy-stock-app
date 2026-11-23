@@ -1539,6 +1539,24 @@ building anything, and don't reopen a rule without him.
       what the list shows when the market is closed.
     - Not decided: the chip's name and where it sits; how many rows; whether it lists only
       stocks available in this league.
+  - **Watching and Claims sit behind a switch above the list (B)** (2026-11-22, A/B
+    mockups in the Planner's chat; typed there: "B"). A three-way switch at the top of the
+    tab: Available, Watching, Claims (with the number pending). It is the control Matchup
+    uses for "My matchup | All matchups". Under Available, the row of chips stays for
+    narrowing what you browse (All, Top movers, the categories). Every stock row carries a
+    star at its right edge (tap to watch in this league; filled means watching); the plus
+    stays at the left edge, so the two are never side by side. A (Watching, Claims and Top
+    movers as more chips in the one row) was not picked.
+    - This replaces decision 12 of the October plan (the watchlist inside "Buy a stock"
+      and a "Watching" section on Portfolio). Whether Portfolio keeps a "Watching" section
+      is not decided.
+    - The names ("Available", "Watching", "Claims", "Top movers") and the star's look were
+      the Planner's in the mockup. The October plan's approved words are Save / Saved for
+      the star and Claim / Claims for the waiver wire; the Design Lead's board settles the
+      rest at his text size, and new words go to him.
+    - Recorded for the build: 4,400 of the 10,472 draftable stocks carry a company size
+      (his read-only count, 2026-11-22). The other 6,072 cannot rank in Top movers and sort
+      to the end of the list.
 - **The Expo upgrade is done now, not in January** (2026-11-22, typed in the Planner's
   chat). Apple's notice (ITMS-90725, on build 17) requires the iOS 27 SDK from April 2027,
   which for this app means moving from Expo SDK 54 to 58
