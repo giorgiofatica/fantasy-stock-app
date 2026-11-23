@@ -363,6 +363,37 @@ Portfolio. Ranked fallback claims. Anything on the web app.
 3. ANSWERED 2026-11-22 by the board (the Design Lead's ruling, drawn and explained, not a
    pick): the waiver order is the first row of Claims, the whole order on a tap.
 
+### Settled during the build
+
+From the watchlist's server work (#595, reported 2026-11-23). These are the Planner's
+readings, each checked against the code. None changes an approved look or an approved word.
+
+1. **"No longer tradable" means the buy would be refused.** The watchlist read returns
+   `is_draftable`, because the app cannot read `symbols.active` since `20261206000000`. The
+   app shows the line when `is_draftable` is false AND the league has not turned on "Allow
+   non-draftable stocks (full universe)" (`leagues.allow_undraftable`). That is the test
+   the buy path itself applies (`_shared/draft-validation.ts`, reason `not_draftable`), so
+   the line and the refusal can never disagree.
+   - The line therefore also appears for a stock that fell under the size or price floor,
+     not only for a delisted one. In the app that stock cannot be bought, which is what the
+     line says.
+   - In a full-universe league the flag alone never shows the line. A delisted stock there
+     reads as a price that did not load.
+   - When two statuses apply, who owns it comes first ("You own this", "Owned by {name}"),
+     because a holder can always sell; "No longer tradable" comes next; the slot lines come
+     last.
+   - The claims run (workstream 6) fails a claim as no longer tradable by the same test as
+     the buy path, not by `active` alone.
+2. **A watchlist is personal.** A hidden or deleted seat cannot save. Reading and removing
+   your own saved stocks needs only membership. Taking over a team does not hand over the
+   former manager's saved stocks; the new manager starts with none.
+3. **New saves are paced** (the security review: saving, reading back and removing in a
+   loop would disclose any stock's category). 30 a minute, 200 an hour, 500 a day, per
+   person across all their leagues; the refusal is `rate_limited`. It gets no words of its
+   own: the app treats it as any save that did not go through. If the board draws nothing
+   for a save that did not go through, workstream 3 stops and reports, and the words go to
+   Giorgio.
+
 ### Risks
 
 - **This is the largest change to trading since the draft.** The claims run and the hold
