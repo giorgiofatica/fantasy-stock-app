@@ -394,6 +394,42 @@ readings, each checked against the code. None changes an approved look or an app
    for a save that did not go through, workstream 3 stops and reports, and the words go to
    Giorgio.
 
+From the watchlist's app work (workstream 3, reported 2026-11-23):
+
+4. **The slot lines on Watching come from the server, in one call for the screen.** The
+   board's lines ("Available · fits your $100–$200 slot", "No free $400+ slot") need the
+   answer to "would a buy of this stock, at this price, take one of my slots?". The app
+   never works that out itself (`apps/mobile/lib/money/tierContract.ts`). The server
+   already answers it for one stock at a time (`record-trade`'s `preview`, `would_fill`,
+   from the same `decideBuySlot` a real buy runs), but that call is paced at 30 a minute,
+   so one call per row is ruled out. The watchlist read cannot answer it either: it holds
+   no price, by rule. So the preview learns to answer for a list:
+   - One call per screen of rows, never one per row. The app sends each stock with the
+     price that row is showing, as the single preview does today, so the line and the
+     price on the same row cannot disagree.
+   - It runs the buy's own function. No second copy of the rule, on the server or in the
+     app.
+   - It answers only for stocks on the caller's own watchlist in that league. Otherwise a
+     list call would hand out the category fit of any 50 stocks at a time, which is the
+     disclosure the save pacing (point 3) exists to stop. The security reviewer reads it.
+   - The answer stays advisory, as today: the buy checks again at the live price.
+   - A row with no answer (a league with no slots; a price that didn't load) reads plain
+     "Available". That is a cut of an approved line; it goes in the next copy summary for
+     Giorgio to strike if he disagrees.
+   - It is `record-trade` code, not a migration, and ships with a `record-trade` deploy
+     (workstream 6 already has one). It is in before build 18.
+   - Until then workstream 3 may merge with the lines it can already word (who owns it,
+     "No longer tradable", plain "Available", "No free slot"), behind one function. That
+     is a build order, not a look: it never goes into a build. The approved board stands
+     in full.
+5. **No star on search results yet.** His pick ("Every stock row carries a star at its right
+   edge", 2026-11-22) was made on drawings of the lists under the switch. Search results
+   were not drawn, and they have rows the lists do not (a stock someone owns; "Not in this
+   league's list"). A pick covers the screens it was shown on, so workstream 3 builds no
+   star there. A stock found by search is saved from its sheet, which the board does draw.
+   The Design Lead draws the search rows with a star, and that drawing goes to Giorgio as a
+   yes or no before build 18.
+
 ### Risks
 
 - **This is the largest change to trading since the draft.** The claims run and the hold
