@@ -26,9 +26,10 @@
  *   moversfail   the movers read fails (the existing "Stocks didn't load")
  *   moversrate   the movers read answers PT429 (paced: the same state)
  *   moversempty  the movers read answers no rows (the same state)
- *   moversold    the ranking is 45 minutes old (open: the same state; closed: shown)
+ *   moversold    the ranking is 45 minutes old (market open: the same state)
  *   moversloading the movers read never answers (the skeleton)
- *   marketclosed the market reads closed, the last session's day is "Fri" (the rows say "+11.2% Fri")
+ *   moversprev   the ranking was made the session BEFORE the last one (market closed: "Stocks didn't load")
+ *   marketclosed the market reads closed; the last session is Fri 2026-11-20, the ranking was made in it (the rows say "+11.2% Fri")
  * Combine with a comma ("page2_fail,noprice").
  */
 import type { ChipCategory } from './stocksList';
@@ -97,6 +98,7 @@ export interface StocksKnob {
   moversEmpty: boolean;
   moversOld: boolean;
   moversLoading: boolean;
+  moversPrev: boolean;
   marketClosed: boolean;
 }
 
@@ -106,7 +108,7 @@ export function parseStocksKnob(raw: string | null | undefined): StocksKnob {
   return { loading: set.has('loading'), fail: set.has('fail'), page2Fail: set.has('page2_fail'), page2Loading: set.has('page2_loading'), empty: set.has('empty'), noPrice: set.has('noprice'), small: set.has('small'), proceeds: set.has('proceeds'),
     watchEmpty: set.has('watchempty'), watchFail: set.has('watchfail'), watchLoading: set.has('watchloading'),
     saveFull: set.has('savefull'), saveRate: set.has('saverate'), saveFail: set.has('savefail'), saveHang: set.has('savehang'), noList: set.has('nolist'),
-    moversFail: set.has('moversfail'), moversRate: set.has('moversrate'), moversEmpty: set.has('moversempty'), moversOld: set.has('moversold'), moversLoading: set.has('moversloading'), marketClosed: set.has('marketclosed'),
+    moversFail: set.has('moversfail'), moversRate: set.has('moversrate'), moversEmpty: set.has('moversempty'), moversOld: set.has('moversold'), moversLoading: set.has('moversloading'), moversPrev: set.has('moversprev'), marketClosed: set.has('marketclosed'),
   };
 }
 
@@ -259,12 +261,14 @@ export function seamListPreview(body: Record<string, unknown>, knob: StocksKnob)
 
 // ── Top movers (plan part 3, workstream 5) ──────────────────────────────────────────────────────
 
-/** The last close the `marketclosed` capture reads (a Friday): the closed rows say "Fri". */
-export const SEAM_LAST_CLOSE_ISO = '2026-11-20T21:00:00.000Z';
+/** The last session the `marketclosed` capture reads (Friday 2026-11-20, 9:30-16:00 ET): the closed rows say "Fri". */
+export const SEAM_LAST_SESSION = { sessionDate: '2026-11-20', openMs: Date.parse('2026-11-20T14:30:00.000Z'), closeMs: Date.parse('2026-11-20T21:00:00.000Z'), closeIso: '2026-11-20T21:00:00.000Z' };
+/** A time inside the session BEFORE it (Thursday 2026-11-19 afternoon): `moversprev` ranks at this time. */
+const SEAM_PREVIOUS_SESSION_RANKED_AT = '2026-11-19T20:00:00.000Z';
 
 /**
  * `get_league_top_movers` as the capture seam answers it: the ranking in the server's order, each row `place, symbol, name, category_ids,
- * ranked_at`, and NO price or change. `moversold` dates the ranking 45 minutes back, `marketclosed` dates it at the last close.
+ * ranked_at`, and NO price or change. `moversold` dates the ranking 45 minutes back, `marketclosed` dates it a minute before the last session's close (inside that session), `moversprev` in the session before it.
  * `null` = never answers.
  */
 export function seamTopMoversRead(knob: StocksKnob, nowMs: number): ReadResult | null {
@@ -272,7 +276,7 @@ export function seamTopMoversRead(knob: StocksKnob, nowMs: number): ReadResult |
   if (knob.moversFail) return { data: null, error: { message: 'fixture: the movers read failed', code: 'FIXTURE' } };
   if (knob.moversRate) return { data: null, error: { message: 'get_league_top_movers: rate limited', code: 'PT429' } };
   if (knob.moversEmpty) return { data: [], error: null };
-  const rankedAt = new Date(knob.marketClosed ? Date.parse(SEAM_LAST_CLOSE_ISO) : nowMs - (knob.moversOld ? 45 : 3) * 60_000).toISOString();
+  const rankedAt = knob.moversPrev ? SEAM_PREVIOUS_SESSION_RANKED_AT : new Date(knob.marketClosed ? SEAM_LAST_SESSION.closeMs - 60_000 : nowMs - (knob.moversOld ? 45 : 3) * 60_000).toISOString();
   const rows = MOVERS_ORDER.flatMap((symbol, i) => {
     const c = CATALOGUE.find(([s]) => s === symbol);
     return c ? [{ place: i + 1, symbol, name: c[1], category_ids: [c[2]], ranked_at: rankedAt }] : [];

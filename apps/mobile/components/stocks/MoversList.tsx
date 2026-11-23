@@ -31,7 +31,7 @@ import { Skeleton } from '@/components/Skeleton';
 import { priceLabel } from '@/lib/game/queueRow';
 import { keepMoney } from '@/lib/game/keepDots';
 import { COPY } from '@/lib/money/moneyCopy';
-import { moverLabel, moversVerdict } from '@/lib/stocks/topMovers';
+import { moverLabel, moversVerdict, type LastSession } from '@/lib/stocks/topMovers';
 import type { UseTopMovers } from '@/lib/stocks/useTopMovers';
 import { useRowQuotes } from '@/lib/stocks/useRowQuotes';
 import { ROW_TEXT_MAX_SCALE, priceUnderName, symbolsOnScreen, type ListRow } from '@/lib/stocks/stocksList';
@@ -47,6 +47,8 @@ export interface MoversListProps {
   movers: UseTopMovers;
   /** True ONLY when the market is known to be closed (an unknown market is judged as open: the old-ranking rule applies). */
   marketClosed: boolean;
+  /** The most recent trading session (topMovers.ts lastSessionBefore), judged from the market calendar; null when the calendar cannot name it. Only read while closed. */
+  lastSession: LastSession | null;
   /** "today" while the market is open, the last close's short weekday ("Fri") while it is closed, null when unknown. */
   dayWord: string | null;
   /** The "+" at each row's left edge: the same predicate Available uses (a finished season starts no buy). */
@@ -55,8 +57,8 @@ export interface MoversListProps {
   onStar: (symbol: string) => void;
 }
 
-export function MoversList({ movers, marketClosed, dayWord, plus, watch, onStar }: MoversListProps) {
-  const verdict = movers.status === 'ready' ? moversVerdict(movers.read, marketClosed, movers.now) : null;
+export function MoversList({ movers, marketClosed, lastSession, dayWord, plus, watch, onStar }: MoversListProps) {
+  const verdict = movers.status === 'ready' ? moversVerdict(movers.read, marketClosed, movers.now, lastSession) : null;
   if (movers.status === 'loading') return <MoversSkeleton />;
   if (movers.status === 'failed' || !verdict || verdict.kind === 'failed') {
     return <LoadFailure title={COPY.stockSearchLoadTitle} message={COPY.loadRetryMessage} onRetry={() => void movers.reload()} />;

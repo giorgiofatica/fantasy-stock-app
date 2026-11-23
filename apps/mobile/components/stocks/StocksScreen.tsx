@@ -60,16 +60,15 @@ import { useMoneyStockSearch } from '@/lib/money/useMoneyStockSearch';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { isSeasonOver } from '@/lib/weekStatus';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
-import { SEAM_LAST_CLOSE_ISO, SEAM_STOCK_CATEGORIES } from '@/lib/stocks/seamStocks';
-import { TOP_MOVERS_CHIP_ID, chipsWithMovers, selectedChipId } from '@/lib/stocks/topMovers';
+import { SEAM_LAST_SESSION, SEAM_STOCK_CATEGORIES } from '@/lib/stocks/seamStocks';
+import type { LastSession } from '@/lib/stocks/topMovers';
+import { TOP_MOVERS_CHIP_ID, chipsWithMovers, lastSessionBefore, lastSessionDayWord, selectedChipId } from '@/lib/stocks/topMovers';
 import { useTopMovers, type UseTopMovers } from '@/lib/stocks/useTopMovers';
 import { useStocksList } from '@/lib/stocks/useStocksList';
 import { useRowPrices } from '@/lib/stocks/useRowPrices';
 import { useSearchOwnership } from '@/lib/stocks/useSearchOwnership';
 import { useWatchlist, type UseWatchlist } from '@/lib/stocks/useWatchlist';
 import { SWITCH_SEGMENTS, isSaved, showsSearchStar, type StocksView } from '@/lib/stocks/watchlist';
-import { shortWeekdayEt } from '@/lib/stocks/rowQuotes';
-import { lastSessionCloseBefore } from '@/lib/time/marketWeek';
 import {
   CHIP_TEXT_MAX_SCALE,
   ROW_TEXT_MAX_SCALE,
@@ -147,7 +146,9 @@ export function StocksScreen() {
   // (The capture seam has no market read, so it reads as open: the stills show the word.)
   // (A capture knob, `marketclosed`, reads closed with a fixed last close: the stills' "Fri".)
   const marketStatus = SEAM_MARKET_CLOSED ? 'closed' : (market?.status ?? (SEAM_ON ? 'open' : undefined));
-  const dayWord = marketStatus === 'open' ? 'today' : marketStatus === 'closed' ? shortWeekdayEt(SEAM_MARKET_CLOSED ? SEAM_LAST_CLOSE_ISO : lastSessionCloseBefore(new Date(), marketCalendar)) : null;
+  // While closed, the day on a figure is the most recent SESSION's, from the market calendar (never the weekday of a ranking's own time).
+  const lastSession = marketStatus === 'closed' ? (SEAM_MARKET_CLOSED ? SEAM_LAST_SESSION : lastSessionBefore(new Date(), marketCalendar)) : null;
+  const dayWord = marketStatus === 'open' ? 'today' : marketStatus === 'closed' ? lastSessionDayWord(lastSession) : null;
 
   const onRefresh = view === 'watching' ? async () => wl.reload() : control.mode === 'chips' ? (moversOn ? movers.reload : list.refresh) : undefined;
   return (
@@ -165,6 +166,7 @@ export function StocksScreen() {
           moversOn={moversOn}
           onChip={onChip}
           marketClosed={marketStatus === 'closed'}
+          lastSession={lastSession}
           allowUndraftable={!!activeLeague?.allow_undraftable}
           control={control}
           dispatchControl={dispatchControl}
@@ -202,6 +204,7 @@ function StocksBody({
   moversOn,
   onChip,
   marketClosed,
+  lastSession,
   allowUndraftable,
   control,
   dispatchControl,
@@ -218,6 +221,7 @@ function StocksBody({
   moversOn: boolean;
   onChip: (id: string | null) => void;
   marketClosed: boolean;
+  lastSession: LastSession | null;
   allowUndraftable: boolean;
   control: ControlRow;
   dispatchControl: (a: Parameters<typeof controlReducer>[1]) => void;
@@ -240,7 +244,7 @@ function StocksBody({
         <SearchField query={control.query} onChange={(q) => dispatchControl({ type: 'type', query: q })} onCancel={() => dispatchControl({ type: 'cancel' })} />
       )}
       {control.mode === 'chips' && moversOn ? (
-        <MoversList movers={movers} marketClosed={marketClosed} dayWord={dayWord} plus={showsBuyPlus(seasonOver)} watch={wl.watch} onStar={onStar} />
+        <MoversList movers={movers} marketClosed={marketClosed} lastSession={lastSession} dayWord={dayWord} plus={showsBuyPlus(seasonOver)} watch={wl.watch} onStar={onStar} />
       ) : control.mode === 'chips' ? (
         <AvailableList list={list} categories={categories ?? []} seasonOver={seasonOver} wl={wl} onStar={onStar} />
       ) : (

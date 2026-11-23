@@ -269,29 +269,29 @@ Destination kinds: `route` (expo-router), `tab` (tab bar), `sheet` (a state sett
 | `components/sp/gn/Scoreboard.tsx:163` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
 | `components/sp/gn/Scoreboard.tsx:174` | PressableScale | onPress | `open.onPress` | prop open.onPress |  |
 | `components/sp/gn/SegmentTabs.tsx:41` | Pressable | onPress | `inline: () => { if (selected) return; Haptics.selectionAsync().catch` | fn onChange |  |
-| `components/stocks/MoversList.tsx:62` | LoadFailure | onRetry | `inline: () => void movers.reload()` | fn movers.reload |  |
-| `components/stocks/MoversList.tsx:180` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
-| `components/stocks/MoversList.tsx:189` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |
-| `components/stocks/MoversList.tsx:203` | StarButton | onPress | `onStar` | prop onStar (the caller's) |  |
+| `components/stocks/MoversList.tsx:64` | LoadFailure | onRetry | `inline: () => void movers.reload()` | fn movers.reload |  |
+| `components/stocks/MoversList.tsx:182` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
+| `components/stocks/MoversList.tsx:191` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |
+| `components/stocks/MoversList.tsx:205` | StarButton | onPress | `onStar` | prop onStar (the caller's) |  |
 | `components/stocks/SearchRow.tsx:73` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/stocks/SearchRow.tsx:80` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
 | `components/stocks/SearchRow.tsx:83` | StarButton | onPress | `star.onPress` | prop star.onPress |  |
 | `components/stocks/StarButton.tsx:20` | Pressable | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/stocks/StocksScreen.tsx:232` | SegmentedControl | onChange | `inline: (v) => onView(v === 'watching' ? 'watching' : 'available')` | fn onView |  |
-| `components/stocks/StocksScreen.tsx:234` | WatchingList | onRetry | `wl.reload` | prop wl.reload |  |
-| `components/stocks/StocksScreen.tsx:238` | ChipRow | onSelect | `onChip` | prop onChip (the caller's) |  |
-| `components/stocks/StocksScreen.tsx:240` | SearchField | onChange | `inline: (q) => dispatchControl({ type: 'type', query: q })` | fn dispatchControl |  |
-| `components/stocks/StocksScreen.tsx:278` | Pressable | onPress | `onSearch` | prop onSearch (the caller's) |  |
-| `components/stocks/StocksScreen.tsx:301` | StockChip | onPress | `inline: () => onSelect(c.categoryId)` | fn onSelect |  |
-| `components/stocks/StocksScreen.tsx:320` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
-| `components/stocks/StocksScreen.tsx:369` | Pressable | onPress | `onCancel` | prop onCancel (the caller's) |  |
-| `components/stocks/StocksScreen.tsx:390` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
-| `components/stocks/StocksScreen.tsx:409` | SearchRow | onPress | `inline: () => select(item)` | fn select |  |
-| `components/stocks/StocksScreen.tsx:473` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
-| `components/stocks/StocksScreen.tsx:513` | Pressable | onPress | `retry` | fn retry (from a hook or import) |  |
-| `components/stocks/StocksScreen.tsx:576` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
-| `components/stocks/StocksScreen.tsx:582` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |
-| `components/stocks/StocksScreen.tsx:593` | StarButton | onPress | `onStar` | prop onStar (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:236` | SegmentedControl | onChange | `inline: (v) => onView(v === 'watching' ? 'watching' : 'available')` | fn onView |  |
+| `components/stocks/StocksScreen.tsx:238` | WatchingList | onRetry | `wl.reload` | prop wl.reload |  |
+| `components/stocks/StocksScreen.tsx:242` | ChipRow | onSelect | `onChip` | prop onChip (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:244` | SearchField | onChange | `inline: (q) => dispatchControl({ type: 'type', query: q })` | fn dispatchControl |  |
+| `components/stocks/StocksScreen.tsx:282` | Pressable | onPress | `onSearch` | prop onSearch (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:305` | StockChip | onPress | `inline: () => onSelect(c.categoryId)` | fn onSelect |  |
+| `components/stocks/StocksScreen.tsx:324` | PressableScale | onPress | `onPress` | prop onPress (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:373` | Pressable | onPress | `onCancel` | prop onCancel (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:394` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
+| `components/stocks/StocksScreen.tsx:413` | SearchRow | onPress | `inline: () => select(item)` | fn select |  |
+| `components/stocks/StocksScreen.tsx:477` | LoadFailure | onRetry | `retry` | fn retry (from a hook or import) |  |
+| `components/stocks/StocksScreen.tsx:517` | Pressable | onPress | `retry` | fn retry (from a hook or import) |  |
+| `components/stocks/StocksScreen.tsx:580` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:586` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |
+| `components/stocks/StocksScreen.tsx:597` | StarButton | onPress | `onStar` | prop onStar (the caller's) |  |
 | `components/stocks/WatchingList.tsx:97` | LoadFailure | onRetry | `onRetry` | prop onRetry (the caller's) |  |
 | `components/stocks/WatchingList.tsx:204` | Pressable | onPress | `onPlus` | prop onPlus (the caller's) |  |
 | `components/stocks/WatchingList.tsx:213` | PressableScale | onPress | `onOpen` | prop onOpen (the caller's) |  |

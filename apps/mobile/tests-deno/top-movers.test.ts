@@ -17,6 +17,8 @@ import {
   TOP_MOVERS_LABEL,
   chipsWithMovers,
   isFailedMoversRead,
+  lastSessionBefore,
+  lastSessionDayWord,
   moverLabel,
   moversArgs,
   moversVerdict,
@@ -24,7 +26,7 @@ import {
   rankingIsFresh,
   selectedChipId,
 } from '../lib/stocks/topMovers.ts';
-import { parseStocksKnob, seamTickerQuote, seamTopMoversRead } from '../lib/stocks/seamStocks.ts';
+import { SEAM_LAST_SESSION, parseStocksKnob, seamTickerQuote, seamTopMoversRead } from '../lib/stocks/seamStocks.ts';
 import { QUOTE_LANES, QUOTE_TTL_MS, changePct, changeText, createQuoteStore, type QuoteAnswer } from '../lib/stocks/rowQuotes.ts';
 
 const code = (src: string) => src.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
@@ -84,11 +86,67 @@ Deno.test('the 20-minute rule while the market is OPEN: 20 minutes and under sho
   assertEquals(moversVerdict(read(45), false, NOW).kind, 'failed');
 });
 
-Deno.test('the same old ranking while the market is CLOSED shows the last session\'s rows (no line of its own)', () => {
-  const old = parseMovers(wire(['A', 'B'], at(60 * 60)));
-  const v = moversVerdict(old, true, NOW);
+// The calendar the app reads (market_calendar rows): Mon 2026-11-16 .. Fri 2026-11-20, the week of Thanksgiving's Wednesday after.
+const CAL = ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20'].map((sessionDate) => ({ sessionDate, openEt: '09:30:00', closeEt: '16:00:00' }));
+const SAT = new Date('2026-11-21T15:00:00Z'); // Saturday 10:00 ET: closed, the last session is Friday
+const MON_PRE = new Date('2026-11-23T13:00:00Z'); // Monday 8:00 ET: closed before the open, the last session is still Friday
+const FRI_RANKING = '2026-11-20T20:55:00Z'; // Friday 15:55 ET: made in the most recent session
+const THU_RANKING = '2026-11-19T20:55:00Z'; // Thursday 15:55 ET: the session BEFORE last
+
+Deno.test('lastSessionBefore: the most recent session whose close has passed, from the calendar (Saturday and a pre-open Monday both name Friday)', () => {
+  assertEquals(lastSessionBefore(SAT, CAL)!.sessionDate, '2026-11-20');
+  assertEquals(lastSessionBefore(MON_PRE, CAL)!.sessionDate, '2026-11-20');
+  assertEquals(lastSessionBefore(new Date('2026-11-18T22:00:00Z'), CAL)!.sessionDate, '2026-11-18', 'Wednesday after the close');
+  assertEquals(lastSessionBefore(new Date('2026-11-18T15:00:00Z'), CAL)!.sessionDate, '2026-11-17', 'Wednesday during the session: the one before it');
+  // A holiday gap: no Friday row, so Thursday is the last session on the weekend.
+  assertEquals(lastSessionBefore(SAT, CAL.slice(0, 4))!.sessionDate, '2026-11-19');
+  const fri = lastSessionBefore(SAT, CAL)!;
+  assertEquals(new Date(fri.openMs).toISOString(), '2026-11-20T14:30:00.000Z');
+  assertEquals(new Date(fri.closeMs).toISOString(), '2026-11-20T21:00:00.000Z');
+});
+
+Deno.test('lastSessionBefore: a calendar that cannot name the last session is null (empty, failed read, or starting later), never a guess', () => {
+  assertEquals(lastSessionBefore(SAT, []), null);
+  assertEquals(lastSessionBefore(new Date('2026-11-10T15:00:00Z'), CAL), null);
+  assertEquals(lastSessionBefore(SAT, [{ sessionDate: 'garbage', openEt: 'x', closeEt: 'y' }]), null);
+});
+
+Deno.test('the day on a figure is the most recent SESSION\'s weekday, whatever day the ranking itself carries', () => {
+  assertEquals(lastSessionDayWord(lastSessionBefore(SAT, CAL)), 'Fri');
+  assertEquals(lastSessionDayWord(lastSessionBefore(MON_PRE, CAL)), 'Fri');
+  assertEquals(lastSessionDayWord(lastSessionBefore(SAT, CAL.slice(0, 4))), 'Thu');
+  assertEquals(lastSessionDayWord(null), null, 'unknown session: no word, never a guess');
+});
+
+Deno.test('CLOSED, a ranking made in the MOST RECENT session shows its rows (with that session\'s day word)', () => {
+  const session = lastSessionBefore(SAT, CAL);
+  const v = moversVerdict(parseMovers(wire(['A', 'B'], FRI_RANKING)), true, SAT.getTime(), session);
   assertEquals(v.kind, 'rows');
   assertEquals(v.kind === 'rows' ? v.rows.map((r) => r.symbol) : [], ['A', 'B']);
+  assertEquals(lastSessionDayWord(session), 'Fri');
+  // Monday before the open: Friday's ranking is still the last session's.
+  assertEquals(moversVerdict(parseMovers(wire(['A'], FRI_RANKING)), true, MON_PRE.getTime(), lastSessionBefore(MON_PRE, CAL)).kind, 'rows');
+});
+
+Deno.test('CLOSED, a ranking from the session BEFORE last is "didn\'t load" (not shown under Friday\'s label)', () => {
+  const session = lastSessionBefore(SAT, CAL);
+  assertEquals(moversVerdict(parseMovers(wire(['A', 'B'], THU_RANKING)), true, SAT.getTime(), session).kind, 'failed');
+  // The morning of the last session, before it opened, is also before it.
+  assertEquals(moversVerdict(parseMovers(wire(['A'], '2026-11-20T13:00:00Z')), true, SAT.getTime(), session).kind, 'failed');
+  // Exactly at the open counts as made in it.
+  assertEquals(moversVerdict(parseMovers(wire(['A'], '2026-11-20T14:30:00Z')), true, SAT.getTime(), session).kind, 'rows');
+});
+
+Deno.test('CLOSED with a calendar that cannot name the last session, or a ranking with no readable time: "didn\'t load" (no number of days is substituted)', () => {
+  assertEquals(moversVerdict(parseMovers(wire(['A'], FRI_RANKING)), true, SAT.getTime(), null).kind, 'failed');
+  assertEquals(moversVerdict(parseMovers(wire(['A'], FRI_RANKING)), true, SAT.getTime()).kind, 'failed', 'no session argument is no session');
+  assertEquals(moversVerdict(parseMovers([{ symbol: 'A' }]), true, SAT.getTime(), lastSessionBefore(SAT, CAL)).kind, 'failed');
+});
+
+Deno.test('OPEN ignores the calendar: only the 20-minute rule decides', () => {
+  const session = lastSessionBefore(SAT, CAL);
+  assertEquals(moversVerdict(parseMovers(wire(['A'], at(3))), false, NOW, session).kind, 'rows');
+  assertEquals(moversVerdict(parseMovers(wire(['A'], at(45))), false, NOW, session).kind, 'failed');
 });
 
 Deno.test('an EMPTY reply is "didn\'t load", open or closed (zero rows carry no time: "never ranked" and "you own them all" read the same)', () => {
@@ -189,10 +247,13 @@ Deno.test('the screen: the chip swaps the Available list for MoversList, "All" a
   const screen = SOURCES['components/stocks/StocksScreen.tsx'];
   assertMatch(screen, /chipsWithMovers\(chipsFrom\(categories \?\? \[\]\)\)/);
   assertMatch(screen, /selected=\{selectedChipId\(moversOn, list\.state\.categoryId\)\} onSelect=\{onChip\}/);
-  assertMatch(screen, /control\.mode === 'chips' && moversOn \? \(\s*<MoversList movers=\{movers\} marketClosed=\{marketClosed\} dayWord=\{dayWord\} plus=\{showsBuyPlus\(seasonOver\)\} watch=\{wl\.watch\} onStar=\{onStar\} \/>/);
+  assertMatch(screen, /control\.mode === 'chips' && moversOn \? \(\s*<MoversList movers=\{movers\} marketClosed=\{marketClosed\} lastSession=\{lastSession\} dayWord=\{dayWord\} plus=\{showsBuyPlus\(seasonOver\)\} watch=\{wl\.watch\} onStar=\{onStar\} \/>/);
   assertMatch(screen, /moversOn \? movers\.reload : list\.refresh/);
   assertMatch(screen, /useTopMovers\(leagueId, moversOn && view === 'available' && control\.mode === 'chips'\)/);
   assertMatch(screen, /marketClosed=\{marketStatus === 'closed'\}/, 'only a market KNOWN to be closed relaxes the 20-minute rule');
+  assertMatch(screen, /lastSessionBefore\(new Date\(\), marketCalendar\)/, 'the last session comes from the market calendar the app already reads');
+  assertMatch(screen, /marketStatus === 'closed' \? lastSessionDayWord\(lastSession\)/, 'the day on a figure is the last SESSION\'s, not a ranking\'s own weekday');
+  assertMatch(screen, /marketClosed=\{marketClosed\} lastSession=\{lastSession\} dayWord/);
 });
 
 Deno.test('a mover row is the board\'s: "+" at the left (the same predicate as Available), company name with no category, price with the change under it, the star at the right', () => {
@@ -232,7 +293,16 @@ Deno.test('seam: the ranking answers the server\'s shape (place, symbol, name, c
   assertEquals(moversVerdict(parseMovers(seamTopMoversRead(k('moversempty'), NOW)!.data), false, NOW).kind, 'failed');
   const old = seamTopMoversRead(k('moversold'), NOW)!;
   assertEquals(moversVerdict(parseMovers(old.data), false, NOW).kind, 'failed', 'open + old = "didn\'t load"');
-  assertEquals(moversVerdict(parseMovers(old.data), true, NOW).kind, 'rows', 'closed + old = the last session\'s rows');
+  const session = lastSessionBefore(SAT, CAL);
+  assertEquals(moversVerdict(parseMovers(old.data), false, NOW, session).kind, 'failed');
+  // marketclosed: the ranking was made in the last session (Fri 2026-11-20); moversprev: in the one before (Thu), so it does not show.
+  const closedKnob = k('marketclosed');
+  const closed = seamTopMoversRead(closedKnob, NOW)!;
+  assertEquals(moversVerdict(parseMovers(closed.data), true, SAT.getTime(), SEAM_LAST_SESSION).kind, 'rows');
+  assertEquals(moversVerdict(parseMovers(closed.data), true, SAT.getTime(), SEAM_LAST_SESSION).kind, 'rows');
+  const prev = seamTopMoversRead(k('marketclosed,moversprev'), NOW)!;
+  assertEquals(moversVerdict(parseMovers(prev.data), true, SAT.getTime(), SEAM_LAST_SESSION).kind, 'failed', 'a ranking from the session before last, market closed');
+  assertEquals(lastSessionDayWord(SEAM_LAST_SESSION), 'Fri');
   assert(k('marketclosed').marketClosed && !k('').marketClosed);
 });
 

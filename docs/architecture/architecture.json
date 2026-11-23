@@ -2,14 +2,14 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "01dce36984cac3d8db6bf472634356d5a568243f",
-    "commitShort": "01dce369",
+    "commit": "a01ab9f25869105efa9561dbda38befc59832114",
+    "commitShort": "a01ab9f2",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "feat/top-movers-app",
     "dirty": true,
     "dirtyPaths": [
       {
-        "code": "??",
+        "code": "M",
         "path": "apps/mobile/components/stocks/MoversList.tsx"
       },
       {
@@ -18,38 +18,18 @@
       },
       {
         "code": "M",
-        "path": "apps/mobile/lib/game/seamCalls.ts"
-      },
-      {
-        "code": "M",
         "path": "apps/mobile/lib/stocks/seamStocks.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "apps/mobile/lib/stocks/topMovers.ts"
       },
       {
-        "code": "??",
-        "path": "apps/mobile/lib/stocks/useTopMovers.ts"
-      },
-      {
         "code": "M",
-        "path": "apps/mobile/tests-deno/keep-money.test.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/sourceManifest.generated.ts"
-      },
-      {
-        "code": "M",
-        "path": "apps/mobile/tests-deno/stocks-tab-source.test.ts"
-      },
-      {
-        "code": "??",
         "path": "apps/mobile/tests-deno/top-movers.test.ts"
       }
     ],
-    "timestamp": "2026-11-23T22:31:00Z",
+    "timestamp": "2026-11-23T23:03:46Z",
     "sourceHash": "sha256:dae3ee9f21aaf657f4c9cd21345cd2d3856bf52923c3c0094d1133bf5fba84db",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
@@ -57,7 +37,7 @@
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T22:16:38Z",
-    "ageHours": 0.2,
+    "ageHours": 0.8,
     "ageDays": 0,
     "staleAfterDays": 14,
     "stale": false,
