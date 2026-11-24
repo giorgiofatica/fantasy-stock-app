@@ -1718,6 +1718,17 @@ building anything, and don't reopen a rule without him.
       person, and the message is shown only when the repair is impossible. A message that
       is correct (a company really was delisted) is not a fault to fix.
     - The plan for it is the Planner's to write and his to approve. Not built.
+    - **He is told when the system repairs itself, and it is logged where he can look**
+      (the same day, asked whether a repair should send a notice to his own phone; he
+      first asked "notify who? me? or the users?", was told him alone and never the
+      managers, and answered: "Yes, i want to be able to track the performance of the app.
+      so i should get a notification and eventually itll be logged into some sort of
+      dashboard or place where i can view").
+      - The notice goes to him as the owner, at most once a day, only on a day something
+        was repaired or could not be. No manager sees or hears anything, which is his
+        ruling on claims that did not go through.
+      - Every repair is written to a log as it happens, so that a place to view it can be
+        built on it later. The dashboard is "eventually": it is not part of this plan.
   - **Claims work as ESPN's waiver wire does, except daily; a manager orders their own
     claims** (2026-11-23, said in the Planner's chat when asked to choose how a claim on a
     stock with no price at the open should behave; his words in full: "Okay, this is how it

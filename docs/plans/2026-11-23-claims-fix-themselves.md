@@ -1,6 +1,6 @@
 # Claims, prices and the stock list fix themselves
 
-Status: Draft, for Giorgio's approval. One question is open (a notice to his own phone). No new words. Nothing here is built
+Status: Draft, for Giorgio's approval. No question is open for him and there are no new words. Nothing here is built
 Planner session: "Planner" (Fable 5.2), 2026-11-23 · Orchestrator hand-off: this commit
 
 ## Goal
@@ -101,13 +101,23 @@ Today's design: those claims fail ("Claims weren't processed on Monday").
   fix, if needed, is its own decision.
 - When a company really has left the market, the message is true and nothing is "fixed".
 
-### 4. Somebody is told when the system had to repair something
+### 4. He is told when the system had to repair something, and it is logged
 
-Open question 2. The repairs above are silent by design. The Planner recommends one push
-to Giorgio's own phone, once a day at most, when a repair ran or could not: a run that had
-to be called again, claims moved to the next open, a refresh that refused to apply. It
-uses the push path that exists. Without it, the only trace is a row in a status table
-nobody is looking at.
+His answer, 2026-11-23: "Yes, i want to be able to track the performance of the app. so i
+should get a notification and eventually itll be logged into some sort of dashboard or
+place where i can view".
+
+- **A log of repairs.** Each repair writes one row when it happens: what it was (a run
+  called again, claims moved to the next open, a refresh that refused to apply, a claim
+  filled at a fallback price), when, which leagues, and whether it worked. Written by the
+  server only and readable by no manager. It is the record a dashboard is later built on.
+- **A notice to him.** One push to his own account, at most once a day, on a day the log
+  gained a row. It says what was repaired and how many leagues it touched. His account is
+  named in a server setting, not in the app. It uses the push path that exists.
+- **Not a message to managers.** No manager is sent or shown anything.
+- The words of the notice are ours to him, not app copy; they are plain and say what
+  happened ("The claims run didn't start this morning and was restarted. 2 leagues.").
+- The dashboard itself is "eventually" in his words and is out of this plan.
 
 ## Words
 
@@ -116,9 +126,7 @@ this draft first proposed are withdrawn with his ruling of the same day.
 
 ## Open questions
 
-1. A push to his own phone when a repair runs or cannot (fix 4). His; the Planner
-   recommends yes. It is a notice to the owner about the system, not a message to a
-   manager about a claim.
+1. ANSWERED 2026-11-23: yes, a notice to him, and a log (fix 4).
 2. The share that counts as "many stocks at once" in fix 3. The worker proposes it from a
    read-only count of how many stocks normally change in one refresh; the Planner agrees
    it before it is built.
@@ -136,6 +144,7 @@ drop a tenth of its stocks).
   as B, it exists today, and closing it for live trades would refuse many honest buys with
   our current source. It belongs with the price supplier, which is parked on his word.
 - Alerts to anyone but him. No new service is connected to production.
+- A dashboard, or any screen for the log. He said "eventually"; it gets its own plan.
 - Top movers: its job already keeps the previous ranking when a run is incomplete.
 
 ## Risks
@@ -144,8 +153,8 @@ drop a tenth of its stocks).
   not get half right: it has a test for the partly done case, and each repair can be run
   twice without doing its work twice.
 - With no message for a claim that did not go through, a fault of ours is invisible to
-  the manager it hurt. The check on the run and the notice to the owner (open question 1)
-  are the only way it is seen.
+  the manager it hurt. The check on the run, the log and the notice to him (fix 4) are
+  the only way it is seen.
 - The check on the run shares the database's scheduler with the run. If the scheduler
   itself stops, neither fires. That also stops weekly scoring and is outside this plan;
   the move to the next open still happens when it returns.
@@ -160,7 +169,7 @@ assigns migration ranges after the latest applied.
 | # | Workstream | Model | His steps after it |
 |---|---|---|---|
 | 1 | The run: the price fallback (fix 1), and judging a claimed stock on fresh numbers | Opus, both reviewers | a deploy of `claims-run` |
-| 2 | The check that the run happened, and the move to the next open | Opus, both reviewers | `db push`, then a look by data |
+| 2 | The check that the run happened, the move to the next open, the log of repairs and the notice to him | Opus, both reviewers | `db push`, a server setting naming his account, then a look by data |
 | 3 | The refresh: keep a known size; refuse a mass drop | Opus | a deploy of `enrich-symbols` |
 | 4 | The app: a moved claim's row shows its new time | Sonnet, Design Lead gate | none |
 
@@ -177,4 +186,6 @@ assigns migration ranges after the latest applied.
 4. A refresh that would take a tenth of its stocks off the list changes none of them and
    reports itself failed.
 5. Each repair, run twice, does its work once.
-6. `STATUS.md` records, by data, the first real morning the run was checked.
+6. A repair made in a test writes one row to the log and one notice to the named
+   account, and nothing to any other account.
+7. `STATUS.md` records, by data, the first real morning the run was checked.
