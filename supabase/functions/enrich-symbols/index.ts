@@ -44,6 +44,10 @@
 // cap is a STARVATION guard: without it, once symbols that chronically fail
 // Alpaca's price lookup accumulate, they could fill an entire batch forever
 // and stop the stalest-first profile refresh of the other ~14k symbols.
+// Since 2026-11-24 the tier takes only unpriced stocks never asked or last
+// asked more than a day ago (batch.ts selectBatch, PRIORITY_RETRY_MS): the 388
+// left were stocks the price source never prices, re-asked every ~2.5 h for 3
+// prices in ~400 asks, and the half they held doubled every other stock's turn.
 //
 // KNOWN VALUES AND MASS DROPS (2026-11-24; rules ./plan.ts, order ./run.ts):
 // an "ok" profile answer with no size/industry keeps the known value (a NULL
