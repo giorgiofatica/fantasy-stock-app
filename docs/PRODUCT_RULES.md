@@ -653,6 +653,34 @@ building anything, and don't reopen a rule without him.
       has stopped trading, its last real price stands for as long as it takes; that also
       answers the delisted case above for what a manager sees. He was told this in plain
       words and not asked to choose a mechanism.
+  - **A held stock whose company is bought out is sold for the manager (B)** (2026-11-24,
+    typed in the Planner's chat in answer to a drawing of two options, after he asked for
+    the question to be explained again: "B"). The case: a manager holds a stock, the
+    company is bought, and the stock stops trading for good (Kellanova, bought by Mars).
+    - **B:** on the day it stops trading the app sells the holding at its last real
+      price. The money goes back to the manager's budget, the slot is open, and the
+      manager is told. A (the holding stays in Portfolio at its last price, reading "No
+      longer trades", until the manager sells it) was not picked. The Planner's
+      recommendation was B: A leaves a price on screen that never moves again, against
+      his rule that a price shown is never an old one, and a bought-out stock does not
+      come back.
+    - **The words shown with B:** "Kellanova was bought out" and "Your K was sold at
+      $83.44. That slot is open." His answer named only the letter, so they are treated
+      as approved with the pick and go in the next copy summary for him to strike. A's
+      "No longer trades" is not used.
+    - This narrows the Planner's reading just above ("its last real price stands for as
+      long as it takes"): the last real price is what the holding is sold at, and it
+      stands only until that sale.
+    - **What was asked, and so what B covers:** a company bought out, the stock gone for
+      good. In the Planner's reading that includes a company merged into another, since
+      its stock stops trading the same way; the holding is sold, not turned into the
+      buyer's shares (another manager in the league may own those).
+    - **Not asked, and not covered by B:** a company that only changes its ticker (the
+      holding should carry on under the new one, because the real shares do; whether that
+      can be built waits on a check of the price supplier); and a stock that stops
+      trading for another reason (the words "was bought out" would be false for it).
+    - Not built. The plan for it is an addition to the self-fixing plan, the Planner's to
+      write and his to approve.
   - **A price shown to a manager is the stock's current price, never an old one and never
     missing, however rarely the stock trades** (2026-11-18; typed in the Planner's chat).
     Asked what a buy should do for a thinly traded stock whose most recent trade on our data
