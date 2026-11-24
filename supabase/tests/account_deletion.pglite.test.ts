@@ -355,18 +355,19 @@ Deno.test({
     await start(LRS); await finish(LRS);
 
     // The waiver-wire plan's tables: the scrub and the takeover reach them dynamically, so they
-    // must work once they exist. watchlist is the REAL table since 20261209000000 (its saved
-    // symbol must exist in symbols, and its seat in league_members); claims and waiver_order
-    // are still stand-ins shaped as that plan specifies them (not on main yet).
+    // must work once they exist. All three are the REAL tables now: watchlist since 20261209000000,
+    // claims and waiver_order since 20261211000000 (their seat foreign keys cascade ON UPDATE, so a
+    // takeover moves them with the seat; the takeover's own dynamic update then finds nothing left).
     await q(`insert into symbols (symbol, name) values ('AAPL', 'Apple Inc.') on conflict (symbol) do nothing`);
-    // claims keys its user as uuid, the others as text: the dynamic SQL must take both.
-    await q(`create table public.claims (id uuid primary key default gen_random_uuid(), league_id uuid, user_id uuid,
-             symbol text, status text check (status in ('pending','won','lost','failed','cancelled')))`);
-    await q(`create table public.waiver_order (league_id uuid, user_id text, position smallint, primary key (league_id, user_id))`);
     await q(`insert into watchlist (league_id, user_id, symbol) values ($1, $2, 'AAPL'), ($1, $3, 'AAPL')`, [LMID, A, B]);
-    await q(`insert into claims (league_id, user_id, symbol, status) values ($1, $2, 'NVDA', 'pending'), ($1, $2, 'TSLA', 'won'),
-             ($1, $3, 'NVDA', 'pending')`, [LMID, A, B]);
-    await q(`insert into waiver_order values ($1, $2, 1), ($1, $3, 2)`, [LMID, A, B]);
+    // Claims are written through the trigger (always pending); A's TSLA is then resolved as won.
+    await q(`insert into claims (league_id, user_id, symbol, funded_by, run_date) values
+             ($1, $2, 'NVDA', 'cash', current_date + 1), ($1, $2, 'TSLA', 'cash', current_date + 1),
+             ($1, $3, 'NVDA', 'cash', current_date + 1)`, [LMID, A, B]);
+    await q(`update claims set status = 'won', pending_slot = null, resolved_at = now(), buy_trade_id = gen_random_uuid()
+             where league_id = $1 and user_id = $2 and symbol = 'TSLA'`, [LMID, A]);
+    await q(`delete from waiver_order where league_id = $1`, [LMID]);
+    await q(`insert into waiver_order (league_id, user_id, position) values ($1, $2, 1), ($1, $3, 2)`, [LMID, A, B]);
 
     // ---- grants -------------------------------------------------------------------
     await t.step('grants: every function and the ledger table, proacl exact', async () => {

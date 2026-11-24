@@ -45,6 +45,10 @@
 //   counters a buy or a sell never touches; past either it answers 200
 //   {ok:false, reason:'preview_limited'} (not the per-minute 429 rate_limited). The list applies the gate per row.
 //
+// CLAIMS HOLD (Stocks tab part 3, workstream 6; claims-hold.ts): while a league's
+//   claims are being processed at the open, a buy or a sell answers 200
+//   {ok:false, reason:'claims_processing'}. Lifts by itself 10 minutes after the open.
+//
 // CONCURRENCY (2026-10-05): validation runs here in TS, but the INSERT is
 //   record_trade_atomic — a league-wide lock + compare-and-swap of every
 //   league-scoped input the validator read (trades/drafts id sets, rules,
@@ -96,7 +100,8 @@ import {
   unhandled,
 } from './commit.ts';
 import { fetchDraftableAmong, fetchIsDraftable, paceCategoryPreview, previewRefusal } from './preview-gate.ts';
-import { MAX_PREVIEW_ROWS, parsePreviewRows, type PreviewRowAnswer, type PreviewRowRequest, previewRows } from './preview-list.ts';
+import { claimsHoldRefusal } from './claims-hold.ts';
+import { parsePreviewRows, type PreviewRowAnswer, type PreviewRowRequest, previewRows } from './preview-list.ts';
 import {
   decideMarketGate,
   marketLabel,
@@ -408,6 +413,15 @@ Deno.serve(async (req: Request) => {
     if (memErr) return json({ ok: false, reason: 'unhandled' }, 500);
     if (!member) return json({ ok: false, reason: 'not_a_member' }, 403);
 
+    // ---- The claims hold (claims-hold.ts, 20261211000000) --------------------
+    // A buy or a sell waits while this league's claims are processed at the open:
+    // 200 claims_processing. Lifts by itself at open + 10 minutes; fail-open on a
+    // read error. The preview is never held.
+    if (action === 'buy' || action === 'sell') {
+      const held = await claimsHoldRefusal(admin, leagueId);
+      if (held) return json(held);
+    }
+
     // ---- Preview gate: the buy's own not_draftable refusal ------------------
     // A single preview naming a stock answers as the buy would (preview-gate.ts):
     // a stock the buy would refuse as not_draftable gets that refusal, BEFORE the
@@ -452,24 +466,23 @@ Deno.serve(async (req: Request) => {
       if (listRows) {
         const answered = await previewRows(first.value, user.id, listRows, {
           // Under the CALLER's identity (the publishable-key client carrying
-          // their token), so the watchlist table's RLS — user_id = auth.uid()
-          // and is_member — decides what counts as saved. The user_id filter
-          // repeats it. The caller's WHOLE saved set in this league is read
-          // (at most 50 rows: watchlist.cap_index is 1..50) with no symbol
+          // their token), through get_league_watchlist: the ONE definition of
+          // "shown as saved" (20261209000000, re-created by 20261210500000).
+          // It keys on auth.uid() and is_member, and leaves out a stock the
+          // caller holds and a STALE row (picked, bought or sold since it was
+          // saved), so a stranded row never counts as saved here (option A's
+          // reviewer, 2026-11-23). The caller's WHOLE saved set in this league
+          // comes back (at most 50 rows: the table's cap) with no symbol
           // filter, and previewRows keeps only what was asked: no requested
-          // string is ever spliced into a PostgREST filter, so every symbol the
-          // table can hold ($, ^, =, ...) is answerable.
+          // string is ever spliced into a filter, so every symbol the table
+          // can hold ($, ^, =, ...) is answerable.
           savedAmong: async (_syms) => {
-            const { data, error } = await authed.from('watchlist')
-              .select('symbol')
-              .eq('league_id', leagueId)
-              .eq('user_id', user.id)
-              .limit(MAX_PREVIEW_ROWS);
-            if (error) {
-              console.error('record-trade: watchlist read error', error.code ?? '');
+            const { data, error } = await authed.rpc('get_league_watchlist', { p_league_id: leagueId });
+            if (error || !Array.isArray(data)) {
+              console.error('record-trade: watchlist read error', (error as { code?: string } | null)?.code ?? 'not a list');
               return { ok: false as const };
             }
-            return { ok: true as const, saved: new Set((data ?? []).map((r: { symbol: unknown }) => String(r.symbol))) };
+            return { ok: true as const, saved: new Set((data as Array<{ symbol: unknown }>).map((r) => String(r.symbol))) };
           },
           // Saved symbols only: the buy's draftable gate, per row (preview-gate.ts).
           draftableAmong: (syms) => fetchDraftableAmong(admin, syms),

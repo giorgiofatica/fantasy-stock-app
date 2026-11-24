@@ -212,6 +212,16 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/rank-top-movers/index.ts"
 
+# Claims (the waiver wire; docs/plans/2026-11-18-stocks-tab.md, Part 3): resolves each
+# league's claims at the market open, before live trading, one transaction per league
+# (commit_claims_run, 20261211000000). CRON ONLY: verify_jwt=false and the shared
+# constant-time apikey guard (../_shared/cron-auth.ts, SB_SECRET_KEY_CRON, fail-closed)
+# is the whole auth boundary. Scheduled by 20261211000001 (market_calendar-gated).
+[functions.claims-run]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/claims-run/index.ts"
+
 # In-house simulator (DR-001 Phase 3): server-side draft legality gate. RLS on
 # drafts remains the membership backstop; this function is the single legality
 # gate + write path the clients use. verify_jwt=true (until Phase 4b) + in-code getUser() +

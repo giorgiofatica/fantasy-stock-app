@@ -618,10 +618,25 @@ export function fixedNotionalFunding(
     })
     .map(({ t }) => t);
 
+  // A SALE NAMED BY A BUY'S funded_by_trade_id IS SPENT, WHATEVER THE ORDER (2026-11-23, Copilot
+  // on #608). The claims run writes a sale and the buy it funds in ONE transaction, so both carry
+  // the same created_at (now() is the transaction's start) and the (created_at, id) tie-break can
+  // put the buy BEFORE its sale. Walked in that order, the buy found nothing to clear and the sale
+  // then stayed "open" for ever: proceeds counted twice. So the named sales are collected first and
+  // never enter `open`; the walk below only replays the NULL-funded buys, which take the oldest
+  // open proceeds at their moment (the NULL DISCIPLINE above). For any ledger record-trade could
+  // write with distinct timestamps this is the same answer as before: a buy could name a sale only
+  // while it was open, so no NULL buy between them ever took it.
+  const spent = new Set<string>();
+  for (const t of sorted) {
+    if (t.action === 'buy' && t.funded_by_trade_id) spent.add(String(t.funded_by_trade_id));
+  }
+
   const open: OpenProceeds[] = [];
   for (const t of sorted) {
     if (t.action === 'sell') {
       if (!t.id) continue;
+      if (spent.has(String(t.id))) continue; // funded a buy (above), before or after it in the walk
       // Prefer the row's own stored total_value (what the sale actually
       // recorded, rounded to cents) over re-deriving price × quantity, which
       // can differ from it by a sub-cent residual — see the total_value field
@@ -634,11 +649,7 @@ export function fixedNotionalFunding(
     }
     if (t.action !== 'buy') continue;
 
-    if (t.funded_by_trade_id) {
-      const idx = open.findIndex((o) => o.tradeId === t.funded_by_trade_id);
-      if (idx >= 0) open.splice(idx, 1);
-      continue;
-    }
+    if (t.funded_by_trade_id) continue; // its sale is in `spent`, never in `open`
     // NULL: oldest open proceeds first, else an unfilled slot, else a pre-fix
     // anomaly — see the NULL DISCIPLINE note above.
     if (open.length > 0) {
