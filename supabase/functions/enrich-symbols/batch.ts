@@ -9,8 +9,19 @@
 //     it now THROWS, and ./handler.ts logs the throw as a failed run;
 //   - the result object is returned to the caller (which logs it) instead of
 //     being sent as the HTTP response body.
+//
+// 2026-11-24 (claims-fix-themselves plan, fix 3; rules in ./plan.ts, order in
+// ./run.ts): a run judges every stock before it writes any. An "ok" profile
+// answer missing a size or industry keeps the known one. A run whose NEW drops
+// from the list exceed massDropLimit(judged) holds them (cursor + mark, nothing
+// else) and ends ok:false / mass_drop_refused; a held stock's second reading
+// clears or drops it, and at most DAILY_DROP_BUDGET stocks leave in 24 h. Judging stops at a transient supplier answer or at the
+// run's own deadline (RUN_FETCH_DEADLINE_MS), and the judged stocks are still
+// written. Every supplier call has a timeout (SUPPLIER_CALL_TIMEOUT_MS) and
+// the Alpaca phase a budget (PRICE_PHASE_BUDGET_MS).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { computeIsDraftable } from '../_shared/symbol-eligibility.ts';
+import { DROP_WINDOW_MS, industryReport, planRow, type ProfileOutcome, type SymbolRow } from './plan.ts';
+import { outcomeFields, PRICE_PHASE_BUDGET_MS, RUN_FETCH_DEADLINE_MS, runJudged, SUPPLIER_CALL_TIMEOUT_MS } from './run.ts';
 import {
   computePriceStatus,
   fetchPricesBisecting,
@@ -42,6 +53,9 @@ async function fetchProfile(symbol: string, token: string): Promise<ProfileResul
   try {
     const res = await fetch(
       `https://finnhub.io/api/v1/stock/profile2?symbol=${encodeURIComponent(symbol)}&token=${token}`,
+      // A hung call times out as 'transient' (the run stops judging and writes
+      // what it has; ./run.ts). The signal also bounds reading the body.
+      { signal: AbortSignal.timeout(SUPPLIER_CALL_TIMEOUT_MS) },
     );
     if (res.status === 429 || res.status >= 500) return { status: 'transient' };
     if (!res.ok) return { status: 'empty' }; // 4xx: no profile for this symbol
@@ -55,6 +69,9 @@ async function fetchProfile(symbol: string, token: string): Promise<ProfileResul
     const marketCap = Number.isFinite(capM) && capM > 0 ? capM * 1_000_000 : null;
     return { status: 'ok', industry, marketCap };
   } catch {
+    // Deliberately NOT logged: a fetch rejection's message carries the request
+    // URL, and this URL carries the Finnhub token in its query string. A
+    // timeout (SUPPLIER_CALL_TIMEOUT_MS) lands here too, as 'transient'.
     return { status: 'transient' };
   }
 }
@@ -62,14 +79,25 @@ async function fetchProfile(symbol: string, token: string): Promise<ProfileResul
 /** One Alpaca snapshots request for one chunk of symbols. Logs a truncated
  * 400 body (Alpaca's own error message names the offending symbol) so a
  * genuine format gap in ALPACA_TICKER_RE is diagnosable from logs alone. */
-function makeAlpacaFetcher(key: string, secret: string): (symbols: string[]) => Promise<BatchFetchResult> {
+function makeAlpacaFetcher(
+  key: string,
+  secret: string,
+  phaseDeadlineMs: number,
+): (symbols: string[]) => Promise<BatchFetchResult> {
   return async (symbols: string[]): Promise<BatchFetchResult> => {
+    // Bisection retries ANY failed request, a timeout included, so a hung
+    // Alpaca could cost MAX_ALPACA_REQUESTS x the call timeout. Past the price
+    // phase's budget every remaining request fails at once instead (those
+    // stocks keep their last price, as any failed price answer does).
+    const left = phaseDeadlineMs - Date.now();
+    if (left <= 0) return { ok: false, status: 0 };
     const url = `https://data.alpaca.markets/v2/stocks/snapshots?symbols=${
       symbols.map(encodeURIComponent).join(',')
     }&feed=iex`;
     try {
       const res = await fetch(url, {
         headers: { 'APCA-API-KEY-ID': key, 'APCA-API-SECRET-KEY': secret, 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(Math.min(SUPPLIER_CALL_TIMEOUT_MS, left)),
       });
       if (!res.ok) {
         const bodyText = await res.text().catch(() => '');
@@ -97,10 +125,12 @@ export interface EnrichConfig {
   alpacaSecret: string;
 }
 
-/** What one run did. Logged as ONE structured line by ./handler.ts. `ok` means
- * "the run completed"; price_status is the separately-scoped pricing verdict
- * (CLAUDE.md "success signals" #7). */
-export type EnrichResult = Record<string, unknown> & { ok: true; batch: number };
+/** What one run did. Logged as ONE structured line by ./handler.ts. `ok` is
+ * false when the run held any stock off a drop (error: 'mass_drop_refused') or
+ * could not record a hold (error: 'hold_write_failed'); see ./run.ts
+ * outcomeFields. `stopped` says whether it judged its whole batch. price_status is the
+ * separately-scoped pricing verdict (CLAUDE.md "success signals" #7). */
+export type EnrichResult = Record<string, unknown> & { ok: boolean; batch: number };
 
 /**
  * Run one enrichment batch to completion. Throws on a failed batch-selection
@@ -108,6 +138,7 @@ export type EnrichResult = Record<string, unknown> & { ok: true; batch: number }
  * logged and skipped, exactly as before.
  */
 export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Promise<EnrichResult> {
+  const startedMs = Date.now();
   // The service-role client is built HERE, in the file that reads symbols, so
   // supabase/tests/symbols_readers.test.ts can see that each symbols read in
   // this file goes through the secret-key client.
@@ -116,7 +147,9 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   // price_unsupported is filtered on (priority query below) but not selected:
   // the per-row loop recomputes it fresh from partitionForAlpaca every pass
   // rather than reading back a stale value (see the comment at its write).
-  const selectCols = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap';
+  // is_draftable is "on the list BEFORE this run" and list_drop_held_at is an
+  // earlier refusal's hold, both for the mass-drop guard (./plan.ts decideRun).
+  const selectCols = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap, is_draftable, list_drop_held_at';
 
   // Priority tier: unpriced AND not permanently-unsupported, stalest-first,
   // capped at half the batch (starvation guard — see price-batch.ts).
@@ -149,109 +182,126 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   const batch = mergeBatchSelection(priorityRows ?? [], stalestRows ?? [], batchSize);
   if (batch.length === 0) return { ok: true, batch: 0 };
 
-  // Known rule keys, to report unmatched vendor labels for curation.
-  const { data: ruleRows } = await admin.from('category_rules').select('gics_industry');
-  const knownIndustries = new Set((ruleRows ?? []).map((r) => String(r.gics_industry)));
+  // Known rule keys, to report unmatched vendor labels for curation. Report
+  // only: a failed read is flagged and the report omitted (never "every
+  // industry is unmatched"), the run goes on and fails its outcome line
+  // (category_rules_read_failed). Throwing here would stop the price and size
+  // refresh over a read that no write depends on.
+  const { data: ruleRows, error: ruleErr } = await admin.from('category_rules').select('gics_industry');
+  if (ruleErr) console.error('category_rules read failed (unmatched_industries not reported)', ruleErr.message);
+  const knownIndustries = ruleErr ? null : new Set((ruleRows ?? []).map((r) => String(r.gics_industry)));
 
   // Price fetch for the whole batch, up front (ETFs included — Alpaca still
   // prices them). Format-unsupported symbols never reach Alpaca at all.
   const { eligible: alpacaEligible, unsupported: formatUnsupported } = partitionForAlpaca(
     batch.map((r) => String(r.symbol)),
   );
-  const bisectResult = await fetchPricesBisecting(alpacaEligible, makeAlpacaFetcher(cfg.alpacaKey, cfg.alpacaSecret));
+  const bisectResult = await fetchPricesBisecting(
+    alpacaEligible,
+    makeAlpacaFetcher(cfg.alpacaKey, cfg.alpacaSecret, startedMs + PRICE_PHASE_BUDGET_MS),
+  );
   const priceErrorSet = new Set(bisectResult.failed);
   const formatUnsupportedSet = new Set(formatUnsupported);
 
   let profiled = 0;
   let priced = 0;
   let skippedEtf = 0;
-  let draftable = 0;
-  let transientAbort = false;
-  const unmatched = new Set<string>();
+  const seenIndustries = new Set<string>();
 
-  for (const row of batch) {
-    const symbol = String(row.symbol);
-    let industry: string | null = row.gics_industry ?? null;
-    let marketCap: number | null = row.market_cap == null ? null : Number(row.market_cap);
-
-    if (row.is_etf === true) {
-      skippedEtf++; // funds have no profile2 data; category layer handles them
-    } else {
-      const prof = await fetchProfile(symbol, cfg.finnhubToken);
-      if (prof.status === 'transient') {
-        // Abort WITHOUT advancing this symbol's cursor — next run retries.
-        transientAbort = true;
-        break;
+  // Judge, decide, then write, in the order ./run.ts sets out.
+  const outcome = await runJudged({
+    rows: batch as SymbolRow[],
+    nowMs: Date.now,
+    deadlineMs: startedMs + RUN_FETCH_DEADLINE_MS,
+    judge: async (row) => {
+      const symbol = String(row.symbol);
+      let prof: ProfileOutcome = { status: 'skipped' };
+      if (row.is_etf === true) {
+        skippedEtf++; // funds have no profile2 data; category layer handles them
+      } else {
+        const answer = await fetchProfile(symbol, cfg.finnhubToken);
+        // Transient: stop WITHOUT advancing this symbol's cursor; next run retries.
+        if (answer.status === 'transient') return 'transient';
+        if (answer.status === 'ok') {
+          prof = { status: 'ok', industry: answer.industry ?? null, marketCap: answer.marketCap ?? null };
+          profiled++;
+          if (answer.industry) seenIndustries.add(answer.industry);
+        } else {
+          prof = { status: 'empty' }; // still advances the cursor (permanent miss — see header)
+        }
+        await sleep(FINNHUB_SPACING_MS);
       }
-      if (prof.status === 'ok') {
-        industry = prof.industry ?? null;
-        marketCap = prof.marketCap ?? null;
-        profiled++;
-        if (industry && !knownIndustries.has(industry)) unmatched.add(industry);
-      }
-      // 'empty' still advances the cursor (permanent miss — see header).
-      await sleep(FINNHUB_SPACING_MS);
-    }
+      // Price outcome, in priority order:
+      //   1. format-unsupported (never sent to Alpaca) -> permanent, no error
+      //   2. priced by Alpaca this run -> new last_price
+      //   3. request-level failure (bisected 400 / cap / timeout / price-phase
+      //      budget) -> price_error, last_price left as it was
+      //   4. request succeeded but Alpaca had no data -> benign miss, keep old price
+      // Cases 3 and 4 both leave `newPrice` undefined, so planRow keeps the old
+      // price; they differ only in the price_errors reporting at the end.
+      const newPrice = bisectResult.prices.get(symbol);
+      if (newPrice !== undefined) priced++;
+      return planRow(row, prof, newPrice, formatUnsupportedSet.has(symbol));
+    },
+    dropsInWindow: async () => {
+      // How many stocks LEFT the list in the past 24 h (list_dropped_at is
+      // never cleared, so one that came back still counts). A failed read
+      // THROWS: run.ts counts it as the budget spent (no drop applied) and
+      // reports list_drops_read_failed; the next run reads again.
+      const cutoff = new Date(Date.now() - DROP_WINDOW_MS).toISOString();
+      const { count, error } = await admin
+        .from('symbols')
+        .select('symbol', { count: 'exact', head: true })
+        .gt('list_dropped_at', cutoff);
+      if (error) throw new Error(`drops-in-window read failed: ${error.message}`);
+      if (typeof count !== 'number') throw new Error('drops-in-window read returned no count');
+      return count;
+    },
+    writeHolds: async (symbols, values) => {
+      // values = cursor + first-held mark (run.ts markValues) or cursor only
+      // (cursorValues): size, price, industry and is_draftable stay as they
+      // were. One statement per kind for every held stock.
+      const { error } = await admin
+        .from('symbols')
+        .update(values)
+        .in('symbol', symbols);
+      if (error) console.error('hold write failed', error.message);
+      return error ? error.message : null;
+    },
+    writeRow: async (symbol, values) => {
+      const { error } = await admin
+        .from('symbols')
+        .update(values)
+        .eq('symbol', symbol);
+      // continue on error: one bad row must not starve the rest of the batch
+      if (error) console.error('update failed', symbol, error.message);
+      return error ? error.message : null;
+    },
+  });
 
-    // Price outcome for this symbol, in priority order:
-    //   1. format-unsupported (never sent to Alpaca) -> permanent, no error
-    //   2. priced by Alpaca this run -> new last_price
-    //   3. request-level failure (bisected 400 / cap-truncated) -> price_error,
-    //      last_price left untouched so the row stays in the priority tier
-    //   4. request succeeded but Alpaca had no data -> benign miss, keep old price
-    // Case 3 (price_error) and case 4 (benign no-data) both leave `newPrice`
-    // undefined and so fall through to the same "keep old price" branch
-    // below — they differ only in the AGGREGATE price_errors/price_error_symbols
-    // reporting at the end of this function, built directly from priceErrorSet.
-    const isFormatUnsupported = formatUnsupportedSet.has(symbol);
-    const newPrice = bisectResult.prices.get(symbol);
+  // REPAIR-LOG HOOK (workstream 2, plan fix 4). When
+  // outcome.decision.heldForRefusal or .heldForBudget is non-empty, write ONE
+  // repair-log row for the run (not one per stock): "a refresh that refused
+  // to apply", with those symbols and list_drops_past_24h. A second reading
+  // that clears (decision.cleared), drops (in decision.dropped) or is deferred
+  // for a young mark (decision.deferredYoung) writes no row. Not built in WS3.
 
-    const lastPrice = newPrice ?? (row.last_price == null ? null : Number(row.last_price));
-    if (newPrice !== undefined) priced++;
-    // partitionForAlpaca classifies every symbol in the batch on every pass,
-    // so this is simply that verdict — no reason to preserve a stale prior
-    // value (format never changes; a price_error is a fetch failure, not a
-    // format verdict, and does not affect this flag).
-    const priceUnsupported = isFormatUnsupported;
-
-    const is_draftable = computeIsDraftable({
-      active: row.active,
-      exchange: row.exchange ?? null,
-      is_etf: row.is_etf ?? null,
-      last_price: lastPrice,
-      market_cap: marketCap,
-    });
-    if (is_draftable) draftable++;
-
-    const { error: upErr } = await admin
-      .from('symbols')
-      .update({
-        gics_industry: industry,
-        market_cap: marketCap,
-        last_price: lastPrice,
-        price_unsupported: priceUnsupported,
-        is_draftable,
-        enriched_at: new Date().toISOString(),
-      })
-      .eq('symbol', symbol);
-    if (upErr) {
-      console.error('update failed', symbol, upErr.message);
-      // continue: one bad row must not starve the rest of the batch
-    }
-  }
+  const draftable = outcome.decision.rows.filter((r) => r.values.is_draftable).length;
 
   const priceErrorSymbols = [...priceErrorSet].slice(0, PRICE_ERROR_SYMBOLS_LOGGED);
   const priceStatus = computePriceStatus(alpacaEligible.length, priced, priceErrorSet.size);
 
   return {
-    ok: true,
+    // ok + error + stopped + the list_* fields (./run.ts outcomeFields): any
+    // cause listed there makes the run ok:false, which _shared/respond-fast.ts
+    // writes to the error stream.
+    ...outcomeFields(outcome, { categoryRulesReadFailed: knownIndustries === null }),
     batch: batch.length,
     profiled,
     priced,
     skipped_etf: skippedEtf,
     draftable_in_batch: draftable,
-    transient_abort: transientAbort,
-    unmatched_industries: [...unmatched],
+    ...industryReport(knownIndustries, seenIndustries),
     // Honest price-fetch reporting (found 2026-09-25: this used to report
     // ok:true, priced:0 on a whole-batch Alpaca 400 — see index.ts header).
     // `ok` above means "the run completed"; price_status is the separately-
