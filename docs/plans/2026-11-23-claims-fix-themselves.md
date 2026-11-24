@@ -139,9 +139,13 @@ this draft first proposed are withdrawn with his ruling of the same day.
      size means the supplier did answer once), the names, and how many are held or
      watched in any league. The Planner reads it and takes it to Giorgio only if real
      companies are among them.
-   - **A run writes 25 stocks at the median, half of what it asks for.** The worker says
-     why from the runs' own lines (stopped early by the supplier, or something else)
-     before anything is changed.
+   - **A run writes 25 stocks at the median, half of what it asks for.** ANSWERED
+     2026-11-24 (the worker): not a fault. About half of every run is the stocks with no
+     price, asked for again each time (`priorityCapFor`), and they are off the list
+     already, so they can never be drops. It does mean a priced stock's turn comes round
+     about half as often as the run size suggests, for as long as there are stocks our
+     price source never prices. That belongs with the price-supplier decision, which
+     waits on him; nothing changes here.
    - **Nothing ever takes a delisted stock off the list** (workstream 3's check,
      confirmed 2026-11-24). The exchange feed only adds and updates
      (`refresh-symbols` writes `active: true`); no code writes `active: false`. A stock
@@ -240,7 +244,11 @@ assigns migration ranges after the latest applied.
      the numbers come back to the Planner; the rule is not applied by itself.
      **Counted 2026-11-24** (read-only, run by Giorgio; 144 runs in 24 hours): on-list
      stocks within a tenth of a floor per run, median 0, 95th percentile 1, most 2. So 2
-     stands: a run refuses at 3 or more new drops.
+     stands: a run refuses at 3 or more new drops. The worker offered 3 for a margin (2
+     is the most seen in the sample). Kept at 2: the count is of stocks NEAR a floor, not
+     of stocks that crossed one, so 2 already has margin; and since a held stock is
+     dropped on its second reading, a refusal that was not needed costs a few days'
+     delay, while a drop that should have been refused is the fault this fix exists for.
    - **The same count found two things outside this fix**, both open (question 3 above):
      a run writes 25 stocks at the median, not the 50 it asks for, so a stock's turn
      comes round in about four days, not two; and 424 stocks are off the list only for
