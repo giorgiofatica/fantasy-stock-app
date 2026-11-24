@@ -256,6 +256,6 @@
     );
   }
 
-  window.KSLeagueActivity = () => <CallLeagueActivity />;
-  window.KSLeagueActivityArchived = () => null;
+  window.KSLeagueActivity = () => null;
+  window.KSLeagueActivityArchived = () => <CallLeagueActivity archived decidedNote={<><b>Decided 2026-11-23, in his words:</b> “A, and yes to the words”. ESPN’s two screens: League’s Activity tab (every buy and sell, newest first, under its day) with the Claims report row, opening a day picker and one card per manager in the order served. Approved words: Activity; Bought, Sold; “Priority: 1st”; Claims report; “No buys or sells yet.” B’s “Claims” heading is not used.</>} />;
 })();
