@@ -153,7 +153,10 @@ Deno.test('the search rows come from the Stocks modules, and the retired stock-s
 });
 
 Deno.test('"All" is the default chip, and a chip passes its category id to the list', () => {
-  assertMatch(screen, /selected=\{list\.state\.categoryId\} onSelect=\{list\.selectCategory\}/);
+  // Top movers (workstream 5) is a chip after "All": the selected chip is Top movers while it is on, else the list's category, and a chip's
+  // press goes through onChip, which hands a category id to list.selectCategory (top-movers.test.ts pins the chip itself).
+  assertMatch(screen, /selected=\{selectedChipId\(moversOn, list\.state\.categoryId\)\} onSelect=\{onChip\}/);
+  assertMatch(screen, /list\.selectCategory\(id\)/);
   assertMatch(screen, /on=\{selected === c\.categoryId\}/);
 });
 

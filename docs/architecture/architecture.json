@@ -2,27 +2,22 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "d3bf26ab98456338ff7193a26f2aa5c9de773b3f",
-    "commitShort": "d3bf26ab",
+    "commit": "7f104ac3db527dcdb684e1c0756fab742854a403",
+    "commitShort": "7f104ac3",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
-    "branch": "feat/watchlist-held-leaves",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "M",
-        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql"
-      }
-    ],
-    "timestamp": "2026-11-23T23:00:42Z",
-    "sourceHash": "sha256:74d6b5f15b682f2cc30af162972d7abbe3b7db7e80a4d3d6aa16df123dd01867",
+    "branch": "",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-24T05:05:47Z",
+    "sourceHash": "sha256:72d85f461a9a837675201b3637bb882f65596d4e8b8d2e40f26a18ff08a9bf29",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T22:16:38Z",
-    "ageHours": 0.7,
-    "ageDays": 0,
+    "ageHours": 6.8,
+    "ageDays": 0.3,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:cd2c34a27b62eaf82affedd34f09ce903884bb5fb702883e3f312d421d6c62f4",
@@ -11961,6 +11956,23 @@
       "drift": [],
       "annotation": null,
       "verified": true,
+      "id": "ui.stocks.useTopMovers",
+      "label": "useTopMovers.ts",
+      "sublabel": "mobile/lib/stocks/useTopMovers.ts",
+      "kind": "client-screen",
+      "source": {
+        "path": "apps/mobile/lib/stocks/useTopMovers.ts",
+        "line": 1
+      }
+    },
+    {
+      "layer": "client",
+      "facts": {},
+      "db": null,
+      "declared": null,
+      "drift": [],
+      "annotation": null,
+      "verified": true,
       "id": "ui.stocks.useWatchlist",
       "label": "useWatchlist.ts",
       "sublabel": "mobile/lib/stocks/useWatchlist.ts",
@@ -21590,7 +21602,7 @@
       "payload": ".from('league_members').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:162"
+        "apps/mobile/lib/game/seamCalls.ts:170"
       ]
     },
     {
@@ -21603,7 +21615,7 @@
       "payload": ".from('leagues').insert()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:156"
+        "apps/mobile/lib/game/seamCalls.ts:164"
       ]
     },
     {
@@ -21616,7 +21628,7 @@
       "payload": ".from('leagues').update()",
       "columns": [],
       "callSites": [
-        "apps/mobile/lib/game/seamCalls.ts:119"
+        "apps/mobile/lib/game/seamCalls.ts:127"
       ]
     },
     {
@@ -23798,6 +23810,21 @@
     {
       "annotation": null,
       "verified": true,
+      "id": "e.ui.stocks.useTopMovers->pg.get_league_top_movers",
+      "from": "ui.stocks.useTopMovers",
+      "to": "pg.get_league_top_movers",
+      "protocol": "postgrest-rpc",
+      "payload": "rpc('get_league_top_movers')",
+      "callSites": [
+        "apps/mobile/lib/stocks/useTopMovers.ts:67"
+      ],
+      "via": [
+        "seamRpc"
+      ]
+    },
+    {
+      "annotation": null,
+      "verified": true,
       "id": "e.ui.stocks.useWatchlist->pg.get_league_watchlist",
       "from": "ui.stocks.useWatchlist",
       "to": "pg.get_league_watchlist",
@@ -25514,22 +25541,6 @@
       "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
     },
     {
-      "node": "pg.get_league_top_movers",
-      "label": "get_league_top_movers(p_league_id uuid)",
-      "kind": "pg-function",
-      "source": "supabase/migrations/20261210000000_top_movers.sql:199",
-      "outbound": [
-        "tbl.categories",
-        "tbl.category_rules",
-        "tbl.drafts",
-        "tbl.symbol_category_overrides",
-        "tbl.symbols",
-        "tbl.top_movers",
-        "tbl.trades"
-      ],
-      "caveat": "No scanned caller. Call sites are found by grep over TS/TSX/JSX and SQL function bodies; a dynamic invoke would be missed."
-    },
-    {
       "node": "pg.heal_account_deletions",
       "label": "heal_account_deletions(p_min_age interval, p_limit integer)",
       "kind": "pg-function",
@@ -25882,7 +25893,7 @@
         "surface": "client",
         "name": "seamInsertLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 151,
+        "line": 159,
         "kind": "seam-stub",
         "detail": "leagues.insert"
       },
@@ -25890,7 +25901,7 @@
         "surface": "client",
         "name": "seamInsertMember",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 159,
+        "line": 167,
         "kind": "seam-stub",
         "detail": "league_members.insert"
       },
@@ -25898,7 +25909,7 @@
         "surface": "client",
         "name": "seamInvoke",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 110,
+        "line": 118,
         "kind": "forwarder:invoke",
         "detail": "argument 0 is the function name"
       },
@@ -25906,7 +25917,7 @@
         "surface": "client",
         "name": "seamRpc",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 80,
+        "line": 88,
         "kind": "forwarder:rpc",
         "detail": "argument 0 is the RPC name"
       },
@@ -25914,7 +25925,7 @@
         "surface": "client",
         "name": "seamSaveLeagueSlots",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 165,
+        "line": 173,
         "kind": "seam-stub",
         "detail": "league_draft_slots.delete, league_draft_slots.insert"
       },
@@ -25930,7 +25941,7 @@
         "surface": "client",
         "name": "seamUpdateLeague",
         "file": "apps/mobile/lib/game/seamCalls.ts",
-        "line": 116,
+        "line": 124,
         "kind": "seam-stub",
         "detail": "leagues.update"
       },
@@ -26073,12 +26084,12 @@
   ],
   "orphanAnnotations": [],
   "stats": {
-    "nodes": 354,
-    "edges": 849,
+    "nodes": 355,
+    "edges": 850,
     "flows": 7,
     "drift": 38,
     "driftHigh": 3,
-    "deadCode": 65,
+    "deadCode": 64,
     "unverified": 19
   },
   "sourceIndex": {
@@ -26192,6 +26203,7 @@
       "apps/mobile/lib/shell/usernameApi.ts:30 -> check_usernames",
       "apps/mobile/lib/shell/usernameApi.ts:49 -> set_username",
       "apps/mobile/lib/stocks/useStocksList.ts:62 -> get_league_available_stocks (via seamRpc)",
+      "apps/mobile/lib/stocks/useTopMovers.ts:67 -> get_league_top_movers (via seamRpc)",
       "apps/mobile/lib/stocks/useWatchlist.ts:17 -> get_league_watchlist (via seamRpc)",
       "apps/mobile/lib/stocks/useWatchlist.ts:22 -> set_watchlist (via seamRpc)",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:154 -> deleted_manager_label",
@@ -26303,9 +26315,9 @@
       "apps/mobile/lib/categoryData.ts:138 -> league_draft_slots.insert",
       "apps/mobile/lib/categoryData.ts:145 -> league_draft_slots.select",
       "apps/mobile/lib/categoryData.ts:65 -> categories.select",
-      "apps/mobile/lib/game/seamCalls.ts:119 -> leagues.update",
-      "apps/mobile/lib/game/seamCalls.ts:156 -> leagues.insert",
-      "apps/mobile/lib/game/seamCalls.ts:162 -> league_members.insert",
+      "apps/mobile/lib/game/seamCalls.ts:127 -> leagues.update",
+      "apps/mobile/lib/game/seamCalls.ts:164 -> leagues.insert",
+      "apps/mobile/lib/game/seamCalls.ts:170 -> league_members.insert",
       "apps/mobile/lib/game/useAllMatchups.ts:45 -> matchups.select",
       "apps/mobile/lib/game/useAllMatchups.ts:58 -> week_snapshots.select",
       "apps/mobile/lib/game/useAllMatchups.ts:68 -> trades.select",

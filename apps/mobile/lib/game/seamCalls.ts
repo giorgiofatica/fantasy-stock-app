@@ -13,7 +13,7 @@ import { markFixtureAnswer } from './renewalFixture';
 import { draftRoomClockRead, parseDraftRoomVariant, roomVariantAfterAutoPick } from './seamRoom';
 import { FIXTURE_TAKEOVER_CODE, parseTakeoverFixture, seatify, takeoverFixtureFor, takeoverInviteFixture } from './seamAccountDeletion';
 import { pendingTakeover } from '../invite/pendingTakeoverStore';
-import { parseStocksKnob, seamStocksRead, seamStockPrices, seamListPreview, seamTickerQuote, seamWatchlistRead, seamWatchlistWrite } from '../stocks/seamStocks';
+import { parseStocksKnob, seamStocksRead, seamStockPrices, seamListPreview, seamTickerQuote, seamTopMoversRead, seamWatchlistRead, seamWatchlistWrite } from '../stocks/seamStocks';
 
 /** DEV captures (account deletion): the seat reads as the label (EXPO_PUBLIC_DELETED_SEAT=1) and the takeover answers (EXPO_PUBLIC_TAKEOVER_FIXTURE). Seam only. */
 const DELETED_SEAT = DELETED_SEAT_FIXTURE;
@@ -41,6 +41,8 @@ const RECAP_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_RECAP_FIXTURE : undefine
 /** The Stocks tab's captures (lib/stocks/seamStocks.ts): the list's read and the live quote. Seam only. */
 const STOCKS_FIXTURE = SEAM_ON ? process.env.EXPO_PUBLIC_STOCKS_FIXTURE : undefined;
 const STOCKS_KNOB = parseStocksKnob(STOCKS_FIXTURE);
+/** The `marketclosed` capture knob: the Stocks tab reads the market as closed (false without the seam, so a release build never reads it). */
+export const SEAM_MARKET_CLOSED = STOCKS_KNOB.marketClosed;
 import { saveLeagueSlots, type SlotDraft } from '../categoryData';
 
 /** The error a read answers with when EXPO_PUBLIC_CAPTURE_FAIL_ONCE names it (its first call only). */
@@ -60,6 +62,12 @@ export async function seamRpc(name: string, args: Record<string, unknown>) {
     if (name === 'get_league_available_stocks') {
       // The Stocks list: the catalogue's page, or (knobs) a read that never answers / fails / answers nothing.
       const read = seamStocksRead(args, STOCKS_KNOB);
+      if (!read) return new Promise<never>(() => {});
+      return { ...read, count: null, status: read.error ? 500 : 200, statusText: 'fixture' };
+    }
+    if (name === 'get_league_top_movers') {
+      // Top movers: the ranking, or (knobs) a read that never answers / fails / is paced / answers nothing / is old.
+      const read = seamTopMoversRead(STOCKS_KNOB, Date.now());
       if (!read) return new Promise<never>(() => {});
       return { ...read, count: null, status: read.error ? 500 : 200, statusText: 'fixture' };
     }
