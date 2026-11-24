@@ -144,8 +144,8 @@ this draft first proposed are withdrawn with his ruling of the same day.
      price, asked for again each time (`priorityCapFor`), and they are off the list
      already, so they can never be drops. It does mean a priced stock's turn comes round
      about half as often as the run size suggests, for as long as there are stocks our
-     price source never prices. That belongs with the price-supplier decision, which
-     waits on him; nothing changes here.
+     price source never prices. Sized the same day at 388 stocks (question 4), and
+     answered there: they are asked again once a day, not every run.
    - **Nothing ever takes a delisted stock off the list** (workstream 3's check,
      confirmed 2026-11-24). The exchange feed only adds and updates
      (`refresh-symbols` writes `active: true`); no code writes `active: false`. A stock
@@ -190,7 +190,19 @@ this draft first proposed are withdrawn with his ruling of the same day.
      the ones that still trade (workstream 3 adds this to the run's own line: how many
      stocks answered "ok" with no size, and how many answered nothing, with the first
      twenty symbols of each). No fix is built from the counts alone.
-   - **Still owed:** the count of stocks with no price at all (not in the query he ran).
+   - **Stocks with no price at all: 388** (counted by Giorgio the same day; active, and of
+     a kind the price source accepts). The refresh gives half of every run to these and
+     asks again for each about every three hours. In September there were 4,749; what is
+     left is what the source has never priced. So half of the refresh is spent asking the
+     same 388 questions eight times a day, and every other stock waits about four days
+     for its turn instead of two.
+   - **The Planner's answer (2026-11-24), a build detail in workstream 3:** a stock with
+     no price that has already been asked is asked again once a day at most; one that has
+     never been asked keeps its place at the front. The worker first confirms from the
+     runs' own lines that the priority half comes back with almost no prices; if it does
+     not, it reports and builds nothing. Tests: a stock with no price is not picked twice
+     in a day; a new stock is picked at once; with the backlog out of the way a run fills
+     with the stocks waiting longest.
 
 ## Scope
 
