@@ -1,6 +1,6 @@
 # Claims, prices and the stock list fix themselves
 
-Status: Approved (Giorgio, 2026-11-23: "approved, show me the screens"). Not built. Approving the plan is not approval of any merge, database push or deploy
+Status: Approved (Giorgio, 2026-11-23: "approved, show me the screens"). Workstream 3 is built, merged (#616, `b6cbbbe6`, 2026-11-24) and live (migration `20261212100000` applied, `enrich-symbols` deployed; the Orchestrator's account; its first new-code run line is not yet shown); workstreams 1, 2 and 4 are not built; the once-a-day retry for unpriced stocks is in open PR #619; the bought-out sale (ruled B, 2026-11-24) needs an addition that is not written. Approving the plan is not approval of any merge, database push or deploy
 Planner session: "Planner" (Fable 5.2), 2026-11-23 · Orchestrator hand-off: this commit
 
 ## Goal
