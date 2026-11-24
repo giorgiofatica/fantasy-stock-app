@@ -143,8 +143,13 @@ export type SymbolsClient = { from(table: 'symbols'): any };
 const SELECT_COLS = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap, is_draftable, list_drop_held_at';
 
 /**
- * An unpriced stock is asked again at most once a day from the priority tier
- * (the Planner, 2026-11-24). Counted 2026-11-24: the 388 unpriced stocks were
+ * An unpriced stock is SELECTED for the priority tier only when it was never asked or was
+ * last asked more than PRIORITY_RETRY_MS ago (the Planner, 2026-11-24). This is a cooldown
+ * read at selection time, not a claim: a stock can be asked again sooner if two runs overlap
+ * (pg_cron does not wait; rare, since a run is about 2 min against a 10-min cadence) or if its run
+ * fails before writing enriched_at (a transient supplier stop or a failed row write; asking
+ * again on the next run is then the wanted retry). A repeat costs one extra read-only price
+ * request and writes nothing wrong, so no claim or lock is kept. Counted 2026-11-24: the 388 unpriced stocks were
  * re-asked every ~2.5 h and ~400 asks in 3.6 h priced 3, so the tier spent half
  * of every run on stocks the price source never prices, and every other
  * stock's turn took ~4 days instead of ~2.
