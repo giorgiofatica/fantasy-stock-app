@@ -45,6 +45,12 @@
 // Alpaca's price lookup accumulate, they could fill an entire batch forever
 // and stop the stalest-first profile refresh of the other ~14k symbols.
 //
+// KNOWN VALUES AND MASS DROPS (2026-11-24, ./plan.ts): an "ok" profile answer
+// with no size/industry keeps the known value (a NULL size used to take a stock
+// off the list), and a run that would drop more than massDropLimit(batch)
+// stocks from the list applies none of those drops and logs ok:false,
+// error:'mass_drop_refused' on the error stream.
+//
 // Auth: cron-only — verify_jwt=false at the gateway; constant-time apikey
 // check against SB_SECRET_KEY_CRON in-code (snapshot-week-start pattern,
 // fail-closed).

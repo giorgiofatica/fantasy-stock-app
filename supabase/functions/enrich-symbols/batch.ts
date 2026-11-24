@@ -9,8 +9,17 @@
 //     it now THROWS, and ./handler.ts logs the throw as a failed run;
 //   - the result object is returned to the caller (which logs it) instead of
 //     being sent as the HTTP response body.
+//
+// 2026-11-24 (claims-fix-themselves plan, fix 3; rules in ./plan.ts): a run
+// now DECIDES every row before it WRITES any. An "ok" profile answer missing a
+// size or industry keeps the known one, and a run that would take more than
+// massDropLimit(batch) stocks off the list holds all of them (no write, not
+// even enriched_at) and ends ok:false / mass_drop_refused. Side effect of
+// writing last: a run the wall clock kills mid-fetch now writes nothing (it
+// used to keep the rows it had reached); the next run redoes the same rows.
+// The default 50-row run spends ~55 s on Finnhub pacing, inside the 150 s limit.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { computeIsDraftable } from '../_shared/symbol-eligibility.ts';
+import { decideMassDrop, planRow, verdictFields, type ProfileOutcome, type RowPlan, type SymbolRow } from './plan.ts';
 import {
   computePriceStatus,
   fetchPricesBisecting,
@@ -98,9 +107,10 @@ export interface EnrichConfig {
 }
 
 /** What one run did. Logged as ONE structured line by ./handler.ts. `ok` means
- * "the run completed"; price_status is the separately-scoped pricing verdict
- * (CLAUDE.md "success signals" #7). */
-export type EnrichResult = Record<string, unknown> & { ok: true; batch: number };
+ * "the run completed and applied everything it decided"; it is false only for a
+ * refused mass drop (error: 'mass_drop_refused', ./plan.ts). price_status is the
+ * separately-scoped pricing verdict (CLAUDE.md "success signals" #7). */
+export type EnrichResult = Record<string, unknown> & { ok: boolean; batch: number };
 
 /**
  * Run one enrichment batch to completion. Throws on a failed batch-selection
@@ -116,7 +126,9 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   // price_unsupported is filtered on (priority query below) but not selected:
   // the per-row loop recomputes it fresh from partitionForAlpaca every pass
   // rather than reading back a stale value (see the comment at its write).
-  const selectCols = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap';
+  // is_draftable is read as "on the list BEFORE this run" for the mass-drop
+  // guard (./plan.ts decideMassDrop).
+  const selectCols = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap, is_draftable';
 
   // Priority tier: unpriced AND not permanently-unsupported, stalest-first,
   // capped at half the batch (starvation guard — see price-batch.ts).
@@ -165,31 +177,33 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   let profiled = 0;
   let priced = 0;
   let skippedEtf = 0;
-  let draftable = 0;
   let transientAbort = false;
   const unmatched = new Set<string>();
 
-  for (const row of batch) {
+  // PHASE 1 — ask, decide, write nothing. Every write waits for the mass-drop
+  // verdict below (./plan.ts), so a run whose data is broken can be refused
+  // before it has changed anything.
+  const plans: RowPlan[] = [];
+  for (const row of batch as SymbolRow[]) {
     const symbol = String(row.symbol);
-    let industry: string | null = row.gics_industry ?? null;
-    let marketCap: number | null = row.market_cap == null ? null : Number(row.market_cap);
+    let prof: ProfileOutcome = { status: 'skipped' };
 
     if (row.is_etf === true) {
       skippedEtf++; // funds have no profile2 data; category layer handles them
     } else {
-      const prof = await fetchProfile(symbol, cfg.finnhubToken);
-      if (prof.status === 'transient') {
+      const answer = await fetchProfile(symbol, cfg.finnhubToken);
+      if (answer.status === 'transient') {
         // Abort WITHOUT advancing this symbol's cursor — next run retries.
         transientAbort = true;
         break;
       }
-      if (prof.status === 'ok') {
-        industry = prof.industry ?? null;
-        marketCap = prof.marketCap ?? null;
+      if (answer.status === 'ok') {
+        prof = { status: 'ok', industry: answer.industry ?? null, marketCap: answer.marketCap ?? null };
         profiled++;
-        if (industry && !knownIndustries.has(industry)) unmatched.add(industry);
+        if (answer.industry && !knownIndustries.has(answer.industry)) unmatched.add(answer.industry);
+      } else {
+        prof = { status: 'empty' }; // still advances the cursor (permanent miss — see header)
       }
-      // 'empty' still advances the cursor (permanent miss — see header).
       await sleep(FINNHUB_SPACING_MS);
     }
 
@@ -199,43 +213,29 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
     //   3. request-level failure (bisected 400 / cap-truncated) -> price_error,
     //      last_price left untouched so the row stays in the priority tier
     //   4. request succeeded but Alpaca had no data -> benign miss, keep old price
-    // Case 3 (price_error) and case 4 (benign no-data) both leave `newPrice`
-    // undefined and so fall through to the same "keep old price" branch
-    // below — they differ only in the AGGREGATE price_errors/price_error_symbols
-    // reporting at the end of this function, built directly from priceErrorSet.
-    const isFormatUnsupported = formatUnsupportedSet.has(symbol);
+    // Cases 3 and 4 both leave `newPrice` undefined, so planRow keeps the old
+    // price; they differ only in the price_errors reporting at the end.
+    // price_unsupported is partitionForAlpaca's verdict on this pass (format
+    // never changes; a price_error is a fetch failure, not a format verdict).
     const newPrice = bisectResult.prices.get(symbol);
-
-    const lastPrice = newPrice ?? (row.last_price == null ? null : Number(row.last_price));
     if (newPrice !== undefined) priced++;
-    // partitionForAlpaca classifies every symbol in the batch on every pass,
-    // so this is simply that verdict — no reason to preserve a stale prior
-    // value (format never changes; a price_error is a fetch failure, not a
-    // format verdict, and does not affect this flag).
-    const priceUnsupported = isFormatUnsupported;
+    plans.push(planRow(row, prof, newPrice, formatUnsupportedSet.has(symbol)));
+  }
 
-    const is_draftable = computeIsDraftable({
-      active: row.active,
-      exchange: row.exchange ?? null,
-      is_etf: row.is_etf ?? null,
-      last_price: lastPrice,
-      market_cap: marketCap,
-    });
-    if (is_draftable) draftable++;
+  // PHASE 2 — the mass-drop verdict (./plan.ts header).
+  const verdict = decideMassDrop(plans, batch.length);
 
+  // PHASE 3 — write the rows the verdict lets through. Held rows get NO write
+  // (not even enriched_at), so they are re-read by the next run.
+  let draftable = 0;
+  for (const p of verdict.apply) {
+    if (p.update.is_draftable) draftable++;
     const { error: upErr } = await admin
       .from('symbols')
-      .update({
-        gics_industry: industry,
-        market_cap: marketCap,
-        last_price: lastPrice,
-        price_unsupported: priceUnsupported,
-        is_draftable,
-        enriched_at: new Date().toISOString(),
-      })
-      .eq('symbol', symbol);
+      .update({ ...p.update, enriched_at: new Date().toISOString() })
+      .eq('symbol', p.symbol);
     if (upErr) {
-      console.error('update failed', symbol, upErr.message);
+      console.error('update failed', p.symbol, upErr.message);
       // continue: one bad row must not starve the rest of the batch
     }
   }
@@ -244,7 +244,9 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   const priceStatus = computePriceStatus(alpacaEligible.length, priced, priceErrorSet.size);
 
   return {
-    ok: true,
+    // ok + the list_drop* fields (./plan.ts verdictFields): a refused mass drop
+    // is ok:false, which _shared/respond-fast.ts writes to the error stream.
+    ...verdictFields(verdict),
     batch: batch.length,
     profiled,
     priced,
