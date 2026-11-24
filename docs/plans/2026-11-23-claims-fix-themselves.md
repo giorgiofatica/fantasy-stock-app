@@ -169,6 +169,29 @@ this draft first proposed are withdrawn with his ruling of the same day.
      writes what it has. A run that can only ever lose all its work is the refusal with
      no way back that this plan exists to remove.
 
+4. **What the read-only audit of 2026-11-24 found** (run by Giorgio; the output is kept
+   outside the repo). Both gaps in question 3 are real, neither touches a manager today
+   (nobody holds or watches any of these stocks), and they look like one gap seen twice:
+   the app has no way to know that a ticker no longer exists.
+   - **The 424 with no size.** About 250 are things a size floor was never meant for
+     (notes, preferred shares, warrants, rights, units, blank-cheque companies, funds).
+     About 175 read as ordinary shares, and well-known companies are among them. 370 of
+     the 424 hold no industry either, so the supplier has likely never answered for them;
+     54 hold an industry and no size, so it answered at least once and the size was never
+     sent or was wiped. All 424 were refreshed in the past two weeks, so the refresh
+     reaches them and gets nothing.
+   - **Frozen on the list: 1,143**, an over-count as expected. Of the oldest 200, about
+     155 are funds whose stored numbers simply never change. The other 44 include
+     companies that were bought or merged, and funds that reached their end date. So a
+     company that has left the market does stay on the list.
+   - **Not known yet, and needed before a fix is written:** which of the well-known names
+     with no size still trade under that ticker today and which were renamed or bought
+     (the Researcher, from public sources); and what the supplier actually answers for
+     the ones that still trade (workstream 3 adds this to the run's own line: how many
+     stocks answered "ok" with no size, and how many answered nothing, with the first
+     twenty symbols of each). No fix is built from the counts alone.
+   - **Still owed:** the count of stocks with no price at all (not in the query he ran).
+
 ## Scope
 
 **In:** the three fixes above; the check that the run happened; the move to the next open;
