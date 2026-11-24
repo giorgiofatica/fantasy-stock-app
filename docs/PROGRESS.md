@@ -36,10 +36,14 @@ Entries begin with the Recorder's first pass.
 
 - **Evening, 20:41Z to 22:17Z (the Orchestrator's account of Giorgio's runs; I read the merges, the code, the attempts and the snapshot):** **#604 (`8797c65d`) shipped plan point 7: the preview applies the buy's own `not_draftable` refusal first and a named-stock preview is paced 200 an hour and 500 a day; `record-trade` was redeployed at `5a1360e4`, 11 of 11 byte-identical.** **Top movers' block G passed as real roles; the db-snapshot was re-captured at 22:16:38Z (in #605): 35 drift rows, none high.** **#601 (`5a1360e4`, the watchlist app) merged, in no build.** **Main's CI: `8797c65d`'s first attempt failed on a flake (the Orchestrator: a minute-bucket straddle in `scrape_hardening`), the re-run passed; `5a1360e4` is green.** STATUS items 43 and 45.
 
+- **Option A is APPLIED in prod, about 23:20Z (#606; migration `20261210500000_watchlist_held_leaves.sql`; Giorgio ran it, the Orchestrator verified; I ran none of it; `local/deploy` is at `0564e63d`, which I read).** A stock you own leaves your watchlist: AFTER triggers on `drafts` and `trades` delete the row on a buy, a sale, a draft pick or a claim that fills, and a save of a held stock is refused. Preflight 0 rows to delete; the dry run listed only that file; checks: the `schema_migrations` row, function ACLs (`authenticated` only for the two the app calls), both triggers enabled, 0 rows, and an effect test on real accounts (rolled back). **Not yet shown: a real committed trade or pick with the triggers in place.** The snapshot re-capture waits for the claims push.
+
 **Merged, not confirmed live**
 - **#594 (18:05:02Z, `61aaa3ea`, the Stocks-tab lists board and its rules), #595 (18:11:23Z, `47b05d65`, the watchlist server) and #596 (18:17:50Z, `f6df4115`, the plan's three settled points).** Main's CI is `success` on `f6df4115`, `47b05d65` and `61aaa3ea`. Then #597 (18:28:09Z, `65fb06aa`, my record, both commits) and #598 (18:40:10Z, `5163f525`, the snapshot re-capture and the plan's points 4 and 5). Only #279 (draft) is open.
 
 - **#599 (19:51:12Z, `c53510f8`, my record `cb132c60` and the own-star rule, option A, the search-star board and plan point 7) and #600 (19:58:58Z, `ac293fdf`, the `record-trade` list preview).** **Then #602 (20:14:57Z, `944eb18a`, the Top movers server) and #603 (20:21:16Z, `8c9f1c4d`, docs, carrying my record as `45bd2860`).** Main's CI is `success` on `ac293fdf` and `c53510f8`. Open: #601 (the watchlist app, draft), #602 (the Top movers server) and #603 (docs).
+
+- **#605 (22:23:27Z, `01dce369`, my record and the 22:16:38Z snapshot) and #606 (23:11:13Z, `0564e63d`, option A).** Main's CI is `success` on both. #609 (docs: a manager orders their own claims, two may sell the same stock, plus the waiver-ordering research) also merged at 23:18:19Z (`3d734c83`). Open (the Orchestrator's account): #607 (the Top movers chip, draft; its conflicts cleared at `e0069fff`) and #608 (the claims server, built and out of draft ~23:25Z, head `6cf306e0`; not merged, not applied, not deployed).
 
 **Decided**
 - **"Yes to all the words" on the Stocks tab lists board (`#call-stocks-tab-lists`, #594) (Giorgio, via the Design Lead; in `docs/PRODUCT_RULES.md` via #594, which dates it 2026-11-22 Pacific).** Seven new words (Available, Watching, Top movers, "Star a stock to watch it here.", "No claims pending.", "+11.2% Fri", "MON 9:30 AM ET"). Two things the board drew without asking are the Design Lead's rulings, not his picks: a claim is the palette's rust, and the waiver order is the first row of Claims.
@@ -48,11 +52,15 @@ Entries begin with the Recorder's first pass.
 - **No star on a stock you own; a stock you own is not in your watchlist (Giorgio, 2026-11-23: "no star for something you own. its in your portfolio so shouldnt need to be in the watchlist too"), and option A: a watched stock you buy leaves the watchlist for good ("A").** In `docs/PRODUCT_RULES.md` via #599.
 - **"ok then b": a Watching row for a stock that cannot be bought reads "Not in this league's list"** (Giorgio, 2026-11-23; now in `docs/PRODUCT_RULES.md` via #603, which I read). **And "B": too many taps on "Review buy" reuse the approved "Too many tries" lines, no new words** (the limits are plan point 7's fix, not shipped).
 
+- **Claims (Giorgio, 2026-11-23, said in the Planner's chat; in `docs/PRODUCT_RULES.md`):** they work as ESPN's waiver wire does, except daily, and a manager orders their own claims; a claim that fills sends a notification the next morning; the two failed-claim messages are both A ("AAPL isn't in this league's list of stocks", "Claims weren't processed on Monday"); those messages are fallbacks, and the system should fix the cause by itself (the plan is the Planner's to write); and a known 10-minute exception to "claims are blind" is accepted.
+
 **Found**
 - **A known, deferred gap (STATUS item 40; the security review's declined finding 3):** `take_over_team` does not delete a seat's stray watchlist rows. Today the design keeps the invariant (the scrub deletes them with the seat; a trigger refuses saves into a deleted seat); if it broke, a takeover would fail loudly, not hand over a deleted person's saves. The fix re-creates `take_over_team`, so it is deferred.
 
 - **The pacing claim in the applied watchlist migration is overstated until the preview gate ships (STATUS item 43; the Planner's finding; I read the code).** `record-trade`'s single preview reads a stock's category with only a 30 a minute limit and no `not_draftable` gate, in production now; the fix is plan point 7, a chip spawned, not shipped. The applied migration's comment is not edited.
 - **Option A needs a database push before build 18 (STATUS item 44).** The live watchlist server accepts a save of a held stock.
+
+- **A SpringBoard crash loop from a worker's iOS 27 simulator (14:32Z to 14:43Z, 18 reports; the Orchestrator's account):** the simulator is shut down, no simulator boots without the Orchestrator's OK, so the Design Lead's gates (and #607) wait.
 
 **Waiting on Giorgio**
 - The supplier enquiry (his to send when ready; not on build 18's path). The watchlist's prod step is done.
@@ -60,7 +68,7 @@ Entries begin with the Recorder's first pass.
 **Next**
 - **Monday 14:35Z's `snapshot-week-start` has passed; I have no report of its outcome.** The Orchestrator checks its logs.
 - The rest of Stocks part 3 (claims, the Top movers job, the screens) is not started as far as I know; then build 18; then the Expo upgrade.
-- **Still to come before build 18 (the Orchestrator's account): option A's server change (the chip is not started; a migration and a `db push`, item 44) and the claims (WS6 and WS7); the phone pass that checks both `record-trade` deploys' effect; the fresh-share watch (item 45).** Then build 18; then the Expo upgrade.
+- **Still to come before build 18 (the Orchestrator's account): the claims (the server and run in #608, built and open; the notifications; the screens), the Top movers chip, the snapshot re-capture after the claims push, the phone pass that checks the `record-trade` deploys' effect, and the fresh-share watch (item 45).** Then build 18; then the Expo upgrade.
 
 ## 2026-11-22
 
