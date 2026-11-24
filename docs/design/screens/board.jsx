@@ -391,12 +391,15 @@
   // (the URL's #id), because every board at once is ~70,000 elements and the tab runs out of
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
-  const OPEN = [];
+  const OPEN = [
+    ['call-league-activity', 'What went through, the way ESPN shows it', () => window.KSLeagueActivity],
+  ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-claims-order', title: 'Ordering your claims, and the claim that can\u2019t run', decision: '"A", then "we dont need to notify or have messages for claims that didnt go through. here is the espn league activity and waiver report screens." Reorder A: the grip (drag it, or press and hold the row), "Move up"/"Move down" for VoiceOver. Sections 3 (the endings) and 4 (the notifications) overruled as drawn: no notification and no message for any claim that didn\u2019t go through; "SHOP not bought", "Your DIS was already sold for AMGN." and "Your DIS paid for SHOP instead." not approved. Only "AMGN is yours" / "$187.20 at the open \u00b7 paid by selling DIS" stays. What went through is shown the ESPN way (#call-league-activity).', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, 109d8d24)', render: () => window.KSClaimsOrderArchived },
     { id: 'call-search-star', title: 'The star in search results', decision: '"no star for something you own. its in your portfolio so shouldnt need to be in the watchlist too". A star on a free stock, "Owned by \u2026" and "No free slot"; none on "You own this" (overruling the board\u2019s star on it) or "Not in this league\u2019s list". It holds everywhere: no Save on the sheet of a stock you own; Watching never lists one.', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, planner/rules-1123-own-star)', render: () => window.KSSearchStarArchived },
     { id: 'call-stocks-tab-lists', title: 'The Stocks tab\u2019s lists', decision: '"yes to all the words": Available, Watching, Top movers, "Star a stock to watch it here.", "No claims pending.", "+11.2% Fri" and "MON 9:30 AM ET", on the board as drawn (the switch, the star, Watching, claiming after the close in the palette\u2019s rust brown, Claims with the waiver order on its first row, Top movers). Later the same day (2026-11-23, "ok then b"): a Watching row for a stock that can\u2019t be bought reads "Not in this league\u2019s list" (search\u2019s line), not the drawn "No longer tradable"; a stock you own gets no star and never appears in Watching (#call-search-star).', date: '2026-11-22', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSStocksTabListsArchived },
     { id: 'call-result-colour', title: 'W, L and T colours outside the recap', decision: '"A and keep blue". Letters A: W, L and T bold in the normal ink on Home\u2019s season tiles, League \u203a Schedule and the Matchup \u201ci\u201d popup, as in the recap; the money keeps its sign colour. Banner 1: a week you won stays blue (your colour). No new words.', date: '2026-11-20', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSResultColourArchived },
@@ -593,6 +596,8 @@
           {window.KSResultColour ? <window.KSResultColour /> : null}
           {window.KSStocksTabLists ? <window.KSStocksTabLists /> : null}
           {window.KSSearchStar ? <window.KSSearchStar /> : null}
+          {window.KSClaimsOrder ? <window.KSClaimsOrder /> : null}
+          {window.KSLeagueActivity ? <window.KSLeagueActivity /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
