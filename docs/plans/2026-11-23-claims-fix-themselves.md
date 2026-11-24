@@ -1,6 +1,6 @@
 # Claims, prices and the stock list fix themselves
 
-Status: Draft, for Giorgio's approval. No question is open for him and there are no new words. Nothing here is built
+Status: Approved (Giorgio, 2026-11-23: "approved, show me the screens"). Not built. Approving the plan is not approval of any merge, database push or deploy
 Planner session: "Planner" (Fable 5.2), 2026-11-23 · Orchestrator hand-off: this commit
 
 ## Goal
