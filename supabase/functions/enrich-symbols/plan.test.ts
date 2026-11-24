@@ -12,6 +12,7 @@ import { assert, assertEquals } from 'jsr:@std/assert';
 import {
   DAILY_DROP_BUDGET,
   decideRun,
+  industryReport,
   DROP_WINDOW_MS,
   MARK_MIN_AGE_MS,
   MASS_DROP_MIN,
@@ -333,4 +334,21 @@ Deno.test('tallyProfiles: symbols and counts only (no supplier payload can reach
   for (const v of Object.values(t)) {
     assert(typeof v === 'number' || (Array.isArray(v) && v.every((s) => typeof s === 'string')));
   }
+});
+
+// ---------------------------------------------------------------------------
+// industryReport — the curation report, never false on a failed read
+// ---------------------------------------------------------------------------
+
+Deno.test('industryReport: lists the seen industries with no category rule, once each', () => {
+  assertEquals(
+    industryReport(new Set(['Banking']), ['Banking', 'Lasers', 'Lasers', 'Moon Mining']),
+    { unmatched_industries: ['Lasers', 'Moon Mining'] },
+  );
+});
+
+Deno.test('industryReport: a failed category_rules read omits the report and flags it (never "everything is unmatched")', () => {
+  const r = industryReport(null, ['Banking', 'Lasers']);
+  assertEquals(r, { category_rules_read_failed: true });
+  assert(!('unmatched_industries' in r));
 });

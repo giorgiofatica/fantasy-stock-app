@@ -81,6 +81,8 @@ export interface RunDeps {
 
 export interface RunOutcome {
   decision: RunDecision;
+  /** Stocks the run selected (its batch); selected - judged were not judged. */
+  selected: number;
   /** The drops-in-window read failed (counted as the budget spent). */
   dropsReadFailed: boolean;
   /** What the supplier answered over the judged stocks (report only). */
@@ -156,6 +158,7 @@ export async function runJudged(deps: RunDeps): Promise<RunOutcome> {
   }
   return {
     decision,
+    selected: deps.rows.length,
     dropsReadFailed,
     profiles: tallyProfiles(plans),
     stopped,
@@ -168,39 +171,58 @@ export async function runJudged(deps: RunDeps): Promise<RunOutcome> {
 const SYMBOLS_LOGGED = 20;
 
 /**
- * The run outcome's list fields. A run that held any stock off a drop is a
- * FAILED run (ok:false) with the held stocks named, never a clean line with a
- * count tucked inside it (CLAUDE.md "success signals" #4/#7):
- *   mass_drop_refused    this run's NEW drops were over the per-run limit;
- *   drop_budget_reached  the daily budget held at least one drop (the read
- *                        may have failed: list_drops_read_failed);
- *   hold_write_failed    the holds could not be recorded;
- *   row_write_failed     at least one normal write failed (row_write_failed_symbols
- *                        names them; each is judged again next run).
- * The first that applies is the error; every count stays in the line.
+ * The run outcome's fields. Any of these makes the run FAILED (ok:false, so
+ * _shared/respond-fast.ts writes the line to the error stream), never a clean
+ * line with a count or flag tucked inside it (CLAUDE.md "success signals"):
+ *   mass_drop_refused          this run's NEW drops were over the per-run limit;
+ *   drops_read_failed          the drops-in-window count could not be read (the
+ *                              budget counted as spent), even if nothing needed
+ *                              dropping: a read that fails every run must show;
+ *   drop_budget_reached        the daily budget held at least one drop;
+ *   hold_write_failed          the holds could not be recorded;
+ *   row_write_failed           a normal write failed (row_write_failed_symbols;
+ *                              each is judged again next run);
+ *   run_deadline               judging hit the run's own deadline (judged and
+ *                              unjudged counts in the line);
+ *   category_rules_read_failed the curation report could not be built (batch.ts;
+ *                              unmatched_industries omitted, nothing written wrong).
+ * The most specific cause is the error (the first in this order that applies);
+ * every count stays in the line. A supplier stop (stopped='transient_abort')
+ * is NOT a failure: a throttle, retried next run; `stopped` says it.
  * A second reading deferred for a young mark is not a hold (the stock was
  * already reported when first held); it is counted in list_deferred_young.
  *
  * WS2's repair log writes ONE row for a run with heldForRefusal or
  * heldForBudget non-empty (batch.ts REPAIR-LOG HOOK).
  */
-export function outcomeFields(o: RunOutcome): Record<string, unknown> & { ok: boolean } {
+export function outcomeFields(
+  o: RunOutcome,
+  extras: { categoryRulesReadFailed: boolean } = { categoryRulesReadFailed: false },
+): Record<string, unknown> & { ok: boolean } {
   const d = o.decision;
   const held = [...d.heldForRefusal, ...d.heldForBudget];
+  const error = d.refused
+    ? 'mass_drop_refused'
+    : o.dropsReadFailed
+    ? 'drops_read_failed'
+    : d.heldForBudget.length > 0
+    ? 'drop_budget_reached'
+    : o.holdWriteError
+    ? 'hold_write_failed'
+    : o.rowWriteErrors > 0
+    ? 'row_write_failed'
+    : o.stopped === 'deadline'
+    ? 'run_deadline'
+    : extras.categoryRulesReadFailed
+    ? 'category_rules_read_failed'
+    : null;
   return {
-    ok: held.length === 0 && o.holdWriteError === null && o.rowWriteErrors === 0,
-    ...(d.refused
-      ? { error: 'mass_drop_refused' }
-      : d.heldForBudget.length > 0
-      ? { error: 'drop_budget_reached' }
-      : o.holdWriteError
-      ? { error: 'hold_write_failed' }
-      : o.rowWriteErrors > 0
-      ? { error: 'row_write_failed' }
-      : {}),
+    ok: error === null,
+    ...(error ? { error } : {}),
     stopped: o.stopped,
     transient_abort: o.stopped === 'transient_abort',
     judged: d.judged,
+    unjudged: o.selected - d.judged,
     list_drop_limit: d.limit,
     list_new_drops: d.newDrops.length,
     list_dropped: d.dropped.length,

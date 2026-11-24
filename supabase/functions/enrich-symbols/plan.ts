@@ -315,3 +315,18 @@ export function tallyProfiles(plans: RowPlan[]) {
     profile_empty_symbols: empty.slice(0, ANSWER_SYMBOLS_LOGGED),
   };
 }
+
+/**
+ * The unmatched-industries report (vendor labels with no category rule, for
+ * curation). `known` is null when the category_rules read failed: then the
+ * report is OMITTED and flagged, never "every industry is unmatched" (a false
+ * report built from an empty set; CLAUDE.md "success signals" #5 shape).
+ * Report only: no write depends on it.
+ */
+export function industryReport(
+  known: Set<string> | null,
+  seen: Iterable<string>,
+): { unmatched_industries: string[] } | { category_rules_read_failed: true } {
+  if (known === null) return { category_rules_read_failed: true };
+  return { unmatched_industries: [...new Set(seen)].filter((i) => !known.has(i)) };
+}

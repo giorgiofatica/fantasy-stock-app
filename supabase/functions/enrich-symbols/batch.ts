@@ -20,7 +20,7 @@
 // written. Every supplier call has a timeout (SUPPLIER_CALL_TIMEOUT_MS) and
 // the Alpaca phase a budget (PRICE_PHASE_BUDGET_MS).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { DROP_WINDOW_MS, planRow, type ProfileOutcome, type SymbolRow } from './plan.ts';
+import { DROP_WINDOW_MS, industryReport, planRow, type ProfileOutcome, type SymbolRow } from './plan.ts';
 import { outcomeFields, PRICE_PHASE_BUDGET_MS, RUN_FETCH_DEADLINE_MS, runJudged, SUPPLIER_CALL_TIMEOUT_MS } from './run.ts';
 import {
   computePriceStatus,
@@ -182,9 +182,14 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   const batch = mergeBatchSelection(priorityRows ?? [], stalestRows ?? [], batchSize);
   if (batch.length === 0) return { ok: true, batch: 0 };
 
-  // Known rule keys, to report unmatched vendor labels for curation.
-  const { data: ruleRows } = await admin.from('category_rules').select('gics_industry');
-  const knownIndustries = new Set((ruleRows ?? []).map((r) => String(r.gics_industry)));
+  // Known rule keys, to report unmatched vendor labels for curation. Report
+  // only: a failed read is flagged and the report omitted (never "every
+  // industry is unmatched"), the run goes on and fails its outcome line
+  // (category_rules_read_failed). Throwing here would stop the price and size
+  // refresh over a read that no write depends on.
+  const { data: ruleRows, error: ruleErr } = await admin.from('category_rules').select('gics_industry');
+  if (ruleErr) console.error('category_rules read failed (unmatched_industries not reported)', ruleErr.message);
+  const knownIndustries = ruleErr ? null : new Set((ruleRows ?? []).map((r) => String(r.gics_industry)));
 
   // Price fetch for the whole batch, up front (ETFs included — Alpaca still
   // prices them). Format-unsupported symbols never reach Alpaca at all.
@@ -201,7 +206,7 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   let profiled = 0;
   let priced = 0;
   let skippedEtf = 0;
-  const unmatched = new Set<string>();
+  const seenIndustries = new Set<string>();
 
   // Judge, decide, then write, in the order ./run.ts sets out.
   const outcome = await runJudged({
@@ -220,7 +225,7 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
         if (answer.status === 'ok') {
           prof = { status: 'ok', industry: answer.industry ?? null, marketCap: answer.marketCap ?? null };
           profiled++;
-          if (answer.industry && !knownIndustries.has(answer.industry)) unmatched.add(answer.industry);
+          if (answer.industry) seenIndustries.add(answer.industry);
         } else {
           prof = { status: 'empty' }; // still advances the cursor (permanent miss — see header)
         }
@@ -287,15 +292,16 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   const priceStatus = computePriceStatus(alpacaEligible.length, priced, priceErrorSet.size);
 
   return {
-    // ok + stopped + the list_* fields (./run.ts outcomeFields): any hold makes
-    // the run ok:false, which _shared/respond-fast.ts writes to the error stream.
-    ...outcomeFields(outcome),
+    // ok + error + stopped + the list_* fields (./run.ts outcomeFields): any
+    // cause listed there makes the run ok:false, which _shared/respond-fast.ts
+    // writes to the error stream.
+    ...outcomeFields(outcome, { categoryRulesReadFailed: knownIndustries === null }),
     batch: batch.length,
     profiled,
     priced,
     skipped_etf: skippedEtf,
     draftable_in_batch: draftable,
-    unmatched_industries: [...unmatched],
+    ...industryReport(knownIndustries, seenIndustries),
     // Honest price-fetch reporting (found 2026-09-25: this used to report
     // ok:true, priced:0 on a whole-batch Alpaca 400 — see index.ts header).
     // `ok` above means "the run completed"; price_status is the separately-

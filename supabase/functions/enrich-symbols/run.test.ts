@@ -289,7 +289,8 @@ Deno.test('budget: an unreadable count applies no drop, reports it, and the next
   const q = new Queue(100);
   const o = await q.run(50, T0, bad('S0'), { dropsInWindow: () => Promise.reject(new Error('read failed')) });
   const f = outcomeFields(o);
-  assertEquals([f.ok, f.error, f.list_drops_read_failed, f.list_dropped], [false, 'drop_budget_reached', true, 0]);
+  // The read failure is the cause (more specific than the budget hold it caused).
+  assertEquals([f.ok, f.error, f.list_drops_read_failed, f.list_dropped], [false, 'drops_read_failed', true, 0]);
   // No made-up count: the line says it does not know.
   assertEquals([f.list_drops_past_24h, f.list_drops_past_24h_after], [null, null]);
   assertEquals([q.get('S0').is_draftable, q.get('S0').list_drop_held_at], [true, iso(T0)]);
@@ -338,7 +339,7 @@ Deno.test('run: a hung supplier call past the run deadline writes what it has, r
   deps.judge = (row) => (row.symbol === 'S5' ? new Promise<RowPlan>(() => {}) : judge(row)); // never answers
   const o = await runJudged(deps);
   const f = outcomeFields(o);
-  assertEquals([f.stopped, f.judged], ['deadline', 5]);
+  assertEquals([f.ok, f.error, f.stopped, f.judged, f.unjudged], [false, 'run_deadline', 'deadline', 5, 45]);
   assertEquals(o.decision.dropped, ['S0']); // one drop among the judged: applied
   assertEquals(q.get('S0').is_draftable, false);
   // S5 (hung) and every stock after it, the bad S7-S9 included: no drop, no mark, no write.
@@ -350,6 +351,8 @@ Deno.test('run: a deadline already passed judges nothing and writes nothing', as
   const before = q.snapshot();
   const o = await q.run(10, T0, allBad, { deadlineMs: T0 - 1 });
   assertEquals([o.stopped, o.decision.judged], ['deadline', 0]);
+  const f = outcomeFields(o);
+  assertEquals([f.ok, f.error, f.unjudged], [false, 'run_deadline', 10]);
   assertEquals(q.snapshot(), before);
 });
 
@@ -363,6 +366,42 @@ Deno.test('run: the budgets sit well inside the 150 s edge wall clock', () => {
 // ---------------------------------------------------------------------------
 // Reporting
 // ---------------------------------------------------------------------------
+
+Deno.test('run: an unreadable drops count FAILS the run even when nothing needed dropping', async () => {
+  const q = new Queue(100);
+  const f = outcomeFields(await q.run(50, T0, allGood, { dropsInWindow: () => Promise.reject(new Error('read failed')) }));
+  assertEquals([f.ok, f.error, f.list_drops_read_failed, f.list_dropped], [false, 'drops_read_failed', true, 0]);
+  assertEquals(f.list_held_symbols, []);
+});
+
+Deno.test('run: a supplier stop (transient_abort) with nothing wrong stays ok:true, with the stopped field', async () => {
+  const q = new Queue(100);
+  const answer = (s: string): Answer => (s === 'S10' ? 'transient' : okNoSize);
+  const f = outcomeFields(await q.run(50, T0, answer));
+  assertEquals([f.ok, f.error, f.stopped, f.transient_abort, f.judged, f.unjudged], [true, undefined, 'transient_abort', true, 10, 40]);
+});
+
+Deno.test('run: the most specific cause is the error (refusal, then read failure, then budget, writes, deadline, curation read)', async () => {
+  // A refusal AND an unreadable count: the refusal.
+  const q1 = new Queue(100);
+  const f1 = outcomeFields(await q1.run(50, T0, bad(...THREE), { dropsInWindow: () => Promise.reject(new Error('x')) }));
+  assertEquals([f1.error, f1.list_drops_read_failed], ['mass_drop_refused', true]);
+  // A deadline AND a failed curation read: the deadline.
+  const q2 = new Queue(10);
+  const f2 = outcomeFields(await q2.run(10, T0, allGood, { deadlineMs: T0 - 1 }), { categoryRulesReadFailed: true });
+  assertEquals(f2.error, 'run_deadline');
+});
+
+Deno.test('run: a failed category_rules read FAILS an otherwise clean run (category_rules_read_failed); nothing written differs', async () => {
+  const qa = new Queue(50);
+  const qb = new Queue(50);
+  const oa = await qa.run(50, T0, allGood);
+  const ob = await qb.run(50, T0, allGood);
+  assertEquals(qa.snapshot(), qb.snapshot()); // the read feeds a report only
+  assertEquals(outcomeFields(oa).ok, true);
+  const f = outcomeFields(ob, { categoryRulesReadFailed: true });
+  assertEquals([f.ok, f.error], [false, 'category_rules_read_failed']);
+});
 
 Deno.test('run: a failed hold write still writes the normal rows, and the stocks it could not hold are judged again next run', async () => {
   const q = new Queue(100);
