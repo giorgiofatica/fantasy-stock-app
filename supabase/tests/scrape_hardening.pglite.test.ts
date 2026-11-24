@@ -122,6 +122,36 @@ Deno.test({
       await db.exec(`select set_config('request.jwt.claim.sub', '${sub ?? ''}', false)`);
       try { return await fn(); } finally { await db.exec('reset role').catch(() => {}); }
     };
+    // The limiter keys its windows on now(), which is the TRANSACTION start time.
+    // Each autocommit query gets a fresh now(), so a run of calls that straddles a
+    // minute (or hour) boundary lands in two windows and the limit never trips: the
+    // CI flake on main 8797c65d and PR #607. inOneTx pins now() for every call
+    // inside it, so the outcome no longer depends on when the run starts.
+    const inOneTx = async <T>(fn: () => Promise<T>): Promise<T> => {
+      await db.exec('begin');
+      try {
+        const out = await fn();
+        await db.exec('commit');
+        return out;
+      } catch (e) {
+        await db.exec('rollback');
+        throw e;
+      }
+    };
+    // Inside inOneTx: run a call expected to raise, return its error (null if it
+    // succeeded), and roll back to a savepoint so the transaction stays usable.
+    // The savepoint also undoes the call's SET ROLE, as autocommit would.
+    const errorOf = async (fn: () => Promise<unknown>): Promise<Row> => {
+      await db.exec('savepoint expect_error');
+      try {
+        await fn();
+        await db.exec('release savepoint expect_error');
+        return null;
+      } catch (e) {
+        await db.exec('rollback to savepoint expect_error');
+        return e;
+      }
+    };
     const canExec = async (role: string, fn: string) =>
       (await q(`select has_function_privilege($1, $2, 'EXECUTE') as ok`, [role, fn]))[0].ok as boolean;
     const TRIGGER_FNS = [
@@ -175,27 +205,35 @@ Deno.test({
     });
 
     await t.step('2. check_usernames: works for a player, 61st call in a minute is PT429, VOLATILE', async () => {
-      const rows = await as('authenticated', A, () => q(`select * from public.check_usernames($1)`, [['bob', 'zed_new']]));
-      assertEquals(rows.map((r) => r.status), ['taken', 'available']);
-      for (let i = 0; i < 59; i++) await as('authenticated', A, () => q(`select * from public.check_usernames($1)`, [['zz_x']]));
-      const err = await as('authenticated', A, () => q(`select * from public.check_usernames($1)`, [['zz_x']]))
-        .then(() => null, (e) => e);
-      assert(err, 'the 61st call in one minute was allowed');
-      assertEquals(err.code, 'PT429');
-      // Another player is unaffected by A's counter.
-      const other = await as('authenticated', B, () => q(`select * from public.check_usernames($1)`, [['zz_y']]));
-      assertEquals(other.length, 1);
+      await inOneTx(async () => {
+        const rows = await as('authenticated', A, () => q(`select * from public.check_usernames($1)`, [['bob', 'zed_new']]));
+        assertEquals(rows.map((r) => r.status), ['taken', 'available']);
+        for (let i = 0; i < 59; i++) await as('authenticated', A, () => q(`select * from public.check_usernames($1)`, [['zz_x']]));
+        const err = await errorOf(() => as('authenticated', A, () => q(`select * from public.check_usernames($1)`, [['zz_x']])));
+        assert(err, 'the 61st call in one minute was allowed');
+        assertEquals(err.code, 'PT429');
+        // Another player is unaffected by A's counter.
+        const other = await as('authenticated', B, () => q(`select * from public.check_usernames($1)`, [['zz_y']]));
+        assertEquals(other.length, 1);
+      });
+      // The pin held: A's 60 allowed calls sit in ONE minute window (the refused
+      // 61st rolled back, as it does in autocommit).
+      assertEquals(await q(`select hits from public.rate_limit_counters
+        where bucket = 'check-usernames' and subject = 'user:${A}'`), [{ hits: 60 }]);
       assertEquals((await q(`select provolatile from pg_proc where proname = 'check_usernames'`))[0].provolatile, 'v');
       assertEquals(await canExec('anon', 'public.check_usernames(text[])'), false);
       assertEquals(await canExec('authenticated', 'public.check_usernames(text[])'), true);
     });
 
     await t.step('2b. the hour window refuses on its own (600/h), and bumps on every call', async () => {
-      await q(`insert into public.rate_limit_counters (bucket, subject, window_start, hits) values
-        ('check-usernames-hour', 'user:${C}', to_timestamp(floor(extract(epoch from now()) / 3600) * 3600), 600)`);
-      const err = await as('authenticated', C, () => q(`select * from public.check_usernames($1)`, [['zz_z']]))
-        .then(() => null, (e) => e);
-      assertEquals(err?.code, 'PT429');
+      // Seed and call share one now(), so the seeded row is the window the call bumps
+      // even at the top of an hour.
+      await inOneTx(async () => {
+        await q(`insert into public.rate_limit_counters (bucket, subject, window_start, hits) values
+          ('check-usernames-hour', 'user:${C}', to_timestamp(floor(extract(epoch from now()) / 3600) * 3600), 600)`);
+        const err = await errorOf(() => as('authenticated', C, () => q(`select * from public.check_usernames($1)`, [['zz_z']])));
+        assertEquals(err?.code, 'PT429');
+      });
       const hits = await q(`select bucket, hits from public.rate_limit_counters where subject = 'user:${B}' order by bucket`);
       assertEquals(hits, [{ bucket: 'check-usernames', hits: 1 }, { bucket: 'check-usernames-hour', hits: 1 }]);
     });
