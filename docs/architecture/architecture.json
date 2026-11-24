@@ -2,27 +2,22 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "92e0b9a77d296fd9ed94e1387fff152e4bff3549",
-    "commitShort": "92e0b9a7",
+    "commit": "7f104ac3db527dcdb684e1c0756fab742854a403",
+    "commitShort": "7f104ac3",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "",
-    "dirty": true,
-    "dirtyPaths": [
-      {
-        "code": "A",
-        "path": "supabase/migrations/20261210500000_watchlist_held_leaves.sql"
-      }
-    ],
-    "timestamp": "2026-11-23T23:19:35Z",
-    "sourceHash": "sha256:6ef9e6da5192cf80db897406866d3e7b088ad84600045359c227345cb218269b",
+    "dirty": false,
+    "dirtyPaths": [],
+    "timestamp": "2026-11-24T05:05:47Z",
+    "sourceHash": "sha256:72d85f461a9a837675201b3637bb882f65596d4e8b8d2e40f26a18ff08a9bf29",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-23T22:16:38Z",
-    "ageHours": 1,
-    "ageDays": 0,
+    "ageHours": 6.8,
+    "ageDays": 0.3,
     "staleAfterDays": 14,
     "stale": false,
     "hash": "sha256:cd2c34a27b62eaf82affedd34f09ce903884bb5fb702883e3f312d421d6c62f4",
@@ -23821,7 +23816,7 @@
       "protocol": "postgrest-rpc",
       "payload": "rpc('get_league_top_movers')",
       "callSites": [
-        "apps/mobile/lib/stocks/useTopMovers.ts:59"
+        "apps/mobile/lib/stocks/useTopMovers.ts:67"
       ],
       "via": [
         "seamRpc"
@@ -26208,7 +26203,7 @@
       "apps/mobile/lib/shell/usernameApi.ts:30 -> check_usernames",
       "apps/mobile/lib/shell/usernameApi.ts:49 -> set_username",
       "apps/mobile/lib/stocks/useStocksList.ts:62 -> get_league_available_stocks (via seamRpc)",
-      "apps/mobile/lib/stocks/useTopMovers.ts:59 -> get_league_top_movers (via seamRpc)",
+      "apps/mobile/lib/stocks/useTopMovers.ts:67 -> get_league_top_movers (via seamRpc)",
       "apps/mobile/lib/stocks/useWatchlist.ts:17 -> get_league_watchlist (via seamRpc)",
       "apps/mobile/lib/stocks/useWatchlist.ts:22 -> set_watchlist (via seamRpc)",
       "apps/mobile/tests-deno/account-deletion-wiring.test.ts:154 -> deleted_manager_label",
