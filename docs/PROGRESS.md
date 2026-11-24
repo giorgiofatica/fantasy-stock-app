@@ -29,7 +29,22 @@ Entries begin with the Recorder's first pass.
 
 **Shipped**
 - **#611 merged: the db-snapshot re-captured after the claims push is on `main` (merge `c44393cc` at 09:28:36Z by the commit's time, head `4cb91c5a`; Giorgio merged it; I read the merge and the files).** The snapshot is stamped 2026-11-24T06:54:11Z and holds 46 tables, 155 functions and 16 cron jobs; the map's drift panel counts 37 rows (6 medium, 31 low, none high), which I counted. The Orchestrator's note gave the merge time as 07:2xZ; the merge commit says 09:28:36Z, which I use. The snapshot now knows the claims functions and tables, so they no longer read "ABSENT from prod".
+- **The stock-refresh guards are live (#616, merged 20:51:13Z, `b6cbbbe6`; the Orchestrator's account of Giorgio's runs; I ran none of it).** `db push` of `20261212100000` (two new columns on `symbols`, no grants; the dry run listed only it) and then `enrich-symbols` at about 22:29Z, 9 of 9 files byte-identical; table and column grants unchanged, held 0 and dropped 0 before the deploy, effect test clean. The first run of the new code is not yet shown (the 22:30Z run was the old version).
+- **The database went over the free plan's size limit and was cleared by hand (the Orchestrator's account).** 0.812 GB of 0.5 GB: the 2-second draft sweep's run history (535 MB) and 198 MB of dead space in `net._http_response`. Giorgio deleted the sweep's rows older than an hour and ran `VACUUM FULL`: 37 MB. **The lasting fix is not built; it refills at about 75 MB a day** (by my arithmetic, back at the limit around 11-30; STATUS item 47).
+- **The never-priced check held up:** unpriced stocks 388 at 18:54:04Z, 385 at 22:31:36Z, none never asked, each asked again about every 2.5 hours. The once-a-day retry is PR #619, open.
 - **My claims record landed in two parts.** Three commits rode in on #610 (07:02:21Z); the fourth, the one saying the claims server is live, did not land with #611 and was re-based onto `main` as its own small docs PR (the Orchestrator's account).
+
+**Merged, nothing to confirm live** (docs and a test)
+- **Docs and tests merged:** #612 (18:41:49Z), #613 (18:49:34Z, a test), #614 (18:59:13Z), #615 (19:04:33Z), #617 (19:13:44Z), #618 (20:05:10Z). #614, #615 and #617 are the self-fixing plan's build details and the Researcher's stock-lifecycle audit (a company that leaves the market stays on our list; many "no size" names are old tickers).
+
+**Decided**
+- **A held stock whose company is bought out is sold for the manager (B)** (Giorgio, 2026-11-24, in the Planner's chat: "B"): at its last real price, the day it stops trading; the money comes back, the slot opens, the manager is told. A ticker change is not covered. Not built. `docs/PRODUCT_RULES.md`, #618.
+
+**Waiting on Giorgio**
+- Nothing asked of him in this note. His merges and prod steps to come: #619 (then a deploy), and the sweep-history fix when it exists. The first new-code `enrich-symbols` run line still has to be read.
+
+**Next** (the Orchestrator's, as reported)
+- The lasting cron-history fix (a worker chip, not started; it has to land before about 11-30, or the hand cleanup is repeated), #619, and the rest of the self-fixing plan.
 
 ## 2026-11-23
 
