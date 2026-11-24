@@ -59,7 +59,7 @@ export interface MoversListProps {
 
 export function MoversList({ movers, marketClosed, lastSession, dayWord, plus, watch, onStar }: MoversListProps) {
   const verdict = movers.status === 'ready' ? moversVerdict(movers.read, marketClosed, movers.now, lastSession) : null;
-  if (movers.status === 'loading') return <MoversSkeleton />;
+  if (movers.status === 'loading') return <MoversSkeleton plus={plus} />;
   if (movers.status === 'failed' || !verdict || verdict.kind === 'failed') {
     return <LoadFailure title={COPY.stockSearchLoadTitle} message={COPY.loadRetryMessage} onRetry={() => void movers.reload()} />;
   }
@@ -208,14 +208,17 @@ function MoverRow({
 }
 
 /** The first read's skeleton: Available's rows (VoiceOver: "Loading results", busy), with a 26pt circle for each "+". */
-function MoversSkeleton() {
+/** The "+" circle only where the rows will have a "+" (showsBuyPlus: none after the season), so loading never shows a buy that then vanishes. */
+function MoversSkeleton({ plus }: { plus: boolean }) {
   return (
     <View accessible accessibilityLabel="Loading results" accessibilityState={{ busy: true }} testID="stocks-movers-skeleton">
       {Array.from({ length: SKELETON_ROWS }, (_, i) => (
         <View key={i} style={styles.skeletonRow}>
-          <View style={styles.plusTarget}>
-            <Skeleton width={PLUS_DISC} height={PLUS_DISC} borderRadius={PLUS_DISC / 2} />
-          </View>
+          {plus ? (
+            <View style={styles.plusTarget}>
+              <Skeleton width={PLUS_DISC} height={PLUS_DISC} borderRadius={PLUS_DISC / 2} />
+            </View>
+          ) : null}
           <Skeleton width={40} height={40} borderRadius={20} />
           <View style={styles.skeletonLines}>
             <Skeleton width={64} height={14} />

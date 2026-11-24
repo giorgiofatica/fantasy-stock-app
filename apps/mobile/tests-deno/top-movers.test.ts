@@ -241,6 +241,9 @@ Deno.test('useTopMovers: the member-only RPC through the seam, ERROR-CHECKED, an
   assertMatch(hook, /subscribePortfolioLedgerInvalidation\(\(invalidated\) => \{\s*if \(invalidated === leagueRef\.current\) void load\(\);/);
   assertMatch(hook, /if \(!active \|\| !focused \|\| !leagueId\) return;/, 'it reads only while the chip is showing');
   assertMatch(hook, /export const MOVERS_REFRESH_MS = 5 \* 60 \* 1000;/);
+  // Copilot on #607: an answer that lands after the screen has gone sets no state.
+  assertMatch(hook, /useEffect\(\(\) => \{\s*mounted\.current = true;\s*return \(\) => \{\s*mounted\.current = false;\s*\};\s*\}, \[\]\);/, 'mounted is set on mount and cleared on unmount');
+  assertMatch(hook, /if \(!mounted\.current \|\| id !== seq\.current \|\| league !== leagueRef\.current\) return;\s*const read = /, 'the unmount check sits before ANY state is set');
 });
 
 Deno.test('the screen: the chip swaps the Available list for MoversList, "All" and the categories swap it back, and pull to refresh re-reads the movers', () => {
@@ -265,6 +268,9 @@ Deno.test('a mover row is the board\'s: "+" at the left (the same predicate as A
   assertFalse(/rowCategoryName|category/.test(code(list)), 'the board draws the company name alone on a mover');
   assertMatch(list, /\{under \? figures : null\}/);
   assertMatch(list, /\{under \? null : <View style=\{styles\.trail\}>\{figures\}<\/View>\}/);
+  // Copilot on #607: loading shows a "+" circle only where the rows will have one (none after the season).
+  assertMatch(list, /if \(movers\.status === 'loading'\) return <MoversSkeleton plus=\{plus\} \/>;/);
+  assertMatch(list, /function MoversSkeleton\(\{ plus \}: \{ plus: boolean \}\) \{[\s\S]*?\{plus \? \(\s*<View style=\{styles\.plusTarget\}>\s*<Skeleton width=\{PLUS_DISC\}/);
 });
 
 Deno.test('every empty cause is the EXISTING "Stocks didn\'t load" + Try again; no new words in the chip', () => {

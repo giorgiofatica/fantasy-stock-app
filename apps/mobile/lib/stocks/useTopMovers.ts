@@ -47,6 +47,14 @@ export function useTopMovers(leagueId: string | null, active: boolean): UseTopMo
   const seq = useRef(0);
   const leagueRef = useRef(leagueId);
   leagueRef.current = leagueId;
+  // Unmounted: a read still in flight lands nowhere (Copilot on #607). The effect below sets it on mount and clears it on unmount.
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const load = useCallback(async (): Promise<void> => {
     const league = leagueRef.current;
@@ -60,8 +68,8 @@ export function useTopMovers(leagueId: string | null, active: boolean): UseTopMo
     } catch (e) {
       result = { data: null, error: e };
     }
-    // A newer read, or another league, has overtaken this one.
-    if (id !== seq.current || league !== leagueRef.current) return;
+    // Unmounted, or a newer read or another league has overtaken this one.
+    if (!mounted.current || id !== seq.current || league !== leagueRef.current) return;
     const read = isFailedMoversRead(result) ? null : parseMovers(result.data);
     setNow(Date.now());
     setHeld((h) => {
