@@ -3,7 +3,8 @@
  * over time as the stalest-first queue comes round (docs/plans/
  * 2026-11-23-claims-fix-themselves.md, "Settled during the build" point 1, as
  * corrected 2026-11-24: first-held marks, a 24 h minimum age for a drop, and
- * at most 20 stocks leaving the list in any 24 hours).
+ * at most 20 stocks leaving the list in any 24 hours; the budget counts stocks,
+ * one list_dropped_at each, see plan.ts header point 4).
  *
  * The REAL runJudged / decideRun / markValues / cursorValues run here. Only the
  * I/O is faked: an in-memory symbols table, a selection that mirrors batch.ts's
@@ -288,6 +289,8 @@ Deno.test('budget: an unreadable count applies no drop, reports it, and the next
   const o = await q.run(50, T0, bad('S0'), { dropsInWindow: () => Promise.reject(new Error('read failed')) });
   const f = outcomeFields(o);
   assertEquals([f.ok, f.error, f.list_drops_read_failed, f.list_dropped], [false, 'drop_budget_reached', true, 0]);
+  // No made-up count: the line says it does not know.
+  assertEquals([f.list_drops_past_24h, f.list_drops_past_24h_after], [null, null]);
   assertEquals([q.get('S0').is_draftable, q.get('S0').list_drop_held_at], [true, iso(T0)]);
   // The next run reads again and applies its drop.
   const next = await q.run(50, T0 + 10 * 60 * 1000, bad('S50'));
@@ -359,6 +362,41 @@ Deno.test('run: the budgets sit well inside the 150 s edge wall clock', () => {
 // ---------------------------------------------------------------------------
 // Reporting
 // ---------------------------------------------------------------------------
+
+Deno.test('run: a failed hold write still writes the normal rows, and the stocks it could not hold are judged again next run', async () => {
+  const q = new Queue(100);
+  const before = q.snapshot();
+  const o = await q.run(50, T0, bad(...THREE), { writeHolds: async () => 'permission denied' });
+  assertEquals(o.rowWriteErrors, 0);
+  for (let i = 3; i < 50; i++) assertEquals(q.get(`S${i}`).enriched_at, iso(T0)); // rows written
+  for (let i = 0; i < 3; i++) assertEquals(q.get(`S${i}`), before[i][1]); // not held, cursor not moved
+  const next = q.select(50).map((r) => r.symbol);
+  for (const s of THREE) assert(next.includes(s), `${s} is judged again`);
+});
+
+Deno.test('run: with new marks and cursor-only holds in one run, a failure of either write is reported and the other still lands', async () => {
+  for (const failing of ['mark', 'cursor'] as const) {
+    const q = new Queue(100);
+    // S3 was held 1 h ago and still fails: cursor only. S0-S2 are new drops over the limit: new marks.
+    q.table.set('S3', { ...q.get('S3'), list_drop_held_at: iso(T0 - HOUR) });
+    const writeHolds: RunDeps['writeHolds'] = async (symbols, values) => {
+      const isMark = 'list_drop_held_at' in values;
+      if ((failing === 'mark') === isMark) return 'boom';
+      for (const s of symbols) q.table.set(s, { ...q.get(s), ...values });
+      return null;
+    };
+    const o = await q.run(50, T0, bad('S0', 'S1', 'S2', 'S3'), { writeHolds });
+    const f = outcomeFields(o);
+    assertEquals([f.ok, f.hold_write_error], [false, 'boom'], failing);
+    if (failing === 'mark') {
+      assertEquals(q.get('S0').list_drop_held_at, null);
+      assertEquals(q.get('S3').enriched_at, iso(T0)); // the cursor-only write landed
+    } else {
+      assertEquals(q.get('S0').list_drop_held_at, iso(T0)); // the new marks landed
+      assertEquals(q.get('S3').list_drop_held_at, iso(T0 - HOUR)); // mark untouched either way
+    }
+  }
+});
 
 Deno.test('run: a failed hold write reports the run failed', async () => {
   const q = new Queue(100);

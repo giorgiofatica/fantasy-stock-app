@@ -185,8 +185,9 @@ export function outcomeFields(o: RunOutcome): Record<string, unknown> & { ok: bo
     list_drop_limit: d.limit,
     list_new_drops: d.newDrops.length,
     list_dropped: d.dropped.length,
-    list_drops_past_24h: d.dropsInWindow,
-    list_drops_past_24h_after: d.dropsInWindow + d.dropped.length,
+    // null, not the budget it was counted as, when the read failed (the flag says why).
+    list_drops_past_24h: o.dropsReadFailed ? null : d.dropsInWindow,
+    list_drops_past_24h_after: o.dropsReadFailed ? null : d.dropsInWindow + d.dropped.length,
     list_drop_budget_left: d.budgetLeft,
     list_held_for_refusal: d.heldForRefusal.length,
     list_held_for_budget: d.heldForBudget.length,

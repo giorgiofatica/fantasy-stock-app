@@ -49,6 +49,12 @@
 //    remaining allowance first, oldest mark first. A fault that lasts for days
 //    can take at most the budget a day, and a stock dropped on bad numbers is
 //    back on its next turn with good ones (rejoining is never guarded).
+//    The budget counts STOCKS that left (one list_dropped_at per stock): a
+//    stock that left, came back and left again inside the same 24 h counts
+//    once. That needs it judged three times in a day, which the queue's turn
+//    (2-4 days, 2026-11-24) does not allow; overlapping runs, which read the
+//    count before either writes, are the other accepted gap (both recorded
+//    with the Planner, 2026-11-24).
 //
 import { computeIsDraftable } from '../_shared/symbol-eligibility.ts';
 
@@ -167,7 +173,7 @@ export const MASS_DROP_SHARE = 0.05;
 /** A second reading counts only when the stock was first held at least this long ago. */
 export const MARK_MIN_AGE_MS = 24 * 60 * 60 * 1000;
 
-/** At most this many stocks leave the list in any rolling 24 hours (every kind of drop). */
+/** At most this many STOCKS leave the list in any rolling 24 hours (every kind of drop; see the header, point 4). */
 export const DAILY_DROP_BUDGET = 20;
 /** The window the budget counts over. */
 export const DROP_WINDOW_MS = 24 * 60 * 60 * 1000;

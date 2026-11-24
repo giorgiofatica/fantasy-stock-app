@@ -27,7 +27,7 @@ select attname, attacl
  where attrelid = 'public.symbols'::regclass and attacl is not null and not attisdropped
  order by attname;
 
--- 4. Effect test. EXPECT the notice "PASS: list_drop_held_at checks" and no error.
+-- 4. Effect test. EXPECT the notice "PASS: list_drop_held_at + list_dropped_at checks" and no error.
 do $$
 declare
   v record;
@@ -86,7 +86,7 @@ begin
     raise exception 'FAIL: symbols_touch_updated_at watches a list_drop column';
   end if;
 
-  raise notice 'PASS: list_drop_held_at checks';
+  raise notice 'PASS: list_drop_held_at + list_dropped_at checks';
 end $$;
 
 -- 5. Nothing is held or dropped yet. EXPECT 0 and 0 before the enrich-symbols
