@@ -177,6 +177,14 @@
   );
   const Grid = ({ children }) => <div className="b-concepts b-concepts--three">{children}</div>;
   const Sub = ({ children }) => <h3 className="b-sub">{children}</h3>;
+  // Decided 2026-11-23: sections 3 and 4 were overruled ("we dont need to notify or have messages for claims that
+  // didnt go through"). Archived, they stay drawn for the record under a struck heading and a dashed note.
+  const Overruled = ({ archived, children }) => (archived ? (
+    <>
+      <h3 className="b-sub"><s>{children}</s> · overruled</h3>
+      <p style={{ margin: '0 0 12px', padding: '6px 10px', borderRadius: 8, border: '1px dashed var(--c-border-strong)', background: 'var(--c-surface)', color: 'var(--c-text)', fontSize: 13, fontWeight: 600, lineHeight: 1.4, maxWidth: 840 }}>Review note: overruled 2026-11-23. A claim that did not go through gets no notification and no message; after the run it is simply no longer pending. Only the filled claim’s words stay (“AMGN is yours”, “$187.20 at the open · paid by selling DIS”). What went through is shown the ESPN way instead (#call-league-activity).</p>
+    </>
+  ) : <Sub>{children}</Sub>);
 
   const NEW_WORDS = [
     ['SHOP not bought', 'a claim that could not run because its sale already paid for an earlier claim (the title)'],
@@ -224,7 +232,7 @@
           fig('b2', 'B · your text size', <Pending control="arrows" x={AX5} label="Claims with up and down buttons, largest text size" />),
         ]}</Grid>
 
-        <Sub>3 · After the run, Monday 9:30</Sub>
+        <Overruled archived={archived}>3 · After the run, Monday 9:30</Overruled>
         <Grid>{[
           fig('v1', 'Your first choice filled', <Endings label="Claims after the run: AMGN won, SHOP not bought, LOW failed" />, 'You won a claim, so you moved to 6th of 6.'),
           fig('v2', 'Your first choice was taken', <Endings run="lost" label="Claims after the run: AMGN lost, SHOP won, LOW failed" />, 'SHOP moved up and filled with DIS.'),
@@ -232,7 +240,7 @@
           fig('v4', 'Dark', <Endings t="dark" label="Claims after the run, Dark" />),
         ]}</Grid>
 
-        <Sub>4 · The notifications that morning</Sub>
+        <Overruled archived={archived}>4 · The notifications that morning</Overruled>
         <Grid>{[
           figPlain('p1', '1 · none for SHOP', <Pushes label="Two notifications" />, 'SHOP shows only in Claims.'),
           figPlain('p2', '2 · one for SHOP too', <Pushes withVoid label="Three notifications" />),
@@ -242,6 +250,6 @@
     );
   }
 
-  window.KSClaimsOrder = () => <CallClaimsOrder />;
-  window.KSClaimsOrderArchived = () => null;
+  window.KSClaimsOrder = () => null;
+  window.KSClaimsOrderArchived = () => <CallClaimsOrder archived decidedNote={<><b>Decided 2026-11-23, in his words:</b> “A”, then “we dont need to notify or have messages for claims that didnt go through. here is the espn league activity and waiver report screens.” Reorder is A: the grip, drag it or press and hold the row; “Move up” and “Move down” for VoiceOver. Sections 3 and 4 are overruled as drawn: no notification and no message for any claim that didn’t go through, so “SHOP not bought”, “Your DIS was already sold for AMGN.” and “Your DIS paid for SHOP instead.” are not approved. Only “AMGN is yours” / “$187.20 at the open · paid by selling DIS” stays.</>} />;
 })();
