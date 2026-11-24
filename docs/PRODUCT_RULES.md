@@ -1783,6 +1783,42 @@ building anything, and don't reopen a rule without him.
       - Not asked, and unchanged: one claim per stock per manager, and five pending at
         most (the October plan).
       - Still to be shown to him: the control for reordering, and what a void claim says.
+  - **Claims are reordered by dragging (A); a claim that did not go through gets no
+    notification and no message** (2026-11-23, typed in the Planner's chat in answer to
+    the Design Lead's board `#call-claims-order`, with two screenshots of ESPN's Waiver
+    Report and Recent Activity: "A", then "we dont need to notify or have messages for
+    claims that didnt go through. here is the espn league activity and waiver report
+    screens.").
+    - **A:** a grip at the right of each pending claim; drag it, or press and hold the row.
+      B (up and down buttons) was not picked. "Move up" and "Move down" are what VoiceOver
+      reads for A and are never on screen; the board marked them as new words and his
+      answer named only the letter, so they are treated as approved with the pick and go
+      in the next copy summary for him to strike.
+    - **No notification, no message.** The board asked only about the void claim (1, none;
+      2, one like the others). His answer is wider than 1: it covers every claim that did
+      not go through, whether it lost to another manager, could not be completed, or was
+      void. So, in the Planner's reading, told to him the same day:
+      - A push is sent for a claim that fills, and for nothing else (his earlier words that
+        day: "there should be a notification when a stock is successfully claimed").
+      - After the run a claim that did not fill is simply no longer pending. The app shows
+        no card, no line and no reason for it.
+      - These approved words are therefore not used: the October lost and failed endings
+        ("Gianluigi B. claimed AAPL · lower in the standings", "LOW opened at $203.10,
+        above your $100–$200 slot", "Nothing was bought.", "Your TSLA was not sold."); the
+        two failed-claim messages approved earlier the same day ("AAPL isn't in this
+        league's list of stocks", "Claims weren't processed on Monday"); and the board's
+        three new lines ("SHOP not bought", "Your DIS was already sold for AMGN.", "Your
+        DIS paid for SHOP instead."), which he did not approve.
+      - The server still records why each claim ended. That is for us, not for the screen.
+    - **What a manager sees instead is what ESPN shows: what went through.** His two
+      screenshots (kept with the references, not in the repo): a Waiver Report for a day,
+      one card per manager in the order they were served ("Priority: 1st"), each with the
+      player added and the player dropped; and the league's Recent Activity, every add and
+      drop with its time. The app has neither screen today (a `league_activity` view
+      exists on the server and nothing reads it). The Design Lead draws ours from his
+      screenshots and it goes to him.
+    - The claim that fills keeps its approved words: "AMGN is yours", "$187.20 at the
+      open · paid by selling DIS".
   - **The hold on trading while claims run is a known, limited exception to "claims are
     blind"** (2026-11-23, found by the security review of the claims server; told to him
     in the Planner's chat the same day, and not objected to). For at most 10 minutes after
