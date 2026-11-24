@@ -17,11 +17,9 @@
                 "postgres=arwdDxtm/postgres"
             ],
             "name": "account_deletions",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -46,11 +44,9 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "app_config",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -65,14 +61,11 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "auto_pick_price_failures",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -95,11 +88,9 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -122,11 +113,84 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
+            "rlsEnabled": true,
+            "checkConstraints": []
+        },
+        {
+            "acl": [
+                "postgres=arwdDxtm/postgres",
+                "authenticated=r/postgres"
+            ],
+            "name": "claims",
+            "policies": [
+                {
+                    "name": "claims_select_own",
+                    "roles": [
+                        "authenticated"
+                    ],
+                    "using": "((user_id = (auth.uid())::text) AND is_member(league_id))",
+                    "command": "SELECT",
+                    "withCheck": null,
+                    "permissive": true
+                }
+            ],
+            "rlsForced": false,
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
+                {
+                    "name": "claims_funded_by_check",
+                    "definition": "CHECK ((funded_by = ANY (ARRAY['sale'::text, 'cash'::text])))"
+                },
+                {
+                    "name": "claims_funding_shape",
+                    "definition": "CHECK (((funded_by = 'sale'::text) = (sell_symbol IS NOT NULL)))"
+                },
+                {
+                    "name": "claims_not_bot",
+                    "definition": "CHECK ((user_id !~ '^bot-'::text))"
+                },
+                {
+                    "name": "claims_pending_slot_shape",
+                    "definition": "CHECK ((((status = 'pending'::text) = (pending_slot IS NOT NULL)) AND ((pending_slot IS NULL) OR ((pending_slot >= 1) AND (pending_slot <= 5)))))"
+                },
+                {
+                    "name": "claims_resolved_shape",
+                    "definition": "CHECK (((status = 'pending'::text) = (resolved_at IS NULL)))"
+                },
+                {
+                    "name": "claims_sale_not_buy",
+                    "definition": "CHECK ((sell_symbol IS DISTINCT FROM symbol))"
+                },
+                {
+                    "name": "claims_sell_symbol_shape",
+                    "definition": "CHECK (((sell_symbol IS NULL) OR ((sell_symbol = upper(sell_symbol)) AND ((length(sell_symbol) >= 1) AND (length(sell_symbol) <= 12)))))"
+                },
+                {
+                    "name": "claims_status_check",
+                    "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'won'::text, 'lost'::text, 'failed'::text, 'cancelled'::text])))"
+                },
+                {
+                    "name": "claims_symbol_shape",
+                    "definition": "CHECK (((symbol = upper(symbol)) AND ((length(symbol) >= 1) AND (length(symbol) <= 12))))"
+                },
+                {
+                    "name": "claims_won_has_buy",
+                    "definition": "CHECK (((status <> 'won'::text) OR (buy_trade_id IS NOT NULL)))"
+                }
             ]
+        },
+        {
+            "acl": [
+                "postgres=arwdDxtm/postgres"
+            ],
+            "name": "claims_runs",
+            "policies": [],
+            "rlsForced": false,
+            "columnAcls": {},
+            "rlsEnabled": true,
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -149,8 +213,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -165,11 +228,9 @@
                 "service_role=rm/postgres"
             ],
             "name": "draft_postponements",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -198,8 +259,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -237,8 +297,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -268,11 +327,9 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -294,11 +351,9 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -306,14 +361,11 @@
                 "service_role=rm/postgres"
             ],
             "name": "draft_start_watch",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -321,14 +373,11 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "draft_turn_leases",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -336,14 +385,11 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "draft_turn_outages",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -366,8 +412,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -385,14 +430,11 @@
                 "postgres=arwdDxtm/postgres"
             ],
             "name": "invite_preview_limits",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -414,8 +456,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -444,8 +485,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -513,8 +553,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -558,8 +597,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -607,8 +645,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -655,7 +692,7 @@
             "checkConstraints": [
                 {
                     "name": "league_notifications_kind_check",
-                    "definition": "CHECK ((kind = ANY (ARRAY['draft_order_set'::text, 'renewal_invite'::text, 'renewal_reply'::text, 'renewal_nudge'::text, 'renewal_removed'::text, 'season_set'::text, 'member_left'::text, 'commissioner_transferred'::text, 'draft_room_open'::text, 'draft_started'::text, 'draft_at_risk'::text, 'draft_at_risk_reminder'::text, 'draft_postponed'::text, 'draft_time_set'::text, 'seat_taken_over'::text])))"
+                    "definition": "CHECK ((kind = ANY (ARRAY['draft_order_set'::text, 'renewal_invite'::text, 'renewal_reply'::text, 'renewal_nudge'::text, 'renewal_removed'::text, 'season_set'::text, 'member_left'::text, 'commissioner_transferred'::text, 'draft_room_open'::text, 'draft_started'::text, 'draft_at_risk'::text, 'draft_at_risk_reminder'::text, 'draft_postponed'::text, 'draft_time_set'::text, 'seat_taken_over'::text, 'claim_won'::text])))"
                 },
                 {
                     "name": "league_notifications_push_status_check",
@@ -669,11 +706,9 @@
                 "service_role=r/postgres"
             ],
             "name": "league_renewal_responses",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -714,8 +749,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -757,11 +791,9 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -784,11 +816,9 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -841,8 +871,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -919,8 +948,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -949,8 +977,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -984,8 +1011,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -1056,11 +1082,9 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -1070,14 +1094,11 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "rate_limit_counters",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -1087,11 +1108,9 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "signup_allowlist",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -1106,11 +1125,9 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "splits",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -1153,8 +1170,7 @@
                 ]
             },
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -1187,22 +1203,18 @@
                 ]
             },
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
                 "postgres=arwdDxtm/postgres"
             ],
             "name": "takeover_guess_limits",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -1210,11 +1222,9 @@
                 "service_role=arwdDxtm/postgres"
             ],
             "name": "top_movers",
-            "policies": [
-            ],
+            "policies": [],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -1252,8 +1262,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -1318,8 +1327,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -1327,6 +1335,45 @@
                     "definition": "CHECK (((username IS NULL) OR (username ~ '^[A-Za-z0-9_]{3,20}$'::text)))"
                 }
             ]
+        },
+        {
+            "acl": [
+                "postgres=arwdDxtm/postgres",
+                "authenticated=r/postgres"
+            ],
+            "name": "waiver_order",
+            "policies": [
+                {
+                    "name": "waiver_order_select_member",
+                    "roles": [
+                        "authenticated"
+                    ],
+                    "using": "is_member(league_id)",
+                    "command": "SELECT",
+                    "withCheck": null,
+                    "permissive": true
+                }
+            ],
+            "rlsForced": false,
+            "columnAcls": {},
+            "rlsEnabled": true,
+            "checkConstraints": [
+                {
+                    "name": "waiver_order_position_check",
+                    "definition": "CHECK ((\"position\" >= 1))"
+                }
+            ]
+        },
+        {
+            "acl": [
+                "postgres=arwdDxtm/postgres"
+            ],
+            "name": "waiver_order_meta",
+            "policies": [],
+            "rlsForced": false,
+            "columnAcls": {},
+            "rlsEnabled": true,
+            "checkConstraints": []
         },
         {
             "acl": [
@@ -1368,8 +1415,7 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
             "checkConstraints": [
                 {
@@ -1407,15 +1453,22 @@
                 }
             ],
             "rlsForced": false,
-            "columnAcls": {
-            },
+            "columnAcls": {},
             "rlsEnabled": true,
-            "checkConstraints": [
-            ]
+            "checkConstraints": []
         }
     ],
     "_comment": "Hand-captured from prod. Regenerate with docs/architecture/db-snapshot.sql. Not generated by gen-architecture.mjs.",
     "cronJobs": [
+        {
+            "jobid": 54,
+            "active": true,
+            "command": "\n  select net.http_post(\n    url     := 'https://haiaaifjcclsvmkfqgmd.supabase.co/functions/v1/claims-run',\n    headers := jsonb_build_object(\n      'Content-Type', 'application/json',\n      'apikey', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_apikey' limit 1)\n    ),\n    body    := '{}'::jsonb,\n    timeout_milliseconds := 180000\n  )\n  where exists (select 1 from public.claims_run_day() d\n                 where (d ->> 'open')::boolean and jsonb_array_length(d -> 'due') > 0);\n  ",
+            "jobname": "claims_run",
+            "database": "postgres",
+            "schedule": "* * * * *",
+            "username": "postgres"
+        },
         {
             "jobid": 48,
             "active": true,
@@ -1580,6 +1633,20 @@
             ],
             "searchPath": "public, pg_temp",
             "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "p_league_id uuid",
+            "name": "_claims_season_end",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "stable",
             "securityDefiner": true
         },
         {
@@ -1783,6 +1850,20 @@
         },
         {
             "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "p_league_id uuid",
+            "name": "_waiver_order_fill",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
                 "postgres=X/postgres",
                 "service_role=X/postgres"
             ],
@@ -1965,6 +2046,21 @@
                 "postgres=X/postgres",
                 "authenticated=X/postgres"
             ],
+            "args": "p_league_id uuid, p_symbol text",
+            "name": "cancel_claim",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
             "args": "p_league_id uuid",
             "name": "cancel_league_renewal",
             "owner": "postgres",
@@ -2035,6 +2131,80 @@
             "searchPath": "public, pg_temp",
             "volatility": "volatile",
             "securityDefiner": false
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "",
+            "name": "claims_before_insert",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "service_role=X/postgres"
+            ],
+            "args": "p_league_id uuid",
+            "name": "claims_hold_active",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "stable",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "service_role=X/postgres"
+            ],
+            "args": "",
+            "name": "claims_run_day",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "service_role=X/postgres"
+            ],
+            "args": "p_league_id uuid, p_run_date date",
+            "name": "claims_run_state",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "service_role=X/postgres"
+            ],
+            "args": "p_league_id uuid, p_run_date date, p_plan jsonb",
+            "name": "commit_claims_run",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
         },
         {
             "acl": [
@@ -2946,6 +3116,20 @@
             "acl": [
                 "postgres=X/postgres"
             ],
+            "args": "p_league_id uuid, p_user_id text",
+            "name": "league_held_positions",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "stable",
+            "securityDefiner": false
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
             "args": "",
             "name": "league_members_freeze_leaver",
             "owner": "postgres",
@@ -3138,6 +3322,21 @@
         {
             "acl": [
                 "postgres=X/postgres",
+                "authenticated=X/postgres"
+            ],
+            "args": "p_league_id uuid, p_symbol text, p_sell_symbol text",
+            "name": "place_claim",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
                 "service_role=X/postgres"
             ],
             "args": "p_league_id uuid, p_draft_date timestamp with time zone, p_stage text, p_reason text, p_blockers jsonb, p_expect jsonb",
@@ -3276,6 +3475,21 @@
             ],
             "args": "p_ranked_at timestamp with time zone, p_set_size integer, p_fresh_count integer, p_symbols text[], p_change_pcts numeric[]",
             "name": "replace_top_movers",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres",
+                "service_role=X/postgres"
+            ],
+            "args": "",
+            "name": "reset_due_waiver_orders",
             "owner": "postgres",
             "proconfig": [
                 "search_path=public, pg_temp"
@@ -3637,8 +3851,7 @@
             "args": "",
             "name": "update_user_profiles_updated_at",
             "owner": "postgres",
-            "proconfig": [
-            ],
+            "proconfig": [],
             "searchPath": null,
             "volatility": "volatile",
             "securityDefiner": false
@@ -3656,9 +3869,38 @@
             "searchPath": "public, pg_temp",
             "volatility": "volatile",
             "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "",
+            "name": "watchlist_leaves_on_holding",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp",
+                "lock_timeout=2s"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "volatile",
+            "securityDefiner": true
+        },
+        {
+            "acl": [
+                "postgres=X/postgres"
+            ],
+            "args": "p_league_id uuid, p_user_id text, p_symbol text, p_saved_at timestamp with time zone",
+            "name": "watchlist_row_stale",
+            "owner": "postgres",
+            "proconfig": [
+                "search_path=public, pg_temp"
+            ],
+            "searchPath": "public, pg_temp",
+            "volatility": "stable",
+            "securityDefiner": false
         }
     ],
-    "capturedAt": "2026-11-23T22:16:38Z",
+    "capturedAt": "2026-11-24T06:54:11Z",
     "publications": [
         {
             "table": "drafts",
@@ -3923,8 +4165,7 @@
             "publication": "supabase_realtime_messages_publication"
         }
     ],
-    "storageBuckets": [
-    ],
+    "storageBuckets": [],
     "postgresVersion": "17.4",
     "defaultPrivileges": [
         {
