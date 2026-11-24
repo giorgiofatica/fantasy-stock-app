@@ -1,19 +1,21 @@
 /**
- * symbols.list_drop_held_at (supabase/migrations/20261212100000_symbols_list_drop_held_at.sql)
+ * symbols.list_drop_held_at + list_dropped_at (supabase/migrations/20261212100000_symbols_list_drop_held_at.sql)
  * on the WHOLE migration chain (full_chain.ts), PGlite 0.3 = Postgres 17 like prod.
  *
  * What it proves:
- *   - the column is timestamptz, nullable, no default, and every existing row starts NULL;
+ *   - both columns are timestamptz, nullable, no default, and every existing row starts NULL;
  *   - the table ACL and the column allow list (symbol, name, is_draftable) are
- *     byte-identical before and after: no API role can read or write the column;
- *     a signed-in read of it is refused by the GRANT check (42501 "permission denied");
+ *     byte-identical before and after: no API role can read or write either column;
+ *     a signed-in read of each is refused by the GRANT check (42501 "permission denied");
  *   - enrich-symbols' two writes work as service_role: a hold (enriched_at +
  *     list_drop_held_at only) does NOT bump updated_at; a normal write that
  *     clears the mark does when a real value changes;
- *   - the one read per run (held in the last 24 h?) finds a fresh hold and not an old one;
+ *   - setting list_dropped_at alone does not bump updated_at either;
+ *   - the one read per run (stocks that left the list in the past 24 h) counts a
+ *     recent departure, including one back on the list, and not an older one;
  *   - re-applying the migration is clean;
  *   - the post-push effect test (docs/security/2026-11-24-symbols-list-drop-held-at-checks.sql,
- *     block 4) passes here, and FAILS once the column is granted to authenticated.
+ *     block 4) passes here, and FAILS once a column is missing or granted to authenticated.
  *
  * Run: deno test --allow-read --allow-env supabase/tests/symbols_list_drop_held_at.pglite.test.ts
  */
@@ -62,12 +64,14 @@ Deno.test({
 
     await db.exec(await readMigration(NAME));
 
-    await t.step('the column: timestamptz, nullable, no default; existing rows start not held', async () => {
-      const [c] = await q(`select data_type, is_nullable, column_default from information_schema.columns
-                            where table_schema = 'public' and table_name = 'symbols' and column_name = 'list_drop_held_at'`);
-      assertEquals(c, { data_type: 'timestamp with time zone', is_nullable: 'YES', column_default: null });
-      const [{ n }] = await q(`select count(*)::int n from public.symbols where list_drop_held_at is not null`);
-      assertEquals(n, 0);
+    await t.step('both columns: timestamptz, nullable, no default; existing rows start not held, not dropped', async () => {
+      for (const col of ['list_drop_held_at', 'list_dropped_at']) {
+        const [c] = await q(`select data_type, is_nullable, column_default from information_schema.columns
+                              where table_schema = 'public' and table_name = 'symbols' and column_name = $1`, [col]);
+        assertEquals(c, { data_type: 'timestamp with time zone', is_nullable: 'YES', column_default: null }, col);
+        const [{ n }] = await q(`select count(*)::int n from public.symbols where ${col} is not null`);
+        assertEquals(n, 0, col);
+      }
     });
 
     await t.step('grants unchanged: table ACL and the three-column allow list are byte-identical', async () => {
@@ -80,6 +84,7 @@ Deno.test({
       await db.exec('set role authenticated');
       try {
         await assertRejects(() => q(`select list_drop_held_at from public.symbols limit 1`), Error, 'permission denied for table symbols');
+        await assertRejects(() => q(`select list_dropped_at from public.symbols limit 1`), Error, 'permission denied for table symbols');
         const rows = await q(`select symbol, name, is_draftable from public.symbols order by symbol`);
         assertEquals(rows.length, 2);
       } finally {
@@ -88,6 +93,7 @@ Deno.test({
       await db.exec('set role anon');
       try {
         await assertRejects(() => q(`select list_drop_held_at from public.symbols limit 1`), Error, 'permission denied');
+        await assertRejects(() => q(`select list_dropped_at from public.symbols limit 1`), Error, 'permission denied');
       } finally {
         await db.exec('reset role');
       }
@@ -107,14 +113,27 @@ Deno.test({
       assertEquals([after.held, after.is_draftable, after.mc], [true, true, 5e9]);
     });
 
-    await t.step('the one read per run finds a hold in the last 24 h, and not an older one', async () => {
-      const recent = async () =>
-        (await q(`select symbol from public.symbols where list_drop_held_at > now() - interval '24 hours' limit 1`)).length > 0;
-      assert(await recent());
-      await q(`update public.symbols set list_drop_held_at = now() - interval '25 hours' where symbol = 'QHLD'`);
-      assert(!(await recent()));
-      const [plan] = await q(`select count(*)::int n from pg_indexes where indexname = 'symbols_list_drop_held_at_idx'`);
-      assertEquals(plan.n, 1);
+    await t.step('setting list_dropped_at alone does not bump updated_at', async () => {
+      const [before] = await q(`select updated_at::text u from public.symbols where symbol = 'QOTH'`);
+      await db.exec('set role service_role');
+      try {
+        await q(`update public.symbols set list_dropped_at = now() where symbol = 'QOTH'`);
+      } finally {
+        await db.exec('reset role');
+      }
+      const [after] = await q(`select updated_at::text u from public.symbols where symbol = 'QOTH'`);
+      assertEquals(after.u, before.u);
+    });
+
+    await t.step('the one read per run counts departures in the past 24 h (one back on the list too), not older ones', async () => {
+      const dropsInWindow = async () =>
+        (await q(`select count(*)::int n from public.symbols where list_dropped_at > now() - interval '24 hours'`))[0].n;
+      // QOTH left an instant ago and is (still, in this fixture) on the list: it counts.
+      assertEquals(await dropsInWindow(), 1);
+      await q(`update public.symbols set list_dropped_at = now() - interval '25 hours' where symbol = 'QOTH'`);
+      assertEquals(await dropsInWindow(), 0);
+      const idx = await q(`select indexname from pg_indexes where indexname like 'symbols_list_drop%' order by 1`);
+      assertEquals(idx.map((r) => r.indexname), ['symbols_list_drop_held_at_idx', 'symbols_list_dropped_at_idx']);
     });
 
     await t.step('a normal write that clears the mark works as service_role, and a real change bumps updated_at', async () => {
@@ -138,9 +157,14 @@ Deno.test({
     await t.step('the post-push effect test passes, and fails once the column is granted to authenticated', async () => {
       const block = effectBlock(await Deno.readTextFile(CHECKS_URL));
       await db.exec(block); // raises on any FAIL
-      await db.exec(`alter table public.symbols rename column list_drop_held_at to x_held`);
-      await assertRejects(() => db.exec(block), Error, 'FAIL'); // the column gone
-      await db.exec(`alter table public.symbols rename column x_held to list_drop_held_at`);
+      for (const col of ['list_drop_held_at', 'list_dropped_at']) {
+        await db.exec(`alter table public.symbols rename column ${col} to x_gone`);
+        await assertRejects(() => db.exec(block), Error, 'FAIL', `${col} gone`);
+        await db.exec(`alter table public.symbols rename column x_gone to ${col}`);
+      }
+      await db.exec(`grant select (list_dropped_at) on public.symbols to authenticated`);
+      await assertRejects(() => db.exec(block), Error, 'FAIL');
+      await db.exec(`revoke select (list_dropped_at) on public.symbols from authenticated`);
       await db.exec(`grant select (list_drop_held_at) on public.symbols to authenticated`);
       await assertRejects(() => db.exec(block), Error, 'FAIL');
       await db.exec(`revoke select (list_drop_held_at) on public.symbols from authenticated`);

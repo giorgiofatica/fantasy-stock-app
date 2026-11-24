@@ -10,7 +10,10 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert';
 import {
+  DAILY_DROP_BUDGET,
   decideRun,
+  DROP_WINDOW_MS,
+  MARK_MIN_AGE_MS,
   MASS_DROP_MIN,
   MASS_DROP_SHARE,
   massDropLimit,
@@ -143,7 +146,7 @@ Deno.test('limit: never below the fixed minimum; the share takes over for large 
 });
 
 // ---------------------------------------------------------------------------
-// decideRun — new drops
+// decideRun — new drops, the per-run limit, the daily budget
 // ---------------------------------------------------------------------------
 
 /** `n` on-list stocks, the first `bad` of which get a sub-floor size. */
@@ -153,26 +156,41 @@ function plans(n: number, bad: number, over: Partial<SymbolRow> = {}) {
   );
 }
 
-Deno.test('decideRun: drops within the limit apply at once', () => {
-  const d = decideRun(plans(50, 2), false);
+const NOW = Date.parse('2026-11-24T15:00:00.000Z');
+const HOUR = 3_600_000;
+const iso = (ms: number) => new Date(ms).toISOString();
+/** A run's context: now, and how many drops were applied in the past 24 h. */
+const ctx = (dropsInWindow = 0) => ({ nowMs: NOW, dropsInWindow });
+
+Deno.test('budget: DAILY_DROP_BUDGET is 20 and the window is 24 h; marks must be 24 h old', () => {
+  assertEquals(DAILY_DROP_BUDGET, 20);
+  assertEquals(DROP_WINDOW_MS, 24 * HOUR);
+  assertEquals(MARK_MIN_AGE_MS, 24 * HOUR);
+});
+
+Deno.test('decideRun: drops within the limit apply at once, stamped with list_dropped_at', () => {
+  const d = decideRun(plans(50, 2), ctx());
   assertEquals(d.refused, false);
   assertEquals(d.dropped, ['S0', 'S1']);
-  assertEquals(d.hold, []);
+  assertEquals([d.markNew, d.cursorOnly], [[], []]);
   assertEquals(d.rows.length, 50);
-  assertEquals(d.rows.find((r) => r.symbol === 'S0')!.values.is_draftable, false);
+  const s0 = d.rows.find((r) => r.symbol === 'S0')!.values;
+  assertEquals([s0.is_draftable, s0.list_dropped_at], [false, iso(NOW)]);
 });
 
-Deno.test('decideRun: a single drop applies at once even with a recent hold elsewhere (the 24 h rule is for second readings)', () => {
-  const d = decideRun(plans(50, 1), true);
-  assertEquals(d.dropped, ['S0']);
-  assertEquals(d.hold, []);
+Deno.test('decideRun: list_dropped_at is written only for an applied drop, never cleared', () => {
+  const d = decideRun(plans(50, 1), ctx());
+  for (const r of d.rows) {
+    if (r.symbol === 'S0') assertEquals(r.values.list_dropped_at, iso(NOW));
+    else assert(!('list_dropped_at' in r.values), `${r.symbol} must not touch list_dropped_at`);
+  }
 });
 
-Deno.test('decideRun (Done 4): a tenth of the run dropping holds all of them and writes the rest', () => {
-  const d = decideRun(plans(50, 5), false);
+Deno.test('decideRun (Done 4): a tenth of the run dropping holds all of them with a new mark, writes the rest', () => {
+  const d = decideRun(plans(50, 5), ctx());
   assertEquals(d.refused, true);
-  assertEquals(d.hold, ['S0', 'S1', 'S2', 'S3', 'S4']);
-  assertEquals(d.heldNew, d.hold);
+  assertEquals(d.markNew, ['S0', 'S1', 'S2', 'S3', 'S4']);
+  assertEquals(d.heldForRefusal, d.markNew);
   assertEquals(d.dropped, []);
   assertEquals(d.rows.length, 45);
   assertEquals(d.rows.filter((r) => !r.values.is_draftable), []);
@@ -183,57 +201,98 @@ Deno.test('decideRun: stocks already off, or joining, are not drops', () => {
     ...Array.from({ length: 10 }, (_, i) => planRow(onList(`OFF${i}`, { market_cap: null, is_draftable: false }), okNoSize, 40, false)),
     ...Array.from({ length: 10 }, (_, i) => planRow(onList(`JOIN${i}`, { market_cap: null, is_draftable: false }), okBig, 40, false)),
   ];
-  const d = decideRun(ps, false);
+  const d = decideRun(ps, ctx());
   assertEquals(d.newDrops, []);
   assertEquals(d.refused, false);
 });
 
 Deno.test('decideRun: the limit is over the stocks JUDGED (a short run of 10 with 3 drops refuses)', () => {
-  const d = decideRun(plans(10, 3), false);
-  assertEquals(d.judged, 10);
-  assertEquals(d.limit, 2);
-  assertEquals(d.refused, true);
+  const d = decideRun(plans(10, 3), ctx());
+  assertEquals([d.judged, d.limit, d.refused], [10, 2, true]);
 });
 
-Deno.test('decideRun: every normal write clears the mark', () => {
-  for (const r of decideRun(plans(50, 0), false).rows) assertEquals(r.values.list_drop_held_at, null);
+Deno.test('decideRun: every normal write clears the hold mark', () => {
+  for (const r of decideRun(plans(50, 0), ctx()).rows) assertEquals(r.values.list_drop_held_at, null);
+});
+
+Deno.test('budget: with 20 drops in the past 24 h a further new drop is held with a new mark and reported', () => {
+  const d = decideRun(plans(50, 1), ctx(20));
+  assertEquals(d.budgetLeft, 0);
+  assertEquals(d.dropped, []);
+  assertEquals(d.heldForBudget, ['S0']);
+  assertEquals(d.markNew, ['S0']);
+});
+
+Deno.test('budget: with 20 drops in the past 24 h a held-before stock still failing is held, mark kept', () => {
+  const d = decideRun([planRow(onList('H', { list_drop_held_at: iso(NOW - 30 * HOUR) }), okTiny, 40, false)], ctx(20));
+  assertEquals(d.heldForBudget, ['H']);
+  assertEquals(d.cursorOnly, ['H']);
+  assertEquals(d.markNew, []);
+});
+
+Deno.test('budget: held-before stocks take the allowance first, oldest mark first, then new drops', () => {
+  const ps = [
+    planRow(onList('NEW'), okTiny, 40, false),
+    planRow(onList('YOUNGER', { list_drop_held_at: iso(NOW - 30 * HOUR) }), okTiny, 40, false),
+    planRow(onList('OLDEST', { list_drop_held_at: iso(NOW - 50 * HOUR) }), okTiny, 40, false),
+  ];
+  const d = decideRun(ps, ctx(DAILY_DROP_BUDGET - 1)); // one left
+  assertEquals(d.dropped, ['OLDEST']);
+  assertEquals(d.heldForBudget.sort(), ['NEW', 'YOUNGER']);
+  assertEquals(d.markNew, ['NEW']);
+  assertEquals(d.cursorOnly, ['YOUNGER']);
+});
+
+Deno.test('budget: a count over the budget (a failed read is counted as the whole budget) leaves 0, never negative', () => {
+  assertEquals(decideRun(plans(5, 1), ctx(999)).budgetLeft, 0);
 });
 
 // ---------------------------------------------------------------------------
-// decideRun — second readings
+// decideRun — second readings (mark = first held, never refreshed)
 // ---------------------------------------------------------------------------
+
+const heldAgo = (hours: number) => ({ list_drop_held_at: iso(NOW - hours * HOUR) });
 
 Deno.test('second reading: fresh numbers pass -> mark cleared, still on the list', () => {
-  const d = decideRun([planRow(onList('H', { list_drop_held_at: MARKED }), okBig, 40, false)], false);
+  const d = decideRun([planRow(onList('H', heldAgo(30)), okBig, 40, false)], ctx());
   assertEquals(d.cleared, ['H']);
   assertEquals(d.rows[0].values.is_draftable, true);
   assertEquals(d.rows[0].values.list_drop_held_at, null);
 });
 
-Deno.test('second reading: still failing on a quiet day, run not refusing -> dropped, mark cleared', () => {
-  const d = decideRun([planRow(onList('H', { list_drop_held_at: MARKED }), okTiny, 40, false)], false);
-  assertEquals(d.dropped, ['H']);
-  assertEquals(d.rows[0].values.is_draftable, false);
+Deno.test('second reading: a mark only an hour old whose numbers now pass is cleared at once', () => {
+  const d = decideRun([planRow(onList('H', heldAgo(1)), okBig, 40, false)], ctx());
+  assertEquals(d.cleared, ['H']);
+  assertEquals(d.deferredYoung, []);
   assertEquals(d.rows[0].values.list_drop_held_at, null);
 });
 
-Deno.test('second reading: still failing with a hold in the last 24 h -> held again', () => {
-  const d = decideRun([planRow(onList('H', { list_drop_held_at: MARKED }), okTiny, 40, false)], true);
-  assertEquals(d.heldAgain, ['H']);
-  assertEquals(d.rows, []);
+Deno.test('second reading: a mark under 24 h old still failing -> cursor only, mark kept, no verdict', () => {
+  const d = decideRun([planRow(onList('H', heldAgo(23)), okTiny, 40, false)], ctx());
+  assertEquals(d.deferredYoung, ['H']);
+  assertEquals(d.cursorOnly, ['H']);
+  assertEquals([d.dropped, d.rows, d.heldForBudget, d.heldForRefusal], [[], [], [], []]);
 });
 
-Deno.test('second reading: still failing while this run refuses -> held again', () => {
-  const ps = [...plans(50, 3), planRow(onList('H', { list_drop_held_at: MARKED }), okTiny, 40, false)];
-  const d = decideRun(ps, false);
+Deno.test('second reading: still failing, mark 24 h old or more, run not refusing, budget left -> dropped', () => {
+  const d = decideRun([planRow(onList('H', heldAgo(24)), okTiny, 40, false)], ctx());
+  assertEquals(d.dropped, ['H']);
+  assertEquals(d.rows[0].values.is_draftable, false);
+  assertEquals(d.rows[0].values.list_drop_held_at, null);
+  assertEquals(d.rows[0].values.list_dropped_at, iso(NOW));
+});
+
+Deno.test('second reading: still failing while this run refuses new drops -> held again, mark kept', () => {
+  const ps = [...plans(50, 3), planRow(onList('H', heldAgo(30)), okTiny, 40, false)];
+  const d = decideRun(ps, ctx());
   assertEquals(d.refused, true);
-  assertEquals(d.heldAgain, ['H']);
+  assertEquals(d.heldForRefusal.includes('H'), true);
+  assertEquals(d.cursorOnly, ['H']);
   assertEquals(d.dropped, []);
 });
 
 Deno.test('second reading: a held stock is not a new drop, so a group coming round together is not refused for being a group', () => {
-  const ps = plans(50, 10, { list_drop_held_at: MARKED });
-  const d = decideRun(ps, false);
+  const d = decideRun(plans(50, 10, heldAgo(30)), ctx());
   assertEquals(d.newDrops, []);
   assertEquals(d.refused, false);
   assertEquals(d.dropped.length, 10);

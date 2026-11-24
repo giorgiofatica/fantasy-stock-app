@@ -15,12 +15,12 @@
 // answer missing a size or industry keeps the known one. A run whose NEW drops
 // from the list exceed massDropLimit(judged) holds them (cursor + mark, nothing
 // else) and ends ok:false / mass_drop_refused; a held stock's second reading
-// clears or drops it. Judging stops at a transient supplier answer or at the
+// clears or drops it, and at most DAILY_DROP_BUDGET stocks leave in 24 h. Judging stops at a transient supplier answer or at the
 // run's own deadline (RUN_FETCH_DEADLINE_MS), and the judged stocks are still
 // written. Every supplier call has a timeout (SUPPLIER_CALL_TIMEOUT_MS) and
 // the Alpaca phase a budget (PRICE_PHASE_BUDGET_MS).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { MARK_QUIET_MS, planRow, type ProfileOutcome, type SymbolRow } from './plan.ts';
+import { DROP_WINDOW_MS, planRow, type ProfileOutcome, type SymbolRow } from './plan.ts';
 import { outcomeFields, PRICE_PHASE_BUDGET_MS, RUN_FETCH_DEADLINE_MS, runJudged, SUPPLIER_CALL_TIMEOUT_MS } from './run.ts';
 import {
   computePriceStatus,
@@ -238,21 +238,24 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
       if (newPrice !== undefined) priced++;
       return planRow(row, prof, newPrice, formatUnsupportedSet.has(symbol));
     },
-    recentMarkExists: async () => {
-      const cutoff = new Date(Date.now() - MARK_QUIET_MS).toISOString();
-      const { data, error } = await admin
+    dropsInWindow: async () => {
+      // How many stocks LEFT the list in the past 24 h (list_dropped_at is
+      // never cleared, so one that came back still counts). A failed read
+      // THROWS: run.ts counts it as the budget spent (no drop applied) and
+      // reports list_drops_read_failed; the next run reads again.
+      const cutoff = new Date(Date.now() - DROP_WINDOW_MS).toISOString();
+      const { count, error } = await admin
         .from('symbols')
-        .select('symbol')
-        .gt('list_drop_held_at', cutoff)
-        .limit(1);
-      // A failed read THROWS: run.ts counts it as a recent hold (hold, never
-      // drop) and reports list_recent_mark_read_failed.
-      if (error) throw new Error(`recent hold read failed: ${error.message}`);
-      return (data ?? []).length > 0;
+        .select('symbol', { count: 'exact', head: true })
+        .gt('list_dropped_at', cutoff);
+      if (error) throw new Error(`drops-in-window read failed: ${error.message}`);
+      if (typeof count !== 'number') throw new Error('drops-in-window read returned no count');
+      return count;
     },
     writeHolds: async (symbols, values) => {
-      // values = cursor + mark ONLY (run.ts holdValues): size, price, industry
-      // and is_draftable stay as they were. One statement for every held stock.
+      // values = cursor + first-held mark (run.ts markValues) or cursor only
+      // (cursorValues): size, price, industry and is_draftable stay as they
+      // were. One statement per kind for every held stock.
       const { error } = await admin
         .from('symbols')
         .update(values)
@@ -271,11 +274,12 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
     },
   });
 
-  // REPAIR-LOG HOOK (workstream 2, plan fix 4). When outcome.decision.hold is
-  // non-empty, write ONE repair-log row here: "a refresh that refused to
-  // apply", with decision.heldNew and decision.heldAgain. A second reading
-  // that clears (decision.cleared) or drops (part of decision.dropped) writes
-  // no row. Not built in workstream 3.
+  // REPAIR-LOG HOOK (workstream 2, plan fix 4). When
+  // outcome.decision.heldForRefusal or .heldForBudget is non-empty, write ONE
+  // repair-log row for the run (not one per stock): "a refresh that refused
+  // to apply", with those symbols and list_drops_past_24h. A second reading
+  // that clears (decision.cleared), drops (in decision.dropped) or is deferred
+  // for a young mark (decision.deferredYoung) writes no row. Not built in WS3.
 
   const draftable = outcome.decision.rows.filter((r) => r.values.is_draftable).length;
 

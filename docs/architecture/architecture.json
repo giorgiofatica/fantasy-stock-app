@@ -2,8 +2,8 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "830d60e8cf7611824a1efe0a6e223beecc5b3f37",
-    "commitShort": "830d60e8",
+    "commit": "f3b15326272cd96fa50bcaeeaba40085ca3c917a",
+    "commitShort": "f3b15326",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/enrich-symbols-guards",
     "dirty": true,
@@ -25,27 +25,27 @@
         "path": "supabase/functions/enrich-symbols/plan.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "supabase/functions/enrich-symbols/run.test.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "supabase/functions/enrich-symbols/run.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "supabase/migrations/20261212100000_symbols_list_drop_held_at.sql"
       }
     ],
-    "timestamp": "2026-11-24T18:58:53Z",
-    "sourceHash": "sha256:970e341bd0a33f00270e7372a91c4badaca2035661cad6b082cb276c22f7b435",
+    "timestamp": "2026-11-24T19:13:43Z",
+    "sourceHash": "sha256:7a2fde3b9738b27dbc9fcd80a8fcca6fc5e83c6219faa53500e606a9b3c784b2",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-24T06:54:11Z",
-    "ageHours": 12.1,
+    "ageHours": 12.3,
     "ageDays": 0.5,
     "staleAfterDays": 14,
     "stale": false,
@@ -804,7 +804,7 @@
           "run.test.ts"
         ],
         "envVars": [],
-        "lines": 97
+        "lines": 98
       },
       "db": null,
       "declared": null,
@@ -817,7 +817,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/enrich-symbols/index.ts",
-        "line": 96
+        "line": 97
       }
     },
     {
@@ -13776,7 +13776,7 @@
       "callSites": [
         "supabase/functions/enrich-symbols/batch.ts:158",
         "supabase/functions/enrich-symbols/batch.ts:171",
-        "supabase/functions/enrich-symbols/batch.ts:244"
+        "supabase/functions/enrich-symbols/batch.ts:248"
       ]
     },
     {
@@ -13789,8 +13789,8 @@
       "payload": ".from('symbols').update()",
       "columns": [],
       "callSites": [
-        "supabase/functions/enrich-symbols/batch.ts:257",
-        "supabase/functions/enrich-symbols/batch.ts:265"
+        "supabase/functions/enrich-symbols/batch.ts:260",
+        "supabase/functions/enrich-symbols/batch.ts:268"
       ]
     },
     {
@@ -28231,9 +28231,9 @@
       "supabase/functions/enrich-symbols/batch.ts:158 -> symbols.select",
       "supabase/functions/enrich-symbols/batch.ts:171 -> symbols.select",
       "supabase/functions/enrich-symbols/batch.ts:186 -> category_rules.select",
-      "supabase/functions/enrich-symbols/batch.ts:244 -> symbols.select",
-      "supabase/functions/enrich-symbols/batch.ts:257 -> symbols.update",
-      "supabase/functions/enrich-symbols/batch.ts:265 -> symbols.update",
+      "supabase/functions/enrich-symbols/batch.ts:248 -> symbols.select",
+      "supabase/functions/enrich-symbols/batch.ts:260 -> symbols.update",
+      "supabase/functions/enrich-symbols/batch.ts:268 -> symbols.update",
       "supabase/functions/leave-league/index.ts:118 -> league_notifications.update",
       "supabase/functions/leave-league/index.ts:94 -> league_notifications.update",
       "supabase/functions/preview-league/index.ts:102 -> league_members.select",

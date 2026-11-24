@@ -51,7 +51,8 @@
 // exceed massDropLimit(judged) HOLDS them (enriched_at moves on +
 // symbols.list_drop_held_at, nothing else) and logs ok:false,
 // error:'mass_drop_refused' on the error stream; a held stock's next turn
-// clears the mark or, after a quiet 24 h, drops it. Judging stops at a
+// clears the mark or, once the mark is 24 h old, drops it; at most
+// DAILY_DROP_BUDGET stocks leave the list in any 24 h (symbols.list_dropped_at). Judging stops at a
 // transient supplier answer or the run's own deadline, and what was judged is
 // still written. NEEDS migration 20261212100000 applied first.
 //

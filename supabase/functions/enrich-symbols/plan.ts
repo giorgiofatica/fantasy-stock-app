@@ -29,15 +29,27 @@
 //    over the limit, and grow until it filled the batch and the refresh
 //    stopped for every stock (the Planner's catch on the first build).
 //
-// 3. A HELD STOCK FIXES ITSELF ON ITS SECOND READING. Its turn comes round
-//    again by itself (2-4 days). Fresh numbers that pass the floors clear the
-//    mark (it was our data). Fresh numbers that still fail drop it and clear
-//    the mark, but ONLY IF no stock anywhere was held in the last 24 h AND this
-//    run is not itself refusing; otherwise it is held again with a fresh mark.
-//    So a fault that lasts for days empties nothing, and marks clear by
-//    themselves once it is mended. A marked stock never counts as a NEW drop,
-//    so a group coming round together for its second reading is not refused
-//    for being a group.
+// 3. A HELD STOCK FIXES ITSELF ON ITS SECOND READING (rule CORRECTED
+//    2026-11-24; the first version's "no hold anywhere in 24 h" let held
+//    groups less than a day apart round the queue keep each other held for
+//    ever). The mark is the time the stock was FIRST held and is never
+//    refreshed. Fresh numbers that pass clear the mark at once, at any age (it
+//    was our data). Numbers that still fail drop it only when the mark is at
+//    least MARK_MIN_AGE_MS old (never on the same day's numbers; younger: the
+//    cursor moves on, the mark stays, no verdict), and not when this run is
+//    itself refusing new drops or the daily budget is spent: then it is held
+//    again (cursor only, mark kept). A marked stock never counts as a NEW drop.
+//
+// 4. AT MOST DAILY_DROP_BUDGET STOCKS LEAVE THE LIST IN ANY 24 HOURS, counting
+//    every applied drop (new ones under the per-run limit and second
+//    readings). The run reads how many drops were applied in the past 24 h
+//    (symbols.list_dropped_at = when the stock LAST left the list, never
+//    cleared, so a stock that left and came back still counts); past the budget a drop is held
+//    (marked if unmarked) and comes round again. Held-before stocks take the
+//    remaining allowance first, oldest mark first. A fault that lasts for days
+//    can take at most the budget a day, and a stock dropped on bad numbers is
+//    back on its next turn with good ones (rejoining is never guarded).
+//
 import { computeIsDraftable } from '../_shared/symbol-eligibility.ts';
 
 /** The symbols columns a run reads. `is_draftable` is "on the list" BEFORE the run. */
@@ -50,7 +62,7 @@ export interface SymbolRow {
   last_price: number | string | null;
   market_cap: number | string | null;
   is_draftable: boolean | null;
-  /** When a mass-drop refusal last held this stock; NULL = not held. */
+  /** When a refusal FIRST held this stock; NULL = not held. Never refreshed. */
   list_drop_held_at: string | null;
 }
 
@@ -79,6 +91,8 @@ export interface RowPlan {
   wasOnList: boolean;
   /** Held by an earlier refusal (list_drop_held_at set): this is its second reading. */
   marked: boolean;
+  /** The mark's time in epoch ms (first held), or null. */
+  markedAtMs: number | null;
   update: SymbolUpdate;
 }
 
@@ -129,6 +143,7 @@ export function planRow(
       : 'skipped_etf',
     wasOnList: row.is_draftable === true,
     marked: row.list_drop_held_at != null,
+    markedAtMs: row.list_drop_held_at != null ? Date.parse(row.list_drop_held_at) : null,
     update: {
       gics_industry: industry,
       market_cap: marketCap,
@@ -149,83 +164,125 @@ export function planRow(
 export const MASS_DROP_MIN = 2;
 export const MASS_DROP_SHARE = 0.05;
 
-/** How recent another stock's hold must be to stop a second reading from dropping. */
-export const MARK_QUIET_MS = 24 * 60 * 60 * 1000;
+/** A second reading counts only when the stock was first held at least this long ago. */
+export const MARK_MIN_AGE_MS = 24 * 60 * 60 * 1000;
+
+/** At most this many stocks leave the list in any rolling 24 hours (every kind of drop). */
+export const DAILY_DROP_BUDGET = 20;
+/** The window the budget counts over. */
+export const DROP_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /** The most NEW drops a run that judged `judged` stocks may apply. */
 export function massDropLimit(judged: number): number {
   return Math.max(MASS_DROP_MIN, Math.floor(MASS_DROP_SHARE * judged));
 }
 
-/** A normal write: the judged values, and any hold mark cleared. */
-export type RowValues = SymbolUpdate & { list_drop_held_at: null };
+/**
+ * A normal write: the judged values and the hold mark cleared. list_dropped_at
+ * is set only when a drop is applied and is NEVER cleared (the Planner,
+ * 2026-11-24): it means "when this stock last left the list", so a stock that
+ * left and came back inside the window still counts toward that day's budget.
+ */
+export type RowValues = SymbolUpdate & { list_drop_held_at: null; list_dropped_at?: string };
+
+export interface RunContext {
+  nowMs: number;
+  /** Drops applied in the past DROP_WINDOW_MS, read before deciding. */
+  dropsInWindow: number;
+}
 
 export interface RunDecision {
   /** Normal writes (applied drops, cleared marks, everything unremarkable). */
   rows: { symbol: string; values: RowValues }[];
-  /** Held stocks: cursor moved on + list_drop_held_at = now, nothing else. */
-  hold: string[];
-  /** Held this run by a refusal of new drops. */
-  heldNew: string[];
-  /** Second readings held again (a hold in the last 24 h, or this run refusing). */
-  heldAgain: string[];
-  /** Stocks this run took off the list (new drops within the limit + second readings dropped). */
+  /** Newly held (were unmarked): cursor + list_drop_held_at = now. */
+  markNew: string[];
+  /** Held again or deferred (already marked): cursor only, the mark kept. */
+  cursorOnly: string[];
+  /** Held by this run's refusal of new drops (new drops + second readings it would have dropped). */
+  heldForRefusal: string[];
+  /** Held because the daily budget was spent. */
+  heldForBudget: string[];
+  /** Second readings deferred: mark younger than MARK_MIN_AGE_MS. */
+  deferredYoung: string[];
+  /** Stocks this run took off the list. */
   dropped: string[];
   /** Second readings whose fresh numbers passed: mark cleared, still on the list. */
   cleared: string[];
   /** New drops this run found (applied or held). */
   newDrops: string[];
-  /** New drops were over the limit. */
   refused: boolean;
   limit: number;
   judged: number;
-  /** Some stock was held within MARK_QUIET_MS before this run (read before deciding). */
-  recentMark: boolean;
+  dropsInWindow: number;
+  /** Budget left when this run began deciding. */
+  budgetLeft: number;
 }
 
-/**
- * Every stock's verdict for one run, computed before anything is written.
- * `recentMark`: does any stock carry a mark newer than MARK_QUIET_MS? A caller
- * that could not find out must pass true (fail closed: hold, never drop).
- */
-export function decideRun(plans: RowPlan[], recentMark: boolean): RunDecision {
+/** Every stock's verdict for one run, computed before anything is written. */
+export function decideRun(plans: RowPlan[], ctx: RunContext): RunDecision {
   const judged = plans.length;
   const limit = massDropLimit(judged);
-  const isNewDrop = (p: RowPlan) => !p.marked && p.wasOnList && !p.update.is_draftable;
-  const newDrops = plans.filter(isNewDrop).map((p) => p.symbol);
+  const fails = (p: RowPlan) => p.wasOnList && !p.update.is_draftable;
+  const newDrops = plans.filter((p) => !p.marked && fails(p));
   const refused = newDrops.length > limit;
+  const budgetLeft = Math.max(0, DAILY_DROP_BUDGET - ctx.dropsInWindow);
 
   const d: RunDecision = {
-    rows: [], hold: [], heldNew: [], heldAgain: [], dropped: [], cleared: [],
-    newDrops, refused, limit, judged, recentMark,
+    rows: [], markNew: [], cursorOnly: [], heldForRefusal: [], heldForBudget: [], deferredYoung: [],
+    dropped: [], cleared: [], newDrops: newDrops.map((p) => p.symbol), refused, limit, judged,
+    dropsInWindow: ctx.dropsInWindow, budgetLeft,
   };
-  const write = (p: RowPlan) => d.rows.push({ symbol: p.symbol, values: { ...p.update, list_drop_held_at: null } });
+  const write = (p: RowPlan, droppedAt?: string) => {
+    const values: RowValues = { ...p.update, list_drop_held_at: null };
+    if (droppedAt !== undefined) values.list_dropped_at = droppedAt;
+    d.rows.push({ symbol: p.symbol, values });
+  };
+  const hold = (p: RowPlan) => (p.marked ? d.cursorOnly : d.markNew).push(p.symbol);
+  const at = new Date(ctx.nowMs).toISOString();
 
+  // Second readings that would drop, and new drops: they compete for the budget below.
+  const secondDrops: RowPlan[] = [];
   for (const p of plans) {
     if (!p.marked) {
-      if (isNewDrop(p)) {
-        if (refused) {
-          d.hold.push(p.symbol);
-          d.heldNew.push(p.symbol);
-        } else {
-          d.dropped.push(p.symbol);
-          write(p);
-        }
-      } else {
-        write(p);
-      }
+      if (!fails(p)) write(p);
+      continue; // new drops handled below
+    }
+    if (!fails(p)) {
+      // Passes the floors (or was not on the list): mark cleared at once, at
+      // any age. Only a DROP needs the minimum age (the Planner, 2026-11-24).
+      if (p.wasOnList) d.cleared.push(p.symbol);
+      write(p);
       continue;
     }
-    // Second reading.
-    if (p.update.is_draftable || !p.wasOnList) {
-      if (p.wasOnList) d.cleared.push(p.symbol);
-      write(p); // passes the floors (or was not on the list): mark cleared
-    } else if (!recentMark && !refused) {
+    const young = p.markedAtMs === null || !(ctx.nowMs - p.markedAtMs >= MARK_MIN_AGE_MS);
+    if (young) {
+      // Still failing, but the same day's numbers: cursor only, mark kept, no verdict.
+      d.deferredYoung.push(p.symbol);
+      d.cursorOnly.push(p.symbol);
+      continue;
+    }
+    secondDrops.push(p);
+  }
+
+  if (refused) {
+    for (const p of [...secondDrops, ...newDrops]) {
+      d.heldForRefusal.push(p.symbol);
+      hold(p);
+    }
+    return d;
+  }
+
+  // The budget: held-before stocks first, oldest mark first; then new drops in batch order.
+  secondDrops.sort((a, b) => (a.markedAtMs! - b.markedAtMs!) || a.symbol.localeCompare(b.symbol));
+  let left = budgetLeft;
+  for (const p of [...secondDrops, ...newDrops]) {
+    if (left > 0) {
+      left--;
       d.dropped.push(p.symbol);
-      write(p); // still fails after a quiet day: news about the stock
+      write(p, at);
     } else {
-      d.hold.push(p.symbol);
-      d.heldAgain.push(p.symbol);
+      d.heldForBudget.push(p.symbol);
+      hold(p);
     }
   }
   return d;

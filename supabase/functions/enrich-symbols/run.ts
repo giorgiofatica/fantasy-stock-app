@@ -16,13 +16,21 @@
 //      guard applied over THOSE stocks (massDropLimit(judged)). Writing
 //      nothing on an early stop would stop the refresh entirely if the
 //      supplier cut most runs short.
-//   3. One read: is any stock held within the last 24 h? A failed read counts
-//      as yes (hold, never drop).
+//   3. One read: how many drops were applied in the past 24 h (the daily
+//      budget). A failed read counts as the budget spent (hold, never drop).
 //   4. Decide every verdict (plan.ts decideRun).
-//   5. Write the holds FIRST, as ONE statement (cursor + mark, nothing else),
-//      so a refusal is never half-recorded; then the normal writes.
+//   5. Write the holds FIRST (new marks, then cursor-only), each as ONE
+//      statement, so a refusal is never half-recorded; then the normal writes.
 
-import { decideRun, tallyProfiles, type RowPlan, type RowValues, type RunDecision, type SymbolRow } from './plan.ts';
+import {
+  DAILY_DROP_BUDGET,
+  decideRun,
+  type RowPlan,
+  type RowValues,
+  type RunDecision,
+  type SymbolRow,
+  tallyProfiles,
+} from './plan.ts';
 
 /** Per supplier call (Finnhub profile2, one Alpaca snapshots request). */
 export const SUPPLIER_CALL_TIMEOUT_MS = 10_000;
@@ -32,13 +40,22 @@ export const PRICE_PHASE_BUDGET_MS = 30_000;
 export const RUN_FETCH_DEADLINE_MS = 110_000;
 
 /**
- * A hold writes the cursor and the mark and NOTHING else. The cursor MUST move
- * on: selection is stalest-first, so a held stock left at its old enriched_at
- * would be in every later run and jam the refresh (./plan.ts header).
+ * A NEW hold writes the cursor and the first-held mark and NOTHING else. The
+ * cursor MUST move on: selection is stalest-first, so a held stock left at its
+ * old enriched_at would be in every later run and jam the refresh.
  */
-export type HoldValues = { enriched_at: string; list_drop_held_at: string };
-export function holdValues(at: string): HoldValues {
+export type MarkValues = { enriched_at: string; list_drop_held_at: string };
+export function markValues(at: string): MarkValues {
   return { enriched_at: at, list_drop_held_at: at };
+}
+/**
+ * A stock already marked (held again, or a second reading deferred) gets the
+ * cursor ONLY: the mark keeps the time it was FIRST held. Refreshing it would
+ * let held groups round the queue keep each other held for ever.
+ */
+export type CursorValues = { enriched_at: string };
+export function cursorValues(at: string): CursorValues {
+  return { enriched_at: at };
 }
 
 /** A normal write: the judged values, the mark cleared, the cursor moved on. */
@@ -51,17 +68,10 @@ export interface RunDeps {
   rows: SymbolRow[];
   /** Fetch one stock's fresh numbers and plan it, or report a transient supplier stop. */
   judge: (row: SymbolRow) => Promise<RowPlan | 'transient'>;
-  /**
-   * Is any stock held within MARK_QUIET_MS? May throw; a throw counts as true
-   * (and is reported as list_recent_mark_read_failed). This counts EVERY mark,
-   * the judged stocks' own included, as the Planner's rule reads ("no stock has
-   * been held in the past 24 hours"). That is safe while the queue's turn is
-   * longer than 24 h (about 4 days on 2026-11-24): a stock's own mark is then
-   * always older than 24 h at its second reading.
-   */
-  recentMarkExists: () => Promise<boolean>;
+  /** Drops applied in the past DROP_WINDOW_MS. May throw; a throw counts as the budget spent. */
+  dropsInWindow: () => Promise<number>;
   /** Write `values` to every symbol in `symbols` in ONE statement. Resolves to an error message or null. */
-  writeHolds: (symbols: string[], values: HoldValues) => Promise<string | null>;
+  writeHolds: (symbols: string[], values: MarkValues | CursorValues) => Promise<string | null>;
   /** Write `values` to one symbol. Resolves to an error message or null. */
   writeRow: (symbol: string, values: StampedRowValues) => Promise<string | null>;
   nowMs: () => number;
@@ -71,8 +81,8 @@ export interface RunDeps {
 
 export interface RunOutcome {
   decision: RunDecision;
-  /** The "any recent hold?" read failed (counted as a recent hold). */
-  recentMarkReadFailed: boolean;
+  /** The drops-in-window read failed (counted as the budget spent). */
+  dropsReadFailed: boolean;
   /** What the supplier answered over the judged stocks (report only). */
   profiles: ReturnType<typeof tallyProfiles>;
   stopped: Stopped;
@@ -116,46 +126,56 @@ export async function runJudged(deps: RunDeps): Promise<RunOutcome> {
     plans.push(res);
   }
 
-  let recentMark: boolean;
-  let recentMarkReadFailed = false;
+  const nowMs = deps.nowMs();
+  let dropsInWindow: number;
+  let dropsReadFailed = false;
   try {
-    recentMark = await deps.recentMarkExists();
+    dropsInWindow = await deps.dropsInWindow();
   } catch {
-    recentMark = true;
-    recentMarkReadFailed = true;
+    dropsInWindow = DAILY_DROP_BUDGET;
+    dropsReadFailed = true;
   }
 
-  const decision = decideRun(plans, recentMark);
-  const at = new Date(deps.nowMs()).toISOString();
+  const decision = decideRun(plans, { nowMs, dropsInWindow });
+  const at = new Date(nowMs).toISOString();
 
-  const holdWriteError = decision.hold.length > 0 ? await deps.writeHolds(decision.hold, holdValues(at)) : null;
+  let holdWriteError: string | null = null;
+  if (decision.markNew.length > 0) holdWriteError = await deps.writeHolds(decision.markNew, markValues(at));
+  if (decision.cursorOnly.length > 0) {
+    holdWriteError = (await deps.writeHolds(decision.cursorOnly, cursorValues(at))) ?? holdWriteError;
+  }
   let rowWriteErrors = 0;
   for (const r of decision.rows) {
     if ((await deps.writeRow(r.symbol, { ...r.values, enriched_at: at })) !== null) rowWriteErrors++;
   }
-  return { decision, recentMarkReadFailed, profiles: tallyProfiles(plans), stopped, holdWriteError, rowWriteErrors };
+  return { decision, dropsReadFailed, profiles: tallyProfiles(plans), stopped, holdWriteError, rowWriteErrors };
 }
 
 const SYMBOLS_LOGGED = 20;
 
 /**
- * The run outcome's list fields. Any hold is a FAILED run (ok:false) with the
- * held stocks named, never a clean line with a count tucked inside it
- * (CLAUDE.md "success signals" #4/#7):
- *   mass_drop_refused  this run's NEW drops were over the limit (some held stocks may be second readings too);
- *   drops_held_again   no refusal of its own: second readings held again
- *                      (a hold in the last 24 h, or the recent-hold read failed);
- *   hold_write_failed  the holds could not be recorded.
+ * The run outcome's list fields. A run that held any stock off a drop is a
+ * FAILED run (ok:false) with the held stocks named, never a clean line with a
+ * count tucked inside it (CLAUDE.md "success signals" #4/#7):
+ *   mass_drop_refused    this run's NEW drops were over the per-run limit;
+ *   drop_budget_reached  the daily budget held at least one drop (the read
+ *                        may have failed: list_drops_read_failed);
+ *   hold_write_failed    the holds could not be recorded.
+ * A second reading deferred for a young mark is not a hold (the stock was
+ * already reported when first held); it is counted in list_deferred_young.
+ *
+ * WS2's repair log writes ONE row for a run with heldForRefusal or
+ * heldForBudget non-empty (batch.ts REPAIR-LOG HOOK).
  */
 export function outcomeFields(o: RunOutcome): Record<string, unknown> & { ok: boolean } {
   const d = o.decision;
-  const held = d.hold.length > 0;
+  const held = [...d.heldForRefusal, ...d.heldForBudget];
   return {
-    ok: !held && o.holdWriteError === null,
+    ok: held.length === 0 && o.holdWriteError === null,
     ...(d.refused
       ? { error: 'mass_drop_refused' }
-      : held
-      ? { error: 'drops_held_again' }
+      : d.heldForBudget.length > 0
+      ? { error: 'drop_budget_reached' }
       : o.holdWriteError
       ? { error: 'hold_write_failed' }
       : {}),
@@ -165,12 +185,15 @@ export function outcomeFields(o: RunOutcome): Record<string, unknown> & { ok: bo
     list_drop_limit: d.limit,
     list_new_drops: d.newDrops.length,
     list_dropped: d.dropped.length,
-    list_held_new: d.heldNew.length,
-    list_held_again: d.heldAgain.length,
+    list_drops_past_24h: d.dropsInWindow,
+    list_drops_past_24h_after: d.dropsInWindow + d.dropped.length,
+    list_drop_budget_left: d.budgetLeft,
+    list_held_for_refusal: d.heldForRefusal.length,
+    list_held_for_budget: d.heldForBudget.length,
+    list_deferred_young: d.deferredYoung.length,
     list_marks_cleared: d.cleared.length,
-    list_recent_mark: d.recentMark,
-    list_recent_mark_read_failed: o.recentMarkReadFailed,
-    list_held_symbols: d.hold.slice(0, SYMBOLS_LOGGED),
+    list_drops_read_failed: o.dropsReadFailed,
+    list_held_symbols: held.slice(0, SYMBOLS_LOGGED),
     list_dropped_symbols: d.dropped.slice(0, SYMBOLS_LOGGED),
     ...(o.holdWriteError ? { hold_write_error: o.holdWriteError } : {}),
     row_write_errors: o.rowWriteErrors,
