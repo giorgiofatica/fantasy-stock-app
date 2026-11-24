@@ -1,6 +1,6 @@
 # The Stocks tab, part 1: the list of stocks you can get
 
-Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone; Part 3 (the watchlist, claims and top movers) is Approved (Giorgio, 2026-11-22: "Yeah, that plan looks good. Let's implement it.") and Building: its step 2, the watchlist server (#595), is merged and applied (migration `20261209000000`, 2026-11-23, checked by data); the db-snapshot is re-captured (#598); the `record-trade` list preview is merged and deployed (#600, 2026-11-23, byte-verified; its effect check waits for the build 18 phone pass); the Top movers server is merged, applied and deployed (#602, 2026-11-23; its first ranking was written, seen by data); the watchlist app is merged (#601, 2026-11-23) and in NO build; point 7's preview gate and pacing are merged and deployed (#604, `record-trade` at `5a1360e4`, byte-verified; effect checks at the phone pass); option A's server change (a migration and a `db push`) and the claims (WS6 and WS7) are NOT built (the Orchestrator's account); the claims run is not started as far as I know; no build carries any of it
+Status: Part 1 Approved (Giorgio, 2026-11-18: "part 1 approved") and built: the server read is merged (#542) and applied (2026-11-19), with no price columns (the accurate-prices rule, #533); the layout is decided (Giorgio, 2026-11-18: "A+C" on the board `design/stocks-list-1118`; the ruling is on `main` via #536); Part 2 (the screen) is Approved (Giorgio, 2026-11-18: "part 2 approved", the Planner's relay; the approval line is on `main` via #538) and Building: it is merged (#563, 2026-11-19) and in NO build, so nothing has been seen on a phone; Part 3 (the watchlist, claims and top movers) is Approved (Giorgio, 2026-11-22: "Yeah, that plan looks good. Let's implement it.") and Building: its step 2, the watchlist server (#595), is merged and applied (migration `20261209000000`, 2026-11-23, checked by data); the db-snapshot is re-captured (#598); the `record-trade` list preview is merged and deployed (#600, 2026-11-23, byte-verified; its effect check waits for the build 18 phone pass); the Top movers server is merged, applied and deployed (#602, 2026-11-23; its first ranking was written, seen by data); the watchlist app is merged (#601, 2026-11-23) and in NO build; point 7's preview gate and pacing are merged and deployed (#604, `record-trade` at `5a1360e4`, byte-verified; effect checks at the phone pass); option A's server change is merged and applied (#606, `20261210500000`, 2026-11-23; checked by data); the claims server and run (#608) are built and open (not merged, not applied, not deployed), the claim notifications (a push only for a claim that fills; Giorgio's later 2026-11-23 ruling, in docs PR #610, not yet on `main`) and the screens (reorder by dragging, A) are NOT built, and the Top movers chip (#607) is MERGED (2026-11-24 05:29:44Z, `40740b49`, app code only, no prod step, in no build until build 18; the Orchestrator's account, merge read on GitHub); the claims run is part of #608 (built, open); no build carries any of it
 Planner session: "Planner" (Fable 5.2), 2026-11-18 · Orchestrator hand-off: 5021a5bb
 
 **Revised 2026-11-18, the same day, after a later ruling.** Giorgio: "we can't be showing a
@@ -617,11 +617,40 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
     - **Cash leagues.** Two claims paid from the budget need no rule: each fills if the
       budget still covers it, and the second fails as over budget if it does not.
     - **Unchanged:** one claim per stock per manager; five pending at most.
-    - **The app (workstream 7).** The Claims list shows the order and lets the manager
-      change it; ESPN's control is a drag. The Design Lead draws it, with what a void claim
-      reads, and both go to Giorgio. The Planner's recommendation for the void claim: it
-      shows in the Claims list and sends no push, because the manager got their first
-      choice and a second message about it is noise.
+    - **The app (workstream 7).** ANSWERED 2026-11-23 (`docs/PRODUCT_RULES.md`): the order
+      is changed by dragging (a grip at the right, or press and hold). A claim that did
+      not go through, for any reason, gets no notification and no message; after the run
+      it is simply no longer pending.
+11. **Only what went through is shown** (his ruling, 2026-11-23, with ESPN's Waiver Report
+    and Recent Activity as the model). It replaces the endings of the October plan and of
+    point 9 for everything but a claim that fills.
+    - **Server.** A notification row and a push are written for a claim that fills, and
+      for no other outcome. The claims server (#608) writes rows for lost and failed
+      claims too; that is removed, in #608 before it merges or in the change that follows
+      it. Each claim's status and reason stay recorded on the claim.
+    - **The report.** For each run, the league can see what filled: per manager, in the
+      order they were served, the stock bought and the stock sold. It is public to the
+      league after the run, as holdings are; a claim that did not fill appears nowhere,
+      so nobody learns of it, the claimant's own screen included. The read returns filled
+      claims only, to members only, and nothing about pending or unfilled ones.
+    - **The app.** PICKED 2026-11-23 (`docs/PRODUCT_RULES.md`, board
+      `#call-league-activity`): A, two screens. League gets a fourth section, Activity
+      (every buy and sell, newest first, under its day); a "Claims report" row at its top
+      opens the report for a day (one card per manager in the order served, "Priority:
+      1st", Bought and Sold lines). Empty Activity reads "No buys or sells yet."
+      Workstream 7 builds these with the pending list, the drag, the composer and the push
+      for a filled claim, and shows nothing after the run for a claim that did not fill.
+    - **The two reads the screens need** (server, with the claims-order change):
+      - *Activity:* the league's buys and sells only, to members only. Draft picks are
+        left out (the `league_activity` view includes them today; the read must not).
+      - *The report:* for a run day, filled claims only, per manager, with the place they
+        were served from `claims.outcome->>'position'`, the stock bought and the stock
+        sold. Nothing about a pending or unfilled claim is returned to anyone, so a gap in
+        the places (1st, 3rd, 4th) tells a reader nothing: every manager has a place
+        whether or not they claimed.
+    - **The self-fixing plan** (`2026-11-23-claims-fix-themselves.md`, approved) loses its
+      notice for claims moved to the next open: the claim stays pending and its row shows
+      the new time. No push, no sentence.
     - **Tests.** A's first choice is taken by a manager ahead of them and A's second fills
       in the same turn; two claims on one sale, first fills, second void with the sale
       made once; first loses, second fills with that sale; a reorder after the run has
