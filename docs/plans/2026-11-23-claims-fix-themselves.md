@@ -332,12 +332,31 @@ assigns migration ranges after the latest applied.
      cleared and nothing was ever dropped: that was our data. If they still put it under
      a floor, it is dropped then: that is news about the stock. This is the automatic fix
      his rule asks for; nobody has to look.
-   - **Not while the refresh is still refusing.** A second reading drops a stock only if
-     no stock has been held in the past 24 hours and the run it is in is not itself
-     refusing. Otherwise the stock is held again with a fresh mark. This is what stops a
-     fault that lasts for days (a supplier sending wrong sizes, a floor changed by
-     mistake) from emptying the list two days late: while runs keep refusing, nothing
-     leaves, and when the fault is mended the marks clear by themselves.
+   - **A daily limit, not a quiet day** (CORRECTED 2026-11-24; the first version of this
+     point was the Planner's and was wrong). The first version let a second reading drop
+     a stock only if no stock had been held in the past 24 hours, and gave a stock held
+     again a fresh mark. The worker found that two groups held within a day of each
+     other can then keep each other held for good. It is wider than that: any set of
+     held groups with less than a day between each of them, round the whole queue, holds
+     itself for ever, since every return finds a fresh mark. That is a refusal with no
+     way back, the fault this plan exists to remove. Neither of the worker's two repairs
+     (a shorter window; leaving a group's own marks out) closes it. The rule is now:
+     - The mark is the time the stock was FIRST held. It is not refreshed.
+     - A second reading counts only when the mark is at least 24 hours old, so it is
+       never the same day's numbers.
+     - A run that is itself refusing new drops applies no second-reading drops either.
+     - **At most 20 stocks leave the list in any 24 hours**, counting every kind of drop.
+       A drop past that is held and comes round again. This needs the time each drop was
+       applied, kept in a column of its own (not the held-at mark doing two jobs).
+     - What it gives: no held group depends on another, so nothing can lock. A fault that
+       lasts for days cannot empty the list: the most that can leave is 20 a day, each
+       day's holds are reported, and a stock dropped by bad numbers comes back by itself
+       on its next turn once the numbers are right. It also closes a gap the first
+       version left open: a fault that drops one or two stocks in every run stayed under
+       the per-run limit and was never refused.
+     - Why 20: stocks near a floor come up about 20 times a day in the count of
+       2026-11-24, and few of those cross it. The run's line reports how many drops were
+       applied in the past 24 hours, so the number is set from data after the deploy.
    - **A stock held before does not count as a new drop**, so a group that comes round
      together for its second reading is not refused for being a group.
    - **Order of writes.** The run works out every stock's verdict before it writes any
@@ -354,7 +373,11 @@ assigns migration ranges after the latest applied.
    - **Tests, beyond "Done means" 3 and 4:** a run of 50 with 3 drops writes none of the
      three and applies the other 47; the three are not in the next run; on their next
      turn with good numbers the marks clear and nothing left the list; on their next turn
-     with the same numbers, a quiet day behind them, all three are dropped; with every
-     run refusing for two full turns of the queue, no stock leaves the list; a single
-     drop on a quiet day is applied at once; a run cut off before its end leaves no drop
+     with the same numbers all three are dropped; two groups held twelve hours apart
+     both drop on their second reading; a stock that comes round again inside 24 hours
+     keeps its mark and is not dropped; with 20 drops applied in the past 24 hours a
+     further drop, new or held before, is held and reported; with every run failing for
+     two full turns of the queue no more than 20 leave in any 24 hours; a stock dropped
+     by bad numbers is back on the list on its next turn with good ones; a single drop
+     on an ordinary day is applied at once; a run cut off before its end leaves no drop
      and no mark.
