@@ -127,9 +127,8 @@ this draft first proposed are withdrawn with his ruling of the same day.
 ## Open questions
 
 1. ANSWERED 2026-11-23: yes, a notice to him, and a log (fix 4).
-2. The share that counts as "many stocks at once" in fix 3. The worker proposes it from a
-   read-only count of how many stocks normally change in one refresh; the Planner agrees
-   it before it is built.
+2. ANSWERED 2026-11-24 (the Planner, on the worker's proposal; "Settled during the build",
+   point 1): more than 2 stocks, or more than a twentieth of the run if that is larger.
 
 ## Scope
 
@@ -170,7 +169,7 @@ assigns migration ranges after the latest applied.
 |---|---|---|---|
 | 1 | The run: the price fallback (fix 1), and judging a claimed stock on fresh numbers | Opus, both reviewers | a deploy of `claims-run` |
 | 2 | The check that the run happened, the move to the next open, the log of repairs and the notice to him | Opus, both reviewers | `db push`, a server setting naming his account, then a look by data |
-| 3 | The refresh: keep a known size; refuse a mass drop | Opus | a deploy of `enrich-symbols` |
+| 3 | The refresh: keep a known size and a known industry; refuse a mass drop; drop a held stock on its second reading | Opus | `db push` (one new column on the stock list) FIRST, then a deploy of `enrich-symbols` |
 | 4 | The app: a moved claim's row shows its new time | Sonnet, Design Lead gate | none |
 
 ## Done means
@@ -189,3 +188,59 @@ assigns migration ranges after the latest applied.
 6. A repair made in a test writes one row to the log and one notice to the named
    account, and nothing to any other account.
 7. `STATUS.md` records, by data, the first real morning the run was checked.
+
+## Settled during the build
+
+1. **The mass drop in fix 3** (the Planner, 2026-11-24, on the worker's proposal sent by
+   the Orchestrator; a build detail under the approved plan, not a ruling of his).
+   - **What counts.** A drop is a stock on the list before the run that the run would
+     take off. A run refuses when its new drops number more than 2, or more than a
+     twentieth of the stocks it judged if that is larger. For the usual run of 50 that is
+     3 or more; for the largest run of 80 it is 5 or more. A tenth is always refused, as
+     "Done means" 4 requires.
+   - **The count.** The worker's read-only count of prod decides whether 2 stands. If the
+     95th percentile of on-list stocks within a tenth of a floor, per past run, is 2 or
+     less, it stands. If it is 3 or more the fixed number may rise, but never above 4 (5
+     of 50 is the tenth that must be refused). If the count says more than 4 is needed,
+     the numbers come back to the Planner; the rule is not applied by itself.
+   - **A held stock moves on in the queue.** The proposal left a held stock with no write
+     at all, so that it would be tried again in ten minutes. Read against the code that
+     jams the refresh: a run takes the stocks with the oldest `enriched_at` first
+     (`batch.ts`, the stalest-first query), so a stock that is never written stays at the
+     front and is in every run from then on. Three held stocks would then put every later
+     run over the limit, every later drop would join them, and once the held stocks
+     filled a run the refresh would stop for every stock (the file's own header warns of
+     this: the cursor "would spin on the same dead symbols forever"). So a held stock
+     gets its place in the queue moved on and the time it was held written down, and
+     nothing else: its size, price and place on the list stay as they were.
+   - **It fixes itself on the second reading.** The stock's turn comes round again about
+     two days later. If the fresh numbers put it back over the floors, the mark is
+     cleared and nothing was ever dropped: that was our data. If they still put it under
+     a floor, it is dropped then: that is news about the stock. This is the automatic fix
+     his rule asks for; nobody has to look.
+   - **Not while the refresh is still refusing.** A second reading drops a stock only if
+     no stock has been held in the past 24 hours and the run it is in is not itself
+     refusing. Otherwise the stock is held again with a fresh mark. This is what stops a
+     fault that lasts for days (a supplier sending wrong sizes, a floor changed by
+     mistake) from emptying the list two days late: while runs keep refusing, nothing
+     leaves, and when the fault is mended the marks clear by themselves.
+   - **A stock held before does not count as a new drop**, so a group that comes round
+     together for its second reading is not refused for being a group.
+   - **Order of writes.** The run works out every stock's verdict before it writes any
+     drop. A run that is cut off part way has written no drop and no mark; those stocks
+     are simply judged again.
+   - **How it reports.** The cron's answer is already sent before the run starts, so the
+     failure is the run's own line on the error stream, with `ok` false, the reason and
+     the held stocks, and still carrying the run's other counts. The record that lasts is
+     one row in the log of repairs (fix 4). A second reading that clears or drops writes
+     no row; a held stock held again does.
+   - **A known industry is kept too**, by the same rule as the size: an "ok" answer
+     without one does not wipe it. The industry decides the stock's categories, and so
+     which slot it can fill.
+   - **Tests, beyond "Done means" 3 and 4:** a run of 50 with 3 drops writes none of the
+     three and applies the other 47; the three are not in the next run; on their next
+     turn with good numbers the marks clear and nothing left the list; on their next turn
+     with the same numbers, a quiet day behind them, all three are dropped; with every
+     run refusing for two full turns of the queue, no stock leaves the list; a single
+     drop on a quiet day is applied at once; a run cut off before its end leaves no drop
+     and no mark.
