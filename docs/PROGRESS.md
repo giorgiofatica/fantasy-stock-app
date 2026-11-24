@@ -44,7 +44,7 @@ Entries begin with the Recorder's first pass.
 - Nothing asked of him in this note. His merges and prod steps to come: #619 (then a deploy), and the sweep-history fix when it exists. The first new-code `enrich-symbols` run line still has to be read.
 
 **Next** (the Orchestrator's, as reported)
-- The lasting cron-history fix (a worker chip, not built), #619, and the rest of the self-fixing plan.
+- The lasting cron-history fix (a worker chip, not started; it has to land before about 11-30, or the hand cleanup is repeated), #619, and the rest of the self-fixing plan.
 
 ## 2026-11-23
 
