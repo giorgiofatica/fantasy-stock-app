@@ -133,6 +133,80 @@ export interface EnrichConfig {
 export type EnrichResult = Record<string, unknown> & { ok: boolean; batch: number };
 
 /**
+ * The query surface selectBatch uses: the service-role client in prod
+ * (runEnrichBatch), an in-memory fake in batch_select.test.ts.
+ */
+// deno-lint-ignore no-explicit-any
+export type SymbolsClient = { from(table: 'symbols'): any };
+
+/** The symbols columns a run reads (see selectBatch). */
+const SELECT_COLS = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap, is_draftable, list_drop_held_at';
+
+/**
+ * An unpriced stock is SELECTED for the priority tier only when it was never asked or was
+ * last asked more than PRIORITY_RETRY_MS ago (the Planner, 2026-11-24). This is a cooldown
+ * read at selection time, not a claim: a stock can be asked again sooner if two runs overlap
+ * (pg_cron does not wait; rare, since a run is about 2 min against a 10-min cadence) or if its run
+ * fails before writing enriched_at (a transient supplier stop or a failed row write; asking
+ * again on the next run is then the wanted retry). A repeat costs one extra read-only price
+ * request and writes nothing wrong, so no claim or lock is kept. Counted 2026-11-24: the 388 unpriced stocks were
+ * re-asked every ~2.5 h and ~400 asks in 3.6 h priced 3, so the tier spent half
+ * of every run on stocks the price source never prices, and every other
+ * stock's turn took ~4 days instead of ~2.
+ */
+export const PRIORITY_RETRY_MS = 24 * 60 * 60 * 1000;
+
+/** The priority tier's "never asked, or last asked more than PRIORITY_RETRY_MS ago" filter (PostgREST or()). */
+export function priorityRetryFilter(nowMs: number): string {
+  const cutoff = new Date(nowMs - PRIORITY_RETRY_MS).toISOString();
+  return `enriched_at.is.null,enriched_at.lt.${cutoff}`;
+}
+
+/**
+ * Pick one run's batch. Exported so supabase-free tests drive this exact
+ * query-building code against an in-memory fake (batch_select.test.ts).
+ *
+ *   PRIORITY TIER: active, unpriced (last_price NULL), not price_unsupported,
+ *   AND never asked or last asked more than a day ago; stalest-first, capped
+ *   at half the batch (starvation guard, price-batch.ts). A held stock
+ *   (plan.ts) keeps its price, so it is never in this tier.
+ *   STALEST POOL: every active stock, stalest-first, excluding the priority
+ *   picks; it fills every slot the tier leaves free (mergeBatchSelection).
+ */
+export async function selectBatch(admin: SymbolsClient, batchSize: number, nowMs: number): Promise<SymbolRow[]> {
+  // is_draftable is "on the list BEFORE this run" and list_drop_held_at is an
+  // earlier refusal's hold, both for the mass-drop guard (./plan.ts decideRun).
+  const priorityCap = priorityCapFor(batchSize);
+  const { data: priorityRows, error: prioErr } = await admin
+    .from('symbols')
+    .select(SELECT_COLS)
+    .eq('active', true)
+    .is('last_price', null)
+    .eq('price_unsupported', false)
+    .or(priorityRetryFilter(nowMs))
+    .order('enriched_at', { ascending: true, nullsFirst: true })
+    .limit(priorityCap);
+  if (prioErr) throw new Error(`select_failed (priority): ${prioErr.message}`);
+
+  // Normal stalest-first pool, excluding whatever the priority query already
+  // picked so the merge below never has to dedupe past a LIMIT boundary.
+  const prioritySymbols = ((priorityRows ?? []) as { symbol: string }[]).map((r) => String(r.symbol));
+  let stalestQuery = admin
+    .from('symbols')
+    .select(SELECT_COLS)
+    .eq('active', true)
+    .order('enriched_at', { ascending: true, nullsFirst: true })
+    .limit(batchSize);
+  if (prioritySymbols.length > 0) {
+    stalestQuery = stalestQuery.not('symbol', 'in', `(${prioritySymbols.join(',')})`);
+  }
+  const { data: stalestRows, error: staleErr } = await stalestQuery;
+  if (staleErr) throw new Error(`select_failed (stalest): ${staleErr.message}`);
+
+  return mergeBatchSelection((priorityRows ?? []) as SymbolRow[], (stalestRows ?? []) as SymbolRow[], batchSize);
+}
+
+/**
  * Run one enrichment batch to completion. Throws on a failed batch-selection
  * query (nothing has been written at that point). Per-row update failures are
  * logged and skipped, exactly as before.
@@ -147,39 +221,7 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
   // price_unsupported is filtered on (priority query below) but not selected:
   // the per-row loop recomputes it fresh from partitionForAlpaca every pass
   // rather than reading back a stale value (see the comment at its write).
-  // is_draftable is "on the list BEFORE this run" and list_drop_held_at is an
-  // earlier refusal's hold, both for the mass-drop guard (./plan.ts decideRun).
-  const selectCols = 'symbol, exchange, is_etf, active, gics_industry, last_price, market_cap, is_draftable, list_drop_held_at';
-
-  // Priority tier: unpriced AND not permanently-unsupported, stalest-first,
-  // capped at half the batch (starvation guard — see price-batch.ts).
-  const priorityCap = priorityCapFor(batchSize);
-  const { data: priorityRows, error: prioErr } = await admin
-    .from('symbols')
-    .select(selectCols)
-    .eq('active', true)
-    .is('last_price', null)
-    .eq('price_unsupported', false)
-    .order('enriched_at', { ascending: true, nullsFirst: true })
-    .limit(priorityCap);
-  if (prioErr) throw new Error(`select_failed (priority): ${prioErr.message}`);
-
-  // Normal stalest-first pool, excluding whatever the priority query already
-  // picked so the merge below never has to dedupe past a LIMIT boundary.
-  const prioritySymbols = (priorityRows ?? []).map((r) => String(r.symbol));
-  let stalestQuery = admin
-    .from('symbols')
-    .select(selectCols)
-    .eq('active', true)
-    .order('enriched_at', { ascending: true, nullsFirst: true })
-    .limit(batchSize);
-  if (prioritySymbols.length > 0) {
-    stalestQuery = stalestQuery.not('symbol', 'in', `(${prioritySymbols.join(',')})`);
-  }
-  const { data: stalestRows, error: staleErr } = await stalestQuery;
-  if (staleErr) throw new Error(`select_failed (stalest): ${staleErr.message}`);
-
-  const batch = mergeBatchSelection(priorityRows ?? [], stalestRows ?? [], batchSize);
+  const batch = await selectBatch(admin, batchSize, startedMs);
   if (batch.length === 0) return { ok: true, batch: 0 };
 
   // Known rule keys, to report unmatched vendor labels for curation. Report
@@ -210,7 +252,7 @@ export async function runEnrichBatch(cfg: EnrichConfig, batchSize: number): Prom
 
   // Judge, decide, then write, in the order ./run.ts sets out.
   const outcome = await runJudged({
-    rows: batch as SymbolRow[],
+    rows: batch,
     nowMs: Date.now,
     deadlineMs: startedMs + RUN_FETCH_DEADLINE_MS,
     judge: async (row) => {
