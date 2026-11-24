@@ -142,6 +142,28 @@ this draft first proposed are withdrawn with his ruling of the same day.
    - **A run writes 25 stocks at the median, half of what it asks for.** The worker says
      why from the runs' own lines (stopped early by the supplier, or something else)
      before anything is changed.
+   - **Nothing ever takes a delisted stock off the list** (workstream 3's check,
+     confirmed 2026-11-24). The exchange feed only adds and updates
+     (`refresh-symbols` writes `active: true`); no code writes `active: false`. A stock
+     that leaves the feed is never touched by it again, the supplier answers "empty" for
+     it, which keeps its size, and the price source has nothing new, which keeps its
+     price. So it stays on the list with frozen numbers. Workstream 3 changed nothing
+     here. What is already ruled (`docs/PRODUCT_RULES.md`): for a manager who holds it,
+     its last real price stands; for everyone else it should be off the list, and "isn't
+     in this league's list" is then true. What is missing is the thing that takes it off:
+     nothing records when a stock was last in the feed. To size it first, read-only: the
+     on-list stocks refreshed in the past few days whose data has not changed in two
+     weeks, with their names, and how many of them anyone holds. That number also catches
+     stocks our price source simply never trades, so the names are read, not just
+     counted. If it needs a fix, it is an addition to this plan for his approval, with
+     the same guard as the mass drop: a feed that comes back short must not take stocks
+     off the list.
+   - **A refresh cut off before its end now writes nothing** (workstream 3 writes after
+     it has fetched everything; before, it kept the stocks it had reached). Accepted, on
+     two conditions: a run the supplier stops early still writes the stocks it judged,
+     and a run stops fetching at a fixed time of its own, well inside the limit, and
+     writes what it has. A run that can only ever lose all its work is the refusal with
+     no way back that this plan exists to remove.
 
 ## Scope
 
