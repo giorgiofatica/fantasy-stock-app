@@ -129,6 +129,19 @@ this draft first proposed are withdrawn with his ruling of the same day.
 1. ANSWERED 2026-11-23: yes, a notice to him, and a log (fix 4).
 2. ANSWERED 2026-11-24 (the Planner, on the worker's proposal; "Settled during the build",
    point 1): more than 2 stocks, or more than a twentieth of the run if that is larger.
+3. OPEN, found by the count of 2026-11-24, not part of workstream 3:
+   - **424 stocks are off the list only because we hold no company size for them**
+     (active, not a fund, on a listed exchange, priced at $1 or more, already refreshed).
+     Fix 3 keeps a size we know; it cannot bring back one we never had or already lost.
+     Whether these are stocks the supplier never sizes or ones a past incomplete answer
+     wiped is not known. To decide on data, a read-only breakdown: by exchange, by price
+     band, by when last refreshed, by whether an industry is held (an industry without a
+     size means the supplier did answer once), the names, and how many are held or
+     watched in any league. The Planner reads it and takes it to Giorgio only if real
+     companies are among them.
+   - **A run writes 25 stocks at the median, half of what it asks for.** The worker says
+     why from the runs' own lines (stopped early by the supplier, or something else)
+     before anything is changed.
 
 ## Scope
 
@@ -203,6 +216,13 @@ assigns migration ranges after the latest applied.
      less, it stands. If it is 3 or more the fixed number may rise, but never above 4 (5
      of 50 is the tenth that must be refused). If the count says more than 4 is needed,
      the numbers come back to the Planner; the rule is not applied by itself.
+     **Counted 2026-11-24** (read-only, run by Giorgio; 144 runs in 24 hours): on-list
+     stocks within a tenth of a floor per run, median 0, 95th percentile 1, most 2. So 2
+     stands: a run refuses at 3 or more new drops.
+   - **The same count found two things outside this fix**, both open (question 3 above):
+     a run writes 25 stocks at the median, not the 50 it asks for, so a stock's turn
+     comes round in about four days, not two; and 424 stocks are off the list only for
+     want of a size.
    - **A held stock moves on in the queue.** The proposal left a held stock with no write
      at all, so that it would be tried again in ten minutes. Read against the code that
      jams the refresh: a run takes the stocks with the oldest `enriched_at` first
@@ -213,8 +233,8 @@ assigns migration ranges after the latest applied.
      this: the cursor "would spin on the same dead symbols forever"). So a held stock
      gets its place in the queue moved on and the time it was held written down, and
      nothing else: its size, price and place on the list stay as they were.
-   - **It fixes itself on the second reading.** The stock's turn comes round again about
-     two days later. If the fresh numbers put it back over the floors, the mark is
+   - **It fixes itself on the second reading.** The stock's turn comes round again by
+     itself (two to four days later at the pace measured on 2026-11-24). If the fresh numbers put it back over the floors, the mark is
      cleared and nothing was ever dropped: that was our data. If they still put it under
      a floor, it is dropped then: that is news about the stock. This is the automatic fix
      his rule asks for; nobody has to look.
