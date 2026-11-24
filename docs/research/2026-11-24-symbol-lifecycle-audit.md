@@ -127,3 +127,63 @@ For the Planner to weigh (not a product decision):
 
 1. Is it enough for the plan to rely on the directory diff, or should a paid change feed (Daily List) be priced? (Pricing is out of scope here.)
 2. Should I read the rest of the Finnhub swagger file to close Q3, and look at where BBBY actually trades?
+
+---
+
+## Follow-up 2026-11-24 (Planner's A, B, C)
+
+Public documentation only; no API called, no account, no contact. "Read" means I (or a reader subagent) read the page on 2026-11-24. Quotes are short excerpts.
+
+### A. What Alpaca's public docs say
+
+| # | Question | Finding | Source | Fact / inference |
+|---|---|---|---|---|
+| A1 | Do corporate actions list name/ticker changes with old and new symbol? | **Yes.** Market Data `GET /v1/corporate-actions`. Type `name_change` returns an array `name_changes` with `old_symbol`, `new_symbol`, `old_cusip`, `new_cusip`, `old_isin`, `new_isin`, `process_date` (required: old_symbol, old_cusip, new_symbol, new_cusip, process_date). | [Corporate actions reference](https://docs.alpaca.markets/reference/corporateactions-1) | Fact |
+| A1 | Mergers / buy-outs with cash and effective date? | **Yes.** `cash_merger`: `acquiree_symbol`, `acquiree_cusip`, `acquirer_symbol`, `rate`, `effective_date`, `payable_date`, `process_date` (required: acquiree_symbol, acquiree_cusip, rate, process_date, effective_date). `stock_and_cash_merger`: adds `acquirer_rate`, `acquiree_rate`, `cash_rate`; `stock_merger` has the stock rates only. **The page describes `rate` only as "Cash merger." It does not say the rate is per share. Not verified.** | Same | Fact; "per share" is inference |
+| A1 | Other types the `types` filter accepts | reverse_split, forward_split, unit_split, cash_dividend, stock_dividend, spin_off, cash_merger, stock_merger, stock_and_cash_merger, redemption, name_change, worthless_removal, rights_distribution, partial_call, reorganization, capital_gains_distribution. `worthless_removal` and `redemption` are the likely delisting-adjacent types; the page does not say they cover every delisting. | Same | Fact; coverage not verified |
+| A1 | Filters and limits | Params: `symbols`, `cusips`, `types`, `region` (default `us`), `start`, `end` (default "current day"), `ids`, `limit`, `data_quality` (default `complete`, which excludes actions "still missing required fields"), `page_token`, `sort`. A search result for Alpaca's docs says there is no guarantee on creation time and delays from data providers are possible, and that data goes back to April 2020. | Same page; [search-result excerpt of Alpaca's docs](https://docs.alpaca.markets/docs/mandatory-corporate-actions) | Fact (page); search excerpt not re-read in full |
+| A1 | The older Announcements endpoint | `GET /v2/corporate_actions/announcements` is the older Trading API product. An Alpaca blog post says bespoke reorganisations such as symbol changes, redemptions, liquidations, delistings and tender offers are **not** available through it. Treat it as superseded by `/v1/corporate-actions`. | [Alpaca blog](https://blog.alpaca.markets/blog/introducing-corporate-actions-api-announcements/) (seen in search results, not re-read); [deprecated endpoint page](https://docs.alpaca.markets/us/reference/get-v2-corporate_actions-announcements-1.md) | Partly verified |
+| A2 | Free plan or paid only? | **Not verified.** The corporate actions page has no plan statement. The plan page ([Market Data API](https://docs.alpaca.markets/docs/about-market-data-api), updated 2026-10-06) lists Basic (free, IEX real-time, "latest 15 minutes" historical limit on SIP) and Algo Trader Plus ($99/month), and the phrase "corporate actions" appears in neither plan table nor the [FAQ](https://docs.alpaca.markets/docs/market-data-faq). The only related line is the generic 403 text: "forbidden, for example because the subscription does not cover the requested data." | Pages above | **Not found** |
+| A3 | Assets: per-symbol status? | **Yes.** `GET /v2/assets` returns `status` (enum `active`, `inactive`; "active or inactive") and `tradable` ("Asset is tradable on Alpaca or not"), plus `exchange` (AMEX, ARCA, BATS, NYSE, NASDAQ, NYSEARCA, OTC, TXSE, …), `symbol`, `name`, `cusip`, `fractionable`, `marginable`, `shortable`, `class`, `attributes`. Filters: `status`, `asset_class` (default `us_equity`), `exchange`, `attributes`. | [GET /v2/assets](https://docs.alpaca.markets/us/reference/get-v2-assets-1.md), [Working with assets](https://docs.alpaca.markets/docs/working-with-assets) | Fact |
+| A3 | What happens on delist or rename? | **Not stated** on either assets page. They do not say whether a delisted asset turns `inactive`, disappears, or keeps its old symbol after a rename. The docs also say "Some assets are only available for data consumption via Polygon, and are not tradable with Alpaca", so `tradable=false` alone does not mean delisted. | Same | **Not found** |
+| A4 | Rename-aware history (`asof`)? | **Your belief is right.** The historical stock bars endpoint (`/v2/stocks/bars`) has `asof`: "The as-of date of the queried stock symbol(s). Format: YYYY-MM-DD. Default: current day." It maps symbols so "name changes for this entity can be found", with the docs' example "FB was renamed to META in 2022-06-09." The special value `"-"` skips symbol mapping. I did **not** read the trades/quotes pages, so I cannot say they carry `asof`; the v3 bars page is reported (from the site index only) as not supporting symbol mapping. | [Historical bars](https://docs.alpaca.markets/reference/stockbars) | Fact (bars); other endpoints not verified |
+
+**What this means (inference).** Alpaca's market-data docs describe, for a change, the data the audit needed: `name_change` gives old→new symbol without matching by hand, and `cash_merger` / `stock_merger` give the acquiree and the effective date. Whether that endpoint is available on the free plan, and how the assets list treats a departed symbol, are both **not verified** and cannot be settled by reading the docs; they would take an authenticated test call, which was out of bounds here. The point that matters for the dead-ticker problem: `asof` means a request for bars under an old symbol can be resolved against the company's history, but only for bars.
+
+### B. Finnhub `CompanyProfile2` schema (closes Q3's schema half)
+
+Read from [`finnhub.io/static/swagger.json`](https://finnhub.io/static/swagger.json), definition `CompanyProfile2` (verbatim text read at characters 420,000–459,946 of 590,666).
+
+| Field | Type | Description in the schema |
+|---|---|---|
+| `country` | string | "Country of company's headquarter." |
+| `currency` | string | "Currency used in company filings." |
+| `exchange` | string | "Listed exchange." |
+| `name` | string | "Company name." |
+| `ticker` | string | "Company symbol/ticker as used on the listed exchange." |
+| `ipo` | string (date) | "IPO date." |
+| `marketCapitalization` | number (float) | "Market Capitalization." |
+| `shareOutstanding` | number (float) | "Number of oustanding shares." (spelling as in source) |
+| `logo` | string | "Logo image." |
+| `phone` | string | "Company phone number." |
+| `weburl` | string | "Company website." |
+| `finnhubIndustry` | string | "Finnhub industry classification." |
+
+- **Required fields: none.** The definition has no `required` list, so every field, including `marketCapitalization` and `shareOutstanding`, is allowed to be absent. (Fact.)
+- **Units: not stated** for either number. A third-party PR, read earlier, says `marketCapitalization` is in millions of USD; the schema does not say so. (Fact for both statements; the PR's is third-party.)
+- **Empty answers: not stated in the part I read.** The `/stock/profile2` path entry (roughly characters 40,000–139,946) was not read verbatim, so any empty-response text there is **not verified**. A model summary of one chunk said there was none; that is not a reading.
+- **`shareOutstanding` when `marketCapitalization` is missing: not verified.** The schema makes both optional and says nothing linking them.
+
+### C. BBBY
+
+**BBBY no longer exists as a ticker; the company is now Neighborhood Intelligence, Inc. on Nasdaq as `NXH`.** Nasdaq's own notice [DTN2026-17](https://www.nasdaqtrader.com/TraderNews.aspx?id=DTN2026-17) (dated 2026-08-10, with an update of 2026-08-14) says: "Bed Bath & Beyond, Inc. (NYSE: BBBY) is expected to be listed and begin trading on the Nasdaq Global Select Market", effective 2026-08-17, under the new name and ticker "Neighborhood Intelligence, Inc., (NXH)". Warrants moved to `BBBYW`. The CUSIP is unchanged (690370101). I confirmed it in the 2026-11-24 file: `nasdaqlisted.txt` line 3566 reads `NXH|Neighborhood Intelligence, Inc.  - Common Stock|Q|N|N|100|N|N`. So this is **not** an `otherlisted.txt` multi-column case: BBBY is absent because it was renamed, and the company moved from NYSE (which is why it was in `otherlisted.txt`) to Nasdaq (`nasdaqlisted.txt`). I found no `BBBY`, `BYON` or "Bed Bath" string in either file. The notice also tells data redistributors to "maintain historical data for BBBY and BBBY WS prior to transfer date."
+
+**This corrects the main tables above.** The BYON row stops at BBBY; the full chain is **BYON → BBBY (2025-08-29) → NXH (2026-08-17)**, and the "anomaly" in "Not found / not sure" is resolved: the directory is right and the file does not contradict the rule that a departed ticker simply vanishes. The count in the Short answer is unchanged (still a rename; the company still trades). One more inference worth noting: **two renames in a year, with the second also moving the exchange, is a case where a name-match to the old ticker would stay wrong after the first fix.** Whether `NXH` is in Alpaca's `/v2/assets` or its `name_change` list was not checked.
+
+### Still not verified after this follow-up
+
+- Whether Alpaca's `/v1/corporate-actions` is available on the free Basic plan (A2).
+- What Alpaca's assets endpoint does with a delisted or renamed symbol (A3).
+- Whether `rate` on `cash_merger` is per share (A1).
+- Whether `asof` is on Alpaca's trades and quotes endpoints (A4).
+- Empty-response text and units on Finnhub `/stock/profile2` (B).
