@@ -115,11 +115,13 @@ Deno.test({
       await q(`delete from public.watchlist`);
       await clearCounters();
     };
+    // Column ACLs = the columns that carry one: a column a LATER migration adds
+    // with no grant (20261212100000 list_drop_held_at) is not a grant change.
     const symAcl = async () =>
       (await q(`select relacl::text as acl,
                        (select string_agg(a.attname || '=' || coalesce(a.attacl::text, ''), ',' order by a.attname)
                           from pg_attribute a where a.attrelid = 'public.symbols'::regclass and a.attnum > 0
-                           and not a.attisdropped) as cols
+                           and not a.attisdropped and a.attacl is not null) as cols
                   from pg_class where oid = 'public.symbols'::regclass`))[0];
 
     await loadChain(db, { untilBefore: VERSION });

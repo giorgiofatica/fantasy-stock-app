@@ -2,8 +2,8 @@
   "_comment": "GENERATED — do not hand-edit. Run node scripts/gen-architecture.mjs.",
   "schemaVersion": 1,
   "generated": {
-    "commit": "c44393ccab12da6b1e6b56bfe121ae869dcb56bf",
-    "commitShort": "c44393cc",
+    "commit": "830d60e8cf7611824a1efe0a6e223beecc5b3f37",
+    "commitShort": "830d60e8",
     "commitMeaning": "The source state this map describes. The map is committed on top of it, so this is the PARENT of the commit containing this file.",
     "branch": "fix/enrich-symbols-guards",
     "dirty": true,
@@ -17,23 +17,35 @@
         "path": "supabase/functions/enrich-symbols/index.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "supabase/functions/enrich-symbols/plan.test.ts"
       },
       {
-        "code": "??",
+        "code": "M",
         "path": "supabase/functions/enrich-symbols/plan.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/enrich-symbols/run.test.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/functions/enrich-symbols/run.ts"
+      },
+      {
+        "code": "??",
+        "path": "supabase/migrations/20261212100000_symbols_list_drop_held_at.sql"
       }
     ],
-    "timestamp": "2026-11-24T18:42:19Z",
-    "sourceHash": "sha256:ad7bc8958206092593ef1f5e23184859ad9169d0a72d1e38c82a8273c737fe72",
+    "timestamp": "2026-11-24T18:58:53Z",
+    "sourceHash": "sha256:970e341bd0a33f00270e7372a91c4badaca2035661cad6b082cb276c22f7b435",
     "command": "node scripts/gen-architecture.mjs",
     "generatorVersion": 1
   },
   "dbSnapshot": {
     "present": true,
     "capturedAt": "2026-11-24T06:54:11Z",
-    "ageHours": 11.8,
+    "ageHours": 12.1,
     "ageDays": 0.5,
     "staleAfterDays": 14,
     "stale": false,
@@ -782,15 +794,17 @@
           "batch.ts",
           "handler.ts",
           "plan.ts",
-          "price-batch.ts"
+          "price-batch.ts",
+          "run.ts"
         ],
         "tests": [
           "handler.test.ts",
           "plan.test.ts",
-          "price-batch.test.ts"
+          "price-batch.test.ts",
+          "run.test.ts"
         ],
         "envVars": [],
-        "lines": 93
+        "lines": 97
       },
       "db": null,
       "declared": null,
@@ -803,7 +817,7 @@
       "kind": "edge-function",
       "source": {
         "path": "supabase/functions/enrich-symbols/index.ts",
-        "line": 92
+        "line": 96
       }
     },
     {
@@ -11124,7 +11138,8 @@
           "supabase/migrations/20260811000007_symbols_enrichment_support.sql",
           "supabase/migrations/20260928000000_symbols_price_unsupported_column.sql",
           "supabase/migrations/20261114000000_symbols_signed_in_only.sql",
-          "supabase/migrations/20261122000000_symbols_last_price_at.sql"
+          "supabase/migrations/20261122000000_symbols_last_price_at.sql",
+          "supabase/migrations/20261212100000_symbols_list_drop_held_at.sql"
         ],
         "rlsEnabled": true
       },
@@ -13705,7 +13720,7 @@
       "protocol": "vendor-https",
       "payload": "https://finnhub.io/api/v1/stock/profile2",
       "callSites": [
-        "supabase/functions/enrich-symbols/batch.ts:53"
+        "supabase/functions/enrich-symbols/batch.ts:55"
       ]
     },
     {
@@ -13744,7 +13759,7 @@
         "gics_industry"
       ],
       "callSites": [
-        "supabase/functions/enrich-symbols/batch.ts:165"
+        "supabase/functions/enrich-symbols/batch.ts:186"
       ]
     },
     {
@@ -13755,10 +13770,13 @@
       "to": "tbl.symbols",
       "protocol": "postgrest-select",
       "payload": ".from('symbols').select()",
-      "columns": [],
+      "columns": [
+        "symbol"
+      ],
       "callSites": [
-        "supabase/functions/enrich-symbols/batch.ts:137",
-        "supabase/functions/enrich-symbols/batch.ts:150"
+        "supabase/functions/enrich-symbols/batch.ts:158",
+        "supabase/functions/enrich-symbols/batch.ts:171",
+        "supabase/functions/enrich-symbols/batch.ts:244"
       ]
     },
     {
@@ -13771,7 +13789,8 @@
       "payload": ".from('symbols').update()",
       "columns": [],
       "callSites": [
-        "supabase/functions/enrich-symbols/batch.ts:234"
+        "supabase/functions/enrich-symbols/batch.ts:257",
+        "supabase/functions/enrich-symbols/batch.ts:265"
       ]
     },
     {
@@ -27829,7 +27848,7 @@
       "draft-autopick-sweep[]",
       "draft-control[rules.ts]",
       "draft-order-notify[handler.ts,plan.ts,run.ts]",
-      "enrich-symbols[batch.ts,handler.ts,plan.ts,price-batch.ts]",
+      "enrich-symbols[batch.ts,handler.ts,plan.ts,price-batch.ts,run.ts]",
       "heal-account-deletions[run.ts]",
       "historical-bars[paginate.ts]",
       "invite-preview[lookup.ts,respond.ts]",
@@ -28209,10 +28228,12 @@
       "supabase/functions/draft-order-notify/run.ts:173 -> league_notifications.update",
       "supabase/functions/draft-order-notify/run.ts:203 -> league_notifications.update",
       "supabase/functions/draft-order-notify/run.ts:98 -> league_notifications.select",
-      "supabase/functions/enrich-symbols/batch.ts:137 -> symbols.select",
-      "supabase/functions/enrich-symbols/batch.ts:150 -> symbols.select",
-      "supabase/functions/enrich-symbols/batch.ts:165 -> category_rules.select",
-      "supabase/functions/enrich-symbols/batch.ts:234 -> symbols.update",
+      "supabase/functions/enrich-symbols/batch.ts:158 -> symbols.select",
+      "supabase/functions/enrich-symbols/batch.ts:171 -> symbols.select",
+      "supabase/functions/enrich-symbols/batch.ts:186 -> category_rules.select",
+      "supabase/functions/enrich-symbols/batch.ts:244 -> symbols.select",
+      "supabase/functions/enrich-symbols/batch.ts:257 -> symbols.update",
+      "supabase/functions/enrich-symbols/batch.ts:265 -> symbols.update",
       "supabase/functions/leave-league/index.ts:118 -> league_notifications.update",
       "supabase/functions/leave-league/index.ts:94 -> league_notifications.update",
       "supabase/functions/preview-league/index.ts:102 -> league_members.select",
@@ -28497,7 +28518,8 @@
       "20261210000001_schedule_rank_top_movers.sql",
       "20261210500000_watchlist_held_leaves.sql",
       "20261211000000_claims.sql",
-      "20261211000001_schedule_claims_run.sql"
+      "20261211000001_schedule_claims_run.sql",
+      "20261212100000_symbols_list_drop_held_at.sql"
     ],
     "config": [
       "claims-run=false",
