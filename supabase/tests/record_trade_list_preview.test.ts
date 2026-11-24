@@ -9,8 +9,9 @@
  *      against record-trade as it was on main before the list preview existed
  *      (65fb06aa), so a change to the old shape fails here.
  *   2. The LIST preview (`rows`, plan part 3 point 4, preview-list.ts) end to
- *      end: it reads the caller's watchlist WITH THE CALLER'S TOKEN (so RLS
- *      decides), answers only saved symbols, reads category eligibility only
+ *      end: it reads the caller's saved stocks through get_league_watchlist WITH
+ *      THE CALLER'S TOKEN (so RLS and the reader's held/stale rule decide; never
+ *      the table, 20261211), answers only saved symbols, reads category eligibility only
  *      for saved symbols, refuses an over-long list before any league read,
  *      and refuses a request naming both shapes.
  *
@@ -64,6 +65,9 @@ interface World {
   industries: Record<string, string>;
   rules: Record<string, string>;
   watchlistError?: boolean;
+  /** rows get_league_watchlist leaves out (the caller holds the stock, or the row is stale:
+   * 20261210500000). They are still in the TABLE: a table read would count them. */
+  hiddenByReader?: string[];
   /** the category-override read fails (fetchEligibleCategoryIds* throw on it) */
   eligibilityError?: boolean;
   /** symbols.is_draftable false for these (every other catalog symbol is true) */
@@ -199,6 +203,16 @@ function install(world: World, seen: Seen[]): () => void {
         world.counters.set(key, hits);
         return json(hits <= Number(args.p_limit));
       }
+      if (table === 'rpc/get_league_watchlist') {
+        // The reader, modelled: the CALLER's rows in that league (auth.uid() + is_member), minus
+        // what it leaves out (held or stale). Called without the caller's token it raises 42501.
+        if (world.watchlistError) return json({ code: 'XX000', message: 'boom' }, 500);
+        if (req.headers.get('Authorization') !== `Bearer ${USER_JWT}`) return json({ code: '42501', message: 'not authenticated' }, 403);
+        const hidden = new Set(world.hiddenByReader ?? []);
+        return json(world.watchlist
+          .filter((w) => w.user_id === USER_ID && w.league_id === args.p_league_id && !hidden.has(w.symbol))
+          .map((w) => ({ symbol: w.symbol, name: `${w.symbol} Inc.`, category_ids: [], is_draftable: true, saved_at: '2026-11-23T00:00:00Z' })));
+      }
       if (table === 'rpc/record_trade_atomic') {
         return json({ ok: true, trade: { id: 'new-trade', symbol: args.p_symbol, action: args.p_action, price: args.p_price } });
       }
@@ -324,7 +338,7 @@ Deno.test({ name: 'single preview (price tiers, with a price): unchanged body, w
     open_slots: [{ slot_id: 's-lo', slot_index: 0, slot_count: 1, price_min: 0, price_max: 200, category_id: null }],
   }));
   // The single preview never reads anyone's watchlist.
-  assertEquals(none.seen.filter((s) => s.table === 'watchlist'), []);
+  assertEquals(none.seen.filter((s) => s.table === 'watchlist' || s.table === 'rpc/get_league_watchlist'), []);
 }});
 
 Deno.test({ name: 'single preview (fixed_notional, slot-less): unchanged body', ...opts, async fn() {
@@ -405,16 +419,30 @@ Deno.test({ name: 'list preview: answers only the caller\'s own saved symbols in
   }));
 }});
 
-Deno.test({ name: 'list preview: the watchlist is read with the CALLER\'s token and the public key, never the secret key', ...opts, async fn() {
+Deno.test({ name: 'list preview: saved stocks are read through get_league_watchlist with the CALLER\'s token, never the table or the secret key', ...opts, async fn() {
   const r = await call(tierWorld(), { action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'AAPL', price: 150 }] });
-  const reads = r.seen.filter((s) => s.table === 'watchlist');
+  assertEquals(r.seen.filter((s) => s.table === 'watchlist'), [], 'the table is never read directly');
+  const reads = r.seen.filter((s) => s.table === 'rpc/get_league_watchlist');
   assertEquals(reads.length, 1);
   assertEquals(reads[0].authorization, `Bearer ${USER_JWT}`);
   assertEquals(reads[0].apikey, PUBLISHABLE);
-  assertEquals(reads[0].query.get('league_id'), `eq.${LEAGUE_ID}`);
-  assertEquals(reads[0].query.get('user_id'), `eq.${USER_ID}`);
-  // The whole saved set is read: no requested string is spliced into a filter.
-  assertEquals(reads[0].query.get('symbol'), null);
+  // Only the league: the reader keys on auth.uid(); no requested string reaches it.
+  assertEquals(reads[0].rpcBody, { p_league_id: LEAGUE_ID });
+}});
+
+Deno.test({ name: 'list preview: a HELD or STALE saved row (left out by the reader) is not answered, though the table still has it', ...opts, async fn() {
+  // AAPL and MSFT are both in the caller's table rows; the reader leaves out MSFT (say the caller
+  // bought it while a save raced: a stranded held row, or one bought and sold since: stale).
+  const r = await call(tierWorld({ hiddenByReader: ['MSFT'] }), {
+    action: 'preview', league_id: LEAGUE_ID, rows: [{ symbol: 'AAPL', price: 150 }, { symbol: 'MSFT', price: 150 }],
+  });
+  assertEquals(r.status, 200);
+  const rows = r.body.rows as Array<{ symbol: string } | null>;
+  assertEquals(rows[0]?.symbol, 'AAPL');
+  assertEquals(rows[1], null, 'MSFT does not count as saved');
+  // And its category is never looked up (only saved symbols reach the category read).
+  const catReads = r.seen.filter((s) => ['symbol_category_overrides', 'category_rules'].includes(s.table));
+  for (const s of catReads) assert(!(s.query.get('symbol') ?? '').includes('MSFT'), 'no category read for MSFT');
 }});
 
 Deno.test({ name: 'list preview: a saved symbol with $ / ^ / = (the table allows them) is answered like any other', ...opts, async fn() {
@@ -462,7 +490,7 @@ Deno.test({ name: 'list preview: a league with no slots answers null for every r
   });
   assertEquals(r.status, 200);
   assertEquals(r.body.rows, [null, null]);
-  assertEquals(r.seen.filter((s) => s.table === 'watchlist'), []);
+  assertEquals(r.seen.filter((s) => s.table === 'watchlist' || s.table === 'rpc/get_league_watchlist'), []);
 }});
 
 Deno.test({ name: 'list preview: 51 rows is a bad_request before any league read', ...opts, async fn() {
@@ -470,7 +498,7 @@ Deno.test({ name: 'list preview: 51 rows is a bad_request before any league read
   const r = await call(tierWorld(), { action: 'preview', league_id: LEAGUE_ID, rows });
   assertEquals(r.status, 400);
   assertEquals(r.body, { ok: false, reason: 'bad_request' });
-  assertEquals(r.seen.filter((s) => ['leagues', 'watchlist', 'drafts', 'trades'].includes(s.table)), []);
+  assertEquals(r.seen.filter((s) => ['leagues', 'watchlist', 'rpc/get_league_watchlist', 'drafts', 'trades'].includes(s.table)), []);
   // 50 is fine
   const ok = await call(tierWorld(), { action: 'preview', league_id: LEAGUE_ID, rows: rows.slice(0, 50) });
   assertEquals(ok.status, 200);
