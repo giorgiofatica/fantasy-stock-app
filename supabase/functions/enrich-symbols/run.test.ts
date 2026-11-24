@@ -24,6 +24,7 @@ import {
   type RowPlan,
   type SymbolRow,
 } from './plan.ts';
+import { runInBackground } from './handler.ts';
 import {
   outcomeFields,
   PRICE_PHASE_BUDGET_MS,
@@ -396,6 +397,30 @@ Deno.test('run: with new marks and cursor-only holds in one run, a failure of ei
       assertEquals(q.get('S3').list_drop_held_at, iso(T0 - HOUR)); // mark untouched either way
     }
   }
+});
+
+Deno.test('run: one failed normal row write fails the run (row_write_failed, on the error stream) and that stock is judged again next run', async () => {
+  const q = new Queue(100);
+  const before = q.snapshot();
+  const deps = q.deps(q.select(50), allGood);
+  const writeRow = deps.writeRow;
+  deps.writeRow = async (symbol, values) => (symbol === 'S7' ? 'permission denied' : writeRow(symbol, values));
+  q.clock = T0;
+  const o = await runJudged(deps);
+  const f = outcomeFields(o);
+  assertEquals([f.ok, f.error, f.row_write_errors, f.row_write_failed_symbols], [false, 'row_write_failed', 1, ['S7']]);
+  assertEquals(f.judged, 50); // the other counts are kept
+  // S7: nothing written, cursor not advanced; every other row written.
+  assertEquals(q.get('S7'), before[7][1]);
+  assertEquals(q.get('S8').enriched_at, iso(T0));
+  assert(q.select(50).map((r) => r.symbol).includes('S7'), 'S7 is judged again next run');
+  // The outcome line goes to the ERROR stream (_shared/respond-fast.ts: ok:false).
+  const logs: string[] = [];
+  const errors: string[] = [];
+  await runInBackground(async () => ({ ...f, batch: 50 }), (...a) => logs.push(a.join(' ')), (...a) => errors.push(a.join(' ')));
+  assertEquals(logs, []);
+  assertEquals(errors.length, 1);
+  assert(errors[0].startsWith('enrich-symbols {') && errors[0].includes('"error":"row_write_failed"'), errors[0]);
 });
 
 Deno.test('run: a failed hold write reports the run failed', async () => {

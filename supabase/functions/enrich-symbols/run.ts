@@ -88,6 +88,8 @@ export interface RunOutcome {
   stopped: Stopped;
   holdWriteError: string | null;
   rowWriteErrors: number;
+  /** The stocks whose normal write failed: nothing was written for them, so the next run judges them again. */
+  rowWriteFailedSymbols: string[];
 }
 
 /** Run one batch in the order above. Rejects only if a judge rejects (then nothing was written). */
@@ -144,11 +146,23 @@ export async function runJudged(deps: RunDeps): Promise<RunOutcome> {
   if (decision.cursorOnly.length > 0) {
     holdWriteError = (await deps.writeHolds(decision.cursorOnly, cursorValues(at))) ?? holdWriteError;
   }
-  let rowWriteErrors = 0;
+  // A failed row write is one statement that wrote nothing (not even
+  // enriched_at), so that stock stays stalest and the next run judges it again.
+  // It still FAILS this run (outcomeFields): a count alone on an ok:true line
+  // would be a success signal that hides a write that did not happen.
+  const rowWriteFailedSymbols: string[] = [];
   for (const r of decision.rows) {
-    if ((await deps.writeRow(r.symbol, { ...r.values, enriched_at: at })) !== null) rowWriteErrors++;
+    if ((await deps.writeRow(r.symbol, { ...r.values, enriched_at: at })) !== null) rowWriteFailedSymbols.push(r.symbol);
   }
-  return { decision, dropsReadFailed, profiles: tallyProfiles(plans), stopped, holdWriteError, rowWriteErrors };
+  return {
+    decision,
+    dropsReadFailed,
+    profiles: tallyProfiles(plans),
+    stopped,
+    holdWriteError,
+    rowWriteErrors: rowWriteFailedSymbols.length,
+    rowWriteFailedSymbols,
+  };
 }
 
 const SYMBOLS_LOGGED = 20;
@@ -160,7 +174,10 @@ const SYMBOLS_LOGGED = 20;
  *   mass_drop_refused    this run's NEW drops were over the per-run limit;
  *   drop_budget_reached  the daily budget held at least one drop (the read
  *                        may have failed: list_drops_read_failed);
- *   hold_write_failed    the holds could not be recorded.
+ *   hold_write_failed    the holds could not be recorded;
+ *   row_write_failed     at least one normal write failed (row_write_failed_symbols
+ *                        names them; each is judged again next run).
+ * The first that applies is the error; every count stays in the line.
  * A second reading deferred for a young mark is not a hold (the stock was
  * already reported when first held); it is counted in list_deferred_young.
  *
@@ -171,13 +188,15 @@ export function outcomeFields(o: RunOutcome): Record<string, unknown> & { ok: bo
   const d = o.decision;
   const held = [...d.heldForRefusal, ...d.heldForBudget];
   return {
-    ok: held.length === 0 && o.holdWriteError === null,
+    ok: held.length === 0 && o.holdWriteError === null && o.rowWriteErrors === 0,
     ...(d.refused
       ? { error: 'mass_drop_refused' }
       : d.heldForBudget.length > 0
       ? { error: 'drop_budget_reached' }
       : o.holdWriteError
       ? { error: 'hold_write_failed' }
+      : o.rowWriteErrors > 0
+      ? { error: 'row_write_failed' }
       : {}),
     stopped: o.stopped,
     transient_abort: o.stopped === 'transient_abort',
@@ -198,6 +217,7 @@ export function outcomeFields(o: RunOutcome): Record<string, unknown> & { ok: bo
     list_dropped_symbols: d.dropped.slice(0, SYMBOLS_LOGGED),
     ...(o.holdWriteError ? { hold_write_error: o.holdWriteError } : {}),
     row_write_errors: o.rowWriteErrors,
+    row_write_failed_symbols: o.rowWriteFailedSymbols.slice(0, SYMBOLS_LOGGED),
     ...o.profiles,
   };
 }
