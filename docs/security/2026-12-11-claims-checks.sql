@@ -59,8 +59,9 @@ SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' AND table
 SELECT conname, pg_get_constraintdef(oid) AS def FROM pg_constraint WHERE conrelid = 'public.claims'::regclass ORDER BY conname;
 SELECT tgname, tgenabled FROM pg_trigger WHERE tgrelid = 'public.claims'::regclass AND NOT tgisinternal;
 
--- E. The notice kinds. EXPECT the definition to list claim_won, claim_lost, claim_failed AND every
---    earlier kind (draft_order_set ... seat_taken_over): eighteen in all.
+-- E. The notice kinds. EXPECT the definition to list claim_won AND every earlier kind
+--    (draft_order_set ... seat_taken_over): sixteen in all. claim_lost and claim_failed must NOT
+--    appear: a claim that does not fill writes no notice (Giorgio, 2026-11-23, plan point 11).
 SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'league_notifications_kind_check';
 
 -- F. The cron. EXPECT one row: claims_run | * * * * * | a command posting to
@@ -96,8 +97,14 @@ SELECT l.id,
 --      f. grants: Q (authenticated) cannot call commit_claims_run or claims_hold_active; anon cannot
 --         call place_claim;
 --      g. commit_claims_run as service_role with a plan that fails P's claims: the claims become
---         terminal, P gets the notices, a claims_runs row exists, and a second commit is already_ran;
---         the waiver order did not move.
+--         terminal with their reason on the row, NO notice is written for them (only a fill gets
+--         one), a claims_runs row exists, and a second commit is already_ran; the order did not move.
+--    ANY HOUR, ANY DAY. Only c reads the clock, and it checks the branch the clock calls for (open:
+--    refused; closed: placed toward the next session); the league is chosen so its season is still
+--    running at that next session. If the calendar cannot say open or closed (refresh-market-calendar
+--    has not covered today, or no next session is listed) the block stops with SETUP FAIL naming
+--    that, never a FAIL or a PASS. supabase/tests/claims.pglite.test.ts runs it at ET midnight, the
+--    open, the close and a Saturday.
 --    The verdict is the error text: 'CLAIMS EFFECT TEST: PASS ...' or '... FAIL ...'.
 do $$
 declare
@@ -110,22 +117,32 @@ declare
   v_n      int;
   v_msg    text;
   v_mkt    text;
+  v_next   timestamptz;
   v_ids    jsonb;
   v_order  jsonb;
   v_before jsonb;
   v_plan   jsonb;
   v_fail   text := '';
 begin
+  -- The clock, first: it decides c's branch and which league can take a claim now.
+  select s.status, s.next_open_at into v_mkt, v_next from public.market_session_status(now()) s;
+  if v_mkt is distinct from 'open' and (v_mkt is distinct from 'closed' or v_next is null) then
+    raise exception 'CLAIMS EFFECT TEST: SETUP FAIL -- the market calendar does not say open or closed with a next session now (status %, next open %): check market_calendar_coverage / refresh-market-calendar, then re-run',
+      coalesce(v_mkt, 'null'), coalesce(v_next::text, 'null');
+  end if;
   select l.id into v_league
     from leagues l
    where l.draft_status = 'completed' and l.season_status is distinct from 'completed'
+     -- Still running at the session a claim placed now would fill at (place_claim's own date test).
+     and (public._claims_season_end(l.id) is null
+          or public._claims_season_end(l.id) >= greatest(now(), coalesce(v_next, now())))
      and not exists (select 1 from claims c where c.league_id = l.id and c.status = 'pending')
      and (select count(*) from league_members m
            where m.league_id = l.id and m.hidden_at is null and m.deleted_at is null
              and m.user_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') >= 2
    order by l.id limit 1;
   if v_league is null then
-    raise exception 'CLAIMS EFFECT TEST: SETUP FAIL -- no drafted, unfinished league with two active signed-in members and no pending claims';
+    raise exception 'CLAIMS EFFECT TEST: SETUP FAIL -- no drafted league still running at the next session with two active signed-in members and no pending claims';
   end if;
   select array_agg(m.user_id order by m.user_id) into v_syms
     from league_members m
@@ -144,7 +161,6 @@ begin
   end if;
   select coalesce(jsonb_agg(jsonb_build_object('user_id', w.user_id, 'position', w.position) order by w.position), '[]'::jsonb)
     into v_before from waiver_order w where w.league_id = v_league;
-  select s.status into v_mkt from public.market_session_status(now()) s;
 
   -- a. One pending claim for P, through the trigger.
   insert into public.claims (league_id, user_id, symbol, funded_by, run_date)
@@ -178,8 +194,12 @@ begin
   v_res := public.place_claim(v_league, v_syms[2], null);
   if v_mkt = 'open' then
     if v_res ->> 'reason' is distinct from 'claim_market_open' then v_fail := v_fail || ' c:open-not-refused(' || v_res::text || ')'; end if;
-  elsif v_mkt = 'closed' then
-    if not coalesce((v_res ->> 'ok')::boolean, false) then v_fail := v_fail || ' c:closed-refused(' || v_res::text || ')'; end if;
+  else  -- closed, with a next session (checked at the top)
+    if not coalesce((v_res ->> 'ok')::boolean, false) then
+      v_fail := v_fail || ' c:closed-refused(' || v_res::text || ')';
+    elsif v_res -> 'claim' ->> 'run_date' is distinct from (v_next at time zone 'America/New_York')::date::text then
+      v_fail := v_fail || ' c:wrong-run-date(' || v_res::text || ')';
+    end if;
   end if;
 
   -- d. The cap (as the owner: the trigger, whatever the clock).
@@ -238,9 +258,21 @@ begin
   if v_n <> 0 then v_fail := v_fail || ' g:still-pending(' || v_n || ')'; end if;
   select count(*) into v_n from public.claims_runs where league_id = v_league and run_date = v_run;
   if v_n <> 1 then v_fail := v_fail || ' g:no-run-row'; end if;
+  -- EVERY claim in the plan is failed with the reason the plan gave it, on its own row (counted
+  -- against the plan, never "at least one").
+  select count(*) into v_n from public.claims c
+   where c.id in (select x::uuid from jsonb_array_elements_text(v_ids) x)
+     and c.status = 'failed' and c.resolved_at is not null
+     and c.reason = case when c.run_date < v_run then 'missed_run' else 'effect_test' end;
+  if v_n <> jsonb_array_length(v_ids) then
+    v_fail := v_fail || ' g:reason-on-row(' || v_n || '/' || jsonb_array_length(v_ids) || ')';
+  end if;
+  -- Point 11: a claim that did not fill writes NO notice. Counted over every claim_ notice this
+  -- transaction wrote in the league (created_at defaults to now(), the transaction's start), so a
+  -- stray row is caught whatever its detail holds.
   select count(*) into v_n from public.league_notifications
-   where league_id = v_league and user_id = v_p and kind = 'claim_failed' and detail ->> 'reason' = 'effect_test';
-  if v_n < 1 then v_fail := v_fail || ' g:no-notice'; end if;
+   where league_id = v_league and kind like 'claim%' and created_at >= now();
+  if v_n <> 0 then v_fail := v_fail || ' g:notice-for-unfilled(' || v_n || ')'; end if;
   if (select coalesce(jsonb_agg(jsonb_build_object('user_id', w.user_id, 'position', w.position) order by w.position), '[]'::jsonb)
         from waiver_order w where w.league_id = v_league) is distinct from v_before then
     v_fail := v_fail || ' g:order-moved';

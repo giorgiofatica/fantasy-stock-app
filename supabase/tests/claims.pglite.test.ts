@@ -19,7 +19,9 @@
  *     re-claim after a cancel;
  *   - the waiver order: finalize_league_draft starts it as the reverse draft order, and its body is
  *     20261115000000's VERBATIM plus only the order block; members read it, outsiders do not;
- *   - the run: a contested stock to the better position, the loser told who won; a FILL removes the
+ *   - the run: a contested stock to the better position, the winner on the loser's claims row; a
+ *     notice ONLY for a claim that fills (point 11): the loser and a failed claim get none, and the
+ *     CHECK refuses a claim_lost / claim_failed row outright; a FILL removes the
  *     winner's watchlist row through option A's trigger (20261210500000), a loss leaves the loser's; a sale + buy in a
  *     fixed_notional league with funded_by re-mapped to the sale just inserted; winners to the back
  *     in win order; outcomes, notices and the claims_runs row in the same transaction; a second
@@ -31,9 +33,13 @@
  *   - the hold: true only while open < 10 min, claims due, and no row; it lifts by the row, by the
  *     clock (open + 10 min), and is false with no claims or a closed market;
  *   - the weekly reset: reverse standings after a fully scored week; a half-scored week does not
- *     reset; idempotent; the order follows a seat whose user_id changes (takeover);
+ *     reset, nor does a half-WRITTEN game (team1_gain set, team2_gain NULL, two teams), while a
+ *     scored bye never holds a week back; idempotent; the order follows a seat whose user_id changes (takeover);
  *   - the cron: every minute, the vault key, the 180 s timeout, gated on claims_run_day();
- *   - docs/security/2026-12-11-claims-checks.sql reads as documented and its effect block says PASS.
+ *   - docs/security/2026-12-11-claims-checks.sql reads as documented and its effect block says PASS;
+ *   - THE CLOCK: the suite runs on a virtual clock (virtual_clock.ts, ANCHOR) so it passes at any
+ *     wall-clock time, and its last step sweeps ET midnight, the open, the close and a Saturday
+ *     through place_claim, the hold, claims_run_day, the cancel lock and the effect block.
  *
  * NOT covered (one connection): two truly concurrent transactions on the locks.
  *
@@ -46,9 +52,17 @@ import type { DraftRow, LeagueRow, SlotRow } from '../functions/record-trade/com
 import type { TradeRow } from '../functions/_shared/draft-validation.ts';
 import { type ClaimRow, type CommitPlan, type OrderRow, planLeague } from '../functions/claims-run/plan.ts';
 import { fixedNotionalFunding } from '../functions/_shared/draft-validation.ts';
+import { installVirtualClock, type VirtualClock } from './virtual_clock.ts';
 
 const VERSION = '20261211000000';
 const CHECKS_URL = new URL('../../docs/security/2026-12-11-claims-checks.sql', import.meta.url);
+// THE CLOCK. The SQL here reads now() (the calendar, the hold, "is the market closed"), and PGlite's
+// now() follows Date.now (virtual_clock.ts). So the suite runs on a virtual clock that starts at a
+// fixed instant, a Wednesday at noon ET, instead of whenever CI starts: a run at 23:45 ET once built
+// a calendar row that wrapped past midnight (close < open) and failed four steps. The last step then
+// moves the clock across the edges that matter (ET midnight, the open, the close, a weekend) and
+// re-checks the clock-dependent paths and the post-push effect block at each one.
+const ANCHOR = '2026-12-16T17:00:00Z'; // Wed 2026-12-16 12:00 EST
 
 const A = '00000000-0000-4000-8000-0000000000a1';
 const B = '00000000-0000-4000-8000-0000000000b2';
@@ -70,6 +84,17 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   async fn(t) {
+    const clock = installVirtualClock(ANCHOR);
+    try {
+      await suite(t, clock);
+    } finally {
+      clock.restore();
+    }
+  },
+});
+
+// The suite body (indented as it was inside Deno.test's fn, to keep the diff small).
+async function suite(t: Deno.TestContext, clock: VirtualClock) {
     const db = new PGlite();
     const q = async (s: string, p: unknown[] = []) => (await db.query<Row>(s, p)).rows;
     const one = async (s: string, p: unknown[] = []) => (await q(s, p))[0];
@@ -100,7 +125,10 @@ Deno.test({
 
     // ---- the market calendar, driven relative to the real clock -----------------------------------
     // closed: today is no session; tomorrow is (next_open_at = tomorrow 09:30 ET).
-    // open:   today is a session that opened `minutesAgo` minutes ago (clamped inside the ET day).
+    // open:   today is a session that opened `minutesAgo` minutes ago and closes an hour from now.
+    //         A real session never spans ET midnight (the CHECK: open_et < close_et), so this REFUSES
+    //         rather than clamp when the ET day is too young or too old for it; on the virtual clock
+    //         (ANCHOR, noon ET) it never has to.
     const etToday = async () => (await one(`select (now() at time zone 'America/New_York')::date::text d`)).d as string;
     async function marketClosed() {
       await db.exec(`delete from market_calendar; delete from market_calendar_coverage;`);
@@ -113,9 +141,12 @@ Deno.test({
       await db.exec(`delete from market_calendar; delete from market_calendar_coverage;`);
       await q(`insert into market_calendar_coverage (covered_from, covered_through)
                values ((now() at time zone 'America/New_York')::date - 7, (now() at time zone 'America/New_York')::date + 30)`);
+      const w = await one(`select (n - make_interval(mins => $1))::date = n::date and (n + interval '1 hour')::date = n::date ok, n::text n
+                             from (select now() at time zone 'America/New_York' n) x`, [minutesAgo]);
+      if (!w.ok) throw new Error(`marketOpen(${minutesAgo}): a session around ${w.n} ET would span midnight`);
       await q(`insert into market_calendar (session_date, open_et, close_et)
-               select d, greatest(time '00:00', (n - make_interval(mins => $1))::time), least(time '23:59:59', (n + interval '1 hour')::time)
-                 from (select (now() at time zone 'America/New_York') n, (now() at time zone 'America/New_York')::date d) x`, [minutesAgo]);
+               select n::date, (n - make_interval(mins => $1))::time, (n + interval '1 hour')::time
+                 from (select now() at time zone 'America/New_York' n) x`, [minutesAgo]);
     }
     const tomorrow = async () => (await one(`select ((now() at time zone 'America/New_York')::date + 1)::text d`)).d as string;
 
@@ -231,9 +262,21 @@ Deno.test({
         ['claims', 'claims_select_own', 'SELECT', '{authenticated}', '((user_id = (auth.uid())::text) AND is_member(league_id))'],
         ['waiver_order', 'waiver_order_select_member', 'SELECT', '{authenticated}', 'is_member(league_id)'],
       ]);
-      // The kind CHECK carries the three new kinds.
+      // The kind CHECK carries ONE new kind, claim_won (point 11: a notice only for a claim that fills),
+      // keeps every earlier kind, and has no kind for a claim that did not go through.
       const [k] = await q(`select pg_get_constraintdef(oid) d from pg_constraint where conname = 'league_notifications_kind_check'`);
-      for (const kind of ['claim_won', 'claim_lost', 'claim_failed', 'seat_taken_over', 'draft_order_set']) assert(k.d.includes(`'${kind}'`), kind);
+      for (const kind of ['claim_won', 'seat_taken_over', 'draft_order_set']) assert(k.d.includes(`'${kind}'`), kind);
+      for (const kind of ['claim_lost', 'claim_failed']) assert(!k.d.includes(`'${kind}'`), kind);
+    });
+
+    await t.step('point 11: the database REFUSES a notice for a claim that did not go through', async () => {
+      for (const kind of ['claim_lost', 'claim_failed']) {
+        const e = await refusal(() => q(`insert into league_notifications (league_id, user_id, kind, detail) values ($1, $2, $3, '{}')`, [L, A, kind]));
+        assert(e.message.includes('league_notifications_kind_check'), `${kind}: ${e.message}`);
+      }
+      // The one kind that exists is accepted (the same insert shape), then removed again.
+      await q(`insert into league_notifications (league_id, user_id, kind, detail) values ($1, $2, 'claim_won', '{"probe":true}')`, [L, A]);
+      await q(`delete from league_notifications where league_id = $1 and detail->>'probe' = 'true'`, [L]);
     });
 
     await t.step('finalize_league_draft: 20261115000000 VERBATIM plus only the order block; the order is the reverse draft order', async () => {
@@ -348,11 +391,11 @@ Deno.test({
         already_ran: boolean; claims: ClaimRow[]; order: OrderRow[];
       };
     }
-    async function makePlan(lg: string, runDate: string, prices: Record<string, number>): Promise<CommitPlan> {
+    async function makePlan(lg: string, runDate: string, prices: Record<string, number>, openAgoMs = 60_000): Promise<CommitPlan> {
       const st = await state(lg, runDate);
       const ld = await ledgerOf(lg);
       const r = planLeague({
-        runDate, sessionOpenMs: Date.now() - 60_000, nowMs: Date.now(), seasonEnd: null,
+        runDate, sessionOpenMs: Date.now() - openAgoMs, nowMs: Date.now(), seasonEnd: null,
         ...ld, claims: st.claims, order: st.order,
         prices: new Map(Object.entries(prices)),
         draftable: new Set(SYMS.filter(([, d]) => d).map(([s]) => s)),
@@ -364,7 +407,7 @@ Deno.test({
     const commit = async (lg: string, runDate: string, plan: unknown) =>
       (await as('service_role', null, () => one(`select public.commit_claims_run($1, $2::date, $3) r`, [lg, runDate, JSON.stringify(plan)]))).r;
 
-    await t.step('the run: a contested stock, the loser told who won, winners to the back, notices, the row', async () => {
+    await t.step('the run: a contested stock, a failed claim, winners to the back, a notice ONLY per fill, the row', async () => {
       await marketClosed();
       const run = await tomorrow();
       // Order is D, H, bot-1, C, B, A: C before B before A.
@@ -372,14 +415,19 @@ Deno.test({
       assertEquals(pa.ok, true, JSON.stringify(pa));
       assertEquals((await place(C, L, 'NVDA')).ok, true);
       assertEquals((await place(B, L, 'MSFT', 'BBB')).ok, true);
+      // A's second claim never prints a price; the plan runs past the shared wait, so it fails no_price.
+      assertEquals((await place(A, L, 'XF')).ok, true);
       // All three watch the stock they claimed (option A, 20261210500000: a stock you come to own
       // leaves your watchlist, by its trigger on trades; the claims run builds no removal of its own).
       await q(`insert into watchlist (league_id, user_id, symbol) values ($1, $2, 'NVDA'), ($1, $3, 'NVDA'), ($1, $4, 'MSFT')`, [L, A, C, B]);
-      const plan = await makePlan(L, run, { NVDA: 120.004, MSFT: 400, BBB: 101.5 });
+      const plan = await makePlan(L, run, { NVDA: 120.004, MSFT: 400, BBB: 101.5 }, 4 * 60_000);
       const res = await commit(L, run, plan);
-      assertEquals(res, { ok: true, won: 2, lost: 1, failed: 0, missed: 0 });
-      const rows = await q(`select user_id, symbol, status, reason, outcome, buy_trade_id is not null hb, sell_trade_id is not null hs, pending_slot from claims where league_id = $1 order by user_id`, [L]);
+      assertEquals(res, { ok: true, won: 2, lost: 1, failed: 1, missed: 0 });
+      const rows = await q(`select user_id, symbol, status, reason, outcome, buy_trade_id is not null hb, sell_trade_id is not null hs, pending_slot from claims where league_id = $1 and symbol <> 'XF' order by user_id`, [L]);
       const byUser = Object.fromEntries(rows.map((r: Row) => [r.user_id, r]));
+      // The claim that failed keeps its status and reason on its row (the only record of it).
+      const xf = await one(`select status, reason, outcome->>'price_symbol' ps, pending_slot from claims where league_id = $1 and symbol = 'XF'`, [L]);
+      assertEquals(xf, { status: 'failed', reason: 'no_price', ps: 'XF', pending_slot: null });
       assertEquals([byUser[C].status, byUser[C].hb, Number(byUser[C].outcome.price)], ['won', true, 120]);
       assertEquals([byUser[A].status, byUser[A].reason, byUser[A].outcome.winner_user_id], ['lost', 'waiver_order', C]);
       assertEquals([byUser[B].status, byUser[B].hb, byUser[B].hs, Number(byUser[B].outcome.sell_price)], ['won', true, true, 101.5]);
@@ -389,14 +437,24 @@ Deno.test({
       assertEquals(tr.map((r: Row) => [r.u, r.symbol, r.action, r.p]).sort(), [[B, 'BBB', 'sell', 101.5], [B, 'MSFT', 'buy', 400], [C, 'NVDA', 'buy', 120]].sort());
       // Winners to the back, in WIN order (C won before B: C's position is better).
       assertEquals(await order(L), [D, H, 'bot-1', A, C, B]);
-      // Notices: one per claim, to the claimant only; the loser's names the winner.
-      const ns = await q(`select user_id, kind, subject_user_id, detail->>'symbol' s, push_status from league_notifications where league_id = $1 and kind like 'claim_%' order by user_id`, [L]);
-      assertEquals(ns.map((r: Row) => [r.user_id, r.kind, r.subject_user_id, r.s, r.push_status]), [
-        [A, 'claim_lost', C, 'NVDA', 'pending'], [B, 'claim_won', null, 'MSFT', 'pending'], [C, 'claim_won', null, 'NVDA', 'pending'],
+      // Notices (point 11): ONLY the claims that filled, one each, to the claimant. The loser (A, NVDA)
+      // and the failed claim (A, XF) get nothing at all: not a claim_ row, not any row of any kind.
+      const ns = await q(`select user_id, kind, subject_user_id, detail->>'symbol' s, detail ? 'reason' has_reason, detail ? 'winner_user_id' has_winner, push_status
+                            from league_notifications where league_id = $1 and kind like 'claim_%' order by user_id`, [L]);
+      assertEquals(ns.map((r: Row) => [r.user_id, r.kind, r.subject_user_id, r.s, r.has_reason, r.has_winner, r.push_status]), [
+        [B, 'claim_won', null, 'MSFT', false, false, 'pending'], [C, 'claim_won', null, 'NVDA', false, false, 'pending'],
       ]);
-      assertEquals((await as('authenticated', A, () => q(`select kind from league_notifications where kind like 'claim_%'`))).map((r: Row) => r.kind), ['claim_lost'], 'owner-only notices');
+      assertEquals((await one(`select count(*)::int n from league_notifications where league_id = $1 and user_id = $2`, [L, A])).n, 0, 'A lost one claim and failed one: no notice of any kind');
+      // The claim_won detail is an ALLOW-LIST: the claimant's own claim and fill, nothing about anyone else.
+      const keys = await q(`select user_id, (select array_agg(k order by k) from jsonb_object_keys(detail) k) ks from league_notifications where league_id = $1 and kind = 'claim_won' order by user_id`, [L]);
+      // ('slot' joins them in a slotted league: the claimant's own slot.) A new key must be added here on purpose.
+      const WON_KEYS = ['claim_id', 'position', 'price', 'quantity', 'run_date', 'sell_price', 'sell_quantity', 'sell_symbol', 'slot_id', 'symbol'];
+      assertEquals(keys.map((r: Row) => [r.user_id, r.ks]), [[B, WON_KEYS], [C, WON_KEYS]], 'claim_won detail keys, exactly');
+      assertEquals((await one(`select count(*)::int n from league_notifications where league_id = $1 and (detail->>'claim_id')::uuid in (select id from claims where league_id = $1 and status <> 'won')`, [L])).n, 0, 'no notice names a claim that did not fill');
+      assertEquals((await as('authenticated', C, () => q(`select kind, detail->>'symbol' s from league_notifications where kind like 'claim_%'`))).map((r: Row) => [r.kind, r.s]), [['claim_won', 'NVDA']], 'owner-only notices');
+      assertEquals((await as('authenticated', A, () => q(`select kind from league_notifications where kind like 'claim_%'`))), [], 'the loser reads nothing');
       const runRow = await one(`select claims_won, claims_lost, claims_failed, claims_missed from claims_runs where league_id = $1 and run_date = $2::date`, [L, run]);
-      assertEquals([runRow.claims_won, runRow.claims_lost, runRow.claims_failed, runRow.claims_missed], [2, 1, 0, 0]);
+      assertEquals([runRow.claims_won, runRow.claims_lost, runRow.claims_failed, runRow.claims_missed], [2, 1, 1, 0]);
       // The claim FILL removed the winners' watched rows; the loser still watches the stock.
       const watched = await q(`select user_id, symbol from watchlist where league_id = $1 order by user_id, symbol`, [L]);
       assertEquals(watched.map((r: Row) => [r.user_id, r.symbol]), [[A, 'NVDA']], 'won: gone (B MSFT, C NVDA); lost: kept (A NVDA)');
@@ -510,6 +568,7 @@ Deno.test({
       assertEquals(missed.outcomes.map((o) => o.reason), ['missed_run']);
       assertEquals(await commit(L, run, missed), { ok: true, won: 0, lost: 0, failed: 0, missed: 1 });
       assertEquals((await one(`select status, reason from claims where league_id = $1 and symbol = 'XC'`, [L])), { status: 'failed', reason: 'missed_run' });
+      assertEquals((await one(`select count(*)::int n from league_notifications where league_id = $1 and detail->>'symbol' = 'XC'`, [L])).n, 0, 'a missed claim writes no notice (point 11)');
     });
 
     await t.step('cancel is only until the run can start: refused at and after the open of its run date (claim_locked)', async () => {
@@ -557,7 +616,6 @@ Deno.test({
       assertEquals(await hold(L2), false, 'the run committed');
       await q(`delete from claims_runs where league_id = $1 and run_date = $2::date`, [L2, today]);
       await marketOpen(11);
-      // (When the ET day is under 11 minutes old the open clamps to midnight and the case is still past 10.)
       // The job is DEAD: claims still pending, no claims_runs row at all. The hold still lifts.
       assertEquals((await one(`select count(*)::int n from claims_runs where league_id = $1 and run_date = $2::date`, [L2, today])).n, 0, 'no row');
       assertEquals((await one(`select count(*)::int n from claims where league_id = $1 and status = 'pending'`, [L2])).n, 1, 'still pending');
@@ -578,7 +636,18 @@ Deno.test({
       // Week 1 half scored: no reset.
       await q(`update matchups set team1_gain = 5, team2_gain = 1, winner_user_id = team1_user_id where league_id = $1 and week_number = 1 and team1_user_id = $2`, [L, A]);
       assertEquals((await as('service_role', null, () => one(`select public.reset_due_waiver_orders() r`))).r.reset, 0, 'a half-scored week is not scored');
-      await q(`update matchups set team1_gain = 3, team2_gain = 2, winner_user_id = team1_user_id where league_id = $1 and week_number = 1 and team1_gain is null`, [L]);
+      // A scored BYE (team2_user_id NULL keeps team2_gain NULL by design) never holds a week back.
+      await q(`insert into matchups (league_id, week_number, team1_user_id, team2_user_id, week_start, week_end, team1_gain)
+               select league_id, 1, 'bot-1', null, week_start, week_end, 0.5 from matchups where league_id = $1 and week_number = 1 limit 1`, [L]);
+      // HALF-WRITTEN (Copilot on #608): every other week-1 game is scored, but C v bot-1 has
+      // team1_gain written and team2_gain still NULL with two teams. The week is NOT scored.
+      await q(`update matchups set team1_gain = 3, team2_gain = 2, winner_user_id = team1_user_id where league_id = $1 and week_number = 1 and team1_gain is null and team1_user_id <> $2`, [L, C]);
+      await q(`update matchups set team1_gain = 4, winner_user_id = team1_user_id where league_id = $1 and week_number = 1 and team1_user_id = $2`, [L, C]);
+      assertEquals((await one(`select count(*)::int n from matchups where league_id = $1 and week_number = 1 and team1_gain is null`, [L])).n, 0, 'every team1_gain is written');
+      assertEquals((await as('service_role', null, () => one(`select public.reset_due_waiver_orders() r`))).r, { reset: 0, failed: [] }, 'a half-written non-bye game leaves its week unscored');
+      assertEquals((await one(`select coalesce(max(reset_through_week), 0)::int w from waiver_order_meta where league_id = $1`, [L])).w, 0, 'no reset recorded');
+      // Its second half lands: now the week is scored and the order resets.
+      await q(`update matchups set team2_gain = 1 where league_id = $1 and week_number = 1 and team1_user_id = $2`, [L, C]);
       const r1 = (await as('service_role', null, () => one(`select public.reset_due_waiver_orders() r`))).r;
       assert(r1.reset >= 1 && r1.failed.length === 0, JSON.stringify(r1));
       const ranked = (await q(`select user_id from league_standings_ranked($1, 1) order by rank desc`, [L])).map((r: Row) => r.user_id);
@@ -614,5 +683,67 @@ Deno.test({
       assert(r.message.startsWith('PASS'), r.message);
       assertEquals((await one(`select count(*)::int n from claims`)).n, before, 'rolled back');
     });
-  },
-});
+
+    // ---- THE CLOCK SWEEP: the clock-dependent paths at the edges, on a real-shaped calendar ---------
+    // Each point is a real ET instant (December: EST, UTC-5). The calendar is every weekday 09:30 to
+    // 16:00 ET, covered for weeks either side, as refresh-market-calendar keeps prod's. At each point:
+    // the session status, place_claim (refused while open; else ok toward the NEXT session), the hold
+    // and claims_run_day for a claim due Thursday, the cancel lock at Thursday's open, and the post-push
+    // checks' effect block (docs/security/2026-12-11-claims-checks.sql), which Giorgio runs in prod at
+    // whatever hour he runs it.
+    await t.step('the clock sweep: ET midnight, the open, the close and a weekend, through the real SQL and the effect block', async () => {
+      await db.exec(`delete from market_calendar; delete from market_calendar_coverage;`);
+      await q(`insert into market_calendar_coverage (covered_from, covered_through) values ('2026-12-01', '2027-01-15')`);
+      await q(`insert into market_calendar (session_date, open_et, close_et)
+               select d::date, '09:30', '16:00' from generate_series('2026-12-01'::date, '2027-01-15'::date, interval '1 day') d
+                where extract(isodow from d) between 1 and 5`);
+      await q(`delete from claims where league_id in ($1, $2)`, [L, L2]);
+      await q(`delete from claims_runs where league_id in ($1, $2)`, [L, L2]);
+      const THU = '2026-12-17';
+      const effect = (await Deno.readTextFile(CHECKS_URL));
+      const effectBlock = effect.slice(effect.indexOf('-- EFFECT BLOCK'));
+      const points: Array<{ label: string; at: string; open: boolean; next: string | null; hold: boolean; locked: boolean }> = [
+        { label: 'Wed 23:58 ET', at: '2026-12-17T04:58:00Z', open: false, next: THU, hold: false, locked: false },
+        { label: 'Thu 00:02 ET', at: '2026-12-17T05:02:00Z', open: false, next: THU, hold: false, locked: false },
+        { label: 'Thu 09:29 ET', at: '2026-12-17T14:29:00Z', open: false, next: THU, hold: false, locked: false },
+        { label: 'Thu 09:30 ET', at: '2026-12-17T14:30:00Z', open: true, next: null, hold: true, locked: true },
+        { label: 'Thu 09:31 ET', at: '2026-12-17T14:31:00Z', open: true, next: null, hold: true, locked: true },
+        { label: 'Thu 15:59 ET', at: '2026-12-17T20:59:00Z', open: true, next: null, hold: false, locked: true },
+        { label: 'Thu 16:01 ET', at: '2026-12-17T21:01:00Z', open: false, next: '2026-12-18', hold: false, locked: true },
+        { label: 'Sat 12:00 ET', at: '2026-12-19T17:00:00Z', open: false, next: '2026-12-21', hold: false, locked: true },
+      ];
+      for (const p of points) {
+        clock.set(p.at);
+        await clearPacing();
+        const mkt = await one(`select s.status, (s.next_open_at at time zone 'America/New_York')::date::text nd from public.market_session_status(now()) s`);
+        assertEquals(mkt.status, p.open ? 'open' : 'closed', `${p.label}: status`);
+        // place_claim: refused while open; else a claim for the NEXT session, then cancelled.
+        const placed = await place(B, L, 'XE');
+        if (p.open) {
+          assertEquals(placed, { ok: false, reason: 'claim_market_open' }, `${p.label}: place while open`);
+        } else {
+          assertEquals([placed.ok, placed.claim?.run_date, mkt.nd], [true, p.next, p.next], `${p.label}: place toward the next session ${JSON.stringify(placed)}`);
+          assertEquals((await cancel(B, L, 'XE')).cancelled, true, `${p.label}: cancel before its open`);
+        }
+        // A claim due THURSDAY (written as the owner, through the trigger, whatever the clock).
+        await q(`delete from claims where league_id = $1`, [L2]);
+        await q(`insert into claims (league_id, user_id, symbol, funded_by, run_date) values ($1, $2, 'XD', 'cash', $3::date)`, [L2, C, THU]);
+        const hold = (await as('service_role', null, () => one(`select public.claims_hold_active($1) h`, [L2]))).h;
+        assertEquals(hold, p.hold, `${p.label}: hold`);
+        const day = (await as('service_role', null, () => one(`select public.claims_run_day() d`))).d;
+        assertEquals([day.open, day.open ? day.due.includes(L2) : day.due.length], [p.open, p.open ? true : 0], `${p.label}: run day ${JSON.stringify(day)}`);
+        await clearPacing();
+        const cx = await cancel(C, L2, 'XD');
+        assertEquals(cx.reason === 'claim_locked', p.locked, `${p.label}: cancel ${JSON.stringify(cx)}`);
+        await q(`delete from claims where league_id = $1`, [L2]);
+        // The post-push effect block: a PASS at this hour, on the branch the hour calls for.
+        await clearPacing();
+        const before = (await one(`select count(*)::int n from claims`)).n;
+        const r = await refusal(() => db.exec(effectBlock));
+        assert(r.message.startsWith('PASS'), `${p.label}: ${r.message}`);
+        assert(r.message.includes(`market ${p.open ? 'open' : 'closed'}`), `${p.label}: ${r.message}`);
+        assertEquals((await one(`select count(*)::int n from claims`)).n, before, `${p.label}: rolled back`);
+      }
+      clock.set(ANCHOR);
+    });
+}

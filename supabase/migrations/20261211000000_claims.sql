@@ -17,12 +17,15 @@
 --   public.claims_hold_active(league)          record-trade's hold on live trading.
 --   public.reset_due_waiver_orders()           the weekly reset (process-week-results).
 --   public.finalize_league_draft               re-created from 20261115000000, plus the order's init.
---   league_notifications kinds claim_won, claim_lost, claim_failed.
+--   league_notifications kind claim_won: the ONE notice, to a claimant whose claim FILLED. A claim
+--     that did not go through (lost, failed, missed) writes no notice and no message anywhere
+--     (Giorgio, 2026-11-23, PRODUCT_RULES + Stocks tab plan point 11); its status and reason stay
+--     on the claims row. claim_lost / claim_failed are not kinds, so the CHECK refuses them.
 --
 -- BLIND (the plan: "claims are blind, RLS not UI"). claims has ONE policy, SELECT of your own rows in
 --   a league you belong to. No INSERT / UPDATE / DELETE grant to anyone but the owner: every write is
---   a definer function. Nothing else returns a claim: no reader joins it, the notices are owner-only
---   (league_notifications_select_own), and a won claim is visible to others only as the trade it
+--   a definer function. Nothing else returns a claim: no reader joins it, the one notice (claim_won) is
+--   owner-only (league_notifications_select_own), and a won claim is visible to others only as the trade it
 --   made (trades are public in the league, as every buy is). The Available screen learns which listed
 --   stocks the CALLER claimed from `select symbol from claims where league_id = ? and status =
 --   'pending'`: RLS answers only the caller's rows, so nothing about another manager's claim, not
@@ -52,7 +55,7 @@
 --     - ANY refusal rolls the whole league back (a subtransaction) and answers which step and why,
 --       so a sale is never committed without its buy and a partial run never exists;
 --     - writes every claim's outcome, moves the winners to the back in the order they won, queues
---       the notices and inserts the claims_runs row.
+--       a claim_won notice for each FILLED claim only, and inserts the claims_runs row.
 --   The function re-plans on a refusal (fresh reads), bounded; a crash leaves nothing behind.
 --
 -- THE HOLD. claims_hold_active(league): the market is open, it is less than 10 minutes since the
@@ -181,7 +184,7 @@ revoke all on table public.claims_runs       from public, anon, authenticated, s
 grant select on table public.waiver_order to authenticated;
 grant select on table public.claims       to authenticated;
 
--- 3. Notices: three new kinds (a SUPERSET of 20261125000006's list) ----------------------------
+-- 3. Notices: one new kind (a SUPERSET of 20261125000006's list) ------------------------------
 
 alter table public.league_notifications
   drop constraint if exists league_notifications_kind_check;
@@ -194,9 +197,8 @@ alter table public.league_notifications
     'draft_room_open', 'draft_started', 'draft_at_risk', 'draft_at_risk_reminder',
     'draft_postponed', 'draft_time_set',
     'seat_taken_over',
-    'claim_won',                 -- 20261211000000: to the claimant, at the run
-    'claim_lost',                -- 20261211000000: to the claimant; subject = the winner
-    'claim_failed'               -- 20261211000000: to the claimant, with the reason
+    'claim_won'                  -- 20261211000000: to the claimant whose claim FILLED, at the run.
+                                 -- No kind exists for a claim that did not go through (point 11).
   ));
 
 -- 4. Helpers -------------------------------------------------------------------------------------
@@ -862,13 +864,15 @@ begin
           detail = jsonb_build_object('reason', 'claims_changed', 'claim_id', v_claim.id)::text;
       end if;
 
-      insert into public.league_notifications (league_id, user_id, kind, subject_user_id, detail)
-      values (p_league_id, v_claim.user_id,
-              case v_status when 'won' then 'claim_won' when 'lost' then 'claim_lost' else 'claim_failed' end,
-              case when v_status = 'lost' then v_out -> 'detail' ->> 'winner_user_id' end,
-              coalesce(v_out -> 'detail', '{}'::jsonb) || jsonb_build_object(
-                'claim_id', v_claim.id, 'symbol', v_claim.symbol, 'sell_symbol', v_claim.sell_symbol,
-                'run_date', p_run_date, 'reason', case when v_status = 'won' then null else v_out ->> 'reason' end));
+      -- A notice ONLY for a claim that FILLED (point 11). Lost, failed and missed claims write
+      -- nothing here or anywhere else; their status and reason are on the claims row above.
+      if v_status = 'won' then
+        insert into public.league_notifications (league_id, user_id, kind, detail)
+        values (p_league_id, v_claim.user_id, 'claim_won',
+                coalesce(v_out -> 'detail', '{}'::jsonb) || jsonb_build_object(
+                  'claim_id', v_claim.id, 'symbol', v_claim.symbol, 'sell_symbol', v_claim.sell_symbol,
+                  'run_date', p_run_date));
+      end if;
     end loop;
 
     if v_won > 0 then
@@ -892,7 +896,10 @@ $$;
 --
 -- reset_due_waiver_orders() -> jsonb {reset: n, failed: [{league_id, error}]}
 -- For every drafted, unfinished matchup league: W = the highest week through which EVERY matchup is
--- scored (counted, not "any row": a week with one unscored game is not scored). When W passed the
+-- scored (counted, not "any row": a week with one unscored game is not scored). A game is scored
+-- only when BOTH halves are written: team1_gain set AND, unless it is a bye (team2_user_id NULL keeps
+-- team2_gain NULL by design), team2_gain set. A half-written game (team1_gain set, team2_gain NULL,
+-- two teams) leaves its week unscored (Copilot on #608, the partial-state family). When W passed the
 -- week the order was last reset through, the order becomes the reverse of league_standings_ranked
 -- through min(W, num_weeks) (last place first; the standings' own tiebreaks), then any member the
 -- ranking does not list, in reverse draft order. Idempotent: called on every process-week-results
@@ -924,7 +931,11 @@ begin
   loop
     begin
       perform pg_advisory_xact_lock(hashtextextended('waiver-order:' || v_l.id::text, 0));
-      select coalesce(min(m.week_number) filter (where m.team1_gain is null) - 1, max(m.week_number))
+      -- The first week with ANY game not fully scored; W is the week before it (or the last week).
+      select coalesce(min(m.week_number) filter (
+                        where m.team1_gain is null
+                           or (m.team2_user_id is not null and m.team2_gain is null)) - 1,
+                      max(m.week_number))
         into v_w from public.matchups m where m.league_id = v_l.id;
       select coalesce(max(wm.reset_through_week), 0) into v_done from public.waiver_order_meta wm where wm.league_id = v_l.id;
       if v_w is null or v_w <= v_done then
