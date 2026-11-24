@@ -204,6 +204,35 @@ this draft first proposed are withdrawn with his ruling of the same day.
      in a day; a new stock is picked at once; with the backlog out of the way a run fills
      with the stocks waiting longest.
 
+5. **What the Researcher found** (2026-11-24, public sources only,
+   `docs/research/2026-11-24-symbol-lifecycle-audit.md`), for 50 well-known names from
+   the audit:
+   - **Frozen on the list, 25 of 25:** the company was bought, merged or taken private,
+     and the ticker is gone from the exchange feed. So the gap is confirmed: a company
+     that has left the market stays on our list.
+   - **No size, 25:** 21 are the OLD ticker of a company that changed its ticker and
+     still trades under the new one (the new ticker is in the feed as its own row); 2
+     were bought; 1 is a new listing; 1 was renamed and carries an exchange warning flag.
+     So most of the well-known names with no size are not companies missing from the
+     list. They are dead tickers, and the live company is on the list under its new one.
+   - **The feed only shows what is listed today.** A ticker that leaves simply stops
+     appearing, and a rename is one row gone and another arrived with nothing joining
+     them. There is no free file of changes; the exchange's own change list is paid.
+   - **One case where gone from the feed did not mean gone:** a company that says it
+     still holds its ticker is in neither feed file. So absence alone is not proof.
+   - **Not settled:** what our size supplier answers for a renamed ticker; and whether
+     the price supplier we already use publishes ticker changes and buy-outs in a form a
+     program can read. If it does, that joins an old ticker to its new one and gives the
+     price a buy-out paid, which the feed cannot. The Researcher is asked.
+   - **What this makes of the fix.** Two parts, and the second needs a ruling of his:
+     (a) a ticker that has left the market leaves the list for everyone who does not hold
+     it. Already ruled; needs a signal that cannot be set off by a short download.
+     (b) what a manager who HOLDS it sees when the company changes its ticker (the real
+     shares carry on under the new one) or is bought (the real shares become cash). Today
+     the holding would freeze at its last price while the real company moves on. Nobody
+     holds one now. This goes to him as a question with drawings once the Researcher's
+     second answer says what can be built.
+
 ## Scope
 
 **In:** the three fixes above; the check that the run happened; the move to the next open;
