@@ -1,14 +1,15 @@
 # Claims, prices and the stock list fix themselves
 
-Status: Draft, for Giorgio's approval. One pick is open (decision 1) and two sentences need his yes. Nothing here is built
+Status: Draft, for Giorgio's approval. One question is open (a notice to his own phone). No new words. Nothing here is built
 Planner session: "Planner" (Fable 5.2), 2026-11-23 · Orchestrator hand-off: this commit
 
 ## Goal
 
-A manager should almost never read "Claims weren't processed on Monday" or "AAPL isn't in
-this league's list of stocks" because of something that went wrong on our side. When a
-claim, a price or the stock list starts to fail for a reason that is ours, the system
-notices and repairs it without a person. The messages stay, as the last resort.
+A claim should not fail to go through because of something that went wrong on our side.
+When a claim, a price or the stock list starts to fail for a reason that is ours, the
+system notices and repairs it without a person. Since his ruling later the same day, a
+claim that does not go through shows no message at all, so nothing tells a manager when we
+got it wrong. That makes the repairs matter more, not less.
 
 ## Giorgio's rules
 
@@ -41,24 +42,26 @@ notices and repairs it without a person. The messages stay, as the last resort.
 ### 1. A claim on a stock with no price at the open
 
 Today's design (the plan for part 3, point 9): wait 3 minutes, then that claim fails.
-**Decision 1 is his, between two fixes:**
 
-- **A. Wait for today's first price.** The claim stays pending and fills at the first
-  price our source shows for that stock today, whenever it comes. While it waits, nobody
-  can buy that stock live in that league, or a fast tapper would take it at yesterday's
-  price. The claim fails only if the whole session passes with no price.
-- **B. After 10 minutes, use the last known price.** The claim fills at the price a live
-  buy would get at that moment, which for a stock that has not traded today is
-  yesterday's. It always fills, and quickly. It can fill at a day-old price.
+**The fix: try for today's price, then use the price a live buy would get.** For the 10
+minutes the league is already held, the run keeps asking for a price from today's session
+for that stock. If none has come by then, the claim fills at the price a live buy of that
+stock would get at that moment, which for a stock that has not traded today is the last
+known one. The sale and the buy are both priced this way. A claim never fails for lack of
+a price.
 
-The Planner recommends A. B hands a bargain to a claim on a stock that jumped overnight
-and has not yet traded on our source, and "at the opening price" would not be true of it.
-A costs more to build and has two consequences he should know: a manager who tries to buy
-that stock live while a claim waits is refused, so they learn that someone has claimed it
-(not who); and one new sentence is needed for the rare day with no price at all.
+This is the Planner's reading of his words, "It has to be automatic at markets open" and
+"at whatever price NVIDIA is" (2026-11-23), told to him as a reading. He was first shown
+two other ways and picked neither letter: waiting through the morning for the stock's
+first price (it needs that stock frozen for everyone else, which tells them it was
+claimed), and waiting with nothing frozen (a fast tapper takes the stock first).
 
-Either way, the rest of the league's claims run at the open as designed. Only the claims
-on the unpriced stock are affected.
+Known and accepted for now: for a quiet stock the last known price can be yesterday's. A
+live buy of the same stock a minute later gets the same price, so the claim is treated as
+every other buy is. Closing that for claims and live buys together needs the price
+supplier, parked on his word.
+
+The rest of the league's claims run at the open as designed.
 
 ### 2. A whole session with no claims run
 
@@ -70,12 +73,14 @@ Today's design: those claims fail ("Claims weren't processed on Monday").
   job cannot be trusted to report its own death (CLAUDE.md, the stranded `running` row).
 - **Claims that reach the close unrun move to the next open by themselves.** Done in the
   database, so it works even when the run's own code is what is broken. The claim stays
-  pending and its row reads the new day ("Claimed · fills Tue 9:30 AM ET"). The manager is
-  told (words below). A claim is never run after the close at that morning's price: the
-  week-end snapshot has already been taken by then.
+  pending and its row reads the new day ("Claimed · fills Tue 9:30 AM ET", approved
+  words). No notice is sent: his ruling is no message for a claim that did not go through.
+  A claim is never run after the close at that morning's price: the week-end snapshot has
+  already been taken by then.
 - The waiver order used is the order at the run that finally happens.
-- "Claims weren't processed on Monday", as an ending, is then left for a claim that could
-  not be moved (the season ended first).
+- A claim cannot be cancelled from the open of its run day until it is resolved or moved.
+  If the run never comes, the move at the close is what frees it (the Planner's ruling on
+  the claims server's `claim_locked`, 2026-11-23).
 
 ### 3. A stock taken off the list by our own stale or broken data
 
@@ -104,22 +109,17 @@ to be called again, claims moved to the next open, a refresh that refused to app
 uses the push path that exists. Without it, the only trace is a row in a status table
 nobody is looking at.
 
-## Words that need his yes
+## Words
 
-1. Claims moved to the next open (a push, and the claim's row shows the new time):
-   **"Claims weren't processed on Monday. Your AAPL claim moves to Tuesday's open."** The
-   first sentence is approved (2026-11-23); the second is new.
-2. Only if he picks A: the rare day with no price at all:
-   **"AAPL had no price on Monday"**, with "Nothing was bought." under it.
-3. Only if he picks A: what a live buyer of a stock with a waiting claim reads. The
-   approved "Claims are being processed. Try again in a minute." would be untrue of a
-   wait that can last hours. The Design Lead words it; it comes to him.
+None. A moved claim uses the approved "Claimed · fills {day} 9:30 AM ET". The sentences
+this draft first proposed are withdrawn with his ruling of the same day.
 
 ## Open questions
 
-1. Decision 1, A or B. His.
-2. A push to his own phone when a repair runs. His; the Planner recommends yes.
-3. The share that counts as "many stocks at once" in fix 3. The worker proposes it from a
+1. A push to his own phone when a repair runs or cannot (fix 4). His; the Planner
+   recommends yes. It is a notice to the owner about the system, not a message to a
+   manager about a claim.
+2. The share that counts as "many stocks at once" in fix 3. The worker proposes it from a
    read-only count of how many stocks normally change in one refresh; the Planner agrees
    it before it is built.
 
@@ -140,9 +140,12 @@ drop a tenth of its stocks).
 
 ## Risks
 
-- Fix 2 and fix 1A add states a claim can be in (waiting for a price; moved a day). Each
-  is one more thing the run must not get half right: every state has a test for the
-  partly done case, and each repair can be run twice without doing its work twice.
+- Fix 2 adds a state a claim can be in (moved a day). It is one more thing the run must
+  not get half right: it has a test for the partly done case, and each repair can be run
+  twice without doing its work twice.
+- With no message for a claim that did not go through, a fault of ours is invisible to
+  the manager it hurt. The check on the run and the notice to the owner (open question 1)
+  are the only way it is seen.
 - The check on the run shares the database's scheduler with the run. If the scheduler
   itself stops, neither fires. That also stops weekly scoring and is outside this plan;
   the move to the next open still happens when it returns.
@@ -156,18 +159,19 @@ assigns migration ranges after the latest applied.
 
 | # | Workstream | Model | His steps after it |
 |---|---|---|---|
-| 1 | The run: decision 1, and judging a claimed stock on fresh numbers | Opus, both reviewers | a deploy of `claims-run` |
+| 1 | The run: the price fallback (fix 1), and judging a claimed stock on fresh numbers | Opus, both reviewers | a deploy of `claims-run` |
 | 2 | The check that the run happened, and the move to the next open | Opus, both reviewers | `db push`, then a look by data |
 | 3 | The refresh: keep a known size; refuse a mass drop | Opus | a deploy of `enrich-symbols` |
-| 4 | The app: the moved claim's row and push; the words | Sonnet, Design Lead gate | none |
+| 4 | The app: a moved claim's row shows its new time | Sonnet, Design Lead gate | none |
 
 ## Done means
 
-1. With the price source answering nothing for one claimed stock at the open, the other
-   claims in the league still run, and that one behaves as decision 1 says.
+1. With the price source answering nothing from today's session for one claimed stock,
+   the other claims in the league run at the open, and that one fills within the
+   10-minute hold at the price a live buy would get.
 2. With the run's code made to fail for a whole session, every pending claim is pending
-   for the next session by the end of the day, its manager was told once, and nothing was
-   bought or sold.
+   for the next session by the end of the day, no manager was sent anything, and nothing
+   was bought or sold.
 3. A refresh that answers "ok" with no size leaves the stock's size and its place on the
    list unchanged.
 4. A refresh that would take a tenth of its stocks off the list changes none of them and
