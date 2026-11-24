@@ -617,11 +617,29 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
     - **Cash leagues.** Two claims paid from the budget need no rule: each fills if the
       budget still covers it, and the second fails as over budget if it does not.
     - **Unchanged:** one claim per stock per manager; five pending at most.
-    - **The app (workstream 7).** The Claims list shows the order and lets the manager
-      change it; ESPN's control is a drag. The Design Lead draws it, with what a void claim
-      reads, and both go to Giorgio. The Planner's recommendation for the void claim: it
-      shows in the Claims list and sends no push, because the manager got their first
-      choice and a second message about it is noise.
+    - **The app (workstream 7).** ANSWERED 2026-11-23 (`docs/PRODUCT_RULES.md`): the order
+      is changed by dragging (a grip at the right, or press and hold). A claim that did
+      not go through, for any reason, gets no notification and no message; after the run
+      it is simply no longer pending.
+11. **Only what went through is shown** (his ruling, 2026-11-23, with ESPN's Waiver Report
+    and Recent Activity as the model). It replaces the endings of the October plan and of
+    point 9 for everything but a claim that fills.
+    - **Server.** A notification row and a push are written for a claim that fills, and
+      for no other outcome. The claims server (#608) writes rows for lost and failed
+      claims too; that is removed, in #608 before it merges or in the change that follows
+      it. Each claim's status and reason stay recorded on the claim.
+    - **The report.** For each run, the league can see what filled: per manager, in the
+      order they were served, the stock bought and the stock sold. It is public to the
+      league after the run, as holdings are; a claim that did not fill appears nowhere,
+      so nobody learns of it, the claimant's own screen included. The read returns filled
+      claims only, to members only, and nothing about pending or unfilled ones.
+    - **The app.** Where the report and the league's activity live, and how they look, is
+      the Design Lead's to draw from his two screenshots, and his to pick. Until that
+      pick, workstream 7 builds the pending list, the drag, the composer and the push for
+      a filled claim, and shows nothing after the run for a claim that did not fill.
+    - **The self-fixing plan** (`2026-11-23-claims-fix-themselves.md`, a draft) loses its
+      notice for claims moved to the next open: the claim stays pending and its row shows
+      the new time. No push, no sentence.
     - **Tests.** A's first choice is taken by a manager ahead of them and A's second fills
       in the same turn; two claims on one sale, first fills, second void with the sale
       made once; first loses, second fills with that sale; a reorder after the run has
