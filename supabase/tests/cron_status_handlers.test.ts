@@ -116,7 +116,12 @@ function install(fake: Fake): () => void {
       return new Response(JSON.stringify(row ? [row] : []), { status: 200, headers: JSON_HEADERS });
     }
     if (url.pathname.startsWith('/rest/v1/rpc/')) {
-      fake.rpcs.push(url.pathname.split('/').pop()!);
+      const name = url.pathname.split('/').pop()!;
+      fake.rpcs.push(name);
+      // The waiver order's weekly reset (20261211000000) answers its real shape: nothing due.
+      if (name === 'reset_due_waiver_orders') {
+        return new Response(JSON.stringify({ reset: 0, failed: [] }), { status: 200, headers: JSON_HEADERS });
+      }
       return new Response('null', { status: 200, headers: JSON_HEADERS });
     }
     // Any other table reads as empty.
@@ -273,6 +278,36 @@ Deno.test('process-week-results M3: with the read failing, a no-op NEVER replace
   await run(fake, () => call(h));
   assertEquals(fake.row(PWR)!.status, 'failed');
 });
+
+Deno.test('process-week-results: the waiver order reset runs on a quiet week too, and is in the message', async () => {
+  const h = await load(PWR);
+  const fake = new Fake();
+  fake.route = (r) => r.url.pathname === '/rest/v1/rpc/reset_due_waiver_orders'
+    ? (fake.rpcs.push('reset_due_waiver_orders'),
+      new Response(JSON.stringify({ reset: 2, failed: [] }), { status: 200, headers: JSON_HEADERS }))
+    : undefined;
+  const res = await run(fake, () => call(h));
+  assertEquals(res.status, 200);
+  assert(fake.rpcs.includes('reset_due_waiver_orders'), 'called on the no-pending path');
+  assertEquals(fake.row(PWR)!.status, 'success');
+  assert(fake.row(PWR)!.error_message!.endsWith('; waiver orders reset 2'), fake.row(PWR)!.error_message ?? 'null');
+});
+
+for (const [label, reply] of [
+  ['a resolved Postgres error', new Response(JSON.stringify({ message: 'boom', code: 'XX000' }), { status: 500, headers: JSON_HEADERS })],
+  ['one league failing inside it', new Response(JSON.stringify({ reset: 1, failed: [{ league_id: 'L1', error: 'x' }] }), { status: 200, headers: JSON_HEADERS })],
+  ['an unexpected reply', new Response('null', { status: 200, headers: JSON_HEADERS })],
+] as const) {
+  Deno.test(`process-week-results: a waiver order reset failure (${label}) ends 'failed', never success`, async () => {
+    const h = await load(PWR);
+    const fake = new Fake();
+    fake.route = (r) => r.url.pathname === '/rest/v1/rpc/reset_due_waiver_orders' ? reply.clone() : undefined;
+    const res = await run(fake, () => call(h));
+    assertEquals(res.status, 200, 'the scoring answer is unchanged');
+    assertEquals(fake.statusWrites, ['running', 'failed']);
+    assert(fake.row(PWR)!.error_message!.includes('waiver order reset FAILED'), fake.row(PWR)!.error_message ?? 'null');
+  });
+}
 
 Deno.test('process-week-results: unauthenticated → 401 and NO status row (no forged rows)', async () => {
   const h = await load(PWR);

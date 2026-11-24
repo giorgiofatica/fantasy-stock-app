@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { groupMatchupsByLeagueWeek } from './grouping.ts';
 import { recordOutcome } from './outcome-record.ts';
+import { resetDueWaiverOrders, waiverResetNote } from './waiver-reset.ts';
 import {
   decideMatchupOutcome,
   willAdvanceWinner,
@@ -525,11 +526,27 @@ Deno.serve(async (req) => {
 
     if (pendingMatchups.length === 0) {
       console.log('No pending matchups to process');
+      // The waiver order's weekly reset (waiver-reset.ts): retried on every run, quiet
+      // ones included, so a reset an earlier run failed to write is healed here.
+      const waiver = waiverResetNote(await resetDueWaiverOrders(supabase));
+      if (waiver.failed) {
+        console.error(`process-week-results${waiver.note}`);
+        return {
+          outcome: { status: 'failed', attempt: 1, message: `${noPendingMessage(transitionsRefused)}${waiver.note}`, work: 0 },
+          response: json({
+            message: 'No pending matchups',
+            processed: 0,
+            skipped: transitionRefusals,
+            skipped_count: transitionRefusals.length,
+            waiver_reset: 'failed',
+          }),
+        };
+      }
       // Terminal success: the common weekly path. The schema has no distinct
       // "nothing to do" status, so the message carries it, and work: 0 lets the
       // same-day rule keep an earlier run's evidence (a no-op heal never replaces it).
       return {
-        outcome: { status: 'success', attempt: 1, message: noPendingMessage(transitionsRefused), work: 0 },
+        outcome: { status: 'success', attempt: 1, message: `${noPendingMessage(transitionsRefused)}${waiver.note}`, work: 0 },
         response: json({
           message: 'No pending matchups',
           processed: 0,
@@ -1261,6 +1278,30 @@ Deno.serve(async (req) => {
 
     console.log(`Processed ${processedCount} matchups`);
 
+    // The waiver order's weekly reset (waiver-reset.ts), AFTER every scoring and
+    // standings write above, so the order is the reverse of the standings this run
+    // produced. A failure turns the run 'failed' (with the scored count kept in the
+    // message) and the next run retries it.
+    const waiver = waiverResetNote(await resetDueWaiverOrders(supabase));
+    if (waiver.failed) {
+      console.error(`process-week-results${waiver.note}`);
+      return {
+        outcome: {
+          status: 'failed', attempt: 1,
+          message: `${scoredMessage(processedCount, skipped.length - transitionsRefused, transitionsRefused)}${waiver.note}`,
+          work: processedCount,
+        },
+        response: json({
+          message: 'Processing complete',
+          processed: processedCount,
+          results,
+          skipped,
+          skipped_count: skipped.length,
+          waiver_reset: 'failed',
+        }),
+      };
+    }
+
     // Terminal success. Always with a summary — never NULL — so the message
     // column is never a scored-vs-nothing-to-do discriminator. work is the number
     // of matchups scored: a run that scored some always overwrites the same-day
@@ -1268,7 +1309,7 @@ Deno.serve(async (req) => {
     return {
       outcome: {
         status: 'success', attempt: 1,
-        message: scoredMessage(processedCount, skipped.length - transitionsRefused, transitionsRefused),
+        message: `${scoredMessage(processedCount, skipped.length - transitionsRefused, transitionsRefused)}${waiver.note}`,
         work: processedCount,
       },
       response: json({

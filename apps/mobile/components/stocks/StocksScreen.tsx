@@ -23,6 +23,10 @@
  * above), Watching (the stocks you saved in this league, WatchingList). Claims joins the switch in workstream 7. Every row
  * carries a star at its right edge (the "+" stays at the left): a tap flips it at once and a save that does not go through
  * puts it back (watchlist.ts). A stock you own gets no star in search; a full list (50) opens the stock's sheet, which says so.
+ *
+ * TOP MOVERS (plan part 3, workstream 5). A chip after "All" in the chip row: it swaps the Available list for MoversList (up to 25 stocks
+ * nobody in the league owns, biggest move first, each row's price and today's change from the live lookup). Choosing a category or "All"
+ * puts the Available list back. The read is useTopMovers; its rules (an empty or old ranking is "Stocks didn't load") are topMovers.ts.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
@@ -41,6 +45,7 @@ import { ShellHeader } from '@/components/shell/ShellHeader';
 import { useScrollFold } from '@/components/shell/scrollFold';
 import { LoadFailure } from '@/components/money/LoadFailure';
 import { useStockSheet } from '@/components/money/MoneyHost';
+import { MoversList } from '@/components/stocks/MoversList';
 import { SearchRow } from '@/components/stocks/SearchRow';
 import { StarButton } from '@/components/stocks/StarButton';
 import { WatchingList } from '@/components/stocks/WatchingList';
@@ -49,19 +54,21 @@ import { keepMoney } from '@/lib/game/keepDots';
 import { useLeagueContext } from '@/lib/LeagueContext';
 import { fetchCategories } from '@/lib/categoryData';
 import { SEAM_ON } from '@/lib/game/devSeam';
+import { SEAM_MARKET_CLOSED } from '@/lib/game/seamCalls';
 import { COPY } from '@/lib/money/moneyCopy';
 import { useMoneyStockSearch } from '@/lib/money/useMoneyStockSearch';
 import { useCaptureAction } from '@/lib/money/captureScript';
 import { isSeasonOver } from '@/lib/weekStatus';
 import type { ShapedSearchResult } from '@/lib/symbolSearch';
-import { SEAM_STOCK_CATEGORIES } from '@/lib/stocks/seamStocks';
+import { SEAM_LAST_SESSION, SEAM_STOCK_CATEGORIES } from '@/lib/stocks/seamStocks';
+import type { LastSession } from '@/lib/stocks/topMovers';
+import { TOP_MOVERS_CHIP_ID, chipsWithMovers, lastSessionBefore, lastSessionDayWord, selectedChipId } from '@/lib/stocks/topMovers';
+import { useTopMovers, type UseTopMovers } from '@/lib/stocks/useTopMovers';
 import { useStocksList } from '@/lib/stocks/useStocksList';
 import { useRowPrices } from '@/lib/stocks/useRowPrices';
 import { useSearchOwnership } from '@/lib/stocks/useSearchOwnership';
 import { useWatchlist, type UseWatchlist } from '@/lib/stocks/useWatchlist';
 import { SWITCH_SEGMENTS, isSaved, showsSearchStar, type StocksView } from '@/lib/stocks/watchlist';
-import { shortWeekdayEt } from '@/lib/stocks/rowQuotes';
-import { lastSessionCloseBefore } from '@/lib/time/marketWeek';
 import {
   CHIP_TEXT_MAX_SCALE,
   ROW_TEXT_MAX_SCALE,
@@ -99,10 +106,25 @@ export function StocksScreen() {
   const wl = useWatchlist(leagueId);
   const [view, setView] = useState<StocksView>('available');
   const [control, setControl] = useState<ControlRow>({ mode: 'chips', query: '' });
+  // The "Top movers" chip: on = MoversList replaces the Available list under the same chip row. It reads only while it is showing.
+  const [moversOn, setMoversOn] = useState(false);
+  const movers = useTopMovers(leagueId, moversOn && view === 'available' && control.mode === 'chips');
+  // A chip: Top movers turns the movers list on; "All" or a category turns it off and (unless it is already the list's) re-reads the list.
+  const onChip = useCallback(
+    (id: string | null) => {
+      if (id === TOP_MOVERS_CHIP_ID) {
+        setMoversOn(true);
+        return;
+      }
+      setMoversOn(false);
+      if (id !== list.state.categoryId || !moversOn) list.selectCategory(id);
+    },
+    [list, moversOn],
+  );
   const dispatchControl = useCallback((action: Parameters<typeof controlReducer>[1]) => setControl((c) => controlReducer(c, action)), []);
 
   // DEV capture only (captureScript): the same handlers a tap runs.
-  useCaptureAction('chip', (id) => list.selectCategory(id && id !== 'all' ? id : null));
+  useCaptureAction('chip', (id) => onChip(id === 'movers' ? TOP_MOVERS_CHIP_ID : id && id !== 'all' ? id : null));
   useCaptureAction('searchopen', () => dispatchControl({ type: 'open_search' }));
   useCaptureAction('view', (v) => setView(v === 'watching' ? 'watching' : 'available'));
   useCaptureAction('star', (sym) => {
@@ -122,10 +144,13 @@ export function StocksScreen() {
   };
   // "today" while the market is open; the last close's short weekday while it is closed ("+1.4% Fri"); nothing is claimed while unknown.
   // (The capture seam has no market read, so it reads as open: the stills show the word.)
-  const marketStatus = market?.status ?? (SEAM_ON ? 'open' : undefined);
-  const dayWord = marketStatus === 'open' ? 'today' : marketStatus === 'closed' ? shortWeekdayEt(lastSessionCloseBefore(new Date(), marketCalendar)) : null;
+  // (A capture knob, `marketclosed`, reads closed with a fixed last close: the stills' "Fri".)
+  const marketStatus = SEAM_MARKET_CLOSED ? 'closed' : (market?.status ?? (SEAM_ON ? 'open' : undefined));
+  // While closed, the day on a figure is the most recent SESSION's, from the market calendar (never the weekday of a ranking's own time).
+  const lastSession = marketStatus === 'closed' ? (SEAM_MARKET_CLOSED ? SEAM_LAST_SESSION : lastSessionBefore(new Date(), marketCalendar)) : null;
+  const dayWord = marketStatus === 'open' ? 'today' : marketStatus === 'closed' ? lastSessionDayWord(lastSession) : null;
 
-  const onRefresh = view === 'watching' ? async () => wl.reload() : control.mode === 'chips' ? list.refresh : undefined;
+  const onRefresh = view === 'watching' ? async () => wl.reload() : control.mode === 'chips' ? (moversOn ? movers.reload : list.refresh) : undefined;
   return (
     <View style={[styles.screen, { backgroundColor: colors.moneyBg }]}>
       <BarsRefresh onRefresh={onRefresh} header={<ShellHeader title="Stocks" showAvatar />} fadeColor={colors.moneyBg} contentContainerStyle={styles.content}>
@@ -137,6 +162,11 @@ export function StocksScreen() {
           onView={setView}
           onStar={onStar}
           dayWord={dayWord}
+          movers={movers}
+          moversOn={moversOn}
+          onChip={onChip}
+          marketClosed={marketStatus === 'closed'}
+          lastSession={lastSession}
           allowUndraftable={!!activeLeague?.allow_undraftable}
           control={control}
           dispatchControl={dispatchControl}
@@ -170,6 +200,11 @@ function StocksBody({
   onView,
   onStar,
   dayWord,
+  movers,
+  moversOn,
+  onChip,
+  marketClosed,
+  lastSession,
   allowUndraftable,
   control,
   dispatchControl,
@@ -182,13 +217,18 @@ function StocksBody({
   onView: (v: StocksView) => void;
   onStar: (symbol: string) => void;
   dayWord: string | null;
+  movers: UseTopMovers;
+  moversOn: boolean;
+  onChip: (id: string | null) => void;
+  marketClosed: boolean;
+  lastSession: LastSession | null;
   allowUndraftable: boolean;
   control: ControlRow;
   dispatchControl: (a: Parameters<typeof controlReducer>[1]) => void;
   seasonOver: boolean;
 }) {
   const categories = useCategories();
-  const chips = useMemo(() => chipsFrom(categories ?? []), [categories]);
+  const chips = useMemo(() => chipsWithMovers(chipsFrom(categories ?? [])), [categories]);
   const options = SWITCH_SEGMENTS.map((x) => ({ label: x.label, value: x.view }));
   return (
     <View style={styles.body}>
@@ -199,11 +239,13 @@ function StocksBody({
       ) : (
       <>
       {control.mode === 'chips' ? (
-        <ChipRow chips={chips} selected={list.state.categoryId} onSelect={list.selectCategory} onSearch={() => dispatchControl({ type: 'open_search' })} />
+        <ChipRow chips={chips} selected={selectedChipId(moversOn, list.state.categoryId)} onSelect={onChip} onSearch={() => dispatchControl({ type: 'open_search' })} />
       ) : (
         <SearchField query={control.query} onChange={(q) => dispatchControl({ type: 'type', query: q })} onCancel={() => dispatchControl({ type: 'cancel' })} />
       )}
-      {control.mode === 'chips' ? (
+      {control.mode === 'chips' && moversOn ? (
+        <MoversList movers={movers} marketClosed={marketClosed} lastSession={lastSession} dayWord={dayWord} plus={showsBuyPlus(seasonOver)} watch={wl.watch} onStar={onStar} />
+      ) : control.mode === 'chips' ? (
         <AvailableList list={list} categories={categories ?? []} seasonOver={seasonOver} wl={wl} onStar={onStar} />
       ) : (
         <SearchResults query={control.query} wl={wl} onStar={onStar} />
