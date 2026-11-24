@@ -480,8 +480,18 @@ end;
 $$;
 
 -- cancel_claim(league, symbol) -> jsonb {ok:true, cancelled:true|false, pending:n} | {ok:false, reason}
--- Your own PENDING claim on that stock, any time it is still pending. A cancel racing the run waits
--- on the run's row lock, then finds the claim resolved: cancelled:false (the run's outcome stands).
+-- Your own PENDING claim on that stock, UNTIL ITS RUN CAN START: the open of the session it was placed
+-- for (its run_date, from market_calendar). At or after that instant the answer is
+-- {ok:false, reason:'claim_locked', run_date} and nothing changes (Copilot on #608: a claim waiting
+-- at 9:31 for its price must not be cancellable mid-run). The run can only start at or after that
+-- same instant (claims_run_day needs the market open), so the gate and the run never overlap:
+--   * the cancel takes the claim's row lock FIRST (FOR UPDATE), then checks the gate against now(),
+--     its transaction's start. A cancel whose transaction began before the open holds the row; the
+--     run's commit (begun at or after the open) waits on it, then finds the claim gone from its
+--     pending set and answers claims_changed: the run re-plans. A cancel begun at or after the open
+--     is refused. Neither leaves a half state.
+-- A claim whose run_date has no calendar row (never expected: run_date came from next_open_at) is
+-- locked from the START of that day, Eastern: the gate errs toward the run.
 create or replace function public.cancel_claim(p_league_id uuid, p_symbol text)
 returns jsonb
 language plpgsql
@@ -492,7 +502,9 @@ as $$
 declare
   v_uid   uuid := auth.uid();
   v_sym   text := upper(btrim(coalesce(p_symbol, '')));
-  v_n     integer;
+  v_id    uuid;
+  v_run   date;
+  v_open  timestamptz;
   v_count integer;
 begin
   if v_uid is null then
@@ -506,13 +518,25 @@ begin
   ) then
     return jsonb_build_object('ok', false, 'reason', 'not_a_member');
   end if;
-  update public.claims c
-     set status = 'cancelled', pending_slot = null, resolved_at = now(), reason = 'cancelled'
-   where c.league_id = p_league_id and c.user_id = v_uid::text and c.symbol = v_sym and c.status = 'pending';
-  get diagnostics v_n = row_count;
+  -- The row lock first (the run's commit locks the same rows), then the gate.
+  select c.id, c.run_date into v_id, v_run
+    from public.claims c
+   where c.league_id = p_league_id and c.user_id = v_uid::text and c.symbol = v_sym and c.status = 'pending'
+     for update;
+  if v_id is not null then
+    select (m.session_date + m.open_et) at time zone 'America/New_York' into v_open
+      from public.market_calendar m where m.session_date = v_run;
+    v_open := coalesce(v_open, v_run::timestamp at time zone 'America/New_York');
+    if now() >= v_open then
+      return jsonb_build_object('ok', false, 'reason', 'claim_locked', 'run_date', v_run);
+    end if;
+    update public.claims c
+       set status = 'cancelled', pending_slot = null, resolved_at = now(), reason = 'cancelled'
+     where c.id = v_id and c.status = 'pending';
+  end if;
   select count(*) into v_count from public.claims c
    where c.league_id = p_league_id and c.user_id = v_uid::text and c.status = 'pending';
-  return jsonb_build_object('ok', true, 'cancelled', v_n > 0, 'pending', v_count);
+  return jsonb_build_object('ok', true, 'cancelled', v_id is not null, 'pending', v_count);
 end;
 $$;
 
@@ -751,6 +775,15 @@ begin
       if (v_step ->> 'funded_by') like 'ref:%' and v_funded is null then
         raise exception 'unknown ref' using errcode = 'P0C01',
           detail = jsonb_build_object('reason', 'bad_plan', 'detail', 'funded_by_ref', 'step', v_i)::text;
+      end if;
+      -- A named sale is a BUY's own claimant's SELL in this league (security review: a stray uuid
+      -- would otherwise burn another manager's proceeds through the unique funded_by index).
+      if v_funded is not null and (v_step ->> 'action') = 'buy' and not exists (
+        select 1 from public.trades t
+         where t.id = v_funded and t.league_id = p_league_id and t.action = 'sell'
+           and t.user_id::text = v_claim.user_id) then
+        raise exception 'foreign sale' using errcode = 'P0C01',
+          detail = jsonb_build_object('reason', 'bad_plan', 'detail', 'funded_by_not_own_sale', 'step', v_i)::text;
       end if;
       select coalesce(array_agg(case when x like 'ref:%' then (v_refs ->> x)::uuid else x::uuid end order by o), '{}')
         into v_seen_t

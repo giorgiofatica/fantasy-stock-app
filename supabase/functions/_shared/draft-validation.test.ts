@@ -990,6 +990,42 @@ Deno.test('fixedNotionalFunding: two sells stay open in FIFO (chronological, not
   assertEquals(funding.open.map((o) => o.tradeId), ['t-1', 't-2']);
 });
 
+// Copilot on #608 (2026-11-23): the claims run writes a sale and the buy it funds in ONE
+// transaction, so both share a created_at, and the (created_at, id) tie-break can put either first.
+for (const order of ['sale first', 'buy first'] as const) {
+  Deno.test(`fixedNotionalFunding: a sale and the buy it funds sharing a created_at (${order}): the proceeds are spent`, () => {
+    const picks = [pick('a', 'AAA', 100, { quantity: 20 }), pick('a', 'BBB', 100, { quantity: 20 })];
+    const T = '2026-12-14T14:31:00Z';
+    const sale = trade('a', 'AAA', 'sell', 20, 110, { id: 'c-sale', created_at: T, total_value: 2200 });
+    const buy = trade('a', 'NVDA', 'buy', 2200 / 120, 120, { id: 'c-buy', created_at: T, funded_by_trade_id: 'c-sale' });
+    const trades = order === 'sale first' ? [sale, buy] : [buy, sale];
+    assertEquals(fixedNotionalFunding('a', picks, trades), { open: [], unfilledSlots: 0 });
+    // And a later live buy cannot reinvest it: no proceeds to resolve.
+    const next = validateTradeAdd({
+      rules: FN_RULES(), slots: [], picks, trades, userId: 'a', symbol: 'MSFT', price: 100,
+      eligibleCategories: new Set(), isDraftable: true,
+    });
+    assertEquals(next, { legal: false, reason: 'no_proceeds' }, 'the sale\'s proceeds are not reinvested twice');
+  });
+}
+
+Deno.test('fixedNotionalFunding: two claims in one run (all one created_at, every order): only the unclaimed sale stays open', () => {
+  const picks = [pick('a', 'AAA', 100, { quantity: 20 }), pick('a', 'BBB', 100, { quantity: 20 }), pick('a', 'CCC', 100, { quantity: 20 })];
+  const T = '2026-12-14T14:31:00Z';
+  const rows = [
+    trade('a', 'AAA', 'sell', 20, 110, { id: 's1', created_at: T, total_value: 2200 }),
+    trade('a', 'XA', 'buy', 22, 100, { id: 'b1', created_at: T, funded_by_trade_id: 's1' }),
+    trade('a', 'BBB', 'sell', 20, 90, { id: 's2', created_at: T, total_value: 1800 }),
+    trade('a', 'XB', 'buy', 18, 100, { id: 'b2', created_at: T, funded_by_trade_id: 's2' }),
+    trade('a', 'CCC', 'sell', 20, 50, { id: 's3', created_at: T, total_value: 1000 }),
+  ];
+  const perms = (xs: typeof rows): Array<typeof rows> =>
+    xs.length <= 1 ? [xs] : xs.flatMap((x, i) => perms([...xs.slice(0, i), ...xs.slice(i + 1)]).map((r) => [x, ...r]));
+  for (const p of perms(rows)) {
+    assertEquals(fixedNotionalFunding('a', picks, p).open.map((o) => o.tradeId), ['s3'], p.map((t) => t.id).join(','));
+  }
+});
+
 Deno.test('fixedNotionalFunding: a voluntary SKIP is an unfilled slot until a NULL-linked buy claims it', () => {
   const picks = [pick('a', 'AAA', 100, { quantity: 20 }), skipRow('a'), skipRow('a')];
   assertEquals(fixedNotionalFunding('a', picks, []), { open: [], unfilledSlots: 2 });

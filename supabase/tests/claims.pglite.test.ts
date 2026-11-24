@@ -45,6 +45,7 @@ import { applyFrom, loadChain, readMigration } from './full_chain.ts';
 import type { DraftRow, LeagueRow, SlotRow } from '../functions/record-trade/commit.ts';
 import type { TradeRow } from '../functions/_shared/draft-validation.ts';
 import { type ClaimRow, type CommitPlan, type OrderRow, planLeague } from '../functions/claims-run/plan.ts';
+import { fixedNotionalFunding } from '../functions/_shared/draft-validation.ts';
 
 const VERSION = '20261211000000';
 const CHECKS_URL = new URL('../../docs/security/2026-12-11-claims-checks.sql', import.meta.url);
@@ -433,6 +434,14 @@ Deno.test({
       assertEquals(sell.tv, 1100);
       assertEquals(buy.f, sell.id, 'funded_by re-mapped to the real sale id');
       assertEquals(buy.qty, 5.5);
+      // Both rows share created_at (one transaction), so the ledger order between them is the id
+      // tie-break. The shared funding walk must read the sale as SPENT either way (Copilot on #608).
+      const same = await one(`select count(distinct created_at)::int n from trades where league_id = $1`, [L2]);
+      assertEquals(same.n, 1, 'one created_at for the sale and its buy');
+      const ld = await ledgerOf(L2);
+      for (const trades of [ld.trades, [...ld.trades].reverse()]) {
+        assertEquals(fixedNotionalFunding(B, ld.picks, trades).open, [], 'the claim\'s sale is not reinvestable again');
+      }
     });
 
     await t.step('PARTIAL STATE: a commit refused at its second claim writes NOTHING; the re-plan commits whole', async () => {
@@ -491,6 +500,9 @@ Deno.test({
       assertEquals((await bad((p) => { p.steps.push({ ...p.steps[0], ref: 'ref:99', claim_id: foreign }); })).detail, 'step_shape');
       assertEquals((await bad((p) => { p.steps[0].quantity = 0; })).detail, 'step_shape');
       assertEquals((await bad((p) => { p.steps[0].price = -1; })).detail, 'step_shape');
+      // A buy naming a sale that is not its claimant's own sell in this league.
+      const foreignSale = (await one(`select id::text from trades where action = 'sell' and user_id::text <> $1 limit 1`, [C])).id;
+      assertEquals((await bad((p) => { p.steps[0].funded_by = foreignSale; })).detail, 'funded_by_not_own_sale');
       // A missed day: the claim is due BEFORE the run date. What happens to it is decided in ONE place
       // (plan.ts onMissedDay, today: failed missed_run); the commit writes what the plan says.
       await q(`update claims set run_date = run_date - 3 where league_id = $1 and status = 'pending'`, [L]);
@@ -498,6 +510,37 @@ Deno.test({
       assertEquals(missed.outcomes.map((o) => o.reason), ['missed_run']);
       assertEquals(await commit(L, run, missed), { ok: true, won: 0, lost: 0, failed: 0, missed: 1 });
       assertEquals((await one(`select status, reason from claims where league_id = $1 and symbol = 'XC'`, [L])), { status: 'failed', reason: 'missed_run' });
+    });
+
+    await t.step('cancel is only until the run can start: refused at and after the open of its run date (claim_locked)', async () => {
+      await marketClosed();
+      await q(`delete from claims where league_id = $1`, [L2]);
+      // Before the open (placed for tomorrow): cancel works.
+      assertEquals((await place(B, L2, 'XC')).ok, true);
+      assertEquals(await cancel(B, L2, 'XC'), { ok: true, cancelled: true, pending: 0 });
+      // Placed, then its session opens (the run may be waiting for a price): cancel is refused.
+      assertEquals((await place(B, L2, 'XC')).ok, true);
+      const today = await etToday();
+      await q(`update claims set run_date = $2::date where league_id = $1 and status = 'pending'`, [L2, today]);
+      for (const minutesAgo of [0, 1, 30]) {
+        await marketOpen(minutesAgo);
+        await clearPacing();
+        assertEquals(await cancel(B, L2, 'XC'), { ok: false, reason: 'claim_locked', run_date: today }, `open ${minutesAgo} min ago`);
+      }
+      assertEquals((await one(`select status, pending_slot from claims where league_id = $1 and symbol = 'XC'`, [L2])), { status: 'pending', pending_slot: 1 }, 'nothing changed');
+      // A run date with no calendar row is locked from the start of that day (errs toward the run).
+      await db.exec(`delete from market_calendar; delete from market_calendar_coverage;`);
+      await clearPacing();
+      assertEquals((await cancel(B, L2, 'XC')).reason, 'claim_locked');
+      // After the run resolves it, a cancel finds nothing pending: no half state either way.
+      await marketOpen(3);
+      const plan = await makePlan(L2, today, { XC: 30 });
+      assertEquals((await commit(L2, today, plan)).ok, true);
+      await clearPacing();
+      assertEquals(await cancel(B, L2, 'XC'), { ok: true, cancelled: false, pending: 0 });
+      const st = (await one(`select status from claims where league_id = $1 and symbol = 'XC'`, [L2])).status;
+      assert(st !== 'pending' && st !== 'cancelled', `the run's outcome stands (${st})`);
+      await q(`delete from claims_runs where league_id = $1`, [L2]);
     });
 
     await t.step('the hold: only while open < 10 min with claims due and no row; it lifts by itself', async () => {
