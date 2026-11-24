@@ -1830,6 +1830,24 @@ building anything, and don't reopen a rule without him.
       screenshots and it goes to him.
     - The claim that fills keeps its approved words: "AMGN is yours", "$187.20 at the
       open · paid by selling DIS".
+  - **What went through is shown on two screens, as ESPN does (A)** (2026-11-23, typed in
+    the Planner's chat in answer to the Design Lead's board `#call-league-activity`,
+    `docs/design/screens/league-activity-1123.jsx`: "A, and yes to the words").
+    - **A:** League gets a fourth section, **Activity**, beside Standings, Schedule and
+      History. It lists every buy and sell in the league, newest first, under its day. A
+      row at its top, "Claims report", opens a second screen: pick a day, and see one card
+      per manager in the order they were served, each with "Priority: 1st" (2nd, 3rd, and
+      so on), what they bought and what they sold. B (one list, each morning's claims as
+      one card inside Activity, no second screen) was not picked.
+    - **The words he approved:** "Activity"; "Bought" and "Sold" on each line; "Priority:
+      1st" beside each manager served; "Claims report"; and "No buys or sells yet." when
+      nothing has happened since the draft. "Claims", the heading on B's card, was shown
+      on the board for B only and is not used.
+    - **What appears on neither screen** (the board's own terms, and his ruling above): a
+      claim that did not go through, the claimant's own included; a pending claim; and
+      draft picks, which have their own recap.
+    - A filled claim is a buy (and a sell, when it named one) like any other, so it is in
+      Activity from the moment the run commits it, and in that day's report.
   - **The hold on trading while claims run is a known, limited exception to "claims are
     blind"** (2026-11-23, found by the security review of the claims server; told to him
     in the Planner's chat the same day, and not objected to). For at most 10 minutes after

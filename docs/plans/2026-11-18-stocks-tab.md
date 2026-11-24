@@ -633,11 +633,22 @@ From the watchlist's app work (workstream 3, reported 2026-11-23):
       league after the run, as holdings are; a claim that did not fill appears nowhere,
       so nobody learns of it, the claimant's own screen included. The read returns filled
       claims only, to members only, and nothing about pending or unfilled ones.
-    - **The app.** Where the report and the league's activity live, and how they look, is
-      the Design Lead's to draw from his two screenshots, and his to pick. Until that
-      pick, workstream 7 builds the pending list, the drag, the composer and the push for
-      a filled claim, and shows nothing after the run for a claim that did not fill.
-    - **The self-fixing plan** (`2026-11-23-claims-fix-themselves.md`, a draft) loses its
+    - **The app.** PICKED 2026-11-23 (`docs/PRODUCT_RULES.md`, board
+      `#call-league-activity`): A, two screens. League gets a fourth section, Activity
+      (every buy and sell, newest first, under its day); a "Claims report" row at its top
+      opens the report for a day (one card per manager in the order served, "Priority:
+      1st", Bought and Sold lines). Empty Activity reads "No buys or sells yet."
+      Workstream 7 builds these with the pending list, the drag, the composer and the push
+      for a filled claim, and shows nothing after the run for a claim that did not fill.
+    - **The two reads the screens need** (server, with the claims-order change):
+      - *Activity:* the league's buys and sells only, to members only. Draft picks are
+        left out (the `league_activity` view includes them today; the read must not).
+      - *The report:* for a run day, filled claims only, per manager, with the place they
+        were served from `claims.outcome->>'position'`, the stock bought and the stock
+        sold. Nothing about a pending or unfilled claim is returned to anyone, so a gap in
+        the places (1st, 3rd, 4th) tells a reader nothing: every manager has a place
+        whether or not they claimed.
+    - **The self-fixing plan** (`2026-11-23-claims-fix-themselves.md`, approved) loses its
       notice for claims moved to the next open: the claim stays pending and its row shows
       the new time. No push, no sentence.
     - **Tests.** A's first choice is taken by a manager ahead of them and A's second fills
