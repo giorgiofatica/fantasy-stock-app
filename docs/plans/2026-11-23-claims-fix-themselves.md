@@ -232,6 +232,12 @@ this draft first proposed are withdrawn with his ruling of the same day.
      the holding would freeze at its last price while the real company moves on. Nobody
      holds one now. This goes to him as a question with drawings once the Researcher's
      second answer says what can be built.
+   - **ANSWERED in part, 2026-11-24** (`docs/PRODUCT_RULES.md`): for a company bought
+     out, B. The app sells the holding at its last real price the day it stops trading,
+     returns the money, opens the slot and tells the manager. Still open: a company that
+     only changes its ticker, which waits on the supplier check (whether our plan can
+     read ticker changes and buy-outs); and a stock that stops trading for any other
+     reason. The fix is written as an addition to this plan once that check is back.
 
 ## Scope
 
