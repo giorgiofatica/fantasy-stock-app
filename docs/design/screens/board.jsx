@@ -393,7 +393,6 @@
   // back to mounting the whole calls block.
   const OPEN = [
     ['call-ob-moments', 'Four moments in onboarding', () => window.KSOnboardingMoments],
-    ['call-crest-bear', 'The worst-week bear', () => window.KSCrestBear],
     ['call-crest-set', 'The 21 crest icons', () => window.KSCrestSet],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
@@ -401,6 +400,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-crest-bear', title: 'The worst-week bear', decision: '"B". The worst-week bear is the friendly face, drawn new for us in our honey and dark brown (his picture was a reference for the character only). A, the walking bear, not picked.', date: '2026-11-26', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestBearArchived },
     { id: 'call-crest-nameless', title: 'Crests where no name is beside them', decision: '"crests where no name is beside them B with names". B: Members on the pre-draft Home shows each crest with the manager\u2019s first name under it (yours first, in your colour). A (crests alone) not picked. Your mark top right takes your crest; the invite arrival and takeover landing keep today\u2019s mark; the draft-order "i" picture keeps example initials. No new words.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestNamelessArchived },
     { id: 'call-crest-collection', title: 'Your crests in Profile, and their words', decision: '"your crests in Profile, and their words 2", then "let me clear that up, B crest row and A crest reveal". B: a "Crests" row on Profile opening its own screen (the worn crest large on top, the eight below, locked in grey). A not picked. The WORDS are not approved: every word on the board is still a proposal, open for his yes.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestCollectionArchived },
     { id: 'call-crest-reveal', title: 'The crest reveal', decision: '"crest reveal 1", then "let me clear that up, B crest row and A crest reveal" (A = the first version). 1: on "You\u2019re in" today\u2019s tick turns over like a coin into your crest (1.4 s), a haptic as it lands; tap to skip; Reduce Motion shows the crest simply there. No sound unless he asks. 2 (the crest rising in light) not picked.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestRevealArchived },

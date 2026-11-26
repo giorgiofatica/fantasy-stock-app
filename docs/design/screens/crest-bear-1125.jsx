@@ -124,14 +124,14 @@
           <li>{archived ? decidedNote : <><b>Answer with:</b> A or B.</>}</li>
         </ul>
 
-        <Sub>A · a whole bear, walking</Sub>
+        <Sub>{archived ? <><s>A · a whole bear, walking</s> · not picked</> : 'A · a whole bear, walking'}</Sub>
         <Row>{[
           fig('al', 'A beside the dog · Light', <Panel t="light" keys={['bearA', 'dog']} label="Bear A walking and the dog, large and at 20 points, Light" />),
           fig('ad', 'A beside the dog · Dark', <Panel t="dark" keys={['bearA', 'dog']} label="Bear A and the dog, Dark" />),
           fig('ag', 'A beside the dog · greyscale', <Panel t="light" grey keys={['bearA', 'dog']} label="Bear A and the dog, greyscale" />),
         ]}</Row>
 
-        <Sub>B · a friendly face</Sub>
+        <Sub>{archived ? 'B · a friendly face · picked' : 'B · a friendly face'}</Sub>
         <Row>{[
           fig('bl', 'B beside the dog · Light', <Panel t="light" keys={['bearB', 'dog']} label="Bear B face and the dog, large and at 20 points, Light" />),
           fig('bd', 'B beside the dog · Dark', <Panel t="dark" keys={['bearB', 'dog']} label="Bear B and the dog, Dark" />),
@@ -148,6 +148,6 @@
     );
   }
 
-  window.KSCrestBear = () => <CallCrestBear />;
-  window.KSCrestBearArchived = () => null;
+  window.KSCrestBear = () => null;
+  window.KSCrestBearArchived = () => <CallCrestBear archived decidedNote={<><b>Decided 2026-11-26, in his word:</b> “B”. The worst-week bear is the friendly face (our own drawing, in our honey and dark brown); the walking bear (A) is out.</>} />;
 })();
