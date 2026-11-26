@@ -2487,7 +2487,9 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       read as section 2, which is B: a "Crests" row on Profile that opens its own screen,
       the worn crest large at the top. A (the collection on Profile itself, the Design
       Lead's recommendation) was not picked. The Planner told him this reading the same
-      day so that he could correct it.
+      day so that he could correct it, and he confirmed it: "let me clear that up, B crest
+      row and A crest reveal". ("A crest reveal" is read as the first of the reveal's two
+      versions, which the board numbers 1, the same answer as his "crest reveal 1".)
     - **The words on that board are NOT approved yet.** The board asked for "A or B, and
       yes to the words (or the ones to change)". He gave the option only. There are some
       thirty new words (the collection's name, the count, "Wearing", seven earned names
