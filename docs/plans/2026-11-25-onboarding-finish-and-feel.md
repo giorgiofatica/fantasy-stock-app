@@ -122,9 +122,13 @@ live, "Didn't receive it? Send again", the "Email confirmed" chip.
 **The moments, all on the invited path.**
 1. **Arrival.** The invitation opens: the inviter's mark, then the league's name, then the
    three buttons. Today the screen appears whole.
-2. **The username.** The made-up name rolls into place, and "Change" rolls another. This
-   is the wait of up to 6 seconds turned into the most playful second of the flow. If no
-   name comes, the field is simply empty, as now.
+2. **The username.** The made-up name rolls into place, and "Change" rolls another. The
+   roll follows the answer: the name settles the moment it arrives, a tap ends the roll,
+   and the roll is never held open to be seen. (CORRECTED 2026-11-25 by the waits report:
+   this plan first called this "the wait of up to 6 seconds". The 6 seconds is a cap for
+   a stalled connection. The usual wait is one short request, so a roll with a length of
+   its own would add time.) If no name comes by the cap, the field is simply empty, as
+   now.
 3. **Taking your seat.** In place of the spinner with no words: the new manager's mark
    joins the others. No words are added.
 4. **Between steps.** One move for every step forward, and the league's name stays where
@@ -201,3 +205,38 @@ After Part 3 of the Stocks tab. The Orchestrator sets the order against build 18
 5. Each picked moment runs in the build, can be tapped through, and with Reduce Motion on
    the screen is complete without it; checked in both themes at the largest text size.
 6. No step was added, and no tap, against the flow as it is on `main` today.
+
+## Settled during the build
+
+1. **The three waits, read in the code** (2026-11-25; the worker's report,
+   `docs/research/2026-11-25-onboarding-waits.md`; nothing was measured, the recording
+   does that). The Planner's answers, for workstream 2:
+   - **The join.** The spinner covers five requests one after another, and three of them
+     run after the join has already succeeded. "You're in" is shown when the join
+     answers, and the Managers, Stakes and Season rows arrive after it, read after the
+     join as they are today. Each request gets a time limit: the two before the join
+     fall to the error screens that exist, with their words and their retry; the three
+     after it never lead to an error, because the person is already in. Today a stall
+     in those three leaves someone who HAS joined on a spinner with no way out but
+     closing the app. No words are added.
+   - **The username.** One short request, not a six-second wait (corrected in Part 3,
+     moment 2). The cap stays at six seconds: lowering it would only turn slow successes
+     into empty fields.
+   - **Home.** It shows only its header while leagues load; it draws the same skeleton
+     the League tab already draws. A look, so it is the Design Lead's to rule.
+2. **Two faults found on the way, both fixed in workstream 2.** Neither was seen on a
+   phone; both are read from the code.
+   - **A Home that never finishes loading.** If one of the league reads fails while the
+     others succeed, Home stays on its skeleton for good, with no message and no retry.
+     It shows the load-failed state that exists, with its Try again. This is the fault
+     this codebase keeps meeting: a part that failed, read as still loading.
+   - **"No leagues yet" shown to someone arriving by invite**, for the length of a screen
+     sliding in, between "Keep" and the join. It is not shown while an invite is waiting
+     to be joined. An invite that was dismissed, failed or refused still reaches it.
+3. **Not in this plan:** the two price reads on an in-season Home run one after the other
+   and could run together. That is not onboarding; it is noted for whoever next works on
+   Home's speed.
+4. **The recording** that checks the 30-second budget is one step of the phone pass for
+   the build these changes are in, not a task of its own now. Until the website serves
+   the file that opens our links in the app, it starts from the app's own link opened in
+   Safari, as the report sets out.
