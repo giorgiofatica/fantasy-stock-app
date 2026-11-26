@@ -2440,6 +2440,21 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       placeholders. What a crest looks like, the list, and every word are still his to
       approve, on the Design Lead's boards.
     - The plan: [`plans/2026-11-25-crests.md`](plans/2026-11-25-crests.md).
+  - **A crest is a shield (A)** (2026-11-25, typed in the Planner's chat in answer to the
+    Design Lead's board `#call-crest-look`: "i like A the most"). A, Shield: one outline
+    for everyone, a split field in the crest's colours, a symbol on top. B (Roundel: today's
+    round disc as a club badge) and C (Patch: each starter with its own outline) were not
+    picked. The Design Lead and the Planner both recommended C.
+    - Why C was recommended, kept here because the pick does not make it go away: with no
+      red or no green, four of the board's ten colours (rust, gold, crimson, orange) turn
+      a similar olive-yellow, and in A two such crests are told apart only by the split of
+      the field and the symbol. He was told this before he picked.
+    - So the full set is drawn as shields, and it is the Design Lead's job to make two
+      shields differ by more than colour: the way the field is split, the symbol, light
+      against dark. The colour-blind check on the board is run again on the full set.
+    - Unchanged by the pick, as the board drew them: your own mark keeps today's blue ring,
+      and no crest uses that blue. No new words were on the board.
+    - The board's six samples per direction were rough. The set is drawn in full only now.
 
 - **Sign-in and sign-up screens behave like a short native form** (2026-11-09, from Giorgio's
   build 1.3.0 (12) recordings; spec `docs/plans/2026-11-09-auth-screen-layout.md`):
