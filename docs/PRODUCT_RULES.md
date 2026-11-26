@@ -2546,6 +2546,13 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       dog, and he picks by looking. The picture is someone else's drawing (it reads as a
       mascot), so it is a reference for the character only, kept with the references
       outside the repo, and nothing of it is copied.
+    - **The bear is the friendly face (B)** (2026-11-26, typed in the Planner's chat in
+      answer to the Design Lead's board `#call-crest-bear`, which drew both bears as our
+      own beside the dog, large and at the smallest size, in Light, Dark and grey: "B").
+      A (the whole bear walking in profile) was not picked. The board found that both
+      bears can be told from the dog at the smallest size, by the ears; that the face
+      keeps its smile at that size on a phone; and that the walking bear reads as a bear
+      only on a second look. The Design Lead and the Planner recommended B.
     - The other icons on that list were the Planner's ideas and are not picked. From the
       Design Lead, the same day: every icon must read at the smallest size a mark is
       drawn, so each is a plain, bold shape, and with one shield for everyone the icon
