@@ -95,9 +95,9 @@
         <defs><clipPath id={id}><path d={SHIELD} /></clipPath></defs>
         <path d={SHIELD} fill={fill} />
         {d ? <path d={d} fill={deep} clipPath={`url(#${id})`} /> : null}
-        <g transform={earned ? 'translate(6.6 5.6) scale(0.45)' : 'translate(5.6 4.6) scale(0.53)'}><path d={SYM[sym]} fill={ink} fillRule="evenodd" /></g>
-        {earned ? <path d={SHIELD} fill="none" stroke="#E3B341" strokeWidth="2.2" transform="translate(12 12.2) scale(0.8) translate(-12 -12.2)" /> : null}
-        <path d={SHIELD} fill="none" stroke={earned ? '#E3B341' : 'rgba(0,0,0,.28)'} strokeWidth={earned ? 1.4 : 0.8} />
+        <g transform={earned ? 'translate(6.1 5.1) scale(0.49)' : 'translate(5.6 4.6) scale(0.53)'}><path d={SYM[sym]} fill={ink} fillRule="evenodd" /></g>
+        {earned ? <path d={SHIELD} fill="none" stroke="#F0C44C" strokeWidth="1.6" transform="translate(12 12.1) scale(0.86) translate(-12 -12.1)" /> : null}
+        <path d={SHIELD} fill="none" stroke="rgba(0,0,0,.32)" strokeWidth={earned ? 1.1 : 0.8} />
       </svg>
     );
   }
