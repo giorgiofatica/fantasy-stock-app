@@ -2417,6 +2417,29 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       whether other managers can see it; the words for any of it.
     - Ruled out by the drawing's own terms: buying a crest, with money or with anything
       else.
+  - **The shape of crests** (2026-11-25, the same chat; shown one drawing of a collection
+    and six points, he typed: "its fine, write the crests plan"). The six points, as put
+    to him:
+    1. The first crest is a surprise: on joining a first league, one crest from a starter
+       set is revealed, and friends in the same league get different ones.
+    2. A short list of earned crests, about eight to start, each tied to something fantasy
+       apps already celebrate (a first draft, a first weekly win, the best week in the
+       league, making the playoffs, winning the league).
+    3. Every crest is visible from the first day: locked ones in grey with what earns
+       them. Nothing hidden, nothing impossible to get.
+    4. Each unlock gets its own reveal, the next time the app is opened after it is earned.
+    5. A manager wears one, and that is all anyone else sees; the collection is private.
+    6. Nothing to lose and nothing to buy: no streak that can break, no tiers, no chance
+       after the first crest.
+    - Left out on purpose, and told to him: tiers (bronze, silver, gold); and a champion's
+      mark that cannot be taken off, as two other fantasy apps have, which is a later
+      question.
+    - **Not approved by this:** the eight items in the drawing and the words under them
+      ("Joined", "First draft", "First week won", "Three wins in a row", "Best week in the
+      league", "Made the playoffs", "Finished a season", "League champion") were marked as
+      placeholders. What a crest looks like, the list, and every word are still his to
+      approve, on the Design Lead's boards.
+    - The plan: [`plans/2026-11-25-crests.md`](plans/2026-11-25-crests.md).
 
 - **Sign-in and sign-up screens behave like a short native form** (2026-11-09, from Giorgio's
   build 1.3.0 (12) recordings; spec `docs/plans/2026-11-09-auth-screen-layout.md`):
