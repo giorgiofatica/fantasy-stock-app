@@ -2539,6 +2539,13 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       walking in profile, not a head. The California flag is the reference for the pose;
       the drawing is our own. A bull for the best week was the Planner's idea beside it
       and he did not object; it is not his pick.
+    - **A second reference, not yet a pick.** A moment later he sent a picture of a
+      cartoon bear's face, friendly and smiling, with the words "or a bear like this". So
+      there are two references for the bear: the whole bear in profile, and a friendly
+      face. The Design Lead draws both, large and at the smallest size and beside the
+      dog, and he picks by looking. The picture is someone else's drawing (it reads as a
+      mascot), so it is a reference for the character only, kept with the references
+      outside the repo, and nothing of it is copied.
     - The other icons on that list were the Planner's ideas and are not picked. From the
       Design Lead, the same day: every icon must read at the smallest size a mark is
       drawn, so each is a plain, bold shape, and with one shield for everyone the icon
