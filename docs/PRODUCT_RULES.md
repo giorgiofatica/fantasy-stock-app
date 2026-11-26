@@ -2556,8 +2556,11 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
     their lines are replaced by this list; "Hat Trick" is gone with three wins in a row.
     So the collection's count is no longer "of 8", and none of that board's crest words
     stands.
-  - **Still his to decide:** which of these are in the first version (his words: "we
-    need to iterate and build"); a name for each; the icons, on the Design Lead's board.
+  - **All 21 are in the first version** (the same chat; asked whether he meant all of
+    them or the 13 the Planner suggested, the standard one, the firsts and the end of
+    season: "all 21 go in the first version").
+  - **Still his to decide:** a name for each; the icons he has not picked, on the Design
+    Lead's board.
   - The Planner's readings, told to him: the standard crest is the same for everybody
     (the idea of one design in several colours was the Planner's and he did not take it
     up); the worst week and last place are crests like any other, held and worn or not as
