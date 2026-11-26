@@ -2462,6 +2462,24 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
   - The confirmation email's look is out of date ("has like an old stockpile logo that needs
     to be updated"); it is redrawn in the current look as part of launch prep.
 
+## Accessibility
+
+- **The app has a setting that helps people who are colour blind** (2026-11-25, typed in
+  the Planner's chat, after the crest board's colour-blind check and his pick of the shield:
+  "for color blind, there should be an accessibility setting in our app that would help
+  with that. is it required by apple? even if its not, we should have it").
+  - Ruled by his words: there is a setting, in our app, and it is wanted whether or not
+    Apple requires it.
+  - Not decided: what the setting changes, where it lives, whether it also follows the
+    phone's own setting, and its words. The plan is the Planner's to write and his to
+    approve.
+  - The Planner's reading, told to him the same day: the setting is the second of two
+    layers. The first is that colour is never the only thing carrying a meaning, for
+    everyone and with no setting (a gain has its sign, a result has its letter, two
+    crests differ by more than colour). The setting then adds more for those who want it.
+  - What Apple requires is being checked by the Researcher; the answer is recorded with
+    the plan, not assumed here.
+
 ## How decisions get made
 
 - Every product/design choice goes to Giorgio as side-by-side mockups ("Your call" on the
