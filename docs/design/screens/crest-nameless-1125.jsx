@@ -8,7 +8,7 @@
 // Two more draw a disc before you are in the league, and keep today's mark: the invite arrival (64pt, the inviter) and
 // the takeover landing (64pt, the team). The crest is returned only to members who share a league (the plan), and
 // the no-sign-in preview returns only the name and the inviter (the Planner's security ruling).
-// Crests in direction C (#call-crest-look's recommendation) as stand-ins. Review notes sit UNDER the phones.
+// Crests are shields (his pick, #call-crest-look) as stand-ins. Review notes sit UNDER the phones.
 (function () {
   const { Icon, ICON } = window.KSKit;
   const GN = window.KSGN;
@@ -18,36 +18,18 @@
   const fs = (px, x, cap = 1.3, lh = 1.28) => ({ fontSize: Math.round(px * k(x, cap)), lineHeight: `${Math.round(px * lh * k(x, cap))}px` });
   const AX5 = 3.1;
 
-  const SYM = {
-    horns: 'M3 5 C3 11 7 13 10 13 L10 19 H14 L14 13 C17 13 21 11 21 5 C19 8.5 16.5 10 12 10 C7.5 10 5 8.5 3 5 Z',
-    flame: 'M12 2 C13 7 18 9 18 14.5 A6 6 0 0 1 6 14.5 C6 11 8 9.5 9 7 C10 9 10.5 10 11.5 10 C11.5 7 11 5 12 2 Z',
-    crown: 'M3 18 L4.5 7 L9 11.5 L12 5 L15 11.5 L19.5 7 L21 18 Z',
-    moon: 'M15 3 A9 9 0 1 0 21 15 A7 7 0 1 1 15 3 Z',
-    arrow: 'M12 3 L20 12 H15 V21 H9 V12 H4 Z',
-  };
-  const SHAPE = {
-    hex: 'M12 1 L21.5 6.5 V17.5 L12 23 L2.5 17.5 V6.5 Z',
-    diamond: 'M12 0.8 L23.2 12 L12 23.2 L0.8 12 Z',
-    oct: 'M7.4 1.2 H16.6 L22.8 7.4 V16.6 L16.6 22.8 H7.4 L1.2 16.6 V7.4 Z',
-    pent: 'M12 1 L23 9.2 L18.8 22.4 H5.2 L1 9.2 Z',
-    pennant: 'M3 1.5 H21 V16 L12 22.8 L3 16 Z',
-  };
-  // You first (S-3), then in the order they joined. [name, shape, symbol, fill, deep]
+  // You first (S-3), then in the order they joined. Starter shields (his pick): no two share a split or a symbol, and
+  // one light (sand) sits among the dark, so the row parts in greyscale too. [name, tone, symbol, split]
   const MEMBERS = [
-    ['Roberto B.', 'oct', 'crown', '#E0AE2E', '#A87C10'],
-    ['Paolo M.', 'hex', 'horns', '#0F8C8C', '#0A5F5F'],
-    ['Sofia R.', 'diamond', 'flame', '#B5532A', '#7A3519'],
-    ['Gianluigi B.', 'pent', 'moon', '#6B3FA0', '#462868'],
-    ['Elena V.', 'pennant', 'arrow', '#2E8B57', '#1D5E39'],
+    ['Roberto B.', 'violet', 'moon', 'quarterly'],
+    ['Paolo M.', 'teal', 'horns', 'bend'],
+    ['Sofia R.', 'rust', 'flame', 'pale'],
+    ['Gianluigi B.', 'slate', 'peak', 'fess'],
+    ['Elena V.', 'sand', 'arrow', 'chevron'],
   ];
   function Crest({ m, size }) {
-    const [, sh, sy, fill, deep] = m;
-    return (
-      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: `0 0 ${size}px` }}>
-        <path d={SHAPE[sh]} fill={fill} stroke={deep} strokeWidth="1.4" strokeLinejoin="round" />
-        <g transform="translate(6.2 5.8) scale(0.5)"><path d={SYM[sy]} fill={sy === 'crown' ? '#2A1E00' : '#fff'} /></g>
-      </svg>
-    );
+    const [, tone, sym, part] = m;
+    return window.KSShield({ tone, sym, part, size });
   }
   const Initials = ({ name, size, fill = 'var(--c-inset)', ink = 'var(--c-text)' }) => (
     <span style={{ width: size, height: size, flex: `0 0 ${size}px`, borderRadius: size / 2, background: fill, color: ink, display: 'grid', placeItems: 'center', fontSize: Math.round(size * 0.38), fontWeight: 800 }}>{name.split(' ').map((w) => w[0]).join('').replace('.', '')}</span>
@@ -177,10 +159,11 @@
           fig('b3', 'B · your text size', <PreDraft x={AX5} names label="Members with first names, largest text size" />, 'The names grow (capped, like every row); the crests stay their size.'),
           fig('a2', 'A · Dark', <PreDraft t="dark" label="Members as crests alone, Dark" />),
           figPlain('t1', 'Today, for comparison', <PreDraftToday label="Today's Members card with initials" />, 'PM, SR, GB, EV: initials say who, crests alone don’t.'),
+          fig('g1', 'B · in greyscale', <div style={{ filter: 'grayscale(1)' }}><PreDraft names label="Members with first names, the whole screen grey" /></div>, 'The whole screen grey still reads: every shield differs by its split and its symbol, and the names say who.'),
         ]}</Grid>
 
         <Sub>2 · Your mark, top right of every tab</Sub>
-        <p style={{ margin: '0 0 12px', maxWidth: 760, color: 'var(--c-text-2)' }}>Drawn in every phone above: your crest (Roberto B.’s crown) where your blue initials are today.</p>
+        <p style={{ margin: '0 0 12px', maxWidth: 760, color: 'var(--c-text-2)' }}>Drawn in every phone above: your crest (Roberto B.’s moon) where your blue initials are today.</p>
 
         <Sub>3 · Stays as today</Sub>
         <Grid>{[
