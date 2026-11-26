@@ -2503,6 +2503,45 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       draft-order picture keep initials; and the invite and takeover screens keep today's
       mark, because a crest is shown only to people who share a league.
 
+- **The crest list, in five kinds** (2026-11-25, the Planner's chat). He opened it up:
+  "Lets brainstorm these a bit. Some should be end of season award types, some should be in
+  season, etc. Im thinking theres the standard one you get for making an account. Everyone
+  gets it but then we need to iterate and build". Shown five kinds with a pool of ideas
+  under each, he answered: "1 and 2 good. 3 i want some changes. no three weeks in a row or
+  closet matchup win. add one about having the worst performance of the week. for 4, remove
+  best single week. 5. add one for a if you've drafted or picked up every mag7 stock we
+  also need to think of what icons will go with the crests for each one. each crrest
+  should have a unique icon".
+  - **1, standard:** one crest that everybody has, for making an account.
+  - **2, firsts:** a first draft finished; a first week won; a first claim won; starting
+    your own league; a friend joining from your invite.
+  - **3, in season:** the best week in the league; winning by the biggest margin of the
+    week; beating the manager who was in first place; and, added by him, the worst
+    performance of the week. Taken out by him: three wins in a row, and winning the
+    closest matchup.
+  - **4, end of season:** champion; runner-up; made the playoffs; top seed (the best
+    regular-season record); top scorer (the biggest total gain of the season); an
+    unbeaten regular season; last place. Taken out by him: the best single week of the
+    season.
+  - **5, across seasons:** back-to-back champion; three seasons played; a title in two
+    different leagues; and, added by him, having drafted or picked up every one of the
+    "Mag 7" stocks.
+  - **Every crest has its own icon**, and no two share one.
+  - **What this replaces.** The standard crest replaces the surprise starter drawn from a
+    set of twelve (point 1 of the shape above, and the twelve starter names on the
+    collection board). The seven earned crests of the collection board, their names and
+    their lines are replaced by this list; "Hat Trick" is gone with three wins in a row.
+    So the collection's count is no longer "of 8", and none of that board's crest words
+    stands.
+  - **Still his to decide:** which of these are in the first version (his words: "we
+    need to iterate and build"); a name for each; the icons, on the Design Lead's board.
+  - The Planner's readings, told to him: the standard crest is the same for everybody
+    (the idea of one design in several colours was the Planner's and he did not take it
+    up); the worst week and last place are crests like any other, held and worn or not as
+    the manager likes, and "nothing to lose" still means only that a crest is never
+    taken away; the Mag 7 are Apple, Microsoft, Alphabet, Amazon, Nvidia, Meta and Tesla,
+    held at any time through a draft pick, a buy or a claim.
+
 - **Sign-in and sign-up screens behave like a short native form** (2026-11-09, from Giorgio's
   build 1.3.0 (12) recordings; spec `docs/plans/2026-11-09-auth-screen-layout.md`):
   - No scrolling when everything fits: "There really should not be a reason why it should be
