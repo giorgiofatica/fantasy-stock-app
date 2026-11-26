@@ -18365,7 +18365,18 @@ window.KS_REFS = {
     return `${s} }`;
   };
   const C1 = 4, C2 = 4, CT = 8, C3 = 4, C4 = 6;
-  const CSS = `
+  // The roll follows the answer: it moves at a fixed speed until the name arrives, then settles in 0.25 s.
+  // Drawn at three answer times: 0.25 s (quick), 0.6 s (usual), 2 s (slow). n = lines rolled before the name.
+  const ANS = [0.25, 0.6, 2.0];
+  const akey = (a) => Math.round(a * 100);
+  const nReel = (a) => Math.max(2, Math.ceil(a * 10));
+  const nChar = (a) => Math.max(2, Math.ceil(a * 12));
+  const ROLL_CSS = ANS.map((a) => `
+  @keyframes ob2a-reel-${akey(a)} { 0% { transform: translateY(0); animation-timing-function: linear; } ${p(a, C2)} { transform: translateY(calc(var(--ob-lh) * -${nReel(a) - 1})); animation-timing-function: cubic-bezier(.2,.8,.2,1); } ${p(a + 0.25, C2)}, 100% { transform: translateY(calc(var(--ob-lh) * -${nReel(a)})); } }
+  @keyframes ob2b-char-${akey(a)} { 0% { transform: translateY(0); animation-timing-function: linear; } ${p(a, C2)} { transform: translateY(calc(var(--ob-lh) * -${nChar(a) - 1})); animation-timing-function: cubic-bezier(.2,.8,.2,1); } ${p(a + 0.12, C2)}, 100% { transform: translateY(calc(var(--ob-lh) * -${nChar(a)})); } }
+  @keyframes ob2-keep-${akey(a)} { 0%, ${p(a + 0.22, C2)} { opacity: .45; } ${p(a + 0.27, C2)}, 100% { opacity: 1; } }
+  @keyframes ob2-check-${akey(a)} { 0%, ${p(a + 0.2, C2)} { opacity: 0; transform: scale(.5); } ${p(a + 0.32, C2)}, 100% { opacity: 1; transform: none; } }`).join('');
+  const CSS = ROLL_CSS + `
   @keyframes ob1a-mark { 0% { opacity: 0; transform: scale(.6); } ${p(.3, C1)} { opacity: 1; transform: scale(1.06); } ${p(.42, C1)}, 100% { opacity: 1; transform: none; } }
   @keyframes ob1a-lead { 0%, ${p(.15, C1)} { opacity: 0; transform: translateY(10px); } ${p(.45, C1)}, 100% { opacity: 1; transform: none; } }
   @keyframes ob1a-name { 0%, ${p(.3, C1)} { opacity: 0; transform: translateY(10px); } ${p(.6, C1)}, 100% { opacity: 1; transform: none; } }
@@ -18374,10 +18385,6 @@ window.KS_REFS = {
   @keyframes ob1b-ripple { 0%, ${p(.35, C1)} { opacity: 0; transform: scale(1); } ${p(.36, C1)} { opacity: .5; transform: scale(1); } ${p(.95, C1)}, 100% { opacity: 0; transform: scale(1.9); } }
   @keyframes ob1b-title { 0%, ${p(.4, C1)} { opacity: 0; transform: scale(.96); } ${p(.7, C1)}, 100% { opacity: 1; transform: none; } }
   @keyframes ob1b-btns { 0%, ${p(.55, C1)} { opacity: 0; } ${p(1.0, C1)}, 100% { opacity: 1; } }
-  @keyframes ob2a-reel { 0% { transform: translateY(0); animation-timing-function: linear; } ${p(.6, C2)} { transform: translateY(calc(var(--ob-lh) * -4)); animation-timing-function: cubic-bezier(.2,.8,.2,1); } ${p(.85, C2)}, 100% { transform: translateY(calc(var(--ob-lh) * -5)); } }
-  @keyframes ob2b-char { 0% { transform: translateY(0); animation-timing-function: linear; } ${p(.6, C2)} { transform: translateY(calc(var(--ob-lh) * -3)); animation-timing-function: cubic-bezier(.2,.8,.2,1); } ${p(.72, C2)}, 100% { transform: translateY(calc(var(--ob-lh) * -4)); } }
-  @keyframes ob2-keep { 0%, ${p(.85, C2)} { opacity: .45; } ${p(.9, C2)}, 100% { opacity: 1; } }
-  @keyframes ob2-check { 0%, ${p(.83, C2)} { opacity: 0; transform: scale(.5); } ${p(.95, C2)}, 100% { opacity: 1; transform: none; } }
   @keyframes ob2-spin { 0% { transform: translateY(0); } 100% { transform: translateY(calc(var(--ob-lh) * -5)); } }
   @keyframes ob2-tvis { 0%, ${p(6, CT)} { opacity: 1; } ${p(6.01, CT)}, 100% { opacity: 0; } }
   @keyframes ob2-tempty { 0%, ${p(6, CT)} { opacity: 0; } ${p(6.01, CT)}, 100% { opacity: 1; } }
@@ -18443,15 +18450,15 @@ window.KS_REFS = {
   }
 
   // ── 2 · The username ──
-  function NameValue({ x, v, end, tag, timeout }) {
+  function NameValue({ x, v, end, tag, timeout, ans = 0.6 }) {
     const lh = Math.round(22 * 1.3 * k(x, 1.3));
     const box = { height: lh, overflow: 'hidden', position: 'relative', '--ob-lh': `${lh}px`, ...fs(22, x, 1.3, 1.3), fontWeight: 700, color: 'var(--c-text)' };
     if (end && !timeout) return <div style={box}>{tag}</div>;
     if (v === 'a') {
-      const strip = timeout ? [...REEL, REEL[0]] : [...REEL, tag];
+      const strip = timeout ? [...REEL, REEL[0]] : [...Array.from({ length: nReel(ans) }, (_, i) => REEL[i % REEL.length]), tag];
       return (
         <div style={box}>
-          <div style={timeout ? anim('ob2-spin', 0.5, { ease: 'linear' }) : anim('ob2a-reel', C2, { ease: 'linear' })}>
+          <div style={timeout ? anim('ob2-spin', 0.5, { ease: 'linear' }) : anim(`ob2a-reel-${akey(ans)}`, C2, { ease: 'linear' })}>
             {strip.map((s, i) => <div key={i} style={{ height: lh }}>{s}</div>)}
           </div>
         </div>
@@ -18461,12 +18468,12 @@ window.KS_REFS = {
     return (
       <div style={{ ...box, display: 'flex' }}>
         {tag.split('').map((ch, i) => {
-          const junk = [0, 1, 2, 3].map((j) => pool[(i * 7 + j * 11 + tag.length) % pool.length]);
+          const junk = Array.from({ length: timeout ? 4 : nChar(ans) }, (_, j) => pool[(i * 7 + j * 11 + tag.length) % pool.length]);
           const strip = timeout ? [...junk, junk[0]] : [...junk, ch];
           return (
             <span key={i} style={{ display: 'inline-block', position: 'relative', height: lh, overflow: 'hidden' }}>
               <span style={{ visibility: 'hidden' }}>{timeout ? junk[0] : ch}</span>
-              <span style={{ position: 'absolute', left: 0, top: 0, width: '100%', ...(timeout ? anim('ob2-spin', 0.4, { ease: 'linear', delay: i * 0.03 }) : anim('ob2b-char', C2, { ease: 'linear', delay: i * 0.012 })) }}>
+              <span style={{ position: 'absolute', left: 0, top: 0, width: '100%', ...(timeout ? anim('ob2-spin', 0.4, { ease: 'linear', delay: i * 0.03 }) : anim(`ob2b-char-${akey(ans)}`, C2, { ease: 'linear', delay: i * 0.012 })) }}>
                 {strip.map((c, j) => <span key={j} style={{ display: 'block', height: lh, textAlign: 'center' }}>{c}</span>)}
               </span>
             </span>
@@ -18475,19 +18482,19 @@ window.KS_REFS = {
       </div>
     );
   }
-  function Username({ x = 1, v = 'a', end, tag = TAGS[0], timeout, onChange, inLayer }) {
+  function Username({ x = 1, v = 'a', end, tag = TAGS[0], timeout, onChange, inLayer, ans = 0.6 }) {
     const field = (value, check) => (
       <div className="dr-a-card" style={{ padding: '10px 14px', display: 'grid', gap: 2, boxShadow: 'inset 0 0 0 2px var(--c-accent)' }}>
         <span style={{ ...fs(13, x), color: 'var(--c-text-2)', fontWeight: 600 }}>Username</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>{value}</div>
-          {check ? <span style={{ color: 'var(--c-gain)', display: 'grid', ...(end || inLayer ? {} : anim('ob2-check', C2)) }}><Icon d={ICON.check} size={20} width={2.8} /></span> : null}
+          {check ? <span style={{ color: 'var(--c-gain)', display: 'grid', ...(end || inLayer ? {} : anim(`ob2-check-${akey(ans)}`, C2)) }}><Icon d={ICON.check} size={20} width={2.8} /></span> : null}
         </div>
       </div>
     );
     const keepRow = (
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <span style={end || inLayer ? {} : anim('ob2-keep', C2)}><Btn x={x}>Keep</Btn></span>
+        <span style={end || inLayer ? {} : anim(`ob2-keep-${akey(ans)}`, C2)}><Btn x={x}>Keep</Btn></span>
         <span onClick={onChange ? (e) => { e.stopPropagation(); onChange(); } : undefined} style={{ cursor: onChange ? 'pointer' : 'default' }}><Btn x={x} kind="line">Change</Btn></span>
       </div>
     );
@@ -18510,7 +18517,7 @@ window.KS_REFS = {
     return (
       <Fill style={{ alignContent: 'start', gap: 16, paddingTop: x > 1 ? 48 : 70 }}>
         <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>Pick a username</span>
-        {field(inLayer ? <div style={{ ...fs(22, x, 1.3, 1.3), fontWeight: 700, color: 'var(--c-text)' }}>{tag}</div> : <NameValue key={tag} x={x} v={v} end={end} tag={tag} />, true)}
+        {field(inLayer ? <div style={{ ...fs(22, x, 1.3, 1.3), fontWeight: 700, color: 'var(--c-text)' }}>{tag}</div> : <NameValue key={tag} x={x} v={v} end={end} tag={tag} ans={ans} />, true)}
         {keepRow}
       </Fill>
     );
@@ -18634,7 +18641,7 @@ window.KS_REFS = {
         <ul className="b-inv__notes">
           <li><b>The rules every version keeps:</b> no tap and no wait added (every button works from the first frame, even while it moves in); anything longer than about a second can be tapped through; with Reduce Motion on the screen is simply there, complete (section 5). Today’s words only.</li>
           <li><b>1 · Arrival.</b> A, 0.8 s: the mark, then each line, then the buttons rise in order. B, 1.0 s: the mark drops in with a ripple, then the heading, then the buttons.</li>
-          <li><b>2 · The username.</b> The roll lasts exactly as long as your name takes to be made, and settles the moment it arrives (0.25 s); it’s never held open to be seen, and a tap ends it. Here the name arrives at 0.6 s, a usual answer. A: names roll past like a reel and stop on yours. B: each letter shuffles, then they lock left to right. A haptic as it lands; Keep turns on then (as today). <b>Change rolls another</b> (try it on the Light phones). If no name comes by 6 s, the field is empty and you type one (the last phone of each).</li>
+          <li><b>2 · The username.</b> The roll lasts exactly as long as your name takes to be made, and settles the moment it arrives (0.25 s); it’s never held open to be seen, and a tap ends it. Drawn with the name at 0.6 s (a usual answer), and at 0.25 s and at 2 s to show it reads at both. A: names roll past like a reel and stop on yours. B: each letter shuffles, then they lock left to right. A haptic as it lands; Keep turns on then (as today). <b>Change rolls another</b> (try it on the Light phones). If no name comes by 6 s, the field is empty and you type one (the last phone of each).</li>
           <li><b>3 · Taking your seat</b>, in place of today’s spinner. A, 0.7 s: your mark slides in beside the one who invited you. B, 1.0 s: your mark travels round the league’s ring and takes its place. A haptic as it lands. It plays only while the join is happening; a fast join cuts it short. Only the inviter’s mark and yours: nothing else about the league can be shown before you’re in.</li>
           <li><b>4 · Between steps</b> (one phone runs the whole path, 6 s with pauses). From the username on, the league’s name stays at the top while the rest changes. A: each step rises in from below, 0.35 s. B: each step slides in from the right, 0.35 s, like going forward in any iPhone app.</li>
           <li><b>Recommended: 1A, 2A, 3A, 4A.</b> They’re the quieter of each pair and they share one direction, up and in, so the whole path reads as one motion. 2A is the playful moment the plan asked for; 2B is more striking but harder to read while it shuffles. 4B is what iPhone does, but sideways suggests you can swipe back, and there’s nothing to go back to.</li>
@@ -18647,6 +18654,17 @@ window.KS_REFS = {
         <Version id="m1b" title="1B · Arrival, the mark drops in" len="1.0 s" note="0–0.45 s mark drops, ripple · 0.4–0.7 s heading · 0.55–1.0 s buttons." render={({ x, end }) => <Arrival x={x} v="b" end={end} />} times={[0.15, 0.4, 0.6, 1.0]} />
         <Version id="m2a" title="2A · The username, a reel" len="as long as the name takes, then 0.25 s" note="Rolls until the name arrives (0.6 s here), lands at 0.85 s with a haptic. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.7, 0.9]} />
         <Version id="m2b" title="2B · The username, letters lock" len="as long as the name takes, then 0.25 s" note="Shuffles until the name arrives (0.6 s here), locks left to right by 0.85 s. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.68, 0.9]} />
+        <Sub>2 · A quick name and a slow one</Sub>
+        <Grid>{[
+          fig('m2q1', '2A · the name at 0.25 s', <Live t="light" x={1} label="Username reel, name at 0.25 s" render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} ans={0.25} />} rollable />, 'A quick answer: a flick of two names, then yours, landed by 0.5 s.'),
+          fig('m2s1', '2A · the name at 2 s', <Live t="light" x={1} label="Username reel, name at 2 s" render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} ans={2.0} />} rollable />, 'A slow answer: the reel keeps rolling at the same speed until the name arrives, never longer.'),
+          fig('m2q2', '2B · the name at 0.25 s', <Live t="light" x={1} label="Username letters, name at 0.25 s" render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} ans={0.25} />} rollable />),
+          fig('m2s2', '2B · the name at 2 s', <Live t="light" x={1} label="Username letters, name at 2 s" render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} ans={2.0} />} rollable />),
+        ]}</Grid>
+        <Wide>
+          {fig('m2sf', '2A · the name at 2 s, four frames', <Film times={[0.6, 1.4, 2.1, 2.3]} render={({ x }) => <Username x={x} v="a" tag={TAGS[0]} ans={2.0} />} label="Username reel with the name at 2 s, four frames" />)}
+          {fig('m2qf', '2A · the name at 0.25 s, four frames', <Film times={[0.1, 0.2, 0.35, 0.5]} render={({ x }) => <Username x={x} v="a" tag={TAGS[0]} ans={0.25} />} label="Username reel with the name at 0.25 s, four frames" />)}
+        </Wide>
         <Sub>2 · No name by 6 s (both versions)</Sub>
         <Grid>{[
           fig('m2ta', '2A · rolling, then the empty field at 6 s', <Live t="light" x={1} label="Username reel that gets no name, then the empty field" render={({ x }) => <Username x={x} v="a" timeout />} />, 'Loops every 8 s: rolls for 6 s, then the empty field with today’s two rules.'),
