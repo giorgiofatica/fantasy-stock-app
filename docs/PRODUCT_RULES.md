@@ -2381,6 +2381,43 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
 - **One no-league empty state on every tab** (Home, Matchup, League, Portfolio): Create a
   league / Join with a code (recommendation taken).
 
+- **Onboarding ends on something the new manager keeps (B)** (2026-11-25, typed in the
+  Planner's chat in answer to a drawing of two options: "B"). It came from his review of a
+  screen recording of another app's onboarding (Pure: Poker & Mahjong; the recording is kept
+  with the references, not in the repo), of which he said: "i didnt love some of the friction
+  but the experience felt cool. Good transitions and good use of animations as well (eg the
+  treasure reward at the end). Would love to plan how we could make the onboarding feel more
+  modern and cool too".
+  - **B, a keepsake:** on "You're in {league}" a crest is revealed for the new manager. It
+    is theirs, and it shows beside their name where a manager is shown (the drawing named
+    standings and matchups). A (today's screen and words with a richer arrival of the tick,
+    nothing new to keep) was not picked. The Planner's recommendation was A now and B as
+    its own plan afterwards; he picked B.
+  - The drawing used today's approved words and no new ones. Its shield was a placeholder,
+    marked as such: what a crest looks like is not decided.
+  - **Not asked, and not decided by this pick:** how a crest is made or chosen; whether it
+    can be changed; whether crests differ in rarity or can be collected, bought or earned
+    (the other app had rarity tiers and a shop; nothing of that was shown to him as ours).
+  - What it reaches, read in the code the same day: a manager's mark today is two initials,
+    drawn by one shared component in about twenty places. No picture can be set and nothing
+    is stored for one. So the crest is a new thing to design, store and show, and it is
+    covered by the rule that members of a shared league see each other's name and avatar
+    and nothing else, and by the rule that deleting an account scrubs the avatar.
+  - Not built. The plan is the Planner's to write and his to approve.
+  - **Crests are a collection you earn (B)** (2026-11-25, the same chat, a second drawing:
+    "B"). B: a manager gets one crest on joining and unlocks more by playing; each unlock
+    is its own reveal; nothing is bought; the manager wears one of the crests they hold. A
+    (one crest made for you, the way the username is, swappable in Profile, nothing to
+    collect) was not picked. The Planner's recommendation was A built so that B could
+    follow; he picked B.
+    - The drawing had no words in it. Its note gave "winning a week or a league" as
+      examples of what could unlock a crest. They are examples, not rulings.
+    - **Not asked, and not decided by this pick:** which crests exist and how many; what
+      earns each one; whether they come in tiers; where a manager sees their collection;
+      whether other managers can see it; the words for any of it.
+    - Ruled out by the drawing's own terms: buying a crest, with money or with anything
+      else.
+
 - **Sign-in and sign-up screens behave like a short native form** (2026-11-09, from Giorgio's
   build 1.3.0 (12) recordings; spec `docs/plans/2026-11-09-auth-screen-layout.md`):
   - No scrolling when everything fits: "There really should not be a reason why it should be
