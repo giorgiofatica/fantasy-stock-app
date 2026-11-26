@@ -392,7 +392,6 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-crest-nameless', 'Crests where no name is beside them', () => window.KSCrestNameless],
     ['call-ob-moments', 'Four moments in onboarding', () => window.KSOnboardingMoments],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
@@ -400,6 +399,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-crest-nameless', title: 'Crests where no name is beside them', decision: '"crests where no name is beside them B with names". B: Members on the pre-draft Home shows each crest with the manager\u2019s first name under it (yours first, in your colour). A (crests alone) not picked. Your mark top right takes your crest; the invite arrival and takeover landing keep today\u2019s mark; the draft-order "i" picture keeps example initials. No new words.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestNamelessArchived },
     { id: 'call-crest-collection', title: 'Your crests in Profile, and their words', decision: '"your crests in Profile, and their words 2", then "let me clear that up, B crest row and A crest reveal". B: a "Crests" row on Profile opening its own screen (the worn crest large on top, the eight below, locked in grey). A not picked. The WORDS are not approved: every word on the board is still a proposal, open for his yes.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestCollectionArchived },
     { id: 'call-crest-reveal', title: 'The crest reveal', decision: '"crest reveal 1", then "let me clear that up, B crest row and A crest reveal" (A = the first version). 1: on "You\u2019re in" today\u2019s tick turns over like a coin into your crest (1.4 s), a haptic as it lands; tap to skip; Reduce Motion shows the crest simply there. No sound unless he asks. 2 (the crest rising in light) not picked.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestRevealArchived },
     { id: 'call-crest-look', title: 'What a crest looks like', decision: '"i like A the most". A, the shield (one outline for all, the field split, a symbol on top), over the recommended C. B (Roundel) and C (Patch) not picked. The full set must still differ by more than colour (split, symbol, light against dark), mark earned crests inside the shield, and pass a greyscale check; your mark keeps the blue ring.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestLookArchived },
