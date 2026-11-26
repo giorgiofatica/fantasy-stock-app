@@ -144,14 +144,14 @@
         </header>
         <ul className="b-inv__notes">
           <li><b>Every place a manager’s mark is drawn today was checked.</b> Three have no name beside them; two more show a mark before you’re in the league.</li>
-          <li><b>1 · Members on the pre-draft Home</b> is the one that needs your call. Today, two initials tell you who has joined. With crests, friends haven’t learned each other’s yet. <b>A:</b> the crests alone, as the initials are today. <b>B:</b> each crest with the first name under it.</li>
+          <li><b>Members on the pre-draft Home</b> is the one that needs your call. Today, two initials tell you who has joined. With crests, friends haven’t learned each other’s yet. <b>A:</b> the crests alone, as the initials are today. <b>B:</b> each crest with the first name under it.</li>
           <li><b>Recommended: B.</b> Before the draft is exactly when nobody knows whose crest is whose, and this card is how you check who’s in. No new words: the names are the managers’ own.</li>
-          <li><b>2 · Your mark, top right of every tab:</b> it’s you, so your crest simply goes in. Tapping it still opens Profile.</li>
-          <li><b>3 · Stays as today:</b> the invite arrival and the takeover landing keep today’s mark, because you aren’t in the league yet and a crest is only shown to people who share one. The draft-order “i” picture keeps its initials: those are example people, not your league.</li>
+          <li><b>Your mark, top right of every tab:</b> it’s you, so your crest simply goes in. Tapping it still opens Profile.</li>
+          <li><b>Stays as today:</b> the invite arrival and the takeover landing keep today’s mark, because you aren’t in the league yet and a crest is only shown to people who share one. The draft-order “i” picture keeps its initials: those are example people, not your league.</li>
           <li>{archived ? decidedNote : <><b>Answer with:</b> A or B for Members.</>}</li>
         </ul>
 
-        <Sub>1 · Members on the pre-draft Home</Sub>
+        <Sub>{archived ? 'Members on the pre-draft Home · B picked, A not picked' : 'Members on the pre-draft Home'}</Sub>
         <Grid>{[
           fig('a1', 'A · crests alone', <PreDraft label="Pre-draft Home, Members as crests alone" />, 'Which crest is Sofia’s? Only the people who saw her join know.'),
           fig('b1', 'B · crests with first names', <PreDraft names label="Pre-draft Home, Members as crests with first names" />, 'Your name in your colour, first, as you are today.'),
@@ -162,10 +162,10 @@
           fig('g1', 'B · in greyscale', <div style={{ filter: 'grayscale(1)' }}><PreDraft names label="Members with first names, the whole screen grey" /></div>, 'The whole screen grey still reads: every shield differs by its split and its symbol, and the names say who.'),
         ]}</Grid>
 
-        <Sub>2 · Your mark, top right of every tab</Sub>
+        <Sub>Your mark, top right of every tab</Sub>
         <p style={{ margin: '0 0 12px', maxWidth: 760, color: 'var(--c-text-2)' }}>Drawn in every phone above: your crest (Roberto B.’s moon) where your blue initials are today.</p>
 
-        <Sub>3 · Stays as today</Sub>
+        <Sub>Stays as today</Sub>
         <Grid>{[
           fig('s1', 'The invite arrival, unchanged', <Arrival label="Invite arrival with the inviter's initials, unchanged" />, 'Before sign-in the page may show only the league’s name and who invited you, so no crest.'),
         ]}</Grid>
@@ -173,6 +173,6 @@
     );
   }
 
-  window.KSCrestNameless = () => <CallCrestNameless />;
-  window.KSCrestNamelessArchived = () => null;
+  window.KSCrestNameless = () => null;
+  window.KSCrestNamelessArchived = () => <CallCrestNameless archived decidedNote={<><b>Decided 2026-11-25, in his words:</b> “crests where no name is beside them B with names”. B: on the pre-draft Home’s Members card each crest has the manager’s first name under it, yours first in your colour. A (crests alone) not picked. Your mark top right takes your crest; the invite arrival and the takeover landing keep today’s mark; the draft-order “i” picture keeps its example initials.</>} />;
 })();

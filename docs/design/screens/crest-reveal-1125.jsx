@@ -199,7 +199,7 @@
         <ul className="b-inv__notes">
           <li><b>1 · The tick turns over (1.4 s).</b> Today’s blue tick pops in, then turns like a coin and its back is your crest, which lands with a small bounce and a ring of its colour.</li>
           <li><b>2 · The crest rises in light (1.8 s).</b> A glow in the crest’s colour opens, the crest rises out of it with a few rays behind, and a shine crosses it as it settles. No tick.</li>
-          <li><b>Both:</b> today’s words, card and button appear at once and “Go to the league” works from the first frame, so nothing waits on the crest. A tap anywhere skips to the end. One tap on the phone (a haptic) as the crest lands. With Reduce Motion on, the crest is simply there (section 3).</li>
+          <li><b>Both:</b> today’s words, card and button appear at once and “Go to the league” works from the first frame, so nothing waits on the crest. A tap anywhere skips to the end. One tap on the phone (a haptic) as the crest lands. With Reduce Motion on, the crest is simply there (the last section).</li>
           <li><b>Sound, your call:</b> 1 needs none (the haptic is the landing). 2 suits a short soft chime as the crest lands. Either way it plays only with the ringer on.</li>
           <li><b>Recommended: 1.</b> It keeps the moment you joined (the tick) and turns it into the thing you keep, one object, no new effects. It is also the shorter of the two. 2 is closer to the treasure moment you liked; its glow is softer on Light than in Dark, and it drops the tick.</li>
           <li><b>Drawn flat, depth suggested</b> (a turn in perspective, a shadow as it turns): both are plain moves the app already makes, so no new library. The crest is a shield, your pick; this one is a stand-in until the full set is drawn.</li>
@@ -207,7 +207,7 @@
           <li>{archived ? decidedNote : <><b>Answer with:</b> 1 or 2, and sound or no sound.</>}</li>
         </ul>
 
-        <Sub>1 · The tick turns over · 1.4 s</Sub>
+        <Sub>{archived ? '1 · The tick turns over · 1.4 s · picked' : '1 · The tick turns over · 1.4 s'}</Sub>
         <Grid>{[
           fig('v1l', '1 · Light', <Live t="light" v={1} label="You're in Stock Scudetto, the tick turning into the crest" />, '0.25 s tick pops (as today) · 0.35–0.9 s turns over · 0.9 s lands, haptic · 1.4 s ring gone.'),
           fig('v1d', '1 · Dark', <Live t="dark" v={1} label="Version 1, Dark" />),
@@ -218,7 +218,7 @@
           {fig('v1g', '1 · five frames, Dark', <Film t="dark" v={1} times={[0.2, 0.4, 0.63, 1.0, 1.3]} />)}
         </Wide>
 
-        <Sub>2 · The crest rises in light · 1.8 s</Sub>
+        <Sub>{archived ? <><s>2 · The crest rises in light · 1.8 s</s> · not picked</> : '2 · The crest rises in light · 1.8 s'}</Sub>
         <Grid>{[
           fig('v2l', '2 · Light', <Live t="light" v={2} label="You're in Stock Scudetto, the crest rising in light" />, '0–0.3 s glow opens · 0.2–0.9 s crest rises · 0.9 s lands, haptic · 0.8–1.5 s shine · 1.8 s glow gone.'),
           fig('v2d', '2 · Dark', <Live t="dark" v={2} label="Version 2, Dark" />),
@@ -229,7 +229,7 @@
           {fig('v2g', '2 · five frames, Dark', <Film t="dark" v={2} times={[0.2, 0.5, 0.85, 1.2, 1.6]} />)}
         </Wide>
 
-        <Sub>3 · Reduce Motion on (both versions)</Sub>
+        <Sub>Reduce Motion on (both versions)</Sub>
         <Grid>{[
           fig('r1', 'Reduce Motion · Light', <Fit><YoureIn end label="You're in with Reduce Motion: the crest simply there" /></Fit>, 'No tick, no turn, no glow: the crest is there from the first frame.'),
           fig('r2', 'Reduce Motion · Dark', <Fit><YoureIn t="dark" end label="Reduce Motion, Dark" /></Fit>),
@@ -238,6 +238,6 @@
     );
   }
 
-  window.KSCrestReveal = () => <CallCrestReveal />;
-  window.KSCrestRevealArchived = () => null;
+  window.KSCrestReveal = () => null;
+  window.KSCrestRevealArchived = () => <CallCrestReveal archived decidedNote={<><b>Decided 2026-11-25, in his words:</b> “crest reveal 1”, then “let me clear that up, B crest row and A crest reveal” (A = the first version). 1, the tick turns over (1.4 s), with its haptic as the crest lands. No sound unless he asks for one. 2 not picked.</>} />;
 })();

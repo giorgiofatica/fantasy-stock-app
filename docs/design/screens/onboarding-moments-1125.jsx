@@ -35,7 +35,7 @@
     s += tout == null ? `100% { opacity: 1; transform: none; }` : `${p(tout, C)} { opacity: 1; transform: none; } ${p(tout + 0.35, C)}, 100% { opacity: 0; transform: ${to}; }`;
     return `${s} }`;
   };
-  const C1 = 4, C2 = 4, CT = 8, C3 = 4, C4 = 6;
+  const C1 = 4, C2 = 4, CT = 8, C3 = 4, C4 = 6, C5 = 9;
   // The roll follows the answer: it moves at a fixed speed until the name arrives, then settles in 0.25 s.
   // Drawn at three answer times: 0.25 s (quick), 0.6 s (usual), 2 s (slow). n = lines rolled before the name.
   const ANS = [0.25, 0.6, 2.0];
@@ -69,6 +69,11 @@
   }
   ${layer('ob4a-l1', null, 1.2, 'Y', C4)} ${layer('ob4a-l2', 1.2, 2.8, 'Y', C4)} ${layer('ob4a-l3', 2.8, 4.0, 'Y', C4)} ${layer('ob4a-l4', 4.0, null, 'Y', C4)}
   ${layer('ob4b-l1', null, 1.2, 'X', C4)} ${layer('ob4b-l2', 1.2, 2.8, 'X', C4)} ${layer('ob4b-l3', 2.8, 4.0, 'X', C4)} ${layer('ob4b-l4', 4.0, null, 'X', C4)}
+  @keyframes ob4c-s2 { 0%, ${p(1.2, C4)} { transform: scaleX(0); } ${p(1.55, C4)}, 100% { transform: scaleX(1); } }
+  @keyframes ob4c-s3 { 0%, ${p(4.0, C4)} { transform: scaleX(0); } ${p(4.35, C4)}, 100% { transform: scaleX(1); } }
+  ${layer('ob4e-l1', null, 1.2, 'X', C5)} ${layer('ob4e-l2', 1.2, 2.6, 'X', C5)} ${layer('ob4e-l3', 2.6, 4.6, 'X', C5)} ${layer('ob4e-l4', 4.6, 6.2, 'X', C5)} ${layer('ob4e-l5', 6.2, null, 'X', C5)}
+  ${[1.2, 2.6, 4.6, 6.2].map((t, i) => `@keyframes ob4e-s${i + 2} { 0%, ${p(t, C5)} { transform: scaleX(0); } ${p(t + 0.35, C5)}, 100% { transform: scaleX(1); } }`).join(' ')}
+  @keyframes ob4e-chip { 0%, ${p(1.2, C5)} { opacity: 0; transform: translateY(-6px); } ${p(1.55, C5)}, ${p(6.2, C5)} { opacity: 1; transform: none; } ${p(6.55, C5)}, 100% { opacity: 0; } }
   @keyframes ob4-chip { 0%, ${p(1.2, C4)} { opacity: 0; transform: translateY(-6px); } ${p(1.55, C4)}, ${p(4.0, C4)} { opacity: 1; transform: none; } ${p(4.35, C4)}, 100% { opacity: 0; } }
   `;
   const EASE = 'cubic-bezier(.2,.8,.2,1)';
@@ -96,12 +101,12 @@
   const Fill = ({ children, style }) => <div style={{ position: 'absolute', inset: 0, padding: '0 20px 44px', display: 'grid', ...style }}>{children}</div>;
 
   // ── 1 · Arrival ──
-  function Arrival({ x = 1, v = 'a', end, inLayer }) {
+  function Arrival({ x = 1, v = 'a', end, inLayer, name = LG }) {
     const a = (n) => A(end, `ob1${v}-${n}`, C1);
     const title = (
       <span style={{ display: 'grid', gap: 0, textAlign: 'center' }}>
         <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)', ...(v === 'a' ? a('lead') : {}) }}>{INVITER} invited you to</span>
-        <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)', ...(v === 'a' ? a('name') : {}) }}>{LG}</span>
+        <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)', ...(v === 'a' ? a('name') : {}) }}>{name}</span>
       </span>
     );
     return (
@@ -219,11 +224,11 @@
   }
 
   // ── 4 · Between steps: four screens in one phone, the league's name staying put from step 2 ──
-  function YoureInLite({ x = 1 }) {
+  function YoureInLite({ x = 1, name = LG, top }) {
     return (
-      <Fill style={{ alignContent: 'start', justifyItems: 'center', textAlign: 'center', gap: 14, paddingTop: x > 1 ? 30 : 80 }}>
+      <Fill style={{ alignContent: 'start', justifyItems: 'center', textAlign: 'center', gap: 14, paddingTop: top != null ? top : x > 1 ? 30 : 80 }}>
         <span style={{ width: 72, height: 72, borderRadius: 36, background: 'var(--c-you)', color: '#fff', display: 'grid', placeItems: 'center' }}><Icon d={ICON.check} size={32} width={2.6} /></span>
-        <span style={{ display: 'grid' }}><span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>You're in</span><span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>{LG}</span></span>
+        <span style={{ display: 'grid' }}><span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>You're in</span><span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>{name}</span></span>
         <span style={{ ...fs(15, x), color: 'var(--c-text-2)' }}>The draft is <span style={{ whiteSpace: 'nowrap' }}>Sat, Nov 28 · 7:00 PM ET</span>.</span>
         <Btn x={x} style={{ width: '100%' }}>Go to the league</Btn>
       </Fill>
@@ -241,6 +246,72 @@
         <div style={{ position: 'absolute', inset: 0, ...L(2) }}><Username x={x} end inLayer /></div>
         <div style={{ position: 'absolute', inset: 0, ...L(3) }}><Seat x={x} v="a" end inLayer /></div>
         <div style={{ position: 'absolute', inset: 0, ...L(4) }}><YoureInLite x={x} /></div>
+      </>
+    );
+  }
+
+  // ── 4C · the progress bar at the top, the steps sliding sideways (his ask, 2026-11-25) ──
+  // The bar counts the screens of the path you're on: Apple/Google = invite, username, in (3); email = invite, create
+  // account, check your email (you leave for Mail here), username, in (5). The seat is part of "in". No words on
+  // screen; VoiceOver reads "Step 2 of 3" (Create league's own "Step N of 4" form). Under the bar, the league's name.
+  const LONG = 'The Friday Night Stock Pickers Club of Milan';
+  function Bar({ x, n, path, end, reduce, name }) {
+    const fill = (i) => (end || i === 1 || (reduce && i <= 2) ? { transform: 'none' } : reduce ? { transform: 'scaleX(0)' } : anim(`${path === 'email' ? 'ob4e' : 'ob4c'}-s${i}`, path === 'email' ? C5 : C4, { ease: 'cubic-bezier(.3,.7,.2,1)' }));
+    const chip = end ? { opacity: 0 } : reduce ? { opacity: 1 } : anim(path === 'email' ? 'ob4e-chip' : 'ob4-chip', path === 'email' ? C5 : C4);
+    return (
+      <div style={{ position: 'absolute', top: 10, left: 20, right: 20, zIndex: 2, display: 'grid', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 4 }} aria-label={`Step ${reduce ? 2 : 1} of ${n}`}>
+          {Array.from({ length: n }, (_, k) => (
+            <span key={k} style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--c-inset)', overflow: 'hidden' }}>
+              <span style={{ display: 'block', height: '100%', background: 'var(--c-accent)', transformOrigin: 'left center', ...fill(k + 1) }} />
+            </span>
+          ))}
+        </div>
+        <span style={{ textAlign: 'center', ...fs(15, x), fontWeight: 700, color: 'var(--c-text-2)', textWrap: 'balance', ...chip }}>{name}</span>
+      </div>
+    );
+  }
+  function CreateAccount({ x = 1 }) {
+    const f = (label, value) => (
+      <div className="dr-a-card" style={{ padding: '10px 14px', display: 'grid', gap: 2 }}>
+        <span style={{ ...fs(13, x), color: 'var(--c-text-2)', fontWeight: 600 }}>{label}</span><span style={{ ...fs(17, x), color: 'var(--c-text)' }}>{value}</span>
+      </div>
+    );
+    return (
+      <Fill style={{ alignContent: 'start', gap: 14, paddingTop: x > 1 ? 30 : 60 }}>
+        <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>Create account</span>
+        {f('Email address', 'luca@example.com')}{f('Password', '••••••••••')}
+        <Btn x={x}>Create account</Btn><Btn x={x} kind="line">Sign in instead</Btn>
+      </Fill>
+    );
+  }
+  function CheckEmail({ x = 1, name = LG }) {
+    return (
+      <Fill style={{ alignContent: 'center', justifyItems: 'center', textAlign: 'center', gap: 12 }}>
+        <span style={{ width: 64, height: 64, borderRadius: 32, background: 'var(--c-inset)', display: 'grid', placeItems: 'center', color: 'var(--c-text)' }}><Icon d="M4 6h16v12H4zM4 7l8 6 8-6" size={28} width={2} /></span>
+        <span style={{ ...fs(24, x), fontWeight: 800, color: 'var(--c-text)' }}>Check your email</span>
+        <span style={{ ...fs(15, x), color: 'var(--c-text-2)' }}>We sent a link to luca@example.com. Tap it to finish joining {name}.</span>
+        <Btn x={x} style={{ width: '100%' }}>Back to sign in</Btn>
+        <span style={{ ...fs(15, x), color: 'var(--c-accent)', fontWeight: 700 }}>Didn't receive it? Send again</span>
+      </Fill>
+    );
+  }
+  function StepsBar({ x = 1, end, reduce, path = 'apple', name = LG }) {
+    const email = path === 'email';
+    const n = email ? 5 : 3;
+    // ~0.55 em a character, across the 362pt between the gutters.
+    const lines = Math.max(1, Math.ceil(name.length / Math.floor(362 / (15 * k(x, 1.3) * 0.55))));
+    const top = 22 + lines * Math.round(15 * 1.22 * k(x, 1.3)) + 6;
+    const L = (i, last) => (end ? { opacity: i === last ? 1 : 0 } : reduce ? { opacity: i === 2 ? 1 : 0 } : anim(`${email ? 'ob4e' : 'ob4b'}-l${i}`, email ? C5 : C4, { ease: 'cubic-bezier(.3,.7,.2,1)' }));
+    const screens = email
+      ? [<Arrival x={x} end inLayer name={name} />, <CreateAccount x={x} />, <CheckEmail x={x} name={name} />, <Username x={x} end inLayer />, <YoureInLite x={x} name={name} top={20} />]
+      : [<Arrival x={x} end inLayer name={name} />, <Username x={x} end inLayer />, <Seat x={x} v="a" end inLayer />, <YoureInLite x={x} name={name} top={20} />];
+    return (
+      <>
+        <Bar x={x} n={n} path={path} end={end} reduce={reduce} name={name} />
+        <div style={{ position: 'absolute', top, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
+          {screens.map((sc, i) => <div key={i} style={{ position: 'absolute', inset: 0, ...L(i + 1, screens.length) }}>{sc}</div>)}
+        </div>
       </>
     );
   }
@@ -284,10 +355,10 @@
   const Wide = ({ children }) => <div style={{ display: 'grid', gap: 20, margin: '4px 0 28px', overflowX: 'auto' }}>{children}</div>;
   const Static = ({ t = 'light', label, children }) => <Fit><Phone t={t} label={label}>{children}</Phone></Fit>;
 
-  function Version({ id, title, len, note, render, rollable, times }) {
+  function Version({ id, title, len, note, render, rollable, times, status }) {
     return (
       <>
-        <Sub>{`${title} · ${len}`}</Sub>
+        <Sub>{status === 'not' ? <><s>{`${title} · ${len}`}</s> · not picked</> : status === 'picked' ? `${title} · ${len} · picked` : status === 'hold' ? `${title} · ${len} · on hold` : `${title} · ${len}`}</Sub>
         <Grid>{[
           fig(`${id}l`, `${title} · Light`, <Live t="light" x={1} label={`${title}, Light`} render={render} rollable={rollable} />, note),
           fig(`${id}d`, `${title} · Dark`, <Live t="dark" x={1} label={`${title}, Dark`} render={render} rollable={rollable} />),
@@ -310,21 +381,29 @@
           </div>
         </header>
         <ul className="b-inv__notes">
+          <li><b>Decided 2026-11-25, in his words:</b> “1b / 2b / i dont get 3 and its purpose / what about the progress bar up top? if that gets added to this screen then the sideways motion.” 1 is B (the mark drops in), 2 is B (letters lock); A of each not picked. 3 is on hold while the Planner explains it. 4 is open again, now between A and C below (a bar at the top, sliding sideways). “Change rolls another” not yet answered.</li>
           <li><b>The rules every version keeps:</b> no tap and no wait added (every button works from the first frame, even while it moves in); anything longer than about a second can be tapped through; with Reduce Motion on the screen is simply there, complete (section 5). Today’s words only.</li>
           <li><b>1 · Arrival.</b> A, 0.8 s: the mark, then each line, then the buttons rise in order. B, 1.0 s: the mark drops in with a ripple, then the heading, then the buttons.</li>
           <li><b>2 · The username.</b> The roll lasts exactly as long as your name takes to be made, and settles the moment it arrives (0.25 s); it’s never held open to be seen, and a tap ends it. Drawn with the name at 0.6 s (a usual answer), and at 0.25 s and at 2 s to show it reads at both. A: names roll past like a reel and stop on yours. B: each letter shuffles, then they lock left to right. A haptic as it lands; Keep turns on then (as today). <b>Change rolls another</b> (try it on the Light phones). If no name comes by 6 s, the field is empty and you type one (the last phone of each).</li>
           <li><b>3 · Taking your seat</b>, in place of today’s spinner. A, 0.7 s: your mark slides in beside the one who invited you. B, 1.0 s: your mark travels round the league’s ring and takes its place. A haptic as it lands. It plays only while the join is happening; a fast join cuts it short. Only the inviter’s mark and yours: nothing else about the league can be shown before you’re in.</li>
-          <li><b>4 · Between steps</b> (one phone runs the whole path, 6 s with pauses). From the username on, the league’s name stays at the top while the rest changes. A: each step rises in from below, 0.35 s. B: each step slides in from the right, 0.35 s, like going forward in any iPhone app.</li>
-          <li><b>Recommended: 1A, 2A, 3A, 4A.</b> They’re the quieter of each pair and they share one direction, up and in, so the whole path reads as one motion. 2A is the playful moment the plan asked for; 2B is more striking but harder to read while it shuffles. 4B is what iPhone does, but sideways suggests you can swipe back, and there’s nothing to go back to.</li>
+          <li><b>4 · Between steps, your progress-bar idea.</b> A (as before): the league’s name at the top from the username on, each step rising in. <b>C (new):</b> a progress bar at the top with the league’s name under it, each step sliding in from the right as the bar fills a segment. It replaces the old B (sideways with no bar).
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+              <li><b>What it counts:</b> the screens of your path. With Apple or Google, three (invite, username, in; the seat is part of “in”). With email, five (invite, create account, check your email, username, in): at “Check your email” you leave the app for Mail, the bar holds at 3 of 5, and the link brings you back to 4.</li>
+              <li><b>At your text size:</b> the bar and the name both fit. A long league name takes two lines under the bar and the screen moves down; the name is never cut, and the bar never replaces it.</li>
+              <li><b>On a cold install:</b> no bar. Create league keeps its own “Step N of 4”, and the account and username screens before it lead to no single league to count towards, so one screen never carries two counters.</li>
+              <li><b>No words:</b> the bar is segments only. VoiceOver reads it as “Step 2 of 3”, Create league’s own form, so nothing new to approve.</li>
+            </ul>
+          </li>
+          <li><b>Recommended: C.</b> It answers the plan’s own complaint about the other app (no sense of how long it would be), it’s what you asked for, and with a bar sideways reads as forward, not as a way back. A stays as the quieter option.</li>
           <li><b>For the Planner:</b> today “Change” opens the field to type. The plan has it roll another name, so typing your own needs another way in: here, a tap on the name opens it for typing. That’s a change to an approved behaviour, for him to confirm.</li>
           <li><b>Sound:</b> none drawn; the plan leaves it to him once there’s something to hear. A haptic marks the two moments that land.</li>
-          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B for each of 1–4 (and “Change rolls another” yes or no).</>}</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or C for 4, and yes or no to “Change rolls another”. 3 waits for the Planner.</>}</li>
         </ul>
 
-        <Version id="m1a" title="1A · Arrival, in order" len="0.8 s" note="0–0.3 s mark · 0.15–0.6 s the two lines · 0.4–0.8 s buttons. The buttons work from the first frame." render={({ x, end }) => <Arrival x={x} v="a" end={end} />} times={[0.1, 0.3, 0.5, 0.8]} />
-        <Version id="m1b" title="1B · Arrival, the mark drops in" len="1.0 s" note="0–0.45 s mark drops, ripple · 0.4–0.7 s heading · 0.55–1.0 s buttons." render={({ x, end }) => <Arrival x={x} v="b" end={end} />} times={[0.15, 0.4, 0.6, 1.0]} />
-        <Version id="m2a" title="2A · The username, a reel" len="as long as the name takes, then 0.25 s" note="Rolls until the name arrives (0.6 s here), lands at 0.85 s with a haptic. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.7, 0.9]} />
-        <Version id="m2b" title="2B · The username, letters lock" len="as long as the name takes, then 0.25 s" note="Shuffles until the name arrives (0.6 s here), locks left to right by 0.85 s. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.68, 0.9]} />
+        <Version status="not" id="m1a" title="1A · Arrival, in order" len="0.8 s" note="0–0.3 s mark · 0.15–0.6 s the two lines · 0.4–0.8 s buttons. The buttons work from the first frame." render={({ x, end }) => <Arrival x={x} v="a" end={end} />} times={[0.1, 0.3, 0.5, 0.8]} />
+        <Version status="picked" id="m1b" title="1B · Arrival, the mark drops in" len="1.0 s" note="0–0.45 s mark drops, ripple · 0.4–0.7 s heading · 0.55–1.0 s buttons." render={({ x, end }) => <Arrival x={x} v="b" end={end} />} times={[0.15, 0.4, 0.6, 1.0]} />
+        <Version status="not" id="m2a" title="2A · The username, a reel" len="as long as the name takes, then 0.25 s" note="Rolls until the name arrives (0.6 s here), lands at 0.85 s with a haptic. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.7, 0.9]} />
+        <Version status="picked" id="m2b" title="2B · The username, letters lock" len="as long as the name takes, then 0.25 s" note="Shuffles until the name arrives (0.6 s here), locks left to right by 0.85 s. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.68, 0.9]} />
         <Sub>2 · A quick name and a slow one</Sub>
         <Grid>{[
           fig('m2q1', '2A · the name at 0.25 s', <Live t="light" x={1} label="Username reel, name at 0.25 s" render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} ans={0.25} />} rollable />, 'A quick answer: a flick of two names, then yours, landed by 0.5 s.'),
@@ -341,10 +420,22 @@
           fig('m2ta', '2A · rolling, then the empty field at 6 s', <Live t="light" x={1} label="Username reel that gets no name, then the empty field" render={({ x }) => <Username x={x} v="a" timeout />} />, 'Loops every 8 s: rolls for 6 s, then the empty field with today’s two rules.'),
           fig('m2tb', '2B · shuffling, then the empty field at 6 s', <Live t="light" x={1} label="Username letters that get no name, then the empty field" render={({ x }) => <Username x={x} v="b" timeout />} />),
         ]}</Grid>
-        <Version id="m3a" title="3A · Your seat, beside the inviter" len="0.7 s" note="Your mark (your initial, in your colour) slides in beside Roberto B.’s. A haptic as it lands." render={({ x, end }) => <Seat x={x} v="a" end={end} />} times={[0.1, 0.3, 0.55, 0.8]} />
-        <Version id="m3b" title="3B · Your seat at the table" len="1.0 s" note="The ring is the league; the inviter sits at the top; yours travels round and lands." render={({ x, end }) => <Seat x={x} v="b" end={end} />} times={[0.1, 0.4, 0.7, 1.0]} />
+        <Version status="hold" id="m3a" title="3A · Your seat, beside the inviter" len="0.7 s" note="Your mark (your initial, in your colour) slides in beside Roberto B.’s. A haptic as it lands." render={({ x, end }) => <Seat x={x} v="a" end={end} />} times={[0.1, 0.3, 0.55, 0.8]} />
+        <Version status="hold" id="m3b" title="3B · Your seat at the table" len="1.0 s" note="The ring is the league; the inviter sits at the top; yours travels round and lands." render={({ x, end }) => <Seat x={x} v="b" end={end} />} times={[0.1, 0.4, 0.7, 1.0]} />
         <Version id="m4a" title="4A · Between steps, rising" len="0.35 s a step" note="Arrival → username → seat → You’re in, looping. The league’s name stays at the top from the username on." render={({ x, end }) => <Steps x={x} v="a" end={end} />} times={[1.3, 1.45, 2.95, 4.15]} />
-        <Version id="m4b" title="4B · Between steps, sliding" len="0.35 s a step" render={({ x, end }) => <Steps x={x} v="b" end={end} />} times={[1.3, 1.45, 2.95, 4.15]} />
+        <Sub>4C · A progress bar at the top, sliding sideways · 0.35 s a step</Sub>
+        <Grid>{[
+          fig('m4cl', '4C · Light, Apple or Google (3 steps)', <Live t="light" x={1} label="Steps with a progress bar, sliding, Light" render={({ x, end }) => <StepsBar x={x} end={end} />} />, 'Invite, username, in: three. The bar fills one segment as each step slides in; the seat is part of “in”.'),
+          fig('m4cd', '4C · Dark', <Live t="dark" x={1} label="Steps with a progress bar, Dark" render={({ x, end }) => <StepsBar x={x} end={end} />} />),
+          fig('m4cx', '4C · your text size', <Live t="light" x={AX5} label="Steps with a progress bar, largest text size" render={({ x, end }) => <StepsBar x={x} end={end} />} />, 'The bar and the league’s name both fit above the screen.'),
+          fig('m4cxl', '4C · your text size, a long league name', <Live t="light" x={AX5} label="Steps with a progress bar, largest text size, long league name" render={({ x, end }) => <StepsBar x={x} end={end} name={LONG} />} />, 'A long name takes two lines under the bar; the screen moves down to make room. Nothing is cut.'),
+          fig('m4ce', '4C · with email (5 steps)', <Live t="light" x={1} label="Steps with a progress bar on the email path" render={({ x, end }) => <StepsBar x={x} end={end} path="email" />} />, 'Invite, create account, check your email, username, in. At “Check your email” you leave for Mail; the bar holds at 3 of 5 and you come back to 4.'),
+          fig('m4cg', '4C · the whole screen grey', <div style={{ filter: 'grayscale(1)' }}><Live t="light" x={1} label="Steps with a progress bar, greyscale" render={({ x, end }) => <StepsBar x={x} end={end} />} /></div>, 'In grey the filled segments are dark and the empty ones light, so the bar still counts.'),
+        ]}</Grid>
+        <Wide>
+          {fig('m4cf', '4C · Apple or Google, four frames', <Film times={[0.6, 1.4, 2.95, 4.4]} render={() => <StepsBar />} label="Progress bar path, four frames" />)}
+          {fig('m4ef', '4C · email, five frames', <Film times={[0.6, 1.4, 3.6, 5.0, 6.6]} render={() => <StepsBar path="email" />} label="Progress bar email path, five frames" />)}
+        </Wide>
 
         <Sub>5 · Reduce Motion on</Sub>
         <Grid>{[
@@ -352,6 +443,7 @@
           fig('r2', 'Username, the name simply there', <Static label="Username with Reduce Motion"><Username end tag={TAGS[0]} /></Static>, 'If no name comes by 6 s, the empty field, as today.'),
           fig('r3', 'Your seat, both marks there', <Static t="dark" label="Seat with Reduce Motion, Dark"><Seat end /></Static>),
           fig('r4', 'Between steps, the next screen simply replaces the last', <Static label="A step with Reduce Motion"><Steps reduce /></Static>),
+          fig('r5', 'C with Reduce Motion: the bar simply shows the step', <Static label="Progress bar step with Reduce Motion"><StepsBar reduce /></Static>),
         ]}</Grid>
       </section>
     );

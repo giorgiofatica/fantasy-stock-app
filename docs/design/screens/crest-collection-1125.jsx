@@ -197,11 +197,11 @@
             </ul>
           </li>
           <li><b>Hat Trick</b> says “matchups”, not “weeks”: a bye neither breaks the run nor counts toward it, so three weeks in a row wouldn’t always be true. It’s earned once and kept, so no word here says “streak”.</li>
-          <li><b>Telling them apart without colour:</b> no two of the eight share a split or a symbol, and light sits against dark (section 3, including the whole set in grey).</li>
+          <li><b>Telling them apart without colour:</b> no two of the eight share a split or a symbol, and light sits against dark (“Without colour”, including the whole set in grey).</li>
           <li>{archived ? decidedNote : <><b>Answer with:</b> A or B, and yes to the words (or the ones to change).</>}</li>
         </ul>
 
-        <Sub>1 · A, on Profile itself</Sub>
+        <Sub>{archived ? <><s>A · on Profile itself</s> · not picked</> : 'A · on Profile itself'}</Sub>
         <Grid>{[
           fig('a1', 'A · Light (tap a coloured crest)', <ProfileA live label="Profile with the collection: 3 of 8 crests, Bull worn" />, 'Your starter, then the seven earned in the order a season brings them. The settings rows continue below.'),
           fig('a2', 'A · Dark', <ProfileA t="dark" label="Profile with the collection, Dark" />),
@@ -209,7 +209,7 @@
           fig('a4', 'A · no crest yet', <ProfileA none label="Profile for an account with no crest yet: today's initials, 0 of 8" />, 'An account from before crests, until its starter is revealed on the next open: today’s initials, the seven locked, an empty place for the starter.'),
         ]}</Grid>
 
-        <Sub>2 · B, a row that opens Crests</Sub>
+        <Sub>{archived ? 'B · a row that opens Crests · picked' : 'B · a row that opens Crests'}</Sub>
         <Grid>{[
           fig('b1', 'B · Profile', <ProfileB label="Profile with a Crests row: the worn crest and 3 of 8" />),
           fig('b2', 'B · Crests (tap a coloured crest)', <CrestsB live label="Crests screen: Bull worn, 3 of 8" />),
@@ -217,7 +217,7 @@
           fig('b4', 'B · Crests, your text size', <CrestsB x={AX5} label="Crests screen, largest text size" />),
         ]}</Grid>
 
-        <Sub>3 · Without colour</Sub>
+        <Sub>Without colour</Sub>
         <div style={{ display: 'grid', gap: 24 }}>
           <figure className="b-fig b-fig--inv" style={{ margin: 0 }}><Check t="light" /><figcaption><b>Light</b><span className="b-annot">Review note: Look along each row: every crest still differs from its neighbours by its split and its symbol, and the earned seven by their inner rim. The bottom row is the whole set in grey.</span></figcaption></figure>
           <figure className="b-fig b-fig--inv" style={{ margin: 0 }}><Check t="dark" /><figcaption><b>Dark</b></figcaption></figure>
@@ -226,6 +226,6 @@
     );
   }
 
-  window.KSCrestCollection = () => <CallCrestCollection />;
-  window.KSCrestCollectionArchived = () => null;
+  window.KSCrestCollection = () => null;
+  window.KSCrestCollectionArchived = () => <CallCrestCollection archived decidedNote={<><b>Decided 2026-11-25, in his words:</b> “your crests in Profile, and their words 2”, then, clearing it up, “let me clear that up, B crest row and A crest reveal”. B: a “Crests” row on Profile opening its own screen, the worn crest large at the top. A not picked. <b>The words are NOT approved</b> (he picked the option only): Crests, 3 of 8, Wearing, the earned names and lines, the starter names and VoiceOver stay proposals, still open for his yes.</>} />;
 })();
