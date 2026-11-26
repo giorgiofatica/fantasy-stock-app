@@ -17333,6 +17333,1365 @@ window.KS_REFS = {
 
 </script>
 <script type="text/babel" data-presets="react">
+// Stockpile key-screens board — "Your call: what a crest looks like" (2026-11-25).
+// Plan docs/plans/2026-11-25-crests.md (approved 2026-11-25, "approved both"), open question 1. A crest is drawn
+// wherever a manager's mark is drawn today (components/sp/Avatar.tsx: two initials on a disc, 20pt at its smallest
+// on the player card's "owned by" line, 32pt in Standings). Three art directions, six samples each, drawn as rough
+// vectors only: none is drawn in full before his pick (12 starters + ~8 earned come after).
+// Every direction carries identity three ways (shape or pattern, a symbol, a colour), so a friend is never told apart
+// by colour alone; section 3 runs all of them through three kinds of colour blindness and greyscale.
+// Data: Tier Cup, ten managers, Roberto B.'s phone. Names, records and gains are board data.
+// Review notes sit UNDER the phones, never inside.
+(function () {
+  const { Icon, ICON } = window.KSKit;
+  const GN = window.KSGN;
+  const { Fit } = GN;
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>{children}</div>;
+  const STORE = 'M4.5 4h15l1.5 5H3z M3 9c0 1.5 1.1 2.5 2.5 2.5S8 10.5 8 9c0 1.5 1.1 2.5 2.5 2.5S13 10.5 13 9c0 1.5 1.1 2.5 2.5 2.5S18 10.5 18 9c0 1.5 1.1 2.5 2.5 2.5 M5 11.5V20h14v-8.5 M10 20v-5h4v5';
+
+  // ── The crest palette: twelve fills, spread in LIGHTNESS as well as hue, none of them the "you" blue. ──
+  // [fill, deep (the second tone), ink on the fill]
+  const PAL = [
+    ['#0F8C8C', '#0A5F5F', '#FFFFFF'], // teal
+    ['#B5532A', '#7A3519', '#FFFFFF'], // rust
+    ['#E0AE2E', '#A87C10', '#2A1E00'], // gold
+    ['#6B3FA0', '#462868', '#FFFFFF'], // violet
+    ['#2E8B57', '#1D5E39', '#FFFFFF'], // green
+    ['#B0243A', '#761526', '#FFFFFF'], // crimson
+    ['#4A5568', '#2D3440', '#FFFFFF'], // slate
+    ['#E07BA5', '#B04D78', '#2A0B18'], // pink
+    ['#8A9A2E', '#5E6A1B', '#FFFFFF'], // olive
+    ['#E8CFA0', '#C2A267', '#3A2A0C'], // sand
+    ['#E07B24', '#A35411', '#FFFFFF'], // orange
+    ['#1F2A44', '#0E1424', '#F3E6C8'], // ink
+  ];
+
+  // ── Symbols (charges), filled on a 24 grid: filled shapes hold at 20pt where strokes fade. ──
+  const SYM = {
+    star: 'M12 2.5 L14.9 8.6 L21.5 9.3 L16.5 13.8 L18 20.3 L12 17 L6 20.3 L7.5 13.8 L2.5 9.3 L9.1 8.6 Z',
+    bolt: 'M13.5 2 L5 13.5 H11 L10 22 L19 10 H13 Z',
+    crown: 'M3 18 L4.5 7 L9 11.5 L12 5 L15 11.5 L19.5 7 L21 18 Z',
+    arrow: 'M12 3 L20 12 H15 V21 H9 V12 H4 Z',
+    horns: 'M3 5 C3 11 7 13 10 13 L10 19 H14 L14 13 C17 13 21 11 21 5 C19 8.5 16.5 10 12 10 C7.5 10 5 8.5 3 5 Z',
+    candle: 'M9.5 7 H14.5 V17 H9.5 Z M11.2 3 H12.8 V21 H11.2 Z',
+    moon: 'M15 3 A9 9 0 1 0 21 15 A7 7 0 1 1 15 3 Z',
+    peak: 'M2 20 L9 7 L13 13.5 L16 9.5 L22 20 Z',
+    flame: 'M12 2 C13 7 18 9 18 14.5 A6 6 0 0 1 6 14.5 C6 11 8 9.5 9 7 C10 9 10.5 10 11.5 10 C11.5 7 11 5 12 2 Z',
+    gem: 'M7 4 H17 L21 9 L12 21 L3 9 Z',
+    chevrons: 'M4 12.5 L12 5 L20 12.5 V17.5 L12 10 L4 17.5 Z',
+    ring: 'M12 3.5 A8.5 8.5 0 1 1 11.99 3.5 Z M12 8.5 A3.5 3.5 0 1 0 12.01 8.5 Z',
+  };
+  const SYMS = Object.keys(SYM);
+
+  // ── Ten crests per direction (the league of ten): each a palette entry, a symbol, and a pattern or shape. ──
+  // The first six are the samples drawn large.
+  const SET = [
+    { p: 0, s: 'horns', v: 0, sh: 0 }, { p: 1, s: 'flame', v: 1, sh: 1 }, { p: 2, s: 'crown', v: 2, sh: 2 }, { p: 3, s: 'moon', v: 3, sh: 3 },
+    { p: 4, s: 'arrow', v: 4, sh: 4 }, { p: 5, s: 'bolt', v: 5, sh: 5 }, { p: 6, s: 'peak', v: 0, sh: 6 }, { p: 7, s: 'gem', v: 1, sh: 7 },
+    { p: 10, s: 'star', v: 2, sh: 8 }, { p: 9, s: 'candle', v: 3, sh: 9 },
+  ];
+
+  // A · Shield: one shield outline for all; the field is divided (heraldry's partitions) and a symbol sits on it.
+  const SHIELD = 'M12 1.2 L21.6 4.4 V11 C21.6 16.8 17.4 20.9 12 23 C6.6 20.9 2.4 16.8 2.4 11 V4.4 Z';
+  const PART = [
+    null, // plain
+    'M12 0 H24 V24 H12 Z', // per pale
+    'M0 12 H24 V24 H0 Z', // per fess
+    'M0 0 H24 V24 Z', // per bend
+    'M0 24 L12 12 L24 24 Z', // chevron
+    'M12 0 H24 V12 H12 Z M0 12 H12 V24 H0 Z', // quarterly
+  ];
+  function Shield({ c, size, id }) {
+    const [fill, deep, ink] = PAL[c.p];
+    const part = PART[c.v];
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: `0 0 ${size}px` }}>
+        <defs><clipPath id={id}><path d={SHIELD} /></clipPath></defs>
+        <path d={SHIELD} fill={fill} />
+        {part ? <path d={part} fill={deep} clipPath={`url(#${id})`} /> : null}
+        <g transform="translate(5.6 4.6) scale(0.53)"><path d={SYM[c.s]} fill={ink} fillRule="evenodd" /></g>
+        <path d={SHIELD} fill="none" stroke="rgba(0,0,0,.28)" strokeWidth="0.8" />
+      </svg>
+    );
+  }
+
+  // ── Shared with the later crest boards (picked 2026-11-25: A, the shield). Any two shields differ by MORE than
+  // colour: the split, the symbol, and light against dark. An earned crest carries a bordure (an inner rim) in a
+  // heavier gold line, so it reads as earned in greyscale too, not by the gold alone. ──
+  const PARTS = { plain: null, pale: PART[1], fess: PART[2], bend: PART[3], chevron: PART[4], quarterly: PART[5], chief: 'M0 0 H24 V8.2 H0 Z', band: 'M0 9 H24 V14.6 H0 Z' };
+  const PALI = { teal: 0, rust: 1, gold: 2, violet: 3, green: 4, crimson: 5, slate: 6, pink: 7, olive: 8, sand: 9, orange: 10, ink: 11 };
+  let sid = 0;
+  function KSShield({ tone, sym, part = 'plain', size, earned, locked }) {
+    const [fill, deep, ink] = PAL[PALI[tone]];
+    const id = `ks-sh-${sid++}`;
+    const d = PARTS[part];
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: `0 0 ${size}px`, overflow: 'visible', filter: locked ? 'grayscale(1)' : undefined, opacity: locked ? 0.42 : 1 }}>
+        <defs><clipPath id={id}><path d={SHIELD} /></clipPath></defs>
+        <path d={SHIELD} fill={fill} />
+        {d ? <path d={d} fill={deep} clipPath={`url(#${id})`} /> : null}
+        <g transform={earned ? 'translate(6.1 5.1) scale(0.49)' : 'translate(5.6 4.6) scale(0.53)'}><path d={SYM[sym]} fill={ink} fillRule="evenodd" /></g>
+        {earned ? <path d={SHIELD} fill="none" stroke="#F0C44C" strokeWidth="1.6" transform="translate(12 12.1) scale(0.86) translate(-12 -12.1)" /> : null}
+        <path d={SHIELD} fill="none" stroke="rgba(0,0,0,.32)" strokeWidth={earned ? 1.1 : 0.8} />
+      </svg>
+    );
+  }
+  window.KSShield = KSShield;
+  window.KSShieldOutline = SHIELD;
+  window.KSShieldSym = SYM;
+
+  // B · Roundel: the disc a mark is today (same footprint, so no screen moves), a thick ring in the deep tone, the symbol.
+  function Roundel({ c, size }) {
+    const [fill, deep, ink] = PAL[c.p];
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: `0 0 ${size}px` }}>
+        <circle cx="12" cy="12" r="12" fill={deep} />
+        <circle cx="12" cy="12" r="9.4" fill={fill} />
+        <g transform="translate(5.4 5.4) scale(0.55)"><path d={SYM[c.s]} fill={ink} fillRule="evenodd" /></g>
+      </svg>
+    );
+  }
+
+  // C · Patch: each crest has its own outline (hexagon, diamond, octagon …), filled, the symbol inside.
+  const SHAPE = [
+    'M12 1 L21.5 6.5 V17.5 L12 23 L2.5 17.5 V6.5 Z', // hexagon
+    'M12 0.8 L23.2 12 L12 23.2 L0.8 12 Z', // diamond
+    'M7.4 1.2 H16.6 L22.8 7.4 V16.6 L16.6 22.8 H7.4 L1.2 16.6 V7.4 Z', // octagon
+    'M12 1 L23 9.2 L18.8 22.4 H5.2 L1 9.2 Z', // pentagon
+    'M3 1.5 H21 V16 L12 22.8 L3 16 Z', // pennant
+    'M12 0.6 L15 4.4 L19.8 3.6 L19.6 8.4 L23.4 11.6 L19.6 14.8 L19.8 19.6 L15 18.8 L12 22.6 L9 18.8 L4.2 19.6 L4.4 14.8 L0.6 11.6 L4.4 8.4 L4.2 3.6 L9 4.4 Z', // seal
+    'M12 1 A11 11 0 1 1 11.99 1 Z', // disc
+    'M12 1.2 L21.6 4.4 V11 C21.6 16.8 17.4 20.9 12 23 C6.6 20.9 2.4 16.8 2.4 11 V4.4 Z', // shield
+    'M2 12 A10 10 0 0 1 22 12 V22.5 H2 Z', // arch
+    'M5.5 1.5 H18.5 A4 4 0 0 1 22.5 5.5 V18.5 A4 4 0 0 1 18.5 22.5 H5.5 A4 4 0 0 1 1.5 18.5 V5.5 A4 4 0 0 1 5.5 1.5 Z', // tile
+  ];
+  function Patch({ c, size }) {
+    const [fill, deep, ink] = PAL[c.p];
+    const sh = SHAPE[c.sh];
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: `0 0 ${size}px` }}>
+        <path d={sh} fill={fill} stroke={deep} strokeWidth="1.4" strokeLinejoin="round" />
+        <g transform="translate(6.2 5.8) scale(0.5)"><path d={SYM[c.s]} fill={ink} fillRule="evenodd" /></g>
+      </svg>
+    );
+  }
+
+  const DIRS = [
+    { key: 'a', name: 'A · Shield', Draw: Shield, about: 'One shield outline for everyone. The field is split the way heraldry splits it (down the middle, across, on the diagonal, a chevron, in quarters) and a symbol sits on top.' },
+    { key: 'b', name: 'B · Roundel', Draw: Roundel, about: 'The round disc a mark is today, so nothing on any screen moves: a club badge, a thick ring in the darker tone, the symbol in the middle.' },
+    { key: 'c', name: 'C · Patch', Draw: Patch, about: 'Each starter has its own outline (hexagon, diamond, octagon, pentagon, pennant, seal, disc, shield, arch, tile …) with the symbol inside, so in a league of ten the shape alone tells two crests apart.' },
+  ];
+  let uid = 0;
+  const Crest = ({ dir, c, size }) => { const D = dir.Draw; return <D c={c} size={size} id={`cr-${dir.key}-${uid++}`} />; };
+
+  // Today's mark, for comparison: two initials on the opponent slate (yours on your blue).
+  function Initials({ name, size, me }) {
+    const ini = name.split(' ').map((w) => w[0]).join('').replace('.', '').slice(0, size < 24 ? 1 : 2);
+    return <span style={{ width: size, height: size, flex: `0 0 ${size}px`, borderRadius: size / 2, background: me ? 'var(--c-you)' : 'var(--c-opp, #4A5568)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: Math.round(size * 0.4), fontWeight: 800 }}>{ini}</span>;
+  }
+  // Your mark keeps today's ring (§9C): 2pt "you" ring across a 2pt gap. Blue still means you.
+  const Ring = ({ on, children }) => (on ? <span style={{ display: 'grid', padding: 2, borderRadius: 99, boxShadow: '0 0 0 2px var(--c-you)', background: 'var(--c-bg)' }}>{children}</span> : children);
+
+  // ── The league of ten. ──
+  const ME = 'Roberto B.';
+  const TEN = [
+    ['Paolo M.', '6–1', '+18.4%'], ['Sofia R.', '5–2', '+14.9%'], [ME, '5–2', '+12.1%'], ['Gianluigi B.', '4–3', '+9.7%'], ['Elena V.', '4–3', '+6.2%'],
+    ['Marco T.', '3–4', '+3.8%'], ['Giulia F.', '3–4', '+1.5%'], ['Luca D.', '2–5', '−0.9%'], ['Chiara S.', '2–5', '−3.4%'], ['Matteo P.', '1–6', '−7.2%'],
+  ];
+
+  function OS() {
+    return <div className="ks-os"><span>9:41</span><span className="ks-os__island" /><span className="ks-os__icons"><span className="ks-os__bars"><i /><i /><i /><i /></span><span className="ks-os__batt"><i /></span></span></div>;
+  }
+  function TabBar() {
+    const tab = (d, l, on) => <span key={l} style={{ display: 'grid', justifyItems: 'center', gap: 2, color: on ? 'var(--c-accent)' : 'var(--c-text-2)', fontSize: 10, fontWeight: 600 }}><Icon d={d} size={22} width={2} />{l}</span>;
+    return (
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 78, background: 'var(--c-bg)', borderTop: '1px solid var(--c-border)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', paddingTop: 8, zIndex: 3 }}>
+        {tab(ICON.home, 'Home')}{tab(ICON.matchup, 'Matchup')}{tab(ICON.league, 'League', true)}{tab(ICON.portfolio, 'Portfolio')}{tab(STORE, 'Stocks')}
+      </div>
+    );
+  }
+  /** League › Standings with ten managers; `dir` null draws today's initials. */
+  function Standings({ t = 'light', dir, label }) {
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label}>
+          <OS />
+          <div style={{ position: 'absolute', top: 54, left: 0, right: 0, bottom: 78, display: 'flex', flexDirection: 'column', padding: '0 16px', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0 10px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, boxShadow: 'inset 0 0 0 1.5px var(--c-border-strong)', fontSize: 16, fontWeight: 600, color: 'var(--c-text)' }}>Tier Cup<Icon d={ICON.chevron} size={13} width={2.4} /></span>
+              <span style={{ width: 36, height: 36, borderRadius: 18, background: 'var(--c-you)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}>RB</span>
+            </div>
+            <div className="dr-seg" style={{ marginBottom: 12 }}><span className="on">Standings</span><span>Schedule</span><span>Activity</span><span>History</span></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '18px 36px 1fr auto 72px', gap: 8, padding: '0 4px 6px', fontSize: 11, fontWeight: 700, color: 'var(--c-text-2)' }}>
+              <span>#</span><span /><span>Through Week 7</span><span style={{ textAlign: 'right' }}>W–L</span><span style={{ textAlign: 'right' }}>Season gain</span>
+            </div>
+            {TEN.map(([n, wl, g], i) => {
+              const me = n === ME;
+              return (
+                <div key={n} style={{ display: 'grid', gridTemplateColumns: '18px 36px 1fr auto 72px', gap: 8, alignItems: 'center', padding: '6px 4px', borderTop: '1px solid var(--c-border)' }}>
+                  <span className="dr-num" style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text-2)' }}>{i + 1}</span>
+                  <span style={{ display: 'grid', placeItems: 'center' }}>
+                    <Ring on={me}>{dir ? <Crest dir={dir} c={SET[i]} size={me ? 26 : 32} /> : <Initials name={n} size={me ? 26 : 32} me={me} />}</Ring>
+                  </span>
+                  <b style={{ fontSize: 15, color: me ? 'var(--c-you)' : 'var(--c-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n}</b>
+                  <span className="dr-num" style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text)', textAlign: 'right' }}>{wl}</span>
+                  <span className="dr-num" style={{ fontSize: 14, fontWeight: 700, color: g.startsWith('+') ? 'var(--c-gain)' : 'var(--c-loss)', textAlign: 'right' }}>{g}</span>
+                </div>
+              );
+            })}
+          </div>
+          <TabBar />
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+
+  /** The six samples large (96pt), then at 20pt on the player card's "owned by" line, on one theme. */
+  function Samples({ t, dir }) {
+    return (
+      <Th t={t}>
+        <div role="img" aria-label={`${dir.name}: six sample crests, large and at 20 points, ${t}`} style={{ background: 'var(--c-bg)', padding: 18, borderRadius: 16, display: 'grid', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 10, justifyItems: 'center' }}>
+            {SET.slice(0, 6).map((c, i) => <Crest key={i} dir={dir} c={c} size={64} />)}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px 14px' }}>
+            {SET.slice(0, 6).map((c, i) => (
+              <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--c-text-2)', whiteSpace: 'nowrap' }}>
+                <Crest dir={dir} c={c} size={20} /><span style={{ color: 'var(--c-text)', fontWeight: 600 }}>{TEN[i][0]}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </Th>
+    );
+  }
+
+  // ── Colour-blind check: the ten at 32pt through three simulations and greyscale (SVG colour matrices). ──
+  const CB = [
+    ['normal', 'As drawn', null],
+    ['prot', 'Protanopia (no red)', '0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0'],
+    ['deut', 'Deuteranopia (no green)', '0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0'],
+    ['trit', 'Tritanopia (no blue)', '0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0'],
+    ['grey', 'Greyscale', '0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0'],
+  ];
+  function CBDefs() {
+    return (
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+        <defs>{CB.filter(([, , m]) => m).map(([k, , m]) => <filter key={k} id={`cb-${k}`} colorInterpolationFilters="linearRGB"><feColorMatrix type="matrix" values={m} /></filter>)}</defs>
+      </svg>
+    );
+  }
+  function CBCheck({ t }) {
+    return (
+      <Th t={t}>
+        <div role="img" aria-label={`Colour-blind check, ${t}`} style={{ background: 'var(--c-bg)', padding: 16, borderRadius: 16, display: 'grid', gridTemplateColumns: '150px repeat(3, max-content)', gap: '12px 22px', alignItems: 'center', color: 'var(--c-text)', width: 'max-content' }}>
+          <span />{DIRS.map((d) => <b key={d.key} style={{ fontSize: 13 }}>{d.name}</b>)}
+          {CB.map(([k, lab]) => (
+            <React.Fragment key={k}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--c-text-2)' }}>{lab}</span>
+              {DIRS.map((d) => (
+                <span key={d.key} style={{ display: 'flex', flexWrap: 'nowrap', gap: 5, filter: k === 'normal' ? 'none' : `url(#cb-${k})` }}>
+                  {SET.map((c, i) => <Crest key={i} dir={d} c={c} size={24} />)}
+                </span>
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+      </Th>
+    );
+  }
+
+  const fig = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}><Fit>{node}</Fit><figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const figPlain = (key, cap, node, note, span) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0, alignContent: 'start', gridColumn: span ? '1 / -1' : undefined }}>{node}<figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const Grid = ({ children, cols = 'three' }) => (cols === 'two'
+    ? <div className="b-concepts" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 28, marginBottom: 28 }}>{children}</div>
+    : <div className="b-concepts b-concepts--three">{children}</div>);
+  const Sub = ({ children }) => <h3 className="b-sub">{children}</h3>;
+
+  function CallCrestLook({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-crest-look" aria-labelledby="call-crest-look-h">
+        <CBDefs />
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Crests</span>
+          <div>
+            <h2 id="call-crest-look-h">{archived ? 'Decided: what a crest looks like' : 'Your call: what a crest looks like'}</h2>
+            <p className="b-job">Three directions, six rough samples each. Whichever you pick, the twelve starters and the earned crests are then drawn in full in that style.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>Where a crest goes:</b> everywhere a manager’s two-initial disc is drawn today, beside the name, never in place of it. The smallest is 20pt (“Owned by …” on a stock’s card); Standings uses 32pt.</li>
+          <li><b>A · Shield.</b> One outline for all, the field split as in heraldry, a symbol on top. <b>B · Roundel.</b> Today’s round disc, as a club badge. <b>C · Patch.</b> Each crest its own outline, the symbol inside.</li>
+          <li><b>Telling ten friends apart.</b> Every direction gives each crest three cues: a colour, a symbol, and a split field (A) or an outline (C). B has only colour and symbol, so at 20pt and in greyscale it leans on the symbol alone.</li>
+          <li><b>Recommended: C.</b> At 20pt the outline is the first thing you see, and an outline doesn’t change in any colour-blind check or in greyscale: with no red or no green, rust, gold, crimson and orange all turn a similar olive-yellow, and only C still tells those four apart without reading the symbol. A reads most like a crest at full size, but at 20pt its split field turns to two smudges and every shield has the same outline.</li>
+          <li><b>You</b> keep today’s blue ring around your mark and your name in blue; no crest colour is the “you” blue. A manager with no crest, a bot, and a deleted manager keep today’s mark.</li>
+          <li><b>No new words.</b> The crests’ names and the collection’s words come on their own board (the collection, in Profile).</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A, B or C (or what to change in one).</>}</li>
+        </ul>
+
+        {DIRS.map((d, di) => (
+          <React.Fragment key={d.key}>
+            <Sub>{archived && d.key !== 'a' ? <><s>{`${di + 1} · ${d.name}`}</s> · not picked</> : archived ? `${di + 1} · ${d.name} · picked` : `${di + 1} · ${d.name}`}</Sub>
+            <p style={{ margin: '0 0 12px', maxWidth: 760, color: 'var(--c-text-2)' }}>{d.about}</p>
+            <Grid cols="two">{[
+              figPlain(`${d.key}s1`, `${d.name} · Light`, <Samples t="light" dir={d} />, 'Large: 64pt. Below: the same six at 20pt, the size on “Owned by …”.'),
+              figPlain(`${d.key}s2`, `${d.name} · Dark`, <Samples t="dark" dir={d} />),
+            ]}</Grid>
+            <Grid>{[
+              fig(`${d.key}l1`, `${d.name} · Standings, ten managers`, <Standings dir={d} label={`Standings with ten managers, ${d.name} crests`} />, di === 0 ? 'Your mark is ringed in blue, as today.' : null),
+              fig(`${d.key}l2`, `${d.name} · Standings, Dark`, <Standings t="dark" dir={d} label={`Standings with ten managers, ${d.name} crests, Dark`} />),
+              ...(di === 0 ? [fig('t1', 'Today · two initials', <Standings label="Standings with ten managers, today's initials" />, 'For comparison: ten grey discs; PM, MT and MP differ by a letter.')] : []),
+            ]}</Grid>
+          </React.Fragment>
+        ))}
+
+        <Sub>4 · The colour-blind check</Sub>
+        <p style={{ margin: '0 0 12px', maxWidth: 760, color: 'var(--c-text-2)' }}>The ten crests of each direction at 24pt, as drawn, as seen with each of the three kinds of colour blindness, and in greyscale.</p>
+        <div style={{ display: 'grid', gap: 28 }}>
+          {figPlain('cb1', 'Light', <CBCheck t="light" />, 'Look along a row: can you still tell each crest from its neighbours? With no red or no green, four of the ten (rust, gold, crimson, orange) turn a similar olive-yellow: A tells them apart by the split and the symbol, B by the symbol only, C by the outline first.')}
+          {figPlain('cb2', 'Dark', <CBCheck t="dark" />)}
+        </div>
+      </section>
+    );
+  }
+
+  window.KSCrestLook = () => null;
+  window.KSCrestLookArchived = () => <CallCrestLook archived decidedNote={<><b>Decided 2026-11-25, in his words:</b> “i like A the most”. A, the shield, over the recommended C; B (Roundel) and C (Patch) not picked. He saw the colour-blind check before picking, so the full set carries it: any two shields differ by more than colour (the split, the symbol, light against dark), an earned crest is marked inside the shield, and the set is checked in greyscale. Your mark keeps today’s blue ring; no crest uses that blue.</>} />;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
+// Stockpile key-screens board — "Your call: the crest reveal" (2026-11-25). MOVING.
+// Plan docs/plans/2026-11-25-crests.md ("The reveal", open question 2). On "You're in {league}", the first time only,
+// the new manager's starter crest is revealed where today's tick pops in, then sits there. Today's words, unchanged:
+// "You're in {league}", "The draft is {when}.", the Managers / Stakes / Season card, "Go to the league".
+// Guardrails (the plan): a second or two; never a tap or a wait added (the button is live from the first frame); a tap
+// anywhere skips to the end; with Reduce Motion on the crest is simply there. Flat, depth suggested: transforms and
+// opacity only, which Reanimated (already in the app, useMotion) does; no Lottie or Rive.
+// The crest is a shield (his pick, #call-crest-look, 2026-11-25), a stand-in until the full set is drawn.
+// The phones loop every 4 s; tap one to skip it to the end, "Replay" to run it again. The filmstrips under each version
+// hold five frames still. Review notes sit UNDER the phones, never inside.
+(function () {
+  const { useState } = React;
+  const { Icon, ICON } = window.KSKit;
+  const GN = window.KSGN;
+  const { Fit } = GN;
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>{children}</div>;
+  const k = (x, cap) => Math.min(x, cap || x);
+  const fs = (px, x, cap = 1.3, lh = 1.25) => ({ fontSize: Math.round(px * k(x, cap)), lineHeight: `${Math.round(px * lh * k(x, cap))}px` });
+  const AX5 = 3.1;
+  const CYCLE = 4; // seconds per loop on the board
+
+  // The stand-in crest: a shield (his pick on #call-crest-look, "i like A the most"), teal split on the diagonal,
+  // the horns. The art is a stand-in until the set is drawn. FILL is used for the ring and glow.
+  const FILL = '#0F8C8C';
+  function Crest({ size, shine }) {
+    const S = window.KSShieldOutline;
+    const clip = `crv-clip-${shine || 'x'}`;
+    return (
+      <span style={{ position: 'relative', display: 'grid', width: size, height: size }}>
+        {window.KSShield({ tone: 'teal', sym: 'horns', part: 'bend', size })}
+        {shine ? (
+          <svg width={size} height={size} viewBox="0 0 24 24" style={{ position: 'absolute', inset: 0 }}>
+            <defs>
+              <clipPath id={clip}><path d={S} /></clipPath>
+              <linearGradient id={`${clip}-g`} x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#fff" stopOpacity="0" /><stop offset=".5" stopColor="#fff" stopOpacity=".75" /><stop offset="1" stopColor="#fff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <g clipPath={`url(#${clip})`}>
+              <rect x="-8" y="-4" width="8" height="32" fill={`url(#${clip}-g)`} transform="skewX(-18)" style={{ animation: `crv2-shine ${CYCLE}s linear infinite`, animationDelay: 'var(--crv-delay, 0s)', animationPlayState: 'var(--crv-play, running)' }} />
+            </g>
+          </svg>
+        ) : null}
+      </span>
+    );
+  }
+
+  // ── Keyframes. Times in seconds, as a share of the 4 s loop. ──
+  const pc = (s) => `${((s / CYCLE) * 100).toFixed(2)}%`;
+  const P3 = 'perspective(420px)';
+  const CSS = `
+  @keyframes crv1-front {
+    0% { opacity: 0; transform: ${P3} rotateY(0deg) scale(.8); filter: brightness(1); }
+    ${pc(0.25)} { opacity: 1; transform: ${P3} rotateY(0deg) scale(1); }
+    ${pc(0.35)} { opacity: 1; transform: ${P3} rotateY(0deg) scale(1); filter: brightness(1); }
+    ${pc(0.6)} { opacity: 1; transform: ${P3} rotateY(90deg) scale(1); filter: brightness(.55); }
+    ${pc(0.601)}, 100% { opacity: 0; transform: ${P3} rotateY(90deg) scale(1); }
+  }
+  @keyframes crv1-back {
+    0%, ${pc(0.6)} { opacity: 0; transform: ${P3} rotateY(-90deg) scale(1); filter: brightness(.55); }
+    ${pc(0.601)} { opacity: 1; transform: ${P3} rotateY(-90deg) scale(1); filter: brightness(.55); }
+    ${pc(0.9)} { opacity: 1; transform: ${P3} rotateY(0deg) scale(1); filter: brightness(1); }
+    ${pc(1.0)} { transform: ${P3} rotateY(0deg) scale(1.1); }
+    ${pc(1.15)}, 100% { opacity: 1; transform: ${P3} rotateY(0deg) scale(1); filter: brightness(1); }
+  }
+  @keyframes crv1-ring {
+    0%, ${pc(0.9)} { opacity: 0; transform: scale(1); }
+    ${pc(0.91)} { opacity: .6; transform: scale(1); }
+    ${pc(1.4)}, 100% { opacity: 0; transform: scale(1.8); }
+  }
+  @keyframes crv2-glow {
+    0% { opacity: 0; transform: scale(.4); }
+    ${pc(0.3)} { opacity: .9; transform: scale(1); }
+    ${pc(1.2)} { opacity: .6; transform: scale(1.05); }
+    ${pc(1.8)}, 100% { opacity: 0; transform: scale(1.1); }
+  }
+  @keyframes crv2-rise {
+    0%, ${pc(0.2)} { opacity: 0; transform: translateY(28px) scale(.5); }
+    ${pc(0.9)} { opacity: 1; transform: translateY(0) scale(1.1); }
+    ${pc(1.2)}, 100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes crv2-rays {
+    0%, ${pc(0.4)} { opacity: 0; transform: rotate(0deg); }
+    ${pc(0.8)} { opacity: .55; }
+    ${pc(1.8)}, 100% { opacity: 0; transform: rotate(28deg); }
+  }
+  @keyframes crv2-shine {
+    0%, ${pc(0.8)} { transform: skewX(-18deg) translateX(0); }
+    ${pc(1.5)}, 100% { transform: skewX(-18deg) translateX(40px); }
+  }
+  `;
+  const anim = (name) => ({ animation: `${name} ${CYCLE}s infinite`, animationTimingFunction: 'cubic-bezier(.2,.8,.2,1)', animationDelay: 'var(--crv-delay, 0s)', animationPlayState: 'var(--crv-play, running)', animationFillMode: 'both' });
+
+  const SLOT = 96; // the reveal's stage; the crest sits at 88pt where today's 72pt tick is
+  /** The stage: version 1 (the tick turns into the crest) or 2 (the crest rises in light). end = the final frame. */
+  function Stage({ v, end, still }) {
+    const wrap = { position: 'relative', width: SLOT, height: SLOT, display: 'grid', placeItems: 'center', justifySelf: 'center', ...(still != null ? { '--crv-delay': `-${still}s`, '--crv-play': 'paused' } : null) };
+    if (end) return <div style={wrap}><Crest size={88} /></div>;
+    if (v === 1) {
+      return (
+        <div style={wrap}>
+          <span style={{ position: 'absolute', inset: 4, borderRadius: '50%', boxShadow: `0 0 0 3px ${FILL}`, ...anim('crv1-ring') }} />
+          <span style={{ position: 'absolute', display: 'grid', placeItems: 'center', ...anim('crv1-front') }}>
+            <span style={{ width: 72, height: 72, borderRadius: 36, background: 'var(--c-you)', color: 'var(--c-on-you, #fff)', display: 'grid', placeItems: 'center' }}><Icon d={ICON.check} size={32} width={2.6} /></span>
+          </span>
+          <span style={{ position: 'absolute', display: 'grid', placeItems: 'center', ...anim('crv1-back') }}><Crest size={88} /></span>
+        </div>
+      );
+    }
+    const rays = Array.from({ length: 10 }, (_, i) => i * 36);
+    return (
+      <div style={wrap}>
+        <span style={{ position: 'absolute', inset: -46, borderRadius: '50%', background: `radial-gradient(circle, ${FILL}88 0%, ${FILL}33 40%, transparent 70%)`, ...anim('crv2-glow') }} />
+        <span style={{ position: 'absolute', inset: -40, ...anim('crv2-rays') }}>
+          {rays.map((r) => <span key={r} style={{ position: 'absolute', left: '50%', top: '50%', width: 3, height: 84, marginLeft: -1.5, marginTop: -84, borderRadius: 2, background: `linear-gradient(to top, ${FILL}00, ${FILL}aa)`, transformOrigin: '50% 100%', transform: `rotate(${r}deg)` }} />)}
+        </span>
+        <span style={{ position: 'relative', ...anim('crv2-rise') }}><Crest size={88} shine={`s${Math.random().toString(36).slice(2, 7)}`} /></span>
+      </div>
+    );
+  }
+
+  const LG = { name: 'Stock Scudetto', when: 'Sat, Nov 28 · 7:00 PM ET', rows: [['Managers', '5 of 6'], ['Stakes', '$2,000 per slot'], ['Season', '14 weeks']] };
+  function OS() {
+    return <div className="ks-os"><span>9:41</span><span className="ks-os__island" /><span className="ks-os__icons"><span className="ks-os__bars"><i /><i /><i /><i /></span><span className="ks-os__batt"><i /></span></span></div>;
+  }
+  /** "You're in {league}" with the stage in place of the tick. Today's words only. */
+  function YoureIn({ t = 'light', x = 1, v, end, label, onTap }) {
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label} onClick={onTap} style={{ cursor: onTap ? 'pointer' : 'default' }}>
+          <OS />
+          <div style={{ position: 'absolute', top: 54, left: 0, right: 0, bottom: 0, padding: `${x > 1 ? 40 : 90}px 20px 40px`, display: 'grid', alignContent: 'start', gap: 18, justifyItems: 'center', textAlign: 'center', overflow: 'hidden' }}>
+            <Stage v={v} end={end} />
+            <span style={{ display: 'grid', gap: 2 }}>
+              <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>You're in</span>
+              <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>{LG.name}</span>
+            </span>
+            <span style={{ ...fs(15, x), color: 'var(--c-text-2)' }}>The draft is <span style={{ whiteSpace: 'nowrap' }}>{LG.when}</span>.</span>
+            <div className="dr-a-card" style={{ padding: '4px 16px', width: '100%', boxSizing: 'border-box' }}>
+              {LG.rows.map(([a, b]) => (
+                <div key={a} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 44, gap: 12 }}>
+                  <span style={{ ...fs(15, x), color: 'var(--c-text-2)' }}>{a}</span><b style={{ ...fs(15, x), color: 'var(--c-text)' }}>{b}</b>
+                </div>
+              ))}
+            </div>
+            <span className="dr-btn" style={{ width: '100%', height: 50, ...fs(16, x), display: 'grid', placeItems: 'center' }}>Go to the league</span>
+          </div>
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+
+  /** A live phone: loops; a tap jumps it to the end (as in the app); Replay runs it again. */
+  function Live({ t, x, v, label }) {
+    const [run, setRun] = useState(0);
+    const [end, setEnd] = useState(false);
+    return (
+      <div style={{ display: 'grid', gap: 8, justifyItems: 'start' }}>
+        <Fit><YoureIn key={run} t={t} x={x} v={v} end={end} label={label} onTap={() => setEnd(true)} /></Fit>
+        <button type="button" onClick={() => { setEnd(false); setRun(run + 1); }} style={{ font: 'inherit', fontWeight: 700, fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--c-border-strong)', background: 'var(--c-surface)', color: 'var(--c-text)', cursor: 'pointer' }}>Replay</button>
+      </div>
+    );
+  }
+  /** Five frames, held still. */
+  function Film({ t, v, times }) {
+    return (
+      <Th t={t}>
+        <div role="img" aria-label={`Version ${v}, five frames, ${t}`} style={{ background: 'var(--c-bg)', borderRadius: 14, padding: '18px 24px 10px', display: 'grid', gridTemplateColumns: `repeat(${times.length}, 150px)`, gap: 12, width: 'max-content', overflow: 'hidden' }}>
+          {times.map((s) => (
+            <div key={s} style={{ display: 'grid', gap: 26, justifyItems: 'center', paddingTop: 30 }}>
+              <Stage v={v} still={s} />
+              <span className="dr-num" style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-2)' }}>{s.toFixed(2)} s</span>
+            </div>
+          ))}
+        </div>
+      </Th>
+    );
+  }
+
+  const fig = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}>{node}<figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const Grid = ({ children }) => <div className="b-concepts b-concepts--three">{children}</div>;
+  const Sub = ({ children }) => <h3 className="b-sub">{children}</h3>;
+  const Wide = ({ children }) => <div style={{ display: 'grid', gap: 28, margin: '8px 0 28px' }}>{children}</div>;
+
+  function CallCrestReveal({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-crest-reveal" aria-labelledby="call-crest-reveal-h">
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Crests</span>
+          <div>
+            <h2 id="call-crest-reveal-h">{archived ? 'Decided: the crest reveal' : 'Your call: the crest reveal'}</h2>
+            <p className="b-job">On “You’re in {'{league}'}”, the first time only, your first crest arrives where today’s tick pops in. Two ways for it to arrive. The phones here move; tap one to skip to the end, as you could in the app.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>1 · The tick turns over (1.4 s).</b> Today’s blue tick pops in, then turns like a coin and its back is your crest, which lands with a small bounce and a ring of its colour.</li>
+          <li><b>2 · The crest rises in light (1.8 s).</b> A glow in the crest’s colour opens, the crest rises out of it with a few rays behind, and a shine crosses it as it settles. No tick.</li>
+          <li><b>Both:</b> today’s words, card and button appear at once and “Go to the league” works from the first frame, so nothing waits on the crest. A tap anywhere skips to the end. One tap on the phone (a haptic) as the crest lands. With Reduce Motion on, the crest is simply there (section 3).</li>
+          <li><b>Sound, your call:</b> 1 needs none (the haptic is the landing). 2 suits a short soft chime as the crest lands. Either way it plays only with the ringer on.</li>
+          <li><b>Recommended: 1.</b> It keeps the moment you joined (the tick) and turns it into the thing you keep, one object, no new effects. It is also the shorter of the two. 2 is closer to the treasure moment you liked; its glow is softer on Light than in Dark, and it drops the tick.</li>
+          <li><b>Drawn flat, depth suggested</b> (a turn in perspective, a shadow as it turns): both are plain moves the app already makes, so no new library. The crest is a shield, your pick; this one is a stand-in until the full set is drawn.</li>
+          <li><b>No new words.</b> The same reveal plays on “{'{name}'} is ready” for someone whose first league is one they created.</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> 1 or 2, and sound or no sound.</>}</li>
+        </ul>
+
+        <Sub>1 · The tick turns over · 1.4 s</Sub>
+        <Grid>{[
+          fig('v1l', '1 · Light', <Live t="light" v={1} label="You're in Stock Scudetto, the tick turning into the crest" />, '0.25 s tick pops (as today) · 0.35–0.9 s turns over · 0.9 s lands, haptic · 1.4 s ring gone.'),
+          fig('v1d', '1 · Dark', <Live t="dark" v={1} label="Version 1, Dark" />),
+          fig('v1x', '1 · your text size', <Live t="light" x={AX5} v={1} label="Version 1, largest text size" />, 'The crest is a fixed size, like today’s tick; only the words grow.'),
+        ]}</Grid>
+        <Wide>
+          {fig('v1f', '1 · five frames, Light', <Film t="light" v={1} times={[0.2, 0.4, 0.63, 1.0, 1.3]} />)}
+          {fig('v1g', '1 · five frames, Dark', <Film t="dark" v={1} times={[0.2, 0.4, 0.63, 1.0, 1.3]} />)}
+        </Wide>
+
+        <Sub>2 · The crest rises in light · 1.8 s</Sub>
+        <Grid>{[
+          fig('v2l', '2 · Light', <Live t="light" v={2} label="You're in Stock Scudetto, the crest rising in light" />, '0–0.3 s glow opens · 0.2–0.9 s crest rises · 0.9 s lands, haptic · 0.8–1.5 s shine · 1.8 s glow gone.'),
+          fig('v2d', '2 · Dark', <Live t="dark" v={2} label="Version 2, Dark" />),
+          fig('v2x', '2 · your text size', <Live t="light" x={AX5} v={2} label="Version 2, largest text size" />),
+        ]}</Grid>
+        <Wide>
+          {fig('v2f', '2 · five frames, Light', <Film t="light" v={2} times={[0.2, 0.5, 0.85, 1.2, 1.6]} />)}
+          {fig('v2g', '2 · five frames, Dark', <Film t="dark" v={2} times={[0.2, 0.5, 0.85, 1.2, 1.6]} />)}
+        </Wide>
+
+        <Sub>3 · Reduce Motion on (both versions)</Sub>
+        <Grid>{[
+          fig('r1', 'Reduce Motion · Light', <Fit><YoureIn end label="You're in with Reduce Motion: the crest simply there" /></Fit>, 'No tick, no turn, no glow: the crest is there from the first frame.'),
+          fig('r2', 'Reduce Motion · Dark', <Fit><YoureIn t="dark" end label="Reduce Motion, Dark" /></Fit>),
+        ]}</Grid>
+      </section>
+    );
+  }
+
+  window.KSCrestReveal = () => <CallCrestReveal />;
+  window.KSCrestRevealArchived = () => null;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
+// Stockpile key-screens board — "Your call: your crests in Profile, and their words" (2026-11-25).
+// Plan docs/plans/2026-11-25-crests.md ("The collection, in Profile"; the list; open question 3). Held crests in
+// colour, the worn one marked, locked ones in grey with what earns each; tapping a held crest wears it. EVERY word
+// here is a proposal: the plan's eight are placeholders and none are approved.
+// Rule from the plan: "Nothing hidden, nothing impossible to get." A manager gets ONE starter, by chance, so the other
+// eleven starters can never be earned and are not shown as locked: the collection is your starter + the 7 earned.
+// Art: shields (his pick, #call-crest-look) as stand-ins; the earned ones carry a heavier gold inner rim, so they read
+// as won in greyscale too. Data: roberto_b holds Bull (his starter, worn), Draft Day and First Win.
+// Profile today: "‹ Home", the 84pt mark and the username, then Username / Email / Change password / Appearance /
+// How it works, then Sign out / Delete account. Review notes sit UNDER the phones, never inside.
+(function () {
+  const { useState } = React;
+  const { Icon, ICON } = window.KSKit;
+  const GN = window.KSGN;
+  const { Fit } = GN;
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>{children}</div>;
+  const k = (x, cap) => Math.min(x, cap || x);
+  const fs = (px, x, cap = 1.3, lh = 1.28) => ({ fontSize: Math.round(px * k(x, cap)), lineHeight: `${Math.round(px * lh * k(x, cap))}px` });
+  const AX5 = 3.1;
+
+  // The eight a manager sees: their starter, then the seven earned, in the order a season usually brings them.
+  // [id, name (proposed), what earns it (proposed), tone, symbol, split, earned?]. No two share a split or a symbol,
+  // and light (sand) sits against dark, so they part in greyscale as well as in colour.
+  const LIST = [
+    ['bull', 'Bull', 'Your first league', 'teal', 'horns', 'bend', false],
+    ['draft', 'Draft Day', 'Finish a draft', 'violet', 'gem', 'plain', true],
+    ['win', 'First Win', 'Win a week', 'green', 'arrow', 'pale', true],
+    ['three', 'Hat Trick', 'Win three matchups in a row', 'rust', 'chevrons', 'chevron', true],
+    ['best', 'Top Week', 'Have the best week in your league', 'sand', 'star', 'fess', true],
+    ['playoffs', 'Playoff Bound', 'Make the playoffs', 'crimson', 'bolt', 'quarterly', true],
+    ['season', 'Full Season', 'Finish a season', 'slate', 'peak', 'band', true],
+    ['champ', 'Champion', 'Win a league', 'gold', 'crown', 'chief', true],
+  ];
+  const HELD = ['bull', 'draft', 'win'];
+  const byId = Object.fromEntries(LIST.map((r) => [r[0], r]));
+
+  function Crest({ id, size, locked }) {
+    const [, , , tone, sym, part, earned] = byId[id];
+    return window.KSShield({ tone, sym, part, size, earned, locked });
+  }
+
+  function OS() {
+    return <div className="ks-os"><span>9:41</span><span className="ks-os__island" /><span className="ks-os__icons"><span className="ks-os__bars"><i /><i /><i /><i /></span><span className="ks-os__batt"><i /></span></span></div>;
+  }
+  const Back = ({ x, label }) => <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, color: 'var(--c-accent)', ...fs(16, x), fontWeight: 600 }}><Icon d={ICON.left} size={18} width={2.4} />{label}</span>;
+  function Screen({ t = 'light', label, children }) {
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label}>
+          <OS />
+          <div style={{ position: 'absolute', top: 54, left: 0, right: 0, bottom: 0, padding: '8px 16px 40px', display: 'flex', flexDirection: 'column', gap: 14, overflow: 'hidden' }}>{children}</div>
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+
+  /** One tile: the crest, its name; locked shows what earns it; the worn one is ringed and says Wearing. */
+  function Tile({ x, id, worn, onWear, none }) {
+    const held = !none && HELD.includes(id);
+    const [, name, line] = byId[id];
+    return (
+      <div onClick={held && onWear ? () => onWear(id) : undefined} style={{ display: 'grid', justifyItems: 'center', alignContent: 'start', gap: 6, padding: '12px 6px 10px', borderRadius: 14, background: 'var(--c-surface)', boxShadow: worn ? 'inset 0 0 0 2px var(--c-accent)' : 'inset 0 0 0 1px var(--c-rim)', textAlign: 'center', cursor: held ? 'pointer' : 'default' }}>
+        <Crest id={id} size={52} locked={!held} />
+        <b style={{ ...fs(13, x), color: held ? 'var(--c-text)' : 'var(--c-text-2)' }}>{name}</b>
+        {held ? (worn ? <span style={{ ...fs(11, x), fontWeight: 800, letterSpacing: 0.4, color: 'var(--c-accent)' }}>Wearing</span> : null)
+          : <span style={{ ...fs(11.5, x), color: 'var(--c-text-2)' }}>{line}</span>}
+      </div>
+    );
+  }
+  function Collection({ x, worn, onWear, cols = 3, none }) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${x > 1 ? 2 : cols}, minmax(0, 1fr))`, gap: 8 }}>
+        {LIST.map(([id]) => (none && id === 'bull'
+          ? <div key={id} style={{ borderRadius: 14, boxShadow: 'inset 0 0 0 1.5px var(--c-border-strong)', borderStyle: 'dashed', minHeight: 96, display: 'grid', placeItems: 'center' }}><svg width="40" height="40" viewBox="0 0 24 24"><path d={window.KSShieldOutline} fill="none" stroke="var(--c-border-strong)" strokeWidth="1.2" strokeDasharray="2 2" /></svg></div>
+          : <Tile key={id} x={x} id={id} worn={id === worn} onWear={onWear} none={none} />))}
+      </div>
+    );
+  }
+  const Rows = ({ x, rows }) => (
+    <div className="dr-a-card" style={{ padding: '2px 14px' }}>
+      {rows.map(([a, b], i) => (
+        <div key={a} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 46, borderTop: i ? '1px solid var(--c-border)' : 'none' }}>
+          <span style={{ ...fs(16, x), color: 'var(--c-text)' }}>{a}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, ...fs(15, x), color: 'var(--c-text-2)' }}>{b}{a === 'Email' ? null : <Icon d={ICON.right} size={13} width={2.4} />}</span>
+        </div>
+      ))}
+    </div>
+  );
+  const Identity = ({ x, worn }) => (
+    <div style={{ display: 'grid', justifyItems: 'center', gap: 8 }}>
+      {worn ? <Crest id={worn} size={84} /> : <span style={{ width: 84, height: 84, borderRadius: 42, background: 'var(--c-you)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 32, fontWeight: 800 }}>RB</span>}
+      <b style={{ ...fs(22, x), color: 'var(--c-text)' }}>roberto_b</b>
+    </div>
+  );
+  const Head = ({ x, children }) => (
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '4px 2px -4px' }}>
+      <b style={{ ...fs(13, x), letterSpacing: 0.8, color: 'var(--c-text-2)' }}>CRESTS</b>{children}
+    </div>
+  );
+
+  /** A · the collection on Profile itself, between your name and the settings. */
+  function ProfileA({ t, x = 1, label, live, none }) {
+    const [worn, setWorn] = useState(none ? null : 'bull');
+    return (
+      <Screen t={t} label={label}>
+        <Back x={x} label="Home" />
+        <Identity x={x} worn={worn} />
+        <Head x={x}><span className="dr-num" style={{ ...fs(13, x), fontWeight: 700, color: 'var(--c-text-2)' }}>{none ? '0 of 8' : '3 of 8'}</span></Head>
+        <Collection x={x} worn={worn} onWear={live ? setWorn : null} none={none} />
+        <Rows x={x} rows={[['Username', 'roberto_b'], ['Email', 'roberto@…']]} />
+      </Screen>
+    );
+  }
+  /** B · a Crests row on Profile, which opens the collection on its own screen. */
+  function ProfileB({ t, x = 1, label }) {
+    return (
+      <Screen t={t} label={label}>
+        <Back x={x} label="Home" />
+        <Identity x={x} worn="bull" />
+        <Rows x={x} rows={[['Crests', <span key="c" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Crest id="bull" size={20} />3 of 8</span>]]} />
+        <Rows x={x} rows={[['Username', 'roberto_b'], ['Email', 'roberto@…'], ['Change password', ''], ['Appearance', 'System'], ['How it works', '']]} />
+      </Screen>
+    );
+  }
+  function CrestsB({ t, x = 1, label, live }) {
+    const [worn, setWorn] = useState('bull');
+    const [, name] = byId[worn];
+    return (
+      <Screen t={t} label={label}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}><Back x={x} label="Profile" /><b style={{ ...fs(17, x), color: 'var(--c-text)' }}>Crests</b><span /></div>
+        <div style={{ display: 'grid', justifyItems: 'center', gap: 4, padding: '6px 0 2px' }}>
+          <Crest id={worn} size={96} />
+          <b style={{ ...fs(20, x), color: 'var(--c-text)' }}>{name}</b>
+          <span style={{ ...fs(12, x), fontWeight: 800, letterSpacing: 0.4, color: 'var(--c-accent)' }}>Wearing</span>
+        </div>
+        <div style={{ textAlign: 'right', margin: '0 2px -6px' }}><span className="dr-num" style={{ ...fs(13, x), fontWeight: 700, color: 'var(--c-text-2)' }}>3 of 8</span></div>
+        <Collection x={x} worn={worn} onWear={live ? setWorn : null} />
+      </Screen>
+    );
+  }
+
+  // The colour-blind and greyscale check (the bar: the whole screen grey still reads).
+  const CB = [
+    ['normal', 'As drawn', null],
+    ['prot', 'No red (protanopia)', '0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0'],
+    ['deut', 'No green (deuteranopia)', '0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0'],
+    ['trit', 'No blue (tritanopia)', '0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0'],
+    ['grey', 'Greyscale', '0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0'],
+  ];
+  function Check({ t }) {
+    return (
+      <Th t={t}>
+        <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true"><defs>{CB.filter((r) => r[2]).map(([k2, , m]) => <filter key={k2} id={`cc-${k2}`} colorInterpolationFilters="linearRGB"><feColorMatrix type="matrix" values={m} /></filter>)}</defs></svg>
+        <div role="img" aria-label={`The eight crests through colour blindness and greyscale, ${t}`} style={{ background: 'var(--c-bg)', padding: 16, borderRadius: 16, display: 'grid', gridTemplateColumns: '170px max-content', gap: '12px 18px', alignItems: 'center', width: 'max-content' }}>
+          {CB.map(([k2, lab]) => (
+            <React.Fragment key={k2}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--c-text-2)' }}>{lab}</span>
+              <span style={{ display: 'flex', gap: 10, filter: k2 === 'normal' ? 'none' : `url(#cc-${k2})` }}>{LIST.map(([id]) => <Crest key={id} id={id} size={36} />)}</span>
+            </React.Fragment>
+          ))}
+        </div>
+      </Th>
+    );
+  }
+
+  const fig = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}><Fit>{node}</Fit><figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const Grid = ({ children }) => <div className="b-concepts b-concepts--three">{children}</div>;
+  const Sub = ({ children }) => <h3 className="b-sub">{children}</h3>;
+
+  const STARTERS = ['Bull', 'Flame', 'Crown', 'Moon', 'Rally', 'Bolt', 'Summit', 'Gem', 'Star', 'Candle', 'Orbit', 'Climb'];
+  function CallCrestCollection({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-crest-collection" aria-labelledby="call-crest-collection-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Crests</span>
+          <div>
+            <h2 id="call-crest-collection-h">{archived ? 'Decided: your crests in Profile, and their words' : 'Your call: your crests in Profile, and their words'}</h2>
+            <p className="b-job">Where your crests live, and every word on them. All the words are proposals. Tap a coloured crest on the live phones to wear it.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>What you see: eight crests.</b> Your starter and the seven you can earn. The other eleven starters aren’t shown, because you can never get them (“nothing impossible to get”). Held ones in colour, locked ones in grey with what earns each, the one you wear outlined and marked “Wearing”. An earned crest has an inner rim, drawn heavier and in gold, so it reads as won even with no colour at all; a starter has none.</li>
+          <li><b>Wearing one:</b> tap a coloured crest and it’s worn at once, everywhere, no question asked (like your queue, it saves as you go). A grey one does nothing.</li>
+          <li><b>A · on Profile itself</b>, between your name and the settings. <b>B · a “Crests” row</b> on Profile, opening its own screen with the worn crest large at the top.</li>
+          <li><b>Recommended: A.</b> Eight crests fit on one screen, and B hides them behind a row most people would never open. On Profile your mark becomes your worn crest, so you see the change the moment you tap.</li>
+          <li><b>Proposed words, for your yes</b> (strike or rename any):
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+              <li><b>Crests</b> · the collection’s name (A: the label over the grid; B: the row and its screen’s title)</li>
+              <li><b>3 of 8</b> · how many you hold (the form of “5 of 6” managers)</li>
+              <li><b>Wearing</b> · under the crest you wear</li>
+              <li><b>The earned seven, name · what earns it:</b> Draft Day · Finish a draft; First Win · Win a week; Hat Trick · Win three matchups in a row; Top Week · Have the best week in your league; Playoff Bound · Make the playoffs; Full Season · Finish a season; Champion · Win a league</li>
+              <li><b>The twelve starters:</b> {STARTERS.join(', ')} · line: <b>Your first league</b></li>
+              <li><b>VoiceOver:</b> “Bull, wearing”; “Draft Day, double-tap to wear”; “Hat Trick, locked, win three matchups in a row”</li>
+            </ul>
+          </li>
+          <li><b>Hat Trick</b> says “matchups”, not “weeks”: a bye neither breaks the run nor counts toward it, so three weeks in a row wouldn’t always be true. It’s earned once and kept, so no word here says “streak”.</li>
+          <li><b>Telling them apart without colour:</b> no two of the eight share a split or a symbol, and light sits against dark (section 3, including the whole set in grey).</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B, and yes to the words (or the ones to change).</>}</li>
+        </ul>
+
+        <Sub>1 · A, on Profile itself</Sub>
+        <Grid>{[
+          fig('a1', 'A · Light (tap a coloured crest)', <ProfileA live label="Profile with the collection: 3 of 8 crests, Bull worn" />, 'Your starter, then the seven earned in the order a season brings them. The settings rows continue below.'),
+          fig('a2', 'A · Dark', <ProfileA t="dark" label="Profile with the collection, Dark" />),
+          fig('a3', 'A · your text size', <ProfileA x={AX5} label="Profile with the collection, largest text size" />, 'Two crests to a row, so every “what earns it” line fits.'),
+          fig('a4', 'A · no crest yet', <ProfileA none label="Profile for an account with no crest yet: today's initials, 0 of 8" />, 'An account from before crests, until its starter is revealed on the next open: today’s initials, the seven locked, an empty place for the starter.'),
+        ]}</Grid>
+
+        <Sub>2 · B, a row that opens Crests</Sub>
+        <Grid>{[
+          fig('b1', 'B · Profile', <ProfileB label="Profile with a Crests row: the worn crest and 3 of 8" />),
+          fig('b2', 'B · Crests (tap a coloured crest)', <CrestsB live label="Crests screen: Bull worn, 3 of 8" />),
+          fig('b3', 'B · Crests, Dark', <CrestsB t="dark" label="Crests screen, Dark" />),
+          fig('b4', 'B · Crests, your text size', <CrestsB x={AX5} label="Crests screen, largest text size" />),
+        ]}</Grid>
+
+        <Sub>3 · Without colour</Sub>
+        <div style={{ display: 'grid', gap: 24 }}>
+          <figure className="b-fig b-fig--inv" style={{ margin: 0 }}><Check t="light" /><figcaption><b>Light</b><span className="b-annot">Review note: Look along each row: every crest still differs from its neighbours by its split and its symbol, and the earned seven by their inner rim. The bottom row is the whole set in grey.</span></figcaption></figure>
+          <figure className="b-fig b-fig--inv" style={{ margin: 0 }}><Check t="dark" /><figcaption><b>Dark</b></figcaption></figure>
+        </div>
+      </section>
+    );
+  }
+
+  window.KSCrestCollection = () => <CallCrestCollection />;
+  window.KSCrestCollectionArchived = () => null;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
+// Stockpile key-screens board — "Your call: crests where no name is beside them" (2026-11-25).
+// Plan docs/plans/2026-11-25-crests.md, risk "Marks that stop identifying people": two initials tell managers apart at
+// a glance; crests may not. Every <Avatar> on main @ 0687e35f was read: three places draw a manager's mark with NO
+// name beside it.
+//   1. Pre-draft Home › Members (PreDraftCard): a row of 36pt discs, "5 of 6 joined", "+1". The real question.
+//   2. Your own mark, top right of every tab (ShellHeader, 36pt): it is you, so the crest simply goes in.
+//   3. The draft-order "i" picture (InfoVisuals): example people, not members; keeps initials.
+// Two more draw a disc before you are in the league, and keep today's mark: the invite arrival (64pt, the inviter) and
+// the takeover landing (64pt, the team). The crest is returned only to members who share a league (the plan), and
+// the no-sign-in preview returns only the name and the inviter (the Planner's security ruling).
+// Crests are shields (his pick, #call-crest-look) as stand-ins. Review notes sit UNDER the phones.
+(function () {
+  const { Icon, ICON } = window.KSKit;
+  const GN = window.KSGN;
+  const { Fit } = GN;
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>{children}</div>;
+  const k = (x, cap) => Math.min(x, cap || x);
+  const fs = (px, x, cap = 1.3, lh = 1.28) => ({ fontSize: Math.round(px * k(x, cap)), lineHeight: `${Math.round(px * lh * k(x, cap))}px` });
+  const AX5 = 3.1;
+
+  // You first (S-3), then in the order they joined. Starter shields (his pick): no two share a split or a symbol, and
+  // one light (sand) sits among the dark, so the row parts in greyscale too. [name, tone, symbol, split]
+  const MEMBERS = [
+    ['Roberto B.', 'violet', 'moon', 'quarterly'],
+    ['Paolo M.', 'teal', 'horns', 'bend'],
+    ['Sofia R.', 'rust', 'flame', 'pale'],
+    ['Gianluigi B.', 'slate', 'peak', 'fess'],
+    ['Elena V.', 'sand', 'arrow', 'chevron'],
+  ];
+  function Crest({ m, size }) {
+    const [, tone, sym, part] = m;
+    return window.KSShield({ tone, sym, part, size });
+  }
+  const Initials = ({ name, size, fill = 'var(--c-inset)', ink = 'var(--c-text)' }) => (
+    <span style={{ width: size, height: size, flex: `0 0 ${size}px`, borderRadius: size / 2, background: fill, color: ink, display: 'grid', placeItems: 'center', fontSize: Math.round(size * 0.38), fontWeight: 800 }}>{name.split(' ').map((w) => w[0]).join('').replace('.', '')}</span>
+  );
+
+  function OS() {
+    return <div className="ks-os"><span>9:41</span><span className="ks-os__island" /><span className="ks-os__icons"><span className="ks-os__bars"><i /><i /><i /><i /></span><span className="ks-os__batt"><i /></span></span></div>;
+  }
+  const STORE = 'M4.5 4h15l1.5 5H3z M3 9c0 1.5 1.1 2.5 2.5 2.5S8 10.5 8 9c0 1.5 1.1 2.5 2.5 2.5S13 10.5 13 9c0 1.5 1.1 2.5 2.5 2.5S18 10.5 18 9c0 1.5 1.1 2.5 2.5 2.5 M5 11.5V20h14v-8.5 M10 20v-5h4v5';
+  function TabBar() {
+    const tab = (d, l, on) => <span key={l} style={{ display: 'grid', justifyItems: 'center', gap: 2, color: on ? 'var(--c-accent)' : 'var(--c-text-2)', fontSize: 10, fontWeight: 600 }}><Icon d={d} size={22} width={2} />{l}</span>;
+    return (
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 78, background: 'var(--c-bg)', borderTop: '1px solid var(--c-border)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', paddingTop: 8, zIndex: 3 }}>
+        {tab(ICON.home, 'Home', true)}{tab(ICON.matchup, 'Matchup')}{tab(ICON.league, 'League')}{tab(ICON.portfolio, 'Portfolio')}{tab(STORE, 'Stocks')}
+      </div>
+    );
+  }
+
+  /** Pre-draft Home: the header (your mark top right), the draft card's foot, the Members card. names: B. */
+  function PreDraft({ t = 'light', x = 1, names, label }) {
+    const size = 36;
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label}>
+          <OS />
+          <div style={{ position: 'absolute', top: 54, left: 0, right: 0, bottom: 78, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 14, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0 0' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, boxShadow: 'inset 0 0 0 1.5px var(--c-border-strong)', ...fs(16, x), fontWeight: 600, color: 'var(--c-text)' }}>Stock Scudetto<Icon d={ICON.chevron} size={13} width={2.4} /></span>
+              <Crest m={MEMBERS[0]} size={36} />
+            </div>
+            <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 6 }}>
+              <span className="dr-tag" style={{ color: 'var(--c-live-text)' }}>Draft · Sat, Nov 28 · 7:00 PM ET</span>
+              <span className="dr-score" style={{ fontSize: 30, lineHeight: '34px' }}>2d 06h 40m</span>
+            </div>
+            <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <b style={{ ...fs(17, x), color: 'var(--c-text)' }}>Members</b>
+                <span style={{ ...fs(13, x), color: 'var(--c-text-2)' }}>5 of 6 joined</span>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: names ? '10px 4px' : 8, alignItems: 'flex-start' }}>
+                {MEMBERS.map((m, i) => (
+                  <span key={m[0]} style={{ display: 'grid', justifyItems: 'center', gap: 4, width: names ? Math.round(52 * k(x, 1.3)) : 'auto' }}>
+                    <Crest m={m} size={size} />
+                    {names ? <span style={{ ...fs(11, x), fontWeight: i ? 600 : 800, color: i ? 'var(--c-text-2)' : 'var(--c-you)', whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m[0].split(' ')[0]}</span> : null}
+                  </span>
+                ))}
+                <span style={{ width: size, height: size, borderRadius: size / 2, boxShadow: 'inset 0 0 0 1.5px var(--c-border-strong)', display: 'grid', placeItems: 'center', ...fs(15, x, 1.2), color: 'var(--c-text-2)' }}>+1</span>
+              </div>
+            </div>
+          </div>
+          <TabBar />
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+  /** Today, for comparison: the same card with initials. */
+  function PreDraftToday({ t = 'light', label }) {
+    return (
+      <Th t={t}>
+        <div role="img" aria-label={label} style={{ background: 'var(--c-bg)', padding: 14, borderRadius: 16 }}>
+          <div className="dr-a-card" style={{ padding: 16, display: 'grid', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}><b style={{ fontSize: 17, color: 'var(--c-text)' }}>Members</b><span style={{ fontSize: 13, color: 'var(--c-text-2)' }}>5 of 6 joined</span></div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {MEMBERS.map((m, i) => <Initials key={m[0]} name={m[0]} size={36} fill={i ? 'var(--c-inset)' : 'var(--c-you)'} ink={i ? 'var(--c-text)' : '#fff'} />)}
+              <span style={{ width: 36, height: 36, borderRadius: 18, boxShadow: 'inset 0 0 0 1.5px var(--c-border-strong)', display: 'grid', placeItems: 'center', fontSize: 15, color: 'var(--c-text-2)' }}>+1</span>
+            </div>
+          </div>
+        </div>
+      </Th>
+    );
+  }
+  /** The invite arrival, unchanged: the inviter's initials before sign-in. */
+  function Arrival({ t = 'light', label }) {
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label}>
+          <OS />
+          <div style={{ position: 'absolute', top: 54, left: 0, right: 0, bottom: 0, padding: '0 20px 44px', display: 'grid', gridTemplateRows: '1fr auto' }}>
+            <div style={{ display: 'grid', gap: 16, alignContent: 'center', justifyItems: 'center', textAlign: 'center' }}>
+              <Initials name="Roberto B." size={64} />
+              <span style={{ fontSize: 28, lineHeight: '32px', fontWeight: 800, color: 'var(--c-text)' }}>Roberto B. invited you to Stock Scudetto</span>
+            </div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {['Continue with Apple', 'Continue with Google', 'Use email'].map((l, i) => <span key={l} className={i ? 'dr-btn dr-btn--line' : 'dr-btn'} style={{ height: 50, fontSize: 16, display: 'grid', placeItems: 'center' }}>{l}</span>)}
+            </div>
+          </div>
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+
+  const fig = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}><Fit>{node}</Fit><figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const figPlain = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0, alignContent: 'start' }}>{node}<figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const Grid = ({ children }) => <div className="b-concepts b-concepts--three">{children}</div>;
+  const Sub = ({ children }) => <h3 className="b-sub">{children}</h3>;
+
+  function CallCrestNameless({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-crest-nameless" aria-labelledby="call-crest-nameless-h">
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Crests</span>
+          <div>
+            <h2 id="call-crest-nameless-h">{archived ? 'Decided: crests where no name is beside them' : 'Your call: crests where no name is beside them'}</h2>
+            <p className="b-job">Almost everywhere, a crest sits next to a name. These are the places it doesn’t, and what each one does.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>Every place a manager’s mark is drawn today was checked.</b> Three have no name beside them; two more show a mark before you’re in the league.</li>
+          <li><b>1 · Members on the pre-draft Home</b> is the one that needs your call. Today, two initials tell you who has joined. With crests, friends haven’t learned each other’s yet. <b>A:</b> the crests alone, as the initials are today. <b>B:</b> each crest with the first name under it.</li>
+          <li><b>Recommended: B.</b> Before the draft is exactly when nobody knows whose crest is whose, and this card is how you check who’s in. No new words: the names are the managers’ own.</li>
+          <li><b>2 · Your mark, top right of every tab:</b> it’s you, so your crest simply goes in. Tapping it still opens Profile.</li>
+          <li><b>3 · Stays as today:</b> the invite arrival and the takeover landing keep today’s mark, because you aren’t in the league yet and a crest is only shown to people who share one. The draft-order “i” picture keeps its initials: those are example people, not your league.</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B for Members.</>}</li>
+        </ul>
+
+        <Sub>1 · Members on the pre-draft Home</Sub>
+        <Grid>{[
+          fig('a1', 'A · crests alone', <PreDraft label="Pre-draft Home, Members as crests alone" />, 'Which crest is Sofia’s? Only the people who saw her join know.'),
+          fig('b1', 'B · crests with first names', <PreDraft names label="Pre-draft Home, Members as crests with first names" />, 'Your name in your colour, first, as you are today.'),
+          fig('b2', 'B · Dark', <PreDraft t="dark" names label="Members with first names, Dark" />),
+          fig('b3', 'B · your text size', <PreDraft x={AX5} names label="Members with first names, largest text size" />, 'The names grow (capped, like every row); the crests stay their size.'),
+          fig('a2', 'A · Dark', <PreDraft t="dark" label="Members as crests alone, Dark" />),
+          figPlain('t1', 'Today, for comparison', <PreDraftToday label="Today's Members card with initials" />, 'PM, SR, GB, EV: initials say who, crests alone don’t.'),
+          fig('g1', 'B · in greyscale', <div style={{ filter: 'grayscale(1)' }}><PreDraft names label="Members with first names, the whole screen grey" /></div>, 'The whole screen grey still reads: every shield differs by its split and its symbol, and the names say who.'),
+        ]}</Grid>
+
+        <Sub>2 · Your mark, top right of every tab</Sub>
+        <p style={{ margin: '0 0 12px', maxWidth: 760, color: 'var(--c-text-2)' }}>Drawn in every phone above: your crest (Roberto B.’s moon) where your blue initials are today.</p>
+
+        <Sub>3 · Stays as today</Sub>
+        <Grid>{[
+          fig('s1', 'The invite arrival, unchanged', <Arrival label="Invite arrival with the inviter's initials, unchanged" />, 'Before sign-in the page may show only the league’s name and who invited you, so no crest.'),
+        ]}</Grid>
+      </section>
+    );
+  }
+
+  window.KSCrestNameless = () => <CallCrestNameless />;
+  window.KSCrestNamelessArchived = () => null;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
+// Stockpile key-screens board — "Your call: four moments in onboarding" (2026-11-25). MOVING.
+// Plan docs/plans/2026-11-25-onboarding-finish-and-feel.md, Part 3 (approved, "approved both"). The invited path, four
+// moments, two versions each, Light / Dark / his text size:
+//   1. Arrival: the invitation opens (inviter's mark, then the league's name, then the three buttons).
+//   2. The username: the made-up name rolls into place; "Change" rolls another; with no name by 6 s, the empty field.
+//   3. Taking your seat: in place of today's wordless spinner, your mark joins. No words added.
+//   4. Between steps: one move per step, the league's name staying put while the rest changes.
+// Guardrails (the plan): never a tap or a wait added (every button is live from the first frame); anything over ~1 s
+// can be tapped through; complete with Reduce Motion on. Today's words only; nothing new.
+// Data the screens may show: the no-sign-in preview returns only the league's name and the inviter, so the seat
+// moment shows the inviter's mark and yours, nothing else about the league.
+// The phones loop; tap one to skip to its end, "Replay" to run it again; on moment 2 "Change" rolls another name.
+// Filmstrips hold four frames still. Review notes sit UNDER the phones.
+(function () {
+  const { useState } = React;
+  const { Icon, ICON } = window.KSKit;
+  const GN = window.KSGN;
+  const { Fit } = GN;
+  const Th = ({ t, children }) => <div className={`dr dir-a${t === 'light' ? ' dir-a-light' : ''}`}>{children}</div>;
+  const k = (x, cap) => Math.min(x, cap || x);
+  const fs = (px, x, cap = 1.3, lh = 1.22) => ({ fontSize: Math.round(px * k(x, cap)), lineHeight: `${Math.round(px * lh * k(x, cap))}px` });
+  const AX5 = 3.1;
+  const LG = 'Stock Scudetto';
+  const INVITER = 'Roberto B.';
+  const TAGS = ['swiftOtter42', 'boldLynx07', 'calmHeron55', 'brightBison12', 'quickFalcon31', 'sunnyMarten20'];
+  const REEL = ['quickHeron18', 'boldLynx07', 'calmOtter55', 'sharpFalcon31', 'brightBison12'];
+
+  // ── Keyframes ──
+  const p = (s, C) => `${((s / C) * 100).toFixed(2)}%`;
+  const layer = (name, tin, tout, ax, C) => {
+    const from = ax === 'X' ? 'translateX(100%)' : 'translateY(28px)';
+    const to = ax === 'X' ? 'translateX(-30%)' : 'translateY(-28px)';
+    let s = `@keyframes ${name} {`;
+    s += tin == null ? `0% { opacity: 1; transform: none; }` : `0%, ${p(tin, C)} { opacity: 0; transform: ${from}; } ${p(tin + 0.35, C)} { opacity: 1; transform: none; }`;
+    s += tout == null ? `100% { opacity: 1; transform: none; }` : `${p(tout, C)} { opacity: 1; transform: none; } ${p(tout + 0.35, C)}, 100% { opacity: 0; transform: ${to}; }`;
+    return `${s} }`;
+  };
+  const C1 = 4, C2 = 4, CT = 8, C3 = 4, C4 = 6;
+  // The roll follows the answer: it moves at a fixed speed until the name arrives, then settles in 0.25 s.
+  // Drawn at three answer times: 0.25 s (quick), 0.6 s (usual), 2 s (slow). n = lines rolled before the name.
+  const ANS = [0.25, 0.6, 2.0];
+  const akey = (a) => Math.round(a * 100);
+  const nReel = (a) => Math.max(2, Math.ceil(a * 10));
+  const nChar = (a) => Math.max(2, Math.ceil(a * 12));
+  const ROLL_CSS = ANS.map((a) => `
+  @keyframes ob2a-reel-${akey(a)} { 0% { transform: translateY(0); animation-timing-function: linear; } ${p(a, C2)} { transform: translateY(calc(var(--ob-lh) * -${nReel(a) - 1})); animation-timing-function: cubic-bezier(.2,.8,.2,1); } ${p(a + 0.25, C2)}, 100% { transform: translateY(calc(var(--ob-lh) * -${nReel(a)})); } }
+  @keyframes ob2b-char-${akey(a)} { 0% { transform: translateY(0); animation-timing-function: linear; } ${p(a, C2)} { transform: translateY(calc(var(--ob-lh) * -${nChar(a) - 1})); animation-timing-function: cubic-bezier(.2,.8,.2,1); } ${p(a + 0.12, C2)}, 100% { transform: translateY(calc(var(--ob-lh) * -${nChar(a)})); } }
+  @keyframes ob2-keep-${akey(a)} { 0%, ${p(a + 0.22, C2)} { opacity: .45; } ${p(a + 0.27, C2)}, 100% { opacity: 1; } }
+  @keyframes ob2-check-${akey(a)} { 0%, ${p(a + 0.2, C2)} { opacity: 0; transform: scale(.5); } ${p(a + 0.32, C2)}, 100% { opacity: 1; transform: none; } }`).join('');
+  const CSS = ROLL_CSS + `
+  @keyframes ob1a-mark { 0% { opacity: 0; transform: scale(.6); } ${p(.3, C1)} { opacity: 1; transform: scale(1.06); } ${p(.42, C1)}, 100% { opacity: 1; transform: none; } }
+  @keyframes ob1a-lead { 0%, ${p(.15, C1)} { opacity: 0; transform: translateY(10px); } ${p(.45, C1)}, 100% { opacity: 1; transform: none; } }
+  @keyframes ob1a-name { 0%, ${p(.3, C1)} { opacity: 0; transform: translateY(10px); } ${p(.6, C1)}, 100% { opacity: 1; transform: none; } }
+  @keyframes ob1a-btns { 0%, ${p(.4, C1)} { opacity: 0; transform: translateY(24px); } ${p(.8, C1)}, 100% { opacity: 1; transform: none; } }
+  @keyframes ob1b-mark { 0% { opacity: 0; transform: translateY(-44px); } ${p(.35, C1)} { opacity: 1; transform: translateY(4px); } ${p(.45, C1)}, 100% { opacity: 1; transform: none; } }
+  @keyframes ob1b-ripple { 0%, ${p(.35, C1)} { opacity: 0; transform: scale(1); } ${p(.36, C1)} { opacity: .5; transform: scale(1); } ${p(.95, C1)}, 100% { opacity: 0; transform: scale(1.9); } }
+  @keyframes ob1b-title { 0%, ${p(.4, C1)} { opacity: 0; transform: scale(.96); } ${p(.7, C1)}, 100% { opacity: 1; transform: none; } }
+  @keyframes ob1b-btns { 0%, ${p(.55, C1)} { opacity: 0; } ${p(1.0, C1)}, 100% { opacity: 1; } }
+  @keyframes ob2-spin { 0% { transform: translateY(0); } 100% { transform: translateY(calc(var(--ob-lh) * -5)); } }
+  @keyframes ob2-tvis { 0%, ${p(6, CT)} { opacity: 1; } ${p(6.01, CT)}, 100% { opacity: 0; } }
+  @keyframes ob2-tempty { 0%, ${p(6, CT)} { opacity: 0; } ${p(6.01, CT)}, 100% { opacity: 1; } }
+  @keyframes ob3a-you { 0% { opacity: 0; transform: translateX(130px); } ${p(.6, C3)} { opacity: 1; transform: translateX(-4px); } ${p(.72, C3)}, 100% { opacity: 1; transform: none; } }
+  @keyframes ob3b-orbit {
+    0% { opacity: 0; transform: rotate(150deg) translateX(72px) rotate(-150deg) scale(1); }
+    ${p(.12, C3)} { opacity: 1; }
+    ${p(.8, C3)} { opacity: 1; transform: rotate(360deg) translateX(72px) rotate(-360deg) scale(1); }
+    ${p(.9, C3)} { transform: rotate(360deg) translateX(72px) rotate(-360deg) scale(1.1); }
+    ${p(1.0, C3)}, 100% { opacity: 1; transform: rotate(360deg) translateX(72px) rotate(-360deg) scale(1); }
+  }
+  ${layer('ob4a-l1', null, 1.2, 'Y', C4)} ${layer('ob4a-l2', 1.2, 2.8, 'Y', C4)} ${layer('ob4a-l3', 2.8, 4.0, 'Y', C4)} ${layer('ob4a-l4', 4.0, null, 'Y', C4)}
+  ${layer('ob4b-l1', null, 1.2, 'X', C4)} ${layer('ob4b-l2', 1.2, 2.8, 'X', C4)} ${layer('ob4b-l3', 2.8, 4.0, 'X', C4)} ${layer('ob4b-l4', 4.0, null, 'X', C4)}
+  @keyframes ob4-chip { 0%, ${p(1.2, C4)} { opacity: 0; transform: translateY(-6px); } ${p(1.55, C4)}, ${p(4.0, C4)} { opacity: 1; transform: none; } ${p(4.35, C4)}, 100% { opacity: 0; } }
+  `;
+  const EASE = 'cubic-bezier(.2,.8,.2,1)';
+  const anim = (name, C, extra = {}) => ({ animation: `${name} ${C}s infinite`, animationTimingFunction: extra.ease || EASE, animationDelay: extra.delay != null ? `calc(var(--ob-delay, 0s) + ${extra.delay}s)` : 'var(--ob-delay, 0s)', animationPlayState: 'var(--ob-play, running)', animationFillMode: 'both' });
+  // A screen's end state = no animation at all (Reduce Motion, or after a tap).
+  const A = (end, name, C, extra) => (end ? {} : anim(name, C, extra));
+
+  function OS() {
+    return <div className="ks-os"><span>9:41</span><span className="ks-os__island" /><span className="ks-os__icons"><span className="ks-os__bars"><i /><i /><i /><i /></span><span className="ks-os__batt"><i /></span></span></div>;
+  }
+  const Disc = ({ init, size = 64, you }) => <span style={{ width: size, height: size, flex: `0 0 ${size}px`, borderRadius: size / 2, background: you ? 'var(--c-you)' : 'var(--c-inset)', color: you ? '#fff' : 'var(--c-text)', display: 'grid', placeItems: 'center', fontSize: Math.round(size * 0.36), fontWeight: 800, boxShadow: '0 0 0 3px var(--c-bg)' }}>{init}</span>;
+  const Btn = ({ x, kind, children, style }) => <span className={kind === 'line' ? 'dr-btn dr-btn--line' : 'dr-btn'} style={{ height: 50, ...fs(16, x), display: 'grid', placeItems: 'center', ...style }}>{children}</span>;
+  function Phone({ t = 'light', label, onTap, still, children }) {
+    const vars = still != null ? { '--ob-delay': `-${still}s`, '--ob-play': 'paused' } : {};
+    return (
+      <Th t={t}>
+        <div className="ks-device" role="img" aria-label={label} onClick={onTap} style={{ cursor: onTap ? 'pointer' : 'default', ...vars }}>
+          <OS />
+          <div style={{ position: 'absolute', top: 54, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>{children}</div>
+          <span className="ks-home-ind" style={{ zIndex: 6 }} />
+        </div>
+      </Th>
+    );
+  }
+  const Fill = ({ children, style }) => <div style={{ position: 'absolute', inset: 0, padding: '0 20px 44px', display: 'grid', ...style }}>{children}</div>;
+
+  // ── 1 · Arrival ──
+  function Arrival({ x = 1, v = 'a', end, inLayer }) {
+    const a = (n) => A(end, `ob1${v}-${n}`, C1);
+    const title = (
+      <span style={{ display: 'grid', gap: 0, textAlign: 'center' }}>
+        <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)', ...(v === 'a' ? a('lead') : {}) }}>{INVITER} invited you to</span>
+        <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)', ...(v === 'a' ? a('name') : {}) }}>{LG}</span>
+      </span>
+    );
+    return (
+      <Fill style={{ gridTemplateRows: '1fr auto' }}>
+        <div style={{ display: 'grid', gap: 16, alignContent: 'center', justifyItems: 'center' }}>
+          <span style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
+            {v === 'b' && !end && !inLayer ? <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', boxShadow: '0 0 0 3px var(--c-border-strong)', ...a('ripple') }} /> : null}
+            <span style={{ display: 'grid', ...(inLayer ? {} : a('mark')) }}><Disc init="RB" /></span>
+          </span>
+          <span style={v === 'b' && !inLayer ? a('title') : {}}>{title}</span>
+        </div>
+        <div style={{ display: 'grid', gap: 10, ...(inLayer ? {} : a('btns')) }}>
+          <Btn x={x}>Continue with Apple</Btn><Btn x={x} kind="line">Continue with Google</Btn><Btn x={x} kind="line">Use email</Btn>
+        </div>
+      </Fill>
+    );
+  }
+
+  // ── 2 · The username ──
+  function NameValue({ x, v, end, tag, timeout, ans = 0.6 }) {
+    const lh = Math.round(22 * 1.3 * k(x, 1.3));
+    const box = { height: lh, overflow: 'hidden', position: 'relative', '--ob-lh': `${lh}px`, ...fs(22, x, 1.3, 1.3), fontWeight: 700, color: 'var(--c-text)' };
+    if (end && !timeout) return <div style={box}>{tag}</div>;
+    if (v === 'a') {
+      const strip = timeout ? [...REEL, REEL[0]] : [...Array.from({ length: nReel(ans) }, (_, i) => REEL[i % REEL.length]), tag];
+      return (
+        <div style={box}>
+          <div style={timeout ? anim('ob2-spin', 0.5, { ease: 'linear' }) : anim(`ob2a-reel-${akey(ans)}`, C2, { ease: 'linear' })}>
+            {strip.map((s, i) => <div key={i} style={{ height: lh }}>{s}</div>)}
+          </div>
+        </div>
+      );
+    }
+    const pool = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    return (
+      <div style={{ ...box, display: 'flex' }}>
+        {tag.split('').map((ch, i) => {
+          const junk = Array.from({ length: timeout ? 4 : nChar(ans) }, (_, j) => pool[(i * 7 + j * 11 + tag.length) % pool.length]);
+          const strip = timeout ? [...junk, junk[0]] : [...junk, ch];
+          return (
+            <span key={i} style={{ display: 'inline-block', position: 'relative', height: lh, overflow: 'hidden' }}>
+              <span style={{ visibility: 'hidden' }}>{timeout ? junk[0] : ch}</span>
+              <span style={{ position: 'absolute', left: 0, top: 0, width: '100%', ...(timeout ? anim('ob2-spin', 0.4, { ease: 'linear', delay: i * 0.03 }) : anim(`ob2b-char-${akey(ans)}`, C2, { ease: 'linear', delay: i * 0.012 })) }}>
+                {strip.map((c, j) => <span key={j} style={{ display: 'block', height: lh, textAlign: 'center' }}>{c}</span>)}
+              </span>
+            </span>
+          );
+        })}
+      </div>
+    );
+  }
+  function Username({ x = 1, v = 'a', end, tag = TAGS[0], timeout, onChange, inLayer, ans = 0.6 }) {
+    const field = (value, check) => (
+      <div className="dr-a-card" style={{ padding: '10px 14px', display: 'grid', gap: 2, boxShadow: 'inset 0 0 0 2px var(--c-accent)' }}>
+        <span style={{ ...fs(13, x), color: 'var(--c-text-2)', fontWeight: 600 }}>Username</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>{value}</div>
+          {check ? <span style={{ color: 'var(--c-gain)', display: 'grid', ...(end || inLayer ? {} : anim(`ob2-check-${akey(ans)}`, C2)) }}><Icon d={ICON.check} size={20} width={2.8} /></span> : null}
+        </div>
+      </div>
+    );
+    const keepRow = (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <span style={end || inLayer ? {} : anim(`ob2-keep-${akey(ans)}`, C2)}><Btn x={x}>Keep</Btn></span>
+        <span onClick={onChange ? (e) => { e.stopPropagation(); onChange(); } : undefined} style={{ cursor: onChange ? 'pointer' : 'default' }}><Btn x={x} kind="line">Change</Btn></span>
+      </div>
+    );
+    if (timeout) {
+      return (
+        <Fill style={{ alignContent: 'start', paddingTop: x > 1 ? 30 : 70 }}>
+          <div style={{ position: 'absolute', inset: `${x > 1 ? 30 : 70}px 20px 44px`, display: 'grid', alignContent: 'start', gap: 16, ...anim('ob2-tvis', CT, { ease: 'steps(1, end)' }) }}>
+            <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>Pick a username</span>
+            {field(<NameValue x={x} v={v} tag={TAGS[0]} timeout />, false)}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, opacity: 0.45 }}><Btn x={x}>Keep</Btn><Btn x={x} kind="line">Change</Btn></div>
+          </div>
+          <div style={{ position: 'absolute', inset: `${x > 1 ? 30 : 70}px 20px 44px`, display: 'grid', alignContent: 'start', gap: 16, ...anim('ob2-tempty', CT, { ease: 'steps(1, end)' }) }}>
+            <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>Pick a username</span>
+            {field(<div style={{ ...fs(22, x, 1.3, 1.3), height: Math.round(22 * 1.3 * k(x, 1.3)), display: 'flex', alignItems: 'center' }}><span style={{ width: 2, height: '80%', background: 'var(--c-accent)' }} /></div>, false)}
+            <span style={{ ...fs(13, x), color: 'var(--c-text-2)', display: 'grid', gap: 2 }}><span>3–20 characters</span><span>Letters, numbers and underscores</span></span>
+          </div>
+        </Fill>
+      );
+    }
+    return (
+      <Fill style={{ alignContent: 'start', gap: 16, paddingTop: x > 1 ? 48 : 70 }}>
+        <span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>Pick a username</span>
+        {field(inLayer ? <div style={{ ...fs(22, x, 1.3, 1.3), fontWeight: 700, color: 'var(--c-text)' }}>{tag}</div> : <NameValue key={tag} x={x} v={v} end={end} tag={tag} ans={ans} />, true)}
+        {keepRow}
+      </Fill>
+    );
+  }
+
+  // ── 3 · Taking your seat ──
+  function Seat({ x = 1, v = 'a', end, inLayer }) {
+    if (v === 'a') {
+      return (
+        <Fill style={{ placeItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Disc init="RB" />
+            <span style={{ marginLeft: -12, display: 'grid', ...(end || inLayer ? {} : anim('ob3a-you', C3)) }}><Disc init="S" you /></span>
+          </div>
+        </Fill>
+      );
+    }
+    return (
+      <Fill style={{ placeItems: 'center' }}>
+        <div style={{ position: 'relative', width: 144, height: 144 }}>
+          <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', boxShadow: 'inset 0 0 0 2px var(--c-border-strong)' }} />
+          <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: 'var(--c-text-2)' }}><Icon d={ICON.league} size={30} width={2} /></span>
+          <span style={{ position: 'absolute', left: 72 - 26, top: -26 }}><Disc init="RB" size={52} /></span>
+          <span style={{ position: 'absolute', left: 72 - 26, top: 72 - 26, display: 'grid', transform: end || inLayer ? 'translateX(72px)' : undefined, ...(end || inLayer ? {} : anim('ob3b-orbit', C3)) }}><Disc init="S" size={52} you /></span>
+        </div>
+      </Fill>
+    );
+  }
+
+  // ── 4 · Between steps: four screens in one phone, the league's name staying put from step 2 ──
+  function YoureInLite({ x = 1 }) {
+    return (
+      <Fill style={{ alignContent: 'start', justifyItems: 'center', textAlign: 'center', gap: 14, paddingTop: x > 1 ? 30 : 80 }}>
+        <span style={{ width: 72, height: 72, borderRadius: 36, background: 'var(--c-you)', color: '#fff', display: 'grid', placeItems: 'center' }}><Icon d={ICON.check} size={32} width={2.6} /></span>
+        <span style={{ display: 'grid' }}><span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>You're in</span><span style={{ ...fs(28, x), fontWeight: 800, color: 'var(--c-text)' }}>{LG}</span></span>
+        <span style={{ ...fs(15, x), color: 'var(--c-text-2)' }}>The draft is <span style={{ whiteSpace: 'nowrap' }}>Sat, Nov 28 · 7:00 PM ET</span>.</span>
+        <Btn x={x} style={{ width: '100%' }}>Go to the league</Btn>
+      </Fill>
+    );
+  }
+  function Steps({ x = 1, v = 'a', end, reduce }) {
+    const L = (i) => (end ? { opacity: i === 4 ? 1 : 0 } : reduce ? { opacity: i === 2 ? 1 : 0 } : anim(`ob4${v}-l${i}`, C4, { ease: 'cubic-bezier(.3,.7,.2,1)' }));
+    const chipStyle = end ? { opacity: 0 } : reduce ? { opacity: 1 } : anim('ob4-chip', C4);
+    return (
+      <>
+        <div style={{ position: 'absolute', top: 8, left: 0, right: 0, textAlign: 'center', zIndex: 2, ...chipStyle }}>
+          <span style={{ ...fs(15, x), fontWeight: 700, color: 'var(--c-text-2)' }}>{LG}</span>
+        </div>
+        <div style={{ position: 'absolute', inset: 0, ...L(1) }}><Arrival x={x} end inLayer /></div>
+        <div style={{ position: 'absolute', inset: 0, ...L(2) }}><Username x={x} end inLayer /></div>
+        <div style={{ position: 'absolute', inset: 0, ...L(3) }}><Seat x={x} v="a" end inLayer /></div>
+        <div style={{ position: 'absolute', inset: 0, ...L(4) }}><YoureInLite x={x} /></div>
+      </>
+    );
+  }
+
+  // ── Live phone and filmstrip ──
+  function Live({ t, x, label, render, rollable }) {
+    const [run, setRun] = useState(0);
+    const [end, setEnd] = useState(false);
+    const [tagI, setTagI] = useState(0);
+    const replay = () => { setEnd(false); setRun(run + 1); };
+    return (
+      <div style={{ display: 'grid', gap: 8, justifyItems: 'start' }}>
+        <Fit><Phone key={run} t={t} label={label} onTap={() => setEnd(true)}>{render({ x, end, tag: TAGS[tagI % TAGS.length], onChange: rollable ? () => { setTagI(tagI + 1); setEnd(false); setRun(run + 1); } : undefined })}</Phone></Fit>
+        <button type="button" onClick={replay} style={{ font: 'inherit', fontWeight: 700, fontSize: 13, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--c-border-strong)', background: 'var(--c-surface)', color: 'var(--c-text)', cursor: 'pointer' }}>Replay</button>
+      </div>
+    );
+  }
+  function Film({ t = 'light', times, render, label }) {
+    const W = 168, S = W / 402;
+    return (
+      <Th t={t}>
+        <div role="img" aria-label={label} style={{ display: 'flex', gap: 14, padding: 12, background: 'var(--c-bg)', borderRadius: 14, width: 'max-content' }}>
+          {times.map((s) => (
+            <div key={s} style={{ display: 'grid', gap: 6, justifyItems: 'center' }}>
+              <div style={{ width: W, height: Math.round(874 * S), overflow: 'hidden', borderRadius: 18, boxShadow: '0 0 0 3px var(--c-border-strong)', background: 'var(--c-bg)' }}>
+                <div style={{ transform: `scale(${S})`, transformOrigin: 'top left', width: 402 }}><Phone t={t} still={s} label={`${label} at ${s} s`}>{render({ x: 1 })}</Phone></div>
+              </div>
+              <span className="dr-num" style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-2)' }}>{s.toFixed(2)} s</span>
+            </div>
+          ))}
+        </div>
+      </Th>
+    );
+  }
+
+  const fig = (key, cap, node, note) => (
+    <figure key={key} className="b-fig b-fig--inv" style={{ margin: 0 }}>{node}<figcaption><b>{cap}</b>{note ? <span className="b-annot">Review note: {note}</span> : null}</figcaption></figure>
+  );
+  const Grid = ({ children }) => <div className="b-concepts b-concepts--three">{children}</div>;
+  const Sub = ({ children }) => <h3 className="b-sub">{children}</h3>;
+  const Wide = ({ children }) => <div style={{ display: 'grid', gap: 20, margin: '4px 0 28px', overflowX: 'auto' }}>{children}</div>;
+  const Static = ({ t = 'light', label, children }) => <Fit><Phone t={t} label={label}>{children}</Phone></Fit>;
+
+  function Version({ id, title, len, note, render, rollable, times }) {
+    return (
+      <>
+        <Sub>{`${title} · ${len}`}</Sub>
+        <Grid>{[
+          fig(`${id}l`, `${title} · Light`, <Live t="light" x={1} label={`${title}, Light`} render={render} rollable={rollable} />, note),
+          fig(`${id}d`, `${title} · Dark`, <Live t="dark" x={1} label={`${title}, Dark`} render={render} rollable={rollable} />),
+          fig(`${id}x`, `${title} · your text size`, <Live t="light" x={AX5} label={`${title}, largest text size`} render={render} rollable={rollable} />),
+        ]}</Grid>
+        <Wide>{fig(`${id}f`, `${title} · four frames`, <Film times={times} render={render} label={`${title}, four frames`} />)}</Wide>
+      </>
+    );
+  }
+
+  function CallOnboardingMoments({ archived = false, decidedNote }) {
+    return (
+      <section className="b-sec" id="call-ob-moments" aria-labelledby="call-ob-moments-h">
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <header className="b-sec__head">
+          <span className="b-sec__n b-sec__n--code">Onboarding</span>
+          <div>
+            <h2 id="call-ob-moments-h">{archived ? 'Decided: four moments in onboarding' : 'Your call: four moments in onboarding'}</h2>
+            <p className="b-job">The invited path, from the link to “You’re in”, with four moments that move. Two versions of each. These phones move: tap one to skip to the end, as you could in the app.</p>
+          </div>
+        </header>
+        <ul className="b-inv__notes">
+          <li><b>The rules every version keeps:</b> no tap and no wait added (every button works from the first frame, even while it moves in); anything longer than about a second can be tapped through; with Reduce Motion on the screen is simply there, complete (section 5). Today’s words only.</li>
+          <li><b>1 · Arrival.</b> A, 0.8 s: the mark, then each line, then the buttons rise in order. B, 1.0 s: the mark drops in with a ripple, then the heading, then the buttons.</li>
+          <li><b>2 · The username.</b> The roll lasts exactly as long as your name takes to be made, and settles the moment it arrives (0.25 s); it’s never held open to be seen, and a tap ends it. Drawn with the name at 0.6 s (a usual answer), and at 0.25 s and at 2 s to show it reads at both. A: names roll past like a reel and stop on yours. B: each letter shuffles, then they lock left to right. A haptic as it lands; Keep turns on then (as today). <b>Change rolls another</b> (try it on the Light phones). If no name comes by 6 s, the field is empty and you type one (the last phone of each).</li>
+          <li><b>3 · Taking your seat</b>, in place of today’s spinner. A, 0.7 s: your mark slides in beside the one who invited you. B, 1.0 s: your mark travels round the league’s ring and takes its place. A haptic as it lands. It plays only while the join is happening; a fast join cuts it short. Only the inviter’s mark and yours: nothing else about the league can be shown before you’re in.</li>
+          <li><b>4 · Between steps</b> (one phone runs the whole path, 6 s with pauses). From the username on, the league’s name stays at the top while the rest changes. A: each step rises in from below, 0.35 s. B: each step slides in from the right, 0.35 s, like going forward in any iPhone app.</li>
+          <li><b>Recommended: 1A, 2A, 3A, 4A.</b> They’re the quieter of each pair and they share one direction, up and in, so the whole path reads as one motion. 2A is the playful moment the plan asked for; 2B is more striking but harder to read while it shuffles. 4B is what iPhone does, but sideways suggests you can swipe back, and there’s nothing to go back to.</li>
+          <li><b>For the Planner:</b> today “Change” opens the field to type. The plan has it roll another name, so typing your own needs another way in: here, a tap on the name opens it for typing. That’s a change to an approved behaviour, for him to confirm.</li>
+          <li><b>Sound:</b> none drawn; the plan leaves it to him once there’s something to hear. A haptic marks the two moments that land.</li>
+          <li>{archived ? decidedNote : <><b>Answer with:</b> A or B for each of 1–4 (and “Change rolls another” yes or no).</>}</li>
+        </ul>
+
+        <Version id="m1a" title="1A · Arrival, in order" len="0.8 s" note="0–0.3 s mark · 0.15–0.6 s the two lines · 0.4–0.8 s buttons. The buttons work from the first frame." render={({ x, end }) => <Arrival x={x} v="a" end={end} />} times={[0.1, 0.3, 0.5, 0.8]} />
+        <Version id="m1b" title="1B · Arrival, the mark drops in" len="1.0 s" note="0–0.45 s mark drops, ripple · 0.4–0.7 s heading · 0.55–1.0 s buttons." render={({ x, end }) => <Arrival x={x} v="b" end={end} />} times={[0.15, 0.4, 0.6, 1.0]} />
+        <Version id="m2a" title="2A · The username, a reel" len="as long as the name takes, then 0.25 s" note="Rolls until the name arrives (0.6 s here), lands at 0.85 s with a haptic. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.7, 0.9]} />
+        <Version id="m2b" title="2B · The username, letters lock" len="as long as the name takes, then 0.25 s" note="Shuffles until the name arrives (0.6 s here), locks left to right by 0.85 s. Tap Change to roll another name." rollable render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} />} times={[0.2, 0.5, 0.68, 0.9]} />
+        <Sub>2 · A quick name and a slow one</Sub>
+        <Grid>{[
+          fig('m2q1', '2A · the name at 0.25 s', <Live t="light" x={1} label="Username reel, name at 0.25 s" render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} ans={0.25} />} rollable />, 'A quick answer: a flick of two names, then yours, landed by 0.5 s.'),
+          fig('m2s1', '2A · the name at 2 s', <Live t="light" x={1} label="Username reel, name at 2 s" render={({ x, end, tag, onChange }) => <Username x={x} v="a" end={end} tag={tag} onChange={onChange} ans={2.0} />} rollable />, 'A slow answer: the reel keeps rolling at the same speed until the name arrives, never longer.'),
+          fig('m2q2', '2B · the name at 0.25 s', <Live t="light" x={1} label="Username letters, name at 0.25 s" render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} ans={0.25} />} rollable />),
+          fig('m2s2', '2B · the name at 2 s', <Live t="light" x={1} label="Username letters, name at 2 s" render={({ x, end, tag, onChange }) => <Username x={x} v="b" end={end} tag={tag} onChange={onChange} ans={2.0} />} rollable />),
+        ]}</Grid>
+        <Wide>
+          {fig('m2sf', '2A · the name at 2 s, four frames', <Film times={[0.6, 1.4, 2.1, 2.3]} render={({ x }) => <Username x={x} v="a" tag={TAGS[0]} ans={2.0} />} label="Username reel with the name at 2 s, four frames" />)}
+          {fig('m2qf', '2A · the name at 0.25 s, four frames', <Film times={[0.1, 0.2, 0.35, 0.5]} render={({ x }) => <Username x={x} v="a" tag={TAGS[0]} ans={0.25} />} label="Username reel with the name at 0.25 s, four frames" />)}
+        </Wide>
+        <Sub>2 · No name by 6 s (both versions)</Sub>
+        <Grid>{[
+          fig('m2ta', '2A · rolling, then the empty field at 6 s', <Live t="light" x={1} label="Username reel that gets no name, then the empty field" render={({ x }) => <Username x={x} v="a" timeout />} />, 'Loops every 8 s: rolls for 6 s, then the empty field with today’s two rules.'),
+          fig('m2tb', '2B · shuffling, then the empty field at 6 s', <Live t="light" x={1} label="Username letters that get no name, then the empty field" render={({ x }) => <Username x={x} v="b" timeout />} />),
+        ]}</Grid>
+        <Version id="m3a" title="3A · Your seat, beside the inviter" len="0.7 s" note="Your mark (your initial, in your colour) slides in beside Roberto B.’s. A haptic as it lands." render={({ x, end }) => <Seat x={x} v="a" end={end} />} times={[0.1, 0.3, 0.55, 0.8]} />
+        <Version id="m3b" title="3B · Your seat at the table" len="1.0 s" note="The ring is the league; the inviter sits at the top; yours travels round and lands." render={({ x, end }) => <Seat x={x} v="b" end={end} />} times={[0.1, 0.4, 0.7, 1.0]} />
+        <Version id="m4a" title="4A · Between steps, rising" len="0.35 s a step" note="Arrival → username → seat → You’re in, looping. The league’s name stays at the top from the username on." render={({ x, end }) => <Steps x={x} v="a" end={end} />} times={[1.3, 1.45, 2.95, 4.15]} />
+        <Version id="m4b" title="4B · Between steps, sliding" len="0.35 s a step" render={({ x, end }) => <Steps x={x} v="b" end={end} />} times={[1.3, 1.45, 2.95, 4.15]} />
+
+        <Sub>5 · Reduce Motion on</Sub>
+        <Grid>{[
+          fig('r1', 'Arrival, complete at once', <Static label="Arrival with Reduce Motion"><Arrival end /></Static>),
+          fig('r2', 'Username, the name simply there', <Static label="Username with Reduce Motion"><Username end tag={TAGS[0]} /></Static>, 'If no name comes by 6 s, the empty field, as today.'),
+          fig('r3', 'Your seat, both marks there', <Static t="dark" label="Seat with Reduce Motion, Dark"><Seat end /></Static>),
+          fig('r4', 'Between steps, the next screen simply replaces the last', <Static label="A step with Reduce Motion"><Steps reduce /></Static>),
+        ]}</Grid>
+      </section>
+    );
+  }
+
+  window.KSOnboardingMoments = () => <CallOnboardingMoments />;
+  window.KSOnboardingMomentsArchived = () => null;
+})();
+
+</script>
+<script type="text/babel" data-presets="react">
 // The review board around the key screens: one section per screen, each
 // with the live component, what it shows, its motion moments (playable),
 // and the questions only Giorgio can answer. Then the ledger, computed
@@ -17727,12 +19086,17 @@ window.KS_REFS = {
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-crest-reveal', 'The crest reveal', () => window.KSCrestReveal],
+    ['call-crest-collection', 'Your crests in Profile, and their words', () => window.KSCrestCollection],
+    ['call-crest-nameless', 'Crests where no name is beside them', () => window.KSCrestNameless],
+    ['call-ob-moments', 'Four moments in onboarding', () => window.KSOnboardingMoments],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-crest-look', title: 'What a crest looks like', decision: '"i like A the most". A, the shield (one outline for all, the field split, a symbol on top), over the recommended C. B (Roundel) and C (Patch) not picked. The full set must still differ by more than colour (split, symbol, light against dark), mark earned crests inside the shield, and pass a greyscale check; your mark keeps the blue ring.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestLookArchived },
     { id: 'call-league-activity', title: 'What went through, the way ESPN shows it', decision: '"A, and yes to the words". ESPN\u2019s two screens: a new Activity tab on League (every buy and sell, newest first, under its day) with a "Claims report" row opening a day picker and one card per manager in the order served, "Priority: 1st", Bought and Sold. Approved words: Activity; Bought, Sold; "Priority: 1st"; Claims report; "No buys or sells yet." B\u2019s "Claims" heading is not used.', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, e71ed163)', render: () => window.KSLeagueActivityArchived },
     { id: 'call-claims-order', title: 'Ordering your claims, and the claim that can\u2019t run', decision: '"A", then "we dont need to notify or have messages for claims that didnt go through. here is the espn league activity and waiver report screens." Reorder A: the grip (drag it, or press and hold the row), "Move up"/"Move down" for VoiceOver. Sections 3 (the endings) and 4 (the notifications) overruled as drawn: no notification and no message for any claim that didn\u2019t go through; "SHOP not bought", "Your DIS was already sold for AMGN." and "Your DIS paid for SHOP instead." not approved. Only "AMGN is yours" / "$187.20 at the open \u00b7 paid by selling DIS" stays. What went through is shown the ESPN way (#call-league-activity).', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, 109d8d24)', render: () => window.KSClaimsOrderArchived },
     { id: 'call-search-star', title: 'The star in search results', decision: '"no star for something you own. its in your portfolio so shouldnt need to be in the watchlist too". A star on a free stock, "Owned by \u2026" and "No free slot"; none on "You own this" (overruling the board\u2019s star on it) or "Not in this league\u2019s list". It holds everywhere: no Save on the sheet of a stock you own; Watching never lists one.', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, planner/rules-1123-own-star)', render: () => window.KSSearchStarArchived },
@@ -17933,6 +19297,11 @@ window.KS_REFS = {
           {window.KSSearchStar ? <window.KSSearchStar /> : null}
           {window.KSClaimsOrder ? <window.KSClaimsOrder /> : null}
           {window.KSLeagueActivity ? <window.KSLeagueActivity /> : null}
+          {window.KSCrestLook ? <window.KSCrestLook /> : null}
+          {window.KSCrestReveal ? <window.KSCrestReveal /> : null}
+          {window.KSCrestCollection ? <window.KSCrestCollection /> : null}
+          {window.KSCrestNameless ? <window.KSCrestNameless /> : null}
+          {window.KSOnboardingMoments ? <window.KSOnboardingMoments /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}

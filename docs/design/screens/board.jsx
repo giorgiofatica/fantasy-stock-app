@@ -392,12 +392,17 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-crest-reveal', 'The crest reveal', () => window.KSCrestReveal],
+    ['call-crest-collection', 'Your crests in Profile, and their words', () => window.KSCrestCollection],
+    ['call-crest-nameless', 'Crests where no name is beside them', () => window.KSCrestNameless],
+    ['call-ob-moments', 'Four moments in onboarding', () => window.KSOnboardingMoments],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-crest-look', title: 'What a crest looks like', decision: '"i like A the most". A, the shield (one outline for all, the field split, a symbol on top), over the recommended C. B (Roundel) and C (Patch) not picked. The full set must still differ by more than colour (split, symbol, light against dark), mark earned crests inside the shield, and pass a greyscale check; your mark keeps the blue ring.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestLookArchived },
     { id: 'call-league-activity', title: 'What went through, the way ESPN shows it', decision: '"A, and yes to the words". ESPN\u2019s two screens: a new Activity tab on League (every buy and sell, newest first, under its day) with a "Claims report" row opening a day picker and one card per manager in the order served, "Priority: 1st", Bought and Sold. Approved words: Activity; Bought, Sold; "Priority: 1st"; Claims report; "No buys or sells yet." B\u2019s "Claims" heading is not used.', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, e71ed163)', render: () => window.KSLeagueActivityArchived },
     { id: 'call-claims-order', title: 'Ordering your claims, and the claim that can\u2019t run', decision: '"A", then "we dont need to notify or have messages for claims that didnt go through. here is the espn league activity and waiver report screens." Reorder A: the grip (drag it, or press and hold the row), "Move up"/"Move down" for VoiceOver. Sections 3 (the endings) and 4 (the notifications) overruled as drawn: no notification and no message for any claim that didn\u2019t go through; "SHOP not bought", "Your DIS was already sold for AMGN." and "Your DIS paid for SHOP instead." not approved. Only "AMGN is yours" / "$187.20 at the open \u00b7 paid by selling DIS" stays. What went through is shown the ESPN way (#call-league-activity).', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, 109d8d24)', render: () => window.KSClaimsOrderArchived },
     { id: 'call-search-star', title: 'The star in search results', decision: '"no star for something you own. its in your portfolio so shouldnt need to be in the watchlist too". A star on a free stock, "Owned by \u2026" and "No free slot"; none on "You own this" (overruling the board\u2019s star on it) or "Not in this league\u2019s list". It holds everywhere: no Save on the sheet of a stock you own; Watching never lists one.', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, planner/rules-1123-own-star)', render: () => window.KSSearchStarArchived },
@@ -598,6 +603,11 @@
           {window.KSSearchStar ? <window.KSSearchStar /> : null}
           {window.KSClaimsOrder ? <window.KSClaimsOrder /> : null}
           {window.KSLeagueActivity ? <window.KSLeagueActivity /> : null}
+          {window.KSCrestLook ? <window.KSCrestLook /> : null}
+          {window.KSCrestReveal ? <window.KSCrestReveal /> : null}
+          {window.KSCrestCollection ? <window.KSCrestCollection /> : null}
+          {window.KSCrestNameless ? <window.KSCrestNameless /> : null}
+          {window.KSOnboardingMoments ? <window.KSOnboardingMoments /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
