@@ -17673,7 +17673,7 @@ window.KS_REFS = {
 // Guardrails (the plan): a second or two; never a tap or a wait added (the button is live from the first frame); a tap
 // anywhere skips to the end; with Reduce Motion on the crest is simply there. Flat, depth suggested: transforms and
 // opacity only, which Reanimated (already in the app, useMotion) does; no Lottie or Rive.
-// The crest is drawn in direction C (the recommendation on #call-crest-look) as a stand-in until he picks.
+// The crest is a shield (his pick, #call-crest-look, 2026-11-25), a stand-in until the full set is drawn.
 // The phones loop every 4 s; tap one to skip it to the end, "Replay" to run it again. The filmstrips under each version
 // hold five frames still. Review notes sit UNDER the phones, never inside.
 (function () {
@@ -17687,27 +17687,29 @@ window.KS_REFS = {
   const AX5 = 3.1;
   const CYCLE = 4; // seconds per loop on the board
 
-  // The stand-in crest: direction C, teal hexagon, the horns.
-  const HEX = 'M12 1 L21.5 6.5 V17.5 L12 23 L2.5 17.5 V6.5 Z';
-  const HORNS = 'M3 5 C3 11 7 13 10 13 L10 19 H14 L14 13 C17 13 21 11 21 5 C19 8.5 16.5 10 12 10 C7.5 10 5 8.5 3 5 Z';
-  const FILL = '#0F8C8C', DEEP = '#0A5F5F';
+  // The stand-in crest: a shield (his pick on #call-crest-look, "i like A the most"), teal split on the diagonal,
+  // the horns. The art is a stand-in until the set is drawn. FILL is used for the ring and glow.
+  const FILL = '#0F8C8C';
   function Crest({ size, shine }) {
+    const S = window.KSShieldOutline;
+    const clip = `crv-clip-${shine || 'x'}`;
     return (
-      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', overflow: 'visible' }}>
-        <defs>
-          <clipPath id={`crv-clip-${shine || 'x'}`}><path d={HEX} /></clipPath>
-          <linearGradient id="crv-shine-g" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor="#fff" stopOpacity="0" /><stop offset=".5" stopColor="#fff" stopOpacity=".75" /><stop offset="1" stopColor="#fff" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d={HEX} fill={FILL} stroke={DEEP} strokeWidth="1.4" strokeLinejoin="round" />
-        <g transform="translate(6.2 5.8) scale(0.5)"><path d={HORNS} fill="#fff" /></g>
+      <span style={{ position: 'relative', display: 'grid', width: size, height: size }}>
+        {window.KSShield({ tone: 'teal', sym: 'horns', part: 'bend', size })}
         {shine ? (
-          <g clipPath={`url(#crv-clip-${shine})`}>
-            <rect x="-8" y="-4" width="8" height="32" fill="url(#crv-shine-g)" transform="skewX(-18)" style={{ animation: `crv2-shine ${CYCLE}s linear infinite`, animationDelay: 'var(--crv-delay, 0s)', animationPlayState: 'var(--crv-play, running)' }} />
-          </g>
+          <svg width={size} height={size} viewBox="0 0 24 24" style={{ position: 'absolute', inset: 0 }}>
+            <defs>
+              <clipPath id={clip}><path d={S} /></clipPath>
+              <linearGradient id={`${clip}-g`} x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#fff" stopOpacity="0" /><stop offset=".5" stopColor="#fff" stopOpacity=".75" /><stop offset="1" stopColor="#fff" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <g clipPath={`url(#${clip})`}>
+              <rect x="-8" y="-4" width="8" height="32" fill={`url(#${clip}-g)`} transform="skewX(-18)" style={{ animation: `crv2-shine ${CYCLE}s linear infinite`, animationDelay: 'var(--crv-delay, 0s)', animationPlayState: 'var(--crv-play, running)' }} />
+            </g>
+          </svg>
         ) : null}
-      </svg>
+      </span>
     );
   }
 
@@ -17868,7 +17870,7 @@ window.KS_REFS = {
           <li><b>Both:</b> today’s words, card and button appear at once and “Go to the league” works from the first frame, so nothing waits on the crest. A tap anywhere skips to the end. One tap on the phone (a haptic) as the crest lands. With Reduce Motion on, the crest is simply there (section 3).</li>
           <li><b>Sound, your call:</b> 1 needs none (the haptic is the landing). 2 suits a short soft chime as the crest lands. Either way it plays only with the ringer on.</li>
           <li><b>Recommended: 1.</b> It keeps the moment you joined (the tick) and turns it into the thing you keep, one object, no new effects. It is also the shorter of the two. 2 is closer to the treasure moment you liked; its glow is softer on Light than in Dark, and it drops the tick.</li>
-          <li><b>Drawn flat, depth suggested</b> (a turn in perspective, a shadow as it turns): both are plain moves the app already makes, so no new library. The crest is a stand-in in style C until you pick a look.</li>
+          <li><b>Drawn flat, depth suggested</b> (a turn in perspective, a shadow as it turns): both are plain moves the app already makes, so no new library. The crest is a shield, your pick; this one is a stand-in until the full set is drawn.</li>
           <li><b>No new words.</b> The same reveal plays on “{'{name}'} is ready” for someone whose first league is one they created.</li>
           <li>{archived ? decidedNote : <><b>Answer with:</b> 1 or 2, and sound or no sound.</>}</li>
         </ul>
