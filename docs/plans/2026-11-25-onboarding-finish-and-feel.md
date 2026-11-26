@@ -1,6 +1,6 @@
 # Onboarding: finish and feel
 
-Status: Draft (for Giorgio's approval). Not built.
+Status: Approved (Giorgio, 2026-11-25: "approved both"). Not built.
 Planner, 2026-11-25. Builds on [`2026-10-14-onboarding.md`](2026-10-14-onboarding.md), which
 stays the plan for what onboarding does. This one is about how quick it is and how it feels.
 
