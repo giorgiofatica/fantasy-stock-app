@@ -37,7 +37,8 @@ The Researcher's reading of Apple's own pages (`docs/research/2026-11-25-colour-
 
 ## What the app does today
 
-Read in the code on `main` at `8ad4d60c` by a read-only audit and spot-checked.
+Read in the code on `main` at `8ad4d60c` by a read-only audit and spot-checked. The audit,
+with a file and line for every row: `docs/research/2026-11-25-colour-only-audit.md`.
 
 Already sound: a gain or a loss always carries its sign; a result is the letter W, L or T
 in neutral ink; "you" is a ring, a bolder name and the left side as well as blue; a stock's
