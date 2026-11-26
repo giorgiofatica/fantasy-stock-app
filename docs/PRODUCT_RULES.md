@@ -2473,6 +2473,33 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
     - Unchanged by the pick, as the board drew them: your own mark keeps today's blue ring,
       and no crest uses that blue. No new words were on the board.
     - The board's six samples per direction were rough. The set is drawn in full only now.
+  - **Three more crest boards, answered together** (2026-11-25, typed in the Planner's chat,
+    naming each board by its title: "crest reveal 1 / your crests in Profile, and their
+    words 2 / crests where no name is beside them B with names").
+    - **The reveal: 1, the tick turns over** (`#call-crest-reveal`). Today's tick pops in,
+      turns like a coin, and its back is the crest, which lands with a small bounce and a
+      ring of its colour (1.4 s). 2 (the crest rises in light, 1.8 s) was not picked. The
+      board asked for "1 or 2, and sound or no sound"; he named only the number, and the
+      board says 1 needs no sound, so there is none unless he asks for one. One tap on the
+      phone as it lands. No new words.
+    - **The collection: its own screen** (`#call-crest-collection`). He typed "2". The
+      board's two options are lettered A and B, in sections numbered 1 and 2, so "2" is
+      read as section 2, which is B: a "Crests" row on Profile that opens its own screen,
+      the worn crest large at the top. A (the collection on Profile itself, the Design
+      Lead's recommendation) was not picked. The Planner told him this reading the same
+      day so that he could correct it.
+    - **The words on that board are NOT approved yet.** The board asked for "A or B, and
+      yes to the words (or the ones to change)". He gave the option only. There are some
+      thirty new words (the collection's name, the count, "Wearing", seven earned names
+      with their lines, twelve starter names, three VoiceOver phrasings), too many to
+      treat as approved by a pick. Asked again.
+    - **Where a mark has no name beside it: B, with names** (`#call-crest-nameless`). On
+      the pre-draft Home's Members row each crest has the manager's first name under it,
+      yours first and in your colour. A (crests alone, as the initials are today) was not
+      picked. No new words. Unchanged by the pick, as the board ruled: your own mark at
+      the top right of every tab becomes your crest; the example people in the
+      draft-order picture keep initials; and the invite and takeover screens keep today's
+      mark, because a crest is shown only to people who share a league.
 
 - **Sign-in and sign-up screens behave like a short native form** (2026-11-09, from Giorgio's
   build 1.3.0 (12) recordings; spec `docs/plans/2026-11-09-auth-screen-layout.md`):
