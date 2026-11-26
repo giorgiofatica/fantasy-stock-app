@@ -1,7 +1,7 @@
 // Stockpile key-screens board — "Your call: the 21 crest icons" (2026-11-25).
 // Giorgio: "all 21 go in the first version". The list: docs/plans/2026-11-25-crests.md (amended table, PR #631).
-// His own icons: the dog (beat first place), the repeat symbol (back to back), the bear (worst week; style pending
-// #call-crest-bear, drawn here as the recommended face B, with A shown beside it). The other 18 are the Planner's
+// His own icons: the dog (beat first place), the repeat symbol (back to back), the bear (worst week: the friendly
+// face, his pick "B" on #call-crest-bear, 2026-11-26). The other 18 are the Planner's
 // ideas, drawn as plain bold shapes. ONE shield for all: one colour, one ink, so every crest differs by its icon's
 // SHAPE (the greyscale bar); an earned crest keeps the gold inner rim, the standard crest (everybody's) has none.
 // No names: the 21 names are not written yet. Captions describe the drawing, not the crest's name.
@@ -33,7 +33,6 @@
     bolt: F('M13.5 2 L5 13.5 H11 L10 22 L19 10 H13 Z'),
     dog: <g>{F('M7.2 7.4 C4.2 6.8 2.6 9.4 3 13.6 C3.3 16.4 5.6 16.6 6.6 14.4 L7.6 9.6 Z')}{F('M16.8 7.4 C19.8 6.8 21.4 9.4 21 13.6 C20.7 16.4 18.4 16.6 17.4 14.4 L16.4 9.6 Z')}<ellipse cx="12" cy="12.6" rx="5.6" ry="6.6" fill={INK} stroke={FIELD} strokeWidth="1" /><circle cx="9.6" cy="11.2" r="1.05" fill={FIELD} /><circle cx="14.4" cy="11.2" r="1.05" fill={FIELD} /><ellipse cx="12" cy="15.2" rx="1.7" ry="1.2" fill={FIELD} /></g>,
     bearFace: <g><circle cx="5.6" cy="6.6" r="2.9" fill={INK} /><circle cx="18.4" cy="6.6" r="2.9" fill={INK} /><ellipse cx="12" cy="13" rx="8.4" ry="7.4" fill={INK} stroke={FIELD} strokeWidth="1" /><circle cx="8.7" cy="11" r="1.2" fill={FIELD} /><circle cx="15.3" cy="11" r="1.2" fill={FIELD} /><ellipse cx="12" cy="14" rx="2" ry="1.4" fill={FIELD} /><path d="M8.4 16.2 Q12 20.2 15.6 16.2" fill="none" stroke={FIELD} strokeWidth="1.5" strokeLinecap="round" /></g>,
-    bearWalk: F('M2 13.3 C1.9 12.6 2.3 12 3.1 11.6 C3.8 10.6 4.7 9.8 5.6 9.5 L6 8.3 C6.3 7.8 7.1 7.8 7.4 8.3 L7.8 9 C8.6 7.4 9.9 6.3 11.6 6.2 C13.8 6.1 15.8 7.1 17.8 8.1 C19.8 9 21.5 10.2 21.9 12 C22.2 13 21.9 13.9 21.3 14.4 L21.1 17.6 L19.1 17.6 L18.7 15 L17.3 15.1 L17 17.6 L15 17.6 L14.9 15 C13.6 15.1 12.2 15 11 14.7 L10.7 17.6 L8.7 17.6 L8.6 14.6 L7.7 14.5 L7.4 17.6 L5.4 17.6 L5.5 14.8 C4.7 15.1 3.8 15 3.1 14.6 C2.5 14.3 2.1 13.9 2 13.3 Z'),
     cup: <g>{F('M7 3 H17 V9 A5 5 0 0 1 7 9 Z')}{S('M7 5 H4.6 C4.6 8.8 5.8 10.6 7.8 11', 2)}{S('M17 5 H19.4 C19.4 8.8 18.2 10.6 16.2 11', 2)}<rect x="11" y="13.6" width="2" height="4" fill={INK} /><rect x="7.5" y="17.4" width="9" height="3.2" rx="1" fill={INK} /></g>,
     medal: <g>{F('M6.6 2 H10.4 L13.2 9.2 H9.4 Z')}{F('M17.4 2 H13.6 L10.8 9.2 H14.6 Z')}<circle cx="12" cy="15.2" r="5.8" fill={INK} /><circle cx="12" cy="15.2" r="3.4" fill="none" stroke={FIELD} strokeWidth="1.3" /></g>,
     ladder: <g><rect x="5.6" y="2.5" width="2.4" height="19" rx="1" fill={INK} /><rect x="16" y="2.5" width="2.4" height="19" rx="1" fill={INK} />{[6, 10.6, 15.2].map((y) => <rect key={y} x="7.6" y={y} width="8.8" height="2.2" fill={INK} />)}</g>,
@@ -51,7 +50,7 @@
   const KINDS = [
     ['Standard', [['mark', 'everybody: the app’s mark (no rim)']]],
     ['Firsts', [['gavel', 'first draft'], ['flag', 'first week won'], ['hook', 'first claim won'], ['whistle', 'started a league'], ['rings', 'a friend joined']]],
-    ['In season', [['bull', 'best week'], ['bolt', 'biggest margin'], ['dog', 'beat first place (his)', true], ['bearFace', 'worst week (his; B, his pick pending)', true]]],
+    ['In season', [['bull', 'best week'], ['bolt', 'biggest margin'], ['dog', 'beat first place (his)', true], ['bearFace', 'worst week (his: the friendly face)', true]]],
     ['End of season', [['cup', 'champion'], ['medal', 'runner-up'], ['ladder', 'made the playoffs'], ['seed', 'top seed'], ['summit', 'top scorer'], ['diamond', 'unbeaten'], ['spoon', 'last place']]],
     ['Across seasons', [['repeat', 'back to back (his)', true], ['chevrons', 'three seasons'], ['globe', 'two leagues'], ['star7', 'every Mag 7 stock']]],
   ];
@@ -104,8 +103,8 @@
   function Animals({ t, grey }) {
     return (
       <Th t={t}>
-        <div role="img" aria-label={`The bull, the dog and both bears at phone size, ${t}${grey ? ', greyscale' : ''}`} style={{ background: 'var(--c-bg)', padding: 14, borderRadius: 14, display: 'flex', gap: 14, alignItems: 'end', filter: grey ? 'grayscale(1)' : 'none', width: 'max-content' }}>
-          {['bull', 'dog', 'bearFace', 'bearWalk'].map((k) => <div key={k} style={{ display: 'grid', justifyItems: 'center', gap: 4 }}><Crest k={k} size={60} /><Crest k={k} size={20} /></div>)}
+        <div role="img" aria-label={`The bull, the dog and the bear at phone size, ${t}${grey ? ', greyscale' : ''}`} style={{ background: 'var(--c-bg)', padding: 14, borderRadius: 14, display: 'flex', gap: 14, alignItems: 'end', filter: grey ? 'grayscale(1)' : 'none', width: 'max-content' }}>
+          {['bull', 'dog', 'bearFace'].map((k) => <div key={k} style={{ display: 'grid', justifyItems: 'center', gap: 4 }}><Crest k={k} size={60} /><Crest k={k} size={20} /></div>)}
         </div>
       </Th>
     );
@@ -124,14 +123,14 @@
           <span className="b-sec__n b-sec__n--code">Crests</span>
           <div>
             <h2 id="call-crest-set-h">{archived ? 'Decided: the 21 crest icons' : 'Your call: the 21 crest icons'}</h2>
-            <p className="b-job">All 21 on one shield, one icon each, none shared. Your dog, repeat symbol and bear are in; the other 18 are first drawings of the Planner’s ideas.</p>
+            <p className="b-job">All 21 on one shield, one icon each, none shared. Your dog, repeat symbol and bear (the face you picked) are in; the other 18 are first drawings of the Planner’s ideas.</p>
           </div>
         </header>
         <ul className="b-inv__notes">
           <li><b>One shield for all:</b> the same colour and the same cream ink on every crest, so each one is told apart by its icon’s shape alone, which is also what makes them all read in grey. Every crest you earn has the gold inner rim; the standard one everybody gets (the app’s three bars) has none.</li>
           <li><b>Plain, bold shapes:</b> each icon is a filled silhouette with its details cut out of it (eyes, a nose, a gem’s facets), which is what survives at 20pt. The rows below show all 21 at 20pt on the page and as your phone draws 20pt (60 pixels).</li>
-          <li><b>The three animals</b> part by outline: the bull by its horns out to the sides, the dog by long ears hanging down, the bear by round ears on top. The bear is drawn as the friendly face (B, the recommendation on its own board); if you pick the walking bear (A), it is beside them here too.</li>
-          <li><b>Hardest at 20pt</b> (judged at the 60 pixels your phone uses): every one of the 21 still differs from the others by shape, in both themes and in grey. Four are weaker: the <b>seven-point star</b> reads as a starburst, and its seven points can’t be counted at that size; the <b>globe</b>’s lines start to merge; the <b>dog</b> reads by its ears more than its face; and the <b>walking bear</b>, at that size and among these, can pass for a turtle (one more reason for the bear face).</li>
+          <li><b>The three animals</b> part by outline: the bull by its horns out to the sides, the dog by long ears hanging down, the bear by round ears on top. The bear is the friendly face, your pick (“B”).</li>
+          <li><b>Hardest at 20pt</b> (judged at the 60 pixels your phone uses): every one of the 21 still differs from the others by shape, in both themes and in grey. Three are weaker: the <b>seven-point star</b> reads as a starburst, and its seven points can’t be counted at that size; the <b>globe</b>’s lines start to merge; and the <b>dog</b> reads by its ears more than its face.</li>
           <li><b>No names.</b> The words under each icon say what it’s for (from the plan’s list); the crests’ names come later with the Planner.</li>
           <li>{archived ? decidedNote : <><b>Answer with:</b> yes to the set, or the icons to change.</>}</li>
         </ul>
@@ -153,7 +152,7 @@
 
         <Sub>The animals side by side</Sub>
         <Col>
-          {fig('al', 'Bull, dog, bear face, walking bear · Light', <Animals t="light" />, 'Each at phone 20pt (60 pixels) with the page’s 20pt under it.')}
+          {fig('al', 'Bull, dog, bear · Light', <Animals t="light" />, 'Each at phone 20pt (60 pixels) with the page’s 20pt under it.')}
           {fig('ag', 'The same in grey', <Animals t="light" grey />)}
         </Col>
       </section>
