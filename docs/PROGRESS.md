@@ -29,13 +29,16 @@ Entries begin with the Recorder's first pass.
 
 **Decided** (on `main` through docs PR #622, merged 02:24:22Z on 11-26, `0687e35f`; I read the rules text at its head, `1e95fa9f`)
 - **Onboarding ends on a keepsake crest (B)** (Giorgio, 2026-11-25, in the Planner's chat: "B"): revealed on "You're in {league}", the manager's own, shown beside their name. Not built. `docs/PRODUCT_RULES.md`, Onboarding.
-- **Crests are a collection you earn (B)** (the same chat: "B"): one on joining, more unlocked by playing, nothing bought, the manager wears one they hold. Not decided: which crests, what earns them, the look, tiers, who can see a collection, and the words. Not built.
+- **Crests are a collection you earn (B)** (the same chat: "B"): one on joining, more unlocked by playing, nothing bought, the manager wears one they hold. These two picks left open which crests, what earns them, the look, tiers, who can see a collection and the words (partly settled by the next bullet). Not built.
+- **The crests' shape** ("its fine, write the crests plan", to a drawing and six points; `docs/PRODUCT_RULES.md`, in #623): the first crest is a surprise; about eight earned ones; all visible, locked ones grey; each unlock revealed at the next open; only the worn crest is seen by others and the collection is private; no tiers, nothing to lose or buy. The look, the list and every word are still his to approve.
+- **Both onboarding plans are APPROVED** (Giorgio, 2026-11-25: "approved both"): finish-and-feel and crests (`82a174af`, in #623, not yet merged when I wrote this). Neither is built. Approving a plan is not approval of any merge, push or deploy.
 
 **Waiting on Giorgio**
-- The onboarding "finish and feel" plan (`docs/plans/2026-11-25-onboarding-finish-and-feel.md`, on `main` since #622 merged) is still a DRAFT, for his approval.
+- Merging #623. The two launch gates below (our email sender; the website file) are his steps. The crests' look, list and words come to him on the Design Lead's boards.
 
 **Next** (relayed)
-- Crests get their own plan (the Planner's to write). The Planner also corrected itself: the pre-draft Home already has a "Build your queue" button, so a new member does have a next step after joining. I checked: the label is `BUILD_YOUR_QUEUE` in `apps/mobile/lib/home/homeCopy.ts` on `main`. My records never carried the earlier claim (I searched STATUS and this log).
+- **Launch prep has two gates (part of the approved finish-and-feel plan, Part 1):** our own email sender and the website file that opens our links in the app must both be done before sign-ups open or any outside tester gets a link. The reason for the sender: by the Researcher's reading of Supabase's documentation, the built-in email reaches only the project team's own addresses, so an outside person who signs up by email would never get the confirmation (Apple and Google are unaffected; not tested against our project). Both are Giorgio's steps. STATUS §4, launch prep.
+- The Planner also corrected itself: the pre-draft Home already has a "Build your queue" button, so a new member does have a next step after joining. I checked: the label is `BUILD_YOUR_QUEUE` in `apps/mobile/lib/home/homeCopy.ts` on `main`. My records never carried the earlier claim (I searched STATUS and this log).
 
 ## 2026-11-24
 
