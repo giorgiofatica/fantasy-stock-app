@@ -2477,8 +2477,21 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
     layers. The first is that colour is never the only thing carrying a meaning, for
     everyone and with no setting (a gain has its sign, a result has its letter, two
     crests differ by more than colour). The setting then adds more for those who want it.
-  - What Apple requires is being checked by the Researcher; the answer is recorded with
-    the plan, not assumed here.
+  - What Apple requires was checked by the Researcher the same day
+    (`research/2026-11-25-colour-blind-setting.md`): nothing in its review rules; advice
+    in its design guidelines; labels on the store page that are voluntary today.
+- **The setting changes the colours and adds arrows (C)** (2026-11-25, the same chat, a
+  drawing of three options on two Standings rows: "C"). A (different colours for a gain and
+  a loss), B (the colours kept, an up or down arrow added) and C (both) were shown; the
+  Planner recommended B, and C if colours were to change at all. Before picking he asked:
+  "if blue and orange are hard for some people too, what colors work?", and was told that
+  no pair works for every kind of colour blindness, that blue against orange is the pair
+  for the large majority, and that a shape is the only thing that works for everyone.
+  - What the drawing showed, and so what C covers: with the setting on, a gain and a loss
+    are in a different pair of colours, and each carries an arrow.
+  - Not decided: the two colours themselves (the drawing's were marked as approximations);
+    the setting's name and where it sits; what else gets a shape. The plan:
+    [`plans/2026-11-25-colour-blind-setting.md`](plans/2026-11-25-colour-blind-setting.md).
 
 ## How decisions get made
 
