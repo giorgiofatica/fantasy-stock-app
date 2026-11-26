@@ -396,6 +396,7 @@
     ['call-crest-reveal', 'The crest reveal', () => window.KSCrestReveal],
     ['call-crest-collection', 'Your crests in Profile, and their words', () => window.KSCrestCollection],
     ['call-crest-nameless', 'Crests where no name is beside them', () => window.KSCrestNameless],
+    ['call-ob-moments', 'Four moments in onboarding', () => window.KSOnboardingMoments],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
@@ -606,6 +607,7 @@
           {window.KSCrestReveal ? <window.KSCrestReveal /> : null}
           {window.KSCrestCollection ? <window.KSCrestCollection /> : null}
           {window.KSCrestNameless ? <window.KSCrestNameless /> : null}
+          {window.KSOnboardingMoments ? <window.KSOnboardingMoments /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
