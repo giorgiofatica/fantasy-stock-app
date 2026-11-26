@@ -23,6 +23,23 @@ verified by query, build number with its commit).
 
 Entries begin with the Recorder's first pass.
 
+## 2026-11-25
+
+(Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so.)
+
+**Decided** (on `main` through docs PR #622, merged 02:24:22Z on 11-26, `0687e35f`; I read the rules text at its head, `1e95fa9f`)
+- **Onboarding ends on a keepsake crest (B)** (Giorgio, 2026-11-25, in the Planner's chat: "B"): revealed on "You're in {league}", the manager's own, shown beside their name. Not built. `docs/PRODUCT_RULES.md`, Onboarding.
+- **Crests are a collection you earn (B)** (the same chat: "B"): one on joining, more unlocked by playing, nothing bought, the manager wears one they hold. These two picks left open which crests, what earns them, the look, tiers, who can see a collection and the words (partly settled by the next bullet). Not built.
+- **The crests' shape** ("its fine, write the crests plan", to a drawing and six points; `docs/PRODUCT_RULES.md`, in #623): the first crest is a surprise; about eight earned ones; all visible, locked ones grey; each unlock revealed at the next open; only the worn crest is seen by others and the collection is private; no tiers, nothing to lose or buy. The look, the list and every word are still his to approve.
+- **Both onboarding plans are APPROVED** (Giorgio, 2026-11-25: "approved both"): finish-and-feel and crests (`82a174af`, in #623, not yet merged when I wrote this). Neither is built. Approving a plan is not approval of any merge, push or deploy.
+
+**Waiting on Giorgio**
+- Merging #623. The two launch gates below (our email sender; the website file) are his steps. The crests' look, list and words come to him on the Design Lead's boards.
+
+**Next** (relayed)
+- **Launch prep has two gates (part of the approved finish-and-feel plan, Part 1):** our own email sender and the website file that opens our links in the app must both be done before sign-ups open or any outside tester gets a link. The reason for the sender: by the Researcher's reading of Supabase's documentation, the built-in email reaches only the project team's own addresses, so an outside person who signs up by email would never get the confirmation (Apple and Google are unaffected; not tested against our project). Both are Giorgio's steps. STATUS §4, launch prep.
+- The Planner also corrected itself: the pre-draft Home already has a "Build your queue" button, so a new member does have a next step after joining. I checked: the label is `BUILD_YOUR_QUEUE` in `apps/mobile/lib/home/homeCopy.ts` on `main`. My records never carried the earlier claim (I searched STATUS and this log).
+
 ## 2026-11-24
 
 (Times are UTC; this day began at 08:00Z in Pacific time (UTC-8). The Orchestrator's account unless marked; where I read it on GitHub, I say so.)
@@ -30,7 +47,7 @@ Entries begin with the Recorder's first pass.
 **Shipped**
 - **#611 merged: the db-snapshot re-captured after the claims push is on `main` (merge `c44393cc` at 09:28:36Z by the commit's time, head `4cb91c5a`; Giorgio merged it; I read the merge and the files).** The snapshot is stamped 2026-11-24T06:54:11Z and holds 46 tables, 155 functions and 16 cron jobs; the map's drift panel counts 37 rows (6 medium, 31 low, none high), which I counted. The Orchestrator's note gave the merge time as 07:2xZ; the merge commit says 09:28:36Z, which I use. The snapshot now knows the claims functions and tables, so they no longer read "ABSENT from prod".
 - **The stock-refresh guards are live (#616, merged 20:51:13Z, `b6cbbbe6`; the Orchestrator's account of Giorgio's runs; I ran none of it).** `db push` of `20261212100000` (two new columns on `symbols`, no grants; the dry run listed only it) and then `enrich-symbols` at about 22:29Z, 9 of 9 files byte-identical; table and column grants unchanged, held 0 and dropped 0 before the deploy, effect test clean. The first run of the new code was not yet shown when I wrote this (the 22:30Z run was the old version); see the next bullet.
-- **Later, about 23:00Z: the guards' runs passed their check, and the once-a-day retry shipped (#619, merged 22:52:45Z, `8ad4d60c`; the Orchestrator's account of Giorgio's deploy and log exports).** The 22:40Z and 22:50Z runs of the new code were clean (50 judged, nothing held or dropped, about 30 s of a 110 s limit). After the #619 deploy (9 of 9 files byte-identical), the 23:00Z run priced all 50 stocks (24 to 26 a run before) and found more sizes (28 against 7 to 16). That is one run. #620 (my record) merged 22:56:13Z (`c3d94685`). This replaces the "not yet shown" and "#619 open" wording in the bullets around it.
+- **Later, about 23:00Z: the guards' runs passed their check, and the once-a-day retry shipped (#619, merged 22:52:45Z, `8ad4d60c`; the Orchestrator's account of Giorgio's deploy and log exports).** The 22:40Z and 22:50Z runs of the new code were clean (50 judged, nothing held or dropped, about 30 s of a 110 s limit). After the #619 deploy (9 of 9 files byte-identical), the 23:00Z run priced all 50 stocks (24 to 26 a run before) and found more sizes (28 against 7 to 16). That is one run. #620 (my record) merged 22:56:13Z (`c3d94685`), and #621, the record of this bullet, at 23:08:30Z (`05642fde`). This replaces the "not yet shown" and "#619 open" wording in the bullets around it.
 - **The database went over the free plan's size limit and was cleared by hand (the Orchestrator's account).** 0.812 GB of 0.5 GB: the 2-second draft sweep's run history (535 MB) and 198 MB of dead space in `net._http_response`. Giorgio deleted the sweep's rows older than an hour and ran `VACUUM FULL`: 37 MB. **The lasting fix is not built; it refills at about 75 MB a day** (by my arithmetic, back at the limit around 11-30; STATUS item 47).
 - **The never-priced check held up:** unpriced stocks 388 at 18:54:04Z, 385 at 22:31:36Z, none never asked, each asked again about every 2.5 hours. The once-a-day retry was then PR #619, open.
 - **My claims record landed in two parts.** Three commits rode in on #610 (07:02:21Z); the fourth, the one saying the claims server is live, did not land with #611 and was re-based onto `main` as its own small docs PR (the Orchestrator's account).

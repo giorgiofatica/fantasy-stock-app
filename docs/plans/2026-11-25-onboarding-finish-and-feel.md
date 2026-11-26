@@ -1,6 +1,6 @@
 # Onboarding: finish and feel
 
-Status: Draft (for Giorgio's approval). Not built.
+Status: Approved (Giorgio, 2026-11-25: "approved both"). Not built.
 Planner, 2026-11-25. Builds on [`2026-10-14-onboarding.md`](2026-10-14-onboarding.md), which
 stays the plan for what onboarding does. This one is about how quick it is and how it feels.
 
@@ -70,10 +70,16 @@ path); two "Get started" in a row on a cold install; and three waits nobody has 
 
 ## Part 1: fixes
 
-1. **The link comes first.** Nothing here matters to a friend whose link opens a web page
-   that goes nowhere. Launch prep stays its own parked list and its own steps for Giorgio;
-   this plan names it as the precondition for letting anyone outside tap a link, and adds
-   nothing to it.
+1. **The link comes first, and so does email that arrives.** Nothing here matters to a
+   friend whose link opens a web page that goes nowhere, or who picks "Use email" and
+   never gets the message. Two gates, both already on the launch-prep list, both his
+   steps: the website serving the file that lets an iPhone open our links in the app; and
+   our own email sender. The built-in sender reaches only addresses on the project's own
+   team and a couple of messages an hour (`docs/STATUS.md`; confirmed again by the
+   Researcher's reading of the provider's limits, 2026-11-25), so an outside friend who
+   signs up by email would wait for a confirmation that never comes. Apple and Google are
+   not affected. Launch prep stays its own parked list; this plan names these two as the
+   precondition for letting anyone outside sign up, and adds nothing to them.
 2. **The three waits get a budget and a measurement.** The join after the username shows a
    spinner with no words (`join-league.tsx`). "Keep" stays grey for up to 6 seconds while a
    name is made (`UsernamePicker.tsx`, `SUGGEST_TIMEOUT_MS`). Home shows only its header
