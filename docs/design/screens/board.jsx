@@ -394,6 +394,7 @@
   const OPEN = [
     ['call-ob-moments', 'Four moments in onboarding', () => window.KSOnboardingMoments],
     ['call-crest-bear', 'The worst-week bear', () => window.KSCrestBear],
+    ['call-crest-set', 'The 21 crest icons', () => window.KSCrestSet],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
@@ -610,6 +611,7 @@
           {window.KSCrestNameless ? <window.KSCrestNameless /> : null}
           {window.KSOnboardingMoments ? <window.KSOnboardingMoments /> : null}
           {window.KSCrestBear ? <window.KSCrestBear /> : null}
+          {window.KSCrestSet ? <window.KSCrestSet /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
