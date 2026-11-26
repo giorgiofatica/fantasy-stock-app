@@ -2381,6 +2381,24 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
 - **One no-league empty state on every tab** (Home, Matchup, League, Portfolio): Create a
   league / Join with a code (recommendation taken).
 
+- **How onboarding moves: two of four moments picked** (2026-11-25, typed in the Planner's
+  chat in answer to the Design Lead's moving board `#call-ob-moments`, which showed four
+  moments of the invited path in two versions each: "1b / 2b / i dont get 3 and its purpose
+  / what about the progress bar up top? if that gets added to this screen then the sideways
+  motion."). The Design Lead recommended A for all four.
+  - **1, the arrival: B.** The inviter's mark drops in with a ripple, then the heading,
+    then the buttons (about a second). A (the three in order, 0.8 s) was not picked.
+  - **2, the username: B.** The letters shuffle and lock from left to right. A (the name
+    spins like a reel) was not picked. Either way the roll lasts only as long as the name
+    takes to arrive and then settles.
+  - **3, taking your seat: not picked.** He asked what it is for.
+  - **4, between steps: not picked.** He asked about a progress bar at the top, and said
+    that if one is added, the steps should move sideways. There is no progress bar on
+    these screens today; the board has the league's name at the top. So this goes back to
+    the Design Lead to draw with a bar and a sideways move, beside the version without.
+  - **Not answered:** whether "Change" on the username screen rolls another name (the
+    board) or opens the field for typing (today, as approved on 2026-10-14).
+
 - **Onboarding ends on something the new manager keeps (B)** (2026-11-25, typed in the
   Planner's chat in answer to a drawing of two options: "B"). It came from his review of a
   screen recording of another app's onboarding (Pure: Poker & Mahjong; the recording is kept
