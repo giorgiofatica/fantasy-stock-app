@@ -394,6 +394,7 @@
   const OPEN = [
     ['call-crest-look', 'What a crest looks like', () => window.KSCrestLook],
     ['call-crest-reveal', 'The crest reveal', () => window.KSCrestReveal],
+    ['call-crest-collection', 'Your crests in Profile, and their words', () => window.KSCrestCollection],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
@@ -602,6 +603,7 @@
           {window.KSLeagueActivity ? <window.KSLeagueActivity /> : null}
           {window.KSCrestLook ? <window.KSCrestLook /> : null}
           {window.KSCrestReveal ? <window.KSCrestReveal /> : null}
+          {window.KSCrestCollection ? <window.KSCrestCollection /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
