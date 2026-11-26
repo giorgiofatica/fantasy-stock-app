@@ -2531,6 +2531,14 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       ideas): "beat manager in first place should be a dog bc underdog" and "back2back
       champ should be a repeat or replay symbol". So: a dog for beating the manager in
       first place, and a repeat symbol for the back-to-back champion.
+    - **The worst week is a bear, drawn whole** (the same chat). The Planner had offered a
+      bear, then swapped it for an anchor when the Design Lead warned that a bear's head
+      and a dog's head could look alike at the smallest size. He asked "the worst week is a
+      bear no?", and then: "dont do a bear head, do a small full bear like the one of the
+      CA flag". So: a bear for the worst performance of the week, as a small whole bear
+      walking in profile, not a head. The California flag is the reference for the pose;
+      the drawing is our own. A bull for the best week was the Planner's idea beside it
+      and he did not object; it is not his pick.
     - The other icons on that list were the Planner's ideas and are not picked. From the
       Design Lead, the same day: every icon must read at the smallest size a mark is
       drawn, so each is a plain, bold shape, and with one shield for everyone the icon
