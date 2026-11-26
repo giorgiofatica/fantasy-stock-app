@@ -392,6 +392,7 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
+    ['call-crest-look', 'What a crest looks like', () => window.KSCrestLook],
   ];
   // A section drawn inside another call's view: its #id opens that call, then scrolls to it.
   const ALIAS = { 'rule12-questions': 'rule12-info', 'rule12-copy-call': 'rule12-info' };
@@ -598,6 +599,7 @@
           {window.KSSearchStar ? <window.KSSearchStar /> : null}
           {window.KSClaimsOrder ? <window.KSClaimsOrder /> : null}
           {window.KSLeagueActivity ? <window.KSLeagueActivity /> : null}
+          {window.KSCrestLook ? <window.KSCrestLook /> : null}
           {window.KSBuyTop ? <window.KSBuyTop /> : null}
           {window.KSDraftCard ? <window.KSDraftCard /> : null}
           {window.KSQueueCard ? <window.KSQueueCard /> : null}
