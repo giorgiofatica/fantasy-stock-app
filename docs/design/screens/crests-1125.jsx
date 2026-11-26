@@ -80,6 +80,31 @@
     );
   }
 
+  // ── Shared with the later crest boards (picked 2026-11-25: A, the shield). Any two shields differ by MORE than
+  // colour: the split, the symbol, and light against dark. An earned crest carries a bordure (an inner rim) in a
+  // heavier gold line, so it reads as earned in greyscale too, not by the gold alone. ──
+  const PARTS = { plain: null, pale: PART[1], fess: PART[2], bend: PART[3], chevron: PART[4], quarterly: PART[5], chief: 'M0 0 H24 V8.2 H0 Z', band: 'M0 9 H24 V14.6 H0 Z' };
+  const PALI = { teal: 0, rust: 1, gold: 2, violet: 3, green: 4, crimson: 5, slate: 6, pink: 7, olive: 8, sand: 9, orange: 10, ink: 11 };
+  let sid = 0;
+  function KSShield({ tone, sym, part = 'plain', size, earned, locked }) {
+    const [fill, deep, ink] = PAL[PALI[tone]];
+    const id = `ks-sh-${sid++}`;
+    const d = PARTS[part];
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: `0 0 ${size}px`, overflow: 'visible', filter: locked ? 'grayscale(1)' : undefined, opacity: locked ? 0.42 : 1 }}>
+        <defs><clipPath id={id}><path d={SHIELD} /></clipPath></defs>
+        <path d={SHIELD} fill={fill} />
+        {d ? <path d={d} fill={deep} clipPath={`url(#${id})`} /> : null}
+        <g transform={earned ? 'translate(6.6 5.6) scale(0.45)' : 'translate(5.6 4.6) scale(0.53)'}><path d={SYM[sym]} fill={ink} fillRule="evenodd" /></g>
+        {earned ? <path d={SHIELD} fill="none" stroke="#E3B341" strokeWidth="2.2" transform="translate(12 12.2) scale(0.8) translate(-12 -12.2)" /> : null}
+        <path d={SHIELD} fill="none" stroke={earned ? '#E3B341' : 'rgba(0,0,0,.28)'} strokeWidth={earned ? 1.4 : 0.8} />
+      </svg>
+    );
+  }
+  window.KSShield = KSShield;
+  window.KSShieldOutline = SHIELD;
+  window.KSShieldSym = SYM;
+
   // B · Roundel: the disc a mark is today (same footprint, so no screen moves), a thick ring in the deep tone, the symbol.
   function Roundel({ c, size }) {
     const [fill, deep, ink] = PAL[c.p];
@@ -276,7 +301,7 @@
 
         {DIRS.map((d, di) => (
           <React.Fragment key={d.key}>
-            <Sub>{`${di + 1} · ${d.name}`}</Sub>
+            <Sub>{archived && d.key !== 'a' ? <><s>{`${di + 1} · ${d.name}`}</s> · not picked</> : archived ? `${di + 1} · ${d.name} · picked` : `${di + 1} · ${d.name}`}</Sub>
             <p style={{ margin: '0 0 12px', maxWidth: 760, color: 'var(--c-text-2)' }}>{d.about}</p>
             <Grid cols="two">{[
               figPlain(`${d.key}s1`, `${d.name} · Light`, <Samples t="light" dir={d} />, 'Large: 64pt. Below: the same six at 20pt, the size on “Owned by …”.'),
@@ -300,6 +325,6 @@
     );
   }
 
-  window.KSCrestLook = () => <CallCrestLook />;
-  window.KSCrestLookArchived = () => null;
+  window.KSCrestLook = () => null;
+  window.KSCrestLookArchived = () => <CallCrestLook archived decidedNote={<><b>Decided 2026-11-25, in his words:</b> “i like A the most”. A, the shield, over the recommended C; B (Roundel) and C (Patch) not picked. He saw the colour-blind check before picking, so the full set carries it: any two shields differ by more than colour (the split, the symbol, light against dark), an earned crest is marked inside the shield, and the set is checked in greyscale. Your mark keeps today’s blue ring; no crest uses that blue.</>} />;
 })();
