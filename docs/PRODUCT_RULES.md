@@ -2381,6 +2381,24 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
 - **One no-league empty state on every tab** (Home, Matchup, League, Portfolio): Create a
   league / Join with a code (recommendation taken).
 
+- **How onboarding moves: two of four moments picked** (2026-11-25, typed in the Planner's
+  chat in answer to the Design Lead's moving board `#call-ob-moments`, which showed four
+  moments of the invited path in two versions each: "1b / 2b / i dont get 3 and its purpose
+  / what about the progress bar up top? if that gets added to this screen then the sideways
+  motion."). The Design Lead recommended A for all four.
+  - **1, the arrival: B.** The inviter's mark drops in with a ripple, then the heading,
+    then the buttons (about a second). A (the three in order, 0.8 s) was not picked.
+  - **2, the username: B.** The letters shuffle and lock from left to right. A (the name
+    spins like a reel) was not picked. Either way the roll lasts only as long as the name
+    takes to arrive and then settles.
+  - **3, taking your seat: not picked.** He asked what it is for.
+  - **4, between steps: not picked.** He asked about a progress bar at the top, and said
+    that if one is added, the steps should move sideways. There is no progress bar on
+    these screens today; the board has the league's name at the top. So this goes back to
+    the Design Lead to draw with a bar and a sideways move, beside the version without.
+  - **Not answered:** whether "Change" on the username screen rolls another name (the
+    board) or opens the field for typing (today, as approved on 2026-10-14).
+
 - **Onboarding ends on something the new manager keeps (B)** (2026-11-25, typed in the
   Planner's chat in answer to a drawing of two options: "B"). It came from his review of a
   screen recording of another app's onboarding (Pure: Poker & Mahjong; the recording is kept
@@ -2440,6 +2458,50 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
       placeholders. What a crest looks like, the list, and every word are still his to
       approve, on the Design Lead's boards.
     - The plan: [`plans/2026-11-25-crests.md`](plans/2026-11-25-crests.md).
+  - **A crest is a shield (A)** (2026-11-25, typed in the Planner's chat in answer to the
+    Design Lead's board `#call-crest-look`: "i like A the most"). A, Shield: one outline
+    for everyone, a split field in the crest's colours, a symbol on top. B (Roundel: today's
+    round disc as a club badge) and C (Patch: each starter with its own outline) were not
+    picked. The Design Lead and the Planner both recommended C.
+    - Why C was recommended, kept here because the pick does not make it go away: with no
+      red or no green, four of the board's ten colours (rust, gold, crimson, orange) turn
+      a similar olive-yellow, and in A two such crests are told apart only by the split of
+      the field and the symbol. He was told this before he picked.
+    - So the full set is drawn as shields, and it is the Design Lead's job to make two
+      shields differ by more than colour: the way the field is split, the symbol, light
+      against dark. The colour-blind check on the board is run again on the full set.
+    - Unchanged by the pick, as the board drew them: your own mark keeps today's blue ring,
+      and no crest uses that blue. No new words were on the board.
+    - The board's six samples per direction were rough. The set is drawn in full only now.
+  - **Three more crest boards, answered together** (2026-11-25, typed in the Planner's chat,
+    naming each board by its title: "crest reveal 1 / your crests in Profile, and their
+    words 2 / crests where no name is beside them B with names").
+    - **The reveal: 1, the tick turns over** (`#call-crest-reveal`). Today's tick pops in,
+      turns like a coin, and its back is the crest, which lands with a small bounce and a
+      ring of its colour (1.4 s). 2 (the crest rises in light, 1.8 s) was not picked. The
+      board asked for "1 or 2, and sound or no sound"; he named only the number, and the
+      board says 1 needs no sound, so there is none unless he asks for one. One tap on the
+      phone as it lands. No new words.
+    - **The collection: its own screen** (`#call-crest-collection`). He typed "2". The
+      board's two options are lettered A and B, in sections numbered 1 and 2, so "2" is
+      read as section 2, which is B: a "Crests" row on Profile that opens its own screen,
+      the worn crest large at the top. A (the collection on Profile itself, the Design
+      Lead's recommendation) was not picked. The Planner told him this reading the same
+      day so that he could correct it, and he confirmed it: "let me clear that up, B crest
+      row and A crest reveal". ("A crest reveal" is read as the first of the reveal's two
+      versions, which the board numbers 1, the same answer as his "crest reveal 1".)
+    - **The words on that board are NOT approved yet.** The board asked for "A or B, and
+      yes to the words (or the ones to change)". He gave the option only. There are some
+      thirty new words (the collection's name, the count, "Wearing", seven earned names
+      with their lines, twelve starter names, three VoiceOver phrasings), too many to
+      treat as approved by a pick. Asked again.
+    - **Where a mark has no name beside it: B, with names** (`#call-crest-nameless`). On
+      the pre-draft Home's Members row each crest has the manager's first name under it,
+      yours first and in your colour. A (crests alone, as the initials are today) was not
+      picked. No new words. Unchanged by the pick, as the board ruled: your own mark at
+      the top right of every tab becomes your crest; the example people in the
+      draft-order picture keep initials; and the invite and takeover screens keep today's
+      mark, because a crest is shown only to people who share a league.
 
 - **Sign-in and sign-up screens behave like a short native form** (2026-11-09, from Giorgio's
   build 1.3.0 (12) recordings; spec `docs/plans/2026-11-09-auth-screen-layout.md`):
