@@ -2527,6 +2527,14 @@ Research: [`design/reviews/onboarding-best-practices-2026-10-14.md`](design/revi
     different leagues; and, added by him, having drafted or picked up every one of the
     "Mag 7" stocks.
   - **Every crest has its own icon**, and no two share one.
+    - Two icons are his own (2026-11-25, the same chat, on the Planner's list of icon
+      ideas): "beat manager in first place should be a dog bc underdog" and "back2back
+      champ should be a repeat or replay symbol". So: a dog for beating the manager in
+      first place, and a repeat symbol for the back-to-back champion.
+    - The other icons on that list were the Planner's ideas and are not picked. From the
+      Design Lead, the same day: every icon must read at the smallest size a mark is
+      drawn, so each is a plain, bold shape, and with one shield for everyone the icon
+      and the split of the field are what tell two crests apart.
   - **What this replaces.** The standard crest replaces the surprise starter drawn from a
     set of twelve (point 1 of the shape above, and the twelve starter names on the
     collection board). The seven earned crests of the collection board, their names and
