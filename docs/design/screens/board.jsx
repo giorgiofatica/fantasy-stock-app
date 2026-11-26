@@ -392,7 +392,6 @@
   // memory and reloads blank (Giorgio's report, 2026-11-11). An entry with no component falls
   // back to mounting the whole calls block.
   const OPEN = [
-    ['call-crest-collection', 'Your crests in Profile, and their words', () => window.KSCrestCollection],
     ['call-crest-nameless', 'Crests where no name is beside them', () => window.KSCrestNameless],
     ['call-ob-moments', 'Four moments in onboarding', () => window.KSOnboardingMoments],
   ];
@@ -401,6 +400,7 @@
   // ── The Archive: every decided call, newest first, stamped. A call moves here the moment
   // its decision is recorded in PRODUCT_RULES. `render` resolves to the section's component. ──
   const ARCHIVE = [
+    { id: 'call-crest-collection', title: 'Your crests in Profile, and their words', decision: '"your crests in Profile, and their words 2", then "let me clear that up, B crest row and A crest reveal". B: a "Crests" row on Profile opening its own screen (the worn crest large on top, the eight below, locked in grey). A not picked. The WORDS are not approved: every word on the board is still a proposal, open for his yes.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestCollectionArchived },
     { id: 'call-crest-reveal', title: 'The crest reveal', decision: '"crest reveal 1", then "let me clear that up, B crest row and A crest reveal" (A = the first version). 1: on "You\u2019re in" today\u2019s tick turns over like a coin into your crest (1.4 s), a haptic as it lands; tap to skip; Reduce Motion shows the crest simply there. No sound unless he asks. 2 (the crest rising in light) not picked.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestRevealArchived },
     { id: 'call-crest-look', title: 'What a crest looks like', decision: '"i like A the most". A, the shield (one outline for all, the field split, a symbol on top), over the recommended C. B (Roundel) and C (Patch) not picked. The full set must still differ by more than colour (split, symbol, light against dark), mark earned crests inside the shield, and pass a greyscale check; your mark keeps the blue ring.', date: '2026-11-25', rec: 'PRODUCT_RULES (the Planner)', render: () => window.KSCrestLookArchived },
     { id: 'call-league-activity', title: 'What went through, the way ESPN shows it', decision: '"A, and yes to the words". ESPN\u2019s two screens: a new Activity tab on League (every buy and sell, newest first, under its day) with a "Claims report" row opening a day picker and one card per manager in the order served, "Priority: 1st", Bought and Sold. Approved words: Activity; Bought, Sold; "Priority: 1st"; Claims report; "No buys or sells yet." B\u2019s "Claims" heading is not used.', date: '2026-11-23', rec: 'PRODUCT_RULES (the Planner, e71ed163)', render: () => window.KSLeagueActivityArchived },
